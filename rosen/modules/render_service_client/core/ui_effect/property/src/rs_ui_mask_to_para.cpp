@@ -29,117 +29,96 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-std::shared_ptr<MaskPara> ConvertRippleMaskToPara(std::shared_ptr<RSNGMaskBase> mask)
+std::shared_ptr<MaskPara> ConvertRippleMaskToPara(const RSNGMaskBase& mask)
 {
-    if (!mask) {
-        return nullptr;
-    }
-    auto rippleMask = std::static_pointer_cast<RSNGRippleMask>(mask);
+    const auto& rippleMask = static_cast<const RSNGRippleMask&>(mask);
     auto para = std::make_shared<RippleMaskPara>();
-    Vector2f center = rippleMask->Getter<RippleMaskCenterTag>()->Get();
+    Vector2f center = rippleMask.Getter<RippleMaskCenterTag>()->Get();
     para->SetCenter(center);
-    para->SetRadius(rippleMask->Getter<RippleMaskRadiusTag>()->Get());
-    para->SetWidth(rippleMask->Getter<RippleMaskWidthTag>()->Get());
-    para->SetWidthCenterOffset(rippleMask->Getter<RippleMaskOffsetTag>()->Get());
+    para->SetRadius(rippleMask.Getter<RippleMaskRadiusTag>()->Get());
+    para->SetWidth(rippleMask.Getter<RippleMaskWidthTag>()->Get());
+    para->SetWidthCenterOffset(rippleMask.Getter<RippleMaskOffsetTag>()->Get());
     return para;
 }
 
-std::shared_ptr<MaskPara> ConvertRadialGradientMaskToPara(std::shared_ptr<RSNGMaskBase> mask)
+std::shared_ptr<MaskPara> ConvertRadialGradientMaskToPara(const RSNGMaskBase& mask)
 {
-    if (!mask) {
-        return nullptr;
-    }
-    auto radialGradientMask = std::static_pointer_cast<RSNGRadialGradientMask>(mask);
+    const auto& radialGradientMask = static_cast<const RSNGRadialGradientMask&>(mask);
     auto para = std::make_shared<RadialGradientMaskPara>();
-    Vector2f center = radialGradientMask->Getter<RadialGradientMaskCenterTag>()->Get();
+    Vector2f center = radialGradientMask.Getter<RadialGradientMaskCenterTag>()->Get();
     para->SetCenter(center);
-    para->SetRadiusX(radialGradientMask->Getter<RadialGradientMaskRadiusXTag>()->Get());
-    para->SetRadiusY(radialGradientMask->Getter<RadialGradientMaskRadiusYTag>()->Get());
-    para->SetColors(radialGradientMask->Getter<RadialGradientMaskColorsTag>()->Get());
-    para->SetPositions(radialGradientMask->Getter<RadialGradientMaskPositionsTag>()->Get());
+    para->SetRadiusX(radialGradientMask.Getter<RadialGradientMaskRadiusXTag>()->Get());
+    para->SetRadiusY(radialGradientMask.Getter<RadialGradientMaskRadiusYTag>()->Get());
+    para->SetColors(radialGradientMask.Getter<RadialGradientMaskColorsTag>()->Get());
+    para->SetPositions(radialGradientMask.Getter<RadialGradientMaskPositionsTag>()->Get());
     return para;
 }
 
-std::shared_ptr<MaskPara> ConvertPixelMapMaskToPara(std::shared_ptr<RSNGMaskBase> mask)
+std::shared_ptr<MaskPara> ConvertPixelMapMaskToPara(const RSNGMaskBase& mask)
 {
-    if (!mask) {
-        return nullptr;
-    }
-    auto pixelMapMask = std::static_pointer_cast<RSNGPixelMapMask>(mask);
+    const auto& pixelMapMask = static_cast<const RSNGPixelMapMask&>(mask);
     auto para = std::make_shared<PixelMapMaskPara>();
-    auto pixelMap = pixelMapMask->Getter<PixelMapMaskImageTag>()->Get();
+    auto pixelMap = pixelMapMask.Getter<PixelMapMaskImageTag>()->Get();
     para->SetPixelMap(pixelMap);
-    Vector4f src = pixelMapMask->Getter<PixelMapMaskSrcTag>()->Get();
+    Vector4f src = pixelMapMask.Getter<PixelMapMaskSrcTag>()->Get();
     para->SetSrc(src);
-    Vector4f dst = pixelMapMask->Getter<PixelMapMaskDstTag>()->Get();
+    Vector4f dst = pixelMapMask.Getter<PixelMapMaskDstTag>()->Get();
     para->SetDst(dst);
-    Vector4f fillColor = pixelMapMask->Getter<PixelMapMaskFillColorTag>()->Get();
+    Vector4f fillColor = pixelMapMask.Getter<PixelMapMaskFillColorTag>()->Get();
     para->SetFillColor(fillColor);
     return para;
 }
 
-std::shared_ptr<MaskPara> ConvertWaveGradientMaskToPara(std::shared_ptr<RSNGMaskBase> mask)
+std::shared_ptr<MaskPara> ConvertWaveGradientMaskToPara(const RSNGMaskBase& mask)
 {
-    if (!mask) {
-        return nullptr;
-    }
-    auto waveGradientMask = std::static_pointer_cast<RSNGWaveGradientMask>(mask);
+    const auto& waveGradientMask = static_cast<const RSNGWaveGradientMask&>(mask);
     auto para = std::make_shared<WaveGradientMaskPara>();
-    Vector2f waveCenter = waveGradientMask->Getter<WaveGradientMaskWaveCenterTag>()->Get();
+    Vector2f waveCenter = waveGradientMask.Getter<WaveGradientMaskWaveCenterTag>()->Get();
     para->SetWaveCenter(waveCenter);
-    para->SetWaveWidth(waveGradientMask->Getter<WaveGradientMaskWaveWidthTag>()->Get());
-    para->SetPropagationRadius(waveGradientMask->Getter<WaveGradientMaskPropagationRadiusTag>()->Get());
-    para->SetBlurRadius(waveGradientMask->Getter<WaveGradientMaskBlurRadiusTag>()->Get());
-    para->SetTurbulenceStrength(waveGradientMask->Getter<WaveGradientMaskTurbulenceStrengthTag>()->Get());
+    para->SetWaveWidth(waveGradientMask.Getter<WaveGradientMaskWaveWidthTag>()->Get());
+    para->SetPropagationRadius(waveGradientMask.Getter<WaveGradientMaskPropagationRadiusTag>()->Get());
+    para->SetBlurRadius(waveGradientMask.Getter<WaveGradientMaskBlurRadiusTag>()->Get());
+    para->SetTurbulenceStrength(waveGradientMask.Getter<WaveGradientMaskTurbulenceStrengthTag>()->Get());
     return para;
 }
 
-std::shared_ptr<MaskPara> ConvertWaveDisturbanceMaskToPara(std::shared_ptr<RSNGMaskBase> mask)
+std::shared_ptr<MaskPara> ConvertWaveDisturbanceMaskToPara(const RSNGMaskBase& mask)
 {
-    if (!mask) {
-        return nullptr;
-    }
-    auto waveDisturbanceMask = std::static_pointer_cast<RSNGWaveDisturbanceMask>(mask);
+    const auto& waveDisturbanceMask = static_cast<const RSNGWaveDisturbanceMask&>(mask);
     auto para = std::make_shared<WaveDisturbanceMaskPara>();
-    para->SetProgress(waveDisturbanceMask->Getter<WaveDisturbanceMaskProgressTag>()->Get());
-    Vector2f clickPos = waveDisturbanceMask->Getter<WaveDisturbanceMaskClickPosTag>()->Get();
+    para->SetProgress(waveDisturbanceMask.Getter<WaveDisturbanceMaskProgressTag>()->Get());
+    Vector2f clickPos = waveDisturbanceMask.Getter<WaveDisturbanceMaskClickPosTag>()->Get();
     para->SetClickPos(clickPos);
-    Vector2f waveRD = waveDisturbanceMask->Getter<WaveDisturbanceMaskWaveRDTag>()->Get();
+    Vector2f waveRD = waveDisturbanceMask.Getter<WaveDisturbanceMaskWaveRDTag>()->Get();
     para->SetWaveRD(waveRD);
-    Vector3f waveLWH = waveDisturbanceMask->Getter<WaveDisturbanceMaskWaveLWHTag>()->Get();
+    Vector3f waveLWH = waveDisturbanceMask.Getter<WaveDisturbanceMaskWaveLWHTag>()->Get();
     para->SetWaveLWH(waveLWH);
     return para;
 }
 
-std::shared_ptr<MaskPara> ConvertImageMaskToPara(std::shared_ptr<RSNGMaskBase> mask)
+std::shared_ptr<MaskPara> ConvertImageMaskToPara(const RSNGMaskBase& mask)
 {
-    if (!mask) {
-        return nullptr;
-    }
-    auto imageMask = std::static_pointer_cast<RSNGImageMask>(mask);
+    const auto& imageMask = static_cast<const RSNGImageMask&>(mask);
     auto para = std::make_shared<ImageMaskPara>();
-    auto pixelMap = imageMask->Getter<ImageMaskImageTag>()->Get();
+    auto pixelMap = imageMask.Getter<ImageMaskImageTag>()->Get();
     para->SetPixelMap(pixelMap);
     return para;
 }
 
-std::shared_ptr<MaskPara> ConvertUseEffectMaskToPara(std::shared_ptr<RSNGMaskBase> mask)
+std::shared_ptr<MaskPara> ConvertUseEffectMaskToPara(const RSNGMaskBase& mask)
 {
-    if (!mask) {
-        return nullptr;
-    }
-    auto useEffectMask = std::static_pointer_cast<RSNGUseEffectMask>(mask);
+    const auto& useEffectMask = static_cast<const RSNGUseEffectMask&>(mask);
     auto para = std::make_shared<UseEffectMaskPara>();
-    auto pixelMap = useEffectMask->Getter<UseEffectMaskImageTag>()->Get();
+    auto pixelMap = useEffectMask.Getter<UseEffectMaskImageTag>()->Get();
     para->SetPixelMap(pixelMap);
-    para->SetUseEffect(useEffectMask->Getter<UseEffectMaskUseEffectTag>()->Get());
+    para->SetUseEffect(useEffectMask.Getter<UseEffectMaskUseEffectTag>()->Get());
     return para;
 }
 } // namespace
 
 std::shared_ptr<MaskPara> RSNGMaskToParaHelper::ConvertMaskToPara(std::shared_ptr<RSNGMaskBase> mask)
 {
-    using MaskToParaFunc = std::function<std::shared_ptr<MaskPara>(std::shared_ptr<RSNGMaskBase>)>;
+    using MaskToParaFunc = std::function<std::shared_ptr<MaskPara>(const RSNGMaskBase&)>;
     static std::unordered_map<RSNGEffectType, MaskToParaFunc> s_maskToParaLUT = {
         { RSNGEffectType::RIPPLE_MASK, ConvertRippleMaskToPara },
         { RSNGEffectType::RADIAL_GRADIENT_MASK, ConvertRadialGradientMaskToPara },
@@ -153,7 +132,7 @@ std::shared_ptr<MaskPara> RSNGMaskToParaHelper::ConvertMaskToPara(std::shared_pt
         return nullptr;
     }
     auto it = s_maskToParaLUT.find(mask->GetType());
-    return it != s_maskToParaLUT.end() ? it->second(mask) : nullptr;
+    return it != s_maskToParaLUT.end() ? it->second(*mask) : nullptr;
 }
 
 } // namespace Rosen
