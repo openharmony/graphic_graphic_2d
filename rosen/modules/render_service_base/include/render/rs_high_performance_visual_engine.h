@@ -44,10 +44,12 @@ public:
 
     static HveFilter& GetHveFilter();
 
+    void Sync();
     void ClearSurfaceNodeInfo();
     void PushSurfaceNodeInfo(SurfaceNodeInfo& surfaceNodeInfo);
     std::vector<SurfaceNodeInfo> GetSurfaceNodeInfo() const;
     int GetSurfaceNodeSize() const;
+    bool HasFilterNode(NodeId filterId);
     bool CheckPrecondition(const RSRenderNode& filterNode,
         const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
     void ClearHveFilterSurfaceNodeMapping();
@@ -55,6 +57,7 @@ public:
     std::shared_ptr<Drawing::Image> SampleLayer(
         RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId);
 
+    std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeStagingMap_ = {};
     std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeMap_ = {};
 private:
     bool HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node);
