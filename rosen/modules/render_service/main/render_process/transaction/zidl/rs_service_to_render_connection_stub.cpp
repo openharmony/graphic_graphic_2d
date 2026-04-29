@@ -1033,6 +1033,15 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             OnGlobalBlacklistChanged({globalBlackList.begin(), globalBlackList.end()});
             break;
         }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_CACHE_ENABLED_FOR_ROTATION): {
+            bool enabled = false;
+            if (!data.ReadBool(enabled)) {
+                RS_LOGE("%{public}s: ReadBool enabled failed", __func__);
+                return ERR_INVALID_STATE;
+            }
+            SetCacheEnabledForRotation(enabled);
+            break;
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }

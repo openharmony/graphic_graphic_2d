@@ -205,6 +205,7 @@ public:
     bool RemoveConnection(const sptr<RSIConnectionToken>& token);
     void AddTransactionDataPidInfo(pid_t remotePid);
     void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
+    void SetCacheEnabledForRotation(bool enabled);
     sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
     int32_t RegisterFrameStabilityDetection(
         pid_t pid,

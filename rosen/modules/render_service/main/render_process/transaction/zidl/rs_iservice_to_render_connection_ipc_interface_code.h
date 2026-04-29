@@ -83,6 +83,7 @@ enum class RSIServiceToRenderConnectionInterfaceCode : CodeUnderlyingType {
     CLEAN_RESOURCE = 0X00F010,
     SET_BACKLIGHT_LEVEL = 0x00F011,
     ON_GLOBAL_BLACKLIST_CHANGED = 0x00F012,
+    SET_CACHE_ENABLED_FOR_ROTATION = 0x00F013,
 };
 
 } // namespace Rosen

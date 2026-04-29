@@ -2108,6 +2108,14 @@ void RSRenderPipelineAgent::ClearSurfaceWatermark(pid_t pid,
     rsRenderPipeline_->PostMainThreadTask(task);
 }
 
+void RSRenderPipelineAgent::SetCacheEnabledForRotation(bool enabled)
+{
+    if (RSSystemProperties::GetCacheEnabledForRotation() == enabled) {
+        return;
+    }
+    RSSystemProperties::SetCacheEnabledForRotation(enabled);
+}
+
 std::string RSRenderPipelineAgent::GetBundleName(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(pidToBundleMutex_);
@@ -2229,5 +2237,6 @@ int32_t RSRenderPipelineAgent::GetFrameStabilityResult(pid_t pid, const FrameSta
     rsRenderPipeline_->PostMainThreadSyncTask(task);
     return repCode;
 }
+
 } // namespace Rosen
 } // namespace OHOS

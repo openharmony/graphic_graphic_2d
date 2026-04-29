@@ -1807,5 +1807,25 @@ void RSServiceToRenderConnectionProxy::OnGlobalBlacklistChanged(const std::unord
         ROSEN_LOGE("RSServiceToRenderConnectionProxy sendrequest failed, error is %{public}d", err);
     }
 }
+void RSServiceToRenderConnectionProxy::SetCacheEnabledForRotation(bool enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return;
+    }
+    if (!data.WriteBool(enabled)) {
+        RS_LOGE("%{public}s: Write enabled failed", __func__);
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_CACHE_ENABLED_FOR_ROTATION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
