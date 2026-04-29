@@ -597,5 +597,30 @@ void MemoryTrack::SetNodeOnTreeStatus(NodeId nodeId, bool rootNodeStatusChangeFl
     itr->second.isOnTree = isOnTree;
 }
 #endif
+
+void MemoryTrack::DumpMemoryPicStatisticsForReport(DfxString& log, const pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    log.AppendFormat("\nRSImageCache:\n");
+    log.AppendFormat("Size        Pid        NodeId        Type,Format");
+    for (auto& [addr, info] : memPicRecord_) {
+        if (static_cast<pid_t>(info.pid) != pid) {
+            continue;
+        }
+        int64_t size = static_cast<int64_t>(info.size / BYTE_CONVERT);
+        log.AppendFormat("\n%lld        %ld        %llu        %s",
+            size, pid, info.nid, PixelMapInfo2String(info).c_str());
+    }
+}
+
+size_t MemoryTrack::GetNodeNumOfPid(const pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto itr = memNodeOfPidMap_.find(pid);
+    if (itr == memNodeOfPidMap_.end()) {
+        return 0;
+    }
+    return itr->second.size();
+}
 }
 }
