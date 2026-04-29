@@ -63,6 +63,7 @@ taihe_shared_library("uieffect_taihe_native") {
   sources = get_target_outputs(":run_uiEffect_taihe")
   sources += [
     "src/ani_constructor.cpp",
+    "src/blender_taihe.cpp",
     "src/effect_taihe.cpp",
     "src/filter_taihe.cpp",
     "src/mask_taihe.cpp",

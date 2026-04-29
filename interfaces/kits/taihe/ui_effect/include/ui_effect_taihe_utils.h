@@ -76,6 +76,7 @@ bool ConvertVector3fFromAniPoint3D(uintptr_t point3D, OHOS::Rosen::Vector3f& val
 bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values);
 bool ConvertVector4fFromAniColor(uintptr_t color, OHOS::Rosen::Vector4f& values);
 bool ConvertVector4fFromAniTuple(OHOS::Rosen::Vector4f& vector4f, uintptr_t opaque);
+bool ConvertVector3fFromAniTuple(OHOS::Rosen::Vector3f& vector3f, uintptr_t opaque);
 
 } // namespace ANI::UIEffect
 
