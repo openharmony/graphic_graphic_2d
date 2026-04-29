@@ -585,6 +585,7 @@ bool DoTakeSurfaceCaptureWithAllWindows()
     uint8_t captureType = GetData<uint8_t>();
     bool isSync = GetData<bool>();
     bool isHdrCapture = GetData<bool>();
+    bool displayIntent = GetData<uint32_t>();
     bool needF16WindowCaptureForScRGB = GetData<bool>();
     float left = GetData<float>();
     float top = GetData<float>();
@@ -609,6 +610,7 @@ bool DoTakeSurfaceCaptureWithAllWindows()
     dataParcel.WriteUint8(captureType);
     dataParcel.WriteBool(isSync);
     dataParcel.WriteBool(isHdrCapture);
+    dataParcel.WriteUint32(displayIntent);
     dataParcel.WriteBool(needF16WindowCaptureForScRGB);
     dataParcel.WriteFloat(left);
     dataParcel.WriteFloat(top);

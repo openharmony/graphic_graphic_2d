@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -354,8 +354,8 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
     OpDataHandle opDataHandle;
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
-        globalUniqueId, TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
+    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId,
+        TextBlobRenderOption(), 0, 0, paintHandle};
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0));
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle, 0));
 }
@@ -374,7 +374,7 @@ HWTEST_F(DrawCmdTest, PatchTypefaceIds001, TestSize.Level1)
     uint64_t globalUniqueId = 1;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId,
-        TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
+        TextBlobRenderOption(), 0, 0, paintHandle};
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0);
     drawCmdList->PatchTypefaceIds();
@@ -1021,7 +1021,7 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId,
-        TextContrast::FOLLOW_SYSTEM, 10, 10, paintHandle}; // 10: x, y
+        TextBlobRenderOption(), 10, 10, paintHandle}; // 10: x, y
     handler.GenerateCachedOpItem(*drawCmdList, &canvas);
 }
 

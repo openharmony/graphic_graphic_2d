@@ -286,14 +286,18 @@ public:
         NON_SHOT = 0,
         SDR_SCREENSHOT,
         SDR_WINDOWSHOT,
+        SDR_UICAPTURE,
         HDR_SCREENSHOT,
         HDR_WINDOWSHOT,
+        HDR_UICAPTURE,
     };
 
     struct HDRProperties {
         bool isHDREnabledVirtualScreen = false;
         float hdrBrightness = 1.0f; // Default 1.0f means max available headroom
         ScreenshotType screenshotType = ScreenshotType::NON_SHOT;
+        bool isEDRSurface = false;
+        DisplayIntent displayIntent = DisplayIntent::CANONICAL;
     };
 
     enum SaveType : uint8_t {
@@ -454,8 +458,11 @@ public:
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
     bool GetHdrOn() const;
     void SetHdrOn(bool isHdrOn);
+    bool IsEDRSurface() const;
+    void SetEDRSurface(bool isEDRSurface);
     bool GetHDREnabledVirtualScreen() const;
     void SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen);
+    void SetDisplayIntent(DisplayIntent displayIntent);
     const HDRProperties& GetHDRProperties() const;
     bool GetIsWindowFreezeCapture() const;
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);

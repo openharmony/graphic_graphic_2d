@@ -27,6 +27,10 @@
 #include "render/rs_image_cache.h"
 #include "transaction/rs_marshalling_helper.h"
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "render/rs_colorspace_convert.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -592,6 +596,33 @@ HWTEST_F(RSImageTest, RSImageCache001, TestSize.Level1)
     RSImageCache::Instance().pixelMapCache_.clear();
     RSImageCache::Instance().pixelMapIdRelatedDrawingImageCache_.clear();
 }
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+/**
+ * @tc.name: IsEDRSurfaceTest001
+ * @tc.desc: Verify IsEDRSurface
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSImageTest, IsEDRSurfaceTest001, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    int width = 200;
+    int height = 300;
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(width, height);
+    rsImage->SetPixelMap(pixelmap);
+    rsImage->IsEDRSurface();
+
+    // dynamicRangeMode high
+    rsImage->dynamicRangeMode_ = DynamicRangeMode::HIGH;
+    EXPECT_EQ(rsImage->IsEDRSurface(), false);
+
+    // DMA pixelmap
+    pixelmap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
+    rsImage->SetPixelMap(pixelmap);
+    EXPECT_EQ(rsImage->IsEDRSurface(), false);
+}
+#endif
 
 /**
  * @tc.name: RSImageMarshallingTest001

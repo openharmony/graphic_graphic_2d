@@ -1716,10 +1716,12 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
     MessageParcel& data)
 {
     uint8_t captureType { 0 };
+    uint32_t displayIntent { 0 };
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
         !data.ReadBool(captureConfig.isHdrCapture) ||
+        !data.ReadUint32(displayIntent) ||
         !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.ReadBool(captureConfig.needErrorCode) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
@@ -1748,6 +1750,11 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         return false;
     }
     captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
+    if (displayIntent >= static_cast<uint32_t>(DisplayIntent::DISPLAY_INTENT_BUTT)) {
+        RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read displayIntent failed!");
+        return false;
+    }
+    captureConfig.displayIntent = static_cast<DisplayIntent>(displayIntent);
     return true;
 }
 

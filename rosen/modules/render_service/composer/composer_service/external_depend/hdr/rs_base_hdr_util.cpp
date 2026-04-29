@@ -63,7 +63,9 @@ bool RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& su
     }
     CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
     ret = MetadataHelper::GetHDRMetadataType(surfaceBuffer, hdrMetadataType);
-    bool noneHDRMetadataType = ret != GSERROR_OK || hdrMetadataType == CM_METADATA_NONE;
+    bool noneHDRMetadataType = ret != GSERROR_OK || hdrMetadataType == CM_METADATA_NONE ||
+        static_cast<int32_t>(hdrMetadataType) ==
+        static_cast<int32_t>(HDI::Display::Graphic::Common::V2_2::CM_COMPONENT_EDR);
     if (!noneHDRMetadataType) {
         return false;
     }

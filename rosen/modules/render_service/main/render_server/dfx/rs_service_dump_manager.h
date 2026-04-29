@@ -81,8 +81,8 @@ private:
     std::condition_variable processDumpCondVar_;
     std::mutex processDumpMutex_;
     std::mutex collectDumpMutex_;
-    int32_t completionCount_;
-    int32_t processCount_;
+    int32_t completionCount_ = 0;
+    int32_t processCount_ = 0;
     std::vector<std::string> dumpDataList_;
     sptr<RSDumpCallbackDirector> rsDumpCallbackDirector_ = nullptr;
     bool IsDumpCompleted();

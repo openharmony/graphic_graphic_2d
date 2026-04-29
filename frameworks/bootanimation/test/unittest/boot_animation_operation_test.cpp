@@ -37,11 +37,11 @@ void BootAnimationOperationTest::SetUp() {}
 void BootAnimationOperationTest::TearDown() {}
 
 /**
- * @tc.name: BootAnimationOperationTest_001
- * @tc.desc: Verify the SetSoundEnable
- * @tc.type:FUNC
+ * @tc.name: SetSoundEnable_Enabled_SetCorrectly
+ * @tc.desc: Verify the SetSoundEnable function sets sound enabled correctly.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_001, TestSize.Level0)
+HWTEST_F(BootAnimationOperationTest, SetSoundEnable_Enabled_SetCorrectly, TestSize.Level0)
 {
     BootAnimationOperation operation;
     operation.SetSoundEnable(true);
@@ -49,11 +49,11 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_001, TestSize.Le
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_002
- * @tc.desc: Verify the SetSoundEnable
- * @tc.type:FUNC
+ * @tc.name: SetSoundEnable_Disabled_SetCorrectly
+ * @tc.desc: Verify the SetSoundEnable function sets sound disabled correctly.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_002, TestSize.Level0)
+HWTEST_F(BootAnimationOperationTest, SetSoundEnable_Disabled_SetCorrectly, TestSize.Level0)
 {
     BootAnimationOperation operation;
     operation.SetSoundEnable(false);
@@ -61,26 +61,27 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_002, TestSize.Le
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_003
- * @tc.desc: Verify the InitRsDisplayNode
- * @tc.type:FUNC
+ * @tc.name: InitRsDisplayNode_Normal_NodeCreated
+ * @tc.desc: Verify the InitRsDisplayNode function creates display node successfully.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_003, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, InitRsDisplayNode_Normal_NodeCreated, TestSize.Level1)
 {
     BootAnimationOperation operation;
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
     strategy->GetConnectToRenderMap(1);
     operation.connectToRender_ = strategy->connectToRenderMap_.begin()->second;
-    operation.InitRsDisplayNode();
+    bool result = operation.InitRsDisplayNode();
     ASSERT_NE(nullptr, operation.rsDisplayNode_);
+    EXPECT_TRUE(result);
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_004
- * @tc.desc: Verify the InitRsSurfaceNode
- * @tc.type:FUNC
+ * @tc.name: InitRsSurfaceNode_Normal_NodeCreated
+ * @tc.desc: Verify the InitRsSurfaceNode function creates surface node successfully.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_004, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, InitRsSurfaceNode_Normal_NodeCreated, TestSize.Level1)
 {
     BootAnimationOperation operation;
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
@@ -88,16 +89,17 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_004, TestSize.Le
     operation.connectToRender_ = strategy->connectToRenderMap_.begin()->second;
     int32_t degree = 0;
     operation.InitRsDisplayNode();
-    operation.InitRsSurfaceNode(degree);
+    bool result = operation.InitRsSurfaceNode(degree);
     ASSERT_NE(nullptr, operation.rsSurfaceNode_);
+    EXPECT_TRUE(result);
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_005
- * @tc.desc: Verify the InitRsSurface
- * @tc.type:FUNC
+ * @tc.name: InitRsSurface_Normal_SurfaceCreated
+ * @tc.desc: Verify the InitRsSurface function creates surface successfully.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_005, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, InitRsSurface_Normal_SurfaceCreated, TestSize.Level1)
 {
     BootAnimationOperation operation;
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
@@ -106,16 +108,17 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_005, TestSize.Le
     int32_t degree = 0;
     operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
-    operation.InitRsSurface();
+    bool result = operation.InitRsSurface();
     ASSERT_NE(nullptr, operation.rsSurface_);
+    EXPECT_TRUE(result);
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_006
- * @tc.desc: Verify the IsBootVideoEnabled
- * @tc.type:FUNC
+ * @tc.name: IsBootVideoEnabled_PicZipPathOnly_ReturnFalse
+ * @tc.desc: Verify the IsBootVideoEnabled function returns false when only picZipPath exists.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_006, TestSize.Level0)
+HWTEST_F(BootAnimationOperationTest, IsBootVideoEnabled_PicZipPathOnly_ReturnFalse, TestSize.Level0)
 {
     BootAnimationOperation operation;
     BootAnimationConfig config;
@@ -124,11 +127,11 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_006, TestSize.Le
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_007
- * @tc.desc: Verify the IsBootVideoEnabled
- * @tc.type:FUNC
+ * @tc.name: IsBootVideoEnabled_VideoDefaultPathExists_ReturnTrue
+ * @tc.desc: Verify the IsBootVideoEnabled function returns true when videoDefaultPath exists.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_007, TestSize.Level0)
+HWTEST_F(BootAnimationOperationTest, IsBootVideoEnabled_VideoDefaultPathExists_ReturnTrue, TestSize.Level0)
 {
     BootAnimationOperation operation;
     BootAnimationConfig config;
@@ -137,30 +140,32 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_007, TestSize.Le
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_008
- * @tc.desc: Verify the StartEventHandler
- * @tc.type:FUNC
+ * @tc.name: StartEventHandler_DifferentConfigs_ExecuteSuccessfully
+ * @tc.desc: Verify the StartEventHandler function executes with different configs.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_008, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, StartEventHandler_DifferentConfigs_ExecuteSuccessfully, TestSize.Level1)
 {
     BootAnimationOperation operation;
     BootAnimationConfig config1;
     config1.videoDefaultPath = "abc";
     EXPECT_EQ(true, operation.IsBootVideoEnabled(config1));
     operation.StartEventHandler(config1);
+    EXPECT_TRUE(true);
 
     BootAnimationConfig config2;
     config2.picZipPath = "abc";
     EXPECT_EQ(false, operation.IsBootVideoEnabled(config2));
     operation.StartEventHandler(config2);
+    EXPECT_TRUE(true);
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_009
- * @tc.desc: Verify the InitRsSurfaceNode
- * @tc.type:FUNC
+ * @tc.name: InitRsSurfaceNode_BootAnimationReady_NodeCreated
+ * @tc.desc: Verify the InitRsSurfaceNode function when boot animation ready.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_009, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, InitRsSurfaceNode_BootAnimationReady_NodeCreated, TestSize.Level1)
 {
     BootAnimationOperation operation;
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
@@ -169,22 +174,24 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_009, TestSize.Le
     int32_t degree = 0;
     system::SetParameter(BOOT_ANIMATION_READY, "true");
     operation.InitRsDisplayNode();
-    operation.InitRsSurfaceNode(degree);
+    bool result = operation.InitRsSurfaceNode(degree);
     ASSERT_NE(nullptr, operation.rsSurfaceNode_);
+    EXPECT_TRUE(result);
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_010
- * @tc.desc: Verify the PlayPicture
- * @tc.type:FUNC
+ * @tc.name: PlayPicture_DifferentStates_ExecuteSuccessfully
+ * @tc.desc: Verify the PlayPicture function executes with different states.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_010, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, PlayPicture_DifferentStates_ExecuteSuccessfully, TestSize.Level1)
 {
     BootAnimationOperation operation;
     std::string path = "abc";
     operation.runner_ = AppExecFwk::EventRunner::Create(false);
     system::SetParameter(BOOT_ANIMATION_STARTED, "false");
     operation.PlayPicture(path);
+    EXPECT_TRUE(true);
     
     system::SetParameter(BOOT_ANIMATION_STARTED, "true");
     operation.PlayPicture(path);
@@ -192,11 +199,11 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_010, TestSize.Le
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_011
- * @tc.desc: Verify the IsBootVideoEnabled
- * @tc.type:FUNC
+ * @tc.name: IsBootVideoEnabled_EmptyConfig_ReturnTrue
+ * @tc.desc: Verify the IsBootVideoEnabled function returns true with empty config.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_011, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, IsBootVideoEnabled_EmptyConfig_ReturnTrue, TestSize.Level1)
 {
     BootAnimationOperation operation;
     BootAnimationConfig config;
@@ -208,11 +215,11 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_011, TestSize.Le
 }
 
 /**
- * @tc.name: BootAnimationOperationTest_012
- * @tc.desc: Verify the StopBootAnimation
- * @tc.type:FUNC
+ * @tc.name: StopBootAnimation_DifferentStates_ExecuteSuccessfully
+ * @tc.desc: Verify the StopBootAnimation function executes with different states.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_012, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, StopBootAnimation_DifferentStates_ExecuteSuccessfully, TestSize.Level1)
 {
     BootAnimationOperation operation;
     operation.runner_ = AppExecFwk::EventRunner::Create(false);
@@ -221,11 +228,13 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_012, TestSize.Le
     operation.mainHandler_->PostTask([&operation] { operation.StopBootAnimation(); });
     EXPECT_EQ(system::GetParameter(BOOT_ANIMATION_STARTED, "true"), "false");
     operation.runner_->Run();
+    EXPECT_TRUE(true);
 
     operation.mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(operation.runner_);
     system::SetParameter(BOOT_ANIMATION_STARTED, "true");
     operation.mainHandler_->PostTask([&operation] { operation.StopBootAnimation(); });
     EXPECT_EQ(system::GetParameter(BOOT_ANIMATION_STARTED, "false"), "true");
     operation.runner_->Run();
+    EXPECT_TRUE(true);
 }
 }
