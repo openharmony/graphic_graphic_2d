@@ -29,6 +29,7 @@ rs_display_effect_sources = [
   "rs_display_effect/animation/anim_curve_animation_test.cpp",
   "rs_display_effect/animation/anim_curve_animation_test2.cpp",
   "rs_display_effect/animation/anim_custom_modifier_test.cpp",
+  "rs_display_effect/animation/anim_geometry_transition_test.cpp",
   "rs_display_effect/animation/animation_protocol_test.cpp",
   "rs_display_effect/animation/point_custom_modifier_test.cpp",
   "rs_display_effect/content_display/canvas_drawing_node_test.cpp",
