@@ -649,9 +649,11 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     }
     thirdFrameAheadPresentFenceFd_ = -1;
     thirdFrameAheadPresentTime_ = SyncFence::FENCE_PENDING_TIMESTAMP;
-    RS_TRACE_BEGIN("HdiOutput::SyncFileReadTimestamp");
-    int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
-    RS_TRACE_END();
+    int64_t timestamp;
+    {
+        RS_TRACE_NAME("HdiOutput::SyncFileReadTimestamp");
+        timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
+    }
     bool startSample = false;
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
         startSample = sampler_->GetVsyncSamplerEnabled() && sampler_->AddPresentFenceTime(screenId_, timestamp);

@@ -252,17 +252,16 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     AddSolidColorLayer(layers);
     PrintHiperfSurfaceLog("counter3", static_cast<uint64_t>(layers.size()));
     int64_t startTime = GetCurTimeCount();
-    std::string surfaceName = GetSurfaceNameInLayers(layers);
     RSFirstFrameNotifier::GetInstance().ExecIfFirstFrameCommit(screenId_);
 
     RS_LOGI_IF(DEBUG_COMPOSER, "CommitAndReleaseData hasGameScene is %{public}d %{public}s",
-        pipelineParam.hasGameScene, surfaceName.c_str());
+        pipelineParam.hasGameScene, GetSurfaceNameInLayers(layers).c_str());
 
     int64_t startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
-    RS_TRACE_NAME_FMT("CommitLayers rate:%u,now:%" PRIu64 ",vsyncId:%" PRIu64 ",size:%zu,%s",
-        currentRate, pipelineParam.frameTimestamp, pipelineParam.vsyncId, layers.size(),
-        GetSurfaceNameInLayersForTrace(layers).c_str());
+    RS_TRACE_NAME_FMT("CommitLayers rate:%u,now:%" PRIu64 ",vsyncId:%" PRIu64 ",size:%zu",
+        currentRate, pipelineParam.frameTimestamp, pipelineParam.vsyncId, layers.size());
+    RS_OPTIONAL_TRACE_NAME_FMT("Layers info: %s", GetSurfaceNameInLayersForTrace(layers).c_str());
     RS_LOGD_IF(DEBUG_COMPOSER, "CommitLayers rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
         size:%{public}zu, %{public}s", currentRate, pipelineParam.frameTimestamp, pipelineParam.vsyncId, layers.size(),
         GetSurfaceNameInLayersForTrace(layers).c_str());
@@ -317,7 +316,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
         endTime - intervalTimePoints_ > REPORT_LOAD_WARNING_INTERVAL_TIME) {
         RS_LOGI("CommitAndReleaseLayers report load event frameTime: %{public}" PRIu64
             " missedFrame: %{public}" PRIu32 " frameRate:%{public}" PRIu16 " %{public}s",
-            frameTime, missedFrames, frameRate, surfaceName.c_str());
+            frameTime, missedFrames, frameRate, GetSurfaceNameInLayers(layers).c_str());
         intervalTimePoints_ = endTime;
         RS_TRACE_NAME("RSRenderComposer::CommitAndReleaseLayers HiSysEventWrite in RSRenderComposer");
         RSHiSysEvent::EventWrite(RSEventName::RS_HARDWARE_THREAD_LOAD_WARNING, RSEventType::RS_STATISTIC,

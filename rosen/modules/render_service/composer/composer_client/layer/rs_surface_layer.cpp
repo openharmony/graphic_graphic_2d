@@ -768,7 +768,9 @@ LayerMask RSSurfaceLayer::GetLayerMaskInfo() const
 void RSSurfaceLayer::SetSurface(const sptr<IConsumerSurface>& surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    cSurface_ = surface;
+    if (cSurface_ != surface) {
+        cSurface_ = surface;
+    }
 }
 
 sptr<IConsumerSurface> RSSurfaceLayer::GetSurface() const
