@@ -71,7 +71,8 @@ public:
     ErrCode SetVirtualScreenTypeBlackList(
         ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) override;
 
-    ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
+    ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        bool& success, uint32_t rowCount = 0, uint32_t colCount = 0) override;
 
     void ForceRefreshOneFrameWithNextVSync() override;
 

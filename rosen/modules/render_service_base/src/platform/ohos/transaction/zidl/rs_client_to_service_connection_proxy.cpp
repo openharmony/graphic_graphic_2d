@@ -3592,7 +3592,7 @@ int32_t RSClientToServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpda
 }
 
 ErrCode RSClientToServiceConnectionProxy::SetWatermark(const std::string& name,
-    std::shared_ptr<Media::PixelMap> watermark, bool& success)
+    std::shared_ptr<Media::PixelMap> watermark, bool& success, uint32_t rowCount, uint32_t colCount)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -3610,6 +3610,11 @@ ErrCode RSClientToServiceConnectionProxy::SetWatermark(const std::string& name,
     }
     if (!data.WriteParcelable(watermark.get())) {
         ROSEN_LOGE("SetWatermark: WriteParcelable watermark.get() err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(rowCount) || !data.WriteUint32(colCount)) {
+        ROSEN_LOGE("SetWatermark: WriteUint32 rowCount/colCount err.");
         success = false;
         return ERR_INVALID_VALUE;
     }

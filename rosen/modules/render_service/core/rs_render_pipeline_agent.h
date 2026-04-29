@@ -151,7 +151,7 @@ public:
     float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
     void SetVmaCacheStatus(bool flag);
     ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
-        bool& success);
+        bool& success, uint32_t rowCount = 0, uint32_t colCount = 0);
     ErrCode GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
@@ -194,7 +194,8 @@ public:
     int32_t NotifyScreenRefresh(ScreenId screenId);
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
         const std::shared_ptr<Media::PixelMap> &watermark, const std::vector<NodeId>& nodeIdList,
-        SurfaceWatermarkType watermarkType, bool isSystemCalling = false);
+        SurfaceWatermarkType watermarkType, bool isSystemCalling = false,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
     void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);

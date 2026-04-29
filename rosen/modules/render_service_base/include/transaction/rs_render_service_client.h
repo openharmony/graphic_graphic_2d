@@ -141,7 +141,8 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
-    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
 
     void RemoveVirtualScreen(ScreenId id);
 

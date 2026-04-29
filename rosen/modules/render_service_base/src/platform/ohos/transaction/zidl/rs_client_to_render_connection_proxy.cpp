@@ -1468,7 +1468,8 @@ int32_t RSClientToRenderConnectionProxy::SubmitCanvasPreAllocatedBuffer(
 
 uint32_t RSClientToRenderConnectionProxy::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount, uint32_t colCount)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1507,6 +1508,14 @@ uint32_t RSClientToRenderConnectionProxy::SetSurfaceWatermark(pid_t pid, const s
     }
     if (!data.WriteUint8(static_cast<uint8_t>(watermarkType))) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::SetSurfaceWatermark: write watermarkType error.");
+        return WATER_MARK_WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(rowCount)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::SetSurfaceWatermark: write rowCount error.");
+        return WATER_MARK_WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(colCount)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::SetSurfaceWatermark: write colCount error.");
         return WATER_MARK_WRITE_PARCEL_ERR;
     }
 
