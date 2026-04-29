@@ -86,8 +86,8 @@ ohos_executable("bootanimation") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
-    "skia:skia_canvaskit",
     "zlib:libz",
+    "skia:skia_canvaskit",
   ]
 
   if (player_framework_enable) {
