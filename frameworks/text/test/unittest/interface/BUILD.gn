@@ -37,7 +37,7 @@ ohos_unittest("rosen_text_interface_test") {
   }
 
   deps = [
-    "$rosen_root/modules/2d_graphics:2d_graphics",
+    "$rosen_root/modules/2d_graphics",
     "$rosen_text_root:rosen_text",
   ]
 
