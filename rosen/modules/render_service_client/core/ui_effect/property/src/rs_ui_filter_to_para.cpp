@@ -26,17 +26,14 @@ namespace Rosen {
 
 namespace {
 
-std::shared_ptr<FilterPara> ConvertFrostedGlassBlurFilterToPara(std::shared_ptr<RSNGFilterBase> filter)
+std::shared_ptr<FilterPara> ConvertFrostedGlassBlurFilterToPara(const RSNGFilterBase& filter)
 {
-    if (!filter) {
-        return nullptr;
-    }
-    auto frostedGlassBlurFilter = std::static_pointer_cast<RSNGFrostedGlassBlurFilter>(filter);
+    const auto& frostedGlassBlurFilter = static_cast<const RSNGFrostedGlassBlurFilter&>(filter);
     auto para = std::make_shared<FrostedGlassBlurPara>();
-    para->SetBlurRadius(frostedGlassBlurFilter->Getter<FrostedGlassBlurRadiusTag>()->Get());
-    para->SetBlurRadiusScaleK(frostedGlassBlurFilter->Getter<FrostedGlassBlurRadiusScaleKTag>()->Get());
-    para->SetRefractOutPx(frostedGlassBlurFilter->Getter<FrostedGlassBlurRefractOutPxTag>()->Get());
-    para->SetSkipFrameEnable(frostedGlassBlurFilter->Getter<FrostedGlassBlurSkipFrameEnableTag>()->Get());
+    para->SetBlurRadius(frostedGlassBlurFilter.Getter<FrostedGlassBlurRadiusTag>()->Get());
+    para->SetBlurRadiusScaleK(frostedGlassBlurFilter.Getter<FrostedGlassBlurRadiusScaleKTag>()->Get());
+    para->SetRefractOutPx(frostedGlassBlurFilter.Getter<FrostedGlassBlurRefractOutPxTag>()->Get());
+    para->SetSkipFrameEnable(frostedGlassBlurFilter.Getter<FrostedGlassBlurSkipFrameEnableTag>()->Get());
     return para;
 }
 
@@ -126,25 +123,22 @@ void HandleDarkAdaptiveParams(FrostedGlassPara& para, const RSNGFrostedGlassFilt
     para.SetDarkAdaptiveParams(*darkParams);
 }
 
-std::shared_ptr<FilterPara> ConvertFrostedGlassFilterToPara(std::shared_ptr<RSNGFilterBase> filter)
+std::shared_ptr<FilterPara> ConvertFrostedGlassFilterToPara(const RSNGFilterBase& filter)
 {
-    if (!filter) {
-        return nullptr;
-    }
-    auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
+    const auto& frostedGlassFilter = static_cast<const RSNGFrostedGlassFilter&>(filter);
     auto para = std::make_shared<FrostedGlassPara>();
-    CopyBasicParams(*para, *frostedGlassFilter);
-    CopySdAndEnvLightParams(*para, *frostedGlassFilter);
-    CopyEdLightAndFinalParams(*para, *frostedGlassFilter);
-    HandleDarkAdaptiveParams(*para, *frostedGlassFilter);
-    para->SetSkipFrameEnable(frostedGlassFilter->Getter<FrostedGlassSkipFrameEnableTag>()->Get());
+    CopyBasicParams(*para, frostedGlassFilter);
+    CopySdAndEnvLightParams(*para, frostedGlassFilter);
+    CopyEdLightAndFinalParams(*para, frostedGlassFilter);
+    HandleDarkAdaptiveParams(*para, frostedGlassFilter);
+    para->SetSkipFrameEnable(frostedGlassFilter.Getter<FrostedGlassSkipFrameEnableTag>()->Get());
     return para;
 }
 } // namespace
 
 std::shared_ptr<FilterPara> RSNGFilterToParaHelper::ConvertFilterToPara(std::shared_ptr<RSNGFilterBase> filter)
 {
-    using FilterToParaFunc = std::function<std::shared_ptr<FilterPara>(std::shared_ptr<RSNGFilterBase>)>;
+    using FilterToParaFunc = std::function<std::shared_ptr<FilterPara>(const RSNGFilterBase&)>;
     static std::unordered_map<RSNGEffectType, FilterToParaFunc> s_filterToParaLUT = {
         { RSNGEffectType::FROSTED_GLASS_BLUR, ConvertFrostedGlassBlurFilterToPara },
         { RSNGEffectType::FROSTED_GLASS, ConvertFrostedGlassFilterToPara },
@@ -153,7 +147,7 @@ std::shared_ptr<FilterPara> RSNGFilterToParaHelper::ConvertFilterToPara(std::sha
         return nullptr;
     }
     auto it = s_filterToParaLUT.find(filter->GetType());
-    return it != s_filterToParaLUT.end() ? it->second(filter) : nullptr;
+    return it != s_filterToParaLUT.end() ? it->second(*filter) : nullptr;
 }
 
 } // namespace Rosen
