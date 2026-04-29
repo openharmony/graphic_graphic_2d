@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 
+class MaskPara;
 // subset of FrostedGlass parameters that adapt to background color
 struct AdaptiveFrostedGlassParams {
     Vector2f blurParams = Vector2f(48.0f, 4.0f);
@@ -33,12 +34,13 @@ struct AdaptiveFrostedGlassParams {
     Vector3f bgNeg = Vector3f(0.5f, 0.5f, 1.0f);
 };
 
-class FrostedGlassPara : public FilterPara {
+class RSC_EXPORT FrostedGlassPara : public FilterPara {
 public:
     FrostedGlassPara()
     {
         this->type_ = FilterPara::ParaType::FROSTED_GLASS;
     }
+    FrostedGlassPara(const FrostedGlassPara& other);
     ~FrostedGlassPara() override = default;
 
     void SetBlurParams(Vector2f& blurParams)
@@ -371,10 +373,24 @@ public:
         return maskPara_;
     }
 
+    void SetSkipFrameEnable(bool isSkipFrameEnable)
+    {
+        isSkipFrameEnable_ = isSkipFrameEnable;
+    }
+
     bool GetSkipFrameEnable() const
     {
         return isSkipFrameEnable_;
     }
+
+    bool Marshalling(Parcel& parcel) const override;
+
+    static void RegisterUnmarshallingCallback();
+
+    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
+
+    std::shared_ptr<FilterPara> Clone() const override;
+
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
@@ -415,6 +431,19 @@ private:
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
     std::shared_ptr<AdaptiveFrostedGlassParams> darkAdaptiveParams_;
     bool isSkipFrameEnable_ = false;
+
+    static bool WriteBlurAndRefractParams(Parcel& parcel, const FrostedGlassPara& para);
+    static bool ReadBlurAndRefractParams(Parcel& parcel, FrostedGlassPara& para);
+    static bool WriteBgParams(Parcel& parcel, const FrostedGlassPara& para);
+    static bool ReadBgParams(Parcel& parcel, FrostedGlassPara& para);
+    static bool WriteSdParams(Parcel& parcel, const FrostedGlassPara& para);
+    static bool ReadSdParams(Parcel& parcel, FrostedGlassPara& para);
+    static bool WriteEnvLightParams(Parcel& parcel, const FrostedGlassPara& para);
+    static bool ReadEnvLightParams(Parcel& parcel, FrostedGlassPara& para);
+    static bool WriteEdLightParams(Parcel& parcel, const FrostedGlassPara& para);
+    static bool ReadEdLightParams(Parcel& parcel, FrostedGlassPara& para);
+    static bool WriteBaseParams(Parcel& parcel, const FrostedGlassPara& para);
+    static bool ReadBaseParams(Parcel& parcel, FrostedGlassPara& para);
 };
 } // namespace Rosen
 } // namespace OHOS

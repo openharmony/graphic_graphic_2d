@@ -43,6 +43,8 @@ public:
 
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<Filter>& val);
 
+    static void RegisterUnmarshallingCallback();
+
 private:
     std::vector<std::shared_ptr<FilterPara>> filterParas_;
 };

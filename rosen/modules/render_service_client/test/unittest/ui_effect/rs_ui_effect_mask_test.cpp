@@ -15,14 +15,16 @@
 
 #include <gtest/gtest.h>
 
-#include "pixel_map.h"
+#include "mask/include/image_mask_para.h"
+#include "mask/include/mask.h"
 #include "mask/include/mask_para.h"
+#include "mask/include/mask_unmarshalling_singleton.h"
 #include "mask/include/pixel_map_mask_para.h"
 #include "mask/include/radial_gradient_mask_para.h"
-#include "mask/include/image_mask_para.h"
-#include "image/bitmap.h"
+#include "pixel_map.h"
+
 #include "draw/surface.h"
-#include "mask/include/mask_unmarshalling_singleton.h"
+#include "image/bitmap.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,11 +45,23 @@ void RSUIEffectMaskTest::TearDownTestCase() {}
 
 void RSUIEffectMaskTest::SetUp()
 {
-    PixelMapMaskPara::RegisterUnmarshallingCallback();
-    RadialGradientMaskPara::RegisterUnmarshallingCallback();
+    Mask::RegisterUnmarshallingCallback();
 }
 
 void RSUIEffectMaskTest::TearDown() {}
+
+/**
+ * @tc.name: RSUIEffectMaskRegisterUnmarshallingCallbackTest
+ * @tc.desc: Verify the Mask::RegisterUnmarshallingCallback static func
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectMaskTest, RSUIEffectMaskRegisterUnmarshallingCallbackTest, TestSize.Level1)
+{
+    auto& singleton = MaskUnmarshallingSingleton::GetInstance();
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::PIXEL_MAP_MASK)));
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::RADIAL_GRADIENT_MASK)));
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::IMAGE_MASK)));
+}
 
 static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
 {

@@ -607,10 +607,7 @@ napi_value MaskNapi::CreateUseEffectMask(napi_env env, napi_callback_info info)
 
 void MaskNapi::RegisterMaskParaUnmarshallingCallback()
 {
-    PixelMapMaskPara::RegisterUnmarshallingCallback();
-    RadialGradientMaskPara::RegisterUnmarshallingCallback();
-    ImageMaskPara::RegisterUnmarshallingCallback();
-    UseEffectMaskPara::RegisterUnmarshallingCallback();
+    Mask::RegisterUnmarshallingCallback();
 }
 
 }  // namespace Rosen
