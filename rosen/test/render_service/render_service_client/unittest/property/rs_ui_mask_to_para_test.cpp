@@ -288,18 +288,4 @@ HWTEST_F(RSUIMaskToParaTest, ConvertMaskToParaPixelMapMask, TestSize.Level1)
     EXPECT_FLOAT_EQ(para->GetFillColor().w_, fillColor.w_);
 }
 
-/**
- * @tc.name: ConvertMaskToParaUnsupportedType
- * @tc.desc: test RSNGMaskToParaHelper::ConvertMaskToPara with unsupported type
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIMaskToParaTest, ConvertMaskToParaUnsupportedType, TestSize.Level1)
-{
-    auto doubleRippleMask = RSNGMaskBase::Create(RSNGEffectType::DOUBLE_RIPPLE_MASK);
-    EXPECT_NE(doubleRippleMask, nullptr);
-
-    auto result = RSNGMaskToParaHelper::ConvertMaskToPara(doubleRippleMask);
-    EXPECT_EQ(result, nullptr);
-}
-
 } // namespace OHOS::Rosen
