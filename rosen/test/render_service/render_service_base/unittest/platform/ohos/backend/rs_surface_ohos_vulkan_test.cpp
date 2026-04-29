@@ -405,6 +405,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, FlushFrame001, TestSize.Level1)
     }
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_GRAPHIC_MEDIACOMMON_ENABLE)
 /**
  * @tc.name: SubmitHapeTaskTest
  * @tc.desc: test
@@ -478,6 +479,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, SetGpuSemaphoreTest, TestSize.Level1)
     curFrameId = 0;
     rsSurface.SetGpuSemaphore(submitWithFFTS, preFrameId, curFrameId, vec, sur);
 }
+#endif
 
 /**
  * @tc.name: CancelBufferForCurrentFrame
