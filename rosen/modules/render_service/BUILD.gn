@@ -645,6 +645,10 @@ ohos_shared_library("librender_service") {
     defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
   }
 
+  if (graphic_2d_feature_enable_image_detail_enhancer) {
+    defines += [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
+  }
+
   if (tp_feature_enable) {
     defines += tp_defines
   }

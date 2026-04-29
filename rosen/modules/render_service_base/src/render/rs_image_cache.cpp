@@ -323,11 +323,13 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
     auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
     if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
         pixelMapIdRelatedDrawingImageCache_.erase(it);
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
         // used for ScaleImageAsync
         bool isEnabled = RSImageDetailEnhancerThread::Instance().GetEnabled();
         if (isEnabled && RSImageDetailEnhancerThread::Instance().GetScaledImage(uniqueId)) {
             RSImageDetailEnhancerThread::Instance().ReleaseScaledImage(uniqueId);
         }
+#endif
     }
 }
 
