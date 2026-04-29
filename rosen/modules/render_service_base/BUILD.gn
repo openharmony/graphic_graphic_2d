@@ -686,6 +686,10 @@ ohos_source_set("render_service_base_src") {
     sources += graphic_2d_mhc_configs.librender_service_mhc_sources
   }
 
+  if (graphic_2d_feature_enable_mediacommon) {
+    defines += [ "RS_GRAPHIC_MEDIACOMMON_ENABLE" ]
+  }
+
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
