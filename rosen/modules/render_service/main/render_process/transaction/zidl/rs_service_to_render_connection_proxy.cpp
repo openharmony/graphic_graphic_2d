@@ -1396,7 +1396,11 @@ int32_t RSServiceToRenderConnectionProxy::RegisterSelfDrawingNodeRectChangeCallb
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Send request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result = 0;
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: ReadInt32 fail.");
+        return RS_CONNECTION_ERROR;
+    }
     return result;
 }
 
