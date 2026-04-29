@@ -131,6 +131,9 @@ bool Canvas::GetExistCapturePixelMapFlag() const
 {
     return isExistCapturePixelMap_;
 }
+
+OverDrawCanvas::~OverDrawCanvas() = default;
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

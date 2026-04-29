@@ -442,14 +442,7 @@ public:
     void CreateFlyOutShaderFilter();
 
     void SetDistortionK(const std::optional<float>& distortionK);
-    const std::optional<float>& GetDistortionK() const
-    {
-        static const std::optional<float> defaultValue = std::nullopt;
-        if (effect_) {
-            return effect_->distortionK_;
-        }
-        return defaultValue;
-    }
+    const std::optional<float>& GetDistortionK() const;
 
     void SetBgBrightnessRates(const Vector4f& rates);
     Vector4f GetBgBrightnessRates() const;
@@ -479,14 +472,7 @@ public:
     {
         return filter_;
     }
-    const std::shared_ptr<RSFilter>& GetMaterialFilter() const
-    {
-        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
-        if (effect_) {
-            return effect_->materialFilter_;
-        }
-        return defaultValue;
-    }
+    const std::shared_ptr<RSFilter>& GetMaterialFilter() const;
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
     bool DisableHWCForFilter() const;
     bool NeedClipHoleForRenderGroup() const;
@@ -655,14 +641,7 @@ public:
 
     // Pixel Stretch
     void SetPixelStretch(const std::optional<Vector4f>& stretchSize);
-    inline const std::optional<Vector4f>& GetPixelStretch() const
-    {
-        static const std::optional<Vector4f> defaultValue = std::nullopt;
-        if (effect_) {
-            return effect_->pixelStretch_;
-        }
-        return defaultValue;
-    }
+    const std::optional<Vector4f>& GetPixelStretch() const;
 
     void SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent);
     inline const std::optional<Vector4f>& GetPixelStretchPercent() const
@@ -763,14 +742,7 @@ public:
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
-    inline const std::optional<float>& GetGrayScale() const
-    {
-        static const std::optional<float> defaultValue = std::nullopt;
-        if (effect_) {
-            return effect_->grayScale_;
-        }
-        return defaultValue;
-    }
+    const std::optional<float>& GetGrayScale() const;
 
     void SetBrightness(const std::optional<float>& brightness);
     const std::optional<float>& GetBrightness() const;
@@ -789,14 +761,7 @@ public:
     bool GetColorAdaptive() const;
     void SetAdaptive(bool value);
 
-    const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const
-    {
-        static const std::shared_ptr<Drawing::ColorFilter> defaultValue = nullptr;
-        if (effect_) {
-            return effect_->colorFilter_;
-        }
-        return defaultValue;
-    }
+    const std::shared_ptr<Drawing::ColorFilter>& GetColorFilter() const;
 
     void SetLightIntensity(float lightIntensity);
     void SetLightColor(Color lightColor);

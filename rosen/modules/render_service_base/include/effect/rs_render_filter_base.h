@@ -32,7 +32,7 @@ namespace Rosen {
  */
 class RSB_EXPORT RSNGRenderFilterBase : public RSNGRenderEffectBase<RSNGRenderFilterBase> {
 public:
-    ~RSNGRenderFilterBase() override = default;
+    ~RSNGRenderFilterBase() override;
 
     static std::shared_ptr<RSNGRenderFilterBase> Create(RSNGEffectType type);
 

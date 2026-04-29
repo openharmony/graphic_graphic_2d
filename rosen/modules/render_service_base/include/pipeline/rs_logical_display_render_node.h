@@ -235,7 +235,7 @@ private:
     // window Container
     std::shared_ptr<RSBaseRenderNode> windowContainer_;
 
-    static inline ScreenSwitchFinishTask screenSwitchFinishTask_ = nullptr;
+    static inline RS_HIDDEN ScreenSwitchFinishTask screenSwitchFinishTask_ = nullptr;
 
     friend class DisplayNodeCommandHelper;
 };

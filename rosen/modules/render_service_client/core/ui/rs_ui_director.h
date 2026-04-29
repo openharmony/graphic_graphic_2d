@@ -41,6 +41,12 @@
 #endif
 #include "transaction/rs_render_pipeline_client.h"
 
+#if defined(__GNUC__) && __GNUC__ >= 4
+#define RS_CLIENT_HIDDEN __attribute__((visibility("hidden")))
+#else
+#define RS_CLIENT_HIDDEN
+#endif
+
 namespace OHOS {
 class Surface;
 namespace Rosen {
@@ -374,9 +380,9 @@ private:
     RSUIDirector& operator=(const RSUIDirector&) = delete;
     RSUIDirector& operator=(const RSUIDirector&&) = delete;
 
-    inline static std::unordered_map<RSUIDirector*, TaskRunner> uiTaskRunners_;
-    inline static std::unordered_map<RSUIDirector*, std::function<void()>> requestVsyncCallbacks_;
-    inline static std::mutex uiTaskRunnersVisitorMutex_;
+    inline static RS_CLIENT_HIDDEN std::unordered_map<RSUIDirector*, TaskRunner> uiTaskRunners_;
+    inline static RS_CLIENT_HIDDEN std::unordered_map<RSUIDirector*, std::function<void()>> requestVsyncCallbacks_;
+    inline static RS_CLIENT_HIDDEN std::mutex uiTaskRunnersVisitorMutex_;
 
     NodeId root_ = 0;
     int32_t instanceId_ = INSTANCE_ID_UNDEFINED;

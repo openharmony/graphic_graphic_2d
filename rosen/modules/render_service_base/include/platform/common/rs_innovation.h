@@ -15,6 +15,9 @@
 
 #ifndef RENDER_SERVICE_BASE_COMMON_RS_INNOVATION_H
 #define RENDER_SERVICE_BASE_COMMON_RS_INNOVATION_H
+
+#include "common/rs_macros.h"
+
 namespace OHOS {
 namespace Rosen {
 class RSInnovation {
@@ -28,13 +31,13 @@ public:
     // parallel composition
     static bool GetParallelCompositionEnabled(bool isUniRender);
 
-    static inline bool _s_parallelCompositionLoaded = false;
-    static inline void* _s_createParallelSyncSignal = nullptr;
-    static inline void* _s_signalCountDown = nullptr;
-    static inline void* _s_signalAwait = nullptr;
-    static inline void* _s_assignTask = nullptr;
-    static inline void* _s_removeStoppedThreads = nullptr;
-    static inline void* _s_checkForSerialForced = nullptr;
+    static inline RS_HIDDEN bool _s_parallelCompositionLoaded = false;
+    static inline RS_HIDDEN void* _s_createParallelSyncSignal = nullptr;
+    static inline RS_HIDDEN void* _s_signalCountDown = nullptr;
+    static inline RS_HIDDEN void* _s_signalAwait = nullptr;
+    static inline RS_HIDDEN void* _s_assignTask = nullptr;
+    static inline RS_HIDDEN void* _s_removeStoppedThreads = nullptr;
+    static inline RS_HIDDEN void* _s_checkForSerialForced = nullptr;
 
 private:
     RSInnovation() = default;

@@ -253,6 +253,8 @@ static std::unordered_map<RSNGEffectType, CheckFilterSkipFrameFunc> checkFilterS
     },
 };
 
+RSNGRenderFilterBase::~RSNGRenderFilterBase() = default;
+
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)
 {
     auto it = creatorLUT.find(type);

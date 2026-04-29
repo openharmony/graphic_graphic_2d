@@ -33,6 +33,8 @@
 
 namespace OHOS {
 namespace Rosen {
+RSRenderPropertyBase::~RSRenderPropertyBase() = default;
+
 void RSRenderPropertyBase::Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {
     node_ = node.weak_from_this();

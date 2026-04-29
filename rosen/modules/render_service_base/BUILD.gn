@@ -41,7 +41,7 @@ if (enable_compiler_rust) {
     sources = [ "rust/src/lib.rs" ]
   }
 
-  ohos_rust_static_ffi("particle_cxx_rust") {
+  ohos_rust_shared_ffi("particle_cxx_rust") {
     sources = [ "rust/src/lib.rs" ]
     external_deps = [ "rust_cxx:lib" ]
     part_name = "graphic_2d"
@@ -623,6 +623,7 @@ ohos_source_set("render_service_base_src") {
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
+    "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
   ]
 
   if (is_arkui_x) {
@@ -825,6 +826,9 @@ config("render_service_base_link_config") {
       "-Wl,-mllvm",
       "-Wl,-wholeprogramdevirt-check=fallback",
       "-Wl,-Bsymbolic",
+      "-Wl,--exclude-libs=libunwind.a",
+      "-Wl,--exclude-libs=libunwind_llvm.a",
+      "-Wl,--exclude-libs=libc++_static.a",
     ]
 
     if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
@@ -850,10 +854,14 @@ config("render_service_base_link_config") {
       }
     }
     if (target_cpu == "arm64" && defined(build_ext_path)) {
-      ldflags += [ 
+      render_service_base_version_script =
+        rebase_path("//foundation/graphic/graphic_2d/rosen/modules/render_service_base/librender_service_base.versionscript",
+                    root_build_dir)
+      ldflags += [
+        "-Wl,--version-script=${render_service_base_version_script}",
         "-Wl,--emit-relocs",
-        "-Wl,--no-relax", 
-        "-mno-fix-cortex-a53-843419" 
+        "-Wl,--no-relax",
+        "-mno-fix-cortex-a53-843419"
       ]
     }
   }

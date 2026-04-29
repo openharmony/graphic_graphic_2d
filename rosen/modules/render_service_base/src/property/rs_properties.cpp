@@ -2712,6 +2712,24 @@ void RSProperties::CreateFlyOutShaderFilter()
     foregroundFilter_ = flyOutShaderFilter;
 }
 
+const std::optional<float>& RSProperties::GetDistortionK() const
+{
+    static const std::optional<float> defaultValue = std::nullopt;
+    if (effect_) {
+        return effect_->distortionK_;
+    }
+    return defaultValue;
+}
+
+const std::shared_ptr<RSFilter>& RSProperties::GetMaterialFilter() const
+{
+    static const std::shared_ptr<RSFilter> defaultValue = nullptr;
+    if (effect_) {
+        return effect_->materialFilter_;
+    }
+    return defaultValue;
+}
+
 void RSProperties::CreateSphereEffectFilter()
 {
     auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(GetSpherize());
@@ -4219,6 +4237,15 @@ void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
     }
 }
 
+const std::optional<Vector4f>& RSProperties::GetPixelStretch() const
+{
+    static const std::optional<Vector4f> defaultValue = std::nullopt;
+    if (effect_) {
+        return effect_->pixelStretch_;
+    }
+    return defaultValue;
+}
+
 RectI RSProperties::GetPixelStretchDirtyRect() const
 {
     auto dirtyRect = GetDirtyRect();
@@ -4270,6 +4297,15 @@ void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
     colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetGrayScale() const
+{
+    const RS_HIDDEN std::optional<float> defaultValue = std::nullopt;
+    if (effect_) {
+        return effect_->grayScale_;
+    }
+    return defaultValue;
 }
 
 void RSProperties::SetLightIntensity(float lightIntensity)
@@ -5787,6 +5823,15 @@ bool RSProperties::GetColorAdaptive() const
         return effect_->colorAdaptive_;
     }
     return false;
+}
+
+const std::shared_ptr<Drawing::ColorFilter>& RSProperties::GetColorFilter() const
+{
+    static const std::shared_ptr<Drawing::ColorFilter> defaultValue = nullptr;
+    if (effect_) {
+        return effect_->colorFilter_;
+    }
+    return defaultValue;
 }
 
 void RSProperties::SetAdaptive(bool value)
