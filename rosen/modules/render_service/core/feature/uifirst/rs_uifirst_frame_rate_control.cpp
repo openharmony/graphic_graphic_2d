@@ -103,12 +103,12 @@ bool RSUifirstFrameRateControl::SubThreadFrameDropDecision(const RSSurfaceRender
     bool hasMultipleSubSurfaces = JudgeMultiSubSurface(node);
     bool canDropFrame = GetUifirstFrameDropInternal(RSSystemProperties::GetSubThreadDropFrameInterval());
     
-    bool isNeedFrameContrel = true;
+    bool isNeedFrameControl = true;
     NodeId id = node.GetFirstLevelNodeId();
     if (RSFrameControlTool::Instance().CheckAppWindowNodeId(id)) {
-        isNeedFrameContrel = false;
+        isNeedFrameControl = false;
     }
-    return inAnimation && ((forceRefreshOnce_ && isNeedFrameContrel) || (!hasMultipleSubSurfaces && canDropFrame));
+    return inAnimation && ((forceRefreshOnce_ && isNeedFrameControl) || (!hasMultipleSubSurfaces && canDropFrame));
 }
 
 bool RSUifirstFrameRateControl::NeedRSUifirstControlFrameDrop(const RSSurfaceRenderNode& node)
