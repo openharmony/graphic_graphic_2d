@@ -41,7 +41,7 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #endif
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "modifier_render_thread/rs_modifiers_draw.h"
 #endif
@@ -149,7 +149,7 @@ void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
 
 void RSUIDirector::InitHybridRender()
 {
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     if (RSSystemProperties::GetHybridRenderEnabled()) {
         CommitTransactionCallback callback =
             [] (std::shared_ptr<RSRenderPipelineClient> &renderPiplineClient,
@@ -279,7 +279,7 @@ void RSUIDirector::GoForeground(bool isTextureExport)
             surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
         }
     }
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     RSModifiersDraw::InsertForegroundRoot(root_);
 #endif
 }
@@ -313,7 +313,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
         }
         if (isTextureExport || isUniRenderEnabled_) {
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
             RSModifiersDraw::EraseForegroundRoot(root_);
 #endif
             return;
@@ -324,7 +324,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
                 if (rsSurface == nullptr) {
                     ROSEN_LOGE("rsSurface is nullptr");
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
                     RSModifiersDraw::EraseForegroundRoot(root_);
 #endif
                     return;
@@ -343,7 +343,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         });
 #endif
     }
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     RSModifiersDraw::EraseForegroundRoot(root_);
 #endif
 }
@@ -492,7 +492,7 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     if (!cacheDir_.empty() && RSSystemProperties::GetHybridRenderEnabled()) {
         RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
     }
