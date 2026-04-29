@@ -107,6 +107,8 @@ public:
     void RegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type);
     void UnRegisterNodeMem(const pid_t pid, size_t size, MEMORY_TYPE type);
     size_t GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type);
+    void DumpMemoryPicStatisticsForReport(DfxString& log, const pid_t pid);
+    size_t GetNodeNumOfPid(const pid_t pid);
 
 private:
     MemoryTrack() = default;

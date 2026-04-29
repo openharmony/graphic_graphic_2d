@@ -1196,6 +1196,12 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
         return;
     }
     RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");
+    DfxString pixelmapInfo;
+    MemoryTrack::Instance().DumpMemoryPicStatisticsForReport(pixelmapInfo, pid);
+    size_t nodeNum = MemoryTrack::Instance().GetNodeNumOfPid(pid);
+    std::string memInfo = hidumperReport;
+    memInfo.append("\nNode Size: " + std::to_string(nodeNum) + "\n");
+    memInfo.append(pixelmapInfo.GetString());
     std::string gpuMemInfo;
     DfxString dfxLog;
     DumpMemorySnapshot(dfxLog);
@@ -1213,7 +1219,7 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
             std::string log;
             DumpNodesInfoForReport(log, pid);
             gpuMemInfo.append(log);
-            WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
+            WriteInfoToFile(filePath, gpuMemInfo, memInfo);
             int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC, "PID", pid, "TYPE", "GPU",
                 "BUNDLE_NAME", info.bundleName, "CPU_MEMORY", info.cpuMemory, "GPU_MEMORY",
                 info.nativeGpuMemory + info.engineGpuMemory, "TOTAL_MEMORY", info.TotalMemory(), "FILEPATH", filePath);
@@ -1225,7 +1231,7 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
         return;
     }
 
-    WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
+    WriteInfoToFile(filePath, gpuMemInfo, memInfo);
     int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC, "PID", pid, "TYPE", "GPU", "BUNDLE_NAME",
         info.bundleName, "CPU_MEMORY", info.cpuMemory, "GPU_MEMORY", info.nativeGpuMemory + info.engineGpuMemory,
         "TOTAL_MEMORY", info.TotalMemory(), "FILEPATH", filePath);
