@@ -1187,8 +1187,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaWriteBaseParamsBranchTe
 {
     std::shared_ptr<FilterPara> valTest = nullptr;
     Parcel parcelTest;
-    constexpr int baseParamsFloatsBeforeMaterialColor = 1; // WriteFloat(baseMaterialType)
-    constexpr int materialColorFloats = 4;                 // Vector4f
+    constexpr int materialColorFloats = 4; // Vector4f
 
     // Branch 2: WriteBool success, WriteFloat(baseMaterialType) fail
     // This tests the && continuation when WriteBool succeeds
