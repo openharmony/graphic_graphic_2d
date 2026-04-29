@@ -417,25 +417,12 @@ HWTEST_F(RSUIFilterToParaTest, ConvertFilterToParaHeatDistortionType, TestSize.L
     EXPECT_EQ(result, nullptr);
 }
 
-class FrostedGlassBlurParaTest : public testing::Test {
-public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    void SetUp() override;
-    void TearDown() override;
-};
-
-void FrostedGlassBlurParaTest::SetUpTestCase() {}
-void FrostedGlassBlurParaTest::TearDownTestCase() {}
-void FrostedGlassBlurParaTest::SetUp() {}
-void FrostedGlassBlurParaTest::TearDown() {}
-
 /**
- * @tc.name: SetSkipFrameEnable001
+ * @tc.name: FrostedGlassBlurParaSetSkipFrameEnableTrue
  * @tc.desc: test FrostedGlassBlurPara::SetSkipFrameEnable with true
  * @tc.type: FUNC
  */
-HWTEST_F(FrostedGlassBlurParaTest, SetSkipFrameEnable001, TestSize.Level1)
+HWTEST_F(RSUIFilterToParaTest, FrostedGlassBlurParaSetSkipFrameEnableTrue, TestSize.Level1)
 {
     auto para = std::make_shared<FrostedGlassBlurPara>();
     EXPECT_EQ(para->GetSkipFrameEnable(), false);
@@ -445,11 +432,11 @@ HWTEST_F(FrostedGlassBlurParaTest, SetSkipFrameEnable001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSkipFrameEnable002
+ * @tc.name: FrostedGlassBlurParaSetSkipFrameEnableFromTrueToFalse
  * @tc.desc: test FrostedGlassBlurPara::SetSkipFrameEnable with false
  * @tc.type: FUNC
  */
-HWTEST_F(FrostedGlassBlurParaTest, SetSkipFrameEnable002, TestSize.Level1)
+HWTEST_F(RSUIFilterToParaTest, FrostedGlassBlurParaSetSkipFrameEnableFromTrueToFalse, TestSize.Level1)
 {
     auto para = std::make_shared<FrostedGlassBlurPara>();
     para->SetSkipFrameEnable(true);
@@ -460,11 +447,11 @@ HWTEST_F(FrostedGlassBlurParaTest, SetSkipFrameEnable002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSkipFrameEnableToggle
+ * @tc.name: FrostedGlassBlurParaSetSkipFrameEnableToggle
  * @tc.desc: test FrostedGlassBlurPara::SetSkipFrameEnable toggle multiple times
  * @tc.type: FUNC
  */
-HWTEST_F(FrostedGlassBlurParaTest, SetSkipFrameEnableToggle, TestSize.Level1)
+HWTEST_F(RSUIFilterToParaTest, FrostedGlassBlurParaSetSkipFrameEnableToggle, TestSize.Level1)
 {
     auto para = std::make_shared<FrostedGlassBlurPara>();
 
@@ -486,7 +473,7 @@ HWTEST_F(FrostedGlassBlurParaTest, SetSkipFrameEnableToggle, TestSize.Level1)
  * @tc.desc: test FrostedGlassBlurPara default values
  * @tc.type: FUNC
  */
-HWTEST_F(FrostedGlassBlurParaTest, FrostedGlassBlurParaDefaultValues, TestSize.Level1)
+HWTEST_F(RSUIFilterToParaTest, FrostedGlassBlurParaDefaultValues, TestSize.Level1)
 {
     auto para = std::make_shared<FrostedGlassBlurPara>();
     EXPECT_FLOAT_EQ(para->GetBlurRadius(), 0.0f);
@@ -496,25 +483,12 @@ HWTEST_F(FrostedGlassBlurParaTest, FrostedGlassBlurParaDefaultValues, TestSize.L
     EXPECT_EQ(para->GetParaType(), FilterPara::ParaType::FROSTED_GLASS_BLUR);
 }
 
-class FrostedGlassParaTest : public testing::Test {
-public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    void SetUp() override;
-    void TearDown() override;
-};
-
-void FrostedGlassParaTest::SetUpTestCase() {}
-void FrostedGlassParaTest::TearDownTestCase() {}
-void FrostedGlassParaTest::SetUp() {}
-void FrostedGlassParaTest::TearDown() {}
-
 /**
- * @tc.name: SetSkipFrameEnable001
+ * @tc.name: FrostedGlassParaSetSkipFrameEnableTrue
  * @tc.desc: test FrostedGlassPara::SetSkipFrameEnable with true
  * @tc.type: FUNC
  */
-HWTEST_F(FrostedGlassParaTest, SetSkipFrameEnable001, TestSize.Level1)
+HWTEST_F(RSUIFilterToParaTest, FrostedGlassParaSetSkipFrameEnableTrue, TestSize.Level1)
 {
     auto para = std::make_shared<FrostedGlassPara>();
     EXPECT_EQ(para->GetSkipFrameEnable(), false);
@@ -524,11 +498,11 @@ HWTEST_F(FrostedGlassParaTest, SetSkipFrameEnable001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSkipFrameEnable002
+ * @tc.name: FrostedGlassParaSetSkipFrameEnableFromTrueToFalse
  * @tc.desc: test FrostedGlassPara::SetSkipFrameEnable with false
  * @tc.type: FUNC
  */
-HWTEST_F(FrostedGlassParaTest, SetSkipFrameEnable002, TestSize.Level1)
+HWTEST_F(RSUIFilterToParaTest, FrostedGlassParaSetSkipFrameEnableFromTrueToFalse, TestSize.Level1)
 {
     auto para = std::make_shared<FrostedGlassPara>();
     para->SetSkipFrameEnable(true);
@@ -539,11 +513,11 @@ HWTEST_F(FrostedGlassParaTest, SetSkipFrameEnable002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSkipFrameEnableToggle
+ * @tc.name: FrostedGlassParaSetSkipFrameEnableToggle
  * @tc.desc: test FrostedGlassPara::SetSkipFrameEnable toggle multiple times
  * @tc.type: FUNC
  */
-HWTEST_F(FrostedGlassParaTest, SetSkipFrameEnableToggle, TestSize.Level1)
+HWTEST_F(RSUIFilterToParaTest, FrostedGlassParaSetSkipFrameEnableToggle, TestSize.Level1)
 {
     auto para = std::make_shared<FrostedGlassPara>();
 
@@ -565,7 +539,7 @@ HWTEST_F(FrostedGlassParaTest, SetSkipFrameEnableToggle, TestSize.Level1)
  * @tc.desc: test FrostedGlassPara default values
  * @tc.type: FUNC
  */
-HWTEST_F(FrostedGlassParaTest, FrostedGlassParaDefaultValues, TestSize.Level1)
+HWTEST_F(RSUIFilterToParaTest, FrostedGlassParaDefaultValues, TestSize.Level1)
 {
     auto para = std::make_shared<FrostedGlassPara>();
     EXPECT_EQ(para->GetSkipFrameEnable(), false);
