@@ -20,13 +20,13 @@
 namespace OHOS {
 namespace Rosen {
 
-FrostedGlassBlurPara::FrostedGlassBlurPara(const FrostedGlassBlurPara& other)
+FrostedGlassBlurPara::FrostedGlassBlurPara(const FrostedGlassBlurPara& para)
 {
-    this->type_ = other.type_;
-    this->radius_ = other.radius_;
-    this->radiusScaleK_ = other.radiusScaleK_;
-    this->refractOutPx_ = other.refractOutPx_;
-    this->isSkipFrameEnable_ = other.isSkipFrameEnable_;
+    type_ = para.type_;
+    radius_ = para.radius_;
+    radiusScaleK_ = para.radiusScaleK_;
+    refractOutPx_ = para.refractOutPx_;
+    isSkipFrameEnable_ = para.isSkipFrameEnable_;
 }
 
 bool FrostedGlassBlurPara::Marshalling(Parcel& parcel) const

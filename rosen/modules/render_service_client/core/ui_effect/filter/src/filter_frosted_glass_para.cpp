@@ -21,44 +21,44 @@
 namespace OHOS {
 namespace Rosen {
 
-FrostedGlassPara::FrostedGlassPara(const FrostedGlassPara& other)
+FrostedGlassPara::FrostedGlassPara(const FrostedGlassPara& para)
 {
-    type_ = other.type_;
-    blurParams_ = other.blurParams_;
-    weightsEmboss_ = other.weightsEmboss_;
-    weightsEdl_ = other.weightsEdl_;
-    bgRates_ = other.bgRates_;
-    bgKBS_ = other.bgKBS_;
-    bgPos_ = other.bgPos_;
-    bgNeg_ = other.bgNeg_;
-    bgAlpha_ = other.bgAlpha_;
-    refractParams_ = other.refractParams_;
-    sdParams_ = other.sdParams_;
-    sdRates_ = other.sdRates_;
-    sdKBS_ = other.sdKBS_;
-    sdPos_ = other.sdPos_;
-    sdNeg_ = other.sdNeg_;
-    envLightParams_ = other.envLightParams_;
-    envLightRates_ = other.envLightRates_;
-    envLightKBS_ = other.envLightKBS_;
-    envLightPos_ = other.envLightPos_;
-    envLightNeg_ = other.envLightNeg_;
-    edLightParams_ = other.edLightParams_;
-    edLightAngles_ = other.edLightAngles_;
-    edLightDir_ = other.edLightDir_;
-    edLightRates_ = other.edLightRates_;
-    edLightKBS_ = other.edLightKBS_;
-    edLightPos_ = other.edLightPos_;
-    edLightNeg_ = other.edLightNeg_;
-    baseVibrancyEnabled_ = other.baseVibrancyEnabled_;
-    baseMaterialType_ = other.baseMaterialType_;
-    materialColor_ = other.materialColor_;
-    darkScale_ = other.darkScale_;
-    samplingScale_ = other.samplingScale_;
-    maskPara_ = other.maskPara_ ? other.maskPara_->Clone() : nullptr;
+    type_ = para.type_;
+    blurParams_ = para.blurParams_;
+    weightsEmboss_ = para.weightsEmboss_;
+    weightsEdl_ = para.weightsEdl_;
+    bgRates_ = para.bgRates_;
+    bgKBS_ = para.bgKBS_;
+    bgPos_ = para.bgPos_;
+    bgNeg_ = para.bgNeg_;
+    bgAlpha_ = para.bgAlpha_;
+    refractParams_ = para.refractParams_;
+    sdParams_ = para.sdParams_;
+    sdRates_ = para.sdRates_;
+    sdKBS_ = para.sdKBS_;
+    sdPos_ = para.sdPos_;
+    sdNeg_ = para.sdNeg_;
+    envLightParams_ = para.envLightParams_;
+    envLightRates_ = para.envLightRates_;
+    envLightKBS_ = para.envLightKBS_;
+    envLightPos_ = para.envLightPos_;
+    envLightNeg_ = para.envLightNeg_;
+    edLightParams_ = para.edLightParams_;
+    edLightAngles_ = para.edLightAngles_;
+    edLightDir_ = para.edLightDir_;
+    edLightRates_ = para.edLightRates_;
+    edLightKBS_ = para.edLightKBS_;
+    edLightPos_ = para.edLightPos_;
+    edLightNeg_ = para.edLightNeg_;
+    baseVibrancyEnabled_ = para.baseVibrancyEnabled_;
+    baseMaterialType_ = para.baseMaterialType_;
+    materialColor_ = para.materialColor_;
+    darkScale_ = para.darkScale_;
+    samplingScale_ = para.samplingScale_;
+    maskPara_ = para.maskPara_ ? para.maskPara_->Clone() : nullptr;
     darkAdaptiveParams_ =
-        other.darkAdaptiveParams_ ? std::make_shared<AdaptiveFrostedGlassParams>(*other.darkAdaptiveParams_) : nullptr;
-    isSkipFrameEnable_ = other.isSkipFrameEnable_;
+        para.darkAdaptiveParams_ ? std::make_shared<AdaptiveFrostedGlassParams>(*para.darkAdaptiveParams_) : nullptr;
+    isSkipFrameEnable_ = para.isSkipFrameEnable_;
 }
 
 namespace {
