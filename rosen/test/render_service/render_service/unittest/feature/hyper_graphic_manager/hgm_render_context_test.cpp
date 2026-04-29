@@ -103,7 +103,13 @@ HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     auto rsDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
     auto appDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "app");
     renderService.hgmContext_ = std::make_shared<HgmContext>(nullptr, mgr, nullptr, appDistributor, rsDistributor);
+    auto hgmProcessCallback = [hgmContext = renderService.hgmContext_](uint64_t timestamp, uint64_t vsyncId,
+        const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
+        const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo) {
+        hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    };
     auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
+    renderServiceAgent->RegisterHgmProcessCallback(hgmProcessCallback);
     auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
     auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService.screenManager_);
     auto renderToServiceConnection =
