@@ -2133,7 +2133,7 @@ void RSRenderNode::UpdateDrawRect(
         parent = GetParent().lock();
     }
     auto& properties = GetMutableRenderProperties();
-    if (auto sandbox = properties.GetSandBox(); sandbox.has_value() && sharedTransitionParam_) {
+    if (auto sandbox = properties.GetSandBox(); sandbox.has_value()) {
         // case a. use parent sur_face matrix with sandbox
         auto translateMatrix = Drawing::Matrix();
         translateMatrix.Translate(sandbox->x_, sandbox->y_);
@@ -3284,11 +3284,6 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         "RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
         " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(),
         isTextureExportNode_);
-    if ((dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM))) &&
-        !GetRenderProperties().GetSandBox().has_value() && sharedTransitionParam_) {
-        auto paramCopy = sharedTransitionParam_;
-        paramCopy->InternalUnregisterSelf();
-    }
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::FOREGROUND_FILTER)) ||
         dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS))) {
         std::shared_ptr<RSFilter> foregroundFilter = nullptr;
@@ -4470,8 +4465,7 @@ void RSRenderNode::UpdateRenderParams()
     if (!boundGeo) {
         return;
     }
-    bool hasSandbox = sharedTransitionParam_ && GetRenderProperties().GetSandBox();
-    stagingRenderParams_->SetHasSandBox(hasSandbox);
+    stagingRenderParams_->SetHasSandBox(GetRenderProperties().GetSandBox().has_value());
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
     stagingRenderParams_->SetFrameGravity(GetRenderProperties().GetFrameGravity());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
