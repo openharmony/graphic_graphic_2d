@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1921,8 +1921,10 @@ bool DrawCmdFuzzTest051(const uint8_t* data, size_t size)
     paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
+    TextBlobRenderOption opt =
+        TextBlobRenderOption(static_cast<TextContrast>(GetObject<uint32_t>() % TEXTCONTRAST_SIZE), false);
     DrawTextBlobOpItem::ConstructorHandle constructorHandle = DrawTextBlobOpItem::ConstructorHandle(textBlob,
-        globalUniqueId, static_cast<TextContrast>(GetObject<uint32_t>() % TEXTCONTRAST_SIZE), x, y, paintHandle);
+        globalUniqueId, opt, x, y, paintHandle);
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     Canvas canvas = Canvas(width, height);

@@ -1727,10 +1727,12 @@ DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobO
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
     globalUniqueId_ = handle->globalUniqueId;
-    textContrast_ = handle->textContrast;
-    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, handle->globalUniqueId);
+    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList,
+                                                      handle->textBlob,
+                                                      handle->globalUniqueId,
+                                                      static_cast<bool>(handle->options.bits.preferSpeedOverQuality));
     if (textBlob_) {
-        textBlob_->SetTextContrast(textContrast_);
+        textBlob_->SetTextContrast(static_cast<TextContrast>(handle->options.bits.textContrast));
     }
 }
 
@@ -1751,10 +1753,10 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
         uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
         globalUniqueId = (shiftedPid | typefaceId);
     }
-
+    TextBlobRenderOption opt = TextBlobRenderOption(textBlob_->GetTextContrast(),
+                                                    textBlob_->IsSpeedOverQualityPreferred());
     if (textBlob_) {
-        cmdList.AddOp<ConstructorHandle>(textBlobHandle,
-            globalUniqueId, textBlob_->GetTextContrast(), x_, y_, paintHandle);
+        cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId, opt, x_, y_, paintHandle);
     }
 }
 
@@ -2087,6 +2089,8 @@ void DrawTextBlobOpItem::DumpItems(std::string& out) const
             bounds->Dump(out);
         }
         out += " isEmoji:" + std::string(textBlob_->IsEmoji() ? "true" : "false");
+        out += " isSpeedOverQualityPreferred:" +
+               std::string(textBlob_->IsSpeedOverQualityPreferred() ? "true" : "false");
         out += ']';
     }
 }

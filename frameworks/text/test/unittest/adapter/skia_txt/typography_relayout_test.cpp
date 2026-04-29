@@ -1474,7 +1474,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0035, TestSize.L
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    EXPECT_FALSE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 
 /*

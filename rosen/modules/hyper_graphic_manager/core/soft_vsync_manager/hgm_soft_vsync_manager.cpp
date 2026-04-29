@@ -33,6 +33,7 @@ const std::string VOTER_NAME[] = {
     "VOTER_LOW",
 };
 const std::string VRATE_CONTROL_MINIFPS = "minifps";
+const std::string DISABLE_APP_FRAME_SPLIT_MODE = "DISABLE_FRAME_SPLIT";
 }
 
 // LCOV_EXCL_START
@@ -130,6 +131,18 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
         const VsyncName& vsyncName = voter.first;
         const EventInfo& eventInfo = voter.second;
 
+        if (eventInfo.description == DISABLE_APP_FRAME_SPLIT_MODE) {
+            if (eventInfo.eventStatus) {
+                disableAppFrameVsyncNames_.insert(vsyncName);
+            } else {
+                disableAppFrameVsyncNames_.erase(vsyncName);
+            }
+            RS_TRACE_NAME_FMT("disable frame split update, vsyncName:%s, status:%d",
+                vsyncName.c_str(), eventInfo.eventStatus);
+            HGM_LOGI("disable frame split update, vsyncName:%{public}s, status:%{public}d",
+                vsyncName.c_str(), eventInfo.eventStatus);
+        }
+
         if (auto vsyncLinker = vsyncLinkerMap_.find(vsyncName); vsyncLinker != vsyncLinkerMap_.end()) {
             const std::vector<FrameRateLinkerId>& linkerIds = vsyncLinker->second;
             for (auto linkerId : linkerIds) {
@@ -208,6 +221,10 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
     auto appFrameRate =
         isPerformanceFirst_ && !isForceUseAppVSync && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
         OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
+    if (appFrameRate != OLED_NULL_HZ && (expectedRange.type_ & NATIVE_VSYNC_FRAME_RATE_TYPE) != 0) {
+        appFrameRate = disableAppFrameVsyncNames_.find(linker.second->GetVsyncName()) !=
+            disableAppFrameVsyncNames_.end() ? OLED_NULL_HZ : appFrameRate;
+    }
     if (CollectGameRateDiscountChange(linker.first, expectedRange, currRefreshRate)) {
         appFrameRate = static_cast<uint32_t>(expectedRange.preferred_);
     }

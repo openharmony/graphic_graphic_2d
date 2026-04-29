@@ -100,6 +100,7 @@ private:
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     NodeId nodeId_ = INVALID_NODEID;
     NodeId endNodeId_ = INVALID_NODEID;
+    ScreenId screenId_ = INVALID_SCREEN_ID;
     Drawing::Matrix startMatrix_;
     Drawing::Matrix endMatrix_;
     const RSSurfaceCaptureConfig captureConfig_ = {};
