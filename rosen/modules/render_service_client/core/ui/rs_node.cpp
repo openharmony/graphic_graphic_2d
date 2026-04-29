@@ -317,17 +317,26 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation(
     return implicitAnimator->CloseImplicitAnimation();
 }
 
-bool RSNode::CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext)
+bool RSNode::CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext, bool nodeExceptionSensitive)
 {
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::CloseImplicitCancelAnimation, rsUIContext is null!");
         return false;
     }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
-    return implicitAnimator->CloseImplicitCancelAnimation() == CancelAnimationStatus::SUCCESS ? true : false;
+
+    auto status = implicitAnimator->CloseImplicitCancelAnimation();
+    if (!nodeExceptionSensitive && status == CancelAnimationStatus::NODE_EXCEPTION) {
+        status = CancelAnimationStatus::SUCCESS;
+    }
+    if (status != CancelAnimationStatus::SUCCESS) {
+        ROSEN_LOGE("RSNode::CloseImplicitCancelAnimation failed with status: %{public}d", static_cast<int>(status));
+    }
+    return status == CancelAnimationStatus::SUCCESS;
 }
 
-CancelAnimationStatus RSNode::CloseImplicitCancelAnimationReturnStatus(const std::shared_ptr<RSUIContext> rsUIContext)
+CancelAnimationStatus RSNode::CloseImplicitCancelAnimationReturnStatus(
+    const std::shared_ptr<RSUIContext> rsUIContext, bool nodeExceptionSensitive)
 {
     if (rsUIContext == nullptr) {
         ROSEN_LOGW("RSNode::CloseImplicitCancelAnimationReturnStatus, rsUIContext is null!");
@@ -335,7 +344,15 @@ CancelAnimationStatus RSNode::CloseImplicitCancelAnimationReturnStatus(const std
     }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
-    return implicitAnimator->CloseImplicitCancelAnimation();
+    auto status = implicitAnimator->CloseImplicitCancelAnimation();
+    if (!nodeExceptionSensitive && status == CancelAnimationStatus::NODE_EXCEPTION) {
+        return CancelAnimationStatus::SUCCESS;
+    }
+    if (status != CancelAnimationStatus::SUCCESS) {
+        ROSEN_LOGE("RSNode::CloseImplicitCancelAnimationReturnStatus failed with status: %{public}d",
+            static_cast<int>(status));
+    }
+    return status;
 }
 
 void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)

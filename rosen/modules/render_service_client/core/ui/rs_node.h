@@ -350,9 +350,10 @@ public:
         const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation(
         const std::shared_ptr<RSUIContext> rsUIContext);
-    static bool CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext);
+    static bool CloseImplicitCancelAnimation(
+        const std::shared_ptr<RSUIContext> rsUIContext, bool nodeExceptionSensitive = false);
     static CancelAnimationStatus CloseImplicitCancelAnimationReturnStatus(
-        const std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+        const std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool nodeExceptionSensitive = false);
     static bool IsImplicitAnimationOpen(const std::shared_ptr<RSUIContext> rsUIContext);
     static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
         float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
