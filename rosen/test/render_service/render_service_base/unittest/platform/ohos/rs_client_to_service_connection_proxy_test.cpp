@@ -1338,6 +1338,30 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation, TestS
 }
 
 /**
+ * @tc.name: SetCacheEnabledForRotation001
+ * @tc.desc: Test SetCacheEnabledForRotation with enabled = true, verify return value
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation001, TestSize.Level0)
+{
+    auto ret = proxy->SetCacheEnabledForRotation(true);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetCacheEnabledForRotation002
+ * @tc.desc: Test SetCacheEnabledForRotation with enabled = false, verify return value
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation002, TestSize.Level0)
+{
+    auto ret = proxy->SetCacheEnabledForRotation(false);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
  * @tc.name: NotifyHgmConfigEvent Test
  * @tc.desc: NotifyHgmConfigEvent Test
  * @tc.type:FUNC
