@@ -726,8 +726,7 @@ static void VerifyFrostedGlassParaProperties(const FrostedGlassPara& para)
     EXPECT_EQ(FROSTED_BASE_VIBRANCY_ENABLED, para.GetBaseVibrancyEnabled());
     EXPECT_EQ(FROSTED_BASE_MATERIAL_TYPE, para.GetBaseMaterialType());
     EXPECT_EQ(Vector4f(FROSTED_MATERIAL_COLOR_X, FROSTED_MATERIAL_COLOR_Y, FROSTED_MATERIAL_COLOR_Z,
-                  FROSTED_MATERIAL_COLOR_W),
-        para.GetMaterialColor());
+        ROSTED_MATERIAL_COLOR_W), para.GetMaterialColor());
     EXPECT_EQ(FROSTED_DARK_SCALE, para.GetDarkScale());
     EXPECT_EQ(FROSTED_SAMPLING_SCALE, para.GetSamplingScale());
     EXPECT_EQ(nullptr, para.GetMask());
