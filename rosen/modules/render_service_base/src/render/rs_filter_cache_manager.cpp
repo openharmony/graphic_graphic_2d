@@ -233,9 +233,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_FILTERCACHEENABLEVMA);
 #endif
     if (!IsCacheValid()) {
-        auto& hveFilter = HveFilter::GetHveFilter();
-        if (hveFilter.hveFilterToSurfaceNodeMap_.find(nodeId) !=
-            hveFilter.hveFilterToSurfaceNodeMap_.end()) {
+        if (HveFilter::GetHveFilter().HasFilterNode(nodeId)) {
             TakeSnapshot(canvas, filter, src, nodeId);
         } else {
             TakeSnapshot(canvas, filter, src);
@@ -267,9 +265,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     RSTagTracker tagTrackerCache(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_CACHE);
 #endif
     if (!IsCacheValid()) {
-        auto& hveFilter = HveFilter::GetHveFilter();
-        if (hveFilter.hveFilterToSurfaceNodeMap_.find(filterId) !=
-            hveFilter.hveFilterToSurfaceNodeMap_.end()) {
+        if (HveFilter::GetHveFilter().HasFilterNode(filterId)) {
             TakeSnapshot(canvas, filter, src, filterId);
         } else {
             TakeSnapshot(canvas, filter, src);

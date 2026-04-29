@@ -336,7 +336,7 @@ void RSDrawFrame::Sync()
         }
     }
     pendingSyncNodes.clear();
-    HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
+    HveFilter::GetHveFilter().Sync();
 
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
 #ifdef SUBTREE_PARALLEL_ENABLE

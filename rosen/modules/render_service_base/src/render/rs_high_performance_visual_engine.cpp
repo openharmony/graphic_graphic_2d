@@ -31,6 +31,13 @@ HveFilter& HveFilter::GetHveFilter()
     return filter;
 }
 
+void HveFilter::Sync()
+{
+    ClearSurfaceNodeInfo();
+    hveFilterToSurfaceNodeMap_ = hveFilterToSurfaceNodeStagingMap_;
+    hveFilterToSurfaceNodeStagingMap_.clear();
+}
+
 void HveFilter::ClearSurfaceNodeInfo()
 {
     surfaceNodeInfo_.clear();
@@ -51,6 +58,11 @@ int HveFilter::GetSurfaceNodeSize() const
 {
     std::lock_guard<std::mutex> lock(hveFilterMtx_);
     return surfaceNodeInfo_.size();
+}
+
+bool HveFilter::HasFilterNode(NodeId filterId)
+{
+    return hveFilterToSurfaceNodeMap_.find(filterId) != hveFilterToSurfaceNodeMap_.end();
 }
 
 bool HveFilter::HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node)
@@ -112,10 +124,10 @@ void HveFilter::ClearHveFilterSurfaceNodeMapping()
 
 void HveFilter::PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId)
 {
-    if (hveFilterToSurfaceNodeMap_.find(filterId) == hveFilterToSurfaceNodeMap_.end()) {
-        hveFilterToSurfaceNodeMap_[filterId] = std::vector<NodeId>();
+    if (hveFilterToSurfaceNodeStagingMap_.find(filterId) == hveFilterToSurfaceNodeStagingMap_.end()) {
+        hveFilterToSurfaceNodeStagingMap_[filterId] = std::vector<NodeId>();
     }
-    hveFilterToSurfaceNodeMap_[filterId].push_back(surfaceId);
+    hveFilterToSurfaceNodeStagingMap_[filterId].push_back(surfaceId);
 }
 
 void HveFilter::DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,

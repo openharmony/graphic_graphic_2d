@@ -793,7 +793,6 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     }
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
-    HveFilter::GetHveFilter().ClearHveFilterSurfaceNodeMapping();
 
     QuickPrepareChildren(node);
     TryNotifyUIBufferAvailable();
