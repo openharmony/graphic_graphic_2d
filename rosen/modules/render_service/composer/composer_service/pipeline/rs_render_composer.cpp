@@ -253,7 +253,6 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     PrintHiperfSurfaceLog("counter3", static_cast<uint64_t>(layers.size()));
     int64_t startTime = GetCurTimeCount();
     std::string surfaceName = GetSurfaceNameInLayers(layers);
-    RS_LOGD("CommitAndReleaseLayers task execute, %{public}s", surfaceName.c_str());
     RSFirstFrameNotifier::GetInstance().ExecIfFirstFrameCommit(screenId_);
 
     RS_LOGI_IF(DEBUG_COMPOSER, "CommitAndReleaseData hasGameScene is %{public}d %{public}s",
@@ -264,7 +263,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     RS_TRACE_NAME_FMT("CommitLayers rate:%u,now:%" PRIu64 ",vsyncId:%" PRIu64 ",size:%zu,%s",
         currentRate, pipelineParam.frameTimestamp, pipelineParam.vsyncId, layers.size(),
         GetSurfaceNameInLayersForTrace(layers).c_str());
-    RS_LOGD("CommitLayers rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
+    RS_LOGD_IF(DEBUG_COMPOSER, "CommitLayers rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
         size:%{public}zu, %{public}s", currentRate, pipelineParam.frameTimestamp, pipelineParam.vsyncId, layers.size(),
         GetSurfaceNameInLayersForTrace(layers).c_str());
 
