@@ -42,7 +42,8 @@ RSAnimationTraceUtils::RSAnimationTraceUtils()
         GRAPHIC_TEST_MODE_TRACE_NAME, OnAnimationTraceEnabledChangedCallback, nullptr);
 }
 
-RSAnimationTraceUtils& RSAnimationTraceUtils::GetInstance() {
+RSAnimationTraceUtils& RSAnimationTraceUtils::GetInstance()
+{
     static RSAnimationTraceUtils instance;
     return instance;
 }
