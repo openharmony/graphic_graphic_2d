@@ -35,6 +35,7 @@ enum class CancelAnimationStatus {
     INCORRECT_PARAM_TYPE,
     EMPTY_PENDING_SYNC_LIST,
     TASK_EXECUTION_FAILURE,
+    NODE_EXCEPTION,
 };
 class RSAnimation;
 class RSPropertyBase;
@@ -72,7 +73,7 @@ public:
         const std::shared_ptr<RSPropertyBase>& endValue) const;
 
 private:
-    bool ExecuteSyncPropertiesTask(
+    CancelAnimationStatus ExecuteSyncPropertiesTask(
         RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService,
         const std::shared_ptr<RSUIContext>& rsUIContext);
     std::vector<std::shared_ptr<RSPropertyBase>> pendingSyncList_;
