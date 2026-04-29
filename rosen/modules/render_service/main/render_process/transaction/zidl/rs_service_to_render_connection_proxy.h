@@ -124,6 +124,7 @@ public:
     ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) override;
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
+    void SetCacheEnabledForRotation(bool enabled) override;
     void SetVmaCacheStatus(bool flag) override;
 
 private:

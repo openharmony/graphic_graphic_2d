@@ -196,6 +196,21 @@ HWTEST_F(RSServiceToRenderConnectionTest, SetShowRefreshRateEnabledTest, TestSiz
 }
 
 /**
+ * @tc.name: SetCacheEnabledForRotationTest
+ * @tc.desc: Test SetCacheEnabledForRotation with enabled = true and false
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, SetCacheEnabledForRotationTest, TestSize.Level1)
+{
+    bool enabled = true;
+    bool enabled1 = false;
+    g_rsConn->SetCacheEnabledForRotation(enabled);
+    g_rsConn->SetCacheEnabledForRotation(enabled1);
+    ASSERT_TRUE(g_rsConn);
+}
+
+/**
  * @tc.name: GetShowRefreshRateEnabledTest
  * @tc.desc: Test
  * @tc.type: FUNC
