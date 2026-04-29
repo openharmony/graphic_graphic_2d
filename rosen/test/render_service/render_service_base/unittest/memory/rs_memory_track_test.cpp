@@ -1124,4 +1124,245 @@ HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest002, testing::ext::TestSize.L
     EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE);
 }
 #endif
+
+/**
+ * @tc.name: GetNodeNumOfPidTest001
+ * @tc.desc: Test GetNodeNumOfPid with non-existent PID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeNumOfPidTest001, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = 99999;
+    size_t nodeCount = MemoryTrack::Instance().GetNodeNumOfPid(testPid);
+    EXPECT_EQ(nodeCount, 0);
+}
+
+/**
+ * @tc.name: GetNodeNumOfPidTest002
+ * @tc.desc: Test GetNodeNumOfPid with PID that has registered nodes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeNumOfPidTest002, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = 88888;
+    NodeId id1 = 8801;
+    NodeId id2 = 8802;
+    NodeId id3 = 8803;
+
+    MemoryInfo info1 = {1024, testPid, id1, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info2 = {2048, testPid, id2, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info3 = {3072, testPid, id3, MEMORY_TYPE::MEM_RENDER_NODE};
+
+    MemoryTrack::Instance().AddNodeRecord(id1, info1);
+    MemoryTrack::Instance().AddNodeRecord(id2, info2);
+    MemoryTrack::Instance().AddNodeRecord(id3, info3);
+
+    size_t nodeCount = MemoryTrack::Instance().GetNodeNumOfPid(testPid);
+    EXPECT_EQ(nodeCount, 3);
+
+    MemoryTrack::Instance().RemoveNodeRecord(id1);
+    MemoryTrack::Instance().RemoveNodeRecord(id2);
+    MemoryTrack::Instance().RemoveNodeRecord(id3);
+}
+
+/**
+ * @tc.name: GetNodeNumOfPidTest003
+ * @tc.desc: Test GetNodeNumOfPid with different PIDs.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeNumOfPidTest003, testing::ext::TestSize.Level1)
+{
+    pid_t pid1 = 77701;
+    pid_t pid2 = 77702;
+
+    NodeId id1 = 7701;
+    NodeId id2 = 7702;
+    NodeId id3 = 7703;
+
+    MemoryInfo info1 = {1024, pid1, id1, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info2 = {2048, pid2, id2, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryInfo info3 = {3072, pid1, id3, MEMORY_TYPE::MEM_RENDER_NODE};
+
+    MemoryTrack::Instance().AddNodeRecord(id1, info1);
+    MemoryTrack::Instance().AddNodeRecord(id2, info2);
+    MemoryTrack::Instance().AddNodeRecord(id3, info3);
+
+    size_t nodeCount1 = MemoryTrack::Instance().GetNodeNumOfPid(pid1);
+    size_t nodeCount2 = MemoryTrack::Instance().GetNodeNumOfPid(pid2);
+    EXPECT_EQ(nodeCount1, 2);
+    EXPECT_EQ(nodeCount2, 1);
+
+    MemoryTrack::Instance().RemoveNodeRecord(id1);
+    MemoryTrack::Instance().RemoveNodeRecord(id2);
+    MemoryTrack::Instance().RemoveNodeRecord(id3);
+}
+
+/**
+ * @tc.name: DumpMemoryPicStatisticsForReportTest001
+ * @tc.desc: Test DumpMemoryPicStatisticsForReport with no picture records.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsForReportTest001, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = 66601;
+    DfxString log;
+    MemoryTrack::Instance().DumpMemoryPicStatisticsForReport(log, testPid);
+    std::string logStr = log.GetString();
+    EXPECT_TRUE(logStr.find("RSImageCache:") != std::string::npos);
+    EXPECT_TRUE(logStr.find("Size        NodeId        Pid        Type,Format") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpMemoryPicStatisticsForReportTest002
+ * @tc.desc: Test DumpMemoryPicStatisticsForReport with picture records.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsForReportTest002, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = 55501;
+    const void* addr1 = reinterpret_cast<void*>(0x5501);
+    const void* addr2 = reinterpret_cast<void*>(0x5502);
+
+    MemoryInfo info1;
+    info1.size = 2048;
+    info1.pid = testPid;
+    info1.nid = 5501;
+    info1.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info1.pixelMapFormat = OHOS::Media::PixelFormat::RGBA_8888;
+    info1.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+
+    MemoryInfo info2;
+    info2.size = 4096;
+    info2.pid = testPid;
+    info2.nid = 5502;
+    info2.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info2.pixelMapFormat = OHOS::Media::PixelFormat::RGB_565;
+    info2.allocType = OHOS::Media::AllocatorType::SHARE_MEM_ALLOC;
+
+    MemoryTrack::Instance().AddPictureRecord(addr1, info1);
+    MemoryTrack::Instance().AddPictureRecord(addr2, info2);
+
+    DfxString log;
+    MemoryTrack::Instance().DumpMemoryPicStatisticsForReport(log, testPid);
+    std::string logStr = log.GetString();
+
+    EXPECT_TRUE(logStr.find("RSImageCache:") != std::string::npos);
+    EXPECT_TRUE(logStr.find("Size        NodeId        Pid        Type,Format") != std::string::npos);
+    EXPECT_TRUE(logStr.find("HEAP") != std::string::npos);
+    EXPECT_TRUE(logStr.find("SHARE_MEM") != std::string::npos);
+
+    MemoryTrack::Instance().RemovePictureRecord(addr1);
+    MemoryTrack::Instance().RemovePictureRecord(addr2);
+}
+
+/**
+ * @tc.name: DumpMemoryPicStatisticsForReportTest003
+ * @tc.desc: Test DumpMemoryPicStatisticsForReport filters by PID.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsForReportTest003, testing::ext::TestSize.Level1)
+{
+    pid_t pid1 = 44401;
+    pid_t pid2 = 44402;
+
+    const void* addr1 = reinterpret_cast<void*>(0x4401);
+    const void* addr2 = reinterpret_cast<void*>(0x4402);
+
+    MemoryInfo info1;
+    info1.size = 1024;
+    info1.pid = pid1;
+    info1.nid = 4401;
+    info1.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info1.pixelMapFormat = OHOS::Media::PixelFormat::ARGB_8888;
+    info1.allocType = OHOS::Media::AllocatorType::DEFAULT;
+
+    MemoryInfo info2;
+    info2.size = 2048;
+    info2.pid = pid2;
+    info2.nid = 4402;
+    info2.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info2.pixelMapFormat = OHOS::Media::PixelFormat::RGBA_8888;
+    info2.allocType = OHOS::Media::AllocatorType::DMA_ALLOC;
+
+    MemoryTrack::Instance().AddPictureRecord(addr1, info1);
+    MemoryTrack::Instance().AddPictureRecord(addr2, info2);
+
+    DfxString log;
+    MemoryTrack::Instance().DumpMemoryPicStatisticsForReport(log, pid1);
+    std::string logStr = log.GetString();
+
+    EXPECT_TRUE(logStr.find("RSImageCache:") != std::string::npos);
+    EXPECT_TRUE(logStr.find("DEFAULT") != std::string::npos);
+    EXPECT_TRUE(logStr.find("DMA") == std::string::npos);
+
+    MemoryTrack::Instance().RemovePictureRecord(addr1);
+    MemoryTrack::Instance().RemovePictureRecord(addr2);
+}
+
+/**
+ * @tc.name: DumpMemoryPicStatisticsForReportTest004
+ * @tc.desc: Test DumpMemoryPicStatisticsForReport with MEM_SKIMAGE type.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsForReportTest004, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = 33301;
+    const void* addr = reinterpret_cast<void*>(0x3301);
+
+    MemoryInfo info;
+    info.size = 5120;
+    info.pid = testPid;
+    info.nid = 3301;
+    info.type = MEMORY_TYPE::MEM_SKIMAGE;
+    info.pixelMapFormat = OHOS::Media::PixelFormat::RGBA_F16;
+    info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+
+    MemoryTrack::Instance().AddPictureRecord(addr, info);
+
+    DfxString log;
+    MemoryTrack::Instance().DumpMemoryPicStatisticsForReport(log, testPid);
+    std::string logStr = log.GetString();
+
+    EXPECT_TRUE(logStr.find("RSImageCache:") != std::string::npos);
+    EXPECT_TRUE(logStr.find("skimage") != std::string::npos);
+
+    MemoryTrack::Instance().RemovePictureRecord(addr);
+}
+
+/**
+ * @tc.name: DumpMemoryPicStatisticsForReportTest005
+ * @tc.desc: Test DumpMemoryPicStatisticsForReport size conversion (bytes to KB).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsForReportTest005, testing::ext::TestSize.Level1)
+{
+    pid_t testPid = 22201;
+    const void* addr = reinterpret_cast<void*>(0x2201);
+
+    MemoryInfo info;
+    info.size = 1024 * 10;
+    info.pid = testPid;
+    info.nid = 2201;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.pixelMapFormat = OHOS::Media::PixelFormat::RGB_888;
+    info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+
+    MemoryTrack::Instance().AddPictureRecord(addr, info);
+
+    DfxString log;
+    MemoryTrack::Instance().DumpMemoryPicStatisticsForReport(log, testPid);
+    std::string logStr = log.GetString();
+
+    EXPECT_TRUE(logStr.find("10") != std::string::npos);
+
+    MemoryTrack::Instance().RemovePictureRecord(addr);
+}
 } // namespace OHOS::Rosen
