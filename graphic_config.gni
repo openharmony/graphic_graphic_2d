@@ -57,6 +57,7 @@ declare_args() {
   graphic_2d_feature_enable_dvsync = false
   graphic_2d_feature_enable_memory_downtree = false
   graphic_2d_feature_enable_image_detail_enhancer = false
+  graphic_2d_feature_rs_modifiers_draw_enable = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
