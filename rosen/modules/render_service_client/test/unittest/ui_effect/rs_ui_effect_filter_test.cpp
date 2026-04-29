@@ -965,5 +965,266 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadParamsBranchTest, T
     }
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
 }
+
+/**
+ * @tc.name: RSUIEffectFrostedGlassParaReadBlurRefractBranchTest
+ * @tc.desc: Cover missing branches in ReadBlurAndRefractParams (+ + + - + -)
+ *           Branch 4: blurParams success, weightsEmboss success, weightsEdl fail
+ *           Branch 6: blurParams success, weightsEmboss success, weightsEdl success
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadBlurRefractBranchTest, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+    constexpr int blurParamsFloats = 2;    // Vector2f
+    constexpr int weightsEmbossFloats = 2; // Vector2f
+    constexpr int weightsEdlFloats = 2;    // Vector2f
+
+    // Branch 4: blurParams(2) + weightsEmboss(2) success, weightsEdl fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < blurParamsFloats + weightsEmbossFloats; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    // Branch 6: blurParams(2) + weightsEmboss(2) + weightsEdl(2) success, refractParams fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < blurParamsFloats + weightsEmbossFloats + weightsEdlFloats; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectFrostedGlassParaReadBgParamsBranchTest
+ * @tc.desc: Cover missing branches in ReadBgParams (+ - + - + + + -)
+ *           Branch 2: bgRates success
+ *           Branch 4: bgRates + bgKBS success
+ *           Branch 8: bgRates + bgKBS + bgPos + bgNeg success, bgAlpha fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadBgParamsBranchTest, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+    constexpr int bgRatesFloats = 2; // Vector2f
+    constexpr int bgKBSFloats = 3;   // Vector3f
+    constexpr int bgPosFloats = 3;   // Vector3f
+    constexpr int bgNegFloats = 3;   // Vector3f
+
+    // Branch 2: bgRates success, bgKBS fail (after blurRefract success)
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::blurRefractFloats + bgRatesFloats; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    // Branch 4: bgRates + bgKBS success, bgPos fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::blurRefractFloats + bgRatesFloats + bgKBSFloats; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    // Branch 8: bgRates + bgKBS + bgPos + bgNeg success, bgAlpha fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0;
+         i < FrostedGlassFloatCounts::blurRefractFloats + bgRatesFloats + bgKBSFloats + bgPosFloats + bgNegFloats;
+         ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectFrostedGlassParaReadSdParamsBranchTest
+ * @tc.desc: Cover missing branches in ReadSdParams (+ + + - + - + -)
+ *           Branch 4: sdParams success, sdRates fail
+ *           Branch 6: sdParams + sdRates success, sdKBS fail
+ *           Branch 8: sdParams + sdRates + sdKBS + sdPos success, sdNeg fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadSdParamsBranchTest, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+    constexpr int sdParamsFloats = 3; // Vector3f
+    constexpr int sdRatesFloats = 2;  // Vector2f
+    constexpr int sdKBSFloats = 3;    // Vector3f
+    constexpr int sdPosFloats = 3;    // Vector3f
+
+    // Branch 4: sdParams success, sdRates fail (after blurRefract + bgParams success)
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0;
+         i < FrostedGlassFloatCounts::blurRefractFloats + FrostedGlassFloatCounts::bgParamsFloats + sdParamsFloats;
+         ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    // Branch 6: sdParams + sdRates success, sdKBS fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::blurRefractFloats + FrostedGlassFloatCounts::bgParamsFloats +
+                            sdParamsFloats + sdRatesFloats;
+         ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    // Branch 8: sdParams + sdRates + sdKBS + sdPos success, sdNeg fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::blurRefractFloats + FrostedGlassFloatCounts::bgParamsFloats +
+                            sdParamsFloats + sdRatesFloats + sdKBSFloats + sdPosFloats;
+         ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectFrostedGlassParaReadEnvLightParamsBranchTest
+ * @tc.desc: Cover missing branches in ReadEnvLightParams (+ + + - + -)
+ *           Branch 4: envLightParams success, envLightRates fail
+ *           Branch 6: envLightParams + envLightRates success, envLightKBS fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadEnvLightParamsBranchTest, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+    constexpr int envLightParamsFloats = 3; // Vector3f
+    constexpr int envLightRatesFloats = 2;  // Vector2f
+
+    // Branch 4: envLightParams success, envLightRates fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::blurRefractFloats + FrostedGlassFloatCounts::bgParamsFloats +
+                            FrostedGlassFloatCounts::sdParamsFloats + envLightParamsFloats;
+         ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    // Branch 6: envLightParams + envLightRates success, envLightKBS fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::blurRefractFloats + FrostedGlassFloatCounts::bgParamsFloats +
+                            FrostedGlassFloatCounts::sdParamsFloats + envLightParamsFloats + envLightRatesFloats;
+         ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectFrostedGlassParaReadEdLightParamsBranchTest
+ * @tc.desc: Cover missing branches in ReadEdLightParams (+ - + + + -)
+ *           Branch 2: edLightParams success, edLightAngles fail
+ *           Branch 6: edLightParams + edLightAngles + edLightDir success, edLightRates fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadEdLightParamsBranchTest, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+    constexpr int edLightParamsFloats = 2; // Vector2f
+    constexpr int edLightAnglesFloats = 2; // Vector2f
+    constexpr int edLightDirFloats = 2;    // Vector2f
+
+    // Branch 2: edLightParams success, edLightAngles fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::blurRefractFloats + FrostedGlassFloatCounts::bgParamsFloats +
+                            FrostedGlassFloatCounts::sdParamsFloats + FrostedGlassFloatCounts::envLightFloats +
+                            edLightParamsFloats;
+         ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    // Branch 6: edLightParams + edLightAngles + edLightDir success, edLightRates fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::blurRefractFloats + FrostedGlassFloatCounts::bgParamsFloats +
+                            FrostedGlassFloatCounts::sdParamsFloats + FrostedGlassFloatCounts::envLightFloats +
+                            edLightParamsFloats + edLightAnglesFloats + edLightDirFloats;
+         ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectFrostedGlassParaWriteBaseParamsBranchTest
+ * @tc.desc: Cover missing branches in WriteBaseParams (+ - + - + -)
+ *           Branch 2: WriteBool success, WriteFloat fail
+ *           Branch 4: WriteBool + WriteFloat success, WriteVector4f fail
+ *           Branch 6: WriteBool + WriteFloat + WriteVector4f success, WriteFloat(darkScale) fail
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaWriteBaseParamsBranchTest, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+    constexpr int baseParamsFloatsBeforeMaterialColor = 1; // WriteFloat(baseMaterialType)
+    constexpr int materialColorFloats = 4;                 // Vector4f
+
+    // Branch 2: WriteBool success, WriteFloat(baseMaterialType) fail
+    // This tests the && continuation when WriteBool succeeds
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::totalParamsFloats; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    parcelTest.WriteBool(true); // baseVibrancyEnabled succeeds, triggers branch 2
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    // Branch 4: WriteBool + WriteFloat(baseMaterialType) success, WriteVector4f fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::totalParamsFloats; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    parcelTest.WriteBool(true);
+    parcelTest.WriteFloat(1.0f); // baseMaterialType succeeds, triggers branch 4
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    // Branch 6: WriteBool + WriteFloat + WriteVector4f success, WriteFloat(darkScale) fail
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::totalParamsFloats; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    parcelTest.WriteBool(true);
+    parcelTest.WriteFloat(1.0f);
+    for (int i = 0; i < materialColorFloats; ++i) {
+        parcelTest.WriteFloat(1.0f); // materialColor succeeds, triggers branch 6
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+}
 } // namespace Rosen
 } // namespace OHOS
