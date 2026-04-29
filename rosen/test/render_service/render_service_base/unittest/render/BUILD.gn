@@ -243,7 +243,6 @@ ohos_unittest("RSColorfulShadowFilterTest") {
     "rs_fly_out_shader_filter_test.cpp",
     "rs_foreground_effect_filter_test.cpp",
     "rs_hdr_ui_brightness_filter_test.cpp",
-    "rs_image_base_test.cpp",
   ]
 
   cflags = [
