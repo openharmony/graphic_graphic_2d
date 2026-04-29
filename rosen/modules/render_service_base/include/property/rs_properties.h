@@ -692,6 +692,7 @@ public:
     bool UpdateGeometryByParent(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset);
     RectF GetLocalBoundsAndFramesRect() const;
     RectF GetBoundsRect() const;
+    NodeId GetRenderNodeId() const;
 
     bool IsGeoDirty() const;
     bool IsCurGeoDirty() const;

@@ -397,7 +397,7 @@ void RSFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
             std::ceil(absRect.GetRight()), std::ceil(absRect.GetBottom()));
         auto deviceRect = Drawing::RectI(0, 0, canvas->GetSurface()->Width(), canvas->GetSurface()->Height());
         bounds.Intersect(deviceRect);
-        RSPropertyDrawableUtils::DrawBackgroundEffect(paintFilterCanvas, filter_, cacheManager_,
+        RSPropertyDrawableUtils::DrawBackgroundEffect(paintFilterCanvas, filter_, renderNodeId_, cacheManager_,
             bounds, true);
         return;
     }

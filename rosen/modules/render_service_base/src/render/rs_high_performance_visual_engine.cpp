@@ -31,6 +31,13 @@ HveFilter& HveFilter::GetHveFilter()
     return filter;
 }
 
+void HveFilter::Sync()
+{
+    ClearSurfaceNodeInfo();
+    hveFilterToSurfaceNodeMap_ = hveFilterToSurfaceNodeStagingMap_;
+    hveFilterToSurfaceNodeStagingMap_.clear();
+}
+
 void HveFilter::ClearSurfaceNodeInfo()
 {
     surfaceNodeInfo_.clear();
@@ -51,6 +58,11 @@ int HveFilter::GetSurfaceNodeSize() const
 {
     std::lock_guard<std::mutex> lock(hveFilterMtx_);
     return surfaceNodeInfo_.size();
+}
+
+bool HveFilter::HasFilterNode(NodeId filterId)
+{
+    return hveFilterToSurfaceNodeMap_.find(filterId) != hveFilterToSurfaceNodeMap_.end();
 }
 
 bool HveFilter::HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node)
@@ -105,7 +117,37 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
     return properties.IsBgBrightnessValid() && HasValidEffect(renderNode.GetParent().lock().get());
 }
 
-std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect)
+void HveFilter::PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId)
+{
+    if (hveFilterToSurfaceNodeStagingMap_.find(filterId) == hveFilterToSurfaceNodeStagingMap_.end()) {
+        hveFilterToSurfaceNodeStagingMap_[filterId] = std::vector<NodeId>();
+    }
+    hveFilterToSurfaceNodeStagingMap_[filterId].push_back(surfaceId);
+}
+
+void HveFilter::DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
+    SurfaceNodeInfo& surfaceNodeInfo, const Drawing::RectI& srcRect)
+{
+    auto surfaceImage = surfaceNodeInfo.surfaceImage_;
+    Drawing::Matrix rotateMatrix = surfaceNodeInfo.matrix_;
+    Drawing::Rect parmSrcRect = surfaceNodeInfo.srcRect_;
+    Drawing::Rect parmDstRect = surfaceNodeInfo.dstRect_;
+    // Get the color of solidlayer
+    Color solidLayerColor = surfaceNodeInfo.solidLayerColor_;
+    // A valid solidlayer color exists.
+    if (solidLayerColor != RgbPalette::Transparent()) {
+        canvas->Clear(static_cast<Drawing::ColorQuad>(solidLayerColor.AsArgbInt()));
+    }
+    canvas->Save();
+    canvas->Translate(-srcRect.GetLeft(), -srcRect.GetTop());
+    canvas->ConcatMatrix(rotateMatrix);
+    canvas->DrawImageRect(*surfaceImage, parmSrcRect, parmDstRect, Drawing::SamplingOptions(),
+        Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas->Restore();
+}
+    
+std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
+    RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId)
 {
     std::lock_guard<std::mutex> lock(hveFilterMtx_);
     auto drawingSurface = canvas.GetSurface();
@@ -131,32 +173,24 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canv
     size_t surfaceNodeSize = vecSurfaceNode.size();
     RS_TRACE_NAME_FMT("surfaceNodeSize:%d", surfaceNodeSize);
     Drawing::RectI dstRect = Drawing::RectI(0, 0, widthUI, heightUI);
+    auto it = hveFilterToSurfaceNodeMap_.find(filterId);
+    std::vector<NodeId> surfaceNodeIds = (it != hveFilterToSurfaceNodeMap_.end()) ? it->second : std::vector<NodeId>{};
 
     for (size_t i = 0; i < surfaceNodeSize; i++) {
         auto surfaceImage = vecSurfaceNode[i].surfaceImage_;
         if (surfaceImage == nullptr) {
             continue;
         }
-        Drawing::Matrix rotateMatrix = vecSurfaceNode[i].matrix_;
-        Drawing::Rect parmSrcRect = vecSurfaceNode[i].srcRect_;
-        Drawing::Rect parmDstRect = vecSurfaceNode[i].dstRect_;
-        // Get the color of solidlayer
-        Color solidLayerColor = vecSurfaceNode[i].solidLayerColor_;
-        // A valid solidlayer color exists.
-        if (solidLayerColor != RgbPalette::Transparent()) {
-            offscreenCanvas->Clear(static_cast<Drawing::ColorQuad>(solidLayerColor.AsArgbInt()));
+        NodeId surfaceId = vecSurfaceNode[i].surfaceNodeId_;
+        if (std::find(surfaceNodeIds.begin(), surfaceNodeIds.end(), surfaceId) == surfaceNodeIds.end()) {
+            continue;
         }
-        offscreenCanvas->Save();
-        offscreenCanvas->Translate(-srcRect.GetLeft(), -srcRect.GetTop());
-        offscreenCanvas->ConcatMatrix(rotateMatrix);
-        offscreenCanvas->DrawImageRect(*surfaceImage, parmSrcRect, parmDstRect, Drawing::SamplingOptions(),
-            Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-        offscreenCanvas->Restore();
+        DrawSurfaceImage(offscreenCanvas, vecSurfaceNode[i], srcRect);
     }
 
     auto inputImage = drawingSurface->GetImageSnapshot(srcRect);
     if (inputImage != nullptr) {
-        offscreenCanvas->DrawImageRect(*inputImage, srcRect, dstRect, Drawing::SamplingOptions(),
+        offscreenCanvas->DrawImageRect(*inputImage, dstRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     }
 

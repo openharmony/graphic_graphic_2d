@@ -68,7 +68,8 @@ public:
     // This function is similar to DrawFilter(), but instead of drawing anything on the canvas, it simply returns the
     // cache data. This is used with effect component in RSPropertiesPainter::DrawBackgroundEffect.
     const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GeneratedCachedEffectData(RSPaintFilterCanvas& canvas,
-        const std::shared_ptr<RSDrawingFilter>& filter, const std::optional<Drawing::RectI>& srcRect = std::nullopt,
+        const std::shared_ptr<RSDrawingFilter>& filter, NodeId filterId,
+        const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt);
 
     uint8_t CalcDirectionBias(const Drawing::Matrix& mat);
@@ -151,7 +152,7 @@ public:
 
 private:
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const Drawing::RectI& srcRect);
+        const Drawing::RectI& srcRect, NodeId filterId = INVALID_NODEID);
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     bool DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,

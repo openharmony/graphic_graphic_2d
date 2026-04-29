@@ -34,6 +34,7 @@ struct SurfaceNodeInfo {
     Drawing::Rect srcRect_;
     Drawing::Rect dstRect_;
     Color solidLayerColor_;
+    NodeId surfaceNodeId_;
 };
 class RSB_EXPORT HveFilter {
 public:
@@ -43,19 +44,29 @@ public:
 
     static HveFilter& GetHveFilter();
 
+    void Sync();
     void ClearSurfaceNodeInfo();
     void PushSurfaceNodeInfo(SurfaceNodeInfo& surfaceNodeInfo);
     std::vector<SurfaceNodeInfo> GetSurfaceNodeInfo() const;
     int GetSurfaceNodeSize() const;
+    bool HasFilterNode(NodeId filterId);
     bool CheckPrecondition(const RSRenderNode& filterNode,
         const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
-    std::shared_ptr<Drawing::Image> SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect);
+    void PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId);
+    std::shared_ptr<Drawing::Image> SampleLayer(
+        RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId);
+
 private:
     bool HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node);
     bool HasValidEffect(const RSRenderNode* node);
+    void DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
+        SurfaceNodeInfo& surfaceNodeInfo, const Drawing::RectI& srcRect);
     HveFilter() = default;
     std::vector<SurfaceNodeInfo> surfaceNodeInfo_;
     mutable std::mutex hveFilterMtx_;
+
+    std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeStagingMap_ = {};
+    std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeMap_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -640,7 +640,7 @@ void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& proper
         canvas.ClipRect(RSPropertiesPainter::Rect2DrawingRect(boundsRect));
         auto filter = std::static_pointer_cast<RSDrawingFilter>(properties.GetBackgroundFilter());
         // extract cache data from cacheManager
-        auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter);
+        auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter, properties.GetRenderNodeId());
         canvas.SetEffectData(data);
         return;
     }
@@ -703,7 +703,8 @@ void RSPropertiesPainter::DrawBackgroundEffect(
             ROSEN_LOGE("DrawBackgroundEffect::node reinterpret cast failed.");
             return;
         }
-        auto&& data = cacheManager->GeneratedCachedEffectData(canvas, filter, bounds, bounds);
+        auto&& data = cacheManager->GeneratedCachedEffectData(
+            canvas, filter, properties.GetRenderNodeId(), bounds, bounds);
         canvas.SetEffectData(data);
         return;
     }

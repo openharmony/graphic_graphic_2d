@@ -80,7 +80,7 @@ public:
         const std::optional<Drawing::RectI>& snapshotRect = std::nullopt,
         const std::optional<Drawing::RectI>& drawRect = std::nullopt);
     static void DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-        const std::unique_ptr<RSFilterCacheManager>& cacheManager,
+        NodeId filterId, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
         Drawing::RectI& bounds, bool behindWindow = false);
     static void DrawColorFilter(Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter);
     static void DrawLightUpEffect(Drawing::Canvas* canvas, const float lightUpEffectDegree);
