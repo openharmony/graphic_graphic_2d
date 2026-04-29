@@ -613,7 +613,7 @@ constexpr float FROSTED_SAMPLING_SCALE = 0.75f;
 constexpr bool FROSTED_SKIP_FRAME_ENABLE = true;
 } // namespace
 
-static void SetupFrostedGlassParaParams(FrostedGlassPara& para)
+static void SetupBlurWeightsBgParams(FrostedGlassPara& para)
 {
     Vector2f blurParams(FROSTED_BLUR_PARAMS_X, FROSTED_BLUR_PARAMS_Y);
     para.SetBlurParams(blurParams);
@@ -632,6 +632,10 @@ static void SetupFrostedGlassParaParams(FrostedGlassPara& para)
     para.SetBgAlpha(FROSTED_BG_ALPHA);
     Vector3f refractParams(FROSTED_REFRACT_X, FROSTED_REFRACT_Y, FROSTED_REFRACT_Z);
     para.SetRefractParams(refractParams);
+}
+
+static void SetupSdEnvLightParams(FrostedGlassPara& para)
+{
     Vector3f sdParams(FROSTED_SD_PARAMS_X, FROSTED_SD_PARAMS_Y, FROSTED_SD_PARAMS_Z);
     para.SetSdParams(sdParams);
     Vector2f sdRates(FROSTED_SD_RATES_X, FROSTED_SD_RATES_Y);
@@ -652,6 +656,10 @@ static void SetupFrostedGlassParaParams(FrostedGlassPara& para)
     para.SetEnvLightPos(envLightPos);
     Vector3f envLightNeg(FROSTED_ENV_LIGHT_NEG_X, FROSTED_ENV_LIGHT_NEG_Y, FROSTED_ENV_LIGHT_NEG_Z);
     para.SetEnvLightNeg(envLightNeg);
+}
+
+static void SetupEdLightFinalParams(FrostedGlassPara& para)
+{
     Vector2f edLightParams(FROSTED_ED_LIGHT_PARAMS_X, FROSTED_ED_LIGHT_PARAMS_Y);
     para.SetEdLightParams(edLightParams);
     Vector2f edLightAngles(FROSTED_ED_LIGHT_ANGLES_X, FROSTED_ED_LIGHT_ANGLES_Y);
@@ -674,6 +682,13 @@ static void SetupFrostedGlassParaParams(FrostedGlassPara& para)
     para.SetDarkScale(FROSTED_DARK_SCALE);
     para.SetSamplingScale(FROSTED_SAMPLING_SCALE);
     para.SetSkipFrameEnable(FROSTED_SKIP_FRAME_ENABLE);
+}
+
+static void SetupFrostedGlassParaParams(FrostedGlassPara& para)
+{
+    SetupBlurWeightsBgParams(para);
+    SetupSdEnvLightParams(para);
+    SetupEdLightFinalParams(para);
 }
 
 static void VerifyFrostedGlassParaProperties(const FrostedGlassPara& para)
