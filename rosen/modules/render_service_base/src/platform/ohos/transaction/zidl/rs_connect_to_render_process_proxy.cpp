@@ -56,7 +56,7 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: hasRemoteObj err.");
         return nullptr;
     }
-    auto obj = reply.ReadRemoteObject()
+    auto obj = reply.ReadRemoteObject();
     if (obj == nullptr) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: ReadRemoteObject err.");
         return nullptr;
