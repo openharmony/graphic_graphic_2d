@@ -398,7 +398,7 @@ ErrCode RSClientToRenderConnection::SetHardwareEnabled(NodeId id, bool isEnabled
 ErrCode RSClientToRenderConnection::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode)
 {
     if (renderPipelineAgent_ == nullptr) {
-        resCode = static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+        resCode = static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
