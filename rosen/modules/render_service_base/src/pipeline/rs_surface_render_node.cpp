@@ -3658,10 +3658,10 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
             return;
         }
     }
-
+#ifndef ROSEN_ARKUI_X
     // [Attention] Update behind region for pc window keyframe feature
     RSWindowKeyFrameRenderNode::UpdateKeyFrameBehindWindowRegion(*this, *context, region);
-
+#endif
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %lu, BehindWindowRegion: %s",
         GetId(), region.ToString().c_str());
     RS_LOGD("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %{public}" PRIu64 ", BehindWindowRegion: %{public}s",

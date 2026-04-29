@@ -428,6 +428,7 @@ void SurfaceNodeCommandHelper::AttachToWindowContainer(RSContext& context, NodeI
 
 void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId)
 {
+#ifndef ROSEN_ARKUI_X
     const auto& nodeMap = context.GetNodeMap();
     auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
     if (surfaceRenderNode == nullptr) {
@@ -453,6 +454,7 @@ void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, Nod
             }
         }
     );
+#endif
 }
 
 void SurfaceNodeCommandHelper::SetRegionToBeMagnified(

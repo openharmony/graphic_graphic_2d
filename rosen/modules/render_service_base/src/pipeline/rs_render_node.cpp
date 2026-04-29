@@ -1405,6 +1405,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", Size: [" + std::to_string(rootNode->GetRenderProperties().GetFrameWidth()) + ", " +
             std::to_string(rootNode->GetRenderProperties().GetFrameHeight()) + "]";
         out += ", EnableRender: " + std::to_string(rootNode->GetEnableRender());
+#ifndef ROSEN_ARKUI_X
     } else if (GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
         auto displayNode = static_cast<const RSLogicalDisplayRenderNode*>(this);
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
@@ -1413,6 +1414,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
     } else if (GetType() == RSRenderNodeType::WINDOW_KEYFRAME_NODE) {
         auto wndKeyframeNode = static_cast<const RSWindowKeyFrameRenderNode*>(this);
         out += ", linkedNodeId: " + std::to_string(wndKeyframeNode->GetLinkedNodeId());
+#endif
     } else if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = static_cast<const RSCanvasDrawingRenderNode*>(this);
         out += ", lastResetSurfaceTime: " + std::to_string(canvasDrawingNode->lastResetSurfaceTime_);
@@ -3276,10 +3278,11 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_EFFECT))) {
         ProcessBehindWindowAfterApplyModifiers();
     }
+#ifndef ROSEN_ARKUI_X
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS))) {
         RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(shared_from_this());
     }
-
+#endif
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
         " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(),
@@ -3972,7 +3975,9 @@ void RSRenderNode::OnTreeStateChanged()
     if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
         ProcessBehindWindowOnTreeStateChanged();
     }
+#ifndef ROSEN_ARKUI_X
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(shared_from_this());
+#endif
 }
 
 void RSRenderNode::HandleNodeRemovedFromTree()
