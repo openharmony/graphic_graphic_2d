@@ -86,7 +86,7 @@ void DoSetAsMainScreen(FuzzedDataProvider& fdp)
 
 void DoSetScreenSkipFrameInterval(FuzzedDataProvider& fdp)
 {
-    bool isValid = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     uint32_t skipFrameInterval = fdp.ConsumeIntegral<uint32_t>();
     g_screenManager->SetScreenSkipFrameInterval(id, skipFrameInterval);
@@ -129,7 +129,7 @@ void DoSetScreenFrameGravity(FuzzedDataProvider& fdp)
 /* Fuzzer environment initialization */
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    OHOS::Rosen::g_screenManager = sptr<RSScreenManager>::MakeSptr();
+    OHOS::Rosen::g_screenManager = OHOS::sptr<OHOS::ROSEN::RSScreenManager>::MakeSptr();
     if (!OHOS::Rosen::g_screenManager) {
         return -1;
     }

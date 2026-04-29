@@ -52,7 +52,7 @@ void DoSetCastScreenEnableSkipWindow(FuzzedDataProvider& fdp)
 
 void DoAddVirtualScreenBlackList(FuzzedDataProvider& fdp)
 {
-    bool isValid = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MAX_FUZZ_LIST_SIZE;
     std::vector<uint64_t> blackList;
@@ -86,7 +86,7 @@ void DoSetVirtualScreenTypeBlackList(FuzzedDataProvider& fdp)
 
 void DoRemoveVirtualScreenWhiteList(FuzzedDataProvider& fdp)
 {
-    uint8_t prefix = fdp.ConsumeIntegral<uint8_t>();
+    fdp.ConsumeIntegral<uint8_t>();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MAX_FUZZ_LIST_SIZE;
     std::vector<NodeId> whiteList;
@@ -99,7 +99,7 @@ void DoRemoveVirtualScreenWhiteList(FuzzedDataProvider& fdp)
 void DoSetVirtualScreenSecurityExemptionList(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    bool isValid = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MAX_FUZZ_LIST_SIZE;
     std::vector<uint64_t> securityExemptionList;
     for (uint8_t i = 0; i < count; i++) {
@@ -144,7 +144,7 @@ void DoJudgeVSyncEnabledScreenWhilePowerStatusChanged(FuzzedDataProvider& fdp)
 
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    OHOS::Rosen::g_screenManager = sptr<RSScreenManager>::MakeSptr();
+    OHOS::Rosen::g_screenManager = OHOS::sptr<OHOS::ROSEN::RSScreenManager>::MakeSptr();
     if (!OHOS::Rosen::g_screenManager) {
         return -1;
     }

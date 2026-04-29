@@ -71,7 +71,7 @@ void DoGetRogScreenResolution(FuzzedDataProvider& fdp)
 void DoGetVirtualScreenResolution(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    bool isValid = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     RSVirtualScreenResolution virtualScreenResolution;
     virtualScreenResolution.SetWidth(fdp.ConsumeIntegral<uint32_t>());
     virtualScreenResolution.SetHeight(fdp.ConsumeIntegral<uint32_t>());
@@ -86,7 +86,7 @@ void DoGetCanvasRotation(FuzzedDataProvider& fdp)
 
 void DoGetVirtualScreenAutoRotation(FuzzedDataProvider& fdp)
 {
-    bool prefix = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     g_screenManager->GetVirtualScreenAutoRotation(id);
 }
@@ -108,7 +108,7 @@ void DoSetScreenVsyncEnableById(FuzzedDataProvider& fdp)
 
 void DoGetScreenVsyncEnableById(FuzzedDataProvider& fdp)
 {
-    uint8_t prefix = fdp.ConsumeIntegral<uint8_t>();
+    fdp.ConsumeIntegral<uint8_t>();
     ScreenId vsyncEnabledScreenId = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
     g_screenManager->GetScreenVsyncEnableById(vsyncEnabledScreenId);
 }
@@ -126,7 +126,7 @@ void DoDisplayDump(FuzzedDataProvider& fdp)
 
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    OHOS::Rosen::g_screenManager = sptr<RSScreenManager>::MakeSptr();
+    OHOS::Rosen::g_screenManager = OHOS::sptr<OHOS::ROSEN::RSScreenManager>::MakeSptr();
     if (!OHOS::Rosen::g_screenManager) {
         return -1;
     }

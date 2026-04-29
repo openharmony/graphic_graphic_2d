@@ -57,7 +57,7 @@ void DoGetScreenColorGamut(FuzzedDataProvider& fdp)
 
 void DoGetScreenSupportedColorGamuts(FuzzedDataProvider& fdp)
 {
-    bool isValid = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     std::vector<ScreenColorGamut> mode;
     g_screenManager->GetScreenSupportedColorGamuts(id, mode);
@@ -80,7 +80,7 @@ void DoGetScreenHDRFormat(FuzzedDataProvider& fdp)
 void DoGetScreenSupportedHDRFormats(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    bool isValid = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MAX_FUZZ_ENUM_VECTOR_SIZE;
     std::vector<ScreenHDRFormat> hdrFormats;
     for (uint8_t i = 0; i < count; i++) {
@@ -107,7 +107,7 @@ void DoGetScreenHDRCapability(FuzzedDataProvider& fdp)
 
 void DoGetScreenSupportedMetaDataKeys(FuzzedDataProvider& fdp)
 {
-    uint8_t prefix = fdp.ConsumeIntegralInRange<uint8_t>(0, SCREEN_HDR_METADATA_KEY_SIZE);
+    fdp.ConsumeIntegralInRange<uint8_t>(0, SCREEN_HDR_METADATA_KEY_SIZE);
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     std::vector<ScreenHDRMetadataKey> keys;
     g_screenManager->GetScreenSupportedMetaDataKeys(id, keys);
@@ -116,7 +116,7 @@ void DoGetScreenSupportedMetaDataKeys(FuzzedDataProvider& fdp)
 void DoGetScreenColorSpace(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    bool isValid = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(
         fdp.ConsumeIntegral<uint8_t>() % GRAPHIC_CM_COLOR_SPACE_TYPE_SIZE);
     g_screenManager->GetScreenColorSpace(id, colorSpace);
@@ -124,7 +124,7 @@ void DoGetScreenColorSpace(FuzzedDataProvider& fdp)
 
 void DoGetScreenSupportedColorSpaces(FuzzedDataProvider& fdp)
 {
-    uint32_t prefix = fdp.ConsumeIntegral<uint32_t>();
+    fdp.ConsumeIntegral<uint32_t>();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
     g_screenManager->GetScreenSupportedColorSpaces(id, colorSpaces);
@@ -133,7 +133,7 @@ void DoGetScreenSupportedColorSpaces(FuzzedDataProvider& fdp)
 void DoGetPixelFormat(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    uint32_t suffix = fdp.ConsumeIntegral<uint32_t>();
+    fdp.ConsumeIntegral<uint32_t>();
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(
         fdp.ConsumeIntegral<uint8_t>() % GRAPHIC_PIXEL_FORMAT_SIZE);
     g_screenManager->GetPixelFormat(id, pixelFormat);
@@ -146,7 +146,7 @@ void DoGetPixelFormat(FuzzedDataProvider& fdp)
 
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    OHOS::Rosen::g_screenManager = sptr<RSScreenManager>::MakeSptr();
+    OHOS::Rosen::g_screenManager = OHOS::sptr<OHOS::ROSEN::RSScreenManager>::MakeSptr();
     if (!OHOS::Rosen::g_screenManager) {
         return -1;
     }

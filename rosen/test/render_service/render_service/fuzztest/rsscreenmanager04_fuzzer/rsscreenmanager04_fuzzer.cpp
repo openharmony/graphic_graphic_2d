@@ -62,7 +62,7 @@ void DoGetScreenActiveMode(FuzzedDataProvider& fdp)
 
 void DoGetScreenSupportedModes(FuzzedDataProvider& fdp)
 {
-    bool isValid = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     g_screenManager->GetScreenSupportedModes(id);
 }
@@ -81,7 +81,7 @@ void DoGetScreenPowerStatus(FuzzedDataProvider& fdp)
 
 void DoGetScreenBacklight(FuzzedDataProvider& fdp)
 {
-    uint32_t level = fdp.ConsumeIntegral<uint32_t>();
+    fdp.ConsumeIntegral<uint32_t>();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     g_screenManager->GetScreenBacklight(id);
 }
@@ -89,13 +89,13 @@ void DoGetScreenBacklight(FuzzedDataProvider& fdp)
 void DoGetScreenActiveRefreshRate(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    bool isValid = fdp.ConsumeBool();
+    fdp.ConsumeBool();
     g_screenManager->GetScreenActiveRefreshRate(id);
 }
 
 void DoGetScreenConnectionType(FuzzedDataProvider& fdp)
 {
-    uint8_t modeIdx = fdp.ConsumeIntegral<uint8_t>();
+    fdp.ConsumeIntegral<uint8_t>();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     g_screenManager->GetScreenConnectionType(id);
 }
@@ -103,13 +103,13 @@ void DoGetScreenConnectionType(FuzzedDataProvider& fdp)
 void DoGetPanelPowerStatus(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    uint32_t statusVal = fdp.ConsumeIntegral<uint32_t>();
+    fdp.ConsumeIntegral<uint32_t>();
     g_screenManager->GetPanelPowerStatus(id);
 }
 
 void DoGetScreenData(FuzzedDataProvider& fdp)
 {
-    uint8_t modeIdx = fdp.ConsumeIntegralInRange<uint8_t>(0, 7);
+    fdp.ConsumeIntegralInRange<uint8_t>(0, 7);
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     g_screenManager->GetScreenData(id);
 }
@@ -121,7 +121,7 @@ void DoGetScreenData(FuzzedDataProvider& fdp)
 
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    OHOS::Rosen::g_screenManager = sptr<RSScreenManager>::MakeSptr();
+    OHOS::Rosen::g_screenManager = OHOS::sptr<OHOS::ROSEN::RSScreenManager>::MakeSptr();
     if (!OHOS::Rosen::g_screenManager) {
         return -1;
     }

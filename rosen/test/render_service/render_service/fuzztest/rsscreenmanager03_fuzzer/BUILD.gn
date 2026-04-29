@@ -57,6 +57,7 @@ ohos_fuzztest("rsscreenmanager03_fuzzer") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "c_utils:utils",
     "hilog:libhilog",
   ]
