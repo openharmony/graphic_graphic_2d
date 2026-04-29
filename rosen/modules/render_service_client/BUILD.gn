@@ -396,6 +396,10 @@ template("render_service_client_source_set") {
       }
     }
 
+    if (graphic_2d_feature_rs_modifiers_draw_enable) {
+      defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
+    }
+
     if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
       defines += [ "ENABLE_IPC_SECURITY" ]
       external_deps += [

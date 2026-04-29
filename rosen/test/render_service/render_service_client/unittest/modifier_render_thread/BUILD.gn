@@ -114,8 +114,11 @@ config("render_test") {
 group("unittest") {
   testonly = true
 
-  deps = [
-    ":RSModifiersDrawTest",
-    # ":RSModifiersDrawThreadTest",
-  ]
+  deps = []
+  if (graphic_2d_feature_rs_modifiers_draw_enable) {
+    deps += [
+      ":RSModifiersDrawTest",
+      ":RSModifiersDrawThreadTest",
+    ]
+  }
 }
