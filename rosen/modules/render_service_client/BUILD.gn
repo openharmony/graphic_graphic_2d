@@ -22,6 +22,7 @@ config("render_service_client_config") {
     "$graphic_2d_root/rosen/modules",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/utils/log",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/modules/2d_graphics",
@@ -31,6 +32,7 @@ config("render_service_client_config") {
   if (defined(is_arkui_x) && is_arkui_x) {
     include_dirs += [
       "$graphic_2d_root/utils/color_manager/export",
+      "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     ]
   }
