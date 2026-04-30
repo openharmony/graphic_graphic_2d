@@ -149,6 +149,10 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
         stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
         stagingGeContainer_->AddToChainedFilter(geFilter);
+        auto bounds = properties.GetBoundsRect();
+        auto shapeRect = sdfShape->GetTransformDrawRect();
+        stagingSdfDrawRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(
+            (bounds == node.CalcBoundingBox() && !shapeRect.IsEmpty()) ? shapeRect : node.CalcBoundingBox());
     } else if (properties.GetClipToRRect()) {
         stagingType_ = RSClipToBoundsType::CLIP_RRECT;
         stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect());
@@ -226,14 +230,14 @@ void RSClipToBoundsDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect
                 ROSEN_LOGE("Clip SDF failed, geContainer or rect is nullptr");
                 return;
             }
-            Drawing::Rect rectRelative { 0.0f, 0.0f, rect->GetWidth(), rect->GetHeight() };
+            Drawing::Rect rectRelative { 0.0f, 0.0f, sdfDrawRect_.GetWidth(), sdfDrawRect_.GetHeight() };
             RSPaintFilterCanvas::DrawFunc customFunc = [geContainer = geContainer_,
                 rect = rectRelative](Drawing::Canvas& canvas) {
                 auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
                 geRender->DrawShaderEffect(canvas, *geContainer, rect);
             };
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            Drawing::SaveLayerOps slo(rect, nullptr);
+            Drawing::SaveLayerOps slo(&sdfDrawRect_, nullptr);
             paintFilterCanvas->SaveLayer(slo);
             paintFilterCanvas->CustomSaveLayer(customFunc);
             break;
