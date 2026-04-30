@@ -2403,7 +2403,10 @@ bool RSProperties::NeedFilter() const
 
 bool RSProperties::NeedDisabledPartialRender() const
 {
-    return needDisabledPartialRender_;
+    // enable frostedGlassEffect and harmonium by magnifying the child nodes are within the EC range
+    return GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+           localMagnificationCap_ || GetForegroundFilter() != nullptr ||
+           GetForegroundFilterCache() != nullptr;
 }
 
 bool RSProperties::NeedHwcFilter() const
@@ -5436,6 +5439,8 @@ void RSProperties::UpdateFilter()
         UpdateForegroundFilter();
     }
 
+    // If new effects are added, it is necessary to assess whether they can partial render,
+    // and update NeedDisabledPartialRender.
     needFilter_ = GetBackgroundFilter() != nullptr || GetFilter() != nullptr || GetUseEffect() || HasHarmonium() ||
                   IsLightUpEffectValid() || IsDynamicLightUpValid() || GetGreyCoef().has_value() ||
                   GetLinearGradientBlurPara() != nullptr || IsDynamicDimValid() ||
@@ -5444,12 +5449,6 @@ void RSProperties::UpdateFilter()
                   GetForegroundFilterCache() != nullptr || IsWaterRippleValid() || GetNeedDrawBehindWindow() ||
                   GetMask() || GetColorFilter() != nullptr || localMagnificationCap_ || GetPixelStretch().has_value() ||
                   GetMaterialFilter() != nullptr || HasSpatialGlassEffect();
-
-    // enable frostedGlassEffect and harmonium by magnifying the child nodes are within the EC range
-    // If new effects are added, it is necessary to assess whether they can partial render.
-    needDisabledPartialRender_ = GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                                 localMagnificationCap_ || GetForegroundFilter() != nullptr ||
-                                 GetForegroundFilterCache() != nullptr;
 
     needHwcFilter_ = GetBackgroundFilter() != nullptr || GetFilter() != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||
