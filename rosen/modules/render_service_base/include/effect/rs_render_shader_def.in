@@ -121,7 +121,7 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, BlendK),
     ADD_PROPERTY_TAG(ColorGradientEffect, Brightness)
 );
-
+#ifndef ROSEN_ARKUI_X
 DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl),
@@ -153,7 +153,7 @@ DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, WaveMask),
     ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor)
 );
-
+#endif
 DECLARE_SHADER(HarmoniumEffect, HARMONIUM_EFFECT,
     ADD_PROPERTY_TAG(HarmoniumEffect, Mask),
     ADD_PROPERTY_TAG(HarmoniumEffect, MaskClock),
