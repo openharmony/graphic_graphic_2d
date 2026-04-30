@@ -146,7 +146,8 @@ public:
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
 
-        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        auto canvasNode =
+            RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().rsUiDirector_->GetRSUIContext());
         canvasNode->SetBounds({ x, y, sizeX, sizeY });
         canvasNode->SetFrame({ x, y, sizeX, sizeY });
 
@@ -182,7 +183,8 @@ public:
 
     std::shared_ptr<RSCanvasNode> CreateTransparentChildNode(const Vector4f& bounds)
     {
-        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        auto childNode =
+            RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().rsUiDirector_->GetRSUIContext());
         childNode->SetBounds(bounds);
         childNode->SetFrame(bounds);
         return childNode;
@@ -557,7 +559,8 @@ GRAPHIC_TEST(RenderGroupTest, CONTENT_DISPLAY_TEST, MARK_NODE_GROUP_007)
     const size_t sizeX = SCREEN_WIDTH;
     const size_t sizeY = SCREEN_HEIGHT;
 
-    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto canvasNode =
+        RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().rsUiDirector_->GetRSUIContext());
     canvasNode->SetBounds({ 0, 0, sizeX, sizeY });
     canvasNode->SetFrame({ 0, 0, sizeX, sizeY });
     GetRootNode()->AddChild(canvasNode);
@@ -595,7 +598,8 @@ GRAPHIC_TEST(RenderGroupTest, CONTENT_DISPLAY_TEST, MARK_NODE_GROUP_008)
         GetRootNode()->AddChild(outerCanvas);
 
         const int offset = CANVAS_INNER_OFFSET;
-        auto innerCanvas = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        auto innerCanvas =
+            RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().rsUiDirector_->GetRSUIContext());
         innerCanvas->SetBounds({ offset, offset, canvasSizeX - 2 * offset, canvasSizeY - 2 * offset });
         innerCanvas->SetFrame({ offset, offset, canvasSizeX - 2 * offset, canvasSizeY - 2 * offset });
         outerCanvas->AddChild(innerCanvas);
@@ -638,7 +642,8 @@ GRAPHIC_TEST(RenderGroupTest, CONTENT_DISPLAY_TEST, MARK_NODE_GROUP_009)
         GetRootNode()->AddChild(outerCanvas);
 
         const int offset = CANVAS_INNER_OFFSET;
-        auto innerCanvas = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        auto innerCanvas =
+            RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().rsUiDirector_->GetRSUIContext());
         innerCanvas->SetBounds({ offset, offset, canvasSizeX - 2 * offset, canvasSizeY - 2 * offset });
         innerCanvas->SetFrame({ offset, offset, canvasSizeX - 2 * offset, canvasSizeY - 2 * offset });
         outerCanvas->AddChild(innerCanvas);
@@ -786,7 +791,8 @@ GRAPHIC_TEST(RenderGroupTest, CONTENT_DISPLAY_TEST, MARK_NODE_GROUP_013)
         GetRootNode()->AddChild(outerCanvas);
 
         const int offset = CANVAS_INNER_OFFSET;
-        auto innerCanvas = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        auto innerCanvas =
+            RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().rsUiDirector_->GetRSUIContext());
         innerCanvas->SetBounds({ offset, offset, canvasSizeX - 2 * offset, canvasSizeY - 2 * offset });
         innerCanvas->SetFrame({ offset, offset, canvasSizeX - 2 * offset, canvasSizeY - 2 * offset });
         outerCanvas->AddChild(innerCanvas);
@@ -936,7 +942,8 @@ GRAPHIC_TEST(RenderGroupTest, CONTENT_DISPLAY_TEST, MARK_NODE_GROUP_017)
         GetRootNode()->AddChild(outerCanvas);
 
         const int offset = CANVAS_INNER_OFFSET;
-        auto innerCanvas = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        auto innerCanvas =
+            RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().rsUiDirector_->GetRSUIContext());
         innerCanvas->SetBounds({ offset, offset, canvasSizeX - 2 * offset, canvasSizeY - 2 * offset });
         innerCanvas->SetFrame({ offset, offset, canvasSizeX - 2 * offset, canvasSizeY - 2 * offset });
         outerCanvas->AddChild(innerCanvas);
