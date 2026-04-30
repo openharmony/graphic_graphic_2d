@@ -33,6 +33,7 @@
 #include "filter/include/filter_frosted_glass_para.h"
 #include "filter/include/filter_frosted_glass_blur_para.h"
 #include "filter/include/filter_heat_distortion_para.h"
+#include "filter/include/filter_motion_blur_para.h"
 #include "filter/include/filter_hdr_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_pixel_stretch_para.h"
@@ -90,6 +91,7 @@ private:
     static napi_value SetVariableRadiusBlur(napi_env env, napi_callback_info info);
     static napi_value SetFrostedGlass(napi_env env, napi_callback_info info);
     static napi_value SetFrostedGlassBlur(napi_env env, napi_callback_info info);
+    static napi_value SetMotionBlur(napi_env env, napi_callback_info info);
 
     static void RegisterFilterParaUnmarshallingCallback();
 

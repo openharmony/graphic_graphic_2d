@@ -132,6 +132,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderDistortionCollapseFilter>();
         }
     },
+    {RSNGEffectType::MOTION_BLUR, [] {
+            return std::make_shared<RSNGRenderMotionBlurFilter>();
+        }
+    },
 };
 
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
@@ -232,6 +236,19 @@ static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {
             return shape->GetTransformDrawRect();
         }
 #endif
+    },
+    {
+        RSNGEffectType::BLUR, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
+            auto blurFilter = std::static_pointer_cast<RSNGRenderBlurFilter>(filter);
+            bool expandDrawRect = blurFilter->Getter<OHOS::Rosen::BlurExpandDrawRegionRenderTag>()->Get();
+            if (!expandDrawRect) {
+                return rect;
+            }
+            constexpr float extensionScale = 3.f;
+            auto radius = blurFilter->Getter<OHOS::Rosen::BlurRadiusXRenderTag>()->Get();
+            float extension = std::ceil(extensionScale * radius);
+            return rect.MakeOutset(extension);
+        }
     }
 };
 
@@ -430,6 +447,18 @@ bool RSNGRenderFilterTemplateHelper::CheckFilterSkipFrame(RSNGEffectType type,
 {
     auto checkFunc = checkFilterSkipLUT.find(type);
     return checkFunc != checkFilterSkipLUT.end() ? checkFunc->second(filter) : false;
+}
+
+void RSNGRenderFilterHelper::PrepareForForeground(std::shared_ptr<RSNGRenderFilterBase>& filter)
+{
+    auto current = filter;
+    while (current) {
+        if (current->GetType() == RSNGEffectType::BLUR) {
+            auto blurFilter = std::static_pointer_cast<RSNGRenderBlurFilter>(current);
+            blurFilter->Setter<OHOS::Rosen::BlurExpandDrawRegionRenderTag>(true);
+        }
+        current = current->nextEffect_;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
