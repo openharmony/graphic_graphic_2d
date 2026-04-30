@@ -366,6 +366,10 @@ ohos_shared_library("librender_service") {
       && defined(graphic_2d_subtree_configs.subtree_root)) {
     sources += graphic_2d_subtree_configs.librender_service_subtree_sources
   }
+  
+  if (graphic_2d_feature_enable_mediacommon) {
+    defines += [ "RS_GRAPHIC_MEDIACOMMON_ENABLE" ]
+  }
 
   if (use_memmgr_plugin || use_memmgr) {
     sources += [ "core/memory/rs_app_state_listener.cpp" ]
