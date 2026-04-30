@@ -26,6 +26,8 @@
 
 #include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
 #include "symbol_resource/symbol_config_parser.h"
+
+#include "text/hm_symbol.h"
 #include "utils/text_log.h"
 #include "utils/text_trace.h"
 
@@ -36,8 +38,16 @@ namespace Symbol {
 namespace {
 class SymbolAutoRegister {
 public:
-    SymbolAutoRegister() { RegisterSymbolConfigCallBack(); }
-    ~SymbolAutoRegister() { UnregisterSymbolConfigCallBack(); }
+    SymbolAutoRegister()
+    {
+        RegisterSymbolConfigCallBack();
+        RegisterGroupParametersCallback();
+    }
+    ~SymbolAutoRegister()
+    {
+        UnregisterSymbolConfigCallBack();
+        OHOS::Rosen::Drawing::DrawingHMSymbol::CleartGetGroupParametersCallback();
+    }
 
 private:
     void RegisterSymbolConfigCallBack()
@@ -51,7 +61,23 @@ private:
         });
     }
 
-    void UnregisterSymbolConfigCallBack() { skia::text::HmSymbolConfig_OHOS::ClearLoadSymbolConfig(); }
+    void UnregisterSymbolConfigCallBack()
+    {
+        skia::text::HmSymbolConfig_OHOS::ClearLoadSymbolConfig();        
+    }
+
+    void RegisterGroupParametersCallback()
+    {
+        static std::once_flag flag;
+        std::call_once(flag, []() {
+            auto callback = [](OHOS::Rosen::Drawing::DrawingAnimationType type, uint16_t groupSum,
+                                uint16_t animationMode, OHOS::Rosen::Drawing::DrawingCommonSubType commonSubType) {
+                return DefaultSymbolConfig::GetInstance()->GetGroupParameters(
+                    type, groupSum, animationMode, commonSubType);
+            };
+            OHOS::Rosen::Drawing::DrawingHMSymbol::SetGetGroupParametersCallback(callback);
+        });
+    }
 };
 
 SymbolAutoRegister g_symbolAutoRegister;

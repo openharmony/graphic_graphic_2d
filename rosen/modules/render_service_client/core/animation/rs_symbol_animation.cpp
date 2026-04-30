@@ -18,7 +18,6 @@
 #include <cmath>
 
 #include "rs_trace.h"
-#include "skia_txt/default_symbol_config.h"
 
 #include "animation/rs_keyframe_animation.h"
 #include "draw/paint.h"
@@ -29,6 +28,7 @@
 #include "modifier_ng/geometry/rs_transform_modifier.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
+#include "text/hm_symbol.h"
 #include "utils/point.h"
 
 namespace OHOS {
@@ -481,16 +481,21 @@ bool RSSymbolAnimation::GetAnimationGroupParameters(
     }
     animationLevelNum = animationLevelNum + 1;
 
-    // get animation group paramaters
-    auto it = std::find(upAndDownSupportAnimations_.begin(), upAndDownSupportAnimations_.end(), effectStrategy);
-    if (it != upAndDownSupportAnimations_.end()) {
-        parameters = OHOS::Rosen::Symbol::DefaultSymbolConfig::GetInstance()->GetGroupParameters(
-            Drawing::DrawingAnimationType(effectStrategy), static_cast<uint16_t>(animationLevelNum),
-            symbolAnimationConfig->animationMode, symbolAnimationConfig->commonSubType);
+    auto callback = Drawing::DrawingHMSymbol::GetGetGroupParametersCallback();
+    if (callback && *callback) {
+        auto it = std::find(upAndDownSupportAnimations_.begin(), upAndDownSupportAnimations_.end(), effectStrategy);
+        if (it != upAndDownSupportAnimations_.end()) {
+            parameters =
+                (*callback)(Drawing::DrawingAnimationType(effectStrategy), static_cast<uint16_t>(animationLevelNum),
+                    symbolAnimationConfig->animationMode, symbolAnimationConfig->commonSubType);
+        } else {
+            parameters =
+                (*callback)(Drawing::DrawingAnimationType(effectStrategy), static_cast<uint16_t>(animationLevelNum),
+                    symbolAnimationConfig->animationMode, Drawing::DrawingCommonSubType::DOWN);
+        }
     } else {
-        parameters = OHOS::Rosen::Symbol::DefaultSymbolConfig::GetInstance()->GetGroupParameters(
-            Drawing::DrawingAnimationType(effectStrategy), static_cast<uint16_t>(animationLevelNum),
-            symbolAnimationConfig->animationMode);
+        ROSEN_LOGD("[%{public}s] HmSymbol: failed to get symbol param callback func", __func__);
+        return false;
     }
     if (parameters.empty()) {
         ROSEN_LOGD("[%{public}s] HmSymbol: GetGroupParameters failed", __func__);

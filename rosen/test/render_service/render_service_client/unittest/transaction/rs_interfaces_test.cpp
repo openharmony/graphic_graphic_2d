@@ -195,7 +195,7 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface001, TestSize.Level1)
     RSTypefaceCache& typefaceCache = RSTypefaceCache::Instance();
     typefaceCache.typefaceHashCode_.emplace(globalUniqueId, 0);
     instance.RegisterTypeface(typeface);
-    EXPECT_NE(TypefaceMap::GetTypefaceByUniqueId(typeface->GetUniqueID()), nullptr);
+    EXPECT_NE(Drawing::TypefaceMap::GetTypefaceByUniqueId(typeface->GetUniqueID()), nullptr);
     typeface = nullptr;
     EXPECT_EQ(instance.RegisterTypeface(typeface), -1);
     typefaceCache.typefaceHashCode_.clear();
@@ -216,7 +216,7 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface002, TestSize.Level1)
     ASSERT_NE(typeface, nullptr);
     int32_t result = instance.RegisterTypeface(typeface);
     EXPECT_EQ(result, typeface->GetFd());
-    EXPECT_NE(TypefaceMap::GetTypefaceByUniqueId(typeface->GetUniqueID()), nullptr);
+    EXPECT_NE(Drawing::TypefaceMap::GetTypefaceByUniqueId(typeface->GetUniqueID()), nullptr);
     EXPECT_TRUE(instance.UnRegisterTypeface(typeface->GetHash()));
 }
 

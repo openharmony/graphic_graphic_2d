@@ -13,25 +13,25 @@
  * limitations under the License.
  */
 
-#include "typeface_map.h"
+#include "utils/typeface_map.h"
 
 #include <mutex>
 #include <unistd.h>
 
-namespace OHOS::Rosen {
+namespace OHOS::Rosen::Drawing {
 TypefaceMap& TypefaceMap::GetInstance()
 {
     static TypefaceMap instance;
     return instance;
 }
 
-std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByHash(uint32_t hash)
+std::shared_ptr<Typeface> TypefaceMap::GetTypefaceByHash(uint32_t hash)
 {
     std::unique_lock guard(GetInstance().mutex_);
     return GetTypefaceByHashInner(hash);
 }
 
-std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByUniqueId(uint32_t id)
+std::shared_ptr<Typeface> TypefaceMap::GetTypefaceByUniqueId(uint32_t id)
 {
     std::unique_lock guard(GetInstance().mutex_);
     auto hash = GetInstance().uniqueToHash_.find(id);
@@ -41,7 +41,7 @@ std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByUniqueId(uint32_t i
     return nullptr;
 }
 
-std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByHashInner(uint32_t hash)
+std::shared_ptr<Typeface> TypefaceMap::GetTypefaceByHashInner(uint32_t hash)
 {
     auto iter = GetInstance().typefaceMap_.find(hash);
     if (iter != GetInstance().typefaceMap_.end()) {
@@ -54,7 +54,7 @@ std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByHashInner(uint32_t 
     return nullptr;
 }
 
-void TypefaceMap::InsertTypeface(uint32_t hash, const std::shared_ptr<Drawing::Typeface>& tf)
+void TypefaceMap::InsertTypeface(uint32_t hash, const std::shared_ptr<Typeface>& tf)
 {
     if (tf == nullptr) {
         return;
@@ -68,4 +68,4 @@ void TypefaceMap::InsertTypeface(uint32_t hash, const std::shared_ptr<Drawing::T
     }
     GetInstance().uniqueToHash_.insert({uniqueId, hash});
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::Drawing

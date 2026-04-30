@@ -23,6 +23,8 @@
 #include "font_collection_mgr.h"
 #include "texgine/src/font_descriptor_mgr.h"
 #include "txt/platform.h"
+
+#include "text/font_event_callback.h"
 #include "text/typeface.h"
 #include "utils/text_log.h"
 #include "utils/text_trace.h"
@@ -132,7 +134,7 @@ RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
         return RegisterError::ALREADY_EXIST;
     }
 
-    auto typeface = TypefaceMap::GetTypefaceByHash(ta.GetTypeface()->GetHash());
+    auto typeface = Drawing::TypefaceMap::GetTypefaceByHash(ta.GetTypeface()->GetHash());
     if (typeface != nullptr) {
         typefaceSet_.insert(ta);
         return RegisterError::SUCCESS;
@@ -147,7 +149,7 @@ RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
     TEXT_LOGI("Succeed in registering typeface, family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(),
         ta.GetHash());
     typefaceSet_.insert(ta);
-    TypefaceMap::InsertTypeface(ta.GetTypeface()->GetHash(), ta.GetTypeface());
+    Drawing::TypefaceMap::InsertTypeface(ta.GetTypeface()->GetHash(), ta.GetTypeface());
     return RegisterError::SUCCESS;
 }
 
@@ -213,7 +215,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::CreateTypeface(
     const std::string& familyName, const uint8_t* data, size_t datalen, uint32_t index)
 {
     uint32_t hash = Drawing::Typeface::CalculateHash(data, datalen, index);
-    auto typeface = TypefaceMap::GetTypefaceByHash(hash);
+    auto typeface = Drawing::TypefaceMap::GetTypefaceByHash(hash);
     if (typeface != nullptr) {
         TEXT_LOGI("Find same typeface local, family name: %{public}s", typeface->GetFamilyName().c_str());
         return typeface;
@@ -337,6 +339,14 @@ FontCollection::FontCallbackGuard::FontCallbackGuard(
 FontCollection::FontCallbackGuard::~FontCallbackGuard()
 {
     end_.ExecuteCallback(fc_, info_);
+
+    Drawing::FontEventInfo drawingInfo;
+    drawingInfo.familyName = info_.familyName;
+    drawingInfo.uniqueIds = info_.uniqueIds;
+
+    if (&end_ == &::OHOS::Rosen::FontCollection::unloadFontFinishCallback_) {
+        Drawing::FontEventCallbackManager::GetInstance().OnUnloadFontFinish(drawingInfo);
+    }
 }
 
 void FontCollection::FontCallbackGuard::AddTypefaceUniqueId(uint32_t uniqueId)

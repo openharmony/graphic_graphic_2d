@@ -20,6 +20,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+std::shared_ptr<DrawingHMSymbol::GetGroupParametersCallback> DrawingHMSymbol::groupParametersCallback_;
+std::mutex DrawingHMSymbol::fMutex;
+
 void DrawingHMSymbol::PathOutlineDecompose(const Path& path, std::vector<Path>& paths)
 {
     StaticFactory::PathOutlineDecompose(path, paths);
@@ -29,6 +32,24 @@ void DrawingHMSymbol::MultilayerPath(const std::vector<std::vector<size_t>>& mul
     const std::vector<Path>& paths, std::vector<Path>& multPaths)
 {
     StaticFactory::MultilayerPath(multMap, paths, multPaths);
+}
+
+void DrawingHMSymbol::SetGetGroupParametersCallback(GetGroupParametersCallback callback)
+{
+    std::lock_guard<std::mutex> lock(fMutex);
+    groupParametersCallback_ = std::make_shared<GetGroupParametersCallback>(std::move(callback));
+}
+
+void DrawingHMSymbol::CleartGetGroupParametersCallback()
+{
+    std::lock_guard<std::mutex> lock(fMutex);
+    groupParametersCallback_.reset();
+}
+
+std::shared_ptr<DrawingHMSymbol::GetGroupParametersCallback> DrawingHMSymbol::GetGetGroupParametersCallback()
+{
+    std::lock_guard<std::mutex> lock(fMutex);
+    return groupParametersCallback_;
 }
 } // namespace Drawing
 } // namespace Rosen
