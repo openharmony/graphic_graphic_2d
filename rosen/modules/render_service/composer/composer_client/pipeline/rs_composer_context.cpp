@@ -104,8 +104,6 @@ bool RSComposerContext::CommitLayers(ComposerInfo& composerInfo)
         RS_LOGE("%{public}s rsLayerTransactionHandler is nullptr", __func__);
         return false;
     }
-    RS_LOGD("%{public}s screenId:%{public}" PRId64 "rsLayers_ size: %{public}zu", __func__,
-        composerInfo.composerScreenInfo.id, rsLayers_.size());
     return rsLayerTransactionHandler_->CommitRSLayerTransaction(composerInfo);
 }
 
@@ -140,7 +138,6 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
             RS_LOGE("LayerPresentTimestamp SetPresentTimestamp failed");
         }
     };
-    RS_LOGD("%{public}s screenId: %{public}" PRIu64, __func__, screenId);
     for (const auto& [id, isGraphicPresentTimestamp, graphicPresentTimestamp] : timestampVec) {
         if (rsLayers.count(id) == 0) {
             RS_LOGE("%{public}s has no id: %{public}" PRIu64 " layer", __func__, id);
