@@ -134,6 +134,9 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
     if (!OHOS::Rosen::g_screenManager) {
         return -1;
     }
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    OHOS::Rosen::g_screenManager->Init(handler);
     return 0;
 }
 

@@ -18,7 +18,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("rsscreenmanager06_fuzzer") {
+ohos_fuzztest("RSScreenManager06FuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service/fuzztest/rsscreenmanager06_fuzzer"
 
@@ -63,7 +63,9 @@ ohos_fuzztest("rsscreenmanager06_fuzzer") {
     "c_utils:utils",
     "hilog:libhilog",
   ]
-
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
   sources = [ "rsscreenmanager06_fuzzer.cpp" ]
 }
 
@@ -72,7 +74,7 @@ group("fuzztest") {
   testonly = true
   deps = []
   deps += [
-    ":rsscreenmanager06_fuzzer",
+    ":RSScreenManager06FuzzTest",
   ]
 }
 ###############################################################################
