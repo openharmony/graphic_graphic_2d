@@ -5534,6 +5534,7 @@ void RSProperties::UpdateForegroundFilter()
     } else if (IsHDRUIBrightnessValid()) {
         CreateHDRUIBrightnessFilter();
     } else if (GetForegroundNGFilter()) {
+        RSNGRenderFilterHelper::PrepareForForeground(GetEffect().fgNGRenderFilter_);
         ComposeNGRenderFilter(foregroundFilter_, GetForegroundNGFilter());
     } else if (GetColorAdaptive()) {
         foregroundFilterCache_ = std::make_shared<RSColorAdaptiveFilter>();

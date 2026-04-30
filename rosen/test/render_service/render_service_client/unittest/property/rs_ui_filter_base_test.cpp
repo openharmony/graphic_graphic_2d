@@ -17,6 +17,7 @@
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/filter/include/filter_heat_distortion_para.h"
 #include "ui_effect/filter/include/filter_blur_bubbles_rise_para.h"
+#include "ui_effect/filter/include/filter_motion_blur_para.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -49,6 +50,38 @@ HWTEST_F(RSUIFilterBaseTest, CreateNGBlurFilter, TestSize.Level1)
     float blurRadiusY = blurFilter->Getter<BlurRadiusYTag>()->Get();
     EXPECT_FLOAT_EQ(blurRadiusX, 10.f);
     EXPECT_FLOAT_EQ(blurRadiusY, 10.f);
+}
+
+/**
+ * @tc.name: CreateNGBlurFilterWithExpandDrawRegion
+ * @tc.desc: test for RSNGFilterHelper::CreateNGBlurFilter with expandDrawRegion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGBlurFilterWithExpandDrawRegion, TestSize.Level1)
+{
+    auto blurFilter = std::static_pointer_cast<RSNGBlurFilter>(
+        RSNGFilterHelper::CreateNGBlurFilter(20.f, 20.f, false));
+    EXPECT_NE(blurFilter, nullptr);
+    float blurRadiusX = blurFilter->Getter<BlurRadiusXTag>()->Get();
+    float blurRadiusY = blurFilter->Getter<BlurRadiusYTag>()->Get();
+    bool expandDrawRegion = blurFilter->Getter<BlurExpandDrawRegionTag>()->Get();
+    EXPECT_FLOAT_EQ(blurRadiusX, 20.f);
+    EXPECT_FLOAT_EQ(blurRadiusY, 20.f);
+    EXPECT_EQ(expandDrawRegion, false);
+}
+
+/**
+ * @tc.name: CreateNGBlurFilterExpandDrawRegionDefault
+ * @tc.desc: test for expandDrawRegion default value is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGBlurFilterExpandDrawRegionDefault, TestSize.Level1)
+{
+    auto blurFilter = std::static_pointer_cast<RSNGBlurFilter>(
+        RSNGFilterHelper::CreateNGBlurFilter(10.f, 10.f));
+    EXPECT_NE(blurFilter, nullptr);
+    bool expandDrawRegion = blurFilter->Getter<BlurExpandDrawRegionTag>()->Get();
+    EXPECT_EQ(expandDrawRegion, false);
 }
 
 /**
@@ -245,6 +278,82 @@ HWTEST_F(RSUIFilterBaseTest, BlurBubblesRiseParaDefaultValues, TestSize.Level1)
     EXPECT_EQ(blurBubblesRisePara->GetMaskImage(), nullptr);
 
     EXPECT_EQ(blurBubblesRisePara->GetParaType(), FilterPara::ParaType::BLUR_BUBBLES_RISE);
+}
+
+/**
+ * @tc.name: CreateMotionBlurFilter001
+ * @tc.desc: test creating MOTION_BLUR filter via RSNGFilterBase::Create
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateMotionBlurFilter001, TestSize.Level1)
+{
+    auto motionBlurFilter = RSNGFilterBase::Create(RSNGEffectType::MOTION_BLUR);
+    EXPECT_NE(motionBlurFilter, nullptr);
+    EXPECT_EQ(motionBlurFilter->GetType(), RSNGEffectType::MOTION_BLUR);
+}
+
+/**
+ * @tc.name: CreateMotionBlurFilterFromPara001
+ * @tc.desc: test creating MOTION_BLUR filter from MotionBlurPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateMotionBlurFilterFromPara001, TestSize.Level1)
+{
+    auto motionBlurPara = std::make_shared<MotionBlurPara>();
+    motionBlurPara->SetRadius(20.0f);
+    motionBlurPara->SetSampleCount(16);
+
+    auto motionBlurFilter = RSNGFilterBase::Create(motionBlurPara);
+    EXPECT_NE(motionBlurFilter, nullptr);
+    EXPECT_EQ(motionBlurFilter->GetType(), RSNGEffectType::MOTION_BLUR);
+}
+
+/**
+ * @tc.name: MotionBlurParaDefaultValues
+ * @tc.desc: test MotionBlurPara default values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, MotionBlurParaDefaultValues, TestSize.Level1)
+{
+    auto motionBlurPara = std::make_shared<MotionBlurPara>();
+
+    EXPECT_FLOAT_EQ(motionBlurPara->GetRadius(), 0.0f);
+    EXPECT_EQ(motionBlurPara->GetAnchor(), Vector2f(0.5f, 0.5f));
+    EXPECT_EQ(motionBlurPara->GetSampleCount(), 8);
+    EXPECT_EQ(motionBlurPara->GetParaType(), FilterPara::ParaType::MOTION_BLUR);
+}
+
+/**
+ * @tc.name: MotionBlurParaParameterVerification
+ * @tc.desc: test that MotionBlurPara parameters are correctly set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, MotionBlurParaParameterVerification, TestSize.Level1)
+{
+    auto motionBlurPara = std::make_shared<MotionBlurPara>();
+    float testRadius = 25.0f;
+    Vector2f testAnchor = Vector2f(0.3f, 0.7f);
+    int32_t testSampleCount = 32;
+
+    motionBlurPara->SetRadius(testRadius);
+    motionBlurPara->SetAnchor(testAnchor);
+    motionBlurPara->SetSampleCount(testSampleCount);
+
+    EXPECT_FLOAT_EQ(motionBlurPara->GetRadius(), testRadius);
+    EXPECT_EQ(motionBlurPara->GetAnchor(), testAnchor);
+    EXPECT_EQ(motionBlurPara->GetSampleCount(), testSampleCount);
+}
+
+/**
+ * @tc.name: CreateMotionBlurFilterFromPara002
+ * @tc.desc: test creating MOTION_BLUR filter with nullptr MotionBlurPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateMotionBlurFilterFromPara002, TestSize.Level1)
+{
+    std::shared_ptr<MotionBlurPara> nullptrPara = nullptr;
+    auto motionBlurFilter = RSNGFilterBase::Create(nullptrPara);
+    EXPECT_EQ(motionBlurFilter, nullptr);
 }
 
 } // namespace OHOS::Rosen

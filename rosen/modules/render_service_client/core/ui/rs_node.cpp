@@ -2203,10 +2203,18 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             continue;
         }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
-            paramCounts[static_cast<size_t>(SetUIXXFilterCascadeType::FG_BLUR)]++;
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
             auto blurRadius = filterBlurPara->GetRadius();
-            SetForegroundEffectRadius(blurRadius);
+            auto filter = RSNGFilterHelper::CreateNGBlurFilter(blurRadius, blurRadius);
+            if (filter == nullptr) {
+                ROSEN_LOGE("CreateNGBlurFilter filter is nullptr");
+                continue;
+            }
+            if (headFilter) {
+                headFilter->Append(filter);
+            } else {
+                headFilter = filter;
+            }
         }
         if (filterPara->GetParaType() == FilterPara::FLY_OUT) {
             paramCounts[static_cast<size_t>(SetUIXXFilterCascadeType::FLY_OUT)]++;

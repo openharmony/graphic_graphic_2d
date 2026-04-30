@@ -230,6 +230,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("variableRadiusBlur", SetVariableRadiusBlur),
         DECLARE_NAPI_FUNCTION("frostedGlass", SetFrostedGlass),
         DECLARE_NAPI_FUNCTION("frostedGlassBlur", SetFrostedGlassBlur),
+        DECLARE_NAPI_FUNCTION("motionBlur", SetMotionBlur),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -1642,6 +1643,56 @@ napi_value FilterNapi::SetFrostedGlassBlur(napi_env env, napi_callback_info info
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass napi_unwrap fail"));
+
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetMotionBlur(napi_env env, napi_callback_info info)
+{
+    constexpr size_t requireArgc = NUM_3;
+
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argv[requireArgc] = {0};
+    size_t realArgc = requireArgc;
+
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        FILTER_LOG_E("FilterNapi::SetMotionBlur parsing input fail"));
+
+    std::shared_ptr<MotionBlurPara> para = std::make_shared<MotionBlurPara>();
+    
+    float radius = 0.f;
+    radius = GetSpecialValue(env, argv[NUM_0]);
+    para->SetRadius(radius);
+
+    Vector2f anchor(0.5f, 0.5f);
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_1]) == napi_object) {
+        bool isArray = false;
+        if (napi_is_array(env, argv[NUM_1], &isArray) == napi_ok && isArray) {
+            uint32_t arraySize = 0;
+            napi_get_array_length(env, argv[NUM_1], &arraySize);
+            if (arraySize >= NUM_2) {
+                napi_value anchorX = nullptr;
+                napi_value anchorY = nullptr;
+                napi_get_element(env, argv[NUM_1], NUM_0, &anchorX);
+                napi_get_element(env, argv[NUM_1], NUM_1, &anchorY);
+                anchor[0] = GetSpecialValue(env, anchorX);
+                anchor[1] = GetSpecialValue(env, anchorY);
+            }
+        }
+    }
+    para->SetAnchor(anchor);
+
+    int32_t sampleCount = 8;
+    sampleCount = static_cast<int32_t>(GetSpecialIntValue(env, argv[NUM_2]));
+    para->SetSampleCount(sampleCount);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi::SetMotionBlur napi_unwrap fail"));
 
     filterObj->AddPara(para);
     return thisVar;

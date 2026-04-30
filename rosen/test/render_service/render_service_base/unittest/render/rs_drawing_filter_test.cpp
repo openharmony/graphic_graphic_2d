@@ -845,4 +845,32 @@ HWTEST_F(RSDrawingFilterTest, CalcRect001, TestSize.Level1)
     RectF bound(0.f, 0.f, 10.f, 10.f);
     EXPECT_EQ(drawingFilter.CalcRect(bound, EffectRectType::SNAPSHOT), bound);
 }
+
+/**
+ * @tc.name: SetDisableFilterCache001
+ * @tc.desc: Test SetDisableFilterCache with visualEffectContainer_ nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, SetDisableFilterCache001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(filter);
+    drawingFilter.SetDisableFilterCache(true);
+    EXPECT_EQ(drawingFilter.visualEffectContainer_, nullptr);
+}
+
+/**
+ * @tc.name: SetDisableFilterCache002
+ * @tc.desc: Test SetDisableFilterCache with visualEffectContainer_ not nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, SetDisableFilterCache002, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(filter);
+    drawingFilter.GenerateAndUpdateGEVisualEffect();
+    EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
+    drawingFilter.SetDisableFilterCache(true);
+    EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
+}
 } // namespace OHOS::Rosen

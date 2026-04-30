@@ -97,6 +97,7 @@ public:
     void SetGeometry(const Drawing::Matrix& matrix, const Drawing::RectF& bound, const Drawing::RectF& materialDst,
         float geoWidth, float geoHeight);
     void SetDisplayHeadroom(float headroom);
+    void SetDisableFilterCache(bool disableFilterCache);
 
     void SetDarkScale(float darkScale);
 

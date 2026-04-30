@@ -446,6 +446,47 @@ HWTEST_F(RSRenderFilterBaseTest, CalcRect001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CalcRectBlurExpandDrawRegion001
+ * @tc.desc: Test CalcRect with BLUR filter and expandDrawRegion enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, CalcRectBlurExpandDrawRegion001, TestSize.Level1)
+{
+    RectF bound(0.f, 0.f, 100.f, 100.f);
+    auto blurFilter = std::make_shared<RSNGRenderBlurFilter>();
+    blurFilter->Setter<BlurRadiusXRenderTag>(10.0f);
+    blurFilter->Setter<BlurExpandDrawRegionRenderTag>(true);
+
+    RectF result = RSNGRenderFilterHelper::CalcRect(blurFilter, bound, EffectRectType::DRAW);
+    constexpr float extensionScale = 3.f;
+    float expectedExtension = std::ceil(extensionScale * 10.0f);
+    RectF expected = bound.MakeOutset(expectedExtension);
+    EXPECT_EQ(result.GetLeft(), expected.GetLeft());
+    EXPECT_EQ(result.GetTop(), expected.GetTop());
+    EXPECT_EQ(result.GetRight(), expected.GetRight());
+    EXPECT_EQ(result.GetBottom(), expected.GetBottom());
+}
+
+/**
+ * @tc.name: CalcRectBlurExpandDrawRegion002
+ * @tc.desc: Test CalcRect with BLUR filter and expandDrawRegion disabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, CalcRectBlurExpandDrawRegion002, TestSize.Level1)
+{
+    RectF bound(0.f, 0.f, 100.f, 100.f);
+    auto blurFilter = std::make_shared<RSNGRenderBlurFilter>();
+    blurFilter->Setter<BlurRadiusXRenderTag>(10.0f);
+    blurFilter->Setter<BlurExpandDrawRegionRenderTag>(false);
+
+    RectF result = RSNGRenderFilterHelper::CalcRect(blurFilter, bound, EffectRectType::SNAPSHOT);
+    EXPECT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_EQ(result.GetRight(), bound.GetRight());
+    EXPECT_EQ(result.GetBottom(), bound.GetBottom());
+}
+
+/**
  * @tc.name: CalculatePropTagHashImplInt
  * @tc.desc: test CalculatePropTagHashImpl(uint32_t& hash, int value)
  * @tc.type: FUNC
