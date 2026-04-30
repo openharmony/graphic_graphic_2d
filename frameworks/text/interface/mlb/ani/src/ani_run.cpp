@@ -24,6 +24,7 @@
 #include "ani_text_utils.h"
 #include "ani_transfer_util.h"
 #include "ani_typographic_bounds_converter.h"
+#include "ani_text_style_converter.h"
 #include "canvas_ani/ani_canvas.h"
 #include "font_ani/ani_font.h"
 #include "run_napi/js_run.h"
@@ -46,6 +47,7 @@ const std::string GET_TYPOGRAPHIC_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INT
 const std::string GET_IMAGE_BOUNDS_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_RECT) + "}";
 const std::string RETURN_ARRAY_SIGN = ":C{" + std::string(ANI_ARRAY) + "}";
 const std::string GET_TEXT_DIRECTION_SIGNATURE = ":E{" + std::string(ANI_ENUM_TEXT_DIRECTION) + "}";
+const std::string GET_TEXT_STYLE_SIGNATURE = ":C{" + std::string(ANI_INTERFACE_TEXT_STYLE) + "}";
 const std::string GET_ADVANCES_SIGNATURE =
     "C{" + std::string(ANI_INTERFACE_RANGE) + "}:C{" + std::string(ANI_ARRAY) + "}";
 } // namespace
@@ -73,6 +75,8 @@ std::vector<ani_native_function> AniRun::InitMethods(ani_env* env)
             "getImageBounds", GET_IMAGE_BOUNDS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetImageBounds)},
         ani_native_function{
             "getTextDirection", GET_TEXT_DIRECTION_SIGNATURE.c_str(), reinterpret_cast<void*>(GetTextDirection)},
+        ani_native_function{
+            "getTextStyle", GET_TEXT_STYLE_SIGNATURE.c_str(), reinterpret_cast<void*>(GetTextStyle)},
         ani_native_function{
             "getAdvances", GET_ADVANCES_SIGNATURE.c_str(), reinterpret_cast<void*>(GetAdvances)},
     };
@@ -495,6 +499,18 @@ ani_object AniRun::GetTextDirection(ani_env* env, ani_object object)
     ani_enum_item textDirectionEnum = AniTextUtils::CreateAniEnum(env, AniGlobalEnum::GetInstance().textDirection,
         aniGetEnumIndex(AniTextEnum::textDirection, static_cast<uint32_t>(textDirection)).value_or(0));
     return static_cast<ani_object>(textDirectionEnum);
+}
+
+ani_object AniRun::GetTextStyle(ani_env* env, ani_object object)
+{
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
+    if (aniRun == nullptr || aniRun->run_ == nullptr) {
+        TEXT_LOGE("Run is null");
+        AniTextUtils::ThrowBusinessError(env, static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    const TextStyle& textStyle = aniRun->run_->GetTextStyle();
+    return AniTextStyleConverter::ParseTextStyleToAni(env, textStyle);
 }
 
 ani_object AniRun::GetAdvances(ani_env* env, ani_object object, ani_object range)

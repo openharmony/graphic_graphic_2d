@@ -150,6 +150,14 @@ float RunImpl::GetTypographicBounds(float* ascent, float* descent, float* leadin
     }
     return run_->GetTypographicBounds(ascent, descent, leading);
 }
+
+TextStyle RunImpl::GetTextStyle() const
+{
+    if (run_ == nullptr) {
+        return {};
+    }
+    return Convert(run_->GetTextStyle());
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS
