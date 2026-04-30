@@ -16,7 +16,8 @@
 DECLARE_FILTER(Blur, BLUR,
     ADD_PROPERTY_TAG(Blur, RadiusX),
     ADD_PROPERTY_TAG(Blur, RadiusY),
-    ADD_PROPERTY_TAG(Blur, DisableSystemAdaptation)
+    ADD_PROPERTY_TAG(Blur, DisableSystemAdaptation),
+    ADD_PROPERTY_TAG(Blur, ExpandDrawRegion)
 );
 
 DECLARE_FILTER(MaterialBlur, MATERIAL_BLUR,
@@ -266,4 +267,10 @@ DECLARE_FILTER(DistortionCollapse, DISTORTION_COLLAPSE,
     ADD_PROPERTY_TAG(DistortionCollapse, RBCorner),
     ADD_PROPERTY_TAG(DistortionCollapse, LBCorner),
     ADD_PROPERTY_TAG(DistortionCollapse, BarrelDistortion)
+);
+
+DECLARE_FILTER(MotionBlur, MOTION_BLUR,
+    ADD_PROPERTY_TAG(MotionBlur, Radius),
+    ADD_PROPERTY_TAG(MotionBlur, Anchor),
+    ADD_PROPERTY_TAG(MotionBlur, SampleCount)
 );

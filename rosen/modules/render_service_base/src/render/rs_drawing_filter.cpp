@@ -245,6 +245,13 @@ void RSDrawingFilter::SetDisplayHeadroom(float headroom)
     }
 }
 
+void RSDrawingFilter::SetDisableFilterCache(bool disableFilterCache)
+{
+    if (visualEffectContainer_) {
+        visualEffectContainer_->SetDisableFilterCache(disableFilterCache);
+    }
+}
+
 bool RSDrawingFilter::CanSkipFrame(float radius)
 {
     constexpr float HEAVY_BLUR_THRESHOLD = 25.0f;
