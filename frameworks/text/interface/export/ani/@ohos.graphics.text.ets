@@ -998,6 +998,7 @@ export default namespace text {
     native getImageBounds(): common2D.Rect;
     native getTextDirection(): TextDirection;
     native getAdvances(range: Range): Array<common2D.Point> | undefined;
+    native getTextStyle(): TextStyle;
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
