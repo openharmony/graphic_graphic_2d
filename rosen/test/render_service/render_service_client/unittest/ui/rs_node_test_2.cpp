@@ -212,7 +212,7 @@ HWTEST_F(RSNodeTest2, SetUIForegroundFilter, TestSize.Level1)
     para->SetRadius(FLOAT_DATA[1]);
     filterObj->AddPara(para);
     rsNode->SetUIForegroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == FLOAT_DATA[1]);
+    EXPECT_FALSE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == FLOAT_DATA[1]);
 }
 
 /**

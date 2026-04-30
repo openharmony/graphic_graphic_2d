@@ -34,6 +34,7 @@
 #include "ui_effect/filter/include/filter_heat_distortion_para.h"
 #include "ui_effect/filter/include/filter_magnifier_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
+#include "ui_effect/filter/include/filter_motion_blur_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
 
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
@@ -142,6 +143,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::DISTORTION_COLLAPSE, [] {
             return std::make_shared<RSNGDistortionCollapseFilter>();
+        }
+    },
+    {RSNGEffectType::MOTION_BLUR, [] {
+            return std::make_shared<RSNGMotionBlurFilter>();
         }
     },
 };
@@ -477,6 +482,21 @@ std::shared_ptr<RSNGFilterBase> ConvertMagnifierPara(std::shared_ptr<FilterPara>
     magnifierFilter->Setter<MagnifierOuterContourColor2Tag>(RSColor(magnifierFilterPara->GetOuterContourColor2()));
     return magnifierFilter;
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertMotionBlurPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::MOTION_BLUR);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertMotionBlurPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto motionBlurFilter = std::static_pointer_cast<RSNGMotionBlurFilter>(filter);
+    auto motionBlurFilterPara = std::static_pointer_cast<MotionBlurPara>(filterPara);
+    motionBlurFilter->Setter<MotionBlurRadiusTag>(motionBlurFilterPara->GetRadius());
+    motionBlurFilter->Setter<MotionBlurAnchorTag>(motionBlurFilterPara->GetAnchor());
+    motionBlurFilter->Setter<MotionBlurSampleCountTag>(motionBlurFilterPara->GetSampleCount());
+    return motionBlurFilter;
+}
 } // namespace
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
@@ -497,6 +517,7 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::MAGNIFIER, ConvertMagnifierPara },
     { FilterPara::ParaType::HEAT_DISTORTION, ConvertHeatDistortionFilterPara },
     { FilterPara::ParaType::BLUR_BUBBLES_RISE, ConvertBlurBubblesRiseFilterPara },
+    { FilterPara::ParaType::MOTION_BLUR, ConvertMotionBlurPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)
