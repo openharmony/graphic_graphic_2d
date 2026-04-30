@@ -35,7 +35,8 @@
 namespace OHOS {
 class BootCompileProgress {
 public:
-    void Init(const std::string& configPath, const BootAnimationConfig& config);
+    void Init(const std::string& configPath, const BootAnimationConfig& config,
+        sptr<IRemoteObject> connectToRender);
     ~BootCompileProgress();
 
 private:
@@ -60,6 +61,9 @@ private:
     void SetFrame();
     void SetSpecialProgressFrame(int32_t maxLength, int32_t screenId);
     void RegisterDeathRecipientInner();
+    std::string GetFirmwareUpdateState();
+    void UpdateText();
+    void DrawCircle(Rosen::Drawing::RecordingCanvas* canvas);
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
@@ -78,6 +82,7 @@ private:
     volatile bool isUpdateOptEnd_ = false;
     bool isWearable_ = false;
     bool isOther_ = false;
+    bool isUpdateText_ = false;
 
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
     std::shared_ptr<Rosen::RSCanvasNode> rsCanvasNode_;
@@ -90,6 +95,7 @@ private:
     std::map<int32_t, BootAnimationProgressConfig> progressConfigsMap_;
     sptr<DeathRecipientInner> deathRecipient_ = nullptr;
     sptr<IRemoteObject> renderObj_ = nullptr;
+    sptr<IRemoteObject> connectToRender_;
 };
 } // namespace OHOS
 

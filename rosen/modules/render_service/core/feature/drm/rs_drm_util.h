@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,16 +28,16 @@ public:
     using DrawablesVec = std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
 
     static void ClearDrmNodes();
-    static void CollectDrmNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     static void AddDrmCloneCrossNode(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         DrawablesVec& hardwareEnabledDrawables);
     static void DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::Matrix hwcMatrix);
-    static void PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
     static void MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
         const std::shared_ptr<RSScreenRenderNode>& curScreenNode);
     static bool IsDRMNodesOnTheTree();
+    static void DealWithDRMNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager);
+    static bool HasDRMInVirtualScreen(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 private:
     static void MarkAllBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
@@ -49,6 +49,9 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& drmNode);
     static bool GetDarkColorMode(const std::shared_ptr<RSRenderNode>& node,
         const std::shared_ptr<RSSurfaceRenderNode>& appWindowNode);
+    static void CollectDrmNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
+    static void PreAllocProtectedFrameBuffers(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager);
     inline static std::unordered_map<NodeId, // map<first level node ID, drm surface node>
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>> drmNodes_ = {};
 };

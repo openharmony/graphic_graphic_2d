@@ -16,26 +16,18 @@
 #ifndef RS_UNI_HWC_EVENT_MANAGER_H
 #define RS_UNI_HWC_EVENT_MANAGER_H
 
+#include "common/rs_event_def.h"
 #include <cstdint>
 #include <vector>
 
 namespace OHOS {
 namespace Rosen {
-enum HwcEvent {
-    PREVALIDATE_LOW_TEMP = 0,
-    PREVALIDATE_DFR_MODE,       // Screen refresh mode
-    PREVALIDATE_DSI_MODE,       // Screen interrupt mode
-    PREVALIDATE_DSTCOLOR_MODE,  // Screen color space mode
-    HWCEVENT_TUI_ENTER,         // enter tui layer
-    HWCEVENT_TUI_EXIT,          // exit tui layer
-    HWCEVENT_CALLBACK_MAX,
-};
 
 class RSUniHwcEventManager {
 public:
     static RSUniHwcEventManager& GetInstance();
     void Init();
-    static void OnHwcEvent(uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data);
+    static void OnHwcEvent(uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData);
 private:
     RSUniHwcEventManager() = default;
     ~RSUniHwcEventManager() = default;

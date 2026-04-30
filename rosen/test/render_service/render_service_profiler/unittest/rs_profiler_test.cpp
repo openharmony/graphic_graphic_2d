@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,8 +25,8 @@
 #include "rs_profiler_utils.h"
 
 #include "common/rs_common_def.h"
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/rs_render_service.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -81,7 +81,7 @@ public:
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void OnTreeStateChanged() override {}
     void UpdateNodeColorSpace() override {}
-    void MarkNodeColorSpace(bool isP3Color) override {}
+    void MarkNodeColorSpace(int8_t colorSpace) override {}
 };
 
 class RSProfilerTest : public testing::Test {
@@ -105,14 +105,16 @@ RSRenderService* GetAndInitRenderService()
     MemorySnapshot::Instance();
     RSRenderNodeGC::Instance();
 
-    auto renderService(new RSRenderService());
-    if (renderService) {
-        renderService->mainThread_ = new RSMainThread();
-    }
-    if (renderService->mainThread_) {
-        renderService->mainThread_->context_ = std::make_shared<RSContext>();
-        renderService->mainThread_->context_->Initialize();
-    }
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto mainThread = RSMainThread::Instance();
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    mainThread->handler_->eventRunner_->Run();
+
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    pipeline->mainThread_ = mainThread;
+
+    auto renderService = new RSRenderService();
+    renderService->renderPipeline_ = pipeline;
     return renderService;
 }
 
@@ -362,7 +364,7 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
     RSFile testFile;
 
     std::string error;
-    testFile.Open("RECORD_IN_MEMORY", error);
+    ASSERT_TRUE(testFile.Open("RECORD_IN_MEMORY", error)) << "Reason: " << error;
 
     EXPECT_TRUE(testFile.IsOpen());
     EXPECT_TRUE(error.empty());
@@ -500,8 +502,8 @@ HWTEST_F(RSProfilerFileTest, ReadAnimationStartTimeTest, TestSize.Level1)
     rsFile.WriteAnimationStartTime();
     rsFile.Close();
 
-    std::string error = "";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    std::string error;
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(rsFile.ReadAnimationStartTime());
     rsFile.Close();
 }
@@ -522,7 +524,7 @@ HWTEST_F(RSProfilerFileTest, ReadHeaderTest, TestSize.Level1)
     rsFile.Close();
 
     std::string error = "HasError";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(error.empty());
     error = rsFile.ReadHeader();
     EXPECT_TRUE(error.empty());
@@ -549,7 +551,7 @@ HWTEST_F(RSProfilerFileTest, GetEOFTimeTest, TestSize.Level1)
     rsFile.Close();
 
     std::string error = "HasError";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(error.empty());
     EXPECT_EQ(rsFile.GetEOFTime(), time);
     rsFile.Close();
@@ -577,7 +579,7 @@ HWTEST_F(RSProfilerFileTest, WriteTrace3DMetricsTest, TestSize.Level1)
     rsFile.Close();
 
     std::string error = "HasError";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(error.empty());
     std::vector<uint8_t> rData = {};
     double readTime = 0;

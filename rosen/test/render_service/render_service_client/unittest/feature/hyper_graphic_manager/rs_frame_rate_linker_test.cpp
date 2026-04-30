@@ -59,7 +59,8 @@ HWTEST_F(RSFrameRateLinkerTest, UpdateFrameRateRange001, TestSize.Level1)
     ASSERT_NE(frameRateLinker, nullptr);
     FrameRateRange initialRange = {30, 144, 60};
     FrameRateRange newRange = {60, 144, 120};
-    std::shared_ptr<RSUIContext> rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    std::shared_ptr<RSUIContext> rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     frameRateLinker->UpdateFrameRateRange(initialRange, -1);
     frameRateLinker->UpdateFrameRateRange({30, 144, 60}, -1);
     frameRateLinker->UpdateFrameRateRange(newRange, -1, rsUIContext);

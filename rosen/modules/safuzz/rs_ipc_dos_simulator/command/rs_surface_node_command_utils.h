@@ -57,6 +57,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetForceUIFirst, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAncoFlags, Uint64, Uint32);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetHDRPresent, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetDarkColorMode, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSkipDraw, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSSurfaceNodeSetWatermarkEnabled, Uint64, String, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAbilityState, Uint64, RSSurfaceNodeAbilityState);
@@ -70,8 +71,8 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAncoSrcCrop, Uint64, Rect);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetContainerWindowTransparent, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSSurfaceNodeSetClonedNodeId, Uint64, Uint64, Bool, Bool);
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNeedUseCmdlistDrawRegion, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAppRotationCorrection, Uint64, ScreenRotation);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetHDRType, Uint64, Uint32);
 };
 } // namespace Rosen
 } // namespace OHOS

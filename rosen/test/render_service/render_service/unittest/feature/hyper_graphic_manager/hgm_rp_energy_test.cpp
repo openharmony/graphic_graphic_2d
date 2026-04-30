@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 
 #include "feature/hyper_graphic_manager/hgm_rp_energy.h"
-#include "hgm_energy_consumption_policy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,10 +30,11 @@ public:
     void TearDown() override;
 
 protected:
-    std::shared_ptr<HgmRPEnergy> hgmRPEnergy_;
+    std::shared_ptr<HgmRPEnergy> HgmRPEnergy_;
 };
 
 void HgmRPEnergyTest::SetUpTestCase() {}
+
 void HgmRPEnergyTest::TearDownTestCase() {}
 
 void HgmRPEnergyTest::SetUp()
@@ -48,176 +48,274 @@ void HgmRPEnergyTest::TearDown()
 }
 
 /**
- * @tc.name: TestSyncEnergyInfoToRP
- * @tc.desc: Test HgmRPEnergy.SyncEnergyInfoToRP
+ * @tc.name: TestSetTouchState
+ * @tc.desc: Test the SetTouchState function of HgmRPEnergy
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmRPEnergyTest, TestSyncEnergyInfoToRP, TestSize.Level1)
+HWTEST_F(HgmRPEnergyTest, TestSetTouchState, TestSize.Level1)
 {
     ASSERT_NE(hgmRPEnergy_, nullptr);
 
-    EnergyInfo energyInfo;
-    energyInfo.componentName = "TestComponent";
-    energyInfo.componentPid = 1234;
-    energyInfo.componentDefaultFps = 60;
+    hgmRPEnergy_->SetTouchState(true);
+    EXPECT_TRUE(hgmRPEnergy_->isTouchIdle_);
 
-    hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-    EXPECT_FALSE(hgmRPEnergy_->energyInfo_.componentName.empty());
-    EXPECT_NE(hgmRPEnergy_->energyInfo_.componentPid, 0);
-    EXPECT_NE(hgmRPEnergy_->energyInfo_.componentDefaultFps, 0);
+    hgmRPEnergy_->SetTouchState(false);
+    EXPECT_FALSE(hgmRPEnergy_->isTouchIdle_);
 }
 
 /**
- * @tc.name: TestSetComponentDefaultFps_Case1
- * @tc.desc: Test SetComponentDefaultFps when energyInfo_.componentName != "swiper_drag_scene"
+ * @tc.name: TestHgmConfigUpdateCallbackNull
+ * @tc.desc: Test the HgmConfigUpdateCallback function of HgmRPEnergy when configData is nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case1, TestSize.Level1)
+HWTEST_F(HgmRPEnergyTest, TestHgmConfigUpdateCallbackNull, TestSize.Level1)
 {
     ASSERT_NE(hgmRPEnergy_, nullptr);
 
-    EnergyInfo energyInfo;
-    energyInfo.componentName = "TestComponent";
-    energyInfo.componentPid = 1234;
-    energyInfo.componentDefaultFps = 60;
-    hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-    FrameRateRange rsRange;
-    rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
-    rsRange.type_ = 0;
-
-    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
-    EXPECT_EQ(rsRange.min_, 0);
-    EXPECT_EQ(rsRange.max_, 0);
-    EXPECT_EQ(rsRange.preferred_, 0);
+    hgmRPEnergy_->HgmConfigUpdateCallback(nullptr);
+    EXPECT_TRUE(hgmRPEnergy_->componentPowerConfig_.empty());
 }
 
 /**
- * @tc.name: TestSetComponentDefaultFps_Case2
- * @tc.desc: Test TestSetComponentDefaultFps_Case2
+ * @tc.name: TestHgmConfigUpdateCallbackNotNull
+ * @tc.desc: Test the HgmConfigUpdateCallback function of HgmRPEnergy when configData is not nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case2, TestSize.Level1)
+HWTEST_F(HgmRPEnergyTest, TestHgmConfigUpdateCallbackNotNull, TestSize.Level1)
 {
     ASSERT_NE(hgmRPEnergy_, nullptr);
 
-    EnergyInfo energyInfo;
-    energyInfo.componentName = "swiper_drag_scene";
-    energyInfo.componentPid = 1234;
-    energyInfo.componentDefaultFps = 60;
-    hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-    FrameRateRange rsRange;
-    rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
-    rsRange.type_ = 0;
+    auto configData = std::make_shared<RPHgmConfigData>();
+    std::unordered_map<std::string, int32_t> componentPowerConfig = { { "Component1", 60 }, { "Component2", 30 } };
+    configData->SetComponentPowerConfig(componentPowerConfig);
 
-    hgmRPEnergy_->SetComponentDefaultFps(5678, rsRange);
-    EXPECT_EQ(rsRange.min_, 0);
-    EXPECT_EQ(rsRange.max_, 0);
-    EXPECT_EQ(rsRange.preferred_, 0);
+    hgmRPEnergy_->HgmConfigUpdateCallback(configData);
+
+    EXPECT_EQ(hgmRPEnergy_->componentPowerConfig_.size(), componentPowerConfig.size());
 }
 
 /**
- * @tc.name: TestSetComponentDefaultFps_Case3
- * @tc.desc: Test TestSetComponentDefaultFps_Case3
+ * @tc.name: TestGetComponentFpsNotIdle
+ * @tc.desc: Test the GetComponentFps function when isTouchIdle_ is false
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case3, TestSize.Level1)
+HWTEST_F(HgmRPEnergyTest, TestGetComponentFpsNotIdle, TestSize.Level1)
 {
     ASSERT_NE(hgmRPEnergy_, nullptr);
 
-    EnergyInfo energyInfo;
-    energyInfo.componentName = "swiper_drag_scene";
-    energyInfo.componentPid = 1234;
-    energyInfo.componentDefaultFps = 60;
-    hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-    FrameRateRange rsRange;
-    rsRange.min_ = 10;
-    rsRange.max_ = 20;
-    rsRange.preferred_ = 15;
-    rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
-    rsRange.type_ = 0;
+    hgmRPEnergy_->SetTouchState(false);
+    FrameRateRange range;
 
-    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
-    EXPECT_EQ(rsRange.min_, 10);
-    EXPECT_EQ(rsRange.max_, 20);
-    EXPECT_EQ(rsRange.preferred_, 15);
+    hgmRPEnergy_->GetComponentFps(range);
+
+    EXPECT_EQ(range.isEnergyAssurance_, false);
+    EXPECT_EQ(range.max_, 0);
+    EXPECT_EQ(range.min_, 0);
+    EXPECT_EQ(range.preferred_, 0);
 }
 
 /**
- * @tc.name: TestSetComponentDefaultFps_Case4
- * @tc.desc: Test TestSetComponentDefaultFps_Case4
+ * @tc.name: TestGetComponentFpsIdleEmptyConfig
+ * @tc.desc: Test the GetComponentFps function when isTouchIdle_ is true and componentPowerConfig_ is empty
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case4, TestSize.Level1)
+HWTEST_F(HgmRPEnergyTest, TestGetComponentFpsIdleEmptyConfig, TestSize.Level1)
 {
     ASSERT_NE(hgmRPEnergy_, nullptr);
 
-    EnergyInfo energyInfo;
-    energyInfo.componentName = "swiper_drag_scene";
-    energyInfo.componentPid = 1234;
-    energyInfo.componentDefaultFps = 60;
-    hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-    FrameRateRange rsRange;
-    rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
-    rsRange.type_ = 0;
+    hgmRPEnergy_->SetTouchState(true);
+    FrameRateRange range;
 
-    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
-    EXPECT_EQ(rsRange.min_, 0);
-    EXPECT_EQ(rsRange.max_, 0);
-    EXPECT_EQ(rsRange.preferred_, 0);
+    hgmRPEnergy_->GetComponentFps(range);
+
+    EXPECT_EQ(range.isEnergyAssurance_, false);
+    EXPECT_EQ(range.max_, 0);
+    EXPECT_EQ(range.min_, 0);
+    EXPECT_EQ(range.preferred_, 0);
 }
 
 /**
- * @tc.name: TestSetComponentDefaultFps_Case5
- * @tc.desc: Test TestSetComponentDefaultFps_Case5
+ * @tc.name: TestGetComponentFpsConfigNoComponent
+ * @tc.desc: Test the GetComponentFps function when componentPowerConfig_ is not empty but does not contain the
+ * range.GetComponentName() element
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case5, TestSize.Level1)
+HWTEST_F(HgmRPEnergyTest, TestGetComponentFpsConfigNoComponent, TestSize.Level1)
 {
     ASSERT_NE(hgmRPEnergy_, nullptr);
 
-    EnergyInfo energyInfo;
-    energyInfo.componentName = "swiper_drag_scene";
-    energyInfo.componentPid = 1234;
-    energyInfo.componentDefaultFps = 60;
-    hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-    FrameRateRange rsRange;
-    rsRange.componentScene_ = ComponentScene::SWIPER_FLING;
-    rsRange.type_ = 0;
+    hgmRPEnergy_->SetTouchState(true);
+    std::unordered_map<std::string, int32_t> componentPowerConfig = { { "Component2", 60 } };
+    hgmRPEnergy_->componentPowerConfig_ = componentPowerConfig;
+    FrameRateRange range;
 
-    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
-    EXPECT_EQ(rsRange.min_, 0);
-    EXPECT_EQ(rsRange.max_, 60);
-    EXPECT_EQ(rsRange.preferred_, 60);
+    hgmRPEnergy_->GetComponentFps(range);
+
+    EXPECT_EQ(range.isEnergyAssurance_, false);
+    EXPECT_EQ(range.max_, 0);
+    EXPECT_EQ(range.min_, 0);
+    EXPECT_EQ(range.preferred_, 0);
 }
 
 /**
- * @tc.name: TestSetComponentDefaultFps_Case6
- * @tc.desc: Test TestSetComponentDefaultFps_Case6
+ * @tc.name: TestGetComponentFpsConfigHasComponent
+ * @tc.desc: Test the GetComponentFps function when componentPowerConfig_ is not empty and contains the
+ * range.GetComponentName() element
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmRPEnergyTest, TestSetComponentDefaultFps_Case6, TestSize.Level1)
+HWTEST_F(HgmRPEnergyTest, TestGetComponentFpsConfigHasComponent, TestSize.Level1)
 {
     ASSERT_NE(hgmRPEnergy_, nullptr);
 
-    EnergyInfo energyInfo;
-    energyInfo.componentName = "swiper_drag_scene";
-    energyInfo.componentPid = 1234;
-    energyInfo.componentDefaultFps = 60;
-    hgmRPEnergy_->SyncEnergyInfoToRP(energyInfo);
-    FrameRateRange rsRange;
-    rsRange.componentScene_ = ComponentScene::UNKNOWN_SCENE;
-    rsRange.type_ = SWIPER_DRAG_FRAME_RATE_TYPE;
+    hgmRPEnergy_->SetTouchState(true);
+    std::unordered_map<std::string, int32_t> componentPowerConfig = { { "SWIPER_FLING", 60 } };
+    hgmRPEnergy_->componentPowerConfig_ = componentPowerConfig;
+    FrameRateRange range;
+    range.componentScene_ = ComponentScene::SWIPER_FLING;
+    range.preferred_ = 30;
 
-    hgmRPEnergy_->SetComponentDefaultFps(1234, rsRange);
-    EXPECT_EQ(rsRange.min_, 0);
-    EXPECT_EQ(rsRange.max_, 60);
-    EXPECT_EQ(rsRange.preferred_, 60);
+    hgmRPEnergy_->GetComponentFps(range);
+
+    EXPECT_EQ(range.isEnergyAssurance_, false);
+    EXPECT_EQ(range.preferred_, 30);
 }
+
+/**
+ * @tc.name: TestGetComponentFpsPreferredGreaterThanIdle
+ * @tc.desc: Test the GetComponentFps function when range.preferred_ > idleFps
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, TestGetComponentFpsPreferredGreaterThanIdle, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->SetTouchState(true);
+    std::unordered_map<std::string, int32_t> componentPowerConfig = { { "SWIPER_FLING", 60 } };
+    hgmRPEnergy_->componentPowerConfig_ = componentPowerConfig;
+    FrameRateRange range;
+    range.componentScene_ = ComponentScene::SWIPER_FLING;
+    range.preferred_ = 70;
+
+    hgmRPEnergy_->GetComponentFps(range);
+
+    EXPECT_EQ(range.isEnergyAssurance_, true);
+    EXPECT_EQ(range.preferred_, 60);
+}
+
+/**
+ * @tc.name: TestGetComponentFpsPreferredLessThanIdle
+ * @tc.desc: Test the GetComponentFps function when range.preferred_ < idleFps
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, TestGetComponentFpsPreferredLessThanIdle, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->SetTouchState(true);
+    std::unordered_map<std::string, int32_t> componentPowerConfig = { { "SWIPER_FLING", 60 } };
+    hgmRPEnergy_->componentPowerConfig_ = componentPowerConfig;
+    FrameRateRange range;
+    range.componentScene_ = ComponentScene::SWIPER_FLING;
+    range.preferred_ = 30;
+
+    hgmRPEnergy_->GetComponentFps(range);
+
+    EXPECT_EQ(range.isEnergyAssurance_, false);
+    EXPECT_EQ(range.preferred_, 30);
+}
+
+/**
+ * @tc.name: TestMoveEnergyCommonDataTo
+ * @tc.desc: Test the MoveEnergyCommonDataTo function, just call it and assert the input parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, TestMoveEnergyCommonDataTo, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    EnergyCommonDataMap commonData;
+    hgmRPEnergy_->MoveEnergyCommonDataTo(commonData);
+
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_.size(), 0);
+}
+/**
+ * @tc.name: TestAddEnergyCommonDataEmpty
+ * @tc.desc: Test the AddEnergyCommonData function when energyCommonData_ is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, TestAddEnergyCommonDataEmpty, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->AddEnergyCommonData(EnergyEvent::START_NEW_ANIMATION, "key", "value");
+
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_.size(), 1);
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_[EnergyEvent::START_NEW_ANIMATION].size(), 1);
+}
+
+/**
+ * @tc.name: TestAddEnergyCommonDataNoEvent
+ * @tc.desc: Test the AddEnergyCommonData function when energyCommonData_ is not empty but cannot find the event
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, TestAddEnergyCommonDataNoEvent, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->AddEnergyCommonData(EnergyEvent::START_NEW_ANIMATION, "key1", "value1");
+    hgmRPEnergy_->AddEnergyCommonData(EnergyEvent::VOTER_VIDEO_RATE, "key2", "value2");
+
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_.size(), 2);
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_[EnergyEvent::START_NEW_ANIMATION].size(), 1);
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_[EnergyEvent::VOTER_VIDEO_RATE].size(), 1);
+}
+
+/**
+ * @tc.name: TestAddEnergyCommonDataHasEvent
+ * @tc.desc: Test the AddEnergyCommonData function when energyCommonData_ is not empty and can find the event
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, TestAddEnergyCommonDataHasEvent, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    hgmRPEnergy_->AddEnergyCommonData(EnergyEvent::START_NEW_ANIMATION, "key1", "value1");
+    hgmRPEnergy_->AddEnergyCommonData(EnergyEvent::START_NEW_ANIMATION, "key2", "value2");
+
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_.size(), 1);
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_[EnergyEvent::START_NEW_ANIMATION].size(), 2);
+}
+
+/**
+ * @tc.name: TestStatisticAnimationTime
+ * @tc.desc: Test the StatisticAnimationTime function, call it and assert energyCommonData_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRPEnergyTest, TestStatisticAnimationTime, TestSize.Level1)
+{
+    ASSERT_NE(hgmRPEnergy_, nullptr);
+
+    uint64_t timestamp = 123456;
+
+    hgmRPEnergy_->StatisticAnimationTime(timestamp);
+
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_.size(), 1);
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_[EnergyEvent::ANIMATION_EXEC_TIME].size(), 1);
+    EXPECT_EQ(hgmRPEnergy_->energyCommonData_[EnergyEvent::ANIMATION_EXEC_TIME]["STATIC_ANIMATION_TIME"], "123456");
+}
+
 } // namespace OHOS::Rosen

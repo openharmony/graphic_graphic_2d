@@ -24,6 +24,21 @@
 #include "animation/rs_animation_timing_protocol.h"
 #include "common/rs_macros.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+
+#ifdef __APPLE__
+#define gettid getpid
+#endif
+
+#ifdef __gnu_linux__
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
+
 namespace OHOS {
 namespace Rosen {
 class AnimationFinishCallback;
@@ -37,9 +52,15 @@ class RSNode;
 class RSUIContext;
 enum class CancelAnimationStatus;
 
+enum class InteractiveAnimatorType {
+    NONE,
+    INTERACTIVE,
+    GROUP,
+};
+
 class RSC_EXPORT RSImplicitAnimator {
 public:
-    RSImplicitAnimator() = default;
+    RSImplicitAnimator(pid_t tid = gettid()) : tid_(tid) {}
     virtual ~RSImplicitAnimator() = default;
 
     // open implicit animation with given animation options, finish callback and repeatcallback
@@ -61,8 +82,9 @@ public:
     CancelAnimationStatus CloseImplicitCancelAnimation();
 
     // open implicit animation with given animation options and finish callback
-    int OpenInterActiveImplicitAnimation(bool isAddImplictAnimation, const RSAnimationTimingProtocol& timingProtocol,
-        const RSAnimationTimingCurve& timingCurve, std::shared_ptr<AnimationFinishCallback>&& finishCallback);
+    int OpenInterActiveImplicitAnimation(bool isAddImplictAnimation, bool isGroupAnimator,
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+        std::shared_ptr<AnimationFinishCallback>&& finishCallback);
     // interactive animator close implicit animation and return all animations
     std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>> CloseInterActiveImplicitAnimation(
         bool isAddImplictAnimation);
@@ -95,6 +117,10 @@ public:
     
     void ApplyAnimationSpeedMultiplier(float multiplier = 1.0f);
 
+    pid_t GetTid() const { return tid_; }
+    
+    InteractiveAnimatorType GetInteractiveAnimatorType() const { return interactiveAnimatorType_; }
+
 private:
     void EndImplicitAnimation();
     void BeginImplicitCurveAnimation();
@@ -104,7 +130,10 @@ private:
 
     void CloseImplicitAnimationInner();
     void ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
-    void ProcessAnimationFinishCallbackGuaranteeTask();
+    void ProcessAnimationFinishCallbackGuaranteeTask(bool hasUiAnimation);
+
+    static float EstimateAnimationDuration(
+        const RSAnimationTimingProtocol& protocol, const RSAnimationTimingCurve& curve);
 
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();
@@ -129,12 +158,12 @@ private:
     std::stack<std::tuple<bool, int, int>> durationKeyframeParams_;
 
     bool implicitAnimationDisabled_ { false };
+    pid_t tid_ { 0 };
 
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> interactiveImplicitAnimations_;
-    bool isAddInteractiveAnimator_ { false };
+    InteractiveAnimatorType interactiveAnimatorType_ { InteractiveAnimatorType::NONE };
     std::weak_ptr<RSUIContext> rsUIContext_;
     float speedMultiplier_ = 1.0f;
-    friend class RSImplicitAnimatorMap;
     friend class RSNode;
     friend class RSUIContext;
 };

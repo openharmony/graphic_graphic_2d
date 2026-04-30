@@ -25,6 +25,9 @@
 using namespace ANI::UIEffect;
 
 namespace ANI::UIEffect {
+
+static const std::string HDR_BRIGHTNESS_PERMISSION = "ohos.permission.HDR_BRIGHTNESS";
+
 FilterImpl::FilterImpl()
 {
     nativeFilter_ = std::make_shared<OHOS::Rosen::Filter>();
@@ -363,8 +366,10 @@ Filter FilterImpl::VariableRadiusBlur(double radius, ::ohos::graphics::uiEffect:
 
 Filter FilterImpl::HdrBrightnessRatio(double ratio)
 {
-    if (!IsSystemApp()) {
-        UIEFFECT_LOG_E("call hdrBrightnessRatio failed, is not system app");
+    if (!IsSystemApp() && !CheckPermission(HDR_BRIGHTNESS_PERMISSION)) {
+        UIEFFECT_LOG_E("FilterImpl HdrBrightnessRatio caller is not system app or lacks the required permission.");
+        set_business_error(static_cast<int32_t>(UIEffectErrorCode::ERR_NO_PERMISSION),
+            "The HdrBrightnessRatio is only accessible to applications which have HDR_BRIGHTNESS permission.");
         return make_holder<FilterImpl, Filter>(nativeFilter_);
     }
 
@@ -541,34 +546,6 @@ Filter FilterImpl::ColorGradient(taihe::array_view<::ohos::graphics::uiEffect::u
     return make_holder<FilterImpl, Filter>(std::move(filter));
 }
 
-BrightnessBlender CreateBrightnessBlender(BrightnessBlenderParam const& param)
-{
-    BrightnessBlender brightnessBlender;
-    brightnessBlender.cubicRate = param.cubicRate;
-    brightnessBlender.quadraticRate = param.quadraticRate;
-    brightnessBlender.linearRate = param.linearRate;
-    brightnessBlender.degree = param.degree;
-    brightnessBlender.saturation = param.saturation;
-    brightnessBlender.positiveCoefficient = param.positiveCoefficient;
-    brightnessBlender.negativeCoefficient = param.negativeCoefficient;
-    brightnessBlender.fraction = param.fraction;
-    return brightnessBlender;
-}
-
-HdrBrightnessBlender CreateHdrBrightnessBlender(BrightnessBlenderParam const& param)
-{
-    HdrBrightnessBlender hdrBrightnessBlender;
-    hdrBrightnessBlender.brightnessBlender.cubicRate = param.cubicRate;
-    hdrBrightnessBlender.brightnessBlender.quadraticRate = param.quadraticRate;
-    hdrBrightnessBlender.brightnessBlender.linearRate = param.linearRate;
-    hdrBrightnessBlender.brightnessBlender.degree = param.degree;
-    hdrBrightnessBlender.brightnessBlender.saturation = param.saturation;
-    hdrBrightnessBlender.brightnessBlender.positiveCoefficient = param.positiveCoefficient;
-    hdrBrightnessBlender.brightnessBlender.negativeCoefficient = param.negativeCoefficient;
-    hdrBrightnessBlender.brightnessBlender.fraction = param.fraction;
-    return hdrBrightnessBlender;
-}
-
 bool FilterImpl::IsFilterValid() const
 {
     return nativeFilter_ != nullptr;
@@ -587,6 +564,4 @@ Filter CreateFilter()
 
 // NOLINTBEGIN
 TH_EXPORT_CPP_API_CreateFilter(CreateFilter);
-TH_EXPORT_CPP_API_CreateHdrBrightnessBlender(CreateHdrBrightnessBlender);
-TH_EXPORT_CPP_API_CreateBrightnessBlender(CreateBrightnessBlender);
 // NOLINTEND

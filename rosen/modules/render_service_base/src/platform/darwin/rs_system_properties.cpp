@@ -94,7 +94,7 @@ bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
@@ -162,6 +162,11 @@ bool RSSystemProperties::GetAllSurfaceVisibleDebugEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetVirtualSelfDrawOptEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
 {
     return {};
@@ -185,6 +190,11 @@ bool RSSystemProperties::GetVirtualExpandScreenSkipEnabled()
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetDynamicLayerSkipEnabled()
+{
+    return false;
 }
 
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
@@ -638,6 +648,21 @@ bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetLayerPartRenderEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetLayerPartRenderDebugEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetLayerDebugEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
 {
     return false;
@@ -848,6 +873,16 @@ bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
 bool RSSystemProperties::GetDefaultMemClearEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetUnmarshalParallelEnabled()
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
+{
+    return 0;
 }
 
 bool RSSystemProperties::GetSceneBoardIsPcMode()

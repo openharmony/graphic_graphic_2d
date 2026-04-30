@@ -35,10 +35,12 @@ public:
     virtual void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) {}
 
     static RSB_EXPORT std::shared_ptr<RSIRenderClient> CreateRenderServiceClient();
+
     static RSB_EXPORT std::unique_ptr<RSIRenderClient> CreateRenderThreadClient();
 
 protected:
     static std::shared_ptr<RSIRenderClient> client_;
+    static std::shared_ptr<RSIRenderClient> renderClient_;
 };
 
 } // namespace Rosen

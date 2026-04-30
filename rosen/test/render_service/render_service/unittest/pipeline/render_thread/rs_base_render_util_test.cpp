@@ -16,8 +16,13 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "parameters.h"
+
+#include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/hyper_graphic_manager/hgm_render_context.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "params/rs_screen_render_params.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
+#include "engine/rs_base_render_util.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "screen_manager/rs_screen.h"
@@ -27,6 +32,12 @@
 
 using namespace testing;
 using namespace testing::ext;
+
+constexpr uint32_t TEST_WIDTH = 0x10;
+constexpr uint32_t TEST_HEIGHT = 0x10;
+constexpr uint32_t TEST_STRIDE_ALIGNMENT = 0x8;
+constexpr uint64_t TEST_TIMEOUT = 0;
+constexpr uint32_t HDR_METADATA_KEY_COUNT = 7;
 
 namespace OHOS::Rosen {
 constexpr Rect RECT_ONE = {0, 0, 100, 100};
@@ -220,7 +231,7 @@ HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_001, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, GetFrameBufferRequestConfig_001, TestSize.Level2)
 {
-    ScreenInfo screenInfo;
+    ComposerScreenInfo screenInfo;
     screenInfo.width = 480;
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
@@ -241,7 +252,7 @@ HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
-    ASSERT_EQ(OHOS::GSERROR_NO_CONSUMER, RSBaseRenderUtil::DropFrameProcess(surfaceHandler));
+    ASSERT_EQ(OHOS::GSERROR_NO_CONSUMER, RSBaseSurfaceUtil::DropFrameProcess(surfaceHandler));
 }
 
 /**
@@ -275,7 +286,7 @@ HWTEST_F(RSBaseRenderUtilTest, MergeBufferDamages_001, TestSize.Level2)
     std::vector<Rect> damages;
     damages.push_back(RECT_ONE);
     damages.push_back(RECT_TWO);
-    Rect damageAfterMerge = RSBaseRenderUtil::MergeBufferDamages(damages);
+    Rect damageAfterMerge = RSBaseSurfaceUtil::MergeBufferDamages(damages);
     bool compareResult = (damageAfterMerge.x == RECT_RESULT.x) && (damageAfterMerge.y == RECT_RESULT.y) &&
         (damageAfterMerge.w == RECT_RESULT.w) && (damageAfterMerge.h == RECT_RESULT.h);
     ASSERT_EQ(true, compareResult);
@@ -293,7 +304,7 @@ HWTEST_F(RSBaseRenderUtilTest, MergeBufferDamages_002, TestSize.Level2)
     damages.push_back(RECT_ONE);
     damages.push_back(RECT_TWO);
     Rect damageAfterMerge;
-    RSBaseRenderUtil::MergeBufferDamages(damageAfterMerge, damages);
+    RSBaseSurfaceUtil::MergeBufferDamages(damageAfterMerge, damages);
     bool compareResult = (damageAfterMerge.x == RECT_RESULT.x) && (damageAfterMerge.y == RECT_RESULT.y) &&
                          (damageAfterMerge.w == RECT_RESULT.w) && (damageAfterMerge.h == RECT_RESULT.h);
     ASSERT_EQ(true, compareResult);
@@ -309,7 +320,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level2)
 {
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
-    ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 0));
+    ASSERT_EQ(true, RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, 0));
 }
 
 /*
@@ -339,6 +350,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
 
     // flush buffer
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
@@ -347,7 +359,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
         auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
         surfaceHandler.SetConsumer(surfaceConsumer);
         uint64_t presentWhen = static_cast<uint64_t>(INT64_MAX) + 1; // let presentWhen bigger than INT64_MAX
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen);
+        RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen);
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
 
@@ -382,6 +394,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
 
     // flush buffer
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
@@ -390,8 +403,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
         auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
         surfaceHandler.SetConsumer(surfaceConsumer);
         uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
-        RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
+        RSBaseSurfaceUtil::DropFrameConfig config; // Default: no drop
+        RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config);
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
 
@@ -426,6 +439,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
 
     // flush buffer
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
@@ -437,8 +451,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
         uint64_t parentNodeId = 0;
         const auto& consumer = surfaceHandler.GetConsumer();
         consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
-        RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
+        RSBaseSurfaceUtil::DropFrameConfig config; // Default: no drop
+        RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
         ASSERT_EQ(surfaceHandler.GetSourceType(), 5);
     }
@@ -455,14 +469,21 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    sptr<IConsumerSurface> surfaceConsumer = IConsumerSurface::Create("DisplayNode");
-    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(surfaceConsumer);
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNode::SharedPtr nodePtr = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr));
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
+    screenDrawable->CreateSurface(listener);
+    sptr<IConsumerSurface> surfaceConsumer = surfaceHandler->GetConsumer();
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
-    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
-    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
 
     // acquire buffer
     if (RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled()) {
@@ -478,8 +499,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
         consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
         surfaceHandler.SetAvailableBufferCount(1);
         surfaceHandler.SetHoldBuffer(surfaceBuffer);
-        RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
-        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
+        RSBaseSurfaceUtil::DropFrameConfig config; // Default: no drop
+        RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId);
         ASSERT_EQ(surfaceConsumer->GetName(), "DisplayNode");
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
@@ -512,13 +533,13 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
     surfaceHandler.SetConsumer(surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(1);
-    RSBaseRenderUtil::DropFrameConfig config; // Default: no drop
-    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
-    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
+    RSBaseSurfaceUtil::DropFrameConfig config; // Default: no drop
+    EXPECT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
+    EXPECT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
     IConsumerSurface::AcquireBufferReturnValue holdReturnValue;
     holdReturnValue.buffer = sptr<SurfaceBufferImpl>::MakeSptr();
     surfaceHandler.SetHoldReturnValue(holdReturnValue);
-    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
+    EXPECT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
 
     // produce buffer
     sptr<SurfaceBuffer> buffer1 = sptr<SurfaceBufferImpl>::MakeSptr();
@@ -532,7 +553,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     // consume buffer
     surfaceHandler.ResetHoldReturnValue();
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
+    EXPECT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, false));
     RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
 
     // produce buffer
@@ -544,7 +565,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
     // consume buffer
     surfaceHandler.SetHoldReturnValue(holdReturnValue);
     surfaceHandler.SetAvailableBufferCount(1);
-    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
+    EXPECT_FALSE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, config, parentNodeId, true));
 }
 
 /*
@@ -576,8 +597,9 @@ HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer_002, TestSize.Level2)
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
-    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
-    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
     ASSERT_EQ(true, RSBaseRenderUtil::ReleaseBuffer(surfaceHandler));
 }
 
@@ -808,7 +830,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     Drawing::Bitmap bitmap;
-    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
 }
 
 /*
@@ -1483,8 +1505,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_001, TestSi
     surfaceHandler.SetConsumer(ctx.surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(3);
 
-    RSBaseRenderUtil::DropFrameConfig config { .enable = true, .level = 1 };
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
+    RSBaseSurfaceUtil::DropFrameConfig config { .enable = true, .level = 1 };
+    bool result = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
     ASSERT_TRUE(result);
 
     ReleaseBuffers(ctx);
@@ -1506,8 +1528,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_002, TestSi
     surfaceHandler.SetConsumer(ctx.surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(2);
 
-    RSBaseRenderUtil::DropFrameConfig config { .enable = true, .level = 5 };
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
+    RSBaseSurfaceUtil::DropFrameConfig config { .enable = true, .level = 5 };
+    bool result = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
     ASSERT_TRUE(result);
 
     ReleaseBuffers(ctx);
@@ -1529,8 +1551,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_003, TestSi
     surfaceHandler.SetConsumer(ctx.surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(3);
 
-    RSBaseRenderUtil::DropFrameConfig config { .enable = false, .level = 1 };
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
+    RSBaseSurfaceUtil::DropFrameConfig config { .enable = false, .level = 1 };
+    bool result = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
     ASSERT_TRUE(result);
 
     ReleaseBuffers(ctx);
@@ -1552,8 +1574,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_004, TestSi
     surfaceHandler.SetConsumer(ctx.surfaceConsumer);
     surfaceHandler.SetAvailableBufferCount(2);
 
-    RSBaseRenderUtil::DropFrameConfig config { .enable = true, .level = -1 };
-    bool result = RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
+    RSBaseSurfaceUtil::DropFrameConfig config { .enable = true, .level = -1 };
+    bool result = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config);
     ASSERT_TRUE(result);
 
     ReleaseBuffers(ctx);
@@ -1600,12 +1622,12 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_DropFrameLevel_006, TestSi
     auto& surfaceHandler = *(ctx.surfaceRenderNode->GetRSSurfaceHandler());
     surfaceHandler.SetConsumer(ctx.surfaceConsumer);
 
-    RSBaseRenderUtil::DropFrameConfig config { .enable = true, .level = 0 };
+    RSBaseSurfaceUtil::DropFrameConfig config { .enable = true, .level = 0 };
 
     // Consume all 3 buffers one by one (no dropping when level=0)
     for (int32_t expectedRemain = 2; expectedRemain >= 0; --expectedRemain) {
         surfaceHandler.SetAvailableBufferCount(expectedRemain + 1);
-        ASSERT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config));
+        ASSERT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(surfaceHandler, 100, config));
         ASSERT_EQ(ctx.surfaceConsumer->GetAvailableBufferCount(), expectedRemain);
     }
 }
@@ -1620,9 +1642,6 @@ HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParamTest001, TestSize.Level2)
 {
     NodeId id = 2;
     ScreenId screenId = 0;
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    screenManager->screens_[screenId] = std::make_shared<RSScreen>(nullptr);
-    screenManager->defaultScreenId_ = screenId;
 
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
@@ -1630,8 +1649,9 @@ HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParamTest001, TestSize.Level2)
     std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
     screenNode->InitRenderParams();
 
-    screenManager->SetScreenCorrection(screenId, ScreenRotation::ROTATION_180);
-    EXPECT_EQ(screenManager->GetScreenCorrection(screenId), ScreenRotation::ROTATION_180);
+    screenNode->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_180));
+    EXPECT_EQ(screenNode->screenProperty_.GetScreenCorrection(), ScreenRotation::ROTATION_180);
 
     auto screenNodeParams =
         static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
@@ -1642,11 +1662,360 @@ HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParamTest001, TestSize.Level2)
     surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
     EXPECT_EQ(surfaceParams->GetAppRotationCorrection(), ScreenRotation::ROTATION_180);
 
-    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode, screenManager);
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode);
     EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 90);
 
     screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_180);
-    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode, screenManager);
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode);
     EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
+}
+
+/**
+ * @tc.name: GetRotationLockParam_NullScreenNodeTest001
+ * @tc.desc: Test GetRotationLockParam when screenRenderNode is nullptr
+ *           The if (screenRenderNode == nullptr) branch at line 1322 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_NullScreenNodeTest001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    node->InitRenderParams();
+
+    // Pass nullptr for screenRenderNode, should return early without crash
+    EXPECT_NO_FATAL_FAILURE(RSBaseRenderUtil::GetRotationLockParam(*node, nullptr));
+}
+
+/**
+ * @tc.name: GetRotationLockParam_NullScreenNodeParamsTest001
+ * @tc.desc: Test GetRotationLockParam when screenNodeParams is nullptr
+ *           The if (screenNodeParams == nullptr) branch at line 1328 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_NullScreenNodeParamsTest001, TestSize.Level2)
+{
+    NodeId id = 2;
+    ScreenId screenId = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    node->InitRenderParams();
+
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    // Don't call InitRenderParams() so GetStagingRenderParams() will return nullptr
+
+    // Should return early without crash when screenNodeParams is nullptr
+    EXPECT_NO_FATAL_FAILURE(RSBaseRenderUtil::GetRotationLockParam(*node, screenNode));
+}
+
+/**
+ * @tc.name: GetRotationLockParam_NullSurfaceNodeParamsTest001
+ * @tc.desc: Test GetRotationLockParam when surfaceNodeParams is nullptr
+ *           The if (surfaceNodeParams == nullptr) branch at line 1334 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_NullSurfaceNodeParamsTest001, TestSize.Level2)
+{
+    NodeId id = 2;
+    ScreenId screenId = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    // Don't call InitRenderParams() so GetStagingRenderParams() will return nullptr
+
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    screenNode->InitRenderParams();
+    screenNode->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_0));
+
+    // Should return early without crash when surfaceNodeParams is nullptr
+    EXPECT_NO_FATAL_FAILURE(RSBaseRenderUtil::GetRotationLockParam(*node, screenNode));
+}
+
+/**
+ * @tc.name: GetRotationLockParam_LogicalDegreeZeroTest001
+ * @tc.desc: Test GetRotationLockParam when logicalDegree is 0
+ *           The if (logicalDegree == 0) branch at line 1345 should be true
+ *           totalRotationCorrectionDegree should equal screenDegree
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_LogicalDegreeZeroTest001, TestSize.Level2)
+{
+    NodeId id = 2;
+    ScreenId screenId = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    node->InitRenderParams();
+
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    screenNode->InitRenderParams();
+
+    // Set screen rotation to 90 degrees
+    screenNode->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_90));
+
+    // Set logical rotation to 0 (ROTATION_0)
+    auto screenNodeParams = static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
+    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_0);
+
+    // Set app rotation to 180 degrees (should be ignored when logicalDegree is 0)
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode);
+
+    // When logicalDegree is 0, totalRotationCorrectionDegree should equal screenDegree (90)
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 90);
+}
+
+/**
+ * @tc.name: GetRotationLockParam_AllRotationTypesTest001
+ * @tc.desc: Test GetRotationLockParam with all ScreenRotation types
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_AllRotationTypesTest001, TestSize.Level2)
+{
+    NodeId id = 2;
+    ScreenId screenId = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(5, rsContext);
+    node->InitRenderParams();
+
+    std::shared_ptr<RSScreenRenderNode> screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, rsContext);
+    screenNode->InitRenderParams();
+
+    auto screenNodeParams = static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
+
+    // Test ROTATION_270
+    screenNode->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_270));
+    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
+    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
+
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode);
+    // (270 + 90 + 180) % 360 = 540 % 360 = 180
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 180);
+
+    // Test ROTATION_0
+    screenNode->screenProperty_.Set<ScreenPropertyType::CORRECTION>(
+        static_cast<uint32_t>(ScreenRotation::ROTATION_0));
+    screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_0);
+    surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_0);
+
+    RSBaseRenderUtil::GetRotationLockParam(*node, screenNode);
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 0);
+}
+
+/*
+ * @tc.name: ColorGamutConversion_SRGB_To_DisplayP3_001
+ * @tc.desc: Test GenOETF and GenEOTF through color gamut conversion (sRGB to DisplayP3)
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, ColorGamutConversion_SRGB_To_DisplayP3_001, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = TEST_WIDTH,
+        .height = TEST_HEIGHT,
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = TEST_TIMEOUT,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    std::vector<uint8_t> newBuffer;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap);
+    ASSERT_EQ(result, true);
+}
+
+/*
+ * @tc.name: ColorGamutConversion_SRGB_To_AdobeRGB_002
+ * @tc.desc: Test GenOETF and GenEOTF through color gamut conversion (sRGB to AdobeRGB)
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, ColorGamutConversion_SRGB_To_AdobeRGB_002, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = TEST_WIDTH,
+        .height = TEST_HEIGHT,
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = TEST_TIMEOUT,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    std::vector<uint8_t> newBuffer;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap);
+    ASSERT_EQ(result, true);
+}
+
+/*
+ * @tc.name: ColorGamutConversion_SRGB_To_BT2020_003
+ * @tc.desc: Test RcpResponsePq and ResponsePq through BT2020 conversion (HDR PQ parameters)
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, ColorGamutConversion_SRGB_To_BT2020_003, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = TEST_WIDTH,
+        .height = TEST_HEIGHT,
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = TEST_TIMEOUT,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    std::vector<uint8_t> newBuffer;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap);
+    ASSERT_EQ(result, true);
+}
+
+/*
+ * @tc.name: ColorGamutConversion_SRGB_To_BT2100_PQ_004
+ * @tc.desc: Test GenOETF and GenEOTF with HDR PQ parameters through BT2100_PQ conversion
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, ColorGamutConversion_SRGB_To_BT2100_PQ_004, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = TEST_WIDTH,
+        .height = TEST_HEIGHT,
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = TEST_TIMEOUT,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    std::vector<uint8_t> newBuffer;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2100_PQ;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap);
+    ASSERT_EQ(result, true);
+}
+
+/*
+ * @tc.name: ColorGamutConversion_DCI_P3_To_SRGB_005
+ * @tc.desc: Test GenOETF and GenEOTF through DCI-P3 to sRGB conversion
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, ColorGamutConversion_DCI_P3_To_SRGB_005, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = TEST_WIDTH,
+        .height = TEST_HEIGHT,
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = TEST_TIMEOUT,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    std::vector<uint8_t> newBuffer;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap);
+    ASSERT_EQ(result, true);
+}
+
+/*
+ * @tc.name: GetHdrPqColorSpace_001
+ * @tc.desc: Test GetHdrPqColorSpace through ConvertBufferToBitmap with BT2020 metadata
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetHdrPqColorSpace_001, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = TEST_WIDTH,
+        .height = TEST_HEIGHT,
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = TEST_TIMEOUT,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    std::vector<uint8_t> newBuffer;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    Drawing::Bitmap bitmap;
+    std::vector<GraphicHDRMetaData> metaDatas;
+    metaDatas.push_back({});
+    bool result = RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap, metaDatas);
+    ASSERT_EQ(result, true);
+}
+
+/*
+ * @tc.name: GetHdrPqColorSpace_002
+ * @tc.desc: Test GetHdrPqColorSpace with complete metadata (keys 0-7)
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetHdrPqColorSpace_002, TestSize.Level2)
+{
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = TEST_WIDTH,
+        .height = TEST_HEIGHT,
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = TEST_TIMEOUT,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    std::vector<GraphicHDRMetaData> metaDatas;
+    for (int i = 0; i <= HDR_METADATA_KEY_COUNT; i++) {
+        GraphicHDRMetaData metaData;
+        metaData.key = static_cast<GraphicHDRMetadataKey>(i);
+        metaDatas.push_back(metaData);
+    }
+
+    std::vector<uint8_t> newBuffer;
+    GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    Drawing::Bitmap bitmap;
+    bool result = RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap, metaDatas);
+    ASSERT_EQ(result, true);
 }
 } // namespace OHOS::Rosen

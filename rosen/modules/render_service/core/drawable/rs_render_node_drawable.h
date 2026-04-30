@@ -34,6 +34,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 
 namespace OHOS::Rosen {
+class RSLayerCacheManager;
 class RSRenderNode;
 class RSRenderParams;
 class RSPaintFilterCanvas;
@@ -120,8 +121,6 @@ public:
     bool IsDrawingBlurForCache();
     void SetDrawExcludedSubTreeForCache(bool value);
     bool IsDrawingExcludedSubTreeForCache();
-    void SetCanceledByParentRenderGroup(bool value);
-    bool IsCanceledByParentRenderGroup();
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -129,9 +128,8 @@ protected:
     static Registrar instance_;
     // indicate whether this drawable is generate from parallel node.
     bool subTreeParallel_ = false;
-    // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
-    float boundsWidth_ = 0.0f;
-    float boundsHeight_ = 0.0f;
+
+    static bool IsBackFace(const Drawing::Matrix& matrix);
 
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
     void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture = false);
@@ -159,11 +157,13 @@ protected:
         bool isNeedFP16 = false, GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
-    void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
-    const std::shared_ptr<RSFilter>& rsFilter = nullptr);
+    void DrawCachedImage(
+        RSPaintFilterCanvas& canvas, const RSRenderParams& params, const std::shared_ptr<RSFilter>& rsFilter = nullptr);
     void ClearCachedSurface();
 
     bool CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes);
+    bool BufferNeedUpdate(std::shared_ptr<Drawing::Surface>& cacheSurface, const RSRenderParams& params,
+        bool isNeedFP16) const;
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
     void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
     bool UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params);
@@ -181,6 +181,8 @@ protected:
     bool SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds);
 
 private:
+    static constexpr float EPSILON = 1e-6f;
+
     std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
     mutable std::mutex freezeByCaptureMutex_;
@@ -220,9 +222,11 @@ private:
     bool IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
         const std::vector<FilterNodeInfo>& filterInfoVec,
         Drawing::RectI& dstRect);
+    bool IsOverlappedWithExistingFilters(Drawing::Canvas& canvas, const RSRenderParams& params) const;
     void ClearDrawingCacheDataMap();
     void ClearDrawingCacheContiUpdateTimeMap();
     friend class RsSubThreadCache;
+    friend class OHOS::Rosen::RSLayerCacheManager;
     RSOpincDrawCache opincDrawCache_;
     std::unique_ptr<RSRenderGroupCacheDrawable> renderGroupCache_ = nullptr;
 };

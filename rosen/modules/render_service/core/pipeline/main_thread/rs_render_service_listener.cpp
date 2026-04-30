@@ -20,15 +20,15 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_render_composer_manager.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "sync_fence.h"
 namespace OHOS {
 namespace Rosen {
 
 RSRenderServiceListener::~RSRenderServiceListener() {}
 
-RSRenderServiceListener::RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode)
-    : surfaceRenderNode_(surfaceRenderNode)
+RSRenderServiceListener::RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode,
+    std::shared_ptr<RSComposerClientManager> composerClientManager)
+    : surfaceRenderNode_(std::move(surfaceRenderNode)), composerClientManager_(std::move(composerClientManager))
 {}
 
 void RSRenderServiceListener::OnBufferAvailable()
@@ -56,8 +56,7 @@ void RSRenderServiceListener::OnBufferAvailable()
     if (ForceRefresh(node)) {
         return;
     }
-
-    bool doFastCompose = false;
+    auto doFastCompose = false;
     if (consumer) {
         bool supportFastCompose = false;
         GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);
@@ -91,11 +90,12 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSu
     }
     int32_t bufferCount = surfaceHandler->GetAvailableBufferCount();
     std::string name = node->GetName();
-    if (RSMainThread::Instance()->CheckAdaptiveCompose()) {
-        RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, true);
+    BufferInfo bufferInfo {id, name, queueSize, bufferCount, lastConsumeTime,
+        RSMainThread::Instance()->CheckAdaptiveCompose()};
+    RSMainThread::Instance()->SetBufferInfo(bufferInfo);
+    if (bufferInfo.isUrgent) {
         RSMainThread::Instance()->RequestNextVSync("UrgentSelfdrawing");
     } else {
-        RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, false);
         RSMainThread::Instance()->RequestNextVSync("selfdrawing");
     }
 }
@@ -136,6 +136,7 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         }
         surfaceHandler->ResetBufferAvailableCount();
     }
+
     std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
     RSMainThread::Instance()->PostTask([surfaceNode, curBufferId]() {
         auto node = surfaceNode.lock();
@@ -153,7 +154,7 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         surfaceHandler->ResetPreBuffer();
         std::set<uint64_t> tmpSet;
         node->NeedClearPreBuffer(tmpSet);
-        RSMainThread::Instance()->AddToUnmappedCacheSet(tmpSet);
+        surfaceHandler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
     });
 
     CleanLayerBufferCache();
@@ -176,8 +177,7 @@ void RSRenderServiceListener::CleanLayerBufferCache()
         RS_LOGD("%{public}s get consumer fail", __func__);
         return;
     }
-    uint64_t surfaceId = consumer->GetUniqueId();
-    RSRenderComposerManager::GetInstance().CleanLayerBufferBySurfaceId(surfaceId);
+    composerClientManager_->CleanLayerBufferBySurfaceId(consumer->GetUniqueId(), node->GetId());
 }
 
 void RSRenderServiceListener::OnGoBackground()
@@ -193,10 +193,10 @@ void RSRenderServiceListener::OnGoBackground()
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
         std::set<uint64_t> tmpSet;
         node->NeedClearBufferCache(tmpSet);
-        RSMainThread::Instance()->AddToUnmappedCacheSet(tmpSet);
+        surfaceHandler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
         surfaceHandler->ResetBufferAvailableCount();
         surfaceHandler->CleanCache();
-        node->UpdateBufferInfo(nullptr, {}, nullptr, nullptr);
+        node->UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);
         node->SetNotifyRTBufferAvailable(false);
         node->SetContentDirty();
         node->ResetHardwareEnabledStates();

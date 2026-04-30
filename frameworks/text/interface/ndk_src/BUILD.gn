@@ -72,10 +72,17 @@ ohos_source_set("text_ndk") {
     defines += [ "RS_ENABLE_GPU" ]
   }
 
-  external_deps = [ "bounds_checking_function:libsec_shared" ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "ipc:ipc_single",
+  ]
 
   if (platform_is_ohos) {
     defines += [ "ENABLE_OHOS_ENHANCE" ]
+    if (text_histogram_enable) {
+      external_deps += [ "api_metrics:histogrammanager" ]
+      defines += [ "HISTOGRAM_MANAGEMENT_ENABLE" ]
+    }
     external_deps += [
       "c_utils:utils",
       "hilog:libhilog",

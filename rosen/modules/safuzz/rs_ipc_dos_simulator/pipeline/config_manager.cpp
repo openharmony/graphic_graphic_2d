@@ -144,6 +144,19 @@ bool ConfigManager::InitConfig()
             }
         }
 
+        int connectionType = 0;
+        cJSON* connectionTypeJson = cJSON_GetObjectItem(testCaseItem, "connectionType");
+        if (connectionTypeJson != nullptr) {
+            if (!cJSON_IsNumber(connectionTypeJson)) {
+                SAFUZZ_LOGE("ConfigManager::InitConfig can not get commandListRepeat from testCaseItem");
+                return false;
+            }
+            connectionType = static_cast<int>(connectionTypeJson->valueint);
+            if (connectionType < 0) {
+                SAFUZZ_LOGE("ConfigManager::InitConfig commandListRepeat %d is negative", connectionType);
+                return false;
+            }
+        }
         TestCaseConfig testCaseConfig = { .testCaseDesc        = testCaseDesc,
                                           .testCaseIndex       = testCaseIndex,
                                           .interfaceCode       = interfaceCode,
@@ -152,7 +165,8 @@ bool ConfigManager::InitConfig()
                                           .messageOption       = messageOption,
                                           .writeInterfaceToken = writeInterfaceToken,
                                           .commandList         = commandList,
-                                          .commandListRepeat   = commandListRepeat };
+                                          .commandListRepeat   = commandListRepeat,
+                                          .connectionType =  connectionType};
 
         descriptions_.push_back(testCaseDesc);
         configs_.emplace(testCaseDesc, testCaseConfig);

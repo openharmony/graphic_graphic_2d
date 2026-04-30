@@ -201,7 +201,7 @@ public:
 };
 class MockRSAnimation : public RSAnimation {
 public:
-    MockRSAnimation() : RSAnimation() {}
+    MockRSAnimation(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
     ~MockRSAnimation() = default;
 
     void OnReverse() override
@@ -1015,7 +1015,7 @@ HWTEST_F(RSSupplementAnimationTest, AnimationSupplementTest023, TestSize.Level1)
     node->RemoveChild(child);
     node->ClearChildren();
 
-    auto rsUiDirector = RSUIDirector::Create();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
     rsUiDirector->FlushAnimationStartTime(1);
     rsUiDirector->HasUIRunningAnimation();
 

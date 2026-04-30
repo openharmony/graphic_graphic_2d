@@ -41,10 +41,15 @@ namespace {
     constexpr int32_t OTA_COMPILE_TIME_LIMIT_DEFAULT = 4 * 60;
     constexpr const char* OTA_COMPILE_DISPLAY_INFO = "const.bms.optimizing_apps.display_info";
     const std::string BOOTEVENT_BMS_MAIN_BUNDLES_READY = "bootevent.bms.main.bundles.ready";
+    const std::string UPDATE_FIRMWARE_READY = "update.firmware.ready";
     const std::string OTA_COMPILE_DISPLAY_INFO_DEFAULT = "正在优化应用";
-    const std::string OTA_COMPILE_DISPLAY_INFO_OVERSEA = "Optimizing Apps";
+    const std::string OTA_COMPILE_DISPLAY_INFO_OVERSEA = "Optimizing apps";
+    const std::string FIRMWARE_UPDATE_DISPLAY_INFO_DEFAULT = "正在优化系统";
+    const std::string FIRMWARE_UPDATE_DISPLAY_INFO_OVERSEA = "Optimizing system";
     constexpr const char* REGION_PARA_STR_CUST = "const.cust.region";
     constexpr const char* CHINA_REGION = "cn";
+    constexpr const char* FIRMWARE_UPDATE_START = "start";
+    constexpr const char* FIRMWARE_UPDATE_END = "end";
     constexpr const int32_t ONE_HUNDRED_PERCENT = 100;
     constexpr const int32_t SEC_MS = 1000;
     constexpr const int32_t CIRCLE_NUM = 3;
@@ -84,9 +89,11 @@ BootCompileProgress::~BootCompileProgress()
     }
 }
 
-void BootCompileProgress::Init(const std::string& configPath, const BootAnimationConfig& config)
+void BootCompileProgress::Init(const std::string& configPath, const BootAnimationConfig& config,
+    sptr<IRemoteObject> connectToRender)
 {
     LOGI("ota compile, screenId: " BPUBU64 "", config.screenId);
+    connectToRender_ = connectToRender;
     RecordDeviceType();
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
@@ -104,7 +111,6 @@ void BootCompileProgress::Init(const std::string& configPath, const BootAnimatio
         TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? RADIUS * DOUBLE_TIMES : RADIUS);
 
     timeLimitSec_ = system::GetIntParameter<int32_t>(OTA_COMPILE_TIME_LIMIT, OTA_COMPILE_TIME_LIMIT_DEFAULT);
-    tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
 
     std::string defaultDisplayInfo = OTA_COMPILE_DISPLAY_INFO_DEFAULT;
     if (system::GetParameter(REGION_PARA_STR_CUST, CHINA_REGION) != CHINA_REGION) {
@@ -127,9 +133,13 @@ bool BootCompileProgress::CreateCanvasNode()
     surfaceNodeConfig.SurfaceNodeName = "BootCompileProgressNode";
     surfaceNodeConfig.isSync = true;
     Rosen::RSSurfaceNodeType surfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create();
-    rsUIDirector_->Init(false, false);
+    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create(connectToRender_);
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
+    if (!rsUIContext) {
+        LOGE("rsUIContext is nullptr");
+        compileRunner_->Stop();
+        return false;
+    }
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType, true, false, rsUIContext);
     if (!rsSurfaceNode_) {
         LOGE("ota compile, SFNode create failed");
@@ -143,9 +153,9 @@ bool BootCompileProgress::CreateCanvasNode()
     rsSurfaceNode_->SetBackgroundColor(SK_ColorTRANSPARENT);
     rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
     rsSurfaceNode_->SetBootAnimation(true);
-    Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
     rsSurfaceNode_->AttachToDisplay(screenId_);
-    Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
 
     rsCanvasNode_ = Rosen::RSCanvasNode::Create(true, false, rsUIContext);
     rsCanvasNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
@@ -160,8 +170,8 @@ bool BootCompileProgress::CreateCanvasNode()
 
 bool BootCompileProgress::RegisterVsyncCallback()
 {
-    if (IsBmsBundleReady()) {
-        LOGI("bms bundle is already done.");
+    if (IsBmsBundleReady() && GetFirmwareUpdateState() != FIRMWARE_UPDATE_START) {
+        LOGI("progress need not display.");
         compileRunner_->Stop();
         return false;
     }
@@ -208,6 +218,11 @@ bool BootCompileProgress::IsBmsBundleReady()
     return system::GetBoolParameter(BOOTEVENT_BMS_MAIN_BUNDLES_READY, false);
 }
 
+std::string BootCompileProgress::GetFirmwareUpdateState()
+{
+    return system::GetParameter(UPDATE_FIRMWARE_READY, FIRMWARE_UPDATE_END);
+}
+
 void BootCompileProgress::OnVsync()
 {
     if (!isUpdateOptEnd_) {
@@ -217,7 +232,7 @@ void BootCompileProgress::OnVsync()
         compileRunner_->Stop();
         if (rsSurfaceNode_) {
             rsSurfaceNode_->DetachToDisplay(screenId_);
-            OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+            rsUIDirector_->SendMessages();
         }
     }
 }
@@ -233,6 +248,11 @@ void BootCompileProgress::DrawCompileProgress()
         return;
     }
 
+    if (tf_ == nullptr) {
+        SkFontMgr::SetSymbolLoadMode(SymbolLoadMode::NONE);
+        tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
+    }
+    UpdateText();
     Rosen::Drawing::Font font;
     font.SetTypeface(tf_);
     font.SetSize(fontSize_);
@@ -264,7 +284,17 @@ void BootCompileProgress::DrawCompileProgress()
     canvas->DetachBrush();
 
     DrawMarginBrush(canvas);
+    DrawCircle(canvas);
+    rsCanvasNode_->FinishRecording();
+    rsUIDirector_->SendMessages();
 
+    if (progress_ >= ONE_HUNDRED_PERCENT) {
+        isUpdateOptEnd_ = true;
+    }
+}
+
+void BootCompileProgress::DrawCircle(Rosen::Drawing::RecordingCanvas* canvas)
+{
     int32_t freqNum = times_++;
     for (int i = 0; i < CIRCLE_NUM; i++) {
         canvas->AttachBrush(DrawProgressPoint(i, freqNum));
@@ -273,12 +303,17 @@ void BootCompileProgress::DrawCompileProgress()
         canvas->DrawCircle({pointX, pointY}, currentRadius_);
         canvas->DetachBrush();
     }
+}
 
-    rsCanvasNode_->FinishRecording();
-    Rosen::RSTransaction::FlushImplicitTransaction();
-
-    if (progress_ >= ONE_HUNDRED_PERCENT) {
-        isUpdateOptEnd_ = true;
+void BootCompileProgress::UpdateText()
+{
+    if (!isUpdateText_ && IsBmsBundleReady() && GetFirmwareUpdateState() != FIRMWARE_UPDATE_END) {
+        LOGI("update text.");
+        isUpdateText_ = true;
+        displayInfo_ = FIRMWARE_UPDATE_DISPLAY_INFO_DEFAULT;
+        if (system::GetParameter(REGION_PARA_STR_CUST, CHINA_REGION) != CHINA_REGION) {
+            displayInfo_ = FIRMWARE_UPDATE_DISPLAY_INFO_OVERSEA;
+        }
     }
 }
 
@@ -297,10 +332,10 @@ void BootCompileProgress::DrawMarginBrush(Rosen::Drawing::RecordingCanvas* canva
 
 void BootCompileProgress::UpdateCompileProgress()
 {
-    if (!IsBmsBundleReady()) {
+    if (!IsBmsBundleReady() || GetFirmwareUpdateState() != FIRMWARE_UPDATE_END) {
         int64_t now = GetSystemCurrentTime();
         if (endTimePredictMs_ < now) {
-            progress_ = ONE_HUNDRED_PERCENT - 1;
+            progress_ = IsBmsBundleReady() ? ONE_HUNDRED_PERCENT : ONE_HUNDRED_PERCENT - 1;
             return;
         }
         if (!timeLimitSec_) {

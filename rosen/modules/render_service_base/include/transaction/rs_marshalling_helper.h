@@ -66,7 +66,6 @@ class RSMask;
 class RSPath;
 class RSLinearGradientBlurPara;
 class MotionBlurParam;
-class RSMagnifierParams;
 class EmitterUpdater;
 class ParticleNoiseField;
 class ParticleNoiseFields;
@@ -74,6 +73,7 @@ class ParticleRippleField;
 class ParticleRippleFields;
 class ParticleVelocityField;
 class ParticleVelocityFields;
+class ParticleFieldCollection;
 template<typename T>
 class RenderParticleParaType;
 class AnnulusRegion;
@@ -90,6 +90,7 @@ class RSRenderPathAnimation;
 class RSRenderSpringAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
+class RSAnimationTimingProtocol;
 class RSRenderPropertyBase;
 template<typename T>
 class RSRenderProperty;
@@ -251,7 +252,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSLinearGradientBlurPara>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<MotionBlurParam>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMagnifierParams>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<EmitterUpdater>)
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<EmitterUpdater>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)
@@ -260,6 +260,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRippleFields>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocityField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocityFields>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleFieldCollection>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderFilterBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderMaskBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderShaderBase>)
@@ -288,6 +289,7 @@ public:
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
+    DECLARE_FUNCTION_OVERLOAD(RSAnimationTimingProtocol)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ModifierNG::RSRenderModifier>)
 #undef DECLARE_FUNCTION_OVERLOAD
@@ -392,6 +394,68 @@ public:
         return true;
     }
 
+    // reloaded marshalling & unmarshalling function for std::unordered_set
+    template<typename T>
+    static bool Marshalling(Parcel& parcel, const std::unordered_set<T>& val,
+        size_t maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
+    {
+        if (val.size() > maxSize) {
+            return false;
+        }
+        if (!Marshalling(parcel, val.size())) {
+            return false;
+        }
+        for (const auto& item : val) {
+            if (!Marshalling(parcel, item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    template<typename T>
+    static bool Unmarshalling(Parcel& parcel, std::unordered_set<T>& val,
+        size_t maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
+    {
+        size_t size = 0;
+        if (!Unmarshalling(parcel, size)) {
+            return false;
+        }
+        if (size > maxSize) {
+            return false;
+        }
+        val.clear();
+        val.reserve(size);
+        for (uint32_t i = 0; i < size; ++i) {
+            // in-place unmarshalling
+            T tmp;
+            if (!Unmarshalling(parcel, tmp)) {
+                return false;
+            }
+            val.insert(std::move(tmp));
+        }
+        return true;
+    }
+
+    // reloaded marshalling & unmarshalling function for std::tuple
+    template<typename... Args>
+    static bool Marshalling(Parcel& parcel, const std::tuple<Args...>& val)
+    {
+        bool res = true;
+        std::apply([&res, &parcel](const auto&... args) {
+            ((res &= Marshalling(parcel, args)), ...);
+        }, val);
+        return res;
+    }
+    template<typename... Args>
+    static bool Unmarshalling(Parcel& parcel, std::tuple<Args...>& val)
+    {
+        bool res = true;
+        std::apply([&res, &parcel](auto&... args) {
+            ((res &= Unmarshalling(parcel, args)), ...);
+        }, val);
+        return res;
+    }
+
     // reloaded marshalling & unmarshalling function for std::optional
     template<typename T>
     static bool Marshalling(Parcel& parcel, const std::optional<T>& val)
@@ -451,6 +515,9 @@ public:
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
     static bool UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
 
+    static bool Marshalling(Parcel& parcel, sptr<Surface> surface);
+    static bool Unmarshalling(Parcel& parcel, sptr<Surface>& surface);
+
     static void BeginNoSharedMem(std::thread::id tid);
     static void EndNoSharedMem();
     static bool GetUseSharedMem(std::thread::id tid);
@@ -476,7 +543,6 @@ private:
 
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k
-    static constexpr size_t MAX_FD = 30000;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

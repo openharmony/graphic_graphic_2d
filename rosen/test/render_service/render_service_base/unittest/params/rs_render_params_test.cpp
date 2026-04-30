@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "params/rs_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_dirty_region_manager.h"
 #include "limit_number.h"
 
 using namespace testing;
@@ -470,25 +471,6 @@ HWTEST_F(RSRenderParamsTest, GetNeedUpdateCache_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetForceDisableNodeGroupTest
- * @tc.desc: Test function SetForceDisableNodeGroup
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, SetForceDisableNodeGroupTest, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-
-    EXPECT_FALSE(renderParams->IsForceDisableNodeGroup());
-    renderParams->SetForceDisableNodeGroup(true);
-    EXPECT_TRUE(renderParams->IsForceDisableNodeGroup());
-    EXPECT_TRUE(renderParams->needSync_);
-}
-
-/**
  * @tc.name: ExcludedFromNodeGroupTest
  * @tc.desc: Test ExcludedFromNodeGroup
  * @tc.type: FUNC
@@ -617,6 +599,46 @@ HWTEST_F(RSRenderParamsTest, SetChildHasTranslateOnSqueezeTest, TestSize.Level1)
 
     renderParams->SetChildHasTranslateOnSqueeze(false);
     EXPECT_FALSE(renderParams->ChildHasTranslateOnSqueeze());
+}
+
+/**
+ * @tc.name: SetNodeGroupHasChildInBlacklistTest
+ * @tc.desc: Test SetNodeGroupHasChildInBlacklist
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetNodeGroupHasChildInBlacklistTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    // Test initial state
+    EXPECT_FALSE(renderParams->NodeGroupHasChildInBlacklist());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    // Test setting to true
+    renderParams->SetNodeGroupHasChildInBlacklist(true);
+    EXPECT_TRUE(renderParams->NodeGroupHasChildInBlacklist());
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_TRUE(renderParams->needSync_);
+
+    // Test setting to false
+    renderParams->SetNodeGroupHasChildInBlacklist(false);
+    EXPECT_FALSE(renderParams->NodeGroupHasChildInBlacklist());
+    EXPECT_TRUE(renderParams->needSync_);
+
+    // Test setting same value (should not need sync)
+    renderParams->needSync_ = false;
+    renderParams->SetNodeGroupHasChildInBlacklist(false);
+    EXPECT_FALSE(renderParams->NodeGroupHasChildInBlacklist());
+    EXPECT_FALSE(renderParams->needSync_);
+
+    // Test setting to true again
+    renderParams->SetNodeGroupHasChildInBlacklist(true);
+    EXPECT_TRUE(renderParams->NodeGroupHasChildInBlacklist());
+    EXPECT_TRUE(renderParams->needSync_);
 }
 
 /**
@@ -771,50 +793,6 @@ HWTEST_F(RSRenderParamsTest, HDRStatusTest, TestSize.Level2)
 }
 
 /**
- * @tc.name: OnCanvasDrawingSurfaceChange_001
- * @tc.desc: Test function OnCanvasDrawingSurfaceChange
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, OnCanvasDrawingSurfaceChange_001, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-
-    constexpr NodeId targetId = TestSrc::limitNumber::Uint64[5];
-    const std::unique_ptr<RSRenderParams> targetParams = std::make_unique<RSRenderParams>(targetId);
-
-    renderParams->canvasDrawingNodeSurfaceChanged_ = true;
-    renderParams->surfaceParams_.width = 2.0;
-    renderParams->surfaceParams_.height = 2.0;
-
-    renderParams->OnCanvasDrawingSurfaceChange(targetParams);
-    EXPECT_EQ(targetParams->canvasDrawingNodeSurfaceChanged_, true);
-    EXPECT_EQ(targetParams->surfaceParams_.width, renderParams->surfaceParams_.width);
-    EXPECT_EQ(targetParams->surfaceParams_.height, renderParams->surfaceParams_.height);
-    EXPECT_FALSE(renderParams->canvasDrawingNodeSurfaceChanged_);
-}
-
-/**
- * @tc.name: GetCanvasDrawingSurfaceChanged_001
- * @tc.desc: Test function GetCanvasDrawingSurfaceChanged
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, GetCanvasDrawingSurfaceChanged_001, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-    renderParams->canvasDrawingNodeSurfaceChanged_ = false;
-
-    EXPECT_FALSE(renderParams->GetCanvasDrawingSurfaceChanged());
-}
-
-/**
  * @tc.name: SetForegroundFilterCache_001
  * @tc.desc: Test function SetForegroundFilterCache
  * @tc.type:FUNC
@@ -834,25 +812,6 @@ HWTEST_F(RSRenderParamsTest, SetForegroundFilterCache_001, TestSize.Level2)
 
     renderParams->SetForegroundFilterCache(foregroundFilterCache);
     EXPECT_TRUE(renderParams->needSync_);
-}
-
-/**
- * @tc.name: GetCanvasDrawingSurfaceParams_001
- * @tc.desc: Test function GetCanvasDrawingSurfaceParams
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, GetCanvasDrawingSurfaceParams_001, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-    renderParams->surfaceParams_.height = 2;
-    renderParams->surfaceParams_.width = 3;
-    auto surfaceParams = renderParams->GetCanvasDrawingSurfaceParams();
-    EXPECT_EQ(surfaceParams.height, renderParams->surfaceParams_.height);
-    EXPECT_EQ(surfaceParams.width, renderParams->surfaceParams_.width);
 }
 
 /**
@@ -979,38 +938,386 @@ HWTEST_F(RSRenderParamsTest, GetLayerInfo_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetVirtualScreenWhiteListInfo
- * @tc.desc: Test SetVirtualScreenWhiteListInfo
+ * @tc.name: SetScreensWithSubTreeWhitelist
+ * @tc.desc: Test SetScreensWithSubTreeWhitelist
  * @tc.type: FUNC
  * @tc.require:#issueICF7P6
  */
-HWTEST_F(RSRenderParamsTest, SetVirtualScreenWhiteListInfo, TestSize.Level2)
+HWTEST_F(RSRenderParamsTest, SetScreensWithSubTreeWhitelist, TestSize.Level2)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
     std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
-    std::unordered_map<ScreenId, bool> info = {};
-    renderParams->hasVirtualScreenWhiteList_ = {};
-    renderParams->SetVirtualScreenWhiteListInfo(info);
-    ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
+    std::unordered_set<ScreenId> info = {};
+    renderParams->SetScreensWithSubTreeWhitelist(info);
+    ASSERT_EQ(renderParams->GetScreensWithSubTreeWhitelist(), info);
     ScreenId screenId = 1;
-    info[screenId] = true;
-    renderParams->SetVirtualScreenWhiteListInfo(info);
-    ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
+    info.insert(screenId);
+    renderParams->SetScreensWithSubTreeWhitelist(info);
+    ASSERT_EQ(renderParams->GetScreensWithSubTreeWhitelist(), info);
 }
 
 /**
- * @tc.name: SetCanvasDrawingResetSurfaceIndexTest
- * @tc.desc: Test SetCanvasDrawingResetSurfaceIndex
+ * @tc.name: SetLayerPartRenderEnabledTest
+ * @tc.desc: Test SetLayerPartRenderEnabled
  * @tc.type: FUNC
- * @tc.require:#issueICF7P6
+ * @tc.require: issueLayerPart
  */
-HWTEST_F(RSRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest, TestSize.Level2)
+HWTEST_F(RSRenderParamsTest, SetLayerPartRenderEnabledTest, TestSize.Level1)
 {
-    auto renderParams = std::make_unique<RSRenderParams>(1);
-    renderParams->canvasDrawingResetSurfaceIndex_ = 1;
-    renderParams->SetCanvasDrawingResetSurfaceIndex(1);
-    ASSERT_FALSE(renderParams->needSync_);
-    renderParams->SetCanvasDrawingResetSurfaceIndex(2);
-    ASSERT_TRUE(renderParams->needSync_);
+    RSRenderParams params(1);
+
+    params.SetLayerPartRenderEnabled(true);
+    ASSERT_TRUE(params.GetLayerPartRenderEnabled());
+
+    params.SetLayerPartRenderEnabled(false);
+    ASSERT_FALSE(params.GetLayerPartRenderEnabled());
+}
+
+/**
+ * @tc.name: GetLayerPartRenderCurrentFrameDirtyRegionTest
+ * @tc.desc: Test GetLayerPartRenderCurrentFrameDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderParamsTest, GetLayerPartRenderCurrentFrameDirtyRegionTest, TestSize.Level1)
+{
+    RSRenderParams params(1);
+
+    RectI dirtyRect = params.GetLayerPartRenderCurrentFrameDirtyRegion();
+    ASSERT_TRUE(dirtyRect.IsEmpty());
+
+    RectI testRect = {10, 10, 100, 100};
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(testRect);
+    RectI result = params.GetLayerPartRenderCurrentFrameDirtyRegion();
+    ASSERT_EQ(result.GetLeft(), testRect.GetLeft());
+    ASSERT_EQ(result.GetTop(), testRect.GetTop());
+    ASSERT_EQ(result.GetWidth(), testRect.GetWidth());
+    ASSERT_EQ(result.GetHeight(), testRect.GetHeight());
+}
+
+/**
+ * @tc.name: SetNeedClipHoleForFilterTest001
+ * @tc.desc: Test SetNeedClipHoleForFilter with same value
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetNeedClipHoleForFilterTest001, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+
+    EXPECT_FALSE(params.NeedClipHoleForFilter());
+    ASSERT_EQ(params.renderGroupCache_, nullptr);
+
+    params.SetNeedClipHoleForFilter(false);
+    ASSERT_EQ(params.renderGroupCache_, nullptr);
+    EXPECT_FALSE(params.NeedClipHoleForFilter());
+    EXPECT_FALSE(params.needSync_);
+
+    params.SetNeedClipHoleForFilter(true);
+    ASSERT_NE(params.renderGroupCache_, nullptr);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
+
+    params.needSync_ = false;
+    params.SetNeedClipHoleForFilter(true);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_FALSE(params.needSync_);
+}
+
+/**
+ * @tc.name: SetNeedClipHoleForFilterTest002
+ * @tc.desc: Test SetNeedClipHoleForFilter with different value
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetNeedClipHoleForFilterTest002, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+
+    params.SetNeedClipHoleForFilter(true);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
+
+    params.SetNeedClipHoleForFilter(false);
+    EXPECT_FALSE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
+
+    params.SetNeedClipHoleForFilter(true);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
+}
+
+/**
+ * @tc.name: SetNeedClipHoleForFilterTest003
+ * @tc.desc: Test SetNeedClipHoleForFilter with null renderGroupCache
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetNeedClipHoleForFilterTest003, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+
+    ASSERT_EQ(params.renderGroupCache_, nullptr);
+
+    params.SetNeedClipHoleForFilter(true);
+    ASSERT_NE(params.renderGroupCache_, nullptr);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
+}
+
+/**
+ * @tc.name: SwapRelatedRenderParamsTest
+ * @tc.desc: Test SwapRelatedRenderParams swaps matrix and shouldPaint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, SwapRelatedRenderParamsTest, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams paramsA(id);
+    RSRenderParams paramsB(id);
+
+    Drawing::Matrix matrixA;
+    matrixA.SetScale(2.0f, 2.0f);
+    Drawing::Matrix matrixB;
+    matrixB.SetScale(3.0f, 3.0f);
+
+    paramsA.SetMatrix(matrixA);
+    paramsB.SetMatrix(matrixB);
+    paramsA.SetShouldPaint(true);
+    paramsB.SetShouldPaint(false);
+
+    ASSERT_TRUE(paramsA.GetShouldPaint());
+    ASSERT_FALSE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+
+    paramsA.SwapRelatedRenderParams(paramsB);
+
+    ASSERT_FALSE(paramsA.GetShouldPaint());
+    ASSERT_TRUE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
+}
+/**
+ * @tc.name: OnSync003
+ * @tc.desc: Test nodeColorSpace_ is synced in OnSync
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, OnSync003, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    params.nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    params.OnSync(target);
+    EXPECT_EQ(target->nodeColorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: SetNodeColorSpace001
+ * @tc.desc: Test SetNodeColorSpace sets value and triggers needSync
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, SetNodeColorSpace001, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_TRUE(params.needSync_);
+}
+
+/**
+ * @tc.name: SetNodeColorSpace002
+ * @tc.desc: Test SetNodeColorSpace does not set needSync when value is same
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, SetNodeColorSpace002, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    params.needSync_ = false;
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_FALSE(params.needSync_);
+}
+
+/**
+ * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixTrue
+ * @tc.desc: Test HasSandBox is false, applyMatrix is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixTrue, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    renderParams.SetAlpha(0.5f);
+    renderParams.SetHasSandBox(false);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+    
+    auto prevMatrix = canvas.GetTotalMatrix();
+    renderParams.ApplyAlphaAndMatrixToCanvas(canvas, true);
+
+    ASSERT_FLOAT_EQ(canvas.GetAlpha(), 0.5f);
+    prevMatrix.PreConcat(testMatrix);
+    ASSERT_TRUE(canvas.GetTotalMatrix() == prevMatrix);
+}
+
+/**
+ * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixFalse
+ * @tc.desc: Test HasSandBox is false, applyMatrix is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixFalse, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    renderParams.SetAlpha(0.5f);
+    renderParams.SetHasSandBox(false);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    auto prevMatrix = canvas.GetTotalMatrix();
+    renderParams.ApplyAlphaAndMatrixToCanvas(canvas, false);
+
+    ASSERT_FLOAT_EQ(canvas.GetAlpha(), 0.5f);
+    ASSERT_TRUE(canvas.GetTotalMatrix() == prevMatrix);
+}
+
+/**
+ * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxTrue_ApplyMatrixFalse
+ * @tc.desc: Test HasSandBox is true, applyMatrix is false, return early
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplyAlphaAndMatrixToCanvas_HasSandBoxTrue_ApplyMatrixFalse, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    renderParams.SetAlpha(0.5f);
+    renderParams.SetHasSandBox(true);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    renderParams.ApplyAlphaAndMatrixToCanvas(canvas, false);
+
+    ASSERT_FLOAT_EQ(canvas.GetAlpha(), 0.5f);
+}
+
+/**
+ * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxTrue_ApplyMatrixTrue
+ * @tc.desc: Test HasSandBox is true, applyMatrix is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplyAlphaAndMatrixToCanvas_HasSandBoxTrue_ApplyMatrixTrue, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    renderParams.SetAlpha(0.5f);
+    renderParams.SetHasSandBox(true);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    Drawing::Matrix surfaceParentMatrix;
+    surfaceParentMatrix.Translate(100.0f, 100.0f);
+    renderParams.SetParentSurfaceMatrix(surfaceParentMatrix);
+
+    auto prevMatrix = canvas.GetTotalMatrix();
+    renderParams.ApplyAlphaAndMatrixToCanvas(canvas, true);
+
+    ASSERT_FLOAT_EQ(canvas.GetAlpha(), 0.5f);
+    surfaceParentMatrix.PreConcat(testMatrix);
+    ASSERT_TRUE(canvas.GetTotalMatrix() == surfaceParentMatrix);
+}
+
+/**
+ * @tc.name: ApplySandboxMatrixToCanvas_HasSandBoxTrue_NoOffscreenList
+ * @tc.desc: Test no offscreen canvas list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplySandboxMatrixToCanvas_NoOffscreenList, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    auto parentMatrix = testMatrix;
+    renderParams.SetParentSurfaceMatrix(parentMatrix);
+
+    renderParams.ApplySandboxMatrixToCanvas(canvas);
+
+    auto currentMatrix = canvas.GetTotalMatrix();
+    parentMatrix.PreConcat(testMatrix);
+    ASSERT_TRUE(canvas.GetTotalMatrix() == parentMatrix);
+}
+
+/**
+ * @tc.name: ApplySandboxMatrixToCanvas_HasOriginalCanvas_WithoutOffscreenData
+ * @tc.desc: Test has original canvas but without offscreenData
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplySandboxMatrixToCanvas_HasOriginalCanvas_WithoutOffscreenData, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    Drawing::Matrix mainMatrix;
+    mainMatrix.SetScale(2.0f, 2.0f);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas mainCanvas(&rawCanvas);
+    mainCanvas.ConcatMatrix(mainMatrix);
+    mainCanvas.StoreCanvas();
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    Drawing::Matrix surfaceParentMatrix;
+    surfaceParentMatrix.Translate(100.0f, 100.0f);
+    renderParams.SetParentSurfaceMatrix(surfaceParentMatrix);
+
+    renderParams.ApplySandboxMatrixToCanvas(mainCanvas);
+    surfaceParentMatrix.PreConcat(testMatrix);
+    ASSERT_TRUE(mainCanvas.GetTotalMatrix() == surfaceParentMatrix);
 }
 } // namespace OHOS::Rosen

@@ -28,9 +28,9 @@ ohos_unittest("feature_cfg_test") {
   sources = [
     "accessibility_param_test.cpp",
     "capture_base_param_test.cpp",
+    "color_gamut_param_parse_test.cpp",
     "color_gamut_param_test.cpp",
     "dirtyregion_param_test.cpp",
-    "drm_param_test.cpp",
     "drm_param_parse_test.cpp",
     "dvsync_param_parse_test.cpp",
     "dvsync_param_test.cpp",
@@ -41,6 +41,7 @@ ohos_unittest("feature_cfg_test") {
     "hwc_param_test.cpp",
     "image_enhance_param_parse_test.cpp",
     "image_enhance_param_test.cpp",
+    "mem_param_parse_test.cpp",
     "mem_param_test.cpp",
     "multiscreen_param_parse_test.cpp",
     "multiscreen_param_test.cpp",
@@ -93,17 +94,19 @@ ohos_unittest("feature_cfg_test") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/test/include",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
   ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/utils/test_header:test_header",
   ]
 

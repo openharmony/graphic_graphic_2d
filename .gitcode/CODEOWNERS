@@ -117,15 +117,15 @@ rosen/modules/render_service_base/src/modifier_ng/foreground/rs_foreground_shade
 
 rosen/modules/render_service_base/include/property/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/property/rs_color_picker_def.h @hanamaru
-rosen/modules/render_service_base/include/drawable/rs_color_picker_drawable.h @hanamaru
 rosen/modules/render_service_base/include/property/rs_point_light_manager.h @hanamaru
 
 rosen/modules/render_service_base/src/property/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/src/drawable/rs_color_picker_drawable.cpp @hanamaru
 rosen/modules/render_service_base/src/property/rs_point_light_manager.cpp @hanamaru
 
 rosen/modules/render_service_base/include/drawable/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/drawable/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/drawable/rs_color_picker_drawable.h @hanamaru
+rosen/modules/render_service_base/src/drawable/rs_color_picker_drawable.cpp @hanamaru
 
 [effect]
 rosen/modules/render_service_client/core/ui_effect/ @hanamaru
@@ -142,16 +142,16 @@ rosen/modules/render_service_base/include/render/rs_image_cache.h @xiaojianfeng_
 rosen/modules/render_service_base/include/render/rs_image.h @xiaojianfeng_jeffery
 
 [IPC]
-rosen/modules/render_service/core/transaction/ @white-dragon-tiger
-rosen/modules/render_service/main/render_server/transaction/ @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connection_proxy.h @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connection_proxy.cpp @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.h @white-dragon-tiger
-rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.cpp @white-dragon-tiger
-rosen/modules/render_service_base/include/command/ @white-dragon-tiger
-etc/graphic.para.dac @white-dragon-tiger
-rosen/modules/safuzz/ @white-dragon-tiger
+rosen/modules/render_service/core/transaction/ @gaoshuai3011
+rosen/modules/render_service/main/render_server/transaction/ @gaoshuai3011
+rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @gaoshuai3011
+rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connection_proxy.h @gaoshuai3011
+rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connection_proxy.cpp @gaoshuai3011
+rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.h @gaoshuai3011
+rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.cpp @gaoshuai3011
+rosen/modules/render_service_base/include/command/ @gaoshuai3011
+etc/graphic.para.dac @gaoshuai3011
+rosen/modules/safuzz/ @gaoshuai3011
 
 [transaction]
 rosen/modules/render_service_client/core/transaction/rs_transaction.h @chuchengcheng
@@ -176,7 +176,6 @@ rosen/modules/render_service/core/feature/opinc/ @conan13234
 
 [composer]
 rosen/modules/render_service/core/pipeline/hardware_thread/ @conan13234
-rosen/modules/render_service/core/feature/gpuComposition/ @conan13234
 rosen/modules/render_service/composer/ @conan13234
 rosen/modules/composer/hdi_backend/ @conan13234
 
@@ -189,10 +188,14 @@ rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connect
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @aslklw
 
 [render_thread]
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_engine.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_engine.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_util.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_util.h @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.cpp @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.h @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_util.cpp @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_util.h @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_uni_render_engine.cpp @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_uni_render_engine.h @charlielou
+rosen/modules/render_service/core/pipeline/render_thread/rs_base_surface_util.cpp @charlielou
+rosen/modules/render_service/core/pipeline/render_thread/rs_base_surface_util.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_composer_adapter.cpp @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_composer_adapter.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_draw_frame.cpp @charlielou
@@ -201,8 +204,6 @@ rosen/modules/render_service/core/pipeline/render_thread/rs_render_engine.cpp @c
 rosen/modules/render_service/core/pipeline/render_thread/rs_render_engine.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_composer_adapter.cpp @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_composer_adapter.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_engine.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_engine.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_processor.cpp @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_processor.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_thread.cpp @charlielou
@@ -214,7 +215,7 @@ rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_util.h @c
 rosen/modules/render_service_profiler/ @huang_kaixing
 rosen/test/render_service/render_service_profiler/unittest/ @huang_kaixing
 rosen/modules/render_service_base/include/common/rs_common_def.h @huang_kaixing
-rosen/modules/render_service_base/include/platform/ohos/rs_irender_service_connection_ipc_interface_code.h @huang_kaixing
+rosen/modules/render_service_base/include/platform/ohos/rs_iclient_to_service_connection_ipc_interface_code.h @huang_kaixing
 
 [HWC]
 rosen/modules/render_service/core/pipeline/hwc/ @wh_qwe
@@ -226,6 +227,7 @@ rosen/modules/render_service_base/src/hwc/ @wh_qwe
 interfaces/inner_api/hyper_graphic_manager/ @wh_qwe
 interfaces/kits/napi/graphic/hyper_graphic_manager/ @wh_qwe
 rosen/modules/hyper_graphic_manager/ @wh_qwe
+rosen/modules/render_service/composer/composer_service/external_depend/hyper_graphic_manager @wh_qwe
 rosen/modules/render_service/core/feature/hyper_graphic_manager/ @wh_qwe
 rosen/modules/render_service_base/include/feature/hyper_graphic_manager/ @wh_qwe
 rosen/modules/render_service_base/include/ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h @wh_qwe
@@ -280,3 +282,18 @@ rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.cpp @chenlushe
 
 [capture]
 rosen/modules/render_service/core/feature/capture @chuchengcheng
+
+[rs_render_context]
+rosen/modules/render_service_base/src/platform/ohos/backend/rs_vulkan_context.cpp @andrew1993
+rosen/modules/render_service_base/src/platform/ohos/backend/rs_vulkan_context.h @andrew1993
+rosen/modules/render_service_base/src/platform/ohos/backend/native_buffer_utils.cpp @andrew1993
+rosen/modules/render_service_base/src/platform/ohos/backend/native_buffer_utils.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/render_context.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/render_context.cpp @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_vk.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_vk.cpp @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_gl.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_gl.cpp @andrew1993
+
+[vulkan]
+frameworks/vulkan_layers/swapchain_layer/swapchain_layer.cpp @GaoPan_t

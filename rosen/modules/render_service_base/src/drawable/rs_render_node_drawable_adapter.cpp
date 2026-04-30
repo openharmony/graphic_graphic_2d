@@ -104,7 +104,6 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
 
     // Try to get a cached drawable if it exists.
     SharedPtr drawableSptr = nullptr;
-    bool cacheHit = false;
     {
         std::lock_guard<std::mutex> lock(cacheMapMutex_);
         if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
@@ -112,16 +111,11 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
                 ROSEN_LOGE("%{public}s, nodeId in cache: %{public}" PRIu64 ", nodeType=%{public}u, "
                     "drawableType=%{public}u", __func__, id, node->GetType(), drawableSptr->GetNodeType());
                 if (node->GetType() == drawableSptr->GetNodeType()) {
-                    cacheHit = true;
+                    return drawableSptr;
                 }
             }
-            if (!cacheHit) {
-                RenderNodeDrawableCache_.erase(cacheIt);
-            }
+            RenderNodeDrawableCache_.erase(cacheIt);
         }
-    }
-    if (cacheHit) {
-        return drawableSptr;
     }
     drawableSptr = nullptr;
 
@@ -151,31 +145,24 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
     switch (node->GetType()) {
         case RSRenderNodeType::SURFACE_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::SCREEN_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSScreenRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSScreenRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::EFFECT_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::CANVAS_DRAWING_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::LOGICAL_DISPLAY_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(sharedPtr->nodeId_);
             break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
             break;
     }
     sharedPtr->renderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE);
-    sharedPtr->uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
 }
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(
@@ -367,30 +354,10 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
     drawCmdList_[index]->OnDraw(&canvas, &rect);
 }
 
-void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect)
+void RSRenderNodeDrawableAdapter::DrawClipBounds(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
-    RSRenderNodeSingleDrawableLocker singleLocker(this);
-    if (UNLIKELY(!singleLocker.IsLocked())) {
-        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
-        HILOG_COMM_ERROR("RSRenderNodeDrawableAdapter::DrawUifirstContentChildren node %{public}" PRIu64 " onDraw!!!",
-            GetId());
-        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
-            return;
-        }
-    }
-
-    if (uifirstDrawCmdList_.empty()) {
-        return;
-    }
-
-    const auto& drawCmdList = uifirstDrawCmdList_;
-    auto contentIdx = uifirstDrawCmdIndex_.contentIndex_;
-    auto childrenIdx = uifirstDrawCmdIndex_.childrenIndex_;
-    if (0 <= contentIdx && contentIdx < drawCmdList.size()) {
-        drawCmdList[contentIdx]->OnDraw(&canvas, &rect);
-    }
-    if (0 <= childrenIdx && childrenIdx < drawCmdList.size()) {
-        drawCmdList[childrenIdx]->OnDraw(&canvas, &rect);
+    if (!drawCmdList_.empty() && drawCmdIndex_.clipToBoundsIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.clipToBoundsIndex_]->OnDraw(&canvas, &rect);
     }
 }
 
@@ -510,7 +477,11 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
             dst.ToString().c_str(), dst.RoundOut().ToString().c_str());
         return false;
     }
-    return !(paintFilterCanvas->GetCurDirtyRegion().IsIntersects(dstRegion));
+    if (!paintFilterCanvas->IsLayerPartRenderDirtyRegionStackEmpty()) {
+        auto& layerNodeDirtyRegion = paintFilterCanvas->GetCurLayerPartRenderDirtyRegion();
+        return !(layerNodeDirtyRegion.IsIntersects(dstRegion));
+    }
+    return !paintFilterCanvas->GetCurDirtyRegion().IsIntersects(dstRegion);
 }
 
 void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas)
@@ -535,24 +506,24 @@ void RSRenderNodeDrawableAdapter::CollectInfoForUnobscuredUEC(Drawing::Canvas& c
     }
 }
 
-void RSRenderNodeDrawableAdapter::SkipDrawBackGroundAndClipHoleForBlur(
+void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
     Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (drawCmdList_.empty()) {
-        return;
-    }
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!curCanvas) {
-        RS_LOGD("RSRenderNodeDrawableAdapter::SkipDrawBackGroundAndClipHoleForBlur curCanvas is null");
+        RS_LOGD("RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole curCanvas is null");
         return;
     }
     auto shadowRect = params.GetShadowRect();
     auto filterRect = GetFilterRelativeRect(params.GetBounds());
     filterRect.Join(shadowRect);
-    DrawImpl(canvas, params.GetBounds(), drawCmdIndex_.clipToBoundsIndex_);
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "ClipHoleForBlur filterRect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
+        "ClipHoleForBlurOrExcludedSubtree Rect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
+    auto matrix = canvas.GetTotalMatrix();
+    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas.SetMatrix(matrix);
     curCanvas->ResetClip();
     curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
@@ -562,16 +533,40 @@ void RSRenderNodeDrawableAdapter::SkipDrawBackGroundAndClipHoleForBlur(
 void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas)
 {
     if (curDrawingCacheRoot_ != nullptr) {
+        const auto clipBounds = curCanvas->GetDeviceClipBounds();
         auto iter = std::find_if(curDrawingCacheRoot_->filterInfoVec_.begin(),
             curDrawingCacheRoot_->filterInfoVec_.end(),
             [nodeId = GetId()](const auto& item) -> bool { return item.nodeId_ == nodeId; });
         if (iter != curDrawingCacheRoot_->filterInfoVec_.end()) {
-            iter->rectVec_.emplace_back(curCanvas->GetDeviceClipBounds());
+            iter->rectVec_.emplace_back(clipBounds);
         } else {
             curDrawingCacheRoot_->filterInfoVec_.emplace_back(
-                FilterNodeInfo(GetId(), curCanvas->GetTotalMatrix(), { curCanvas->GetDeviceClipBounds() }));
+                FilterNodeInfo(GetId(), curCanvas->GetTotalMatrix(), { clipBounds }));
         }
+        curDrawingCacheRoot_->AddRectToUnifiedFilterRegion(clipBounds);
     }
+}
+
+void RSRenderNodeDrawableAdapter::ClearUnifiedFilterRegion()
+{
+    unifiedFilterRegion_.SetEmpty();
+}
+
+void RSRenderNodeDrawableAdapter::AddRectToUnifiedFilterRegion(const Drawing::RectI& rect)
+{
+    Drawing::Region region;
+    region.SetRect(rect);
+    unifiedFilterRegion_.Op(region, Drawing::RegionOp::UNION);
+}
+
+bool RSRenderNodeDrawableAdapter::IntersectsWithUnifiedRegion(const Drawing::RectI& rect) const
+{
+    if (unifiedFilterRegion_.IsEmpty()) {
+        return false;
+    }
+    Drawing::Region region;
+    region.SetRect(rect);
+    return !unifiedFilterRegion_.QuickReject(region);
 }
 
 Drawing::Rect RSRenderNodeDrawableAdapter::GetFilterRelativeRect(const Drawing::Rect& rect) const
@@ -632,7 +627,23 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect(const RSRenderParams& params
            (drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty()) ||
            drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1 ||
-           drawCmdIndex_.backgroundNgShaderIndex_ != -1;
+           drawCmdIndex_.backgroundNgShaderIndex_ != -1 ||
+           params.NeedClipHoleForFilter();
+}
+
+void RSRenderNodeDrawableAdapter::AlignRectToDevicePixels(const Drawing::Matrix& matrix, Drawing::Rect& rect)
+{
+    Drawing::Rect deviceRect;
+    matrix.MapRect(deviceRect, rect);
+    deviceRect.SetLeft(std::floor(deviceRect.GetLeft()));
+    deviceRect.SetTop(std::floor(deviceRect.GetTop()));
+    deviceRect.SetRight(std::ceil(deviceRect.GetRight()));
+    deviceRect.SetBottom(std::ceil(deviceRect.GetBottom()));
+    Drawing::Matrix inverseMatrix;
+    if (!matrix.Invert(inverseMatrix)) {
+        return;
+    }
+    inverseMatrix.MapRect(rect, deviceRect);
 }
 
 void RSRenderNodeDrawableAdapter::ClearResource()
@@ -710,6 +721,25 @@ bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
         });
 }
 
+bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForPartialRender() const
+{
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSSystemProperties::GetFilterCacheEnabled()
+        && RSFilterCacheManager::isCCMFilterCacheEnable_ && RSUniRenderJudgement::IsUniRender();
+    if (!sysPropEnable) {
+        return false;
+    }
+
+    bool val = !filterDrawables_.empty();
+
+    std::for_each(filterDrawables_.begin(), filterDrawables_.end(),
+        [&val] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
+            if (filterDrawable != nullptr) {
+                val = val && filterDrawable->IsFilterCacheValidForPartialRender();
+            }
+        });
+    return val;
+}
+
 const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
 {
     RectI rect{0, 0, 0, 0};
@@ -723,10 +753,6 @@ const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
         }
     }
     return rect;
-}
-void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
-{
-    hasSkipCacheLayer_ = hasSkipCacheLayer;
 }
 
 void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const

@@ -32,9 +32,10 @@ class RSPath;
 
 class RSC_EXPORT RSPathAnimation : public RSPropertyAnimation {
 public:
-    RSPathAnimation(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPath>& animationPath);
-    RSPathAnimation(std::shared_ptr<RSPropertyBase> property, const std::string& path,
-        const std::shared_ptr<RSPropertyBase>& startValue,
+    RSPathAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPath>& animationPath);
+    RSPathAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::string& path, const std::shared_ptr<RSPropertyBase>& startValue,
         const std::shared_ptr<RSPropertyBase>& endValue);
 
     virtual ~RSPathAnimation() = default;

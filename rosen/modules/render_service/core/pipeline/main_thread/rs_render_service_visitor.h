@@ -19,9 +19,9 @@
 #include <memory>
 
 #include "draw/canvas.h"
+#include "engine/rs_base_render_engine.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_processor.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {
@@ -63,7 +63,7 @@ public:
 private:
     void CreateCanvas(int32_t width, int32_t height, bool isMirrored = false);
     bool CreateProcessor(RSScreenRenderNode& node);
-    void UpdateScreenNodeCompositeType(RSScreenRenderNode& node, const ScreenInfo& screenInfo);
+    void UpdateScreenNodeCompositeType(RSScreenRenderNode& node, const RSScreenProperty& property);
     void StoreSurfaceNodeAttrsToScreenNode(RSScreenRenderNode& screenNode, const RSSurfaceRenderNode& surfaceNode);
     void RestoreSurfaceNodeAttrsFromScreenNode(
         const RSScreenRenderNode& screenNode, RSSurfaceRenderNode& surfaceNode);

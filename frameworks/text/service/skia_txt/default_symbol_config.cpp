@@ -101,8 +101,9 @@ std::unique_ptr<char[]> GetDataFromFile(const char* fname, std::streamsize& size
     }
 
     file.seekg(0, std::ios::beg);
-    auto data = std::make_unique<char[]>(size);
+    auto data = std::make_unique<char[]>(size + 1);
     file.read(data.get(), size);
+    data[size] = '\0';  // Null-terminate for cJSON_Parse
 
     if (file.gcount() != size) {
         TEXT_LOGE("Inconsistent file size verification, file: %{public}s", fname);

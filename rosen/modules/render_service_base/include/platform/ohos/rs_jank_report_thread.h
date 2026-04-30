@@ -18,7 +18,7 @@
 
 #include "event_handler.h"
 #include "common/rs_macros.h"
-#include "platform/ohos/rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "vsync_receiver.h"
 
 namespace OHOS {

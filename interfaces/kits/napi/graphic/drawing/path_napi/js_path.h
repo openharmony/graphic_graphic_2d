@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,16 +68,22 @@ public:
     static napi_value ReWind(napi_env env, napi_callback_info info);
     static napi_value GetMatrix(napi_env env, napi_callback_info info);
     static napi_value BuildFromSvgString(napi_env env, napi_callback_info info);
+    static napi_value ConvertToSVGString(napi_env env, napi_callback_info info);
+    static napi_value GetPointData(napi_env env, napi_callback_info info);
+    static napi_value GetVerbData(napi_env env, napi_callback_info info);
+    static napi_value GetConicWeightData(napi_env env, napi_callback_info info);
     static napi_value IsClosed(napi_env env, napi_callback_info info);
     static napi_value IsEmpty(napi_env env, napi_callback_info info);
     static napi_value IsRect(napi_env env, napi_callback_info info);
     static napi_value GetPathIterator(napi_env env, napi_callback_info info);
     static napi_value Approximate(napi_env env, napi_callback_info info);
     static napi_value Interpolate(napi_env env, napi_callback_info info);
+    static napi_value IsEqual(napi_env env, napi_callback_info info);
     static napi_value IsInterpolate(napi_env env, napi_callback_info info);
     static napi_value PathTransferDynamic(napi_env env, napi_callback_info info);
     static napi_value IsInverseFillType(napi_env env, napi_callback_info info);
     static napi_value ToggleInverseFillType(napi_env env, napi_callback_info info);
+    static napi_value GetLastPoint(napi_env env, napi_callback_info info);
 
     Path* GetPath();
     std::shared_ptr<Path> GetPathPtr()
@@ -123,6 +129,10 @@ private:
     napi_value OnIsEmpty(napi_env env, napi_callback_info info);
     napi_value OnGetMatrix(napi_env env, napi_callback_info info);
     napi_value OnBuildFromSvgString(napi_env env, napi_callback_info info);
+    napi_value OnConvertToSVGString(napi_env env, napi_callback_info info);
+    napi_value OnGetPointData(napi_env env, napi_callback_info info);
+    napi_value OnGetVerbData(napi_env env, napi_callback_info info);
+    napi_value OnGetConicWeightData(napi_env env, napi_callback_info info);
     napi_value OnIsClosed(napi_env env, napi_callback_info info);
     napi_value OnGetPathIterator(napi_env env, napi_callback_info info);
     napi_value OnApproximate(napi_env env, napi_callback_info info);
@@ -130,6 +140,8 @@ private:
     napi_value OnIsInterpolate(napi_env env, napi_callback_info info);
     napi_value OnIsInverseFillType(napi_env env, napi_callback_info info);
     napi_value OnToggleInverseFillType(napi_env env, napi_callback_info info);
+    napi_value OnGetLastPoint(napi_env env, napi_callback_info info);
+    napi_value OnIsEqual(napi_env env, napi_callback_info info);
     static napi_value CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path> path);
 
     static thread_local napi_ref constructor_;

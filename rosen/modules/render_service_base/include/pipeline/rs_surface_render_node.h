@@ -29,6 +29,7 @@
 #include "common/rs_special_layer_manager.h"
 #include "common/rs_vector4.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/uifirst/rs_uifirst_params.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
@@ -51,6 +52,7 @@
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
 #include "monitor/aps_monitor_impl.h"
 #endif
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -307,8 +309,10 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
-        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer);
+    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -405,6 +409,16 @@ public:
     bool GetIntersectWithAIBar() const
     {
         return intersectWithAIBar_;
+    }
+
+    void SetIntersectWithFilterNode(bool intersectOrNot)
+    {
+        intersectWithFilterNode_ = intersectOrNot;
+    }
+
+    bool GetIntersectWithFilterNode() const
+    {
+        return intersectWithFilterNode_;
     }
 
     bool IsHardwareForcedDisabledByFilter() const
@@ -680,9 +694,8 @@ public:
     void SetSkipLayer(bool isSkipLayer);
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
-    void UpdateBlackListStatus(ScreenId screenId);
-    void UpdateVirtualScreenWhiteListInfo(
-        const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
+    void SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer);
+    void UpdateVirtualScreenWhiteListInfo();
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const
@@ -740,24 +753,53 @@ public:
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const
     {
-        return forceUIFirst_;
+        return uifirstState_.forceUIFirst;
     }
 
-    bool GetForceDrawWithSkipped() const;
-    void SetForceDrawWithSkipped(bool GetForceDrawWithSkipped)
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+    bool GetUifirstNodeForceFlag() const;
+
+    MultiThreadCacheType GetLastFrameUifirstCacheType() const
     {
-        uifirstForceDrawWithSkipped_ = GetForceDrawWithSkipped;
+        return uifirstState_.lastFrameCacheType;
     }
 
-    void SetUIFirstIsPurge(bool IsPurge)
+    void SetLastFrameUifirstCacheType(MultiThreadCacheType cacheType)
     {
-        UIFirstIsPurge_ = IsPurge;
+        uifirstState_.lastFrameCacheType = cacheType;
     }
 
-    bool GetUIFirstIsPurge() const
+    bool GetForceUpdateByUifirst() const
     {
-        return UIFirstIsPurge_;
+        return uifirstState_.forceUpdate;
     }
+
+    void SetForceUpdateByUifirst(bool b)
+    {
+        uifirstState_.forceUpdate = b;
+    }
+
+    RSUIFirstSwitch GetUIFirstSwitch() const override
+    {
+        return uifirstState_.switchMode;
+    }
+
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch) override
+    {
+        uifirstState_.switchMode = uiFirstSwitch;
+    }
+
+    bool GetForceDrawWithSkipped() const
+    {
+        return uifirstState_.forceDrawWithSkipped;
+    }
+
+    void SetForceDrawWithSkipped(bool forceDrawWithSkipped)
+    {
+        uifirstState_.forceDrawWithSkipped = forceDrawWithSkipped;
+    }
+
     void SetUifirstStartingWindowId(NodeId id); // only cache app window, first frame not wait
     NodeId GetUifirstStartingWindowId() const;
 
@@ -803,6 +845,8 @@ public:
     void ReduceCanvasGamutNum(GraphicColorGamut gamut);
 
     bool IsHdrEffectColorGamut() const;
+
+    bool HDRColorHeadroomEnabled();
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const
     {
@@ -908,15 +952,8 @@ public:
         isOcclusionVisibleWithoutFilter_ = visible;
     }
 
-    void SetIsParticipateInOcclusion(bool isParticipate)
-    {
-        isParticipateInOcclusion_ = isParticipate;
-    }
-
-    bool GetIsParticipateInOcclusion() const
-    {
-        return isParticipateInOcclusion_;
-    }
+    void SetIsParticipateInOcclusion(bool isParticipate);
+    bool GetIsParticipateInOcclusion() const;
 
     const Occlusion::Region& GetVisibleRegion() const
     {
@@ -1036,7 +1073,7 @@ public:
     void RegisterBufferClearListener(sptr<RSIBufferClearCallback> callback);
 
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
-    void ConnectToNodeInRenderService();
+    void ConnectToNodeInRenderService(sptr<IRemoteObject> connectToRender);
 
     void NotifyRTBufferAvailable(bool isTextureExportNode = false);
     bool IsNotifyRTBufferAvailable() const;
@@ -1374,19 +1411,9 @@ public:
 
     bool GetUifirstContentDirty()
     {
-        bool uifirstContentDirty = uifirstContentDirty_;
-        uifirstContentDirty_ = false;
+        bool uifirstContentDirty = uifirstState_.contentDirty;
+        uifirstState_.contentDirty = false;
         return uifirstContentDirty;
-    }
-
-    size_t GetLastFrameChildrenCnt()
-    {
-        return lastFrameChildrenCnt_;
-    }
-
-    void SetLastFrameChildrenCnt(size_t childrenCnt)
-    {
-        lastFrameChildrenCnt_ = childrenCnt;
     }
 
     bool GetUifirstSupportFlag() override
@@ -1408,6 +1435,14 @@ public:
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> GetSurfaceTexture() const { return surfaceTexture_; };
     void SetSurfaceTexture(const std::shared_ptr<RSSurfaceTexture> &texture) { surfaceTexture_ = texture; }
+    std::function<std::shared_ptr<Media::PixelMap>()> GetSurfaceCaptureCallback() const
+    {
+        return surfaceCaptureCallback_;
+    }
+    void SetSurfaceCaptureCallback(const std::function<std::shared_ptr<Media::PixelMap>()>& callback)
+    {
+        surfaceCaptureCallback_ = callback;
+    }
 #endif
 
     void SetForeground(bool isForeground)
@@ -1454,21 +1489,47 @@ public:
 
     void SetUifirstStartTime(int64_t startTime)
     {
-        uifirstStartTime_ = startTime;
+        uifirstState_.uifirstStartTime = startTime;
     }
-
     int64_t GetUifirstStartTime() const
     {
-        return uifirstStartTime_;
+        return uifirstState_.uifirstStartTime;
+    }
+
+    void SetUifirstSkipPartialSync(bool skip)
+    {
+        uifirstState_.skipPartialSync = skip;
+    }
+    bool IsUifirstSkipPartialSync() const override
+    {
+        return uifirstState_.skipPartialSync;
+    }
+    void ClearUifirstSkipPartialSync() override
+    {
+        uifirstState_.skipPartialSync = false;
+    }
+
+    void SetUifirstNeedSync(bool needSync)
+    {
+        uifirstState_.needSync = needSync;
+    }
+
+    bool GetUifirstNeedSync() const override
+    {
+        return uifirstState_.needSync;
+    }
+    void ClearUifirstNeedSync() override
+    {
+        uifirstState_.needSync = false;
     }
 
     void SetUifirstHasContentAppWindow(bool hasAppWindow)
     {
-        uifirstHasContentAppWindow_ = hasAppWindow;
+        uifirstState_.hasAppWindow = hasAppWindow;
     }
     bool GetUifirstHasContentAppWindow() const
     {
-        return uifirstHasContentAppWindow_;
+        return uifirstState_.hasAppWindow;
     }
 
     void SetUIFirstVisibleFilterRect(const RectI& rect);
@@ -1564,6 +1625,14 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetDarkColorMode(bool isDarkColorMode)
+    {
+        isDarkColorMode_ = isDarkColorMode;
+    }
+    bool GetDarkColorMode() const
+    {
+        return isDarkColorMode_;
+    }
     void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(float sdrNit);
@@ -1659,11 +1728,11 @@ public:
     bool GetNeedCacheSurface() const;
     bool GetSubThreadAssignable() const
     {
-        return subThreadAssignable_;
+        return uifirstState_.subThreadAssignable;
     }
     void SetSubThreadAssignable(bool subThreadAssignable)
     {
-        subThreadAssignable_ = subThreadAssignable;
+        uifirstState_.subThreadAssignable = subThreadAssignable;
     }
     RSSpecialLayerManager& GetMultableSpecialLayerMgr()
     {
@@ -1716,6 +1785,16 @@ public:
         hdrBrightnessFactor_ = hdrBrightnessFactor;
     }
 
+    float GetHDRDimmingFactor() const
+    {
+        return hdrDimmingFactor_;
+    }
+
+    void SetHDRDimmingFactor(float hdrDimmingFactor)
+    {
+        hdrDimmingFactor_ = hdrDimmingFactor;
+    }
+
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
     uint32_t GetApiCompatibleVersion()
     {
@@ -1741,12 +1820,12 @@ public:
     // [Attention] Used in uifirst for checking whether node and parent should paint or not
     void SetSelfAndParentShouldPaint(bool selfAndParentShouldPaint)
     {
-        selfAndParentShouldPaint_ = selfAndParentShouldPaint;
+        uifirstState_.selfAndParentShouldPaint = selfAndParentShouldPaint;
     }
 
     bool GetSelfAndParentShouldPaint() const
     {
-        return selfAndParentShouldPaint_;
+        return uifirstState_.selfAndParentShouldPaint;
     }
 
     inline bool IsHardwareDisabledBySrcRect() const
@@ -1806,6 +1885,11 @@ public:
 
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
     void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
+    void UpdateLayerPartRenderStatus(std::shared_ptr<RSDirtyRegionManager>& dirtyManager);
+
+    void SetHDRType(uint32_t hdrType);
+    uint32_t GetHDRType() const;
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1843,12 +1927,24 @@ private:
     void UpdatePropertyFromConsumer();
 #endif
 
+    void EmplaceSameTypeModifier(
+        ModifierNGContainer& container, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier) override;
+
+    template<typename T>
+    void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
+        std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
+        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
+    
+    void CountRelatedNode(bool isIncrement);
+    void ClearRelatedSourceCache(bool value);
+
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
     bool isGlobalPositionEnabled_ = false;
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
     bool hasFingerprint_ = false;
+    bool isDarkColorMode_ = false;
     // hdr video
     HdrStatus hdrVideoSurface_ = HdrStatus::NO_HDR;
     bool zOrderChanged_ = false;
@@ -1869,7 +1965,6 @@ private:
     bool isRefresh_ = false;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
-    bool isParticipateInOcclusion_ = true;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
@@ -1906,6 +2001,7 @@ private:
     bool isHardwareForcedDisabled_ = false;
     bool hardwareNeedMakeImage_ = false;
     bool intersectWithAIBar_ = false;
+    bool intersectWithFilterNode_ = false;
     bool isHardwareForcedDisabledByFilter_ = false;
     // For certain buffer format(YUV), dss restriction on src : srcRect % 2 == 0
     // To avoid switch between gpu and dss during sliding, we disable dss when srcHeight != bufferHeight
@@ -1921,18 +2017,12 @@ private:
     // mark if this self-drawing node do not consume buffer when gpu -> hwc
     bool hwcDelayDirtyFlag_ = false;
     bool isForeground_ = false;
-    bool UIFirstIsPurge_ = false;
-    bool isTargetUIFirstDfxEnabled_ = false;
     bool hasSharedTransitionNode_ = false;
     bool lastFrameShouldPaint_ = true;
-    bool uifirstContentDirty_ = false;
     // point window
     bool isHardCursor_ = false;
     bool isLastHardCursor_ = false;
     bool needDrawFocusChange_ = false;
-    bool forceUIFirstChanged_ = false;
-    bool forceUIFirst_ = false;
-    bool uifirstForceDrawWithSkipped_ = false;
     bool hasTransparentSurface_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
@@ -1943,11 +2033,10 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
     bool arsrTag_ = true;
     bool copybitTag_ = false;
-    
+
     // hpae offline
     bool deviceOfflineEnable_ = false;
-    
-    bool subThreadAssignable_ = false;
+
     bool oldNeedDrawBehindWindow_ = false;
     bool isStableSkipReached_ = false;
     RectI skipFrameDirtyRect_;
@@ -1957,8 +2046,6 @@ private:
     std::atomic_bool isBufferAvailable_ = false;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
-    // whether to wait uifirst first frame finished when buffer available callback invoked.
-    std::atomic<bool> isWaitUifirstFirstFrame_ = false;
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     static inline std::atomic<bool> ancoForceDoDirect_ = false;
     float contextAlpha_ = 1.0f;
@@ -1967,6 +2054,7 @@ private:
     // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
     int hdrUIComponentNum_ = 0;
     int hdrEffectNum_ = 0;
+    int hdrColorNum_ = 0;
     int bt2020Num_ = 0;
     int p3Num_ = 0;
     int firstLevelNodeBt2020WindowNum_ = 0;
@@ -1989,6 +2077,7 @@ private:
     int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // no ratio by default
     float hdrBrightnessFactor_ = 1.0f; // no discount by default
+    float hdrDimmingFactor_ = 1.0f; // no discount by default
     float localZOrder_ = 0.0f;
     uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;
@@ -2025,9 +2114,7 @@ private:
     };
     GamutCollector gamutCollector_;
     // UIFirst
-    int64_t uifirstStartTime_ = -1;
-    bool uifirstHasContentAppWindow_ = false;
-    size_t lastFrameChildrenCnt_ = 0;
+    RSUIFirstNodeState uifirstState_;
     sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
     sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;
     sptr<RSIBufferClearCallback> clearBufferCallback_ = nullptr;
@@ -2036,6 +2123,7 @@ private:
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
+    std::function<std::shared_ptr<Media::PixelMap>()> surfaceCaptureCallback_ = nullptr;
 #endif
     RSBaseRenderNode::WeakPtr ancestorScreenNode_;
     RectI clipRegionFromParent_;
@@ -2053,7 +2141,6 @@ private:
     std::mutex mutexUI_;
     std::mutex mutexClear_;
     std::mutex mutex_;
-    std::mutex mutexHDR_;
     std::mutex parallelVisitMutex_;
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
@@ -2066,6 +2153,7 @@ private:
     std::string name_;
     std::string bundleName_;
     std::vector<NodeId> childSurfaceNodeIds_;
+    std::shared_ptr<RSRenderPipelineClient> rsRenderPipelineClient_;
     friend class RSRenderThreadVisitor;
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
@@ -2172,6 +2260,7 @@ private:
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
     bool isClonedNodeOnTheTree_ = false;
     bool clonedSourceNodeNeedOffscreen_ = true;
+    int relatedNodeNum_ = 0;
 
     std::optional<std::pair<ScreenId, bool>> attachedInfo_ = std::nullopt;
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
@@ -2179,12 +2268,11 @@ private:
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
-    // used in uifirst for checking whether node and parents should paint or not
-    bool selfAndParentShouldPaint_ = true;
-
     bool isFrameGravityNewVersionEnabled_ = false;
 
     bool isSurfaceBufferOpaque_ = false;
+
+    uint32_t hdrType_ = 0;
 
     // Used for control-level occlusion culling scene info and culled nodes transmission.
     std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;
@@ -2197,6 +2285,7 @@ private:
     friend class RSRenderNode;
     friend class RSRenderService;
     friend class RSHdrUtil;
+    friend class RSPipelineDumper;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

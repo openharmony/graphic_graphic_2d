@@ -40,7 +40,7 @@ public:
     }
 
 protected:
-    RSPropertyAnimation(std::shared_ptr<RSPropertyBase> property);
+    RSPropertyAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property);
 
     void SetAdditive(bool isAdditive);
 
@@ -63,6 +63,8 @@ protected:
     void OnUpdateStagingValue(bool isFirstStart) override;
 
     void UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition pos) override;
+
+    void InvertStagingValue(bool isGroupAnimator, const RSAnimationTimingProtocol& timingProtocol) override;
 
     void SetPropertyOnAllAnimationFinish() override;
 

@@ -24,6 +24,7 @@
 #include "animation/rs_transition.h"
 #include "render/rs_path.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_context_manager.h"
 #include "modifier_ng/geometry/rs_bounds_modifier.h"
 using namespace testing;
 using namespace testing::ext;
@@ -395,9 +396,7 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
     animation->OnReverse();
     animation->OnSetFraction(0.5);
 
-    auto propAnimation = std::make_shared<RSPropertyAnimation>(nullptr);
-    auto propId = propAnimation->GetPropertyId();
-    EXPECT_TRUE(propId == 0);
+    auto propAnimation = std::make_shared<RSPropertyAnimation>(canvasNode->GetRSUIContext(), nullptr);
     propAnimation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
     propAnimation->property_ = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     propAnimation->UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
@@ -576,7 +575,8 @@ HWTEST_F(RSAnimationTest, IsSupportInteractiveAnimator001, TestSize.Level1)
      * @tc.steps: step1. init IsSupportInteractiveAnimator
      */
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    auto rsUIContext = std::make_shared<RSUIContext>(0);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
@@ -609,7 +609,8 @@ HWTEST_F(RSAnimationTest, Pause, TestSize.Level1)
      * @tc.steps: step1. init Pause
      */
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    auto rsUIContext = std::make_shared<RSUIContext>(0);
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
@@ -645,7 +646,8 @@ HWTEST_F(RSAnimationTest, InteractiveSetFraction, TestSize.Level1)
      * @tc.steps: step1. init InteractiveSetFraction
      */
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    auto rsUIContext = std::make_shared<RSUIContext>(0);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
@@ -685,7 +687,8 @@ HWTEST_F(RSAnimationTest, AnimationStatus003, TestSize.Level1)
      * @tc.steps: step1. init AnimationStatus
      */
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    auto rsUIContext = std::make_shared<RSUIContext>(0);
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
@@ -726,7 +729,8 @@ HWTEST_F(RSAnimationTest, InteractiveFinish, TestSize.Level1)
      * @tc.steps: step1. init InteractiveFinish
      */
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    auto rsUIContext = std::make_shared<RSUIContext>(0);
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
@@ -767,7 +771,8 @@ HWTEST_F(RSAnimationTest, AnimationGetId003, TestSize.Level1)
      * @tc.steps: step1. init AnimationGetId
      */
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    auto rsUIContext = std::make_shared<RSUIContext>(0);
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
@@ -801,7 +806,8 @@ HWTEST_F(RSAnimationTest, AnimationSetFinishCallback003, TestSize.Level1)
      * @tc.steps: step1. init AnimationSetFinishCallback
      */
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    auto rsUIContext = std::make_shared<RSUIContext>(0);
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);
@@ -839,7 +845,8 @@ HWTEST_F(RSAnimationTest, AnimationGetTarget003, TestSize.Level1)
      * @tc.steps: step1. init AnimationGetTarget
      */
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    auto rsUIContext = std::make_shared<RSUIContext>(0);
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto newCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     newCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
     newCanvasNode->SetBackgroundColor(SK_ColorRED);

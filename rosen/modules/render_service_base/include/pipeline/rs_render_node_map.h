@@ -50,7 +50,6 @@ public:
 
     const std::shared_ptr<RSRenderNode> GetAnimationFallbackNode() const;
 
-    const std::string GetSelfDrawSurfaceNameByPid(pid_t nodePid) const;
 
     std::string GetSelfDrawSurfaceNameByPidAndUniqueId(pid_t nodePid, uint64_t uniqueId);
 
@@ -79,6 +78,7 @@ public:
     NodeId GetNegativeScreenNodeId() const;
     void ObtainScreenLockWindowNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    size_t GetNodeCountByPid(pid_t pid) const;
 
     uint32_t GetVisibleLeashWindowCount() const;
     uint64_t GetSize() const;
@@ -89,9 +89,14 @@ public:
     bool AttachToDisplay(
         std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode, ScreenId screenId, bool toContainer) const;
     void RegisterNeedAttachedNode(std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode);
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> GetNeedAttachedNode()
+    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetNeedAttachedNode() const
     {
         return needAttachedNode_;
+    }
+
+    void ClearNeedAttachedNode()
+    {
+        needAttachedNode_.clear();
     }
 
 private:

@@ -32,6 +32,7 @@ struct TestCaseConfig {
     bool writeInterfaceToken;
     std::string commandList;
     int commandListRepeat;
+    int connectionType; // toRender= 0, toService = 1
 };
 
 struct TestCaseParams {

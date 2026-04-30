@@ -39,6 +39,7 @@ private:
     bool IsUiRangeCaptureEndNode();
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_NODE, OnGenerate>;
     static Registrar instance_;
+    friend class OHOS::Rosen::RSLayerCacheManager;
 };
 } // namespace OHOS::Rosen::DrawableV2
 #endif // RENDER_SERVICE_DRAWABLE_RS_CANVAS_RENDER_NODE_DRAWABLE_H

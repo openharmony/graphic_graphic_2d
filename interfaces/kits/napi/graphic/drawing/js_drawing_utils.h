@@ -486,6 +486,15 @@ inline napi_value ConvertPointToJsValue(napi_env env, const Drawing::Point& poin
     return objValue;
 }
 
+inline bool SetPointToJsValue(napi_env env, napi_value jsObject, const Drawing::Point& point)
+{
+    if (napi_set_named_property(env, jsObject, "x", CreateJsNumber(env, point.GetX())) != napi_ok ||
+        napi_set_named_property(env, jsObject, "y", CreateJsNumber(env, point.GetY())) != napi_ok) {
+        return false;
+    }
+    return true;
+}
+
 inline napi_value NapiGetUndefined(napi_env env)
 {
     napi_value result = nullptr;

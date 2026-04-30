@@ -19,6 +19,7 @@
 #include <memory>
 #include <optional>
 
+#include "common/rs_common_def.h"
 #include "draw/color.h"
 #include "utils/rect.h"
 
@@ -37,13 +38,14 @@ public:
 
     // Schedules an async color pick task on the canvas content.
     // The result will be delivered via callback or client notification.
-    virtual void ScheduleColorPick(
-        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params) = 0;
+    virtual void ScheduleColorPick(RSPaintFilterCanvas& canvas,
+        const Drawing::Rect* rect, const ColorPickerParam& params, NodeId filterId) = 0;
 
     // Sets the system dark color mode for color picker.
     virtual void SetSystemDarkColorMode(bool isSystemDarkColorMode) = 0;
     // Reset memory of previously picked color.
     virtual void ResetColorMemory() = 0;
+    virtual EquivalentDarkMode GetLastEquivalentDarkMode() = 0;
 
     // Handles color update after GPU work completes.
     // Each implementation can have different business logic (e.g., animation, luminance zones).

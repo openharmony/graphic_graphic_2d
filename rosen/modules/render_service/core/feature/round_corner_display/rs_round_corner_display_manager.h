@@ -22,7 +22,7 @@
 
 #include "common/rs_common_def.h"
 #include "rs_round_corner_display.h"
-#include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen_property.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,9 +35,9 @@ enum class RCDLayerType : uint32_t {
     BOTTOM = 2
 };
 
-static bool CheckRcdRenderEnable(const ScreenInfo& screenInfo)
+static bool CheckRcdRenderEnable(const RSScreenProperty& screenProperty)
 {
-    return screenInfo.state == ScreenState::HDI_OUTPUT_ENABLE;
+    return screenProperty.GetState() == ScreenState::HDI_OUTPUT_ENABLE;
 }
 
 public:

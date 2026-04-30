@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -572,6 +572,22 @@ void RSPaintFilterCanvasBase::DrawPicture(const Picture& picture)
 #endif
 }
 
+void RSPaintFilterCanvasBase::DrawGlyphs(int count, const uint16_t glyphs[], const Drawing::Point positions[],
+                                         Drawing::Point origin, const Drawing::Font* font)
+{
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr && OnFilter()) {
+            (*iter)->DrawGlyphs(count, glyphs, positions, origin, font);
+        }
+    }
+#else
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawGlyphs(count, glyphs, positions, origin, font);
+    }
+#endif
+}
+
 void RSPaintFilterCanvasBase::DrawTextBlob(
     const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y)
 {
@@ -1072,6 +1088,21 @@ std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Dr
     return result;
 }
 
+void RSPaintFilterCanvasBase::InsertOpaqueRegion(const std::vector<Drawing::RectI>& opaqueRects)
+{
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            (*iter)->InsertOpaqueRegion(opaqueRects);
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        canvas_->InsertOpaqueRegion(opaqueRects);
+    }
+#endif
+}
+
 bool RSPaintFilterCanvasBase::IsClipRect()
 {
     bool result = false;
@@ -1501,6 +1532,29 @@ bool RSPaintFilterCanvas::IsDirtyRegionStackEmpty()
     return dirtyRegionStack_.empty();
 }
 
+void RSPaintFilterCanvas::PushLayerPartRenderDirtyRegion(Drawing::Region& dirtyRegion)
+{
+    layerPartRenderDirtyRegionStack_.push(std::move(dirtyRegion));
+}
+
+void RSPaintFilterCanvas::PopLayerPartRenderDirtyRegion()
+{
+    if (layerPartRenderDirtyRegionStack_.empty()) {
+        return;
+    }
+    layerPartRenderDirtyRegionStack_.pop();
+}
+
+Drawing::Region& RSPaintFilterCanvas::GetCurLayerPartRenderDirtyRegion()
+{
+    return layerPartRenderDirtyRegionStack_.top();
+}
+
+bool RSPaintFilterCanvas::IsLayerPartRenderDirtyRegionStackEmpty()
+{
+    return layerPartRenderDirtyRegionStack_.empty();
+}
+
 void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
 {
     brightnessRatio_ = other.brightnessRatio_;
@@ -1509,6 +1563,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     isHdrOn_ = other.isHdrOn_;
     hdrProperties_ = other.hdrProperties_;
     isReplacable_ = other.isReplacable_;
+    multipleScreen_ = other.multipleScreen_;
 }
 
 bool RSPaintFilterCanvas::CopyCachedEffectData(std::shared_ptr<CachedEffectData>& dstEffectData,
@@ -1838,6 +1893,21 @@ void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScr
     hdrProperties_.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
 }
 
+bool RSPaintFilterCanvas::IsEDRSurface() const
+{
+    return hdrProperties_.isEDRSurface;
+}
+
+void RSPaintFilterCanvas::SetEDRSurface(bool isEDRSurface)
+{
+    hdrProperties_.isEDRSurface = isEDRSurface;
+}
+
+void RSPaintFilterCanvas::SetDisplayIntent(DisplayIntent displayIntent)
+{
+    hdrProperties_.displayIntent = displayIntent;
+}
+
 void RSPaintFilterCanvas::RecordState(const RSPaintFilterCanvas& other)
 {
     canvas_->RecordState(other.canvas_);
@@ -1925,6 +1995,16 @@ bool RSPaintFilterCanvas::GetIsDrawingCache() const
 void RSPaintFilterCanvas::SetIsDrawingCache(bool isDrawingCache)
 {
     isDrawingCache_ = isDrawingCache;
+}
+
+bool RSPaintFilterCanvas::GetIsDrawingOffscreenMirror() const
+{
+    return isDrawingOffscreenMirror_;
+}
+
+void RSPaintFilterCanvas::SetIsDrawingOffscreenMirror(bool isDrawingOffscreenMirror)
+{
+    isDrawingOffscreenMirror_ = isDrawingOffscreenMirror;
 }
 
 RSPaintFilterCanvas::CacheBehindWindowData::CacheBehindWindowData(
@@ -2086,6 +2166,17 @@ void RSPaintFilterCanvas::ClipRRectOptimization(Drawing::RoundRect clipRRect)
     };
     auto data = std::make_shared<RSPaintFilterCanvasBase::ClipRRectData>(cornerDatas, clipRRect, GetSaveCount());
     SaveClipRRect(data);
+}
+
+std::vector<std::shared_ptr<Drawing::Canvas>> RSPaintFilterCanvas::GetOffscreenCanvasVector() const
+{
+    std::vector<std::shared_ptr<Drawing::Canvas>> canvasList;
+    auto tempStack = offscreenDataList_;
+    while (!tempStack.empty()) {
+        canvasList.push_back(tempStack.top().offscreenCanvas_);
+        tempStack.pop();
+    }
+    return canvasList;
 }
 
 } // namespace Rosen

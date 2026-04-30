@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <climits>
-#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -30,17 +28,7 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-const uint8_t STRING_LEN = 10;
-const uint8_t SCREEN_COLOR_GAMUT_SIZE = 12;
-const uint8_t SCREEN_GAMUT_MAP_SIZE = 4;
-const uint8_t SCREEN_STATE_SIZE = 5;
-const uint8_t SCREEN_ROTATION_SIZE = 5;
-const uint8_t SKIP_FRAME_STRATEGY_SIZE = 3;
-const uint8_t SCREEN_CONNECTION_TYPE_SIZE = 3;
-const uint8_t GRAPHIC_PIXEL_FORMAT_SIZE = 43;
-const uint8_t SCREEN_POWER_STATUS_SIZE = 11;
-const uint8_t SCREEN_TYPE_SIZE = 4;
-const uint8_t SCREEN_HDR_FORMAT_SIZE = 8;
+constexpr uint8_t STRING_LEN = 10;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos = 0;
@@ -64,86 +52,48 @@ T GetData()
 
 void InitRSScreenPropertyAndParcel(RSScreenProperty& screenProperty, Parcel& parcel)
 {
-    ScreenId id = GetData<uint64_t>();
-    screenProperty.id_ = id;
-    bool isVirtual = GetData<bool>();
-    screenProperty.isVirtual_ = isVirtual;
-    std::string name(STRING_LEN, GetData<char>());
-    screenProperty.name_ = name;
-    uint32_t width = GetData<uint32_t>();
-    screenProperty.width_ = width;
-    uint32_t height = GetData<uint32_t>();
-    screenProperty.height_ = height;
-    uint32_t phyWidth = GetData<uint32_t>();
-    screenProperty.phyWidth_ = phyWidth;
-    uint32_t phyHeight = GetData<uint32_t>();
-    screenProperty.phyHeight_ = phyHeight;
-    uint32_t refreshRate = GetData<uint32_t>();
-    screenProperty.refreshRate_ = refreshRate;
-    int32_t offsetX = GetData<int32_t>();
-    screenProperty.offsetX_ = offsetX;
-    int32_t offsetY = GetData<int32_t>();
-    screenProperty.offsetY_ = offsetY;
-    bool isSamplingOn = GetData<bool>();
-    screenProperty.isSamplingOn_ = isSamplingOn;
-    float samplingTranslateX = GetData<float>();
-    screenProperty.samplingTranslateX_ = samplingTranslateX;
-    float samplingTranslateY = GetData<float>();
-    screenProperty.samplingTranslateY_ = samplingTranslateY;
-    float samplingScale = GetData<float>();
-    screenProperty.samplingScale_ = samplingScale;
-    ScreenColorGamut colorGamut = static_cast<ScreenColorGamut>(GetData<uint32_t>() % SCREEN_COLOR_GAMUT_SIZE);
-    screenProperty.colorGamut_ = colorGamut;
-    ScreenGamutMap gamutMap = static_cast<ScreenGamutMap>(GetData<uint32_t>() % SCREEN_GAMUT_MAP_SIZE);
-    screenProperty.gamutMap_ = gamutMap;
-    ScreenState state = static_cast<ScreenState>(GetData<uint8_t>() % SCREEN_STATE_SIZE);
-    screenProperty.state_ = state;
-    ScreenRotation correction = static_cast<ScreenRotation>(GetData<uint32_t>() % SCREEN_ROTATION_SIZE);
-    screenProperty.correction_ = correction;
-    bool canvasRotation = GetData<bool>();
-    screenProperty.canvasRotation_ = canvasRotation;
-    bool autoBufferRotation = GetData<bool>();
-    screenProperty.autoBufferRotation_ = autoBufferRotation;
-    RectI activeRect = RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>());
-    screenProperty.activeRect_ = activeRect;
-    RectI maskRect = RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>());
-    screenProperty.maskRect_ = maskRect;
-    RectI reviseRect = RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>());
-    screenProperty.reviseRect_ = reviseRect;
-    uint32_t skipFrameInterval = GetData<uint32_t>();
-    screenProperty.skipFrameInterval_ = skipFrameInterval;
-    uint32_t expectedRefreshRate = GetData<uint32_t>();
-    screenProperty.expectedRefreshRate_ = expectedRefreshRate;
-    SkipFrameStrategy skipFrameStrategy =
-        static_cast<SkipFrameStrategy>(GetData<uint32_t>() % SKIP_FRAME_STRATEGY_SIZE);
-    screenProperty.skipFrameStrategy_ = skipFrameStrategy;
-    GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(GetData<uint32_t>() % GRAPHIC_PIXEL_FORMAT_SIZE);
-    screenProperty.pixelFormat_ = pixelFormat;
-    ScreenHDRFormat hdrFormat = static_cast<ScreenHDRFormat>(GetData<uint32_t>() % SCREEN_HDR_FORMAT_SIZE);
-    screenProperty.hdrFormat_ = hdrFormat;
-    bool enableVisibleRect = GetData<bool>();
-    screenProperty.enableVisibleRect_ = enableVisibleRect;
-    Rect mainScreenVisibleRect {GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()};
-    screenProperty.mainScreenVisibleRect_ = mainScreenVisibleRect;
-    bool isSupportRotation = GetData<bool>();
-    screenProperty.isSupportRotation_ = isSupportRotation;
-    std::unordered_set<NodeId> whiteList {GetData<uint64_t>()};
-    screenProperty.whiteList_ = whiteList;
-    std::unordered_set<NodeId> nodeList {GetData<uint64_t>()};
-    screenProperty.blackList_ = nodeList;
-    std::unordered_set<NodeType> screenNodeTypeList {GetData<uint8_t>()};
-    screenProperty.typeBlackList_ = screenNodeTypeList;
-    std::vector<NodeId> securityExemptionList {GetData<uint64_t>()};
-    screenProperty.securityExemptionList_ = securityExemptionList;
-    bool skipWindow = GetData<bool>();
-    screenProperty.skipWindow_ = skipWindow;
-    ScreenPowerStatus powerStatus = static_cast<ScreenPowerStatus>(GetData<uint32_t>() % SCREEN_POWER_STATUS_SIZE);
-    screenProperty.powerStatus_ = powerStatus;
-    RSScreenType screenType = static_cast<RSScreenType>(GetData<uint32_t>() % SCREEN_TYPE_SIZE);
-    screenProperty.screenType_ = screenType;
-    ScreenConnectionType connectionType =
-        static_cast<ScreenConnectionType>(GetData<uint32_t>() % SCREEN_CONNECTION_TYPE_SIZE);
-    screenProperty.connectionType_ = connectionType;
+    screenProperty.Set<ScreenPropertyType::ID>(GetData<uint64_t>());
+    screenProperty.Set<ScreenPropertyType::IS_VIRTUAL>(GetData<bool>());
+    screenProperty.Set<ScreenPropertyType::NAME>(std::string(STRING_LEN, GetData<char>()));
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>(std::make_pair(GetData<uint32_t>(), GetData<uint32_t>()));
+    screenProperty.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        std::make_tuple(GetData<uint32_t>(), GetData<uint32_t>(), GetData<uint32_t>()));
+    screenProperty.Set<ScreenPropertyType::OFFSET>(std::make_pair(GetData<int32_t>(), GetData<int32_t>()));
+    screenProperty.Set<ScreenPropertyType::SAMPLING_OPTION>(
+        std::make_tuple(GetData<bool>(), GetData<float>(), GetData<float>(), GetData<float>()));
+    screenProperty.Set<ScreenPropertyType::COLOR_GAMUT>(GetData<uint32_t>());
+    screenProperty.Set<ScreenPropertyType::GAMUT_MAP>(GetData<uint32_t>());
+    screenProperty.Set<ScreenPropertyType::STATE>(GetData<uint8_t>());
+    screenProperty.Set<ScreenPropertyType::CORRECTION>(GetData<uint32_t>());
+    screenProperty.Set<ScreenPropertyType::CANVAS_ROTATION>(GetData<bool>());
+    screenProperty.Set<ScreenPropertyType::AUTO_BUFFER_ROTATION>(GetData<bool>());
+    screenProperty.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()),
+                        RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()),
+                        RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>())));
+    screenProperty.Set<ScreenPropertyType::SKIP_FRAME_OPTION>(
+        std::make_tuple(GetData<uint32_t>(), GetData<uint32_t>(), GetData<uint8_t>()));
+    screenProperty.Set<ScreenPropertyType::PIXEL_FORMAT>(GetData<int32_t>());
+    screenProperty.Set<ScreenPropertyType::HDR_FORMAT>(GetData<uint32_t>());
+    screenProperty.Set<ScreenPropertyType::VISIBLE_RECT_OPTION>(
+        std::make_tuple(GetData<bool>(), Rect{GetData<int32_t>(), GetData<int32_t>(),
+                        GetData<int32_t>(), GetData<int32_t>()}, GetData<bool>()));
+    screenProperty.Set<ScreenPropertyType::WHITE_LIST>(std::unordered_set<NodeId>{GetData<uint64_t>()});
+    screenProperty.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GetData<uint64_t>()});
+    screenProperty.Set<ScreenPropertyType::TYPE_BLACK_LIST>(std::unordered_set<NodeType>{GetData<uint8_t>()});
+    screenProperty.Set<ScreenPropertyType::SECURITY_EXEMPTION_LIST>(std::vector<NodeId>{GetData<uint64_t>()});
+    screenProperty.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(GetData<bool>());
+    screenProperty.Set<ScreenPropertyType::POWER_STATUS>(GetData<uint32_t>());
+    screenProperty.Set<ScreenPropertyType::SCREEN_TYPE>(GetData<uint32_t>());
+    screenProperty.Set<ScreenPropertyType::CONNECTION_TYPE>(GetData<uint32_t>());
+    screenProperty.Set<ScreenPropertyType::SCALE_MODE>(GetData<uint32_t>());
+    screenProperty.Set<ScreenPropertyType::SCREEN_STATUS>(GetData<uint32_t>());
+    screenProperty.Set<ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION>(GetData<int32_t>());
+    screenProperty.Set<ScreenPropertyType::IS_HARD_CURSOR_SUPPORT>(GetData<bool>());
+    screenProperty.Set<ScreenPropertyType::SUPPORTED_COLOR_GAMUTS>(std::vector<ScreenColorGamut>{GetData<uint8_t>()});
+    screenProperty.Set<ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL>(GetData<bool>());
+    screenProperty.Set<ScreenPropertyType::SCREEN_SWITCH_STATUS>(GetData<bool>());
+    screenProperty.Set<ScreenPropertyType::SCREEN_FRAME_GRAVITY>(GetData<int32_t>());
 }
 
 bool DoMarshalling()

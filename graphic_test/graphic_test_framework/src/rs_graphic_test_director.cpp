@@ -28,6 +28,7 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
+#include "ui/rs_ui_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -180,8 +181,7 @@ void RSGraphicTestDirector::InitProfilerThread()
 void RSGraphicTestDirector::Run()
 {
     Reset();
-    rsUiDirector_ = RSUIDirector::Create();
-    rsUiDirector_->Init();
+    rsUiDirector_ = RSUIDirector::Create(nullptr, nullptr);
 
     rsUiDirector_->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {
         if (task) {

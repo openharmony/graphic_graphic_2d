@@ -17,8 +17,8 @@
 
 #include "feature/uifirst/rs_sub_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_base_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_test_util.h"
 
@@ -301,6 +301,7 @@ HWTEST_F(RsSubThreadTest, DrawableCache003, TestSize.Level1)
 
     nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeDrawable->GetId());
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(curThread->grContext_);
     curThread->DrawableCache(nodeDrawable);

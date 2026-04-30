@@ -14,18 +14,18 @@
  */
 
 #include "createnodeandsurface_fuzzer.h"
-
+#include "transaction/rs_interfaces.h"
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
 
 #include "platform/drawing/rs_surface.h"
-#include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
 
-// Global RSRenderServiceClient instance, initialized in LLVMFuzzerInitialize
-std::shared_ptr<RSRenderServiceClient> g_renderServiceClient = nullptr;
+// Global RSRenderPipelineClient instance, initialized in LLVMFuzzerInitialize
+std::shared_ptr<RSRenderPipelineClient> g_renderPipelineClient = nullptr;
 
 namespace {
 const uint8_t DO_CREATE_NODE_AND_SURFACE = 0;
@@ -45,7 +45,7 @@ void DoCreateNodeAndSurface(FuzzedDataProvider& fdp)
 
     bool unobscured = fdp.ConsumeBool();
 
-    g_renderServiceClient->CreateNodeAndSurface(config, unobscured);
+    g_renderPipelineClient->CreateNodeAndSurface(config, unobscured);
 }
 
 } // anonymous namespace
@@ -55,15 +55,18 @@ void DoCreateNodeAndSurface(FuzzedDataProvider& fdp)
 /* Fuzzer environment initialization */
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    // Initialize RSRenderServiceClient using std::make_shared (consistent with business code and TDD)
-    OHOS::Rosen::g_renderServiceClient = std::make_shared<OHOS::Rosen::RSRenderServiceClient>();
+    // Initialize RSRenderPipelineClient using std::make_shared (consistent with business code and TDD)
+auto screenId = OHOS::Rosen::RSInterfaces::GetInstance().GetDefaultScreenId();
+    auto connectToRender =
+        OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    OHOS::Rosen::g_renderPipelineClient = std::make_shared<OHOS::Rosen::RSRenderPipelineClient>(connectToRender);
     return 0;
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (OHOS::Rosen::g_renderServiceClient == nullptr || data == nullptr) {
+    if (OHOS::Rosen::g_renderPipelineClient == nullptr || data == nullptr) {
         return -1;
     }
 

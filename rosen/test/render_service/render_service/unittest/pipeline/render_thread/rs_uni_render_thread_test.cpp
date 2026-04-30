@@ -25,7 +25,7 @@
 #include "memory/rs_memory_manager.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_draw_cmd.h"
@@ -563,7 +563,7 @@ HWTEST_F(RSUniRenderThreadTest, GetRefreshRate001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     uint32_t res = instance.GetRefreshRate();
-    EXPECT_TRUE(res == 0);
+    EXPECT_TRUE(res == 60);
 }
 
 /**
@@ -580,50 +580,51 @@ HWTEST_F(RSUniRenderThreadTest, GetWatermarkImg, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReleaseSelfDrawingNodeBuffer001
- * @tc.desc: Test ReleaseSelfDrawingNodeBuffer
+ * @tc.name: GetWatermarkRowCount
+ * @tc.desc: Test GetWatermarkRowCount
  * @tc.type: FUNC
- * @tc.require: issueIB2I9E
+ * @tc.require:
  */
-HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1)
+HWTEST_F(RSUniRenderThreadTest, GetWatermarkRowCount, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    auto surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    auto adapter = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
+    auto& renderThreadParams = instance.GetRSRenderThreadParams();
+    auto rowCount = renderThreadParams->GetWatermarkRowCount();
+    ASSERT_EQ(rowCount, 0);
 
-    adapter->consumerOnDraw_ = IConsumerSurface::Create();
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
-    renderThreadParams->selfDrawables_.push_back(surfaceRenderNode->renderDrawable_);
-    instance.Sync(move(renderThreadParams));
-    auto params = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->GetRenderParams().get());
-    instance.ReleaseSelfDrawingNodeBuffer();
-    ASSERT_EQ(params->GetPreBuffer(), nullptr);
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, nullptr, 2, 3);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    rowCount = renderThreadParams->GetWatermarkRowCount();
+    ASSERT_EQ(rowCount, 2);
 
-    params->isOnTheTree_ = true;
-    params->isHardwareEnabled_ = false;
-    params->isLastFrameHardwareEnabled_ = true;
-    params->preBuffer_ = SurfaceBuffer::Create();
-    instance.ReleaseSelfDrawingNodeBuffer();
-    ASSERT_EQ(params->GetPreBuffer(), nullptr);
-    params->isOnTheTree_ = false;
-    instance.ReleaseSelfDrawingNodeBuffer();
-    ASSERT_EQ(params->GetPreBuffer(), nullptr);
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(false, nullptr, 0, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+}
 
-    params->isOnTheTree_ = false;
-    params->isHardwareEnabled_ = true;
-    params->isLastFrameHardwareEnabled_ = true;
-    params->preBuffer_ = SurfaceBuffer::Create();
-    params->screenId_ = 0;
-    instance.ReleaseSelfDrawingNodeBuffer();
-    ASSERT_EQ(params->GetPreBuffer(), nullptr);
+/**
+ * @tc.name: GetWatermarkColCount
+ * @tc.desc: Test GetWatermarkColCount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, GetWatermarkColCount, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    auto& renderThreadParams = instance.GetRSRenderThreadParams();
+    auto colCount = renderThreadParams->GetWatermarkColCount();
+    ASSERT_EQ(colCount, 0);
 
-    instance.ReleaseSelfDrawingNodeBuffer();
-    params->isHardwareEnabled_ = true;
-    params->layerCreated_ = true;
-    instance.ReleaseSelfDrawingNodeBuffer();
-    EXPECT_TRUE(params->isHardwareEnabled_);
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, nullptr, 2, 3);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    colCount = renderThreadParams->GetWatermarkColCount();
+    ASSERT_EQ(colCount, 3);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(false, nullptr, 0, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
 }
 
 /**
@@ -1056,6 +1057,7 @@ HWTEST_F(RSUniRenderThreadTest, CollectProcessNodeNumTest, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, NotifyScreenNodeBufferReleasedTest, TestSize.Level1)
 {
     auto& instance = RSUniRenderThread::Instance();
+    instance.composerClientManager_ = std::make_shared<RSComposerClientManager>();
     uint32_t screenId = 0;
     instance.screenCond_[screenId] = std::make_shared<RSUniRenderThread::ScreenNodeBufferCond>();
     instance.NotifyScreenNodeBufferReleased(screenId);

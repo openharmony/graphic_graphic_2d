@@ -15,9 +15,11 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_render_property_animation.h"
 #include "params/rs_logical_display_render_params.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
@@ -153,6 +155,47 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, SetWindowContainerTest, TestSize.Level1
 }
 
 /**
+ * @tc.name: IsOnlyHDRAnimationTest
+ * @tc.desc: test results of IsOnlyHDRAnimation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    EXPECT_EQ(displayNode->GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS).empty(), true);
+    EXPECT_EQ(displayNode->IsOnlyHDRAnimation(), false);
+
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    property->GetRef() = drawCmdList;
+    property->id_ = 1;
+    ModifierId id = 1;
+    std::shared_ptr<ModifierNG::RSRenderModifier> modifier = nullptr;
+    RSRootRenderNode::ModifierNGContainer modifiers { modifier };
+    EXPECT_EQ(displayNode->IsOnlyHDRAnimation(), false);
+
+    auto modifier2 = ModifierNG::RSRenderModifier::MakeRenderModifier(
+        ModifierNG::RSModifierType::HDR_BRIGHTNESS, property, id, ModifierNG::RSPropertyType::HDR_BRIGHTNESS_FACTOR);
+    modifiers.emplace_back(modifier2);
+    displayNode->modifiersNG_.emplace(ModifierNG::RSModifierType::HDR_BRIGHTNESS, modifiers);
+    auto animationProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(0, 1, animationProperty);
+    displayNode->animationManager_.animations_[0] = renderPropertyAnimation;
+    displayNode->IsOnlyHDRAnimation();
+
+    auto modifier3 = ModifierNG::RSRenderModifier::MakeRenderModifier(
+        ModifierNG::RSModifierType::HDR_BRIGHTNESS, property, id, ModifierNG::RSPropertyType::HDR_BRIGHTNESS);
+    modifiers.emplace_back(modifier3);
+    renderPropertyAnimation->propertyId_ = 2;
+    std::shared_ptr<RSRenderAnimation> animation2;
+    displayNode->animationManager_.animations_[1] = animation2;
+    displayNode->IsOnlyHDRAnimation();
+}
+
+/**
  * @tc.name: GetWindowContainerTest
  * @tc.desc: test results of GetWindowContainer
  * @tc.type: FUNC
@@ -164,24 +207,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, GetWindowContainerTest, TestSize.Level1
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     EXPECT_EQ(renderNode->GetWindowContainer(), nullptr);
-}
-
-/**
- * @tc.name: NotifyScreenNotSwitchingTest
- * @tc.desc: test results of NotifyScreenNotSwitching
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSLogicalDisplayRenderNodeTest, NotifyScreenNotSwitchingTest, TestSize.Level1)
-{
-    constexpr NodeId nodeId = 0;
-    RSDisplayNodeConfig config;
-    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
-    EXPECT_NE(renderNode, nullptr);
-    renderNode->NotifyScreenNotSwitching();
-    renderNode->SetScreenStatusNotifyTask([](bool status) {
-    });
-    renderNode->NotifyScreenNotSwitching();
 }
 
 /**

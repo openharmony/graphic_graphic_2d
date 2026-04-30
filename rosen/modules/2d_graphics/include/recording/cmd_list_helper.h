@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -199,9 +199,12 @@ public:
         return childCmdList;
     }
 
+    static OpFontHandle AddFontToCmdList(CmdList& cmdList, const Font* font);
+    static std::shared_ptr<Font> GetFontFromCmdList(const CmdList& cmdList, const OpFontHandle& fontHandle,
+                                                    uint64_t globalUniqueId = 0);
     static OpDataHandle AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob, void* ctx = nullptr);
     static std::shared_ptr<TextBlob> GetTextBlobFromCmdList(const CmdList& cmdList,
-        const OpDataHandle& textBlobHandle, uint64_t globalUniqueId = 0);
+        const OpDataHandle& textBlobHandle, uint64_t globalUniqueId = 0, bool preferSpeedOverQuality = false);
 
     static OpDataHandle AddDataToCmdList(CmdList& cmdList, const Data* data);
     static std::shared_ptr<Data> GetDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);
@@ -272,6 +275,10 @@ public:
 
     static uint32_t AddDrawingObjectToCmdList(CmdList& cmdList, std::shared_ptr<Object>);
     static std::shared_ptr<Object> GetDrawingObjectFromCmdList(const CmdList& cmdList, uint32_t index);
+    static OpDataHandle AddParticleEffectToCmdList(CmdList& cmdList,
+        const std::shared_ptr<ParticleEffect>& particleEffect);
+    static std::shared_ptr<ParticleEffect> GetParticleEffectFromCmdList(const CmdList& cmdList,
+        const OpDataHandle& particleEffectHandle);
 };
 } // namespace Drawing
 } // namespace Rosen

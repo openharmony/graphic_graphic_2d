@@ -28,14 +28,13 @@
 #include <utility>
 #endif
 
+#include "common/rs_event_def.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
-#endif
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
+#include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
@@ -65,12 +64,12 @@
 namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
-using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
+using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason, sptr<IRemoteObject>)>;
 using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
 using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-using PointerLuminanceChangeCallback = std::function<void(int32_t)>;
-#endif
+using ActiveScreenIdChangedCallback = std::function<void(ScreenId)>;
+using ScreenSupportedHDRFormatsCallback = std::function<void(ScreenId,
+    std::vector<ScreenHDRFormat>& specialHdrFormats)>;
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
@@ -96,9 +95,8 @@ public:
 
     bool GetUniRenderEnabled();
 
-    bool CreateNode(const RSSurfaceRenderNodeConfig& config);
-    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
-    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
+
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
@@ -143,31 +141,16 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
-    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
-
-    uint32_t SetSurfaceWatermark(pid_t callingPid,
-        const std::string& name, const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId>& nodeList, SurfaceWatermarkType watermarkType);
-
-    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name, const std::vector<NodeId>& nodeList);
-
-    void ClearSurfaceWatermark(pid_t pid, const std::string& name);
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
 
     void RemoveVirtualScreen(ScreenId id);
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
- 
-    int32_t SetPointerColorInversionEnabled(bool enable);
- 
-    int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
- 
-    int32_t UnRegisterPointerLuminanceChangeCallback();
-#endif
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback& callback);
 
     int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback& callback);
+
+    int32_t SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback& callback);
 
 #ifndef ROSEN_ARKUI_X
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId);
@@ -183,9 +166,9 @@ public:
 
     int32_t SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback);
 
-    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
-
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
+
+    void ForceRefreshOneFrameWithNextVSync();
 
     int32_t GetCurrentRefreshRateMode();
 
@@ -202,7 +185,6 @@ public:
     std::string GetRefreshInfoByPidAndUniqueId(pid_t pid, uint64_t uniqueId);
 
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height);
-
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
 
 #ifndef ROSEN_ARKUI_X
@@ -221,6 +203,10 @@ public:
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+
+    ScreenId GetMainScreenId();
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);
 
@@ -244,14 +230,6 @@ public:
 
     void SetScreenBacklight(ScreenId id, uint32_t level);
 
-    bool RegisterBufferAvailableListener(
-        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
-
-    bool RegisterBufferClearListener(
-        NodeId id, const BufferClearCallback &callback);
-
-    bool UnregisterBufferAvailableListener(NodeId id);
-
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
     int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys);
@@ -270,8 +248,6 @@ public:
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 
-    bool SetGlobalDarkColorMode(bool isDark);
-
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability);
@@ -280,7 +256,8 @@ public:
 
     int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat);
 
-    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats);
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        const ScreenSupportedHDRFormatsCallback& callback = nullptr);
 
     int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
 
@@ -294,9 +271,6 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
-    bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
-    bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     int32_t RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface, uint32_t index);
     bool UnRegisterTypeface(uint32_t uniqueId);
@@ -311,12 +285,7 @@ public:
 
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
 
-    int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
-
-    int32_t RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
-
-    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
     int32_t RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback);
 
@@ -326,10 +295,10 @@ public:
 
     int32_t RegisterFirstFrameCommitCallback(const FirstFrameCommitCallback& callback);
 
+    int32_t RegisterExposedEventCallback(const RSExposedEventType type, const RSExposedEventCallback& callback);
+
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);
-
-    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
@@ -372,10 +341,6 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
-    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable);
-
-    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
-
     void SetCacheEnabledForRotation(bool isEnabled);
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
@@ -413,10 +378,6 @@ public:
     
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
-    void SetFreeMultiWindowStatus(bool enable);
-
-    void ForceRefreshOneFrameWithNextVSync();
-
     void NotifyScreenSwitched();
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
@@ -424,9 +385,7 @@ public:
 
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
-    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
-
-    bool GetHighContrastTextState();
+    void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
 
     bool SetBehindWindowFilterEnabled(bool enabled);
 
@@ -492,7 +451,6 @@ private:
     sptr<RSIScreenChangeCallback> screenChangeCb_ = nullptr;
     sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCb_ = nullptr;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_ = nullptr;
-
     sptr<RSISurfaceBufferCallback> surfaceBufferCbDirector_;
     std::map<uint64_t, std::shared_ptr<SurfaceBufferCallback>> surfaceBufferCallbacks_;
     mutable std::shared_mutex surfaceBufferCallbackMutex_;

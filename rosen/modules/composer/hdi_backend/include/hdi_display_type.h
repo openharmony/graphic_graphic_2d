@@ -48,7 +48,8 @@ typedef enum {
  * @brief Enumerates interface types.
  */
 typedef enum {
-    GRAPHIC_DISP_INTF_HDMI = 0,       /**< HDMI interface */
+    GRAPHIC_DISP_INTF_UNKNOW = 0,     /**< UNKNOW interface */
+    GRAPHIC_DISP_INTF_HDMI,           /**< HDMI interface */
     GRAPHIC_DISP_INTF_LCD,            /**< LCD interface */
     GRAPHIC_DISP_INTF_BT1120,         /**< BT1120 interface */
     GRAPHIC_DISP_INTF_BT656,          /**< BT656 interface */
@@ -59,6 +60,9 @@ typedef enum {
     GRAPHIC_DISP_INTF_VGA,            /**< VGA interface */
     GRAPHIC_DISP_INTF_MIPI,           /**< MIPI interface */
     GRAPHIC_DISP_INTF_PANEL,          /**< PANEL interface */
+    GRAPHIC_DISP_INTF_DP,             /**< DP interface */
+    GRAPHIC_DISP_INTF_EDP,            /**< EDP interface */
+    GRAPHIC_DISP_INTF_GPMI,           /**< GPMI interface */
     GRAPHIC_DISP_INTF_BUTT,
 } GraphicInterfaceType;
 
@@ -144,12 +148,18 @@ typedef struct {
     std::vector<uint32_t> deletingList;
 } GraphicLayerBuffer;
 
-typedef struct {
+using GraphicLayerColor = struct GraphicLayerColor {
     uint8_t r;
     uint8_t g;
     uint8_t b;
     uint8_t a;
-} GraphicLayerColor;
+
+    bool operator==(const GraphicLayerColor& color) const
+    {
+        return (r == color.r) && (g == color.g) && (b == color.b) && (a == color.a);
+    }
+};
+
 
 /*
  * @brief Enumerates the display connection type.

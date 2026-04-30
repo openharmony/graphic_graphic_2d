@@ -37,7 +37,8 @@ public:
     const std::vector<std::string>& GetVoters() const { return voters_; }
     bool GetVoterGamesEffective() const { return voterGamesEffective_.load(); }
 
-    void SetDisableTouchHighFrame(bool isDisableTouchHighFrame);
+    bool IsDragScene() const { return isDragScene_; }
+    void SetDragScene(bool isDragScene) { isDragScene_ = isDragScene; }
     void SetIsTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
     {
         isTouchUpLTPOFirstPeriod_ = isTouchUpLTPOFirstPeriod;
@@ -62,22 +63,19 @@ private:
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
     bool ProcessVoteIter(std::vector<std::string>::iterator& voterIter,
         VoteInfo& resultVoteInfo, VoteRange& voteRange, bool& voterGamesEffective);
-    void MarkVoteChange(const std::string& voter = "")
-    {
+    void MarkVoteChange(const std::string& voter = "") {
         if (markVoteChange_) {
             markVoteChange_(voter);
         }
     }
-    bool NeedSkipVoterTouch(bool existVoterLTPO)
-    {
+    bool NeedSkipVoterTouch(bool existVoterLTPO) {
         if (existVoterLTPO && isTouchUpLTPOFirstPeriod_ && isTouchUpLTPOFirstDynamicMode_) {
             return true;
         }
         return false;
     }
 
-    bool isDisableTouchHighFrame_ = false;
-    bool isUpdateTouchFramePolicy_ = false;
+    bool isDragScene_ = false;
     bool isTouchUpLTPOFirstPeriod_ = false;
     bool isTouchUpLTPOFirstDynamicMode_ = false;
     std::atomic<bool> voterGamesEffective_ = false;

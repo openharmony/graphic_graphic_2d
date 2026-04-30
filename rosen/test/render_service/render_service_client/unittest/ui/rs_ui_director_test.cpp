@@ -80,7 +80,7 @@ void RSUIDirectorTest::TearDown() {}
  */
 HWTEST_F(RSUIDirectorTest, SetTimeStamp001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     director->SetTimeStamp(g_normalUInt64_1, "test");
 }
@@ -92,7 +92,7 @@ HWTEST_F(RSUIDirectorTest, SetTimeStamp001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetTimeStamp002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     director->SetTimeStamp(-std::numeric_limits<uint64_t>::max(), "test");
 }
@@ -104,7 +104,7 @@ HWTEST_F(RSUIDirectorTest, SetTimeStamp002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetTimeStamp003, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     director->SetTimeStamp(std::numeric_limits<int64_t>::min(), "test");
 }
@@ -116,7 +116,7 @@ HWTEST_F(RSUIDirectorTest, SetTimeStamp003, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     RSSurfaceNodeConfig c;
     auto surfaceNode = RSSurfaceNode::Create(c);
@@ -132,7 +132,7 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     director->SetRSSurfaceNode(nullptr);
 }
@@ -144,7 +144,7 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GetRSSurfaceNode001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     RSSurfaceNodeConfig c;
     auto surfaceNode = RSSurfaceNode::Create(c);
@@ -159,14 +159,11 @@ HWTEST_F(RSUIDirectorTest, GetRSSurfaceNode001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, PlatformInit001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->Init();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director->cacheDir_.empty());
-    director->Init(true);
     std::string cacheDir = "test";
     director->SetCacheDir(cacheDir);
     ASSERT_TRUE(!director->cacheDir_.empty());
-    director->Init(false);
 }
 
 #ifdef RS_ENABLE_VK
@@ -178,13 +175,11 @@ HWTEST_F(RSUIDirectorTest, PlatformInit001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, Init001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     EXPECT_EQ(director->cacheDir_.empty(), true);
-    director->Init(false);
     std::string cacheDir = "test";
     director->SetCacheDir(cacheDir);
     EXPECT_EQ(director->cacheDir_.empty(), false);
-    director->Init(false);
 }
 #endif
 
@@ -196,11 +191,9 @@ HWTEST_F(RSUIDirectorTest, Init001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, Init002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director1 = RSUIDirector::Create();
-    director1->Init(true, true);
+    std::shared_ptr<RSUIDirector> director1 = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director1->GetRSUIContext(), nullptr);
-    std::shared_ptr<RSUIDirector> director2 = RSUIDirector::Create();
-    director2->Init(true, true, director1->GetRSUIContext());
+    std::shared_ptr<RSUIDirector> director2 = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_EQ(director1->GetRSUIContext(), director2->GetRSUIContext());
 }
 
@@ -211,7 +204,7 @@ HWTEST_F(RSUIDirectorTest, Init002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetUITaskRunner001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     director->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
 }
@@ -223,7 +216,7 @@ HWTEST_F(RSUIDirectorTest, SetUITaskRunner001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetUITaskRunner002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->isHgmConfigChangeCallbackReg_ = true;
     director->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
     ASSERT_TRUE(director != nullptr);
@@ -240,7 +233,7 @@ HWTEST_F(RSUIDirectorTest, SetUITaskRunner002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DirectorSendMessages001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     director->SendMessages();
 }
@@ -253,7 +246,7 @@ HWTEST_F(RSUIDirectorTest, DirectorSendMessages001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DirectorSendMessages002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     bool result = false;
     FlushEmptyCallback callback = [&result](const uint64_t timestamp) -> bool {
@@ -266,6 +259,65 @@ HWTEST_F(RSUIDirectorTest, DirectorSendMessages002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SendMessagesTest001
+ * @tc.desc: test results of SendMessages
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SendMessagesTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
+    ASSERT_NE(director, nullptr);
+    std::function<void()> callback = []() { std::cout << "for test" << std::endl; };
+    auto transaction = std::make_shared<RSTransactionHandler>();
+    auto node = RSCanvasNode::Create();
+    NodeId nodeId = node->GetId();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    transaction->AddCommonCommand(command);
+
+    director->rsUIContext_->rsTransactionHandler_ = transaction;
+    director->SendMessages(callback);
+
+    callback = nullptr;
+    director->SendMessages(callback);
+    EXPECT_NE(director->rsUIContext_->GetRSTransaction(), nullptr);
+
+    director->rsUIContext_->rsTransactionHandler_ = nullptr;
+    director->SendMessages(callback);
+    EXPECT_EQ(director->rsUIContext_->GetRSTransaction(), nullptr);
+}
+
+/**
+ * @tc.name: SendMessagesTest002
+ * @tc.desc: test results of SendMessages
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SendMessagesTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
+    ASSERT_NE(director, nullptr);
+
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    auto node = RSCanvasNode::Create();
+    NodeId nodeId = node->GetId();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    RSTransactionProxy::GetInstance()->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
+    director->rsUIContext_ = nullptr;
+    std::function<void()> callback = []() { std::cout << "for test" << std::endl; };
+    director->SendMessages(callback);
+
+    callback = nullptr;
+    director->SendMessages(callback);
+    EXPECT_NE(rsTransactionProxy, nullptr);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    director->SendMessages(callback);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
  * @tc.name: UIDirectorSetRoot001
  * @tc.desc:
  * @tc.type:FUNC
@@ -275,7 +327,7 @@ HWTEST_F(RSUIDirectorTest, UIDirectorSetRoot001, TestSize.Level1)
     /**
      * @tc.steps: step1. set parentSize, childSize and alignment
      */
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     RSNode::SharedPtr testNode = RSCanvasNode::Create();
     director->SetRoot(testNode->GetId());
@@ -289,13 +341,44 @@ HWTEST_F(RSUIDirectorTest, UIDirectorSetRoot001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, UIDirectorSetRSRootNode001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
-    director->Init(true, true);
     RSNode::SharedPtr rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
     director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
     director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
     ASSERT_EQ(rootNode, director->rootNode_.lock());
+}
+
+/**
+ * @tc.name: GetUIDescendantCount001
+ * @tc.desc: Test GetUIDescendantCount returns 0 when root node is not set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetUIDescendantCount001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
+    ASSERT_NE(director, nullptr);
+    EXPECT_EQ(director->GetUIDescendantCount(), 0U);
+}
+
+/**
+ * @tc.name: GetUIDescendantCount002
+ * @tc.desc: Test GetUIDescendantCount returns correct count with children
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetUIDescendantCount002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
+    ASSERT_NE(director, nullptr);
+    RSNode::SharedPtr rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+
+    auto child1 = RSCanvasNode::Create();
+    auto child2 = RSCanvasNode::Create();
+    rootNode->AddChild(child1, -1);
+    rootNode->AddChild(child2, -1);
+
+    EXPECT_EQ(director->GetUIDescendantCount(), 2U);
 }
 
 /**
@@ -316,10 +399,9 @@ HWTEST_F(RSUIDirectorTest, UIDirectorTotal001, TestSize.Level1)
     rootNode->AddChild(child2, 0);
     child1->AddChild(child3, 1);
 
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
 
-    director->Init(true, true);
     director->SetRoot(rootNode->GetId());
 
     director->SetTimeStamp(345, "test");
@@ -342,7 +424,7 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
     /**
      * @tc.steps: step1. set parentSize, childSize and alignment
      */
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     std::string cacheDir = "/data/log";
     director->SetAbilityBGAlpha(0);
@@ -366,7 +448,7 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DestroyTest, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     NodeId nodeId = 10;
     director->SetRoot(nodeId);
@@ -380,14 +462,12 @@ HWTEST_F(RSUIDirectorTest, DestroyTest, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DestroyTest002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->Init(true, true);
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     auto uiContext = director->GetRSUIContext();
     ASSERT_NE(uiContext, nullptr);
 
     {
-        std::shared_ptr<RSUIDirector> childDirector = RSUIDirector::Create();
-        childDirector->Init(true, true, uiContext);
+        std::shared_ptr<RSUIDirector> childDirector = RSUIDirector::Create(nullptr, nullptr);
         childDirector->skipDestroyUIContext_ = false;
     }
     ASSERT_EQ(RSUIContextManager::Instance().GetRSUIContext(uiContext->GetToken()), nullptr);
@@ -400,14 +480,12 @@ HWTEST_F(RSUIDirectorTest, DestroyTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DestroyTest003, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->Init(true, true);
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     auto uiContext = director->GetRSUIContext();
     ASSERT_NE(uiContext, nullptr);
 
     {
-        std::shared_ptr<RSUIDirector> childDirector = RSUIDirector::Create();
-        childDirector->Init(true, true, uiContext);
+        std::shared_ptr<RSUIDirector> childDirector = RSUIDirector::Create(nullptr, nullptr);
     }
     ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(uiContext->GetToken()), nullptr);
 }
@@ -419,7 +497,7 @@ HWTEST_F(RSUIDirectorTest, DestroyTest003, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetRootTest, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
     NodeId nodeId = 10;
     director->SetRoot(nodeId);
@@ -433,9 +511,8 @@ HWTEST_F(RSUIDirectorTest, SetRootTest, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, setflushEmptyCallbackTest, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
-    director->Init(true, true);
     director->SetFlushEmptyCallback(nullptr);
 }
 
@@ -446,7 +523,7 @@ HWTEST_F(RSUIDirectorTest, setflushEmptyCallbackTest, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GetAnimateExpectedRate, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     ASSERT_EQ(director->GetAnimateExpectedRate(), 0);
 }
@@ -458,7 +535,7 @@ HWTEST_F(RSUIDirectorTest, GetAnimateExpectedRate, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, FlushAnimation, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     bool hasRunningAnimation = director->FlushAnimation(g_normalUInt64_2, g_vsyncPeriod);
     director->PostFrameRateTask([]() { return; });
@@ -472,7 +549,7 @@ HWTEST_F(RSUIDirectorTest, FlushAnimation, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GetCurrentRefreshRateMode, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     int32_t res = director->GetCurrentRefreshRateMode();
     ASSERT_TRUE(res == -1);
@@ -485,7 +562,7 @@ HWTEST_F(RSUIDirectorTest, GetCurrentRefreshRateMode, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, PostFrameRateTask, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     const std::function<void()>& task = []() { std::cout << "for test" << std::endl; };
     director->PostFrameRateTask(task);
@@ -499,7 +576,7 @@ HWTEST_F(RSUIDirectorTest, PostFrameRateTask, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallback001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     const std::function<void()>& callback = []() { std::cout << "for test" << std::endl; };
     director->SetRequestVsyncCallback(callback);
@@ -513,7 +590,7 @@ HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallback001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     director->SetRequestVsyncCallback(nullptr);
 }
@@ -526,10 +603,11 @@ HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest003, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     // test rsUIContext_ is not null
-    director->rsUIContext_ = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    director->rsUIContext_ = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     const std::function<void()>& callback = []() { std::cout << "for test" << std::endl; };
     director->SetRequestVsyncCallback(callback);
 }
@@ -542,7 +620,7 @@ HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest003, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest004, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     // test rsUIContext_ is null
     EXPECT_EQ(director->rsUIContext_, nullptr);
@@ -616,7 +694,7 @@ HWTEST_F(RSUIDirectorTest, ColorPickerCallbackProcessorTest003, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, FlushAnimationStartTime, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     uint64_t timeStamp = 0;
     director->FlushAnimationStartTime(timeStamp);
@@ -629,7 +707,7 @@ HWTEST_F(RSUIDirectorTest, FlushAnimationStartTime, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, HasUIRunningAnimation, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     bool res = director->HasUIRunningAnimation();
     ASSERT_TRUE(res == false);
@@ -642,7 +720,7 @@ HWTEST_F(RSUIDirectorTest, HasUIRunningAnimation, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetCacheDir, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     // for test
     const std::string& cacheFilePath = "1";
@@ -658,7 +736,7 @@ HWTEST_F(RSUIDirectorTest, SetCacheDir, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, SetCacheDir002, TestSize.Level1)
 {
 #ifdef RS_ENABLE_VK
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     if (!RSSystemProperties::GetHybridRenderEnabled()) {
         return;
@@ -683,7 +761,7 @@ HWTEST_F(RSUIDirectorTest, SetCacheDir002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetRTRenderForced, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     // for test
     bool isRenderForced = true;
@@ -697,7 +775,7 @@ HWTEST_F(RSUIDirectorTest, SetRTRenderForced, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     director->GoForeground();
     director->GoBackground();
@@ -735,7 +813,7 @@ HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, AttachSurface, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     director->AttachSurface();
 }
@@ -747,7 +825,7 @@ HWTEST_F(RSUIDirectorTest, AttachSurface, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, RecvMessages, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     director->RecvMessages();
     RSUIDirector::RecvMessages(nullptr);
@@ -762,7 +840,7 @@ HWTEST_F(RSUIDirectorTest, RecvMessages, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessMessagesTest001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     director->ProcessMessages(cmds);
@@ -775,9 +853,8 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessMessagesTest002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
-    director->Init(true, true);
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     auto uiContext = director->GetRSUIContext();
     ASSERT_NE(uiContext, nullptr);
@@ -799,9 +876,8 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessMessagesTest003, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
-    director->Init(true, true);
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     auto uiContext = director->GetRSUIContext();
     ASSERT_NE(uiContext, nullptr);
@@ -830,9 +906,8 @@ HWTEST_F(RSUIDirectorTest, ProcessMessagesTest003, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessInstanceMessagesTest, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
-    director->Init(true, true);
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     auto uiContext = director->GetRSUIContext();
     ASSERT_NE(uiContext, nullptr);
@@ -862,9 +937,8 @@ HWTEST_F(RSUIDirectorTest, ProcessInstanceMessagesTest, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, RequestVsyncCallbackTest, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_NE(director, nullptr);
-    director->Init(true, true);
     director->instanceId_ = 1;
     ASSERT_FALSE(director->RequestVsyncCallback(1));
     director->SetRequestVsyncCallback([]() -> void {});
@@ -897,8 +971,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
 {
-    auto director = RSUIDirector::Create();
-    director->Init(true, true);
+    auto director = RSUIDirector::Create(nullptr, nullptr);
     auto uiContext = director->GetRSUIContext();
     ASSERT_NE(uiContext, nullptr);
     uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
@@ -920,8 +993,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest003, TestSize.Level1)
 {
-    auto director = RSUIDirector::Create();
-    director->Init(true, true);
+    auto director = RSUIDirector::Create(nullptr, nullptr);
     auto uiContext = director->GetRSUIContext();
     uiContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     auto token = 12345;
@@ -942,7 +1014,7 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest003, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     // for test
     NodeId nodeId = 0;
@@ -959,9 +1031,8 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
-    director->Init(true, true);
     // for test
     NodeId nodeId = 0;
     AnimationId animId = 0;
@@ -975,7 +1046,7 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
     RSRootNode::SharedPtr nodePtr = std::make_shared<RSRootNode>(nodeId);
     bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
     director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    auto animation = std::make_shared<RSAnimation>();
+    auto animation = std::make_shared<RSAnimation>(director->GetRSUIContext());
     animId = animation->GetId();
     director->rsUIContext_->animations_.emplace(animId, animation);
     director->AnimationCallbackProcessor(nodeId, animId, token, event);
@@ -991,7 +1062,7 @@ HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, PostTask, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     const std::function<void()>& task = []() { std::cout << "for test" << std::endl; };
     director->PostTask(task);
@@ -1004,7 +1075,7 @@ HWTEST_F(RSUIDirectorTest, PostTask, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, PostDelayTask001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     const std::function<void()>& task = []() { std::cout << "for test" << std::endl; };
     director->PostDelayTask(task, 0, 0);
@@ -1021,7 +1092,7 @@ HWTEST_F(RSUIDirectorTest, PostDelayTask001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetRTRenderForcedTest002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     director->SetRTRenderForced(true);
 }
@@ -1034,7 +1105,7 @@ HWTEST_F(RSUIDirectorTest, SetRTRenderForcedTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     int32_t instanceId = 10;
     director->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {}, 0);
@@ -1055,9 +1126,8 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
-    director->Init(true, true);
     auto uiContext = director->GetRSUIContext();
     ASSERT_TRUE(uiContext != nullptr);
     RSNode::SharedPtr rsNode = RSCanvasNode::Create();
@@ -1074,7 +1144,7 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     director->index_ = g_ExtremeInt_1;
     ASSERT_EQ(director->GetIndex(), g_ExtremeInt_1);
@@ -1087,7 +1157,7 @@ HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, HasFirstFrameAnimationTest, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     bool res = director->HasFirstFrameAnimation();
     ASSERT_FALSE(res);
@@ -1100,7 +1170,7 @@ HWTEST_F(RSUIDirectorTest, HasFirstFrameAnimationTest, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, ReportUiSkipEventTest, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
     director->lastUiSkipTimestamp_ = 0;
@@ -1128,7 +1198,7 @@ HWTEST_F(RSUIDirectorTest, ReportUiSkipEventTest, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, IsHybridRenderEnabled001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     bool systemPropertiesRet = RSSystemProperties::GetHybridRenderEnabled();
     bool directorRet = director->IsHybridRenderEnabled();
@@ -1143,7 +1213,7 @@ HWTEST_F(RSUIDirectorTest, IsHybridRenderEnabled001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     ComponentEnableSwitch bitSeq = ComponentEnableSwitch::TEXTBLOB;
     bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
@@ -1159,7 +1229,7 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     ComponentEnableSwitch bitSeq = ComponentEnableSwitch::MAX_VALUE;
     bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
@@ -1175,7 +1245,7 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch003, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     ComponentEnableSwitch bitSeq = static_cast<ComponentEnableSwitch>(-1);
     bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
@@ -1191,7 +1261,7 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch003, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch004, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     ComponentEnableSwitch bitSeq =
         static_cast<ComponentEnableSwitch>(static_cast<uint8_t>(ComponentEnableSwitch::MAX_VALUE) + 1);
@@ -1208,7 +1278,7 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch004, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, GetHybridRenderTextBlobLenCount001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     uint32_t systemPropertiesRet = RSSystemProperties::GetHybridRenderTextBlobLenCount();
     uint32_t directorRet = director->GetHybridRenderTextBlobLenCount();
@@ -1223,10 +1293,9 @@ HWTEST_F(RSUIDirectorTest, GetHybridRenderTextBlobLenCount001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, TestTransactionHandler001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     // isMultiInstance is false
-    director->Init(false, false);
 
     // test adding multiple cmds
     std::unique_ptr<RSTransactionData> cmds = std::make_unique<RSTransactionData>();
@@ -1255,10 +1324,9 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, TestTransactionHandler002, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     // isMultiInstance is false
-    director->Init(false, false);
 
     // test adding multiple cmds
     std::unique_ptr<RSTransactionData> cmds = std::make_unique<RSTransactionData>();
@@ -1287,10 +1355,9 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler002, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     // isMultiInstance is true
-    director->Init(false, true);
 
     // test adding multiple cmds
     std::unique_ptr<RSTransactionData> cmds = std::make_unique<RSTransactionData>();
@@ -1319,7 +1386,7 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
-        std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+        std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
         ASSERT_TRUE(director != nullptr);
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
             director->isUniRenderEnabled_ = true;
@@ -1338,7 +1405,7 @@ HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetTypicalResidentProcessTest001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     bool enabled = RSSystemProperties::GetTypicalResidentProcess();
     director->SetTypicalResidentProcess(!enabled);
@@ -1359,7 +1426,7 @@ HWTEST_F(RSUIDirectorTest, SetTypicalResidentProcessTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetDVSyncUpdate001, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     const uint64_t time = 1000;
     director->SetDVSyncUpdate(time);
@@ -1375,7 +1442,7 @@ HWTEST_F(RSUIDirectorTest, SetDVSyncUpdate001, TestSize.Level1)
  */
 HWTEST_F(RSUIDirectorTest, SetContainerWindowTransparentTest, TestSize.Level1)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ASSERT_TRUE(director != nullptr);
     bool isContainerWindowTransparent = true;
 

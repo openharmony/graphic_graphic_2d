@@ -32,6 +32,7 @@ public:
     virtual void HandleSceneEvent(pid_t pid, const EventInfo& eventInfo) {}
     virtual void HandleAppStrategyConfigEvent(const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig) {}
+
 private:
     wptr<HgmEventDistributor> eventDistributor_;
 };
@@ -40,16 +41,14 @@ class HgmEventDistributor : public RefBase {
 public:
     static sptr<HgmEventDistributor> Instance();
 
-    void HandlePackageEvent(const std::vector<std::string>& packageList)
-    {
+    void HandlePackageEvent(const std::vector<std::string>& packageList) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& event : events_) {
             event->HandlePackageEvent(packageList);
         }
     }
 
-    void HandleSceneEvent(pid_t pid, const EventInfo& eventInfo)
-    {
+    void HandleSceneEvent(pid_t pid, const EventInfo& eventInfo) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& event : events_) {
             event->HandleSceneEvent(pid, eventInfo);
@@ -57,8 +56,7 @@ public:
     }
 
     void HandleAppStrategyConfigEvent(const std::string& pkgName,
-        const std::vector<std::pair<std::string, std::string>>& newConfig)
-    {
+        const std::vector<std::pair<std::string, std::string>>& newConfig) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& event : events_) {
             event->HandleAppStrategyConfigEvent(pkgName, newConfig);
@@ -78,23 +76,20 @@ private:
     std::unordered_set<HgmEvent*> events_;
 };
 
-inline HgmEvent::HgmEvent()
-{
+inline HgmEvent::HgmEvent() {
     auto eventDistributorSPtr = HgmEventDistributor::Instance();
     eventDistributorSPtr->AddEventInstance(this);
     eventDistributor_ = eventDistributorSPtr;
 }
 
-inline HgmEvent::~HgmEvent()
-{
+inline HgmEvent::~HgmEvent() {
     auto eventDistributorSPtr = eventDistributor_.promote();
     if (eventDistributorSPtr != nullptr) {
         eventDistributorSPtr->RemoveEventInstance(this);
     }
 }
 
-inline sptr<HgmEventDistributor> HgmEventDistributor::Instance()
-{
+inline sptr<HgmEventDistributor> HgmEventDistributor::Instance() {
     static std::once_flag createFlag;
     static sptr<HgmEventDistributor> instance;
     std::call_once(createFlag, [&] {
@@ -103,14 +98,12 @@ inline sptr<HgmEventDistributor> HgmEventDistributor::Instance()
     return instance;
 }
 
-inline void HgmEventDistributor::AddEventInstance(HgmEvent* event)
-{
+inline void HgmEventDistributor::AddEventInstance(HgmEvent* event) {
     std::lock_guard<std::mutex> lock(mutex_);
     events_.insert(event);
 }
 
-inline void HgmEventDistributor::RemoveEventInstance(HgmEvent* event)
-{
+inline void HgmEventDistributor::RemoveEventInstance(HgmEvent* event) {
     std::lock_guard<std::mutex> lock(mutex_);
     events_.erase(event);
 }

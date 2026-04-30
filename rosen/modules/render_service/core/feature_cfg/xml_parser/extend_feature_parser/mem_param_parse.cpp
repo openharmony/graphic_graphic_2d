@@ -72,6 +72,12 @@ int32_t MEMParamParse::ParseMemInternal(FeatureParamMapType &featureMap, xmlNode
         } else if (name == "MaxUniRenderSize" && IsNumber(val)) {
             ShaderCache::Instance().SetMaxUniRenderSize(stoi(val));
             RS_LOGI("MaxUniRenderSize %{public}d", ShaderCache::Instance().GetMaxUniRenderSize());
+        } else if (name == "KernelReportAvailableMemLimit" && IsNumber(val)) {
+            MEMParam::SetKernelReportAvailableMemLimit(stoi(val));
+            RS_LOGI("KernelReportAvailableMemLimit %{public}d", MEMParam::GetKernelReportAvailableMemLimit());
+        } else if (name == "KernelReportMemInterval" && IsNumber(val)) {
+            MEMParam::SetKernelReportMemInterval(stoi(val));
+            RS_LOGI("KernelReportMemInterval %{public}d", MEMParam::GetKernelReportMemInterval());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
@@ -81,6 +87,9 @@ int32_t MEMParamParse::ParseMemInternal(FeatureParamMapType &featureMap, xmlNode
         } else if (name == "KillScbEnabled") {
             MEMParam::SetKillScbEnabled(isEnabled);
             RS_LOGI("MEMParamParse parse KillScbEnabled %{public}d", MEMParam::IsKillScbEnabled());
+        } else if (name == "KernelReportEnabled") {
+            MEMParam::SetKernelReportEnabled(isEnabled);
+            RS_LOGI("MEMParamParse parse KernelReportEnabled %{public}d", MEMParam::IsKernelReportEnabled());
         }
     }
 

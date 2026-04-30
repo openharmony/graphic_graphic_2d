@@ -24,7 +24,11 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorMask = {
     {RSNGEffectType::DOUBLE_RIPPLE_MASK,
      [] {
          return std::make_shared<RSNGDoubleRippleMask>();
-     }}
+     }},
+    {RSNGEffectType::WAVE_DISTURBANCE_MASK,
+     [] {
+         return std::make_shared<RSNGWaveDisturbanceMask>();
+     }},
 };
 
 static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
@@ -84,6 +88,14 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
      [] {
          return std::make_shared<RSNGSoundWaveFilter>();
      }},
+    {RSNGEffectType::HEAT_DISTORTION,
+     [] {
+         return std::make_shared<RSNGHeatDistortionFilter>();
+     }},
+    {RSNGEffectType::BLUR_BUBBLES_RISE,
+     [] {
+         return std::make_shared<RSNGBlurBubblesRiseFilter>();
+     }},
     {RSNGEffectType::MAGNIFIER,
      [] {
          return std::make_shared<RSNGMagnifierFilter>();
@@ -98,6 +110,14 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
     },
     {RSNGEffectType::GASIFY, [] {
             return std::make_shared<RSNGGasifyFilter>();
+        }
+    },
+    {RSNGEffectType::PARTICLE_ABLATION, [] {
+            return std::make_shared<RSNGParticleAblationFilter>();
+        }
+    },
+    {RSNGEffectType::DISTORTION_COLLAPSE, [] {
+            return std::make_shared<RSNGDistortionCollapseFilter>();
         }
     }
 };

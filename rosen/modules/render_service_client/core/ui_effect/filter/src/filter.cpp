@@ -14,7 +14,16 @@
  */
 
 #include "ui_effect/filter/include/filter.h"
+
 #include "platform/common/rs_log.h"
+#include "ui_effect/filter/include/filter_content_light_para.h"
+#include "ui_effect/filter/include/filter_direction_light_para.h"
+#include "ui_effect/filter/include/filter_dispersion_para.h"
+#include "ui_effect/filter/include/filter_displacement_distort_para.h"
+#include "ui_effect/filter/include/filter_frosted_glass_blur_para.h"
+#include "ui_effect/filter/include/filter_frosted_glass_para.h"
+#include "ui_effect/filter/include/filter_mask_transition_para.h"
+#include "ui_effect/filter/include/filter_water_ripple_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -87,6 +96,18 @@ bool Filter::Unmarshalling(Parcel& parcel, std::shared_ptr<Filter>& val)
     }
     val = std::move(filter);
     return true;
+}
+
+void Filter::RegisterUnmarshallingCallback()
+{
+    ContentLightPara::RegisterUnmarshallingCallback();
+    DispersionPara::RegisterUnmarshallingCallback();
+    DisplacementDistortPara::RegisterUnmarshallingCallback();
+    MaskTransitionPara::RegisterUnmarshallingCallback();
+    WaterRipplePara::RegisterUnmarshallingCallback();
+    DirectionLightPara::RegisterUnmarshallingCallback();
+    FrostedGlassPara::RegisterUnmarshallingCallback();
+    FrostedGlassBlurPara::RegisterUnmarshallingCallback();
 }
 
 } // namespace Rosen

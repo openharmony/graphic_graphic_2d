@@ -45,7 +45,8 @@ namespace {
     const uint32_t GC_LEVEL_THR_IMMEDIATE = 1000;
     const uint32_t GC_LEVEL_THR_HIGH = 500;
     const uint32_t GC_LEVEL_THR_LOW = 50;
-    const uint32_t NODE_MEM_RELEASE_LIMIT = 1000;
+    // Maximum number of nodes that can be released in a single ReleaseNodeMemNotOnTree() call.
+    const uint32_t NODE_MEM_RELEASE_LIMIT = 200;
 }
 
 enum class GCLevel : uint32_t {
@@ -127,7 +128,6 @@ private:
 
     std::atomic<bool> isEnable_ = true;
     GCLevel nodeGCLevel_ = GCLevel::IDLE;
-    GCLevel drawableGCLevel_ = GCLevel::IDLE;
     gcTask mainTask_ = nullptr;
     gcTask renderTask_ = nullptr;
 
@@ -153,7 +153,7 @@ private:
     std::function<void()> imageReleaseFunc_;
     std::function<void(bool)> drawableReleaseFunc_;
 
-    bool isNodeOffTreeMemReleaseEnabled_ = true;
+    bool isNodeOffTreeMemReleaseEnabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

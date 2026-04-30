@@ -163,6 +163,7 @@ public:
     double minLineHeight{0.0f};
     LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
     Drawing::FontEdging fontEdging{Drawing::FontEdging::ANTI_ALIAS};
+    bool isFakeBoldEnabled{true};
 };
 
 } // namespace SPText

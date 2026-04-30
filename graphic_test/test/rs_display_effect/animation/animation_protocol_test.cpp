@@ -15,6 +15,7 @@
 
 #include "point_custom_modifier_test.h"
 #include "rs_graphic_test.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,6 +43,16 @@ private:
     }
 };
 
+static std::shared_ptr<RSUIContext> GetRSUIContext()
+{
+    static std::shared_ptr<RSUIContext> rsUIContext = nullptr;
+    if (rsUIContext == nullptr) {
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+        rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    }
+    return rsUIContext;
+}
+
 /*
  * @tc.name: ConstantProtocolTest01
  * @tc.desc: Test the built-in protocol DEFAULT
@@ -55,7 +66,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, ConstantProtocolTest01)
 
     RSAnimationTimingProtocol protocol = RSAnimationTimingProtocol::DEFAULT;
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_1 animation finish callback" << std::endl;
@@ -75,7 +86,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, ConstantProtocolTest02)
 
     RSAnimationTimingProtocol protocol = RSAnimationTimingProtocol::IMMEDIATE;
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -96,7 +107,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDurationTest01)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(-100);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -117,7 +128,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDurationTest02)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(0);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -138,7 +149,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDurationTest03)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -160,7 +171,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetStartDelayTest01)
     protocol.SetStartDelay(-400);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -182,7 +193,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetStartDelayTest02)
     protocol.SetStartDelay(-100);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -204,7 +215,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetStartDelayTest03)
     protocol.SetStartDelay(0);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -226,7 +237,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetStartDelayTest04)
     protocol.SetStartDelay(400);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -248,7 +259,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetSpeedTest01)
     protocol.SetSpeed(0.5);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -270,7 +281,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetSpeedTest02)
     protocol.SetSpeed(1);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -292,7 +303,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetSpeedTest03)
     protocol.SetSpeed(2);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -314,7 +325,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetRepeatCountTest01)
     protocol.SetRepeatCount(0);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -336,7 +347,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetRepeatCountTest02)
     protocol.SetRepeatCount(1);
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -358,7 +369,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDirectionTest01)
     protocol.SetDirection(false);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -380,7 +391,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetDirectionTest02)
     protocol.SetDirection(true);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -403,7 +414,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetAutoReverseTest01)
     protocol.SetAutoReverse(false);
     protocol.SetDuration(400);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -426,7 +437,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetAutoReverseTest02)
     protocol.SetAutoReverse(true);
     protocol.SetDuration(400);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -448,7 +459,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetFinishCallbackTypeTest01)
     protocol.SetFinishCallbackType(FinishCallbackType::TIME_SENSITIVE);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -470,7 +481,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetFinishCallbackTypeTest02)
     protocol.SetFinishCallbackType(FinishCallbackType::TIME_INSENSITIVE);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;
@@ -492,7 +503,7 @@ GRAPHIC_TEST(AnimationProtocolTest, ANIMATION_TEST, SetFinishCallbackTypeTest03)
     protocol.SetFinishCallbackType(FinishCallbackType::LOGICALLY);
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(protocol, timingCurve, [&]() {
+    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
         pointModifier->SetPosition(1000);
     }, []() {
         std::cout << "Animation_Protocol_Test_2 animation finish callback" << std::endl;

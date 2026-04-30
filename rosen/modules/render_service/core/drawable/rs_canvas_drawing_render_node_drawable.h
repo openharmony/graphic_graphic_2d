@@ -57,12 +57,15 @@ public:
     {
         return curThreadInfo_.first;
     }
+
     void ResetSurface();
-    virtual bool IsNeedDraw() const override
+
+    bool IsNeedDraw() const override
     {
         return needDraw_;
     }
-    virtual void SetNeedDraw(bool flag) override
+
+    void SetNeedDraw(bool flag) override
     {
         needDraw_ = flag;
     }
@@ -118,6 +121,7 @@ private:
     bool ResetSurfaceforPlayback(int width, int height);
     bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
     std::shared_ptr<Drawing::GPUContext> GetGpuContext();
+    NodeId GetNodeIdForMemTag();
     bool IsNeedResetSurface() const;
     void FlushForGL(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);

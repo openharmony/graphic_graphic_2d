@@ -45,7 +45,7 @@ bool RSBufferReclaim::DoBufferReclaim(sptr<SurfaceBuffer> buffer)
     }
     bufferReclaimNumsSet_.insert(buffer->GetBufferId());
     RS_TRACE_NAME_FMT("DoBufferReclaim: bufferReclaimNumsSet_=%lu", bufferReclaimNumsSet_.size());
-    RS_LOGI("DoBufferReclaim: bufferReclaimNumsSet_=%{public}u", bufferReclaimNumsSet_.size());
+    RS_LOGI("DoBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
 
     bool ret = false;
     if (buffer->TryReclaim() == GSERROR_OK) {
@@ -67,7 +67,7 @@ bool RSBufferReclaim::DoBufferResume(sptr<SurfaceBuffer> buffer)
     }
     bufferReclaimNumsSet_.erase(iter);
     RS_TRACE_NAME_FMT("DoBufferResume: bufferReclaimNumsSet_=%lu", bufferReclaimNumsSet_.size());
-    RS_LOGI("DoBufferResume: bufferReclaimNumsSet_=%{public}u", bufferReclaimNumsSet_.size());
+    RS_LOGI("DoBufferResume: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
     bool ret = false;
     if (buffer->TryResumeIfNeeded() == GSERROR_OK) {
         buffer->UnRegisterBufferDestructorCallBack();
@@ -82,7 +82,7 @@ bool RSBufferReclaim::CheckBufferReclaim()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     RS_TRACE_NAME_FMT("CheckBufferReclaim: bufferReclaimNumsSet_=%lu", bufferReclaimNumsSet_.size());
-    RS_LOGI("CheckBufferReclaim: bufferReclaimNumsSet_=%{public}u", bufferReclaimNumsSet_.size());
+    RS_LOGI("CheckBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
     return bufferReclaimNumsSet_.size() < MAX_BUFFER_RECLAIM_NUMS;
 }
 
@@ -92,7 +92,66 @@ void RSBufferReclaim::RemoveBufferReclaim(uint64_t bufferId)
     std::lock_guard<std::mutex> lock(mutex_);
     bufferReclaimNumsSet_.erase(bufferId);
     RS_TRACE_NAME_FMT("RemoveBufferReclaim: bufferReclaimNumsSet_=%lu", bufferReclaimNumsSet_.size());
-    RS_LOGI("RemoveBufferReclaim: bufferReclaimNumsSet_=%{public}u", bufferReclaimNumsSet_.size());
+    RS_LOGI("RemoveBufferReclaim: bufferReclaimNumsSet_=%{public}zu", bufferReclaimNumsSet_.size());
+}
+
+void RSBufferReclaim::AddUICaptureNode(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(nodeId);
+    RS_TRACE_NAME_FMT("UICaptureNode: add nodeid=%llu, pid=%d, mapSize=%u", nodeId, pid, uiCaptureNodeMap_.size());
+    auto iter1 = uiCaptureNodeMap_.find(pid);
+    if (iter1 == uiCaptureNodeMap_.end()) {
+        std::map<NodeId, uint32_t> nodeIdCountMap;
+        nodeIdCountMap[nodeId] = 1;
+        uiCaptureNodeMap_[pid] = nodeIdCountMap;
+        RS_TRACE_NAME("new pid and node");
+        return;
+    }
+
+    auto& nodeIdCountMap = iter1->second;
+    auto iter2 = nodeIdCountMap.find(nodeId);
+    if (iter2 != nodeIdCountMap.end()) {
+        iter2->second++;
+        RS_TRACE_NAME_FMT("same node, count=%u", iter2->second);
+    } else {
+        nodeIdCountMap[nodeId] = 1;
+        RS_TRACE_NAME("new node");
+    }
+}
+
+void RSBufferReclaim::RemoveUICaptureNode(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(nodeId);
+    RS_TRACE_NAME_FMT("UICaptureNode: remove nodeid=%llu, pid=%d, mapSize=%u", nodeId, pid, uiCaptureNodeMap_.size());
+    auto iter1 = uiCaptureNodeMap_.find(pid);
+    if (iter1 == uiCaptureNodeMap_.end()) {
+        RS_TRACE_NAME("invalid pid");
+        return;
+    }
+
+    auto& nodeIdCountMap = iter1->second;
+    auto iter2 = nodeIdCountMap.find(nodeId);
+    if (iter2 != nodeIdCountMap.end()) {
+        iter2->second--;
+        RS_TRACE_NAME_FMT("node count=%u", iter2->second);
+        if (iter2->second == 0) {
+            nodeIdCountMap.erase(iter2);
+        }
+    }
+
+    if (nodeIdCountMap.empty()) {
+        RS_TRACE_NAME_FMT("pid=%d, all node is removed", pid);
+        uiCaptureNodeMap_.erase(iter1);
+    }
+}
+
+bool RSBufferReclaim::CheckSameProcessUICaptureNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(id);
+    return (uiCaptureNodeMap_.find(pid) != uiCaptureNodeMap_.end());
 }
 } // namespace Rosen
 } // namespace OHOS

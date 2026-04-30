@@ -63,7 +63,9 @@ void RSPropertyDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* re
     RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSPROPERTYDRAWABLE);
 #endif
-    drawCmdList_->Playback(*canvas);
+    if (drawCmdList_) {
+        drawCmdList_->Playback(*canvas);
+    }
     if (!propertyDescription_.empty()) {
         RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSPropertyDrawable:: %s, bounds:%s",
             propertyDescription_.c_str(), rect->ToString().c_str());
@@ -134,7 +136,10 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     stagingGeContainer_ = nullptr;
-    if (auto sdfShape = properties.GetSDFShape()) {
+    if (properties.GetClipBounds() != nullptr) {
+        stagingType_ = RSClipToBoundsType::CLIP_PATH;
+        stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
+    } else if (auto sdfShape = properties.GetSDFShape()) {
         stagingType_ = RSClipToBoundsType::CLIP_SDF;
         std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
         std::shared_ptr<Drawing::GEShaderShape> geShape =
@@ -144,9 +149,6 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
         stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
         stagingGeContainer_->AddToChainedFilter(geFilter);
-    } else if (properties.GetClipBounds() != nullptr) {
-        stagingType_ = RSClipToBoundsType::CLIP_PATH;
-        stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
     } else if (properties.GetClipToRRect()) {
         stagingType_ = RSClipToBoundsType::CLIP_RRECT;
         stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect());
@@ -395,7 +397,7 @@ void RSFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
             std::ceil(absRect.GetRight()), std::ceil(absRect.GetBottom()));
         auto deviceRect = Drawing::RectI(0, 0, canvas->GetSurface()->Width(), canvas->GetSurface()->Height());
         bounds.Intersect(deviceRect);
-        RSPropertyDrawableUtils::DrawBackgroundEffect(paintFilterCanvas, filter_, cacheManager_,
+        RSPropertyDrawableUtils::DrawBackgroundEffect(paintFilterCanvas, filter_, renderNodeId_, cacheManager_,
             bounds, true);
         return;
     }
@@ -625,6 +627,15 @@ bool RSFilterDrawable::IsFilterCacheValidForOcclusion()
         return false;
     }
     return cacheManager_->IsFilterCacheValidForOcclusion();
+}
+
+bool RSFilterDrawable::IsFilterCacheValidForPartialRender() const
+{
+    if (cacheManager_ == nullptr) {
+        ROSEN_LOGD("RSFilterDrawable::IsFilterCacheValidForPartialRender cacheManager not available");
+        return false;
+    }
+    return cacheManager_->IsFilterCacheValidForPartialRender();
 }
 
 bool RSFilterDrawable::IsAIBarFilter() const

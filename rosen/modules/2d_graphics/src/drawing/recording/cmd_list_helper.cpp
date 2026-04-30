@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,7 @@
 #include "draw/color.h"
 #include "draw/core_canvas.h"
 #include "effect/blender.h"
+#include "effect/particle_effect.h"
 #include "utils/log.h"
 #include "utils/rect.h"
 
@@ -446,6 +447,61 @@ DrawingGroupInfo CmdListHelper::GetGroupInfoFromCmdList(const CmdList& cmdList, 
     return groupInfo;
 }
 
+OpFontHandle CmdListHelper::AddFontToCmdList(CmdList& cmdList, const Font* font)
+{
+    if (!font) {
+        return {};
+    }
+    auto typeface = font->GetTypeface();
+    auto data = typeface->Serialize();
+    if (!data || data->GetSize() == 0) {
+        LOGD("font typeface serialize invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return {};
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return {offset, data->GetSize(),
+            font->GetSize(), font->GetScaleX(), font->GetSkewX(),
+            font->IsForceAutoHinting(), font->IsEmbeddedBitmaps(), font->IsSubpixel(),
+            font->IsLinearMetrics(), font->IsEmbolden(), font->IsBaselineSnap(),
+            font->GetEdging(), font->GetHinting()};
+}
+
+std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(const CmdList& cmdList, const OpFontHandle& fontHandle,
+                                                        uint64_t globalUniqueId)
+{
+    if (fontHandle.size == 0) {
+        return nullptr;
+    }
+    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+    if (DrawOpItem::customTypefaceQueryfunc_) {
+        // uni render
+        typeface = DrawOpItem::customTypefaceQueryfunc_(globalUniqueId);
+    } else if (Drawing::Typeface::GetUniqueIdCallBack()) {
+        // sep render
+        typeface = Drawing::Typeface::GetUniqueIdCallBack()(globalUniqueId);
+    }
+    if (!typeface) {
+        const void* data = cmdList.GetImageData(fontHandle.offset, fontHandle.size);
+        if (!data) {
+            LOGD("font typeface data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+            return nullptr;
+        }
+        auto typefaceData = std::make_shared<Data>();
+        typefaceData->BuildWithoutCopy(data, fontHandle.size);
+        typeface = Typeface::Deserialize(typefaceData->GetData(), typefaceData->GetSize());
+    }
+    auto result = std::make_shared<Font>(typeface, fontHandle.fontSize, fontHandle.fontScaleX, fontHandle.fontSkewX);
+    result->SetForceAutoHinting(fontHandle.isForceAutoHinting);
+    result->SetEmbeddedBitmaps(fontHandle.isEmbeddedBitmap);
+    result->SetSubpixel(fontHandle.isSubpixel);
+    result->SetLinearMetrics(fontHandle.isLinearMetrics);
+    result->SetEmbolden(fontHandle.isEmbolden);
+    result->SetBaselineSnap(fontHandle.isBaselineSnap);
+    result->SetEdging(fontHandle.fontEdging);
+    result->SetHinting(fontHandle.fontHinting);
+    return result;
+}
+
 OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob, void* ctx)
 {
     if (!textBlob) {
@@ -462,7 +518,7 @@ OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlo
 }
 
 std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& cmdList,
-    const OpDataHandle& textBlobHandle, uint64_t globalUniqueId)
+    const OpDataHandle& textBlobHandle, uint64_t globalUniqueId, bool preferSpeedOverQuality)
 {
     if (textBlobHandle.size == 0) {
         return nullptr;
@@ -486,7 +542,11 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
 
     auto textBlobData = std::make_shared<Data>();
     textBlobData->BuildWithoutCopy(data, textBlobHandle.size);
-    return TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), &customCtx);
+    auto blob = TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), &customCtx);
+    if (blob != nullptr) {
+        blob->SetSpeedOverQualityPreferred(preferSpeedOverQuality);
+    }
+    return blob;
 }
 
 OpDataHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)
@@ -1027,6 +1087,43 @@ uint32_t CmdListHelper::AddDrawingObjectToCmdList(CmdList& cmdList, std::shared_
 std::shared_ptr<Object> CmdListHelper::GetDrawingObjectFromCmdList(const CmdList& cmdList, uint32_t index)
 {
     return (const_cast<CmdList&>(cmdList)).GetDrawingObject(index);
+}
+
+OpDataHandle CmdListHelper::AddParticleEffectToCmdList(CmdList& cmdList,
+    const std::shared_ptr<ParticleEffect>& particleEffect)
+{
+    if (particleEffect == nullptr) {
+        LOGE("particleEffect is nullptr!");
+        return { 0 };
+    }
+    auto data = particleEffect->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("particleEffect is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<ParticleEffect> CmdListHelper::GetParticleEffectFromCmdList(const CmdList& cmdList,
+    const OpDataHandle& particleEffectHandle)
+{
+    if (particleEffectHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(particleEffectHandle.offset, particleEffectHandle.size);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+    auto particleData = std::make_shared<Data>();
+    particleData->BuildWithoutCopy(ptr, particleEffectHandle.size);
+    auto particleEffect = std::make_shared<ParticleEffect>();
+    if (particleEffect->Deserialize(particleData) == false) {
+        LOGE("particleEffect deserialize failed!");
+        return nullptr;
+    }
+    return particleEffect;
 }
 } // namespace Drawing
 } // namespace Rosen

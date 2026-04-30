@@ -37,10 +37,10 @@ void BootAnimationUtilsTest::TearDown() {}
 
 /**
  * @tc.name: SetBootAnimationSoundEnabled
- * @tc.desc: Verify the SetBootAnimationSoundEnabled
- * @tc.type:FUNC
+ * @tc.desc: Verify the SetBootAnimationSoundEnabled function sets sound enabled correctly.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationUtilsTest, SetBootAnimationSoundEnabled, TestSize.Level0)
+HWTEST_F(BootAnimationUtilsTest, SetBootAnimationSoundEnabled_Disabled_SoundDisabled, TestSize.Level0)
 {
     BootAnimationUtils::SetBootAnimationSoundEnabled(false);
     bool soundEnabled =
@@ -50,10 +50,10 @@ HWTEST_F(BootAnimationUtilsTest, SetBootAnimationSoundEnabled, TestSize.Level0)
 
 /**
  * @tc.name: GetBootAnimationSoundEnabled
- * @tc.desc: Verify the GetBootAnimationSoundEnabled
- * @tc.type:FUNC
+ * @tc.desc: Verify the GetBootAnimationSoundEnabled function returns correct sound status.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationUtilsTest, GetBootAnimationSoundEnabled, TestSize.Level0)
+HWTEST_F(BootAnimationUtilsTest, GetBootAnimationSoundEnabled_Normal_ReturnCorrectStatus, TestSize.Level0)
 {
     bool isEnabled = BootAnimationUtils::GetBootAnimationSoundEnabled();
     bool soundEnabled =

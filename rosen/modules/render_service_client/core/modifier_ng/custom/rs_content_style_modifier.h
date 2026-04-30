@@ -21,6 +21,15 @@
 namespace OHOS::Rosen {
 class RSUIDirector;
 namespace ModifierNG {
+
+/**
+ * @class RSContentStyleModifier
+ *
+ * @brief Draws the custom content.
+ *
+ * @note It is prohibited to modify any properties of the node during the draw process, otherwise
+ * it may cause drawing abnormalities.
+ */
 class RSC_EXPORT RSContentStyleModifier : public RSCustomModifier {
 public:
     RSContentStyleModifier() = default;
@@ -34,6 +43,13 @@ public:
     }
     // LCOV_EXCL_STOP
 
+    /**
+     * @brief Draws the custom content.
+     *
+     * @param context The drawing context used to render the custom content.
+     * @note It is prohibited to modify any properties of the node in this function, otherwise
+     * it may cause drawing abnormalities.
+     */
     void Draw(RSDrawingContext& context) const override
     {
         return;

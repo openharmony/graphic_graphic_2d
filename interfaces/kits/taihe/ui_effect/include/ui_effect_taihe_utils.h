@@ -50,8 +50,12 @@ constexpr uint32_t NUM_2 = 2;
 constexpr uint32_t NUM_3 = 3;
 constexpr uint32_t NUM_10 = 10;
 constexpr uint32_t NUM_12 = 12;
+enum class UIEffectErrorCode : int32_t {
+    ERR_NO_PERMISSION = 201,  // the value do not change. It is defined on all system
+};
 
 bool IsSystemApp();
+bool CheckPermission(const std::string& permission);
 Drawing::TileMode ConvertTileModeFromTaiheTileMode(TileMode tileMode);
 bool ConvertVector4fFromTaiheArray(OHOS::Rosen::Vector4f& vector4f, taihe::array_view<double> stretchSizes);
 bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const BrightnessBlender& brightnessBlender);
@@ -72,6 +76,7 @@ bool ConvertVector3fFromAniPoint3D(uintptr_t point3D, OHOS::Rosen::Vector3f& val
 bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values);
 bool ConvertVector4fFromAniColor(uintptr_t color, OHOS::Rosen::Vector4f& values);
 bool ConvertVector4fFromAniTuple(OHOS::Rosen::Vector4f& vector4f, uintptr_t opaque);
+bool ConvertVector3fFromAniTuple(OHOS::Rosen::Vector3f& vector3f, uintptr_t opaque);
 
 } // namespace ANI::UIEffect
 

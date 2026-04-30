@@ -19,6 +19,7 @@ group("fuzztest") {
     "ndkfontdesc_fuzzer:fuzztest",
     "ndkregisterfont_fuzzer:fuzztest",
     "ndkrun_fuzzer:fuzztest",
+    "ndkstyleattrs_fuzzer:fuzztest",
     "ndktext_fuzzer:fuzztest",
     "ndktypography_fuzzer:fuzztest",
   ]

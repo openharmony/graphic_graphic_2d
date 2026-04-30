@@ -26,6 +26,7 @@
 #include "modifier_ng/appearance/rs_particle_effect_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -129,21 +130,52 @@ void AnimationCommandHelper::CreateInteractiveAnimator(RSContext& context,
     InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations,
     bool startImmediately)
 {
+    RS_TRACE_NAME_FMT("CreateInteractiveAnimator animator[%llu] animations[%zu] start[%d]",
+        targetId, animations.size(), startImmediately);
+    ROSEN_LOGI("AnimationCommandHelper::CreateInteractiveAnimator - id: %{public}" PRIu64
+        ", animations: %{public}zu, startImmediately: %{public}d", targetId, animations.size(), startImmediately);
+
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
         animator = std::make_shared<RSRenderInteractiveImplictAnimator>(targetId, context.weak_from_this());
         context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(animator);
     }
-    animator->AddAnimations(animations);
+    animator->AddAnimations(std::move(animations));
     if (startImmediately) {
         animator->ContinueAnimator();
     }
 }
 
+void AnimationCommandHelper::CreateInteractiveAnimatorGroup(RSContext& context,
+    InteractiveImplictAnimatorId groupId, std::vector<std::pair<NodeId, AnimationId>> animations,
+    bool startImmediately, const RSAnimationTimingProtocol& timingProtocol)
+{
+    RS_TRACE_NAME_FMT("CreateInteractiveAnimatorGroup animator[%llu] animations[%zu] start[%d]",
+        groupId, animations.size(), startImmediately);
+    ROSEN_LOGI("AnimationCommandHelper::CreateInteractiveAnimatorGroup - id: %{public}" PRIu64
+        ", animations: %{public}zu, startImmediately: %{public}d", groupId, animations.size(), startImmediately);
+
+    auto animator =
+        std::make_shared<RSRenderTimeDrivenGroupAnimator>(groupId, context.weak_from_this(), timingProtocol);
+    context.GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(animator);
+    animator->AddAnimations(std::move(animations));
+
+    if (startImmediately) {
+        auto currentTime = context.GetCurrentTimestamp();
+        animator->SetStartTime(currentTime);
+        animator->StartAnimator();
+    }
+}
+
 void AnimationCommandHelper::DestoryInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId)
 {
+    ROSEN_LOGI("AnimationCommandHelper::DestoryInteractiveAnimator - targetId: %{public}" PRIu64, targetId);
+    RS_TRACE_NAME_FMT("DestoryInteractiveAnimator animator[%llu]", targetId);
+
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
+        ROSEN_LOGW(
+            "AnimationCommandHelper::DestoryInteractiveAnimator - animator[%{public}" PRIu64 "] not found", targetId);
         return;
     }
     context.GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(targetId);
@@ -156,13 +188,18 @@ void AnimationCommandHelper::InteractiveAnimatorAddAnimations(RSContext& context
     if (animator == nullptr) {
         return;
     }
-    animator->AddAnimations(animations);
+    animator->AddAnimations(std::move(animations));
 }
 
 void AnimationCommandHelper::PauseInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId)
 {
+    ROSEN_LOGI("AnimationCommandHelper::PauseInteractiveAnimator - targetId: %{public}" PRIu64, targetId);
+    RS_TRACE_NAME_FMT("PauseInteractiveAnimator animator[%llu]", targetId);
+
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
+        ROSEN_LOGW(
+            "AnimationCommandHelper::PauseInteractiveAnimator - animator[%{public}" PRIu64 "] not found", targetId);
         return;
     }
     animator->PauseAnimator();
@@ -170,8 +207,13 @@ void AnimationCommandHelper::PauseInteractiveAnimator(RSContext& context, Intera
 
 void AnimationCommandHelper::ContinueInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId)
 {
+    ROSEN_LOGI("AnimationCommandHelper::ContinueInteractiveAnimator - targetId: %{public}" PRIu64, targetId);
+    RS_TRACE_NAME_FMT("ContinueInteractiveAnimator animator[%llu]", targetId);
+
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
+        ROSEN_LOGW(
+            "AnimationCommandHelper::ContinueInteractiveAnimator - animator[%{public}" PRIu64 "] not found", targetId);
         return;
     }
     animator->ContinueAnimator();
@@ -180,8 +222,14 @@ void AnimationCommandHelper::ContinueInteractiveAnimator(RSContext& context, Int
 void AnimationCommandHelper::FinishInteractiveAnimator(RSContext& context,
     InteractiveImplictAnimatorId targetId, RSInteractiveAnimationPosition finishPos)
 {
+    ROSEN_LOGI("AnimationCommandHelper::FinishInteractiveAnimator - targetId: %{public}" PRIu64
+        ", finishPos: %{public}d", targetId, static_cast<int>(finishPos));
+    RS_TRACE_NAME_FMT("FinishInteractiveAnimator animator[%llu] pos[%d]", targetId, static_cast<int>(finishPos));
+
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
+        ROSEN_LOGW(
+            "AnimationCommandHelper::FinishInteractiveAnimator - animator[%{public}" PRIu64 "] not found", targetId);
         return;
     }
     animator->FinishAnimator(finishPos);
@@ -189,18 +237,25 @@ void AnimationCommandHelper::FinishInteractiveAnimator(RSContext& context,
 
 void AnimationCommandHelper::ReverseInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId)
 {
+    ROSEN_LOGI("AnimationCommandHelper::ReverseInteractiveAnimator - targetId: %{public}" PRIu64, targetId);
+    RS_TRACE_NAME_FMT("ReverseInteractiveAnimator animator[%llu]", targetId);
+
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
+        ROSEN_LOGW(
+            "AnimationCommandHelper::ReverseInteractiveAnimator - animator[%{public}" PRIu64 "] not found", targetId);
         return;
     }
     animator->ReverseAnimator();
 }
 
-void AnimationCommandHelper::SetFractionInteractiveAnimator(RSContext& context,
-    InteractiveImplictAnimatorId targetId, float fraction)
+void AnimationCommandHelper::SetFractionInteractiveAnimator(
+    RSContext& context, InteractiveImplictAnimatorId targetId, float fraction)
 {
     auto animator = context.GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(targetId);
     if (animator == nullptr) {
+        ROSEN_LOGW("AnimationCommandHelper::SetFractionInteractiveAnimator - animator[%{public}" PRIu64 "] not found",
+            targetId);
         return;
     }
     animator->SetFractionAnimator(fraction);

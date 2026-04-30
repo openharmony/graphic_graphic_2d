@@ -84,10 +84,6 @@ public:
 
     // check if node is child of main screen or negative screen
     bool NodeIsInCardWhiteList(RSRenderNode& node);
-    bool GetCurrentFrameSkipFirstWait() const
-    {
-        return currentFrameCanSkipFirstWait_.load();
-    }
     bool CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node);
     void DisableUifirstNode(RSSurfaceRenderNode& node);
     static void ProcessTreeStateChange(RSSurfaceRenderNode& node);
@@ -191,7 +187,7 @@ public:
     {
         isFreeMultiWindowEnabled_ = enable;
     }
-    UiFirstModeType GetUiFirstMode();
+    UiFirstModeType GetUiFirstMode() const;
     void ReadUIFirstCcmParam();
     void RefreshUIFirstParam();
 
@@ -214,10 +210,20 @@ public:
         return !subthreadProcessingNode_.empty();
     }
 
+    void SetUIFirstLeashAllEnable(RSSurfaceRenderNode& surfaceNode);
+
     bool IsUIFirstDirtyEnabled() const
     {
         return GetUiFirstType() == UiFirstCcmType::MULTI && RSSystemProperties::GetUIFirstDirtyEnabled();
     }
+
+    bool IsOcclusionEnabled() const;
+    // only use in RT sync phase
+    bool IsNodeInSubthreadProcessing(NodeId id) const
+    {
+        return subthreadProcessingNode_.count(id) > 0;
+    }
+    bool IsLayerPartRenderDisableAnimation() const;
 private:
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;
@@ -292,12 +298,8 @@ private:
     bool HasStartingWindow(RSSurfaceRenderNode& node);
 
     void UpdateChildrenDirtyRect(RSSurfaceRenderNode& node);
-    bool EventsCanSkipFirstWait(std::vector<EventInfo>& events);
-    bool IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid);
     void EventDisableLeashWindowCache(NodeId id, EventInfo& info);
     void ConvertPendingNodeToDrawable();
-    void CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRenderNode& node);
-    void ResetCurrentFrameDeletedCardNodes();
     bool IsPreFirstLevelNodeDoingAndTryClear(std::shared_ptr<RSRenderNode> node);
     SkipSyncState CollectSkipSyncNodeWithDrawableState(const std::shared_ptr<RSRenderNode> &node);
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
@@ -327,20 +329,17 @@ private:
     bool isCardUiFirstOn_ = false;
     UiFirstCcmType uifirstType_ = UiFirstCcmType::SINGLE;
     bool isFreeMultiWindowEnabled_ = false;
-    std::atomic<bool> currentFrameCanSkipFirstWait_ = false;
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
     std::atomic<bool> isMissionCenterScene_ = false;
     std::atomic<bool> isSplitScreenScene_ = false;
     std::atomic<bool> isSnapshotRotationScene_ = false;
-    std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
     static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
     static constexpr int BEHIND_WINDOW_TIME_THRESHOLD = 3;
     // Minimum frame drop time in behind window condition
     static constexpr int BEHIND_WINDOW_RELEASE_TIME = 33;
     // the max Delivery time in behind window condition
     static constexpr int PURGE_BEHIND_WINDOW_TIME = BEHIND_WINDOW_RELEASE_TIME - BEHIND_WINDOW_TIME_THRESHOLD;
-    int32_t scbPid_ = 0;
     std::atomic<int> noUifirstNodeFrameCount_ = 0;
     NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
     NodeId negativeScreenNodeId_ = INVALID_NODEID; // negativeScreen surfaceNode ID
@@ -364,7 +363,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::shared_ptr<RSRenderNode>>> pendingSyncForSkipBefore_;
 
     // use in RT & subThread
-    std::mutex childernDrawableMutex_;
+    std::mutex childrenDrawableMutex_;
     std::vector<NodeId> subthreadProcessDoneNode_;
     std::mutex skippedNodeMutex_;
     std::unordered_set<NodeId> subthreadProcessSkippedNode_;
@@ -386,19 +385,6 @@ private:
     std::mutex globalFrameEventMutex_;
     std::vector<EventInfo> globalFrameEvent_; // <time, data>
     std::vector<EventInfo> currentFrameEvent_;
-    // scene in scb
-    const std::vector<std::string> cardCanSkipFirstWaitScene_ = {
-        { "INTO_HOME_ANI" }, // unlock to desktop
-        { "FINGERPRINT_UNLOCK_ANI" }, // finger unlock to desktop
-        { "SCREEN_OFF_FINGERPRINT_UNLOCK_ANI" }, // aod finger unlock
-        { "PASSWORD_UNLOCK_ANI" }, // password unlock to desktop
-        { "FACIAL_FLING_UNLOCK_ANI" }, // facial unlock to desktop
-        { "FACIAL_UNLOCK_ANI" }, // facial unlock to desktop
-        { "APP_SWIPER_SCROLL" }, // desktop swipe
-        { "APP_SWIPER_FLING" }, // desktop swipe
-        { "LAUNCHER_SCROLL" }, // desktop swipe
-        { "SCROLL_2_AA" }, // desktop to negativeScreen
-    };
     const std::vector<std::string> toSubByAppAnimation_ = {
         { "WINDOW_TITLE_BAR_MINIMIZED" },
         { "LAUNCHER_APP_LAUNCH_FROM_DOCK" },
@@ -411,7 +397,6 @@ private:
         { "ecoengine" },
     };
     std::vector<NodeId> capturedNodes_;
-    std::vector<NodeId> currentFrameDeletedCardNodes_;
 
     // maximum uifirst window count
     int uifirstWindowsNumThreshold_ = 0;
@@ -422,8 +407,12 @@ private:
 
     // auto clear the cache when cache reuse count reach threshold
     int clearCacheThreshold_ = 0;
+    // when all screens are power off, uifirst pending post nodes need purge.
+    bool allScreenPowerOffNeedPurge_ = false;
 
     float sizeChangedThreshold_ = 0.1f;
+
+    bool isUIFirstLeashAllEnable_ = false;
 };
 
 // If a subnode is delivered directly

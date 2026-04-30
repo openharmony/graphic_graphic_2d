@@ -37,7 +37,7 @@ ohos_fuzztest("TextLineBaseFuzzTest") {
     "./",
   ]
 
-  sources = [ "text_line_base_fuzzer.cpp" ]
+  sources = [ "textlinebase_fuzzer.cpp" ]
 
   cflags = [
     "-O0",

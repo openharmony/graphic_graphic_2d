@@ -44,7 +44,7 @@ std::optional<Drawing::ColorQuad> ColorPickAltManager::GetColorPick()
 }
 
 void ColorPickAltManager::ScheduleColorPick(
-    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params)
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params, NodeId filterId)
 {
     if (params.strategy == ColorPickStrategyType::NONE) {
         return;
@@ -57,7 +57,7 @@ void ColorPickAltManager::ScheduleColorPick(
     }
 
     auto ptr = std::static_pointer_cast<IColorPickerManager>(shared_from_this());
-    RSColorPickerUtils::ExtractSnapshotAndScheduleColorPick(canvas, rect, ptr);
+    RSColorPickerUtils::ExtractSnapshotAndScheduleColorPick(canvas, rect, ptr, filterId);
 }
 
 namespace {
@@ -98,6 +98,11 @@ void ColorPickAltManager::HandleColorUpdate(Drawing::ColorQuad newColor)
 void ColorPickAltManager::ResetColorMemory()
 {
     pickedLuminance_.store(RGBA_MAX + 1, std::memory_order_relaxed);
+}
+
+EquivalentDarkMode ColorPickAltManager::GetLastEquivalentDarkMode()
+{
+    return EquivalentDarkMode::INVALID;
 }
 
 } // namespace OHOS::Rosen

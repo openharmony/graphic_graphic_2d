@@ -118,7 +118,8 @@ enum class PanelPowerStatus : uint32_t {
 };
 
 typedef enum : uint32_t {
-    DISP_INTF_HDMI = 0,
+    DISP_INTF_UNKNOW = 0,
+    DISP_INTF_HDMI,
     DISP_INTF_LCD,
     DISP_INTF_BT1120,
     DISP_INTF_BT656,
@@ -129,6 +130,9 @@ typedef enum : uint32_t {
     DISP_INTF_VGA,
     DISP_INTF_MIPI,
     DISP_INTF_PANEL,
+    DISP_INTF_DP,
+    DISP_INTF_EDP,
+    DISP_INTF_GPMI,
     DISP_INTF_BUTT,
     DISP_INVALID,
 } ScreenInterfaceType;
@@ -200,7 +204,6 @@ typedef enum : uint32_t {
     INVALID_ARGUMENTS,
     WRITE_PARCEL_ERR,
     HDI_ERROR,
-    SCREEN_MANAGER_NULL,
     BLACKLIST_IS_EMPTY,
     SET_RATE_ERROR,
     VIRTUAL_SCREEN,
@@ -306,7 +309,7 @@ inline int32_t ScreenRotationMapping(ScreenRotation screenCorrection)
         RS_ROTATION_0 : static_cast<int32_t>(screenCorrection) * RS_ROTATION_90;
 }
 
-typedef enum {
+typedef enum : uint8_t {
     SKIP_FRAME_BY_INTERVAL,
     SKIP_FRAME_BY_REFRESH_RATE,
     SKIP_FRAME_BY_ACTIVE_REFRESH_RATE,

@@ -23,6 +23,7 @@
 #include "common/rs_occlusion_region.h"
 #include "common/rs_special_layer_manager.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "feature/uifirst/rs_uifirst_params.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
@@ -37,9 +38,9 @@ namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
 struct RSLayerInfo {
 #ifndef ROSEN_CROSS_PLATFORM
-    GraphicIRect srcRect;
-    GraphicIRect dstRect;
-    GraphicIRect boundRect;
+    GraphicIRect srcRect = {0};
+    GraphicIRect dstRect = {0};
+    GraphicIRect boundRect = {0};
     Drawing::Matrix matrix;
     int32_t gravity = 0;
     int32_t zOrder = 0;
@@ -78,6 +79,7 @@ struct RSWindowInfo {
         isAppWindow_ = isAppWindow;
     }
 };
+
 class RSB_EXPORT RSSurfaceRenderParams : public RSRenderParams {
 public:
     explicit RSSurfaceRenderParams(NodeId id);
@@ -106,6 +108,13 @@ public:
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
         return rsSurfaceNodeType_;
+    }
+
+    bool IsSelfDrawingType() const
+    {
+        return rsSurfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+                rsSurfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+                rsSurfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -207,63 +216,83 @@ public:
     // [Attention] The function only used for unlocking screen for PC currently
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetClonedNodeRenderDrawable();
 
-    bool SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
+    // UIFirst state flag methods
+    bool SetUifirstNodeEnableParam(MultiThreadCacheType cacheType)
     {
-        if (uiFirstFlag_ == isUifirst) {
+        if (uifirstParams_.cacheType == cacheType) {
             return false;
         }
-        uiFirstFlag_ = isUifirst;
+        uifirstParams_.cacheType = cacheType;
         needSync_ = true;
         return true;
     }
 
     MultiThreadCacheType GetUifirstNodeEnableParam() const
     {
-        return uiFirstFlag_;
+        return uifirstParams_.cacheType;
     }
 
     void SetIsParentUifirstNodeEnableParam(bool isUifirstParent)
     {
-        if (uiFirstParentFlag_ == isUifirstParent) {
+        if (uifirstParams_.parentEnabled == isUifirstParent) {
             return;
         }
-        uiFirstParentFlag_ = isUifirstParent;
+        uifirstParams_.parentEnabled = isUifirstParent;
         needSync_ = true;
+    }
+
+    bool GetParentUifirstNodeEnableParam()
+    {
+        return uifirstParams_.parentEnabled;
     }
 
     void SetUifirstStartingWindowId(NodeId id)
     {
-        if (uifirstStartingWindowId_ == id) {
+        if (uifirstParams_.startingWindowId == id) {
             return;
         }
-        uifirstStartingWindowId_ = id;
+        uifirstParams_.startingWindowId = id;
         needSync_ = true;
     }
 
     NodeId GetUifirstStartingWindowId() const
     {
-        return uifirstStartingWindowId_;
+        return uifirstParams_.startingWindowId;
     }
 
     void SetUifirstChildrenDirtyRectParam(const RectI& rect)
     {
-        childrenDirtyRect_ = rect;
+        uifirstParams_.childrenDirtyRect = rect;
         needSync_ = true;
     }
 
     RectI& GetUifirstChildrenDirtyRectParam()
     {
-        return childrenDirtyRect_;
+        return uifirstParams_.childrenDirtyRect;
     }
 
     void SetUIFirstVisibleFilterRect(const RectI& rect)
     {
-        uiFirstVisibleFilterRect_ = rect;
+        uifirstParams_.visibleFilterRect = rect;
     }
 
     const RectI& GetUifirstVisibleFilterRect()
     {
-        return uiFirstVisibleFilterRect_;
+        return uifirstParams_.visibleFilterRect;
+    }
+
+    void SetUIFirstFrameGravity(Gravity gravity)
+    {
+        if (uifirstParams_.frameGravity == gravity) {
+            return;
+        }
+        uifirstParams_.frameGravity = gravity;
+        needSync_ = true;
+    }
+
+    Gravity GetUIFirstFrameGravity() const
+    {
+        return uifirstParams_.frameGravity;
     }
 
     const RectI& GetDstRect() const
@@ -285,23 +314,20 @@ public:
     void SetSurfaceSubTreeDirty(bool isSubTreeDirty);
     bool GetSurfaceSubTreeDirty() const;
 
-    bool GetParentUifirstNodeEnableParam()
+    void SetUIFirstLeashAllEnable(bool isEnable);
+    bool IsUIFirstLeashAllEnable() const override;
+
+    void SetPartialSynced(bool isPartialSynced);
+    bool IsPartialSynced() const;
+
+    inline void UpdateLastCacheSize()
     {
-        return uiFirstParentFlag_;
+        uifirstParams_.lastCacheSize = GetCacheSize();
     }
 
-    void SetUIFirstFrameGravity(Gravity gravity)
+    inline Vector2f GetLastCacheSize() const
     {
-        if (uiFirstFrameGravity_ == gravity) {
-            return;
-        }
-        uiFirstFrameGravity_ = gravity;
-        needSync_ = true;
-    }
-
-    Gravity GetUIFirstFrameGravity() const
-    {
-        return uiFirstFrameGravity_;
+        return uifirstParams_.lastCacheSize;
     }
 
     RectI GetScreenRect() const;
@@ -409,27 +435,26 @@ public:
     ScreenId GetScreenId() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
+    void SetBuffer(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect) override;
     sptr<SurfaceBuffer> GetBuffer() const override;
-    void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer) override;
+    void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount) override;
     sptr<SurfaceBuffer> GetPreBuffer() override;
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;
     const Rect& GetBufferDamage() const override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetPreBufferOwnerCount() const override;
     inline void SetBufferSynced(bool bufferSynced)
     {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager SetBufferSynced RSSurfaceRenderNode bufferSynced %d %" PRIu64,
+            bufferSynced, preBufferOwnerCount_ ? preBufferOwnerCount_->bufferId_ : 0);
         bufferSynced_ = bufferSynced;
     }
     bool IsBufferSynced() const
     {
         return bufferSynced_;
-    }
-    // hpae offline: when surface node using hpae offline and doing directly compotition,
-    // the origin buffer will not be synced by hwc.
-    // While taking capture, bufferSynced_ should be set to false
-    void SetOfflineOriginBufferSynced(bool bufferSynced)
-    {
-        offlineOriginBufferSynced_ = bufferSynced;
     }
 #endif
 
@@ -639,6 +664,16 @@ public:
         isRelatedSourceNode_ = value;
     }
 
+    void SetNeedClearRelatedCache(bool value)
+    {
+        needClearRelatedCache_ = value;
+    }
+
+    bool IsNeedClearRelatedCache()
+    {
+        return needClearRelatedCache_;
+    }
+
     bool IsRelatedSourceNode() const
     {
         return isRelatedSourceNode_;
@@ -778,16 +813,6 @@ public:
 #endif
     }
 
-    inline void UpdateLastCacheSize()
-    {
-        lastCacheSize_ = GetCacheSize();
-    }
-
-    inline Vector2f GetLastCacheSize() const
-    {
-        return lastCacheSize_;
-    }
-
     // only use for window capture when isSyncRender is true
     void RegisterCaptureCallback(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& config)
     {
@@ -812,6 +837,10 @@ public:
     void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
     int32_t GetRotationCorrectionDegree() const;
 
+    void SetIsParticipateInOcclusion(bool isParticipateInOcclusion);
+    bool GetIsParticipateInOcclusion() const;
+
+    void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
@@ -827,24 +856,22 @@ private:
     bool isRelated_ = false;
     bool clonedSourceNode_ = false;
     bool isRelatedSourceNode_ = false;
+    bool needClearRelatedCache_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;
     bool isParentScaling_ = false;
     bool needBilinearInterpolation_ = false;
-    MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
-    bool uiFirstParentFlag_ = false;
-    NodeId uifirstStartingWindowId_ = INVALID_NODEID;
-    RectI uiFirstVisibleFilterRect_;
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
     RectI screenRect_;
     Drawing::Matrix dirtyRegionMatrix_;
     Color solidLayerColor_ = RgbPalette::Transparent();
 
+    RSUIFirstRenderParams uifirstParams_;
+
     RectI dstRect_;
     RectI oldDirtyInSurface_;
-    RectI childrenDirtyRect_;
     RRect rrect_;
     Rect ancoSrcCrop_{};
     uint32_t ancoFlags_ = 0;
@@ -877,7 +904,8 @@ private:
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
     bool bufferSynced_ = true;
-    bool offlineOriginBufferSynced_ = true;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount_ = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
 #endif
     bool isHardwareEnabled_ = false;
     bool needMakeImage_ = false;
@@ -891,8 +919,6 @@ private:
     bool isRotating_ = false;
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
-    Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
-    Vector2f lastCacheSize_ = {0.f, 0.f};
     bool isNodeToBeCaptured_ = false;
     RSSpecialLayerManager specialLayerManager_;
     std::set<NodeId> privacyContentLayerIds_ = {};
@@ -950,6 +976,7 @@ private:
     bool isBufferFlushed_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
+    bool isParticipateInOcclusion_ = false;
 
     // only used for window capture
     sptr<RSISurfaceCaptureCallback> captureCallback_;

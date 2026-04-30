@@ -14,8 +14,8 @@
  */
 
 #include "gtest/gtest.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_processor_factory.h"
-#include "screen_manager/rs_screen_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,7 +46,9 @@ HWTEST_F(RSProcessorFactoryTest, CreateAndDestroy001, TestSize.Level1)
     // The using of RSProcessorFactory destructor is not suggested, but allowed.
     // Use its static function by :: first.
     RSProcessorFactory f;
-    auto p = f.CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto p = f.CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_FALSE(nullptr == p);
 }
 
@@ -58,7 +60,9 @@ HWTEST_F(RSProcessorFactoryTest, CreateAndDestroy001, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor001, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_FALSE(nullptr == p);
 }
 
@@ -70,7 +74,9 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor001, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_FALSE(nullptr == p);
 }
 
@@ -82,7 +88,79 @@ HWTEST_F(RSProcessorFactoryTest, CreateProcessor002, TestSize.Level1)
  */
 HWTEST_F(RSProcessorFactoryTest, CreateProcessor003, TestSize.Level1)
 {
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     EXPECT_TRUE(nullptr != p);
+}
+
+/**
+ * @tc.name: CreateProcessor_SOFTWARE
+ * @tc.desc: Create shared pointer of RSVirtualScreenProcessor via SOFTWARE_COMPOSITE
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXXX
+ */
+HWTEST_F(RSProcessorFactoryTest, CreateProcessor_SOFTWARE, TestSize.Level1)
+{
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::SOFTWARE_COMPOSITE, 0);
+    EXPECT_NE(p, nullptr);
+}
+
+/**
+ * @tc.name: CreateProcessor_UNI_RENDER
+ * @tc.desc: Create shared pointer for UNI_RENDER_COMPOSITE under GPU guard, else expect nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXXX
+ */
+HWTEST_F(RSProcessorFactoryTest, CreateProcessor_UNI_RENDER, TestSize.Level1)
+{
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+#ifdef RS_ENABLE_GPU
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, 0);
+    EXPECT_NE(p, nullptr);
+#else
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, 0);
+    EXPECT_EQ(p, nullptr);
+#endif
+}
+
+/**
+ * @tc.name: CreateProcessor_UNI_RENDER_VIRTUAL
+ * @tc.desc: Create shared pointer for mirror/expand composite under GPU guard, else expect nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXXX
+ */
+HWTEST_F(RSProcessorFactoryTest, CreateProcessor_UNI_RENDER_VIRTUAL, TestSize.Level1)
+{
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+#ifdef RS_ENABLE_GPU
+    auto pm = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
+    auto pe = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_EXPAND_COMPOSITE, 0);
+    EXPECT_NE(pm, nullptr);
+    EXPECT_NE(pe, nullptr);
+#else
+    auto pm = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
+    auto pe = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_EXPAND_COMPOSITE, 0);
+    EXPECT_EQ(pm, nullptr);
+    EXPECT_EQ(pe, nullptr);
+#endif
+}
+
+/**
+ * @tc.name: CreateProcessor_DefaultBranch_ReturnsNull
+ * @tc.desc: Passing an invalid CompositeType should hit default and return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSProcessorFactoryTest, CreateProcessor_DefaultBranch_ReturnsNull, TestSize.Level1)
+{
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto invalidType = static_cast<CompositeType>(99999);
+    auto p = RSProcessorFactory::CreateProcessor(invalidType, 0);
+    EXPECT_EQ(p, nullptr);
 }
 } // namespace OHOS::Rosen

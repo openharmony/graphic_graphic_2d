@@ -239,6 +239,8 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsYUVBufferFormatTest, TestSize.Level1)
     renderNode->GetRSSurfaceHandler()->buffer_.buffer = surfaceBufferImpl;
     EXPECT_FALSE(renderNode->IsYUVBufferFormat());
     auto handle = new BufferHandle();
+    ASSERT_NE(handle, nullptr);
+    handle->fd = -1;
     handle->format = 20;
     surfaceBufferImpl->handle_ = handle;
     EXPECT_FALSE(renderNode->IsYUVBufferFormat());
@@ -567,9 +569,9 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetForceUIFirstTest, TestSize.Level1)
 {
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     renderNode->SetForceUIFirst(false);
-    EXPECT_FALSE(renderNode->forceUIFirst_);
+    EXPECT_FALSE(renderNode->uifirstState_.forceUIFirst);
     renderNode->SetForceUIFirst(true);
-    EXPECT_TRUE(renderNode->forceUIFirstChanged_);
+    EXPECT_TRUE(renderNode->uifirstState_.forceStateChanged);
 }
 
 /**

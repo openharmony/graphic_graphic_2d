@@ -21,6 +21,14 @@ text_fuzz_out_path = "graphic_2d/graphic_2d"
 rosen_is_ohos = current_os == "ohos"
 platform_is_ohos = rosen_is_ohos || current_os == "ohos_ng"
 
+declare_args() {
+  text_histogram_enable = true
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.hiviewdfx_api_metrics)) {
+    text_histogram_enable = false
+  }
+}
+
 platform = current_os
 if (platform == "mingw") {
   platform = "windows"

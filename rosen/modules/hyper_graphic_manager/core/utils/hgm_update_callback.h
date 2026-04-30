@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,11 +25,11 @@ namespace Rosen {
 class HgmUpdateCallback {
 public:
     using UpdateCallback = std::function<void(HgmUpdateCallback&)>;
+
     HgmUpdateCallback() = default;
     virtual ~HgmUpdateCallback() = default;
 
-    void RegisterUpdateCallback(const UpdateCallback& callback)
-    {
+    void RegisterUpdateCallback(const UpdateCallback& callback) {
         if (callback == nullptr) {
             return;
         }
@@ -37,8 +37,7 @@ public:
         updateCallback_.emplace_back(callback);
     }
 
-    virtual void OnUpdate()
-    {
+    virtual void OnUpdate() {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& callback : updateCallback_) {
             if (callback != nullptr) {
@@ -46,6 +45,7 @@ public:
             }
         }
     }
+
 protected:
     mutable std::mutex mutex_;
     std::vector<UpdateCallback> updateCallback_;

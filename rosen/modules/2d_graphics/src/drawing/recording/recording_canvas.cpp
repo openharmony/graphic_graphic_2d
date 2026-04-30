@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -292,6 +292,28 @@ void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
     cmdList_->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, mode);
 }
 
+void RecordingCanvas::DrawUIColor(UIColor color, BlendMode mode)
+{
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<DrawUIColorOpItem>(color, mode));
+        return;
+    }
+    cmdList_->AddDrawOp<DrawUIColorOpItem::ConstructorHandle>(color, mode);
+}
+
+void RecordingCanvas::DrawParticle(std::shared_ptr<ParticleEffect> particle)
+{
+    if (!particle) {
+        return;
+    }
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<DrawParticleOpItem>(particle));
+        return;
+    }
+    auto effectHandle = CmdListHelper::AddParticleEffectToCmdList(*cmdList_, particle);
+    cmdList_->AddDrawOp<DrawParticleOpItem::ConstructorHandle>(effectHandle);
+}
+
 void RecordingCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
     int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
 {
@@ -408,6 +430,30 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
     cmdList_->AddDrawOp<DrawPictureOpItem::ConstructorHandle>(pictureHandle);
 }
 
+void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point pts[],
+                                 Point origin, const Font* font)
+{
+    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32;
+    if (count <= 0) {
+        return;
+    }
+    std::vector<uint16_t> glyphIDs(glyphs, glyphs + count);
+    std::vector<Point> positions(pts, pts + count);
+    if (!addDrawOpImmediate_) {
+        AddDrawOpDeferred<DrawGlyphsOpItem>(glyphIDs, positions, origin, font);
+        return;
+    }
+    auto fontHandle = CmdListHelper::AddFontToCmdList(*cmdList_, font);
+    auto glyphIDsData = CmdListHelper::AddVectorToCmdList<uint16_t>(*cmdList_, glyphIDs);
+    auto positionsData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, positions);
+    uint64_t globalUniqueId = 0;
+    if (font && font->GetTypeface() != nullptr) {
+        globalUniqueId = (shiftedPid | font->GetTypeface()->GetUniqueID());
+    }
+    AddDrawOpImmediate<DrawGlyphsOpItem::ConstructorHandle>(glyphIDsData, positionsData, origin, fontHandle,
+                                                            globalUniqueId);
+}
+
 void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
 {
     static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
@@ -431,8 +477,9 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
     if (ctx.GetTypeface() != nullptr) {
         globalUniqueId = (shiftedPid | ctx.GetTypeface()->GetUniqueID());
     }
-    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle,
-        globalUniqueId, blob->GetTextContrast(), x, y);
+    TextBlobRenderOption opt = TextBlobRenderOption(blob->GetTextContrast(),
+                                                    blob->IsSpeedOverQualityPreferred());
+    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, globalUniqueId, opt, x, y);
 }
 
 void RecordingCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
@@ -512,6 +559,17 @@ void RecordingCanvas::ClipRegion(const Region& region, ClipOp op)
     }
     auto regionHandle = CmdListHelper::AddRegionToCmdList(*cmdList_, region);
     cmdList_->AddDrawOp<ClipRegionOpItem::ConstructorHandle>(regionHandle, op);
+}
+
+void RecordingCanvas::ResetClip()
+{
+    CheckForLazySave();
+    Canvas::ResetClip();
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<ResetClipOpItem>());
+        return;
+    }
+    cmdList_->AddDrawOp<ResetClipOpItem::ConstructorHandle>();
 }
 
 void RecordingCanvas::SetMatrix(const Matrix& matrix)

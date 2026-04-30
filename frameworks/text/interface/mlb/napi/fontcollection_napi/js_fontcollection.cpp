@@ -22,6 +22,7 @@
 #include "file_ex.h"
 #include "font_collection_mgr.h"
 #include "napi/native_node_api.h"
+#include "utils/text_histogram.h"
 
 namespace OHOS::Rosen {
 namespace {
@@ -102,6 +103,7 @@ bool JsFontCollection::CreateConstructor(napi_env env)
         DECLARE_NAPI_STATIC_FUNCTION("getLocalInstance", JsFontCollection::GetLocalInstance),
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
         DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
+        DECLARE_NAPI_FUNCTION("setParagraphCachesEnabled", JsFontCollection::SetCachesEnabled),
         DECLARE_NAPI_FUNCTION("loadFont", JsFontCollection::LoadFontAsync),
         DECLARE_NAPI_FUNCTION("unloadFontSync", JsFontCollection::UnloadFontSync),
         DECLARE_NAPI_FUNCTION("unloadFont", JsFontCollection::UnloadFontAsync),
@@ -236,7 +238,13 @@ napi_value JsFontCollection::GetLocalInstance(napi_env env, napi_callback_info i
 napi_value JsFontCollection::LoadFontSync(napi_env env, napi_callback_info info)
 {
     JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
-    return (me != nullptr) ? me->OnLoadFont(env, info).result : nullptr;
+    if (me == nullptr) {
+        TEXT_HISTOGRAM_BOOLEAN(false);
+        return nullptr;
+    }
+    auto result = me->OnLoadFont(env, info);
+    TEXT_HISTOGRAM_BOOLEAN(result.success);
+    return result.result;
 }
 
 
@@ -244,14 +252,15 @@ napi_value JsFontCollection::LoadFontSyncWithCheck(napi_env env, napi_callback_i
 {
     JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
     if (me == nullptr) {
+        TEXT_HISTOGRAM_BOOLEAN(false);
         return NapiThrowError(env, MLB::ERROR_INVALID_PARAM, "invalid param");
     }
     auto result = me->OnLoadFont(env, info);
+    TEXT_HISTOGRAM_BOOLEAN(result.success);
     if (result.success) {
         return NapiGetUndefined(env);
-    } else {
-        return NapiThrowError(env, result.errorCode, result.ToString());
     }
+    return NapiThrowError(env, result.errorCode, result.ToString());
 }
 
 napi_value JsFontCollection::LoadFontAsyncWithCheck(napi_env env, napi_callback_info info)
@@ -383,6 +392,43 @@ NapiTextResult JsFontCollection::OnClearCaches(napi_env env, napi_callback_info 
     return NapiTextResult::Success(NapiGetUndefined(env));
 }
 
+napi_value JsFontCollection::SetCachesEnabled(napi_env env, napi_callback_info info)
+{
+    JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
+    return (me != nullptr) ? me->OnSetCachesEnabled(env, info).result : nullptr;
+}
+
+NapiTextResult JsFontCollection::OnSetCachesEnabled(napi_env env, napi_callback_info info)
+{
+    if (fontcollection_ == nullptr) {
+        TEXT_LOGE("Null font collection");
+        return NapiTextResult::Invalid(
+            "Internal Error", NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
+                "JsFontCollection::OnSetCachesEnabled fontCollection is nullptr."));
+    }
+    uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
+    if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, fontcollection_)) {
+        TEXT_LOGE("Failed to check local instance");
+        return NapiTextResult::Invalid();
+    }
+    size_t argc = 1;
+    napi_value args[1] = { nullptr };
+    napi_status status = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (status != napi_ok || argc < 1) {
+        return NapiTextResult::Invalid(
+            "Parameter Error", NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
+                "set Paragraph Caches failed, require a boolean parameter."));
+    }
+    bool enable = false;
+    if (!ConvertFromJsValue(env, args[0], enable)) {
+        return NapiTextResult::Invalid(
+            "Parameter Error", NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
+                "set Paragraph Caches failed, parameter must be boolean."));
+    }
+    fontcollection_->SetCachesEnabled(enable);
+    return NapiTextResult::Success(NapiGetUndefined(env));
+}
+
 napi_value JsFontCollection::LoadFontAsync(napi_env env, napi_callback_info info)
 {
     JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
@@ -458,7 +504,14 @@ NapiTextResult JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_inf
         GetFilePathResource(env, argv, context);
     };
     context->GetCbInfo(env, info, inputParser);
-    auto executor = [this, context]() { OnLoadFontAsyncExecutor(context); };
+    auto executor = [this, context, withCheck]() {
+        OnLoadFontAsyncExecutor(context);
+        if (withCheck) {
+            TEXT_HISTOGRAM_BOOLEAN_NAME("LoadFontWithCheck", context->result.success);
+        } else {
+            TEXT_HISTOGRAM_BOOLEAN_NAME("LoadFont", context->result.success);
+        }
+    };
     auto complete = [env, context, withCheck](napi_value& output) {
         if (withCheck && !context->result.success) {
             context->errCode = context->result.errorCode;
@@ -472,6 +525,7 @@ NapiTextResult JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_inf
 
 napi_value JsFontCollection::UnloadFontAsync(napi_env env, napi_callback_info info)
 {
+    TEXT_HISTOGRAM_BOOLEAN(true);
     JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
     return (me != nullptr) ? me->OnUnloadFontAsync(env, info).result : nullptr;
 }
@@ -479,7 +533,13 @@ napi_value JsFontCollection::UnloadFontAsync(napi_env env, napi_callback_info in
 napi_value JsFontCollection::UnloadFontSync(napi_env env, napi_callback_info info)
 {
     JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
-    return (me != nullptr) ? me->OnUnloadFont(env, info).result : nullptr;
+    if (me == nullptr) {
+        TEXT_HISTOGRAM_BOOLEAN(false);
+        return nullptr;
+    }
+    auto result = me->OnUnloadFont(env, info);
+    TEXT_HISTOGRAM_BOOLEAN(result.success);
+    return result.result;
 }
 
 NapiTextResult JsFontCollection::OnUnloadFontAsync(napi_env env, napi_callback_info info)

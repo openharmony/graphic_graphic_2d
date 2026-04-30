@@ -16,7 +16,7 @@
 #ifndef RS_CORE_PIPELINE_VIRTUAL_SCREEN_PROCESSOR_H
 #define RS_CORE_PIPELINE_VIRTUAL_SCREEN_PROCESSOR_H
 
-#include "rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "pipeline/rs_processor.h"
 
 namespace OHOS {
@@ -31,8 +31,7 @@ public:
     
     RSVirtualScreenProcessor();
     ~RSVirtualScreenProcessor() noexcept override;
-    bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-              std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
+    bool Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
 
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessScreenSurface(RSScreenRenderNode& node) override;

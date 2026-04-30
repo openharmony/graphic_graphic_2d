@@ -35,5 +35,14 @@ namespace OHOS {
 #define HGM_LOGI(fmt, ...) HGM_CPRINTF(LOG_INFO, fmt, ##__VA_ARGS__)
 #define HGM_LOGW(fmt, ...) HGM_CPRINTF(LOG_WARN, fmt, ##__VA_ARGS__)
 #define HGM_LOGE(fmt, ...) HGM_CPRINTF(LOG_ERROR, fmt, ##__VA_ARGS__)
+
+#define CONDITION(cond)     (__builtin_expect((cond) != 0, 0))
+
+#ifndef HGM_LOGD_IF
+#define HGM_LOGD_IF(cond, fmt, ...) \
+    ( (CONDITION(cond)) \
+    ? ((void)HGM_CPRINTF(LOG_DEBUG, fmt, ##__VA_ARGS__)) \
+    : (void)0)
+#endif
 } // namespace OHOS
 #endif // HGM_CONFIG_LOG_H

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,6 +82,10 @@ public:
     static void DrawSingleCharacter(ani_env* env, ani_object obj, ani_string text,
         ani_object fontObj, ani_double x, ani_double y);
     static void DrawTextBlob(ani_env* env, ani_object obj, ani_object textBlobObj, ani_double x, ani_double y);
+    static void DrawGlyphs(ani_env* env, ani_object obj,
+                           ani_array glyphIdsObj, ani_int glyphIdOffset,
+                           ani_array positionsObj, ani_int positionOffset,
+                           ani_int glyphCount, ani_object fontObj);
     static void DrawOval(ani_env* env, ani_object obj, ani_object rectObj);
     static void DrawArc(ani_env* env, ani_object obj, ani_object rectObj,
         ani_double startAngle, ani_double sweepAngle);
@@ -92,7 +96,7 @@ public:
     static void DrawRegion(ani_env* env, ani_object obj, ani_object regionObj);
     static void DrawPixelMapMesh(ani_env* env, ani_object obj,
         ani_object pixelmapObj, ani_int aniMeshWidth, ani_int aniMeshHeight,
-        ani_array verticesObj, ani_int aniVertOffset, ani_array colorsObj, ani_int aniColorOffset);
+        ani_array verticesObj, ani_int aniVertOffset, ani_object colorsObj, ani_int aniColorOffset);
     static void DrawVertices(ani_env* env, ani_object obj, ani_enum_item aniVertexMode,
         ani_int aniVertexCount, ani_array positionsObj, ani_object texsObj,
         ani_object colorsObj, ani_int aniIndexCount, ani_object indicesObj, ani_enum_item aniBlendMode);
@@ -124,8 +128,10 @@ public:
     static ani_boolean IsClipEmpty(ani_env* env, ani_object obj);
     static void SetMatrix(ani_env* env, ani_object obj, ani_object matrixObj);
     static void ResetMatrix(ani_env* env, ani_object obj);
+    static void ResetClip(ani_env* env, ani_object obj);
     static ani_boolean QuickRejectPath(ani_env* env, ani_object obj, ani_object pathObj);
     static ani_boolean QuickRejectRect(ani_env* env, ani_object obj, ani_object rectObj);
+    static ani_boolean IsOpaque(ani_env* env, ani_object obj);
     static void DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, ani_string text, ani_object font,
         ani_double x, ani_double y, ani_array features);
 
@@ -156,8 +162,12 @@ private:
         std::vector<Drawing::Point>& pointPositions);
     static bool GetTexs(ani_env* env, ani_int vertexCount, ani_object texsObj,
         std::vector<Drawing::Point>& pointTexs);
+    static bool GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
+                            ani_array glyphIdsObj, std::unique_ptr<uint16_t[]>& glyphIds);
+    static bool GetGlyphPositions(ani_env* env, ani_int positionCount,
+                                  ani_array positionsObj, std::unique_ptr<Drawing::Point[]>& positions);
     static bool CheckDrawVerticesParams(ani_env* env, ani_int& vertexCount, ani_int& indexCount);
-    static void GetColorsAndDraw(ani_env* env, ani_array colorsObj, int32_t colorOffset,
+    static void GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t colorOffset,
         DrawPixelMapMeshArgs& args, AniCanvas* aniCanvas);
     std::shared_ptr<Media::PixelMap>* GetPixelMapPtrAddr();
 #endif

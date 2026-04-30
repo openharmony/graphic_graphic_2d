@@ -22,6 +22,7 @@ export namespace hdrCapability {
     IMAGE_HDR_VIVID_DUAL = 4,
     IMAGE_HDR_VIVID_SINGLE = 5,
     IMAGE_HDR_ISO_DUAL = 6,
-    IMAGE_HDR_ISO_SINGLE = 7
+    IMAGE_HDR_ISO_SINGLE = 7,
+    VIDEO_AIHDR = 8
   }
 }

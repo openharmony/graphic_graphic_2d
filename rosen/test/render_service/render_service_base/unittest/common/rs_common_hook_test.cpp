@@ -36,7 +36,7 @@ void RsCommonHookTest::TearDown() {}
 /**
  * @tc.name: OnStartNewAnimationTest1
  * @tc.desc: test results of OnStartNewAnimationTest1
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
 HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest1, TestSize.Level1)
@@ -52,7 +52,7 @@ HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest1, TestSize.Level1)
 /**
  * @tc.name: OnStartNewAnimationTest2
  * @tc.desc: test results of OnStartNewAnimationTest2
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
 HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest2, TestSize.Level1)
@@ -66,7 +66,7 @@ HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest2, TestSize.Level1)
 /**
  * @tc.name: GetComponentPowerFpsTest
  * @tc.desc: test results of GetComponentPowerFpsTest
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesIA96Q3
  */
 HWTEST_F(RsCommonHookTest, GetComponentPowerFpsTest, TestSize.Level1)
@@ -83,7 +83,7 @@ HWTEST_F(RsCommonHookTest, GetComponentPowerFpsTest, TestSize.Level1)
 /**
  * @tc.name: SetAdaptiveColorGamutEnableTest
  * @tc.desc: Verify the SetAdaptiveColorGamutEnableTest and IsAdaptiveColorGamutEnabled
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesIC82H3
  */
 HWTEST_F(RsCommonHookTest, SetAdaptiveColorGamutEnableTest, TestSize.Level1)
@@ -95,9 +95,23 @@ HWTEST_F(RsCommonHookTest, SetAdaptiveColorGamutEnableTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetForceSRGBOutputTest
+ * @tc.desc: Verify the SetForceSRGBOutput and IsForceSRGBOutputEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsCommonHookTest, SetForceSRGBOutputTest, TestSize.Level1)
+{
+    RsCommonHook::Instance().SetForceSRGBOutput(true);
+    ASSERT_EQ(RsCommonHook::Instance().IsForceSRGBOutputEnabled(), true);
+    RsCommonHook::Instance().SetForceSRGBOutput(false);
+    ASSERT_EQ(RsCommonHook::Instance().IsForceSRGBOutputEnabled(), false);
+}
+
+/**
  * @tc.name: SetAndGetBundleNameTest
  * @tc.desc: test results of SetTvPlayerBundleName and GetTvPlayerBundleName
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RsCommonHookTest, SetAndGetBundleNameTest, TestSize.Level1)
@@ -111,7 +125,7 @@ HWTEST_F(RsCommonHookTest, SetAndGetBundleNameTest, TestSize.Level1)
 /**
  * @tc.name: SetFilterUnderHwcConfigByAppTest
  * @tc.desc: test results of SetFilterUnderHwcConfigByApp and GetFilterUnderHwcConfigByApp
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesICKNNB
  */
 HWTEST_F(RsCommonHookTest, SetAndGetFilterUnderHwcConfigByAppTest, TestSize.Level1)
@@ -127,7 +141,7 @@ HWTEST_F(RsCommonHookTest, SetAndGetFilterUnderHwcConfigByAppTest, TestSize.Leve
 /**
  * @tc.name: SetAndGetOverlappedHwcNodeInAppEnabledConfig
  * @tc.desc: test results of SetOverlappedHwcNodeInAppEnabledConfig and GetOverlappedHwcNodeInAppEnabledConfig
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issuesICKNNB
  */
 HWTEST_F(RsCommonHookTest, SetAndGetOverlappedHwcNodeInAppEnabledConfig, TestSize.Level1)
@@ -144,7 +158,7 @@ HWTEST_F(RsCommonHookTest, SetAndGetOverlappedHwcNodeInAppEnabledConfig, TestSiz
 /**
  * @tc.name: SetAndGetImageEnhancePidListTest
  * @tc.desc: test results of SetImageEnhancePidList and GetImageEnhancePidList
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RsCommonHookTest, SetAndGetImageEnhancePidListTest, TestSize.Level1)
@@ -168,7 +182,7 @@ HWTEST_F(RsCommonHookTest, SetAndGetImageEnhancePidListTest, TestSize.Level1)
 /**
  * @tc.name: SetAndGetImageEnhanceParamsTest
  * @tc.desc: test results of SetImageEnhanceParams and GetImageEnhanceParams
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RsCommonHookTest, SetAndGetImageEnhanceParamsTest, TestSize.Level1)
@@ -186,7 +200,7 @@ HWTEST_F(RsCommonHookTest, SetAndGetImageEnhanceParamsTest, TestSize.Level1)
 /**
  * @tc.name: SetAndGetImageEnhanceAlgoParams
  * @tc.desc: test results of SetImageEnhanceAlgoParams and GetImageEnhanceAlgoParams
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RsCommonHookTest, SetAndGetImageEnhanceAlgoParams, TestSize.Level1)
@@ -197,5 +211,44 @@ HWTEST_F(RsCommonHookTest, SetAndGetImageEnhanceAlgoParams, TestSize.Level1)
     RsCommonHook::Instance().SetImageEnhanceAlgoParams(testImageEnhanceAlgoParams);
     auto result1 = RsCommonHook::Instance().GetImageEnhanceAlgoParams("algoTest");
     EXPECT_EQ(result1.isValid, algoParam1.isValid);
+}
+
+/**
+ * @tc.name: IsImageEnhanceParamsValidTest
+ * @tc.desc: test results of IsImageEnhanceParamsValid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsCommonHookTest, IsImageEnhanceParamsValidTest, TestSize.Level1)
+{
+    RsCommonHook::Instance().imageEnhanceAlgoParams_.clear();
+    RsCommonHook::Instance().imageEnhanceParams_ = { .isValid = true };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["SLR"] = {};
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = {};
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+    RsCommonHook::Instance().imageEnhanceAlgoParams_.clear();
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = {};
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceAlgoParams_.clear();
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["SLR"] = { .isValid = true };
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = { .isValid = true };
+    EXPECT_TRUE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = { .isValid = false };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["SLR"] = { .isValid = false };
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = { .isValid = true };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["SLR"] = { .isValid = false };
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = { .isValid = false };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceParams_ = { .isValid = false };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
 }
 } // namespace OHOS::Rosen

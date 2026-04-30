@@ -21,7 +21,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-const std::string BG_TEST_JPG_PATH = "/data/local/tmp/bg_test.jpg";
+const std::string FG_TEST_JPG_PATH = "/data/local/tmp/fg_test.jpg";
 }
 
 class OHFilterWaterGlassTest : public RSGraphicTest {
@@ -59,28 +59,36 @@ GRAPHIC_TEST(OHFilterWaterGlassTest, EFFECT_TEST, WaterGlassTest)
     auto sizeY = screenHeight * columnCount / rowCount;
 
     for (int i = 0; i < rowCount; i++) {
-        auto pixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
+        auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         auto ohFilter = CreateFilter(pixelMapNative);
 
         OH_Filter_WaterGlassDataParams params = {};
-        params.waveCenter = {waterGlassParams[i][0], waterGlassParams[i][1]};
-        params.waveSourceXY = {waterGlassParams[i][2], waterGlassParams[i][3]};
-        params.waveDistortXY = {waterGlassParams[i][4], waterGlassParams[i][5]};
-        params.waveDensityXY = {waterGlassParams[i][6], waterGlassParams[i][7]};
-        params.waveStrength = waterGlassParams[i][8];
-        params.waveLightStrength = waterGlassParams[i][9];
-        params.waveRefraction = waterGlassParams[i][10];
-        params.waveSpecular = waterGlassParams[i][11];
-        params.waveFrequency = waterGlassParams[i][12];
-        params.waveShapeDistortion = waterGlassParams[i][13];
-        params.waveNoiseStrength = waterGlassParams[i][14];
-        params.waveMaskSize = {waterGlassParams[i][15], waterGlassParams[i][16]};
-        params.waveMaskRadius = waterGlassParams[i][17];
-        params.borderRadius = waterGlassParams[i][18];
-        params.borderThickness = waterGlassParams[i][19];
-        params.borderScope = waterGlassParams[i][20];
-        params.borderStrength = waterGlassParams[i][21];
-        params.progress = waterGlassParams[i][22];
+        const auto& data = waterGlassParams[i];
+        params.speed = data[0];
+        params.distortSpeed = data[1];
+        params.refractionSpeed = { data[2],  data[3]};
+        params.progress = data[4];
+        params.shakingDirection1 = {data[5], data[6]};
+        params.shakingDirection2 = {data[7], data[8]};
+        params.waveDensityXY = {data[9], data[10]};
+        params.waveStrength = data[11];
+        params.waveRefraction = data[12];
+        params.waveSpecular = data[13];
+        params.waveFrequency = data[14];
+        params.waveShapeDistortion = data[15];
+        params.waveDistortionAngle = data[16];
+        params.rippleXWave = data[17];
+        params.rippleYWave = data[18];
+        params.borderRadius = data[19];
+        params.borderThickness = data[20];
+        params.waveInnerMaskXY = {data[21], data[22]};
+        params.waveInnerMaskRadius = data[23];
+        params.waveInnerMaskSmoothness = data[24];
+        params.waveOuterMaskPadding = data[25];
+        params.waveSpecularPower = data[26];
+        params.refractionDetailDark = data[27];
+        params.refractionDetailWhite = data[28];
+        params.detailStrength = data[29];
 
         OH_Filter_WaterGlass(ohFilter, &params);
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);

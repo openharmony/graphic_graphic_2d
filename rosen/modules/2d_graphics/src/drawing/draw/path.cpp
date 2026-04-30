@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -250,6 +250,21 @@ Point Path::GetPoint(int index) const
     return impl_->GetPoint(index);
 }
 
+std::vector<Point> Path::GetPointData() const
+{
+    return impl_->GetPointData();
+}
+
+std::vector<PathVerb> Path::GetVerbData() const
+{
+    return impl_->GetVerbData();
+}
+
+std::vector<float> Path::GetConicWeightData() const
+{
+    return impl_->GetConicWeightData();
+}
+
 bool Path::IsInterpolate(const Path& other)
 {
     return impl_->IsInterpolate(other);
@@ -374,6 +389,11 @@ void Path::SetLastPoint(scalar x, scalar y)
     impl_->SetLastPoint(x, y);
 }
 
+void Path::GetLastPoint(Point& point) const
+{
+    impl_->GetLastPoint(point);
+}
+
 void Path::ReWind()
 {
     impl_->ReWind();
@@ -433,6 +453,11 @@ void Path::ToggleInverseFillType()
 {
     uint32_t inverseFillType = static_cast<uint32_t>(GetFillStyle()) ^ 2; // 2 is Inverse bit
     SetFillStyle(static_cast<PathFillType>(inverseFillType));
+}
+
+bool Path::operator==(const Path& other) const
+{
+    return impl_->Equals(other);
 }
 
 std::shared_ptr<Data> Path::Serialize() const

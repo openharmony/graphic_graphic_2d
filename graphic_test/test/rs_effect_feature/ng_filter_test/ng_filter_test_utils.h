@@ -424,6 +424,16 @@ const std::vector<std::array<Vector2f, GRID_WARP_ANGLE_PARAMS_COUNT>> gridWarpAn
     }
 };
 
+constexpr int WAVE_DISTURBANCE_PARAMS_COUNT = 8;
+const std::vector<std::array<float, WAVE_DISTURBANCE_PARAMS_COUNT>> disturbanceParams = {
+    {0.5f, -1.0f, -1.0f, 2.5f, 0.7f, 80.0f, 30.0f, 60.0f},
+    {0.5f, 100.0f, 100.0f, 2.5f, 0.7f, 800.0f, 80.0f, 100.0f},
+    {0.0f, 50.0f, 50.0f, 2.5f, 0.7f, 200.0f, 100.0f, 200.0f},
+    {1.5f, 20.0f, 20.0f, 2.5f, 0.7f, 200.0f, 30.0f, 60.0f},
+    {-0.5f, 10.0f, -10.0f, 2.5f, 0.7f, 800.0f, 60.0f, 100.0f},
+    {0.2f, 30.0f, 30.0f, 20.0f, 1.7f, 800.0f, 100.0f, 300.0f},
+};
+
 enum class TestDataGroupParamsType {
     INVALID_DATA_MIN,
     VALID_DATA1,
@@ -478,6 +488,23 @@ inline void InitSDFEdgeLight(std::shared_ptr<RSNGSDFEdgeLightFilter>& sdfEdgeLig
 inline void InitVariableRadiusBlur(std::shared_ptr<RSNGVariableRadiusBlurFilter>& variableRadiusBlur)
 {
     variableRadiusBlur->Setter<VariableRadiusBlurRadiusTag>(20.0f);
+}
+
+// HeatDistortion初始化函数（4个参数：Intensity, NoiseScale, RiseWeight, Progress）
+inline void InitHeatDistortion(std::shared_ptr<RSNGHeatDistortionFilter>& heatDistortion)
+{
+    heatDistortion->Setter<HeatDistortionIntensityTag>(1.0f);
+    heatDistortion->Setter<HeatDistortionNoiseScaleTag>(1.0f);
+    heatDistortion->Setter<HeatDistortionRiseWeightTag>(0.2f);
+    heatDistortion->Setter<HeatDistortionProgressTag>(0.5f);
+}
+
+// BlurBubblesRise初始化函数（3个参数：BlurIntensity, MixStrength, Progress）
+inline void InitBlurBubblesRise(std::shared_ptr<RSNGBlurBubblesRiseFilter>& blurBubblesRise)
+{
+    blurBubblesRise->Setter<BlurBubblesRiseBlurIntensityTag>(1.0f);
+    blurBubblesRise->Setter<BlurBubblesRiseMixStrengthTag>(0.5f);
+    blurBubblesRise->Setter<BlurBubblesRiseProgressTag>(0.5f);
 }
 
 }  // namespace OHOS::Rosen

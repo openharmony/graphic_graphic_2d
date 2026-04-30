@@ -26,11 +26,7 @@
 #ifdef HETERO_HDR_ENABLE
 #include "rs_hdr_pattern_manager.h"
 #endif
-#ifdef USE_M133_SKIA
 #include "include/gpu/vk/VulkanExtensions.h"
-#else
-#include "include/gpu/vk/GrVkExtensions.h"
-#endif
 #include "unistd.h"
 #include "utils/system_properties.h"
 #include "vulkan/vulkan_core.h"
@@ -50,6 +46,7 @@ std::map<int, DrawingContextProperty> RsVulkanContext::drawingContextMap_;
 std::mutex RsVulkanContext::drawingContextMutex_;
 std::recursive_mutex RsVulkanContext::recyclableSingletonMutex_;
 bool RsVulkanContext::isRecyclable_ = true;
+bool RsVulkanContext::isMultiProcess_ = false;
 std::atomic<bool> RsVulkanContext::isRecyclableSingletonValid_ = false;
 std::atomic<bool> RsVulkanContext::isInited_ = false;
 void* RsVulkanInterface::handle_ = nullptr;
@@ -99,6 +96,7 @@ void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isPro
     acquiredMandatoryProcAddresses_ = false;
     memHandler_ = nullptr;
     acquiredMandatoryProcAddresses_ = OpenLibraryHandle() && SetupLoaderProcAddresses();
+
     interfaceType_ = vulkanInterfaceType;
     CreateInstance();
     SelectPhysicalDevice(isProtected);
@@ -151,7 +149,6 @@ bool RsVulkanInterface::SetupLoaderProcAddresses()
     }
 
     VkInstance null_instance = VK_NULL_HANDLE;
-    ACQUIRE_PROC(EnumerateInstanceLayerProperties, null_instance);
     return true;
 }
 
@@ -192,7 +189,6 @@ bool RsVulkanInterface::CreateInstance()
     ACQUIRE_PROC(DestroyDevice, instance_);
     ACQUIRE_PROC(DestroyInstance, instance_);
     ACQUIRE_PROC(EnumerateDeviceExtensionProperties, instance_);
-    ACQUIRE_PROC(EnumerateDeviceLayerProperties, instance_);
     ACQUIRE_PROC(EnumeratePhysicalDevices, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceFeatures, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceQueueFamilyProperties, instance_);
@@ -364,48 +360,21 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
     return true;
 }
 
-#ifdef USE_M133_SKIA
 bool RsVulkanInterface::CreateSkiaBackendContext(skgpu::VulkanBackendContext* context, bool isProtected)
-#else
-bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bool isProtected)
-#endif
 {
     auto getProc = CreateSkiaGetProc();
     if (getProc == nullptr) {
         ROSEN_LOGE("CreateSkiaBackendContext getProc is null");
         return false;
     }
-#ifndef USE_M133_SKIA
-    VkPhysicalDeviceFeatures features;
-    vkGetPhysicalDeviceFeatures(physicalDevice_, &features);
-
-    uint32_t fFeatures = 0;
-    if (features.geometryShader) {
-        fFeatures |= kGeometryShader_GrVkFeatureFlag;
-    }
-    if (features.dualSrcBlend) {
-        fFeatures |= kDualSrcBlend_GrVkFeatureFlag;
-    }
-    if (features.sampleRateShading) {
-        fFeatures |= kSampleRateShading_GrVkFeatureFlag;
-    }
-#endif
 
     context->fInstance = instance_;
     context->fPhysicalDevice = physicalDevice_;
     context->fDevice = device_;
     context->fQueue = queue_;
     context->fGraphicsQueueIndex = graphicsQueueFamilyIndex_;
-#ifndef USE_M133_SKIA
-    context->fMinAPIVersion = VK_API_VERSION_1_2;
 
-    uint32_t extensionFlags = kKHR_surface_GrVkExtensionFlag;
-    extensionFlags |= kKHR_ohos_surface_GrVkExtensionFlag;
-
-    context->fExtensions = extensionFlags;
-#else
     context->fMaxAPIVersion = VK_API_VERSION_1_2;
-#endif
 
     skVkExtensions_.init(getProc, instance_, physicalDevice_,
         gInstanceExtensions.size(), gInstanceExtensions.data(),
@@ -413,53 +382,30 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
 
     context->fVkExtensions = &skVkExtensions_;
     context->fDeviceFeatures2 = &physicalDeviceFeatures2_;
-#ifndef USE_M133_SKIA
-    context->fFeatures = fFeatures;
-#endif
+
     context->fGetProc = std::move(getProc);
-#ifdef USE_M133_SKIA
+
     context->fProtectedContext = isProtected ? skgpu::Protected::kYes : skgpu::Protected::kNo;
-#else
-    context->fOwnsInstanceAndDevice = false;
-    context->fProtectedContext = isProtected ? GrProtected::kYes : GrProtected::kNo;
-#endif
 
     return true;
 }
 
 bool RsVulkanInterface::SetupDeviceProcAddresses(VkDevice device)
 {
-    ACQUIRE_PROC(AllocateCommandBuffers, device_);
     ACQUIRE_PROC(AllocateMemory, device_);
-    ACQUIRE_PROC(BeginCommandBuffer, device_);
     ACQUIRE_PROC(BindImageMemory, device_);
     ACQUIRE_PROC(BindImageMemory2, device_);
-    ACQUIRE_PROC(CmdPipelineBarrier, device_);
-    ACQUIRE_PROC(CreateCommandPool, device_);
-    ACQUIRE_PROC(CreateFence, device_);
     ACQUIRE_PROC(CreateImage, device_);
-    ACQUIRE_PROC(CreateImageView, device_);
     ACQUIRE_PROC(CreateSemaphore, device_);
-    ACQUIRE_PROC(DestroyCommandPool, device_);
-    ACQUIRE_PROC(DestroyFence, device_);
     ACQUIRE_PROC(DestroyImage, device_);
-    ACQUIRE_PROC(DestroyImageView, device_);
     ACQUIRE_PROC(DestroySemaphore, device_);
     ACQUIRE_PROC(DeviceWaitIdle, device_);
-    ACQUIRE_PROC(EndCommandBuffer, device_);
-    ACQUIRE_PROC(FreeCommandBuffers, device_);
     ACQUIRE_PROC(FreeMemory, device_);
-    ACQUIRE_PROC(GetDeviceQueue, device_);
     ACQUIRE_PROC(GetImageMemoryRequirements, device_);
     ACQUIRE_PROC(QueueSubmit, device_);
-    ACQUIRE_PROC(QueueWaitIdle, device_);
-    ACQUIRE_PROC(ResetCommandBuffer, device_);
-    ACQUIRE_PROC(ResetFences, device_);
-    ACQUIRE_PROC(WaitForFences, device_);
     ACQUIRE_PROC(GetNativeBufferPropertiesOHOS, device_);
     ACQUIRE_PROC(QueueSignalReleaseImageOHOS, device_);
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);
-    ACQUIRE_PROC(SetFreqAdjustEnable, device_);
     ACQUIRE_PROC(GetSemaphoreFdKHR, device_);
 
     return true;
@@ -514,11 +460,7 @@ PFN_vkVoidFunction RsVulkanInterface::AcquireProc(
     return vkGetDeviceProcAddr(device, procName);
 }
 
-#ifdef USE_M133_SKIA
 skgpu::VulkanGetProc RsVulkanInterface::CreateSkiaGetProc() const
-#else
-GrVkGetProc RsVulkanInterface::CreateSkiaGetProc() const
-#endif
 {
     if (!IsValid()) {
         return nullptr;
@@ -697,8 +639,8 @@ void RsVulkanContext::InitVulkanContextForHybridRender(const std::string& cacheD
         RS_TRACE_NAME("Init hybrid render vk context without cache dir, this may cause redundant shader compiling.");
     }
     auto vulkanInterface = std::make_shared<RsVulkanInterface>();
-    vulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false);
     // init drawing context for RT thread bind to backendContext.
+    vulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false);
     vulkanInterface->CreateDrawingContext(cacheDir);
 
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(vulkanInterface);
@@ -706,15 +648,18 @@ void RsVulkanContext::InitVulkanContextForHybridRender(const std::string& cacheD
 
 void RsVulkanContext::InitVulkanContextForUniRender(const std::string& cacheDir)
 {
-    // create vulkan interface for render thread.
-    auto uniRenderVulkanInterface = std::make_shared<RsVulkanInterface>();
-    uniRenderVulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false, true);
-    // init drawing context for RT thread bind to backendContext.
-    uniRenderVulkanInterface->CreateDrawingContext(cacheDir);
+    RS_LOGI("InitVulkanContextForUniRender::%{public}d", IsMultiProcess());
+    if (!IsMultiProcess()) {
+        // create vulkan interface for render thread.
+        auto uniRenderVulkanInterface = std::make_shared<RsVulkanInterface>();
+        uniRenderVulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false, true);
+        // init drawing context for RT thread bind to backendContext.
+        uniRenderVulkanInterface->CreateDrawingContext(cacheDir);
+        vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(uniRenderVulkanInterface);
+    }
     // create vulkan interface for hardware thread (unprotected).
     auto unprotectedReDrawVulkanInterface = std::make_shared<RsVulkanInterface>();
     unprotectedReDrawVulkanInterface->Init(VulkanInterfaceType::UNPROTECTED_REDRAW, false, false);
-    vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(uniRenderVulkanInterface);
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::UNPROTECTED_REDRAW)] = std::move(unprotectedReDrawVulkanInterface);
 #ifdef IS_ENABLE_DRM
     isProtected_ = true;
@@ -892,8 +837,8 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
         return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
     } else if (interfaceType == VulkanInterfaceType::BASIC_RENDER) {
         std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
-        RS_LOGD("%{public}s queue", __func__);
-        RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
+        RS_LOGD("%{public}s queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
+        RS_OPTIONAL_TRACE_NAME_FMT("%s queue, interfaceType: %d", __func__, static_cast<int>(interfaceType));
         VkResult ret = vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
 #ifdef HETERO_HDR_ENABLE
         RSHDRPatternManager::Instance().MHCSubmitGPUTask(submitCount, pSubmits);
@@ -1000,9 +945,19 @@ bool RsVulkanContext::IsRecyclable()
     return isRecyclable_;
 }
 
+bool RsVulkanContext::IsMultiProcess()
+{
+    return isMultiProcess_;
+}
+
 void RsVulkanContext::SetRecyclable(bool isRecyclable)
 {
     isRecyclable_ = isRecyclable;
+}
+
+void RsVulkanContext::SetIsMultiProcess(bool isMultiProcess)
+{
+    isMultiProcess_ = isMultiProcesss;
 }
 
 void RsVulkanContext::ClearGrContext(bool isProtected)

@@ -69,6 +69,8 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VELOCITY_FIELD_PTR = 0x012A,
     UPDATE_MODIFIER_NG_SHAPE_BASE_PTR = 0x012B,
     UPDATE_MODIFIER_VECTOR_VECTOR4F = 0x012C,
+    UPDATE_MODIFIER_HDR_DARKEN_BLENDER_PARA = 0x012D,
+    UPDATE_MODIFIER_PARTICLE_FIELDS_PTR = 0x0131,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -78,6 +80,7 @@ enum RSNodeCommandType : uint16_t {
     SET_ENABLE_HDR_EFFECT = 0x0205,
     SET_NEED_USE_CMDLIST_DRAW_REGION = 0x0206,
     SET_HDR_UI_BRIGHTNESS = 0x0207,
+    SET_LAYER_MARK = 0x0208,
 
     REGISTER_GEOMETRY_TRANSITION = 0x0300,
     UNREGISTER_GEOMETRY_TRANSITION = 0x0301,
@@ -86,13 +89,14 @@ enum RSNodeCommandType : uint16_t {
     MARK_NODE_SINGLE_FRAME_COMPOSER = 0x0401,
     MARK_SUGGEST_OPINC_NODE = 0x0402,
     EXCLUDED_FROM_NODE_GROUP = 0x403,
+    MARK_LAYER_PART_RENDER = 0x0404,
 
     MARK_UIFIRST_NODE = 0x0500,
     MARK_UIFIRST_NODE_FORCE = 0x0501,
 
     SET_NODE_NAME = 0x0600,
     UPDATE_MODIFIER_MOTION_BLUR_PTR = 0x0601,
-    UPDATE_MODIFIER_MAGNIFIER_PTR = 0x0602,
+
     UPDATE_MODIFIER_WATER_RIPPLE = 0x0603,
     UPDATE_MODIFIER_FLY_OUT = 0x0604,
     REMOVE_ALL_MODIFIERS = 0x0605,
@@ -117,6 +121,8 @@ enum RSNodeCommandType : uint16_t {
     MARK_NODE_COLORSPACE = 0x0d00,
 
     COLOR_PICKER_CALLBACK = 0x0e00,
+
+    SORT_CHILDREN_BY_INDEX = 0x0f00,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -139,7 +145,7 @@ public:
 
     static void UpdateModifierNGDrawCmdList(
         RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId propertyId);
-    static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
+    static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze, bool isMarkedByUi);
     static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
@@ -147,16 +153,18 @@ public:
     static void MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
+    static void MarkLayerPartRender(RSContext& context, NodeId nodeId, bool isLayerPartRender);
 
     static void MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode);
     static void ForceUifirstNode(RSContext& context, NodeId nodeId, bool isForceFlag, bool isUifirstEnable);
     static void SetUIFirstSwitch(RSContext& context, NodeId nodeId, RSUIFirstSwitch uiFirstSwitch);
-    static void MarkNodeColorSpace(RSContext& context, NodeId nodeId, bool isP3Color);
+    static void MarkNodeColorSpace(RSContext& context, NodeId nodeId, int8_t colorSpace);
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
     static void SetNeedUseCmdlistDrawRegion(RSContext &context, NodeId nodeId, bool needUseCmdlistDrawRegion);
     static void SetHDRUIBrightness(RSContext& context, NodeId nodeId, float brightness);
+    static void MarkLayer(RSContext& context, NodeId nodeId, bool isLayer);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
         const bool isInSameWindow);
@@ -188,6 +196,8 @@ public:
     using ColorPickerCallbackProcessor = void (*)(NodeId, uint64_t, uint32_t);
     static void ColorPickerCallback(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t color);
     static RSB_EXPORT void SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor);
+
+    static void ReSortChildrenByZIndex(RSContext& context, NodeId nodeId);
 };
 
 ADD_COMMAND(RSUpdatePropertyBool,
@@ -258,10 +268,6 @@ ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<MotionBlurParam>>,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyMagnifierPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MAGNIFIER_PTR,
-        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSMagnifierParams>>,
-        NodeId, std::shared_ptr<RSMagnifierParams>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateProperty<std::vector<std::shared_ptr<EmitterUpdater>>>,
@@ -278,6 +284,10 @@ ADD_COMMAND(RSUpdatePropertyParticleVelocityFields,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VELOCITY_FIELD_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleVelocityFields>>,
         NodeId, std::shared_ptr<ParticleVelocityFields>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyParticleFields,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_PARTICLE_FIELDS_PTR,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleFieldCollection>>,
+        NodeId, std::shared_ptr<ParticleFieldCollection>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHADER_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSShader>>,
@@ -321,6 +331,12 @@ ADD_COMMAND(RSUpdatePropertyShadowBlenderPara,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHADOW_BLENDER_PARA,
         RSNodeCommandHelper::UpdateProperty<RSShadowBlenderPara>, NodeId,
         RSShadowBlenderPara, PropertyId, PropertyUpdateType))
+
+ADD_COMMAND(RSUpdatePropertyHdrDarkenBlenderPara,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_HDR_DARKEN_BLENDER_PARA,
+        RSNodeCommandHelper::UpdateProperty<RSHdrDarkenBlenderPara>, NodeId,
+        RSHdrDarkenBlenderPara, PropertyId, PropertyUpdateType))
+
 ADD_COMMAND(RSUpdatePropertyShort,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHORT, RSNodeCommandHelper::UpdateProperty<short>, NodeId, short,
         PropertyId, PropertyUpdateType))
@@ -333,7 +349,7 @@ ADD_COMMAND(RSUpdatePropertyVectorFloat,
 
 ADD_COMMAND(RSSetFreeze,
     ARG(PERMISSION_APP, RS_NODE, SET_FREEZE,
-        RSNodeCommandHelper::SetFreeze, NodeId, bool))
+        RSNodeCommandHelper::SetFreeze, NodeId, bool, bool))
 ADD_COMMAND(RSSetNodeName,
     ARG(PERMISSION_APP, RS_NODE, SET_NODE_NAME,
         RSNodeCommandHelper::SetNodeName, NodeId, std::string))
@@ -355,6 +371,9 @@ ADD_COMMAND(RSMarkNodeSingleFrameComposer,
 ADD_COMMAND(RSMarkSuggestOpincNode,
     ARG(PERMISSION_APP, RS_NODE, MARK_SUGGEST_OPINC_NODE,
         RSNodeCommandHelper::MarkSuggestOpincNode, NodeId, bool, bool))
+ADD_COMMAND(RSMarkLayerPartRender,
+    ARG(PERMISSION_APP, RS_NODE, MARK_LAYER_PART_RENDER,
+        RSNodeCommandHelper::MarkLayerPartRender, NodeId, bool))
 
 ADD_COMMAND(RSMarkUifirstNode,
     ARG(PERMISSION_APP, RS_NODE, MARK_UIFIRST_NODE,
@@ -370,7 +389,7 @@ ADD_COMMAND(RSSetUIFirstSwitch,
 
 ADD_COMMAND(RSMarkNodeColorSpace,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_COLORSPACE,
-        RSNodeCommandHelper::MarkNodeColorSpace, NodeId, bool))
+        RSNodeCommandHelper::MarkNodeColorSpace, NodeId, int8_t))
 
 ADD_COMMAND(RSSetDrawRegion,
     ARG(PERMISSION_APP, RS_NODE, SET_DRAW_REGION,
@@ -390,6 +409,9 @@ ADD_COMMAND(RSSetNeedUseCmdlistDrawRegion,
 ADD_COMMAND(RSSetHDRUIBrightness,
     ARG(PERMISSION_APP, RS_NODE, SET_HDR_UI_BRIGHTNESS,
         RSNodeCommandHelper::SetHDRUIBrightness, NodeId, float))
+
+ADD_COMMAND(
+    RSMarkLayer, ARG(PERMISSION_APP, RS_NODE, SET_LAYER_MARK, RSNodeCommandHelper::MarkLayer, NodeId, bool))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, REGISTER_GEOMETRY_TRANSITION,
@@ -433,6 +455,10 @@ ADD_COMMAND(RSRemoveAllModifiersNG,
 ADD_COMMAND(RSColorPickerCallback,
     ARG(PERMISSION_APP, RS_NODE, COLOR_PICKER_CALLBACK,
         RSNodeCommandHelper::ColorPickerCallback, NodeId, pid_t, uint64_t, uint32_t))
+
+ADD_COMMAND(RSSortChildrenByZIndex,
+    ARG(PERMISSION_APP, RS_NODE, SORT_CHILDREN_BY_INDEX,
+        RSNodeCommandHelper::ReSortChildrenByZIndex, NodeId))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_NODE_COMMAND_H

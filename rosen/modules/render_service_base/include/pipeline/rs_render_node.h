@@ -49,6 +49,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_display_sync.h"
 #include "property/rs_properties.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -63,6 +64,7 @@ class RSRenderParams;
 class RSContext;
 class RSNodeVisitor;
 class RSCommand;
+class RSLayer;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -80,6 +82,13 @@ struct CurFrameInfoDetail {
     uint32_t curFrameVsyncId = 0;
     bool curFrameSubTreeSkipped = false;
     bool curFrameReverseChildren = false;
+};
+
+enum LayerDrawContent : size_t {
+    SELF = 0,       // whether the node itself has draw content
+    SUBTREE = 1,    // whether the subtree has draw content, determined by all its descendants
+    UPDATE = 2,     // whether the node has update content in current frame, used for dynamic layer skip optimization
+    MAX = 3
 };
 
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {
@@ -233,7 +242,7 @@ public:
     bool IsOnlyBasicGeoTransform() const;
     void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
-        const RectI& clipRect);
+        const RectI& clipRect, const std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager = nullptr);
     inline bool LastFrameSubTreeSkipped() const
     {
         return lastFrameSubTreeSkipped_;
@@ -304,11 +313,6 @@ public:
     inline void MarkRepaintBoundary(bool isRepaintBoundary)
     {
         isRepaintBoundary_ = isRepaintBoundary;
-    }
-
-    inline bool IsWaitSync() const
-    {
-        return waitSync_;
     }
 
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
@@ -449,6 +453,7 @@ public:
 
     // reset accumulated vals before traverses children
     virtual void ResetChildRelevantFlags();
+    virtual void UpdateFilterChildRelevantFlagsToParams();
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
     void UpdateCurCornerInfo(Vector4f& curCornerRadius, RectI& curCornerRect);
@@ -466,7 +471,8 @@ public:
     }
 
     std::tuple<bool, bool, bool> Animate(
-        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
+        int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime,
+        int64_t period = 0, bool isDisplaySyncEnabled = false);
 
     // check if all clip properties are enabled
     bool IsClipBound() const;
@@ -489,6 +495,7 @@ public:
     void UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
+    bool UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegionManager>& dirtyManager);
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         std::optional<RectI> clipRect = std::nullopt);
@@ -593,7 +600,7 @@ public:
     void NodePostPrepare(
         std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect);
 
-    void SetStaticCached(bool isStaticCached);
+    void SetStaticCached(bool isStaticCached, bool isMarkedByUI = false);
     virtual bool IsStaticCached() const;
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;
@@ -703,8 +710,6 @@ public:
     }
     void SetDrawingCacheChanged(bool cacheChanged);
     bool GetDrawingCacheChanged() const;
-    void SetForceDisableNodeGroup(bool forceDisable);
-    bool IsForceDisableNodeGroup() const;
     bool IsForcedDrawInGroup() const;
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
@@ -714,7 +719,8 @@ public:
         GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
         GROUPED_BY_USER = GROUPED_BY_UI << 1,
         GROUPED_BY_FOREGROUND_FILTER = GROUPED_BY_USER << 1,
-        GROUP_TYPE_BUTT = GROUPED_BY_FOREGROUND_FILTER,
+        GROUPED_BY_LAYER = GROUPED_BY_FOREGROUND_FILTER << 1,
+        GROUP_TYPE_BUTT = GROUPED_BY_LAYER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     void ExcludedFromNodeGroup(bool isExcluded);
@@ -728,10 +734,10 @@ public:
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
     void SetChildHasTranslateOnSqueeze(bool val);
+    void SetNodeGroupHasChildInBlacklist(bool inBlacklist);
     bool IsNodeGroupIncludeProperty() const;
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree);
-    void UpdateDrawingCacheInfoAfterChildren(
-        bool isInBlackList = false, const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
+    void UpdateDrawingCacheInfoAfterChildren(const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
     // !used for renderGroup
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
@@ -742,6 +748,7 @@ public:
 
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
+    void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
 
     /////////////////////////////////////////////
 
@@ -840,31 +847,6 @@ public:
     void RecordCurDirtyTypes();
     void AccumulateDirtyTypes();
     void ResetAccumulateDirtyTypes();
-    void SetUifirstSyncFlag(bool needSync);
-    void SetUifirstSkipPartialSync(bool skip)
-    {
-        uifirstSkipPartialSync_ = skip;
-    }
-
-    void SetForceUpdateByUifirst(bool b)
-    {
-        forceUpdateByUifirst_ = b;
-    }
-
-    bool GetForceUpdateByUifirst() const
-    {
-        return forceUpdateByUifirst_;
-    }
-
-    MultiThreadCacheType GetLastFrameUifirstFlag()
-    {
-        return lastFrameUifirstFlag_;
-    }
-
-    void SetLastFrameUifirstFlag(MultiThreadCacheType b)
-    {
-        lastFrameUifirstFlag_ = b;
-    }
 
     void SkipSync()
     {
@@ -882,15 +864,8 @@ public:
 
     // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
-    // Mark uifirst leash node
-    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
-    bool GetUifirstNodeForceFlag() const;
-
-    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
-    RSUIFirstSwitch GetUIFirstSwitch() const
-    {
-        return uiFirstSwitch_;
-    }
+    virtual void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
+    virtual RSUIFirstSwitch GetUIFirstSwitch() const { return RSUIFirstSwitch::NONE; }
 
     const RectI GetFilterCachedRegion() const;
     virtual bool EffectNodeShouldPaint() const { return true; };
@@ -965,7 +940,7 @@ public:
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
-    virtual void MarkNodeColorSpace(bool isP3) {}
+    virtual void MarkNodeColorSpace(int8_t colorSpace) {}
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
@@ -1030,12 +1005,17 @@ public:
         return opincCache_;
     }
 
-    void SetHasWhiteListNode(ScreenId screenId, bool hasWhiteListNode)
+    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
     {
-        hasVirtualScreenWhiteList_[screenId] |= hasWhiteListNode;
+        screensWithSubTreeWhitelist_.insert(screenIds.begin(), screenIds.end());
     }
 
-    void UpdateVirtualScreenWhiteListInfo();
+    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
+    {
+        screensWithSubTreeWhitelist_ = screenIds;
+    }
+
+    void SyncWhiteListInfoToParent();
     bool IsForegroundFilterEnable();
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
@@ -1057,15 +1037,27 @@ public:
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;
+    void SetRSLayer(ScreenId screenId, const std::shared_ptr<RSLayer>& layer)
+    {
+        rsLayersPerScreen_[screenId] = layer;
+    }
 
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
-    // returns true if color picker will execute this frame
-    bool PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode);
+    // Called every frame to handle state transitions and sync
+    // return true if current state is COLOR_PICK and need to transition back to PREPARING
+    bool PrepareColorPicker(bool darkMode);
     // returns true if node only has ColorPickerDrawable without any real filter
     bool IsColorPickerOnlyNode() const;
 
+    void ReSortChildrenByZIndex();
 protected:
     void ResetDirtyStatus();
+
+    virtual void EmplaceSameTypeModifier(
+        ModifierNGContainer& container, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
+    {
+        container.emplace_back(modifier);
+    }
 
     virtual void OnApplyModifiers() {}
 
@@ -1128,6 +1120,12 @@ protected:
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
 #endif
+
+    // Virtual methods for uifirst sync flags - only meaningful for SurfaceNode
+    virtual bool IsUifirstSkipPartialSync() const { return false; }
+    virtual bool GetUifirstNeedSync() const { return false; }
+    virtual void ClearUifirstNeedSync() {}
+    virtual void ClearUifirstSkipPartialSync() {}
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
     void ExpandDirtyRegionWithFilterRegion(RSDirtyRegionManager& dirtyManager)
     {
@@ -1141,25 +1139,20 @@ protected:
     bool needClearSurface_ = false;
     bool isBootAnimation_ = false;
     bool lastFrameHasVisibleEffectWithoutEmptyRect_ = false;
-    bool waitSync_ = false;
     mutable bool isFullChildrenListValid_ = true;
     mutable bool isChildrenSorted_ = true;
     mutable bool childrenHasSharedTransition_ = false;
     bool isOnTheTree_ = false;
     bool isChildSupportUifirst_ = true;
     bool isUifirstNode_ = true;
-    bool isForceFlag_ = false;
-    bool isUifirstEnable_ = false;
     bool lastFrameSynced_ = true;
     bool srcOrClipedAbsDrawRectChangeFlag_ = false;
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
     std::atomic<bool> isStaticCached_ = false;
-    RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
-    int isUifirstDelay_ = 0;
     NodeId drawingCacheRootId_ = INVALID_NODEID;
     mutable std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> renderDrawable_;
     std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
@@ -1175,6 +1168,7 @@ protected:
     RSHwcRecorder hwcRecorder_;
 
 private:
+    std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
     // mark cross node in physical extended screen model
     bool isRepaintBoundary_ = false;
     bool hasForceSubmit_ = false;
@@ -1207,6 +1201,9 @@ private:
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
 
+    // for decide whether has true draw content
+    std::bitset<LayerDrawContent::MAX> layerContentBits_;
+
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;
     bool isContentDirty_ = false;
@@ -1221,14 +1218,10 @@ private:
     // since preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
     bool lastFrameHasChildrenOutOfRect_ = false;
-    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     bool isContainBootAnimation_ = false;
     CacheType cacheType_ = CacheType::NONE;
     bool isDrawingCacheChanged_ = false;
     bool isScale_ = false;
-    bool uifirstNeedSync_ = false; // both cmdlist&param
-    bool uifirstSkipPartialSync_ = false;
-    bool forceUpdateByUifirst_ = false;
     bool backgroundFilterRegionChanged_ = false;
     bool backgroundFilterInteractWithDirty_ = false;
     // for UIExtension info collection
@@ -1318,12 +1311,8 @@ private:
     std::unordered_set<NodeId> visibleEffectChild_;
     Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
     bool released_ = false;
-#else
-    mutable RSDrawable::Vec drawableVec_;
-#endif
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
     std::unordered_set<NodeId> subtreeParallelNodes_;
@@ -1339,7 +1328,7 @@ private:
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
 
-    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
+    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_ = {};
 
     RSProperties renderProperties_;
 
@@ -1390,7 +1379,6 @@ private:
     void CollectAndUpdateLocalPixelStretchRect();
     void CollectAndUpdateLocalForegroundEffectRect();
     void CollectAndUpdateLocalDistortionEffectRect();
-    void CollectAndUpdateLocalMagnifierEffectRect();
     void CollectAndUpdateLocalEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
@@ -1414,6 +1402,9 @@ private:
     void ResetAndApplyModifiers();
 
     void InitRenderDrawableAndDrawableVec();
+
+    void DirtySlotsPartialSync();
+
     RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();
     friend class DrawFuncOpItem;
@@ -1431,6 +1422,7 @@ private:
     friend class ModifierNG::RSRenderModifier;
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
+    friend class RSDynamicLayerSkipController;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

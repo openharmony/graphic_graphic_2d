@@ -104,6 +104,8 @@ public:
     void DrawImageRect(const Drawing::Image& image,
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling) override;
     void DrawPicture(const Drawing::Picture& picture) override;
+    void DrawGlyphs(int count, const uint16_t glyphs[], const Drawing::Point positions[],
+                    Drawing::Point origin, const Drawing::Font* font) override;
     void DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y) override;
 
     void ClearStencil(const Drawing::RectI& rect, uint32_t stencilVal) override;
@@ -198,6 +200,13 @@ public:
      */
     std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 
+    /**
+     * @brief insert opaque region to canvas, which can help gpu enable overdraw optimize
+     *
+     * @param opaqueRects the opaque rects to be inserted, which should be in device coordinate.
+     */
+    void InsertOpaqueRegion(const std::vector<Drawing::RectI>& opaqueRects) override;
+
     bool IsClipRect() override;
 
 protected:
@@ -224,6 +233,11 @@ public:
     void PopDirtyRegion();
     bool IsDirtyRegionStackEmpty();
     Drawing::Region& GetCurDirtyRegion();
+
+    void PushLayerPartRenderDirtyRegion(Drawing::Region& dirtyRegion);
+    void PopLayerPartRenderDirtyRegion();
+    bool IsLayerPartRenderDirtyRegionStackEmpty();
+    Drawing::Region& GetCurLayerPartRenderDirtyRegion();
 
     // alpha related
     void MultiplyAlpha(float alpha);
@@ -272,14 +286,18 @@ public:
         NON_SHOT = 0,
         SDR_SCREENSHOT,
         SDR_WINDOWSHOT,
+        SDR_UICAPTURE,
         HDR_SCREENSHOT,
         HDR_WINDOWSHOT,
+        HDR_UICAPTURE,
     };
 
     struct HDRProperties {
         bool isHDREnabledVirtualScreen = false;
         float hdrBrightness = 1.0f; // Default 1.0f means max available headroom
         ScreenshotType screenshotType = ScreenshotType::NON_SHOT;
+        bool isEDRSurface = false;
+        DisplayIntent displayIntent = DisplayIntent::CANONICAL;
     };
 
     enum SaveType : uint8_t {
@@ -409,6 +427,8 @@ public:
         return offscreenDataList_;
     }
 
+    std::vector<std::shared_ptr<Drawing::Canvas>> GetOffscreenCanvasVector() const;
+
     void StoreCanvas()
     {
         if (storeMainCanvas_ == nullptr) {
@@ -438,13 +458,18 @@ public:
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
     bool GetHdrOn() const;
     void SetHdrOn(bool isHdrOn);
+    bool IsEDRSurface() const;
+    void SetEDRSurface(bool isEDRSurface);
     bool GetHDREnabledVirtualScreen() const;
     void SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen);
+    void SetDisplayIntent(DisplayIntent displayIntent);
     const HDRProperties& GetHDRProperties() const;
     bool GetIsWindowFreezeCapture() const;
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
     bool GetIsDrawingCache() const;
     void SetIsDrawingCache(bool isDrawingCache);
+    bool GetIsDrawingOffscreenMirror() const;
+    void SetIsDrawingOffscreenMirror(bool isDrawingOffscreenMirror);
     void SetEffectIntersectWithDRM(bool intersect);
     bool GetEffectIntersectWithDRM() const;
     void SetDarkColorMode(bool isDark);
@@ -575,6 +600,7 @@ private:
 
     // save every dirty region of the current surface for quick reject
     std::stack<Drawing::Region> dirtyRegionStack_;
+    std::stack<Drawing::Region> layerPartRenderDirtyRegionStack_;
 
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;
@@ -587,6 +613,7 @@ private:
     bool isWindowFreezeCapture_ = false;
     // Drawing window cache or uifirst cache
     bool isDrawingCache_ = false;
+    bool isDrawingOffscreenMirror_ = false;
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
     Occlusion::Region drawnRegion_;
     uint32_t threadId_;

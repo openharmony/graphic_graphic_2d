@@ -191,7 +191,14 @@ napi_status WebGLReadBufferArg::GetArrayElement(
     if (length == 0) {
         return napi_ok;
     }
-    buffer_.resize(length * sizeof(dstT));
+
+    size_t requiredSize = static_cast<size_t>(length) * sizeof(dstT);
+    if (requiredSize / sizeof(dstT) != length) {
+        LOGE("WebGL GetArrayElement: array size too large, overflow or exceeds limit");
+        return napi_invalid_arg;
+    }
+
+    buffer_.resize(requiredSize);
     data_ = buffer_.data();
     uint8_t* buffer = buffer_.data();
     for (uint32_t i = 0; i < length; i++) {
@@ -218,7 +225,7 @@ napi_status WebGLReadBufferArg::GetArrayElement(
         *reinterpret_cast<dstT*>(buffer) = elm;
         buffer += sizeof(dstT);
     }
-    dataLen_ = length * sizeof(dstT);
+    dataLen_ = requiredSize;
     return napi_ok;
 }
 
@@ -311,6 +318,17 @@ napi_status WebGLReadBufferArg::GenBufferData(napi_value data, BufferDataType de
     }
     LOGD("WebGL GenBufferData type %{public}u length %{public}zu bufferType %{public}u", type_, dataLen_, bufferType_);
     return status;
+}
+
+size_t WebGLReadBufferArg::GetElementCount() const
+{
+    size_t elementSize = GetBufferDataSize();
+    // Protect against division by zero
+    if (elementSize == 0) {
+        LOGE("GetElementCount: elementSize is 0, cannot divide");
+        return 0;
+    }
+    return dataLen_ / elementSize;
 }
 
 size_t hash_pointer(void* ptr)

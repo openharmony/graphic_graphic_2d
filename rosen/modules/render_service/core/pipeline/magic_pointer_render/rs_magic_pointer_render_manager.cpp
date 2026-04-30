@@ -168,7 +168,7 @@ bool RSMagicPointerRenderManager::CheckColorPickerEnabled()
 }
 
 void RSMagicPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor> processor,
-    std::shared_ptr<Drawing::GPUContext> gpuContext)
+    std::shared_ptr<Drawing::GPUContext> gpuContext, const ScreenInfo& screenInfo)
 {
     if (!CheckColorPickerEnabled()) {
         ROSEN_LOGD("RSMagicPointerRenderManager::CheckColorPickerEnabled is false!");
@@ -191,7 +191,7 @@ void RSMagicPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor
     }
 
     // post color picker task to background thread
-    RunColorPickerTask();
+    RunColorPickerTask(screenInfo);
     RS_TRACE_END();
 }
 
@@ -329,7 +329,7 @@ int16_t RSMagicPointerRenderManager::CalcAverageLuminance(std::shared_ptr<Drawin
         Drawing::Color::ColorQuadGetB(color) * 0.0722f;
 }
 
-void RSMagicPointerRenderManager::RunColorPickerTaskBackground(BufferDrawParam& param)
+void RSMagicPointerRenderManager::RunColorPickerTaskBackground(BufferDrawParam& param, const ScreenInfo& screenInfo)
 {
 #ifdef RS_ENABLE_UNI_RENDER
     std::lock_guard<std::mutex> locker(mtx_);
@@ -346,7 +346,7 @@ void RSMagicPointerRenderManager::RunColorPickerTaskBackground(BufferDrawParam& 
             return;
         }
     } else {
-        image = GetIntersectImageByLayer(param);
+        image = GetIntersectImageByLayer(param, screenInfo);
     }
     if (image == nullptr || !image->IsValid(context)) {
         RS_LOGE("RSMagicPointerRenderManager::RunColorPickerTaskBackground image not valid.");
@@ -359,7 +359,7 @@ void RSMagicPointerRenderManager::RunColorPickerTaskBackground(BufferDrawParam& 
 #endif
 }
 
-void RSMagicPointerRenderManager::RunColorPickerTask()
+void RSMagicPointerRenderManager::RunColorPickerTask(const ScreenInfo& screenInfo)
 {
     if (!imagePre_ && (target_ == nullptr || rect_.IsEmpty())) {
         ROSEN_LOGE("RSMagicPointerRenderManager::RunColorPickerTask failed for null target or rect is empty!");
@@ -370,9 +370,9 @@ void RSMagicPointerRenderManager::RunColorPickerTask()
     if (!imagePre_) {
         param = RSUniRenderUtil::CreateLayerBufferDrawParam(target_, forceCPU_);
     }
-    RSBackgroundThread::Instance().PostTask([this, param] () mutable {
+    RSBackgroundThread::Instance().PostTask([this, param, screenInfo] () mutable {
         taskDoing_ = true;
-        this->RunColorPickerTaskBackground(param);
+        this->RunColorPickerTaskBackground(param, screenInfo);
         backendTexturePre_ = backendTexture_;
         backendTexture_ = Drawing::BackendTexture(false);
         imagePre_ = image_;
@@ -381,15 +381,10 @@ void RSMagicPointerRenderManager::RunColorPickerTask()
     });
 }
 
-std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageByLayer(BufferDrawParam& param)
+std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageByLayer(
+    BufferDrawParam& param, const ScreenInfo& screenInfo)
 {
 #ifdef RS_ENABLE_UNI_RENDER
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSPointerRenderManager::GetIntersectImageByLayer screenManager is null.");
-        return nullptr;
-    }
-    auto screenInfo = screenManager->QueryScreenInfo(param.screenId);
     param.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
 
     Drawing::Matrix mat;
@@ -413,7 +408,8 @@ std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageBy
         return nullptr;
     }
 #if (defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE)) || defined(RS_ENABLE_VK)
-    return imageManager_->GetIntersectImage(imgCutRect, context, param);
+    return imageManager_->GetIntersectImage(imgCutRect, context,
+        param.buffer, param.acquireFence, param.threadIndex);
 #endif
 #endif
     return nullptr;

@@ -20,6 +20,7 @@
 
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_render_curve_animation.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,9 +47,11 @@ void RSTimingCurveAnimationTest::TearDown() {}
  */
 HWTEST_F(RSTimingCurveAnimationTest, StartAnimationTest, Level1)
 {
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto property = std::make_shared<RSProperty<float>>();
     auto value = std::make_shared<RSProperty<float>>();
-    RSCurveAnimation curveAnimation(property, value);
+    RSCurveAnimation curveAnimation(rsUIContext, property, value);
     auto animation = std::make_shared<RSRenderCurveAnimation>();
     curveAnimation.StartInner(nullptr);
     curveAnimation.StartRenderAnimation(animation);
@@ -72,7 +75,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCustomCurveTest001, TestSize.Level1)
     canvasNode->AddModifier(modifier);
     auto timingCurve = RSAnimationTimingCurve::CreateCustomCurve([](float input) { return input; });
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(1.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(1.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -100,7 +103,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCustomCurveTest002, TestSize.Level1)
     canvasNode->AddModifier(modifier);
     auto timingCurve = RSAnimationTimingCurve::CreateCustomCurve([](float input) { return input * 2.f; });
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -128,7 +132,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCustomCurveTest003, TestSize.Level1)
     canvasNode->AddModifier(modifier);
     auto timingCurve = RSAnimationTimingCurve::CreateCustomCurve([](float input) { return 0.f; });
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -156,7 +160,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest001, TestSize.Level1)
     canvasNode->AddModifier(alphaModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.42f, 0.0f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(1.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(1.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -184,7 +188,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest002, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.25f, 0.1f, 0.25f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -212,7 +217,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest003, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.0f, 0.0f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -240,7 +245,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateStepsCurveTest001, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     auto timingCurve = RSAnimationTimingCurve::CreateStepsCurve(5, StepsCurvePosition::START);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -268,7 +274,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateStepsCurveTest002, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     auto timingCurve = RSAnimationTimingCurve::CreateStepsCurve(5, StepsCurvePosition::END);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -296,7 +302,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateSpringCurveTest001, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     auto timingCurve = RSAnimationTimingCurve::CreateSpringCurve(0.1f, 0.2f, 0.3f, 0.4f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -324,7 +331,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateSpringCurveTest002, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     auto timingCurve = RSAnimationTimingCurve::CreateSpringCurve(0.4f, 0.3f, 0.2f, 0.1f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -352,7 +360,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateSpringTest001, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     auto timingCurve = RSAnimationTimingCurve::CreateSpring(0.1f, 0.5f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -380,7 +388,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateSpringTest002, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     auto timingCurve = RSAnimationTimingCurve::CreateSpring(0.5f, 1.0f, 0.1f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -459,7 +467,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest004, TestSize.Level1)
     canvasNode->AddModifier(alphaModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.9f, 0.1f, 0.56f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(0.6f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(0.6f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -487,7 +495,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest005, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.234f, 0.12f, 0.25f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -515,7 +524,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest006, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.33f, 0.5f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -543,7 +552,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest007, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.33f, 0.4f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -571,7 +580,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest008, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.178f, 0.523f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -599,7 +608,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest009, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.84f, 0.989f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -627,7 +636,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest010, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.45f, 0.12f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -655,7 +664,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest011, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.84f, 0.14f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -683,7 +692,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest012, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.15f, 0.23f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -711,7 +720,7 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest013, TestSize.Level1)
     canvasNode->AddModifier(rotationModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.314f, 0.541f, 0.58f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(protocol, timingCurve, [&property]() { property->Set(90.f); });
+    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(90.f); });
     /**
      * @tc.steps: step2. start animation test
      */

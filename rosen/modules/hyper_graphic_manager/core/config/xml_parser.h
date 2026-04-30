@@ -34,15 +34,9 @@ public:
 
     explicit XMLParser() : xmlDocument_(nullptr) {}
 
-    ~XMLParser()
-    {
-        Destroy();
-    }
+    ~XMLParser() { Destroy(); }
 
-    std::unique_ptr<PolicyConfigData> GetParsedData()
-    {
-        return std::move(mParsedData_);
-    }
+    std::unique_ptr<PolicyConfigData> GetParsedData() { return std::move(mParsedData_); }
 
     static bool IsNumber(const std::string& str);
 

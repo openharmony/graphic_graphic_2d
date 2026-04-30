@@ -64,7 +64,7 @@ bool ImageFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return false;
     }
-    
+
     Image image;
     Bitmap bitmap;
     int width = GetObject<int>() % MAX_SIZE;
@@ -111,7 +111,7 @@ bool ImageFuzzTest002(const uint8_t* data, size_t size)
     std::shared_ptr<Image> dstImage = std::make_shared<Image>();
     dstImage->BuildFromBitmap(dstBitmap);
 
-    ScalingType type = static_cast<ScalingType>(GetObject<uint32_t>() %
+    ScalingType type = static_cast<ScalingType>(static_cast<uint32_t>(data[0]) %
         static_cast<uint32_t>(ScalingType::OPTION_INVALID));
     ScalingOption option = {RectI(0, 0, srcWidth, srcHeight), RectI(0, 0, dstWidth, dstHeight), type};
     Image::ScaleImage(srcImage, dstImage, option);

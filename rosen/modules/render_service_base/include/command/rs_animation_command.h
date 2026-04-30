@@ -71,6 +71,8 @@ enum RSAnimationCommandType : uint16_t {
     INTERACTIVE_ANIMATOR_FINISH = 0x0404,
     INTERACTIVE_ANIMATOR_REVERSE = 0x0405,
     INTERACTIVE_ANIMATOR_SET_FRACTION = 0x0406,
+    // group animator
+    INTERACTIVE_ANIMATOR_CREATE_GROUP = 0x0407,
 };
 
 enum class AnimationCallbackEvent : uint16_t { REPEAT_FINISHED, FINISHED, LOGICALLY_FINISHED };
@@ -118,6 +120,9 @@ public:
     static void CreateInteractiveAnimator(RSContext& context,
         InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations,
         bool startImmediately);
+    static void CreateInteractiveAnimatorGroup(RSContext& context,
+        InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations,
+        bool startImmediately, const RSAnimationTimingProtocol& timingProtocol);
     static void DestoryInteractiveAnimator(RSContext& context, InteractiveImplictAnimatorId targetId);
     static void InteractiveAnimatorAddAnimations(RSContext& context,
         InteractiveImplictAnimatorId targetId, std::vector<std::pair<NodeId, AnimationId>> animations);
@@ -202,6 +207,10 @@ ADD_COMMAND(RSInteractiveAnimatorCreate,
     ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_CREATE,
         AnimationCommandHelper::CreateInteractiveAnimator, InteractiveImplictAnimatorId,
         std::vector<std::pair<NodeId, AnimationId>>, bool))
+ADD_COMMAND(RSInteractiveAnimatorCreateGroup,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_CREATE_GROUP,
+        AnimationCommandHelper::CreateInteractiveAnimatorGroup, InteractiveImplictAnimatorId,
+        std::vector<std::pair<NodeId, AnimationId>>, bool, RSAnimationTimingProtocol))
 ADD_COMMAND(RSInteractiveAnimatorDestory,
     ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_DESTORY,
         AnimationCommandHelper::DestoryInteractiveAnimator, InteractiveImplictAnimatorId))

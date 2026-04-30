@@ -253,6 +253,38 @@ void RSNodeFuzzTestInner02(std::shared_ptr<RSSurfaceNode> surfaceNode)
     surfaceNode->UpdateOcclusionCullingStatus(GetData<bool>(), GetData<NodeId>());
 }
 
+void RSNodeFuzzTestInner03(std::shared_ptr<RSSurfaceNode> surfaceNode)
+{
+    if (!surfaceNode) {
+        return;
+    }
+
+    /* Test MarkLayerPartRender with fuzzed data */
+    bool isLayerPartRender = GetData<bool>();
+    surfaceNode->MarkLayerPartRender(isLayerPartRender);
+
+    /* Test with various boolean values */
+    surfaceNode->MarkLayerPartRender(true);
+    surfaceNode->MarkLayerPartRender(false);
+    surfaceNode->MarkLayerPartRender(isLayerPartRender);
+}
+
+void RSNodeFuzzTestInner06(std::shared_ptr<RSSurfaceNode> surfaceNode)
+{
+    if (!surfaceNode) {
+        return;
+    }
+
+    /* Test MarkLayer with fuzzed data */
+    bool isLayer = GetData<bool>();
+    surfaceNode->MarkLayer(isLayer);
+
+    /* Test with various boolean values */
+    surfaceNode->MarkLayer(true);
+    surfaceNode->MarkLayer(false);
+    surfaceNode->MarkLayer(isLayer);
+}
+
 bool RSNodeFuzzTest()
 {
     RSSurfaceNodeConfig surfaceNodeConfig;
@@ -264,6 +296,8 @@ bool RSNodeFuzzTest()
 
     RSNodeFuzzTestInner01(surfaceNode);
     RSNodeFuzzTestInner02(surfaceNode);
+    RSNodeFuzzTestInner03(surfaceNode); // Test for MarkLayerPartRender
+    RSNodeFuzzTestInner06(surfaceNode); // Test for MarkLayer
 
     return true;
 }

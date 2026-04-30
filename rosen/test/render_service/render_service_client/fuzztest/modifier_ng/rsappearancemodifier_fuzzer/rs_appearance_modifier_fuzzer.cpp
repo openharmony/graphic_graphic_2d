@@ -28,7 +28,7 @@
 #include "modifier_ng/appearance/rs_outline_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_modifier.h"
-#include "modifier_ng/appearance/rs_point_light_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
@@ -106,10 +106,6 @@ bool BackgroundFilterModifierFuzzTest(const uint8_t* data, size_t size)
     std::optional<RSWaterRipplePara> randomWaterRippleParams = std::make_optional<RSWaterRipplePara>();
     modifier->SetWaterRippleParams(randomWaterRippleParams);
     modifier->GetWaterRippleParams();
-
-    std::shared_ptr<RSMagnifierParams> randomMagnifierParams = std::make_shared<RSMagnifierParams>();
-    modifier->SetMagnifierParams(randomMagnifierParams);
-    modifier->GetMagnifierParams();
 
     modifier->SetBackgroundBlurRadius(randomFloat);
     modifier->GetBackgroundBlurRadius();
@@ -395,6 +391,9 @@ bool HDRBrightnessModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->SetHDRBrightness(randomFloat);
     modifier->GetHDRBrightness();
 
+    modifier->SetHDRColorHeadroom(GetData<float>());
+    modifier->GetHDRColorHeadroom();
+
     return true;
 }
 
@@ -502,7 +501,8 @@ bool PointLightModifierFuzzTest(const uint8_t* data, size_t size)
     }
 
     // test
-    std::shared_ptr<ModifierNG::RSPointLightModifier> modifier = std::make_shared<ModifierNG::RSPointLightModifier>();
+    std::shared_ptr<ModifierNG::RSOverlayNGShaderModifier> modifier =
+        std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
 
     float randomFloat = GetData<float>();
     modifier->SetLightIntensity(randomFloat);

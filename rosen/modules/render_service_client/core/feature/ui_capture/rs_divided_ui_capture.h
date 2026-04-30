@@ -32,17 +32,22 @@ namespace Rosen {
 bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::shared_ptr<Media::PixelMap>& pixelmap);
 class RSC_EXPORT RSDividedUICapture {
 public:
-    RSDividedUICapture(NodeId nodeId, float scaleX, float scaleY)
-        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
+    RSDividedUICapture(NodeId nodeId, float scaleX, float scaleY, const Drawing::Rect& specifiedAreaRect = {})
+        : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), specifiedAreaRect_(specifiedAreaRect) {}
     ~RSDividedUICapture() = default;
 
     std::shared_ptr<Media::PixelMap> TakeLocalCapture();
 
 private:
+    static bool IsRectValid(NodeId nodeId, const Drawing::Rect& specifiedAreaRect);
+
+    friend class RSDividedUICaptureTest;
+
     class RSDividedUICaptureVisitor : public RSNodeVisitor {
     public:
-        RSDividedUICaptureVisitor(NodeId nodeId, float scaleX, float scaleY)
-            : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY) {}
+        RSDividedUICaptureVisitor(NodeId nodeId, float scaleX, float scaleY,
+            const Drawing::Rect& specifiedAreaRect = {})
+            : nodeId_(nodeId), scaleX_(scaleX), scaleY_(scaleY), specifiedAreaRect_(specifiedAreaRect) {}
         ~RSDividedUICaptureVisitor() noexcept override = default;
         void PrepareChildren(RSRenderNode& node) override;
         void PrepareCanvasRenderNode(RSCanvasRenderNode& node) override;
@@ -72,6 +77,7 @@ private:
         NodeId nodeId_;
         float scaleX_ = 1.0f;
         float scaleY_ = 1.0f;
+        Drawing::Rect specifiedAreaRect_;
     };
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::shared_ptr<Media::PixelMap>& pixelmap) const;
     void PostTaskToRTRecord(std::shared_ptr<ExtendRecordingCanvas> canvas, std::shared_ptr<RSRenderNode> node,
@@ -81,6 +87,7 @@ private:
     NodeId nodeId_;
     float scaleX_;
     float scaleY_;
+    Drawing::Rect specifiedAreaRect_;
 };
 } // namespace Rosen
 } // namespace OHOS

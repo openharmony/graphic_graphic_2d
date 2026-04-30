@@ -43,7 +43,7 @@ void RSShadowRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetShadowOffsetX(0.f);
     properties.SetShadowOffsetY(0.f);
     properties.SetShadowElevation(0.f);
-    properties.SetShadowRadius(0.f);
+    properties.SetShadowRadius(DEFAULT_SHADOW_RADIUS);
     properties.SetShadowPath(nullptr);
     properties.SetShadowMask(SHADOW_MASK_STRATEGY::MASK_NONE);
     properties.SetShadowColorStrategy(static_cast<int>(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE));

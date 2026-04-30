@@ -75,7 +75,12 @@ DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
     ADD_PROPERTY_TAG(FrameGradientMask, InnerFrameWidth),
     ADD_PROPERTY_TAG(FrameGradientMask, OuterFrameWidth),
     ADD_PROPERTY_TAG(FrameGradientMask, RectWH),
-    ADD_PROPERTY_TAG(FrameGradientMask, RectPos)
+    ADD_PROPERTY_TAG(FrameGradientMask, RectPos),
+    ADD_PROPERTY_TAG(FrameGradientMask, AxialFeatherStrength),
+    ADD_PROPERTY_TAG(FrameGradientMask, AxialCenter),
+    ADD_PROPERTY_TAG(FrameGradientMask, AxialCoreWidth),
+    ADD_PROPERTY_TAG(FrameGradientMask, AxialDirection),
+    ADD_PROPERTY_TAG(FrameGradientMask, BoxAngleDeg)
 );
 
 DECLARE_MASK(DupoliNoiseMask, DUPOLI_NOISE_MASK,

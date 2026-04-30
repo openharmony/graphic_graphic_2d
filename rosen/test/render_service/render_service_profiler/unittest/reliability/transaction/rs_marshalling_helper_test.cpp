@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,15 +26,6 @@
 #include "transaction/rs_marshalling_helper.h"
 #include "utils/data.h"
 
-#ifdef ROSEN_OHOS
-#include "buffer_utils.h"
-#endif
-#include "recording/mask_cmd_list.h"
-
-#include "property/rs_properties_def.h"
-
-#include "rs_profiler.h"
-
 using namespace testing;
 using namespace testing::ext;
 
@@ -48,6 +39,36 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+};
+class RSMarshallingHelperMockParcelTest : public testing::Test {
+public:
+    static void SetUpTestCase()
+    {
+        RSProfiler::testing_ = true;
+        RSProfiler::SetMode(Mode::READ);
+    }
+
+    static void TearDownTestCase()
+    {
+        RSProfiler::testing_ = false;
+        RSProfiler::SetMode(Mode::NONE);
+    }
+
+    void SetUp() override
+    {
+        parcel = new (parcelMemory + 1) Parcel;
+    }
+
+    void TearDown() override
+    {
+        parcel->~Parcel();
+    }
+
+private:
+    Parcel* parcel;
+    uint8_t parcelMemory[sizeof(Parcel) + 1];
+
+    static constexpr const uint64_t FLAG = 1uLL << 62u;
 };
 
 bool RSMarshallingHelperReliabilityTest::profilerEnabled_ = false;
@@ -63,7 +84,6 @@ void RSMarshallingHelperReliabilityTest::TearDownTestCase()
 void RSMarshallingHelperReliabilityTest::SetUp() {}
 void RSMarshallingHelperReliabilityTest::TearDown() {}
 
-#ifdef USE_VIDEO_PROCESSING_ENGINE
 /**
  * @tc.name: ConsistencyWithSmallData
  * @tc.desc: Verify function marshal, unmarshal and skip is consistent.
@@ -120,7 +140,7 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithout
     options.size.width = 1;
     options.size.height = 1;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 88; // or 92
+    const size_t position = 88;
     const size_t pixelMapSize = 84;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
@@ -283,90 +303,6 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithProfi
     EXPECT_TRUE(CheckConsistencyWithPixelMap(pixelMap, position, pixelMapSize));
 }
 
-HWTEST(RSMarshallingHelperTest, UnmarshallingEmpty, Level1)
-{
-    Parcel parcel;
-    uint64_t val = 0;
-    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(parcel, val);
-    EXPECT_FALSE(ret);
-    EXPECT_EQ(val, 0);
-}
-
-HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusId0, Level1)
-{
-    Parcel parcel;
-    uint64_t val = 0;
-    parcel.WriteUint64(val);
-    val = 42;
-    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(parcel, val);
-    EXPECT_TRUE(ret);
-    EXPECT_EQ(val, 0);
-}
-
-HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusId, Level1)
-{
-    Parcel parcel;
-    uint64_t val = 42;
-    parcel.WriteUint64(val);
-    val = 0;
-    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(parcel, val);
-    EXPECT_TRUE(ret);
-    EXPECT_EQ(val, 42);
-}
-
-HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusIdNoChangeIfZero0, Level1)
-{
-    Parcel parcel;
-    uint64_t val = 0;
-    parcel.WriteUint64(val);
-    val = 42;
-    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, val);
-    EXPECT_TRUE(ret);
-    EXPECT_EQ(val, 0);
-}
-
-HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusIdNoChangeIfZero, Level1)
-{
-    Parcel parcel;
-    uint64_t val = 42;
-    parcel.WriteUint64(val);
-    val = 0;
-    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, val);
-    EXPECT_TRUE(ret);
-    EXPECT_EQ(val, 42);
-}
-
-class RSMarshallingHelperMockParcelTest : public testing::Test {
-public:
-    static void SetUpTestCase()
-    {
-        RSProfiler::testing_ = true;
-        RSProfiler::SetMode(Mode::READ);
-    }
-
-    static void TearDownTestCase()
-    {
-        RSProfiler::testing_ = false;
-        RSProfiler::SetMode(Mode::NONE);
-    }
-
-    void SetUp() override
-    {
-        parcel = new (parcelMemory + 1) Parcel;
-    }
-
-    void TearDown() override
-    {
-        parcel->~Parcel();
-    }
-
-private:
-    Parcel* parcel;
-    uint8_t parcelMemory[sizeof(Parcel) + 1];
-
-    static constexpr const uint64_t FLAG = 1uLL << 62u;
-};
-
 HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusId0, Level1)
 {
     uint64_t val = 0;
@@ -406,6 +342,5 @@ HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusIdNoChangeIfZero
     EXPECT_TRUE(ret);
     EXPECT_EQ(val, FLAG | 42);
 }
-#endif
 } // namespace Rosen
 } // namespace OHOS

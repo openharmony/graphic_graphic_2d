@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,12 +18,19 @@
 #include <cstdint>
 #include "get_object.h"
 #include "draw/canvas.h"
+#include "draw/color.h"
+#include "effect/particle_builder.h"
+#include "text/font.h"
+#include "text/glyph_cache.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 static constexpr int32_t BITMAP_WIDTH = 300;
 static constexpr int32_t BITMAP_HEIGHT = 300;
+static constexpr size_t  MAX_SIZE = 5000;
+constexpr size_t COLORFORMAT_SIZE = 12;
+constexpr size_t ALPHAFORMAT_SIZE = 4;
 
 bool CanvasFuzzTest(const uint8_t* data, size_t size)
 {
@@ -153,6 +160,23 @@ bool CanvasFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+bool CanvasFuzzTest003(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    Canvas canvas;
+    Bitmap bitmap;
+    uint32_t colorType = GetObject<uint32_t>();
+    uint32_t alphaType = GetObject<uint32_t>();
+    BitmapFormat format {static_cast<ColorType>(colorType % COLORFORMAT_SIZE),
+                         static_cast<AlphaType>(alphaType % ALPHAFORMAT_SIZE) };
+    bitmap.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    canvas.Bind(bitmap);
+    canvas.IsOpaque();
+    return true;
+}
+
 bool CanvasFuzzTestHpsEdgeLight(const uint8_t* data, size_t size)
 {
     Canvas canvas;
@@ -183,6 +207,119 @@ bool CanvasFuzzTestHpsEdgeLight(const uint8_t* data, size_t size)
     return true;
 }
 
+bool CanvasFuzzTestInsertOpaqueRegion(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+
+    // Generate random opaque rects count (0-10)
+    uint32_t rectCount = GetObject<uint32_t>() % 11;
+    std::vector<RectI> opaqueRects;
+
+    for (uint32_t i = 0; i < rectCount; i++) {
+        int32_t left = GetObject<int32_t>() % 1000;
+        int32_t top = GetObject<int32_t>() % 1000;
+        int32_t right = GetObject<int32_t>() % 1000;
+        int32_t bottom = GetObject<int32_t>() % 1000;
+        opaqueRects.emplace_back(left, top, right, bottom);
+    }
+
+    // Call InsertOpaqueRegion with generated rects
+    canvas.InsertOpaqueRegion(opaqueRects);
+
+    // Test with empty rects
+    std::vector<RectI> emptyRects;
+    canvas.InsertOpaqueRegion(emptyRects);
+
+    return true;
+}
+
+bool CanvasFuzzTestParticle(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    auto builder = std::make_shared<Drawing::ParticleBuilder>();
+    if (!builder) {
+        return false;
+    }
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    builder->SetUpdateCode(std::string(dataText));
+    uint32_t maxParticleCount = GetObject<uint32_t>();
+    auto effect = builder->MakeParticleEffect(maxParticleCount);
+    if (!effect) {
+        return false;
+    }
+    canvas.DrawParticle(effect);
+    bool doSave = GetObject<bool>();
+    AutoCanvasRestore(canvas, doSave);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+
+    return true;
+}
+
+bool CanvasFuzzTestDrawSingleCharacterWithFeatures(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    Font font;
+    std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    scalar x = GetObject<scalar>();
+    scalar y = GetObject<scalar>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* text = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        text[i] = GetObject<char>();
+    }
+    text[length - 1] = '\0';
+    std::shared_ptr<DrawingFontFeatures> features = std::make_shared<DrawingFontFeatures>();
+    canvas.DrawSingleCharacterWithFeatures(text, font, x, y, features);
+    canvas.DrawSingleCharacterWithFeatures(text, font, x, y, nullptr);
+    if (text != nullptr) {
+        delete [] text;
+        text = nullptr;
+    }
+    GlyphCache::Instance().Clear();
+    return true;
+}
+
+bool CanvasFuzzTestGlyphCache(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    GlyphCache& cache = GlyphCache::Instance();
+    cache.Clear();
+    uint32_t maxSize = GetObject<uint32_t>();
+    cache.SetMaxSize(maxSize);
+    int32_t unicode = GetObject<int32_t>();
+    uint32_t typefaceHash = GetObject<uint32_t>();
+    GlyphCacheKey key = {unicode, typefaceHash, {}};
+    uint16_t glyphId = GetObject<uint16_t>();
+    cache.Put(key, glyphId);
+    uint16_t retrievedValue = 0;
+    cache.Get(key, retrievedValue);
+    cache.Clear();
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -199,6 +336,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest003(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestHpsEdgeLight(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestInsertOpaqueRegion(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestParticle(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestDrawSingleCharacterWithFeatures(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestGlyphCache(data, size);
     return 0;
 }

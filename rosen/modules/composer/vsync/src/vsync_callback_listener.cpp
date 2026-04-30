@@ -21,11 +21,9 @@
 #include <scoped_bytrace.h>
 #include <fcntl.h>
 #include <hitrace_meter.h>
-#if defined(RS_ENABLE_DVSYNC_2)
-#include "dvsync_delay.h"
-#endif
+#include "dvsync_lib_manager.h"
 #include "graphic_common.h"
-#include "rs_frame_report_ext.h"
+#include "rs_frame_report.h"
 #include "vsync_log.h"
 #include <rs_trace.h>
 
@@ -42,7 +40,6 @@ namespace OHOS {
 namespace Rosen {
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 {
-    HitracePerfScoped perfTrace(ScopedDebugTrace::isEnabled(), HITRACE_TAG_GRAPHIC_AGP, "OnReadablePerfCount");
     {
         std::lock_guard<std::mutex> locker(cbMutex_);
         if (fileDescriptor < 0 || (readableCallback_ != nullptr && !readableCallback_(fileDescriptor))) {
@@ -56,21 +53,21 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     if (ReadFdInternal(fileDescriptor, data, dataCount) != VSYNC_ERROR_OK) {
         return;
     }
-#if defined(RS_ENABLE_DVSYNC_2)
-    auto taskFunc = [now = data[0], period = data[1], vsyncId = data[2],
-            dataCount, fileDescriptor, weak = weak_from_this()]() {
-        if (auto self = weak.lock()) {
-            int64_t newData[3] = {now, period, vsyncId};
-            DVSyncDelay::Instance().UpdateDelayInfo();
-            self->HandleVsyncCallbacks(newData, dataCount, fileDescriptor);
-        } else {
-            VLOGE("VSyncCallBackListener::OnReadable, weak.lock error");
-        }
-    };
-    DVSyncDelay::Instance().ToDelay(taskFunc, name_, fileDescriptor);
-#else
-    HandleVsyncCallbacks(data, dataCount, fileDescriptor);
-#endif
+    if (DVSyncLibManager::DvsyncDelayInstance().IsInitialized()) {
+        auto taskFunc = [now = data[0], period = data[1], vsyncId = data[2],
+                dataCount, fileDescriptor, weak = weak_from_this()]() {
+            if (auto self = weak.lock()) {
+                int64_t newData[3] = {now, period, vsyncId};
+                DVSyncLibManager::DvsyncDelayInstance().UpdateDelayInfo();
+                self->HandleVsyncCallbacks(newData, dataCount, fileDescriptor);
+            } else {
+                VLOGE("VSyncCallBackListener::OnReadable, weak.lock error");
+            }
+        };
+        DVSyncLibManager::DvsyncDelayInstance().ToDelay(taskFunc, name_, fileDescriptor);
+    } else {
+        HandleVsyncCallbacks(data, dataCount, fileDescriptor);
+    }
 }
 
 void VSyncCallBackListener::OnShutdown(int32_t fileDescriptor)
@@ -102,6 +99,7 @@ VsyncError VSyncCallBackListener::ReadFdInternal(int32_t fd, int64_t (&data)[3],
                 continue;
             } else if (errno != EAGAIN) {
                 VLOGE("ReadFdInternal, read fd:%{public}d failed, errno:%{public}d", fd, errno);
+                return VSYNC_ERROR_API_FAILED;
             }
         } else {
             dataCount += ret;
@@ -152,9 +150,7 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
             cb.callbackWithId_(now, data[2], cb.userData_); // data[2] is vsyncId
         }
     }
-    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
-        OHOS::Rosen::RsFrameReportExt::GetInstance().ReceiveVSync();
-    }
+    RsFrameReport::ReceiveVSync();
 }
 
 void VSyncCallBackListener::PrintRequestTs(int64_t fromRsTs)
@@ -176,12 +172,17 @@ void VSyncCallBackListener::PrintRequestTs(int64_t fromRsTs)
     }
 }
 
-int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
+int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t &now)
 {
     int64_t expectedEnd = 0;
     if (period_ < 0 || now < period_ || now > INT64_MAX - period_) {
         RS_TRACE_NAME_FMT("invalid timestamps, now:%" PRId64 ", period:%" PRId64, now, period_);
         VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
+        now = 0;
+        period_ = 0;
+        periodShared_ = 0;
+        timeStamp_ = 0;
+        timeStampShared_ = 0;
         return 0;
     }
     expectedEnd = now + period_;

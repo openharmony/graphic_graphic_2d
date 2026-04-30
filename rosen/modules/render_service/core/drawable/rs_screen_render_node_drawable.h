@@ -21,13 +21,15 @@
 #include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "engine/rs_base_render_engine.h"
 #include "params/rs_render_thread_params.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
-#include "screen_manager/rs_screen_manager.h"
+#include "rs_composer_client_manager.h"
+
+inline const std::string RENDER_NODE_NAME = "ScreenNode";
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -106,7 +108,7 @@ public:
     {
         return virtualSurfaceUniqueId_ != pSurfaceUniqueId ? nullptr : virtualSurface_;
     }
-    bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
+    bool SkipFrame(uint32_t refreshRate, const RSScreenProperty& screenProperty);
     bool IsRenderSkipIfScreenOff() const
     {
         return isRenderSkipIfScreenOff_;
@@ -159,7 +161,6 @@ private:
     bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
     void UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
         RSScreenRenderParams* params);
-    void CheckAndClearRelatedSourceNodeCache(RSScreenRenderParams& params);
 
     static void UpdateSlrScale(ScreenInfo& screenInfo);
 

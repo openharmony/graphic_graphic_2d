@@ -14,29 +14,37 @@
  */
 #include "ui/rs_ui_patten_vec.h"
 
+#include <set>
+#include <string>
+
 namespace OHOS {
 namespace Rosen {
-// subtree parallel judgment conditions vec
-const std::set<std::string> g_rbPattenVec = {
-    "GridItem",
-    "Grid",
-    "GridCol",
-    "Column",
-    "Row",
-    "ListItemGroup",
-    "ArcListItem",
-    "ListItem",
-    "List",
-    "NodeContainer",
-    "RelativeContainer",
-    "Stack",
-    "Swiper",
-    "FlowItem",
-    "WaterFlow",
-    "Scroll",
-    "TabBar",
-    "Custom",
-    "__Common__"
-};
+
+bool CheckRbPatten(const std::string& tag)
+{
+    // subtree parallel judgment conditions vec
+    static std::set<std::string> g_rbPattenVec = {
+        "GridItem",
+        "Grid",
+        "GridCol",
+        "Column",
+        "Row",
+        "ListItemGroup",
+        "ArcListItem",
+        "ListItem",
+        "List",
+        "NodeContainer",
+        "RelativeContainer",
+        "Stack",
+        "Swiper",
+        "FlowItem",
+        "WaterFlow",
+        "Scroll",
+        "TabBar",
+        "Custom",
+        "__Common__"
+    };
+    return g_rbPattenVec.find(tag) != g_rbPattenVec.end();
+}
 } // namespace Rosen
 } // namespace OHOS

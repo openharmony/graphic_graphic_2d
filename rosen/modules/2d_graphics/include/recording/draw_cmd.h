@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -101,6 +101,10 @@ public:
         RECORD_CMD_OPITEM,
         HYBRID_RENDER_PIXELMAP_OPITEM,
         HYBRID_RENDER_PIXELMAP_SIZE_OPITEM,
+        UICOLOR_OPITEM,
+        PARTICLE_OPITEM,
+        RESET_CLIP_OPITEM,
+        GLYPHS_OPITEM,
     };
 
     static void BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush);
@@ -644,6 +648,29 @@ private:
     BlendMode mode_;
 };
 
+class DrawUIColorOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(UIColor color, BlendMode mode)
+            : OpItem(DrawOpItem::UICOLOR_OPITEM), color(color), mode(mode) {}
+        ~ConstructorHandle() override = default;
+        UIColor color;
+        BlendMode mode;
+    };
+    explicit DrawUIColorOpItem(ConstructorHandle* handle);
+    DrawUIColorOpItem(UIColor color, BlendMode mode)
+        : DrawOpItem(DrawOpItem::UICOLOR_OPITEM), color_(color), mode_(mode) {}
+    ~DrawUIColorOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
+private:
+    UIColor color_;
+    BlendMode mode_;
+};
+
 class DrawImageNineOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
@@ -899,19 +926,56 @@ private:
     std::shared_ptr<Picture> picture_;
 };
 
+class DrawGlyphsOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const std::pair<size_t, size_t>& glyphs, const std::pair<size_t, size_t>& positions,
+                          const Point& origin, const OpFontHandle& font, const uint64_t& globalUniqueId,
+                          const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::GLYPHS_OPITEM), glyphs(glyphs), positions(positions),
+              origin(origin), font(font), globalUniqueId(globalUniqueId),
+              paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+
+        std::pair<size_t, size_t> glyphs;
+        std::pair<size_t, size_t> positions;
+        Point origin;
+        OpFontHandle font;
+        uint64_t globalUniqueId;
+        PaintHandle paintHandle;
+    };
+    DrawGlyphsOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawGlyphsOpItem(const std::vector<uint16_t>& glyphs, const std::vector<Point>& positions,
+                     const Point& origin, const Font* font, const Paint& paint)
+        : DrawWithPaintOpItem(paint, DrawOpItem::GLYPHS_OPITEM), glyphs_(glyphs), positions_(positions),
+          origin_(origin), font_(std::make_shared<Font>(*font)), globalUniqueId_(0) {}
+    ~DrawGlyphsOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+
+private:
+    std::vector<uint16_t> glyphs_;
+    std::vector<Point> positions_;
+    Point origin_;
+    std::shared_ptr<Font> font_;
+    uint64_t globalUniqueId_;
+};
+
 class DrawTextBlobOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId,
-            TextContrast textContrast, scalar x, scalar y, const PaintHandle& paintHandle)
+            TextBlobRenderOption opt, scalar x, scalar y, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), globalUniqueId(globalUniqueId),
-            textContrast(textContrast), x(x), y(y), paintHandle(paintHandle) {}
+              options(opt), x(x), y(y), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
         uint64_t globalUniqueId;
-        TextContrast textContrast;
+        TextBlobRenderOption options;
         scalar x;
         scalar y;
         PaintHandle paintHandle;
@@ -940,7 +1004,7 @@ private:
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
     uint64_t globalUniqueId_;
-    TextContrast textContrast_ = TextContrast::FOLLOW_SYSTEM;
+    TextBlobRenderOption options_ = TextBlobRenderOption();
     bool IsHighContrastEnable(Canvas* canvas, TextContrast value) const;
 };
 
@@ -1090,6 +1154,20 @@ public:
 private:
     ClipOp clipOp_;
     std::shared_ptr<Region> region_;
+};
+
+class ResetClipOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle() : OpItem(DrawOpItem::RESET_CLIP_OPITEM) {}
+        ~ConstructorHandle() override = default;
+    };
+    ResetClipOpItem();
+    ~ResetClipOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
 };
 
 class SetMatrixOpItem : public DrawOpItem {
@@ -1385,6 +1463,25 @@ class HybridRenderPixelMapSizeOpItem : public DrawOpItem {
         float width_;
         float height_;
     };
+
+class DrawParticleOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& particleEffectHandle)
+            : OpItem(DrawOpItem::PARTICLE_OPITEM), particleEffectHandle(particleEffectHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle particleEffectHandle;
+    };
+    explicit DrawParticleOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    explicit DrawParticleOpItem(std::shared_ptr<ParticleEffect> particleEffect);
+    ~DrawParticleOpItem() override = default;
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
+private:
+    std::shared_ptr<ParticleEffect> particleEffect_;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -18,7 +18,6 @@
 #include "effect_utils.h"
 #include "ge_external_dynamic_loader.h"
 #include "ge_mask_transition_shader_filter.h"
-#include "ge_water_droplet_transition_filter.h"
 #include "ge_linear_gradient_shader_mask.h"
 #include "ge_mesa_blur_shader_filter.h"
 #include "ge_radial_gradient_shader_mask.h"
@@ -33,8 +32,12 @@
 #include "surface_buffer.h"
 
 #ifdef RS_ENABLE_VK
-#include "effect_vulkan_context.h"
+#ifndef ROSEN_ARKUI_X
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
+#else
+#include "rs_vulkan_context.h"
+#endif
 #endif
 
 namespace OHOS::Rosen {
@@ -122,6 +125,22 @@ Drawing::CoreCanvas& EffectCanvas::DetachBrush()
     return *this;
 }
 
+void EffectImageChain::UpdateImage()
+{
+    DrawOnFilter(); // need draw first to ensure cascading
+    Drawing::RectI rec = {0, 0, (int)canvasRec_.GetRight(), (int)canvasRec_.GetBottom()};
+    image_ = surface_->GetImageSnapshot(rec, false);
+    filters_ = nullptr; // clear filters_ to avoid applying again
+    imageRec_ = canvasRec_;
+}
+
+void EffectImageChain::ScaleCanvas(float scaleX, float scaleY)
+{
+    canvas_->Scale(scaleX, scaleY);
+    canvasRec_.SetRight(canvasRec_.GetRight() * scaleX);
+    canvasRec_.SetBottom(canvasRec_.GetBottom() * scaleY);
+}
+
 DrawingError EffectImageChain::Prepare(const std::shared_ptr<Media::PixelMap>& srcPixelMap, bool forceCPU)
 {
     std::lock_guard<std::mutex> lock(apiMutex_);
@@ -147,7 +166,7 @@ DrawingError EffectImageChain::Prepare(const std::shared_ptr<Media::PixelMap>& s
     return DrawingError::ERR_OK;
 }
 
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 DrawingError EffectImageChain::PrepareNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
     std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer, bool forceCPU)
 {
@@ -183,15 +202,27 @@ DrawingError EffectImageChain::PrepareNativeBuffer(const std::shared_ptr<Media::
         EFFECT_COMM_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
- 
+
+    auto sbuffer = SurfaceBuffer::NativeBufferToSurfaceBuffer(dstNativeBuffer.get());
+    imageRec_ = Drawing::Rect{0, 0, image_->GetWidth(), image_->GetHeight()};
+    surfaceRec_ = Drawing::Rect{0, 0, sbuffer->GetWidth(), sbuffer->GetHeight()};
+    canvasRec_ = surfaceRec_;
+    Drawing::ImageInfo info = Drawing::ImageInfo { sbuffer->GetWidth(), sbuffer->GetHeight(),
+        ImageUtil::PixelFormatToDrawingColorType(srcPixelMap_->GetPixelFormat()),
+        ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
+        RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
     surface_ = NativeBufferUtils::CreateSurfaceFromNativeBuffer(
-        RsVulkanContext::GetSingleton(), imageInfo_, dstNativeBuffer.get(), imageInfo_.GetColorSpace());
+        RsVulkanContext::GetSingleton(), info, dstNativeBuffer.get(), info.GetColorSpace());
     if (surface_ == nullptr) {
         EFFECT_LOG_E("EffectImageChain::Prepare: Failed to create surface %{public}d.", forceCPU_);
         return DrawingError::ERR_SURFACE;
     }
- 
     canvas_ = surface_->GetCanvas();
+    if (canvasRec_.GetRight() != imageRec_.GetRight() || canvasRec_.GetBottom() != imageRec_.GetBottom()) {
+        float scaleX = imageRec_.GetRight() / canvasRec_.GetRight();
+        float scaleY = imageRec_.GetBottom() / canvasRec_.GetBottom();
+        ScaleCanvas(scaleX, scaleY);
+    }
     prepared_ = true;
     return DrawingError::ERR_OK;
 }
@@ -236,13 +267,11 @@ DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& 
     }
 
     if (filters_ != nullptr) {
-        DrawOnFilter(); // need draw first to ensure cascading
-        image_ = surface_->GetImageSnapshot();
-        filters_ = nullptr; // clear filters_ to avoid apply again
+        UpdateImage();
     }
 
     auto isHpsApplied = (RSSystemProperties::GetHpsBlurEnabled() && tileMode == Drawing::TileMode::CLAMP &&
-        (ApplyHpsBlur(radius) == DrawingError::ERR_OK) && !isDirection);
+        !isDirection && (ApplyHpsBlur(radius) == DrawingError::ERR_OK));
     if (isHpsApplied) { // apply hps blur success
         return DrawingError::ERR_OK;
     }
@@ -278,9 +307,7 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
         return DrawingError::ERR_NOT_PREPARED;
     }
     if (filters_ != nullptr) {
-        DrawOnFilter(); // need draw first to ensure cascading
-        image_ = surface_->GetImageSnapshot();
-        filters_ = nullptr; // clear filters_ to avoid apply again
+        UpdateImage();
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyEllipticalGradientBlur");
@@ -329,9 +356,7 @@ DrawingError EffectImageChain::ApplyMapColorByBrightness(
     }
 
     if (filters_ != nullptr) {
-        DrawOnFilter(); // need draw first to ensure cascading
-        image_ = surface_->GetImageSnapshot();
-        filters_ = nullptr; // clear filters_ to avoid apply again
+        UpdateImage();
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyMapColorByBrightness");
@@ -369,9 +394,7 @@ DrawingError EffectImageChain::ApplyGammaCorrection(float gamma)
     }
 
     if (filters_ != nullptr) {
-        DrawOnFilter(); // need draw first to ensure cascading
-        image_ = surface_->GetImageSnapshot();
-        filters_ = nullptr; // clear filters_ to avoid apply again
+        UpdateImage();
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyGammaCorrection");
@@ -449,9 +472,7 @@ DrawingError EffectImageChain::ApplySDFCreation(int spreadFactor, bool generateD
     std::lock_guard<std::mutex> lock(apiMutex_);
 
     if (filters_ != nullptr) {
-        DrawOnFilter();  // need draw first to ensure cascading
-        image_ = surface_->GetImageSnapshot();
-        filters_ = nullptr;  // clear filters_ to avoid apply again
+        UpdateImage();
     }
 
     Drawing::GESDFFromImageFilterParams params{spreadFactor, generateDerivs};
@@ -503,9 +524,7 @@ DrawingError EffectImageChain::ApplyMaskTransitionFilter(const std::shared_ptr<M
     }
  
     if (filters_ != nullptr) {
-        DrawOnFilter(); // need draw first to ensure cascading
-        image_ = surface_->GetImageSnapshot();
-        filters_ = nullptr; // clear filters_ to avoid apply again
+        UpdateImage();
     }
  
     Drawing::GEMaskTransitionShaderFilterParams filterParams{mask, factor, inverse};
@@ -557,7 +576,7 @@ std::shared_ptr<GEShaderFilter> GenerateWaterDropletTransitionFilter(
         sizeof(Drawing::GEWaterDropletTransitionFilterParams),
         static_cast<void*>(params.get()));
     if (!object) {
-        return std::make_shared<GEWaterDropletTransitionFilter>(*params);
+        return nullptr;
     }
  
     std::shared_ptr<GEShaderFilter> dmShader(static_cast<GEShaderFilter*>(object));
@@ -580,9 +599,7 @@ DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shar
     }
  
     if (filters_ != nullptr) {
-        DrawOnFilter(); // need draw first to ensure cascading
-        image_ = surface_->GetImageSnapshot();
-        filters_ = nullptr; // clear filters_ to avoid apply again
+        UpdateImage();
     }
  
     if (!geWaterDropletParams) {
@@ -632,6 +649,14 @@ void EffectImageChain::DrawOnFilter()
     canvas_->Save();
     canvas_->ResetMatrix();
     canvas_->AttachPaint(paint);
+    if (imageRec_.GetRight() != canvasRec_.GetRight() || imageRec_.GetBottom() != canvasRec_.GetBottom()) {
+        canvas_->DrawImageRect(*image_,
+            imageRec_,
+            canvasRec_,
+            Drawing::SamplingOptions(filterMode_, mipmapMode_));
+    } else {
+        canvas_->DrawImage(*image_, 0, 0, Drawing::SamplingOptions());
+    }
     canvas_->DrawImage(*image_, 0, 0, Drawing::SamplingOptions());
     canvas_->DetachPaint();
     canvas_->Restore();
@@ -675,6 +700,11 @@ DrawingError EffectImageChain::DrawNativeBuffer()
             EFFECT_LOG_E("EffectImageChain::Draw: Not ready, need prepare first.");
             ret = DrawingError::ERR_NOT_PREPARED;
             break;
+        }
+        if (canvasRec_.GetRight() != surfaceRec_.GetRight() || canvasRec_.GetBottom() != surfaceRec_.GetBottom()) {
+            float scaleX = surfaceRec_.GetRight() / canvasRec_.GetRight();
+            float scaleY = surfaceRec_.GetBottom() / canvasRec_.GetBottom();
+            ScaleCanvas(scaleX, scaleY);
         }
         DrawOnFilter();
         gpuContext_->FlushAndSubmit();
@@ -764,7 +794,8 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
 
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        gpuContext_ = EffectVulkanContext::GetSingleton().CreateDrawingContext();
+        gpuContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        gpuContext_->SetResourceCacheLimits(0, 0);
     }
 #endif
 
@@ -772,7 +803,11 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
         EFFECT_COMM_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
         return nullptr;
     }
-    return Drawing::Surface::MakeRenderTarget(gpuContext_.get(), false, imageInfo_);
+    
+    RS_TRACE_NAME_FMT("EffectImageChain::CreateGPUSurface Imageinfo:Image_Width:%d, Imageinfo_Height:%d",
+        imageInfo_.GetWidth(), imageInfo_.GetHeight());
+    auto surface = Drawing::Surface::MakeRenderTarget(gpuContext_.get(), false, imageInfo_);
+    return surface;
 #else
     EFFECT_LOG_W("EffectImageChain::CreateGPUSurface: GPU rendering is not supported.");
     return nullptr;
@@ -852,9 +887,7 @@ DrawingError EffectImageChain::ApplyWaterGlass(const std::shared_ptr<Drawing::GE
     }
 
     if (filters_ != nullptr) {
-        DrawOnFilter(); // need draw first to ensure cascading
-        image_ = surface_->GetImageSnapshot();
-        filters_ = nullptr; // clear filters_ to avoid apply again
+        UpdateImage();
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyWaterGlass");
@@ -890,9 +923,7 @@ DrawingError EffectImageChain::ApplyReededGlass(
     }
 
     if (filters_ != nullptr) {
-        DrawOnFilter(); // need draw first to ensure cascading
-        image_ = surface_->GetImageSnapshot();
-        filters_ = nullptr; // clear filters_ to avoid apply again
+        UpdateImage();
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyReededGlass");
@@ -909,6 +940,32 @@ DrawingError EffectImageChain::ApplyReededGlass(
         Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawingError::ERR_OK;
+}
+
+DrawingError EffectImageChain::ApplyScale(
+    float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
+{
+    if (scaleX <= 0.0f || scaleY <= 0.0f) {
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+    if (!prepared_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyScale: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (forceCPU_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyScale: Cannot use CPU to scale currently.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    filterMode_ = filterMode;
+    mipmapMode_ = mipmapMode;
+    if (filters_ != nullptr) {
+        UpdateImage();
+    }
+    ScaleCanvas(scaleX, scaleY);
+    UpdateImage();
     return DrawingError::ERR_OK;
 }
 } // namespace OHOS::Rosen

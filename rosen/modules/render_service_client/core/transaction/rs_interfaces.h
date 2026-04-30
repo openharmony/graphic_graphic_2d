@@ -24,6 +24,7 @@
 #include <memory>
 #include <mutex>
 
+#include "common/rs_event_def.h"
 #include "memory/rs_memory_graphic.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
@@ -183,37 +184,6 @@ public:
      */
     void RemoveVirtualScreen(ScreenId id);
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    /**
-     * @brief Sets the parameters for inverting the color of the variable cursor.
-     * @param darkBuffer Dark buffer area.
-     * @param brightBuffer Bright color buffer area Enable cast black list for virtual screen or not.
-     * @param interval Cursor color obtaining interval.
-     * @return 0 means success, others failed.
-     */
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
-    
-    /**
-     * @brief Indicates whether to enable color inversion of the variable cursor or not.
-     * @param enable enable color inversion of the variable cursor or not.
-     * @return 0 means success, others failed.
-     */
-    int32_t SetPointerColorInversionEnabled(bool enable);
-    
-    /**
-     * @brief Register the callback for changing the color of the cursor.
-     * @param callback callback for changing the color of the cursor.
-     * @return 0 means success, others failed.
-     */
-    int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
-    
-    /**
-     * @brief UnRegister the callback for changing the color of the cursor.
-     * @return 0 means success, others failed.
-     */
-    int32_t UnRegisterPointerLuminanceChangeCallback();
-#endif
-
     /**
      * @brief Set screen connection status change callback.
      * on the screen connection status is changed.
@@ -222,6 +192,8 @@ public:
      */
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
+
     /**
      * @brief Set screen switching status notify callback.
      * on the screen switching status is changed.
@@ -229,6 +201,14 @@ public:
      * @return Returns int32_t, return value == 0 success, otherwise, failed.
      */
     int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback);
+
+    /**
+     * @brief Set active screen id changed callback.
+     * on active screen id is changed.
+     * @param callback Callback of the active screen id changed.
+     * @return Returns int32_t, return value == 0 success, otherwise, failed.
+     */
+    int32_t SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback &callback);
 
     /**
      * @brief Set brightness info change callback.
@@ -251,12 +231,15 @@ public:
      * @param watermark Watermark pixelmap.
      * @param maxSize The maximum supported image size is 6MB. if the maximum image size exceeds 512Kb,
      * the time to draw the watermark will increase. In such cases, consider using DMA mode for pixelMap
+     * @param rowCount Number of rows for grid watermark layout. 0 means no grid (single image).
+     * @param colCount Number of columns for grid watermark layout. 0 means no grid (single image).
      * @attention watermark has a maximum of 1000 images.
      * @attention When not using a watermark, the watermark image should be released.
      * @return set watermark success return true, else return false.
      */
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
-        SaSurfaceWatermarkMaxSize maxSize = SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE);
+        SaSurfaceWatermarkMaxSize maxSize = SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
      * @brief Set watermark for surfaceNode.
@@ -275,7 +258,8 @@ public:
      */
     uint32_t SetSurfaceWatermark(pid_t pid,
         const std::string &name, const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
      * @brief Clear watermark for select surfaceNodes.
@@ -453,7 +437,7 @@ public:
      * @param positionW Indicates w coordinate position.
      * @return return true if set success, else return false.
      */
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
+    bool SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
     /**
      * @brief Register typeface.
@@ -606,6 +590,20 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+
+    /**
+     * @brief Set screen as main screen.
+     * @param screenId Id of the screen to set.
+     * @param isMainScreen True means set as main screen, false means not main screen.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+
+    /**
+     * @brief Get the main screen id.
+     * @return ScreenId of the main screen. Returns INVALID_SCREEN_ID if no main screen is set.
+     */
+    ScreenId GetMainScreenId();
 
     /**
      * @brief Get active mode of the screen.
@@ -810,7 +808,8 @@ public:
      * @param hdrFormats The hardware supported HDR format will set to this parameter.
      * @return 0 success, others failed.
      */
-    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats);
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        const ScreenSupportedHDRFormatsCallback& callback = nullptr);
 
     /**
      * @brief Get the HDR format of the current screen.
@@ -1009,6 +1008,21 @@ public:
     int32_t UnRegisterFirstFrameCommitCallback();
 
     /**
+     * @brief Register the exposed event callback function.
+     * @param type Indicates specified event that need to be registered.
+     * @param callback Indicates functions that need to be registered.
+     * @return Register result, 0 success, else failed.
+     */
+    int32_t RegisterExposedEventCallback(const RSExposedEventType type, const RSExposedEventCallback& callback);
+
+    /**
+     * @brief UnRegister the Exposed event Callback function.
+     * @param type Indicates specified event that need to be Unregistered.
+     * @return UnRegister result, 0 success, else failed.
+     */
+    int32_t UnRegisterExposedEventCallback(const RSExposedEventType type);
+
+    /**
      * @brief Register FrameRateLinkerExpectedFpsUpdateCallback.
      * @param callback Indicates functions that need to be registered.
      * @return Register result, 0 success, else failed.
@@ -1030,6 +1044,23 @@ public:
      * @return true if succeed, otherwise false.
      */
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
+    
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    /**
+     * @brief Register Canvas SurfaceBuffer callback for memory attribution.
+     * @param callback is the Canvas SurfaceBuffer callback.
+     */
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback);
+
+    /**
+     * @brief Submit Canvas pre-allocated buffer to RS.
+     * @param nodeId is the canvas node id.
+     * @param buffer is the pre-allocated DMA buffer.
+     * @param resetSurfaceIndex is the index of ResetSurface.
+     * @return Returns 0 success, otherwise, failed.
+     */
+    int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+#endif
 
     /**
      * @brief Set display safe watermark.
@@ -1360,19 +1391,21 @@ public:
      * @param pageName the name of pageUrl.
      * @param isEnter is whether to enter the pageUrl.
      */
-    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
-
-    /**
-     * @brief Get high contrast text state.
-     * @return Return true if high contrast text enabled, otherwise false.
-     */
-    bool GetHighContrastTextState();
+    void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
 
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
+
+    /**
+     * @brief Get the maximum GPU buffer size.
+     * @param maxWidth The maximum width of GPU buffer.
+     * @param maxHeight The maximum height of GPU buffer.
+     * @return 0 success, others failed.
+     */
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     /**
      * @brief clear uifirst node cache
@@ -1397,6 +1430,46 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
+
+    /**
+     * @brief Register frame stability detection, used for callback of frame stability result.
+     * @param target Frame stability target (screen or node).
+     * @param config Detection configuration.
+     * @param callback Callback function, trigger callbacks based on configuration.
+     * @return 0 means success, others failed.
+     */
+    int32_t RegisterFrameStabilityDetection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        const FrameStabilityCallback& callback
+    );
+
+    /**
+     * @brief Unregister frame stability detection.
+     * @param target Frame stability target (screen or node).
+     * @return 0 means success, others failed.
+     */
+    int32_t UnregisterFrameStabilityDetection(const FrameStabilityTarget& target);
+
+    /**
+     * @brief Start frame stability data collection, collect stable results for every frame and accumulate them.
+     * @param target Frame stability target (screen or node).
+     * @param config Collection configuration.
+     * @return 0 means success, others failed.
+     */
+    int32_t StartFrameStabilityCollection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config
+    );
+
+    /**
+     * @brief Get frame stability result and stop collection.
+     * @param target Frame stability target (screen or node).
+     * @param result Collection result, get frame stability result from StartFrameStabilityCollection to present.
+     * false means unstable, true means stable.
+     * @return 0 means success, others failed.
+     */
+    int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;
@@ -1411,7 +1484,8 @@ private:
         float scaleX, float scaleY);
 
     std::unique_ptr<RSRenderServiceClient> renderServiceClient_;
-    std::unique_ptr<RSRenderInterface> renderInterface_;
+    // ToDo renderInterface的接口需要从rsInterface中删除
+    // std::unique_ptr<RSRenderInterface> renderInterface_;
 };
 } // namespace Rosen
 } // namespace OHOS

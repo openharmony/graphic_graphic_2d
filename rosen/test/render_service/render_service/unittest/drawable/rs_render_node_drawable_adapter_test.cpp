@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_property_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_render_params.h"
@@ -24,6 +25,8 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "utils/matrix.h"
+#include "utils/rect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -85,6 +88,9 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {}
     void Draw(Drawing::Canvas& canvas) {}
+    
+    // Expose protected method for testing
+    using RSRenderNodeDrawableAdapter::AlignRectToDevicePixels;
 };
 
 void RSRenderNodeDrawableAdapterTest::SetUpTestCase() {}
@@ -233,23 +239,6 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetRenderParamsAndGetUifirstRenderParamsTest
- * @tc.desc: Test GetRenderParamsAndGetUifirstRenderParams
- * @tc.type: FUNC
- * @tc.require: issueI9UTMA
- */
-HWTEST(RSRenderNodeDrawableAdapterTest, GetRenderParamsAndGetUifirstRenderParamsTest, TestSize.Level1)
-{
-    NodeId id = 4;
-    auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    const auto& retParams = adapter->GetRenderParams();
-    EXPECT_EQ(retParams, nullptr);
-    const auto& retUifirstParams = adapter->GetUifirstRenderParams();
-    EXPECT_EQ(retUifirstParams, nullptr);
-}
-
-/**
  * @tc.name: DumpDrawableVecTest
  * @tc.desc: Test DumpDrawableVec
  * @tc.type: FUNC
@@ -389,32 +378,6 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawRangeImplAndRelatedTest, TestSize.Le
 }
 
 /**
- * @tc.name: DrawUifirstContentChildrenTest
- * @tc.desc: Test DrawUifirstContentChildren
- * @tc.type: FUNC
- * @tc.require: issueI9UTMA
- */
-HWTEST(RSRenderNodeDrawableAdapterTest, DrawUifirstContentChildrenTest, TestSize.Level1)
-{
-    NodeId id = 9;
-    auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    Drawing::Canvas canvas;
-    Drawing::Rect rect;
-    adapter->DrawUifirstContentChildren(canvas, rect);
-    EXPECT_TRUE(adapter->uifirstDrawCmdList_.empty());
-
-    std::shared_ptr<RSTestDrawable> rsDrawable = std::make_shared<RSTestDrawable>();
-    adapter->uifirstDrawCmdList_.emplace_back(rsDrawable);
-    EXPECT_TRUE(!adapter->uifirstDrawCmdList_.empty());
-    adapter->uifirstDrawCmdIndex_.contentIndex_ = 0;
-    adapter->uifirstDrawCmdIndex_.childrenIndex_ = 0;
-    adapter->DrawUifirstContentChildren(canvas, rect);
-    RSDrawable::DrawList uifirstDrawCmdIndex;
-    adapter->uifirstDrawCmdList_.swap(uifirstDrawCmdIndex);
-}
-
-/**
  * @tc.name: DrawContentTest
  * @tc.desc: Test DrawContent
  * @tc.type: FUNC
@@ -536,6 +499,63 @@ HWTEST(RSRenderNodeDrawableAdapterTest, InitRenderParamsTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UnifiedFilterRegionTest
+ * @tc.desc: Test unified filter region add, intersect and clear behavior
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, UnifiedFilterRegionTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(100);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    Drawing::RectI baseRect(0, 0, 10, 10);
+    Drawing::RectI overlapRect(5, 5, 15, 15);
+    Drawing::RectI disjointRect(20, 20, 30, 30);
+
+    EXPECT_FALSE(adapter->IntersectsWithUnifiedRegion(baseRect));
+
+    adapter->AddRectToUnifiedFilterRegion(baseRect);
+    EXPECT_TRUE(adapter->IntersectsWithUnifiedRegion(overlapRect));
+    EXPECT_FALSE(adapter->IntersectsWithUnifiedRegion(disjointRect));
+
+    adapter->ClearUnifiedFilterRegion();
+    EXPECT_FALSE(adapter->IntersectsWithUnifiedRegion(overlapRect));
+}
+
+/**
+ * @tc.name: UpdateFilterInfoForNodeGroupTest
+ * @tc.desc: Test filter info update for null root, new node and existing node branches
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, UpdateFilterInfoForNodeGroupTest, TestSize.Level1)
+{
+    auto rootNode = std::make_shared<RSRenderNode>(101);
+    auto rootDrawable = std::make_shared<RSRenderNodeDrawable>(rootNode);
+    auto childNode = std::make_shared<RSRenderNode>(102);
+    auto childDrawable = std::make_shared<RSRenderNodeDrawable>(childNode);
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    const auto clipBounds = canvas.GetDeviceClipBounds();
+
+    RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+    childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
+    EXPECT_TRUE(rootDrawable->filterInfoVec_.empty());
+
+    RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = rootDrawable.get();
+    childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
+    ASSERT_EQ(rootDrawable->filterInfoVec_.size(), 1u);
+    EXPECT_EQ(rootDrawable->filterInfoVec_[0].nodeId_, childDrawable->GetId());
+    EXPECT_EQ(rootDrawable->filterInfoVec_[0].rectVec_.size(), 1u);
+    EXPECT_TRUE(rootDrawable->IntersectsWithUnifiedRegion(clipBounds));
+
+    childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
+    ASSERT_EQ(rootDrawable->filterInfoVec_.size(), 1u);
+    EXPECT_EQ(rootDrawable->filterInfoVec_[0].rectVec_.size(), 2u);
+    RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+}
+
+/**
  * @tc.name: GetSkipIndexTest
  * @tc.desc: Test GetSkipIndex
  * @tc.type: FUNC
@@ -561,12 +581,12 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetSkipIndexTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SkipDrawBackGroundAndClipHoleForBlurTest
- * @tc.desc: Test SkipDrawBackGroundAndClipHoleForBlur
+ * @tc.name: SkipDrawSubtreeAndClipHoleTest
+ * @tc.desc: Test SkipDrawSubtreeAndClipHole
  * @tc.type: FUNC
  * @tc.require: issueI9UTMA
  */
-HWTEST(RSRenderNodeDrawableAdapterTest, SkipDrawBackGroundAndClipHoleForBlurTest, TestSize.Level1)
+HWTEST(RSRenderNodeDrawableAdapterTest, SkipDrawSubtreeAndClipHoleTest, TestSize.Level1)
 {
     NodeId id = 15;
     auto node = std::make_shared<RSRenderNode>(id);
@@ -574,11 +594,11 @@ HWTEST(RSRenderNodeDrawableAdapterTest, SkipDrawBackGroundAndClipHoleForBlurTest
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSRenderParams params(id);
-    adapter->SkipDrawBackGroundAndClipHoleForBlur(canvas, params);
+    adapter->SkipDrawSubtreeAndClipHole(canvas, params);
     EXPECT_TRUE(adapter->drawCmdList_.empty());
     std::shared_ptr<RSTestDrawable> rsDrawable = std::make_shared<RSTestDrawable>();
     adapter->drawCmdList_.emplace_back(rsDrawable);
-    adapter->SkipDrawBackGroundAndClipHoleForBlur(canvas, params);
+    adapter->SkipDrawSubtreeAndClipHole(canvas, params);
     EXPECT_FALSE(adapter->drawCmdList_.empty());
 }
 
@@ -715,6 +735,43 @@ HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForOcclusionTest, Test
 }
 
 /**
+ * @tc.name: IsFilterCacheValidForPartialRender
+ * @tc.desc: Test IsFilterCacheValidForPartialRender001 sysProp disable
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender001, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    bool defaultSysProp = RSFilterCacheManager::isCCMFilterCacheEnable_;
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = false;
+
+    EXPECT_FALSE(adapter->IsFilterCacheValidForPartialRender());
+
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = defaultSysProp;
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender_Background
+ * @tc.desc: Test IsFilterCacheValidForPartialRender_Background
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender_Background, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    EXPECT_TRUE(adapter->IsFilterCacheValidForPartialRender());
+}
+
+/**
  * @tc.name: GetFilterCachedRegionTest
  * @tc.desc: Test GetFilterCachedRegion
  * @tc.type: FUNC
@@ -746,6 +803,193 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawableOnDrawMultiAccessEventReportTest
 
     RSRenderNodeSingleDrawableLocker singleLocker(adapter.get());
     singleLocker.DrawableOnDrawMultiAccessEventReport(" ");
+}
+
+/**
+ * @tc.name: AlignRectToDevicePixelsTest001
+ * @tc.desc: Test AlignRectToDevicePixels with identity matrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, AlignRectToDevicePixelsTest001, TestSize.Level1)
+{
+    NodeId id = 22;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    
+    Drawing::Matrix identityMatrix;
+    Drawing::Rect inputRect(10.5f, 20.7f, 100.3f, 200.9f);
+    Drawing::Rect originalRect = inputRect;
+    
+    adapter->AlignRectToDevicePixels(identityMatrix, inputRect);
+    
+    // With identity matrix, the rect should be aligned to integer boundaries
+    EXPECT_NE(inputRect.GetLeft(), originalRect.GetLeft());  // 10.5 -> 10.0
+    EXPECT_EQ(inputRect.GetLeft(), 10.0f);
+    EXPECT_NE(inputRect.GetTop(), originalRect.GetTop());    // 20.7 -> 20.0
+    EXPECT_EQ(inputRect.GetTop(), 20.0f);
+    EXPECT_NE(inputRect.GetRight(), originalRect.GetRight()); // 100.3 -> 101.0
+    EXPECT_EQ(inputRect.GetRight(), 101.0f);
+    EXPECT_NE(inputRect.GetBottom(), originalRect.GetBottom()); // 200.9 -> 201.0
+    EXPECT_EQ(inputRect.GetBottom(), 201.0f);
+}
+
+/**
+ * @tc.name: AlignRectToDevicePixelsTest002
+ * @tc.desc: Test AlignRectToDevicePixels with scaling matrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, AlignRectToDevicePixelsTest002, TestSize.Level1)
+{
+    NodeId id = 23;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    
+    Drawing::Matrix scaleMatrix;
+    scaleMatrix.SetScale(2.0f, 2.0f);  // 2x scaling
+    Drawing::Rect inputRect(10.5f, 20.7f, 100.3f, 200.9f);
+    Drawing::Rect originalRect = inputRect;
+    
+    adapter->AlignRectToDevicePixels(scaleMatrix, inputRect);
+
+    EXPECT_FLOAT_EQ(inputRect.GetLeft(), 10.5f);
+    EXPECT_FLOAT_EQ(inputRect.GetTop(), 20.5f);
+    EXPECT_FLOAT_EQ(inputRect.GetRight(), 100.5f);
+    EXPECT_FLOAT_EQ(inputRect.GetBottom(), 201.0f);
+}
+
+/**
+ * @tc.name: AlignRectToDevicePixelsTest003
+ * @tc.desc: Test AlignRectToDevicePixels with translation matrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, AlignRectToDevicePixelsTest003, TestSize.Level1)
+{
+    NodeId id = 24;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    
+    Drawing::Matrix translationMatrix;
+    translationMatrix.Set(Drawing::Matrix::TRANS_X, 5.0f);
+    translationMatrix.Set(Drawing::Matrix::TRANS_Y, 10.0f);
+    Drawing::Rect inputRect(10.5f, 20.7f, 100.3f, 200.9f);
+    Drawing::Rect originalRect = inputRect;
+    
+    adapter->AlignRectToDevicePixels(translationMatrix, inputRect);
+
+    EXPECT_FLOAT_EQ(inputRect.GetLeft(), 10.0f);
+    EXPECT_FLOAT_EQ(inputRect.GetTop(), 20.0f);
+    EXPECT_FLOAT_EQ(inputRect.GetRight(), 101.0f);
+    EXPECT_FLOAT_EQ(inputRect.GetBottom(), 201.0f);
+}
+
+/**
+ * @tc.name: AlignRectToDevicePixelsTest004
+ * @tc.desc: Test AlignRectToDevicePixels with integer boundaries (no change expected)
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, AlignRectToDevicePixelsTest004, TestSize.Level1)
+{
+    NodeId id = 25;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    
+    Drawing::Matrix identityMatrix;
+    Drawing::Rect inputRect(10.0f, 20.0f, 100.0f, 200.0f);
+    Drawing::Rect originalRect = inputRect;
+    
+    adapter->AlignRectToDevicePixels(identityMatrix, inputRect);
+    
+    // Rect with integer boundaries should not change
+    EXPECT_EQ(inputRect.GetLeft(), originalRect.GetLeft());
+    EXPECT_EQ(inputRect.GetTop(), originalRect.GetTop());
+    EXPECT_EQ(inputRect.GetRight(), originalRect.GetRight());
+    EXPECT_EQ(inputRect.GetBottom(), originalRect.GetBottom());
+}
+
+/**
+ * @tc.name: AlignRectToDevicePixelsTest005
+ * @tc.desc: Test AlignRectToDevicePixels with singular matrix (should not modify rect)
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, AlignRectToDevicePixelsTest005, TestSize.Level1)
+{
+    NodeId id = 26;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    
+    // Create a singular matrix (no inverse)
+    Drawing::Matrix singularMatrix;
+    singularMatrix.SetScale(0.0f, 0.0f);  // Singular matrix
+    Drawing::Rect inputRect(10.5f, 20.7f, 100.3f, 200.9f);
+    Drawing::Rect originalRect = inputRect;
+    
+    adapter->AlignRectToDevicePixels(singularMatrix, inputRect);
+    
+    // Singular matrix should not modify the rect (early return)
+    EXPECT_EQ(inputRect.GetLeft(), originalRect.GetLeft());
+    EXPECT_EQ(inputRect.GetTop(), originalRect.GetTop());
+    EXPECT_EQ(inputRect.GetRight(), originalRect.GetRight());
+    EXPECT_EQ(inputRect.GetBottom(), originalRect.GetBottom());
+}
+
+/**
+ * @tc.name: AlignRectToDevicePixelsTest006
+ * @tc.desc: Test AlignRectToDevicePixels with negative coordinates
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, AlignRectToDevicePixelsTest006, TestSize.Level1)
+{
+    NodeId id = 27;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    
+    Drawing::Matrix identityMatrix;
+    Drawing::Rect inputRect(-10.5f, -20.7f, -5.3f, -0.9f);
+    Drawing::Rect originalRect = inputRect;
+    
+    adapter->AlignRectToDevicePixels(identityMatrix, inputRect);
+    
+    // Negative coordinates should be aligned properly
+    EXPECT_EQ(inputRect.GetLeft(), -11.0f);
+    EXPECT_EQ(inputRect.GetTop(), -21.0f);
+    EXPECT_EQ(inputRect.GetRight(), -5.0f);
+    EXPECT_EQ(inputRect.GetBottom(), 0);
+}
+
+/**
+ * @tc.name: AlignRectToDevicePixelsTest007
+ * @tc.desc: Test AlignRectToDevicePixels with complex transformation matrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, AlignRectToDevicePixelsTest007, TestSize.Level1)
+{
+    NodeId id = 28;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    
+    // Create a complex transformation matrix
+    Drawing::Matrix complexMatrix;
+    complexMatrix.SetScale(1.5f, 2.0f);
+    complexMatrix.Set(Drawing::Matrix::TRANS_X, 3.0f);
+    complexMatrix.Set(Drawing::Matrix::TRANS_Y, -2.0f);
+    Drawing::Rect inputRect(10.0f, 15.0f, 20.0f, 25.0f);
+    Drawing::Rect originalRect = inputRect;
+    
+    adapter->AlignRectToDevicePixels(complexMatrix, inputRect);
+    
+    // Complex transformation should work correctly
+    // The exact expected values depend on the transformation math
+    EXPECT_EQ(inputRect.GetLeft(), originalRect.GetLeft());
+    EXPECT_EQ(inputRect.GetTop(), originalRect.GetTop());
+    EXPECT_EQ(inputRect.GetRight(), originalRect.GetRight());
+    EXPECT_EQ(inputRect.GetBottom(), originalRect.GetBottom());
 }
 
 #ifdef SUBTREE_PARALLEL_ENABLE

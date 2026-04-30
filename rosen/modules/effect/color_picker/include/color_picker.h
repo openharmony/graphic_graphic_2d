@@ -109,7 +109,7 @@ public:
     NATIVEEXPORT uint32_t GetDeepenImmersionColor(ColorManager::Color &color) const;
     NATIVEEXPORT uint32_t GetImmersiveBackgroundColor(ColorManager::Color &color) const;
     NATIVEEXPORT uint32_t GetImmersiveForegroundColor(ColorManager::Color &color) const;
-    NATIVEEXPORT uint32_t DiscriminatePitureLightDegree(PictureLightColorDegree &degree) const;
+    NATIVEEXPORT uint32_t DiscriminatePictureLightDegree(PictureLightColorDegree &degree) const;
     NATIVEEXPORT uint32_t GetReverseColor(ColorManager::Color &color) const;
     NATIVEEXPORT std::vector<ColorManager::Color> GetTopProportionColors(uint32_t colorsNum) const;
     NATIVEEXPORT std::vector<double> GetTopProportion(uint32_t colorsNum) const;
@@ -138,6 +138,11 @@ private:
     double CalcContrastRatioWithWhite() const;
     double CalcRelaticeLuminance(uint32_t color) const;
     double CalcComplexity() const;
+    static Media::Rect BuildRegionRect(const std::shared_ptr<Media::PixelMap>& pixmap, const double* coordinates);
+
+    bool regionSpecified_ = false;
+    bool hasRegion_ = false;
+    Media::Rect regionRect_ {};
 };
 } // namespace Rosen
 } // namespace OHOS

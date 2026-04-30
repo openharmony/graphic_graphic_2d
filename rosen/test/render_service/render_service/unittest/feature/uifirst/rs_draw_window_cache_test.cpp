@@ -23,6 +23,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "uifirst_param.h"
 
 using namespace testing;
 using namespace testing::ext;

@@ -25,7 +25,9 @@ namespace OHOS {
 namespace Rosen {
 static constexpr int NUMBER_FOR_HALF = 2;
 
-RSPropertyAnimation::RSPropertyAnimation(std::shared_ptr<RSPropertyBase> property) : property_(property)
+RSPropertyAnimation::RSPropertyAnimation(
+    const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property)
+    : RSAnimation(rsUIContext), property_(property)
 {
     InitAdditiveMode();
 }
@@ -145,6 +147,16 @@ void RSPropertyAnimation::UpdateStagingValueOnInteractiveFinish(RSInteractiveAni
         }
     }
     SetPropertyValue(targetValue);
+}
+
+void RSPropertyAnimation::InvertStagingValue(bool isGroupAnimator, const RSAnimationTimingProtocol& timingProtocol)
+{
+    if (!isGroupAnimator) {
+        return;
+    }
+    if (timingProtocol.GetAutoReverse() && timingProtocol.GetRepeatCount() % NUMBER_FOR_HALF == 0) {
+        SetPropertyValue(startValue_);
+    }
 }
 
 void RSPropertyAnimation::SetPropertyOnAllAnimationFinish()

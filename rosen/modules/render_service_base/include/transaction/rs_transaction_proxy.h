@@ -28,6 +28,7 @@
 #include "common/rs_singleton.h"
 #include "common/rs_macros.h"
 #include "transaction/rs_irender_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
@@ -36,13 +37,12 @@ class RSSyncTask;
 class RSTransactionHandler;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::function<void(std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
     std::shared_ptr<RSTransactionHandler>)>;
 class RSB_EXPORT RSTransactionProxy final {
 public:
     static RSB_EXPORT RSTransactionProxy* GetInstance();
     void SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient);
-    void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
 
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
                     FollowType followType = FollowType::NONE, NodeId nodeId = 0);
@@ -87,6 +87,11 @@ public:
 
     void StartCloseSyncTransactionFallbackTask(bool isOpen);
 
+    void SetRSRenderPipelineClient(std::shared_ptr<RSRenderPipelineClient> rsRenderPipelineClient)
+    {
+        renderPipelineClient_ = rsRenderPipelineClient;
+    }
+
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();
@@ -113,7 +118,7 @@ private:
     std::mutex mutexForRT_;
     std::unique_ptr<RSTransactionData> implicitTransactionDataFromRT_{std::make_unique<RSTransactionData>()};
 
-    std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient_ = nullptr;
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
     uint64_t timestamp_ = 0;
     static std::once_flag flag_;

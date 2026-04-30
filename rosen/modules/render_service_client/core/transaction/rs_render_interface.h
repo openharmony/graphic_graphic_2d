@@ -17,6 +17,9 @@
 #define RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_RENDRE_INTERFACE_H
 
 #include "common/rs_common_def.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "transaction/rs_render_pipeline_client.h"
+#include "platform/drawing/rs_surface.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
 #include "platform/drawing/rs_surface.h"
@@ -24,14 +27,12 @@
 
 namespace OHOS {
 namespace Rosen {
-
+using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
+using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 class RSC_EXPORT RSRenderInterface {
 
 public:
-    RSRenderInterface();
     ~RSRenderInterface() noexcept;
-
-    static RSRenderInterface &GetInstance();
     /**
      * @brief Get snapshot of surfaceNode.
      * @param node Indicates which node, usually point to a window.
@@ -175,7 +176,7 @@ public:
      * @param scaleY Indicates the scale of Y-axis.
      */
     bool TakeSurfaceCaptureForUIWithoutUni(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX, float scaleY);
+        float scaleX, float scaleY, const Drawing::Rect& specifiedAreaRect = {});
 
     /**
      * @brief Set selfdrawing node to topLayer force use DSS.
@@ -215,12 +216,23 @@ public:
 
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
+    bool RegisterBufferAvailableListener(
+        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
+    
+    bool RegisterBufferClearListener(
+        NodeId id, const BufferClearCallback &callback);
+ 
+    bool UnregisterBufferAvailableListener(NodeId id);
+
     /**
      * @brief Set the focus window information to renderService.
      * @param info Focus window information, Please refer to the definition for the specific content included.
      * @return 0 means success, others failed.
      */
     int32_t SetFocusAppInfo(const FocusAppInfo& info);
+
+    bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
     /**
      * @brief Set the process ID list requiring frame dropping. Next time RS triggers rending,
@@ -242,6 +254,27 @@ public:
     bool SetAncoForceDoDirect(bool direct);
 
     /**
+     * @brief clear uifirst node cache
+     * @param id surface node id
+     */
+    void ClearUifirstCache(NodeId id);
+
+    /**
+     * @brief Set the process ID list requiring frame dropping. Next time RS triggers rending,
+     * it will purge queued frames of corresponding self-rendering nodes in bufferQueue, and use the latest frame
+     * buffer for screen display.
+     * @param pidList Process ID list requiring frame dropping.
+     */
+    void DropFrameByPid(const std::vector<int32_t> pidList);
+
+    /**
+     * @brief Get brightness info by screenId.
+     * @param screenId is screen id.
+     * @return Returns 0 success, otherwise, failed.
+     */
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
+
+    /**
      * @brief Get the HDR status of the current screen.
      * @param id Id of the screen.
      * @param hdrStatus The HDR status of the current screen.
@@ -250,18 +283,31 @@ public:
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
     /**
-     * @brief clear uifirst node cache
-     * @param id surface node id
+     * @brief Get the maximum GPU buffer size.
+     * @param maxWidth The maximum width of GPU buffer.
+     * @param maxHeight The maximum height of GPU buffer.
+     * @return 0 success, others failed.
      */
-    void ClearUifirstCache(NodeId id);
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
+    // WMS set dark color display mode to RS
     /**
-     * @brief Set frame gravity of screen node.
-     * @param id Screen id.
-     * @param gravity The gravity value of the screen node.
+     * @brief Notify if system themes switch to dark mode.
+     * @param isDark whether is dark mode.
+     * @return True if success, false if failed.
      */
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+    bool SetGlobalDarkColorMode(bool isDark);
 
+    bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
+
+    /*
+     * @brief Set the system overload Animated Scenes to RS for special load shedding.
+     * @param systemAnimatedScenes indicates the system animation scene.
+     * @param isRegularAnimation indicates irregular windows in the animation scene.
+     * @return true if succeed, otherwise false.
+     */
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
+    
     /**
      * @brief Freeze or unfreeze screen.
      * @param node Indicates a display node to freeze or unfreeze.
@@ -280,7 +326,7 @@ public:
      * @param positionW Indicates w coordinate position.
      * @return return true if set success, else return false
      */
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
+    bool SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     /**
@@ -298,6 +344,58 @@ public:
      */
     int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
+    /**
+     * @brief Set watermark for surfaceNode.
+     * @param pid pid of process.
+     * @param name Watermark name. Note: ensure watermark name is unique.
+     * @param watermark Watermark pixelmap.
+     * @param nodeIdList Node id list
+     * @param watermarkType custom or system watermark.
+     * @return set watermark success return 0, else return errorCode.
+     */
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
+
+    /**
+     * @brief Set watermark for surfaceNode.
+     * @param pid pid of process.
+     * @param name Watermark name.
+     * @param watermark Watermark pixelmap.
+     */
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+        const std::vector<NodeId> &nodeIdList);
+
+    /**
+     * @brief Set watermark for surfaceNode.
+     * @param pid pid of process.
+     * @param name Watermark name.
+     */
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
+
+    /**
+     * @brief Register window occlusion change callback.
+     * @param callback callback fuction.
+     * @return 0 success, else failed.
+     */
+    int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    /**
+     * @brief Register web surface occlusion change callback.
+     * @param callback callback fuction.
+     * @param partitionPoints is a vector of area ratio.
+     * @return 0 success, else failed.
+     */
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+         NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
+
+    /**
+     * @brief UnRegister web surface occlusion change callback.
+     * @param id is the node id indicates which surface occlusion change callback needs to be unRegister.
+     * @return 0 success, else failed.
+     */
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
 
     /**
      * @brief Set logical camera rotation correction, used to correct logical rotation.
@@ -307,12 +405,32 @@ public:
      */
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
+    /**
+     * @brief Set free multi window status.
+     * @param enable Indicates whether enable.
+     */
+    void SetFreeMultiWindowStatus(bool enable);
+
 private:
-    std::unique_ptr<RSRenderPipelineClient> renderPiplineClient_;
+    RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
+
+    bool CreateNode(const RSSurfaceRenderNodeConfig& config);
+    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
+    RSInterfaceErrorCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
+    void SetHardwareEnabled(NodeId id, bool isEnabled,
+        SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT, bool dynamicHardwareEnable = true);
+    std::shared_ptr<RSRenderPipelineClient> GetRSRenderPipelineClient() const
+    {
+        return renderPipelineClient_;
+    }
+
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient_;
     friend class RSUIContext;
     friend class RSApplicationAgentImpl;
     friend class RSDisplayNode;
     friend class RSSurfaceNode;
+    friend class RSUIContextManager;
 };
 }
 }

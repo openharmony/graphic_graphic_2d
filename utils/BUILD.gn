@@ -37,10 +37,6 @@ group("sandbox_utils") {
   public_deps = [ "sandbox:sandbox_utils" ]
 }
 
-group("rs_frame_report_ext") {
-  public_deps = [ "rs_frame_report_ext:rs_frame_report_ext" ]
-}
-
 ## Build libgraphic_utils.so {{{
 config("libgraphic_utils_public_config") {
   include_dirs = [ "$graphic_2d_root/interfaces/inner_api/common" ]
@@ -58,10 +54,10 @@ ohos_shared_library("libgraphic_utils") {
   }
 
   deps = [
-    ":color_manager",
-    ":sandbox_utils",
-    ":scoped_bytrace",
-    ":test_header",
+    "color_manager:color_manager",
+    "sandbox:sandbox_utils",
+    "scoped_bytrace:scoped_bytrace",
+    "test_header:test_header",
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
   ]

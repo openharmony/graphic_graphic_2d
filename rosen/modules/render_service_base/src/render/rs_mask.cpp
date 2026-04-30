@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -281,36 +281,42 @@ bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
     Drawing::CmdListData listData;
     auto maskCmdList = Drawing::MaskCmdList::CreateFromData(listData, true);
     Drawing::Filter filter = maskBrush_.GetFilter();
-    Drawing::BrushHandle brushHandle = {
-        maskBrush_.GetColor(),
-        maskBrush_.GetBlendMode(),
-        maskBrush_.IsAntiAlias(),
-        maskBrush_.GetBlenderEnabled(),
-        filter.GetFilterQuality(),
-        Drawing::CmdListHelper::AddColorSpaceToCmdList(*maskCmdList,
-            maskBrush_.GetColorSpace()),
-        Drawing::CmdListHelper::AddShaderEffectToCmdList(*maskCmdList,
-            maskBrush_.GetShaderEffect()),
-        Drawing::CmdListHelper::AddBlenderToCmdList(*maskCmdList,
-            maskBrush_.GetBlender()),
-        Drawing::CmdListHelper::AddColorFilterToCmdList(*maskCmdList,
-            filter.GetColorFilter()),
-        Drawing::CmdListHelper::AddImageFilterToCmdList(*maskCmdList,
-            filter.GetImageFilter()),
-        Drawing::CmdListHelper::AddMaskFilterToCmdList(*maskCmdList,
-            filter.GetMaskFilter()),
-    };
+    Drawing::BrushHandle brushHandle;
+    if (maskBrush_.HasUIColor()) {
+        brushHandle.uiColor = maskBrush_.GetUIColor();
+    } else {
+        brushHandle.color = maskBrush_.GetColor();
+    }
+    brushHandle.SetIsUIColor(maskBrush_.HasUIColor());
+    brushHandle.mode = maskBrush_.GetBlendMode();
+    brushHandle.isAntiAlias = maskBrush_.IsAntiAlias();
+    brushHandle.SetBlenderEnabled(maskBrush_.GetBlenderEnabled());
+    brushHandle.filterQuality = filter.GetFilterQuality();
+    brushHandle.colorSpaceHandle = Drawing::CmdListHelper::AddColorSpaceToCmdList(*maskCmdList,
+        maskBrush_.GetColorSpace());
+    brushHandle.shaderEffectHandle = Drawing::CmdListHelper::AddShaderEffectToCmdList(*maskCmdList,
+        maskBrush_.GetShaderEffect());
+    brushHandle.blenderHandle = Drawing::CmdListHelper::AddBlenderToCmdList(*maskCmdList, maskBrush_.GetBlender());
+    brushHandle.colorFilterHandle = Drawing::CmdListHelper::AddColorFilterToCmdList(*maskCmdList,
+        filter.GetColorFilter());
+    brushHandle.imageFilterHandle = Drawing::CmdListHelper::AddImageFilterToCmdList(*maskCmdList,
+        filter.GetImageFilter());
+    brushHandle.maskFilterHandle = Drawing::CmdListHelper::AddMaskFilterToCmdList(*maskCmdList, filter.GetMaskFilter());
+
     maskCmdList->AddOp<Drawing::MaskBrushOpItem>(brushHandle);
 
-    Drawing::PenHandle penHandle = {
-        maskPen_.GetWidth(),
-        maskPen_.GetMiterLimit(),
-        maskPen_.GetCapStyle(),
-        maskPen_.GetJoinStyle(),
-        Drawing::CmdListHelper::AddPathEffectToCmdList(*maskCmdList,
-            maskPen_.GetPathEffect()),
-        maskPen_.GetColor(),
-    };
+    Drawing::PenHandle penHandle;
+    penHandle.width = maskPen_.GetWidth();
+    penHandle.miterLimit = maskPen_.GetMiterLimit();
+    penHandle.SetCapStyle(maskPen_.GetCapStyle());
+    penHandle.joinStyle = maskPen_.GetJoinStyle();
+    penHandle.pathEffectHandle = Drawing::CmdListHelper::AddPathEffectToCmdList(*maskCmdList, maskPen_.GetPathEffect());
+    if (maskPen_.HasUIColor()) {
+        penHandle.uiColor = maskPen_.GetUIColor();
+    } else {
+        penHandle.color = maskPen_.GetColor();
+    }
+    penHandle.SetIsUIColor(maskPen_.HasUIColor());
     maskCmdList->AddOp<Drawing::MaskPenOpItem>(penHandle);
 
     auto pathHandle = Drawing::CmdListHelper::AddPathToCmdList(*maskCmdList, *maskPath_);
