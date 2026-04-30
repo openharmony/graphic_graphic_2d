@@ -2069,7 +2069,7 @@ uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> d
 
 uint32_t RSPaintFilterCanvasBase::CustomSaveLayer(DrawFunc customFunc)
 {
-    auto* stack = static_cast<std::stack<std::pair<uint32_t, DrawFunc>*>(
+    auto* stack = static_cast<std::stack<std::pair<uint32_t, DrawFunc>*>>(
         canvas_ ? canvas_->getCustomSaveLayerStack() : nullptr);
     if (stack == nullptr) {
         return 0;
