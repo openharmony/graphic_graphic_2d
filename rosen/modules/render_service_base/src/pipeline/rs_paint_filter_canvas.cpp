@@ -2081,7 +2081,7 @@ uint32_t RSPaintFilterCanvasBase::CustomSaveLayer(DrawFunc customFunc)
 
 void RSPaintFilterCanvasBase::CustomRestore(uint32_t saveCount)
 {
-    auto* stack = static_cast<std::stack<std::pair<uint32_t, DrawFunc>*>(
+    auto* stack = static_cast<std::stack<std::pair<uint32_t, DrawFunc>>*>(
         canvas_ ? canvas_->getCustomSaveLayerStack() : nullptr);
     if (stack == nullptr || stack->empty()) {
         return;
