@@ -80,7 +80,7 @@ ohos_source_set("libvsync_manager") {
  	  deps += [
  	    "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
  	  ]
- 	}
+  }
 
   external_deps = [
     "ability_runtime:app_manager",
