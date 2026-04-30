@@ -2021,7 +2021,7 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawOptimizationClipRRectTest, TestSize.Level1
     RSPaintFilterCanvas paintFilterCanvas(canvas.get());
     paintFilterCanvas.SaveClipRRect(nullptr);
     auto* stack = static_cast<std::stack<std::pair<uint32_t,
-        RSPaintFilterCanvasBase::DrawFunc>*>(paintFilterCanvas.getCustomSaveLayerStack());
+        RSPaintFilterCanvasBase::DrawFunc>>*>(paintFilterCanvas.getCustomSaveLayerStack());
     auto data = stack->top();
     stack->pop();
 
