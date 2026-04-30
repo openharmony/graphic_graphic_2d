@@ -1985,7 +1985,14 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdExcludeTreeCommands001, Te
 HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands001, TestSize.Level1)
 {
     auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto preRenderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(preRenderThreadClient, nullptr);
+    preTransaction->SetRenderThreadClient(preRenderThreadClient);
+
     auto curTransaction = std::make_shared<RSTransactionHandler>();
+    auto curRenderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(curRenderThreadClient, nullptr);
+    curTransaction->SetRenderThreadClient(curRenderThreadClient);
 
     NodeId nodeId = 1;
     std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
@@ -2004,7 +2011,15 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands0
 HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands002, TestSize.Level1)
 {
     auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto preRenderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(preRenderThreadClient, nullptr);
+    preTransaction->SetRenderThreadClient(preRenderThreadClient);
+
     auto curTransaction = std::make_shared<RSTransactionHandler>();
+    auto curRenderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(curRenderThreadClient, nullptr);
+    curTransaction->SetRenderThreadClient(curRenderThreadClient);
+
     curTransaction->Begin();
 
     NodeId nodeId = 1;
@@ -2024,7 +2039,15 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands0
 HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands003, TestSize.Level1)
 {
     auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto preRenderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(preRenderThreadClient, nullptr);
+    preTransaction->SetRenderThreadClient(preRenderThreadClient);
+
     auto curTransaction = std::make_shared<RSTransactionHandler>();
+    auto curRenderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(curRenderThreadClient, nullptr);
+    curTransaction->SetRenderThreadClient(curRenderThreadClient);
+
     preTransaction->Begin();
 
     NodeId nodeId = 1;
@@ -2044,7 +2067,15 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands0
 HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands004, TestSize.Level1)
 {
     auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto preRenderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(preRenderThreadClient, nullptr);
+    preTransaction->SetRenderThreadClient(preRenderThreadClient);
+
     auto curTransaction = std::make_shared<RSTransactionHandler>();
+    auto curRenderThreadClient = CreateRenderThreadClient();
+    ASSERT_NE(curRenderThreadClient, nullptr);
+    curTransaction->SetRenderThreadClient(curRenderThreadClient);
+
     preTransaction->Begin();
     preTransaction->Begin();
     curTransaction->Begin();
