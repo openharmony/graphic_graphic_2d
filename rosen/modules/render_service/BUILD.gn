@@ -346,19 +346,6 @@ ohos_shared_library("librender_service") {
     sources += [ "core/feature/rdo/rs_rdo.cpp", ]
   }
 
-<<<<<<< debug/vulkan_protected_check
-if (rs_enable_eglimage && rs_enable_gpu) {
-    sources += [ "core/feature/gpuComposition/rs_egl_image_manager.cpp" ]
-  }
-
-  if (graphic_2d_feature_enable_vulkan) {
-    sources += [ "core/pipeline/rs_vk_image_manager.cpp" ]
-  }
-
-  if ((rs_enable_eglimage && rs_enable_gpu) || graphic_2d_feature_enable_vulkan) {
-    sources += [ "core/feature/gpuComposition/rs_image_manager.cpp" ]
-  }
-
   if (graphic_2d_feature_enable_drm) {
     defines += [ "IS_ENABLE_DRM" ]
   }
