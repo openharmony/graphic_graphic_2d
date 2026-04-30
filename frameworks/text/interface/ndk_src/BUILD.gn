@@ -79,6 +79,10 @@ ohos_source_set("text_ndk") {
 
   if (platform_is_ohos) {
     defines += [ "ENABLE_OHOS_ENHANCE" ]
+    if (text_histogram_enable) {
+      external_deps += [ "api_metrics:histogrammanager" ]
+      defines += [ "HISTOGRAM_MANAGEMENT_ENABLE" ]
+    }
     external_deps += [
       "c_utils:utils",
       "hilog:libhilog",

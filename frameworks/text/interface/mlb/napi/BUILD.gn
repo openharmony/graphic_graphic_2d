@@ -119,6 +119,10 @@ ohos_shared_library("text_napi_impl") {
   defines = []
 
   if (platform_is_ohos) {
+    if (text_histogram_enable) {
+      external_deps += [ "api_metrics:histogrammanager" ]
+      defines += [ "HISTOGRAM_MANAGEMENT_ENABLE" ]
+    }
     external_deps += [ "init:libbegetutil" ]
     defines += [ "ENABLE_OHOS_ENHANCE" ]
   }
