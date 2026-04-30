@@ -183,6 +183,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/text/text.cpp",
       "$drawing_core_src_dir/text/text_blob.cpp",
       "$drawing_core_src_dir/text/text_blob_builder.cpp",
+      "$drawing_core_src_dir/text/font_properties_query.cpp",
       "$drawing_core_src_dir/text/typeface.cpp",
       "$drawing_core_src_dir/text/glyph_cache.cpp",
       "$drawing_core_src_dir/utils/camera3d.cpp",

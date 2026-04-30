@@ -48,6 +48,8 @@ public:
     size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const override;
     bool GetBold() const override;
     bool GetItalic() const override;
+    bool GetMonospace() const override;
+    bool IsColored() const override;
     uint32_t GetUniqueID() const override;
     int32_t GetUnitsPerEm() const override;
     std::shared_ptr<Typeface> MakeClone(const FontArguments& args) const override;

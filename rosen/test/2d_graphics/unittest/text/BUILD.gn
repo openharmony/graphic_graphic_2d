@@ -34,6 +34,7 @@ ohos_unittest("2d_graphics_text_test") {
     "font_unicode_query_test.cpp",
     "text_blob_test.cpp",
     "typeface_test.cpp",
+    "font_properties_query_test.cpp",
   ]
 
   external_deps = [

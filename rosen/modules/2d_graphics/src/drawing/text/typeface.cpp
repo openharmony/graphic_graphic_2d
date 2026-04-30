@@ -403,6 +403,22 @@ bool Typeface::GetItalic() const
     return false;
 }
 
+bool Typeface::GetMonospace() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->GetMonospace();
+    }
+    return false;
+}
+
+bool Typeface::IsColored() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->IsColored();
+    }
+    return false;
+}
+
 uint32_t Typeface::GetUniqueID() const
 {
     if (typefaceImpl_) {
