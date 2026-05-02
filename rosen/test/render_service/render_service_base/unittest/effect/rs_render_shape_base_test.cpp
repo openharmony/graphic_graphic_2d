@@ -264,4 +264,21 @@ HWTEST_F(RSRenderShapeBaseTest, CalcRect_LargeBoundValues, TestSize.Level1)
     EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
 }
 
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_NeedUpdateFalse, TestSize.Level1)
+{
+    RectF bound(10.0f, 20.0f, 100.0f, 200.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+    EXPECT_TRUE(shape->GetTransformDrawRect().IsEmpty());
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound, false);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+    EXPECT_TRUE(shape->GetTransformDrawRect().IsEmpty());
+}
+
 } // namespace OHOS::Rosen

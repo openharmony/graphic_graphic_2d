@@ -135,6 +135,7 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/appearance/rs_hdr_brightness_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_mask_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_material_filter_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_material_shader_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_outline_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_particle_effect_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_pixel_stretch_render_modifier.cpp",
@@ -427,6 +428,7 @@ ohos_source_set("render_service_base_src") {
       #drawable
       "src/drawable/rs_color_picker_drawable.cpp",
       "src/drawable/rs_drawable.cpp",
+      "src/drawable/rs_material_shader_drawable.cpp",
       "src/drawable/rs_misc_drawable.cpp",
       "src/drawable/rs_property_drawable.cpp",
       "src/drawable/rs_property_drawable_background.cpp",

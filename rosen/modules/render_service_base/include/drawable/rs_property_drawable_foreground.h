@@ -147,6 +147,9 @@ private:
 
     NodeId stagingNodeId_ = INVALID_NODEID;
     NodeId renderNodeId_ = INVALID_NODEID;
+
+    std::unique_ptr<RectF> stagingDrawRect_ = nullptr;
+    std::unique_ptr<RectF> drawRect_ = nullptr;
 };
 
 class RSForegroundColorDrawable : public RSPropertyDrawable {

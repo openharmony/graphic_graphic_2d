@@ -111,6 +111,16 @@ public:
         canSkipFrame_ = canSkipFrame;
     }
 
+    bool HasCustomRegion() const
+    {
+        return hasCustomRegion_;
+    }
+
+    void SetHasCustomRegion(bool hasCustomRegion)
+    {
+        hasCustomRegion_ = hasCustomRegion;
+    }
+
     static bool CanSkipFrame(float radius);
     void SetSaturationForHPS(float saturationForHPS)
     {
@@ -196,6 +206,8 @@ private:
     uint32_t renderFilterHash_ = 0;
     bool canSkipFrame_ = false;
     bool canSkipMaskColor_ = false;
+    // Indicates whether a custom region is set for the filter
+    bool hasCustomRegion_ = false;
     float saturationForHPS_ = 1.f;
     float brightnessForHPS_ = 1.f;
     friend class RSMarshallingHelper;

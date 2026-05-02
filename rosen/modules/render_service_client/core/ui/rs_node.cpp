@@ -75,6 +75,7 @@
 #include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_material_filter_modifier.h"
+#include "modifier_ng/appearance/rs_material_shader_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
 #include "modifier_ng/background/rs_background_color_modifier.h"
@@ -2468,6 +2469,22 @@ void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregrou
     }
     SetPropertyNG<ModifierNG::RSForegroundShaderModifier,
         &ModifierNG::RSForegroundShaderModifier::SetForegroundShader>(foregroundShader);
+}
+
+void RSNode::SetMaterialShader(const std::shared_ptr<RSNGShaderBase>& materialShader)
+{
+    if (!materialShader) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_SHADER);
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::MATERIAL_SHADER)) {
+            return;
+        }
+        modifier->DetachProperty(ModifierNG::RSPropertyType::MATERIAL_SHADER);
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSMaterialShaderModifier,
+        &ModifierNG::RSMaterialShaderModifier::SetMaterialShader>(materialShader);
 }
 
 void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter)

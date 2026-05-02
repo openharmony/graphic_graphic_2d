@@ -127,6 +127,16 @@ static std::unordered_map<RSNGEffectType, ShaderGetDrawRect> getDrawRectLUT = {
             }
             return rect.MakeOutset(std::max(maxBorderWidth, outerBorderBloomWidth));
         }
+    },
+    {
+        RSNGEffectType::FROSTED_GLASS_EFFECT, [](std::shared_ptr<RSNGRenderShaderBase> filter, const RectF& rect) {
+            auto frostedGlassEffect = std::static_pointer_cast<RSNGRenderFrostedGlassEffect>(filter);
+            auto shape = frostedGlassEffect->Getter<OHOS::Rosen::FrostedGlassEffectShapeRenderTag>()->Get();
+            if (shape && shape->GetTransformDrawRect().IsEmpty()) {
+                RSNGRenderShapeHelper::CalcRect(shape, rect);
+            }
+            return shape == nullptr ? rect : shape->GetTransformDrawRect();
+        }
     }
 };
 

@@ -3944,5 +3944,17 @@ HWTEST_F(RSPropertiesTest, SetOverlayNGShader002, TestSize.Level1)
     properties.SetOverlayNGShader(overlayShader);
     EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
 }
+
+/**
+ * @tc.name: GetMaterialShader001
+ * @tc.desc: test GetMaterialShader when effect_ is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesTest, GetMaterialShader001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    EXPECT_EQ(properties.GetMaterialShader(), nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

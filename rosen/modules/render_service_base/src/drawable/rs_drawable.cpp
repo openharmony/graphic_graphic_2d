@@ -19,6 +19,7 @@
 
 #include "common/rs_common_tools.h"
 #include "drawable/rs_color_picker_drawable.h"
+#include "drawable/rs_material_shader_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_overlay_ng_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
@@ -71,6 +72,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::FOREGROUND_SHADER,            RSDrawableSlot::FOREGROUND_SHADER },
     { ModifierNG::RSModifierType::COLOR_PICKER,                 RSDrawableSlot::COLOR_PICKER },
     { ModifierNG::RSModifierType::MATERIAL_FILTER,              RSDrawableSlot::MATERIAL_FILTER },
+    { ModifierNG::RSModifierType::MATERIAL_SHADER,              RSDrawableSlot::MATERIAL_SHADER },
     { ModifierNG::RSModifierType::CHILDREN,                     RSDrawableSlot::CHILDREN },
 };
 
@@ -95,6 +97,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSShadowDrawable::OnGenerate,                                    // SHADOW,
     RSForegroundFilterDrawable::OnGenerate,                          // FOREGROUND_FILTER
     RSOutlineDrawable::OnGenerate,                                   // OUTLINE,
+    RSMaterialShaderDrawable::OnGenerate,                            // MATERIAL_SHADER,
 
     // BG properties in Bounds Clip
     nullptr,                                                         // BG_SAVE_BOUNDS,
@@ -356,6 +359,7 @@ static void OptimizeGlobalSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::MASK,
     RSDrawableSlot::MATERIAL_FILTER,
+    RSDrawableSlot::MATERIAL_SHADER,
     RSDrawableSlot::SHADOW,
     RSDrawableSlot::OUTLINE,
     RSDrawableSlot::FOREGROUND_FILTER,

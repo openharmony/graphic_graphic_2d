@@ -37,6 +37,7 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "feature/hdr/rs_colorspace_util.h"
@@ -1951,6 +1952,13 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
         }
         selfDrawRect_ = selfDrawRect_.JoinRect(filter->GetRect(boundsRect, EffectRectType::TOTAL));
     }
+    const auto& foregroundNGFilter = GetRenderProperties().GetForegroundNGFilter();
+    selfDrawRect_ =
+        selfDrawRect_.JoinRect(RSNGRenderFilterHelper::CalcRect(foregroundNGFilter, boundsRect, EffectRectType::DRAW));
+    const auto& materialShader = GetRenderProperties().GetMaterialShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(materialShader, boundsRect));
+    const auto& backgroundNGShader = GetRenderProperties().GetBackgroundNGShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(backgroundNGShader, boundsRect));
     const auto& overlayNGShader = GetRenderProperties().GetOverlayNGShader();
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(overlayNGShader, boundsRect));
 }
@@ -2613,7 +2621,8 @@ void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged
     auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
             dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
             dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE) ||
-            dirtySlots_.count(RSDrawableSlot::MATERIAL_FILTER);
+            dirtySlots_.count(RSDrawableSlot::MATERIAL_FILTER) ||
+            dirtySlots_.count(RSDrawableSlot::MATERIAL_SHADER);
     const auto& properties = GetRenderProperties();
 
     RSCacheFilterParaArray filterCacheHandles {
@@ -2777,6 +2786,7 @@ void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
         return;
     }
     auto hasBackground =
+        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::MATERIAL_SHADER)) ||
         findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)) ||
         findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_SHADER)) ||
         findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_IMAGE));
@@ -3305,6 +3315,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         auto canvasdrawingnode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         canvasdrawingnode->CheckCanvasDrawingPostPlaybacked();
     }
+    UpdateSDFTransformRectInfo();
     UpdateDrawableVecV2();
 
     UpdateFilterCacheWithBackgroundDirty();
@@ -3447,6 +3458,10 @@ void RSRenderNode::UpdateDisplayList()
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SHADOW);
 
     AppendDrawFunc(RSDrawableSlot::OUTLINE);
+
+    // Update index of MATERIAL_SHADER
+    stagingDrawCmdIndex_.materialShaderIndex_ = AppendDrawFunc(RSDrawableSlot::MATERIAL_SHADER);
+    
     stagingDrawCmdIndex_.renderGroupBeginIndex_ = stagingDrawCmdList_.size();
     stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
 
@@ -5425,7 +5440,7 @@ std::shared_ptr<RSFilter> RSRenderNode::GetRSFilterWithSlot(RSDrawableSlot slot)
     }
 }
 
-void RSRenderNode::UpdateFilterRectInfo()
+void RSRenderNode::UpdateSDFTransformRectInfo()
 {
     auto boundsRect = GetRenderProperties().GetBoundsRect();
     auto sdfShape = GetRenderProperties().GetSDFShape();
@@ -5433,6 +5448,11 @@ void RSRenderNode::UpdateFilterRectInfo()
         // Calc transform draw rect and store in sdf shape instance
         RSNGRenderShapeHelper::CalcRect(sdfShape, boundsRect);
     }
+}
+
+void RSRenderNode::UpdateFilterRectInfo()
+{
+    auto boundsRect = GetRenderProperties().GetBoundsRect();
     for (auto slot : filterDrawableSlotsSupportGetRect) {
         std::shared_ptr<RSFilter> filter = GetRSFilterWithSlot(slot);
         if (filter == nullptr) {

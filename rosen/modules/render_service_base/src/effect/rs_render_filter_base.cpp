@@ -233,7 +233,10 @@ static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {
         RSNGEffectType::FROSTED_GLASS, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
             auto frostedGlassFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(filter);
             auto shape = frostedGlassFilter->Getter<OHOS::Rosen::FrostedGlassShapeRenderTag>()->Get();
-            return shape->GetTransformDrawRect();
+            if (shape && shape->GetTransformDrawRect().IsEmpty()) {
+                RSNGRenderShapeHelper::CalcRect(shape, rect);
+            }
+            return shape == nullptr ? rect : shape->GetTransformDrawRect();
         }
 #endif
     },
@@ -412,12 +415,16 @@ RectF RSNGRenderFilterHelper::CalcRect(const std::shared_ptr<RSNGRenderFilterBas
             return iter == getSnapshotRectLUT.end() ? bound : iter->second(filter, bound);
         }
         case EffectRectType::DRAW: {
+            auto drawRect = bound;
             auto current = filter;
-            while (current->nextEffect_) {
+            do {
+                auto iter = getDrawRectLUT.find(current->GetType());
+                if (iter != getDrawRectLUT.end()) {
+                    drawRect = iter->second(current, drawRect);
+                }
                 current = current->nextEffect_;
-            }
-            auto iter = getDrawRectLUT.find(current->GetType());
-            return iter == getDrawRectLUT.end() ? bound : iter->second(filter, bound);
+            }while (current);
+            return drawRect;
         }
         default:
             return RectF();
@@ -447,6 +454,34 @@ bool RSNGRenderFilterTemplateHelper::CheckFilterSkipFrame(RSNGEffectType type,
 {
     auto checkFunc = checkFilterSkipLUT.find(type);
     return checkFunc != checkFilterSkipLUT.end() ? checkFunc->second(filter) : false;
+}
+
+bool RSNGRenderFilterHelper::HasCustomRegion(const std::shared_ptr<RSNGRenderFilterBase>& filter)
+{
+    if (filter == nullptr) {
+        return false;
+    }
+
+    // RSNGEffectType::FROSTED_GLASS_BLUR has been specially handled.
+    // therefore it is not included in the custom region currently.
+
+    auto current = filter;
+    auto snapshotIter = getSnapshotRectLUT.find(current->GetType());
+    if (current->GetType() != RSNGEffectType::FROSTED_GLASS_BLUR &&
+        snapshotIter != getSnapshotRectLUT.end()) {
+        return true;
+    }
+
+    do {
+        auto drawIter = getDrawRectLUT.find(current->GetType());
+        if (current->GetType() != RSNGEffectType::FROSTED_GLASS_BLUR &&
+            drawIter != getDrawRectLUT.end()) {
+            return true;
+        }
+        current = current->nextEffect_;
+    } while (current);
+
+    return false;
 }
 
 void RSNGRenderFilterHelper::PrepareForForeground(std::shared_ptr<RSNGRenderFilterBase>& filter)

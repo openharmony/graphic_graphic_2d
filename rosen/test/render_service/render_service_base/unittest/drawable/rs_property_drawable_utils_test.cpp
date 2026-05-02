@@ -1114,6 +1114,32 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter003, test
 }
 
 /**
+ * @tc.name: DrawForegroundFilterWithCustomRect001
+ * @tc.desc: Test DrawForegroundFilter with custom draw rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawForegroundFilterWithCustomRect001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+
+    Drawing::Canvas canvasTest(100, 100);
+    RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    auto rsFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+
+    RectF customDrawRect(10.0f, 10.0f, 50.0f, 50.0f);
+    std::optional<RectF> drawRect = customDrawRect;
+
+    rsPropertyDrawableUtils->DrawForegroundFilter(paintFilterCanvas, rsFilter, drawRect);
+}
+
+/**
  * @tc.name: ApplySDFShapeToFrostedGlassFilter004
  * @tc.desc: have sdfShape test
  * @tc.type: FUNC
