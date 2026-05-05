@@ -14,6 +14,7 @@
  */
 
 #include "rs_render_process.h"
+#include "rs_profiler.h"
 
 #include <if_system_ability_manager.h>
 #include <iservice_registry.h>
@@ -154,6 +155,8 @@ bool RSRenderProcess::Init()
         RS_LOGE("%{public}s: NotifyRenderProcessInitFinished is failed", __func__);
         return false;
     }
+
+    RS_PROFILER_INIT(renderPipeline_, serviceToRenderConnection);
 
     RS_LOGI("%{public}s: subprocess init successful", __func__);
     return true;

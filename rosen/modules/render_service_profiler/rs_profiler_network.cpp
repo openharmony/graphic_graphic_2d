@@ -53,6 +53,15 @@ static void AwakeRenderServiceThread()
     });
 }
 
+static std::string GetSocketName()
+{
+    auto process = Utils::GetFileName(Utils::GetCurrentProcessName());
+    if (process.empty() || (process == "render_service") || (process == "render_service:0")) {
+        return "render_service_5050";
+    }
+    return process;
+}
+
 bool Network::IsRunning()
 {
     return isRunning_;
@@ -83,8 +92,6 @@ void Network::Ping(const Socket& socket)
 
 void Network::Run()
 {
-    constexpr uint16_t port = 5050;
-
     Socket* socket = nullptr;
 
     isRunning_ = true;
@@ -101,7 +108,7 @@ void Network::Run()
             Shutdown(socket);
             forceShutdown_ = false;
         } else if (state == SocketState::INITIAL) {
-            socket->Open(port);
+            socket->Open(GetSocketName());
         } else if (state == SocketState::CREATE) {
             socket->AcceptClient();
             if (!socket->Connected()) {

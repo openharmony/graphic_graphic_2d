@@ -132,4 +132,17 @@ HWTEST_F(RSProfilerUtilsTest, UtilsIdRoutineTest, testing::ext::TestSize.Level1)
     EXPECT_TRUE(Utils::IsNodeIdPatched(Utils::PatchNodeId(id)));
 }
 
+/*
+ * @tc.name: UtilsSplitTest
+ * @tc.desc: RSProfiler Utils get current process name Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerUtilsTest, UtilsGetCurrentProcessNameTest, testing::ext::TestSize.Level1)
+{
+    const auto process = Utils::GetCurrentProcessName();
+    EXPECT_EQ(process, Utils::GetProcessName(Utils::GetPid()));
+    EXPECT_EQ(Utils::GetFileName(process), "RSProfilerUtilsTest");
+}
+
 } // namespace OHOS::Rosen

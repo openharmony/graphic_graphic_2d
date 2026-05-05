@@ -22,6 +22,7 @@
 #include "common/rs_xcollie.h"
 #include "platform/common/rs_log.h"
 #include "gfx/dump/rs_dump_manager.h"
+#include "rs_profiler.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSServiceToRenderConnectionStub"
@@ -44,6 +45,7 @@ static void TypefaceXcollieCallback(void* arg)
 int RSServiceToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
     int ret = ERR_NONE;
     if (auto interfaceToken = data.ReadInterfaceToken();
         interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {

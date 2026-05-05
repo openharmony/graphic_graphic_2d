@@ -101,8 +101,12 @@ void Socket::Shutdown()
     state_ = SocketState::SHUTDOWN;
 }
 
-void Socket::Open(uint16_t port)
+void Socket::Open(const std::string& name)
 {
+    if (name.empty()) {
+        return;
+    }
+
     socket_ = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
     if (socket_ == -1) {
         Shutdown();
@@ -110,13 +114,15 @@ void Socket::Open(uint16_t port)
     }
     fdsan_exchange_owner_tag(socket_, 0, LOG_DOMAIN);
 
-    const std::string socketName = "render_service_" + std::to_string(port);
     sockaddr_un address {};
     address.sun_family = AF_UNIX;
     address.sun_path[0] = 0;
-    ::memmove_s(address.sun_path + 1, sizeof(address.sun_path) - 1, socketName.data(), socketName.size());
+    if (::memmove_s(address.sun_path + 1, sizeof(address.sun_path) - 1, name.data(), name.size()) != EOK) {
+        HRPE("%{public}s: Cannot init socket address", __func__);
+        return;
+    }
 
-    const size_t addressSize = offsetof(sockaddr_un, sun_path) + socketName.size() + 1;
+    const size_t addressSize = offsetof(sockaddr_un, sun_path) + name.size() + 1;
     if (bind(socket_, reinterpret_cast<sockaddr*>(&address), addressSize) == -1) {
         Shutdown();
         return;

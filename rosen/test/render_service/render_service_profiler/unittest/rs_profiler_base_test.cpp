@@ -32,6 +32,7 @@
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/rs_render_service.h"
+#include "transaction/rs_service_to_render_connection.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -515,32 +516,34 @@ public:
     void TearDown() override;
 
 private:
-    static sptr<RSRenderService> renderService_;
     static RSMainThread* mainThread_;
 };
-sptr<RSRenderService> RecorRsProfileRecordTest::renderService_ = nullptr;
 RSMainThread* RecorRsProfileRecordTest::mainThread_ = nullptr;
 
 void RecorRsProfileRecordTest::SetUpTestCase()
 {
-    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     mainThread_ = RSMainThread::Instance();
-    mainThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    mainThread_->handler_->eventRunner_->Run();
+    if (mainThread_) {
+        const auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+        mainThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+        mainThread_->handler_->eventRunner_->Run();
+    }
 
     auto pipeline = std::make_shared<RSRenderPipeline>();
     pipeline->mainThread_ = mainThread_;
 
-    renderService_ = new RSRenderService();
-    renderService_->renderPipeline_ = pipeline;
-
-    RSProfiler::Init(renderService_);
+    const auto serviceToRenderConnection =
+        sptr<RSServiceToRenderConnection>::MakeSptr(new RSRenderPipelineAgent(pipeline));
+    RSProfiler::Init(pipeline, serviceToRenderConnection);
 }
 
 void RecorRsProfileRecordTest::TearDownTestCase()
 {
+    RSProfiler::Init(nullptr, nullptr);
     // Wait for all tasks in the main thread to complete.
-    mainThread_->ScheduleTask([]() -> int { return 0; }).get();
+    if (mainThread_) {
+        mainThread_->ScheduleTask([]() -> int { return 0; }).get();
+    }
 }
 
 void RecorRsProfileRecordTest::SetUp() {}
