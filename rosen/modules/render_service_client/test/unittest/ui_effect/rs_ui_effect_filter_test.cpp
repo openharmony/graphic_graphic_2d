@@ -20,8 +20,10 @@
 #include "filter/include/filter_content_light_para.h"
 #include "filter/include/filter_dispersion_para.h"
 #include "filter/include/filter_displacement_distort_para.h"
+#ifndef ROSEN_ARKUI_X
 #include "filter/include/filter_frosted_glass_blur_para.h"
 #include "filter/include/filter_frosted_glass_para.h"
+#endif
 #include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_para.h"
@@ -35,6 +37,7 @@ namespace Rosen {
 using namespace testing;
 using namespace testing::ext;
 
+#ifndef ROSEN_ARKUI_X
 struct FrostedGlassFloatCounts {
     // Vector2f(2) + Vector2f(2) + Vector2f(2) + Vector3f(3)
     static constexpr int blurRefractFloats = 9;
@@ -71,6 +74,7 @@ void PrepareFrostedGlassBlurParcel(Parcel& parcel, int floatCount)
         parcel.WriteFloat(1.0f);
     }
 }
+#endif
 
 class RSUIEffectFilterTest : public testing::Test {
 public:
@@ -509,6 +513,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFilterTest001, TestSize.Level1)
     EXPECT_EQ(false, Filter::Unmarshalling(parcel, valTest));
 }
 
+#ifndef ROSEN_ARKUI_X
 /**
  * @tc.name: RSUIEffectFrostedGlassBlurParaTest
  * @tc.desc: Verify the FrostedGlassBlurPara Marshalling and Unmarshalling
@@ -1124,5 +1129,6 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaWriteBaseParamsBranchTe
     }
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS
