@@ -32,6 +32,8 @@ ohos_unittest("2d_graphics_text_test") {
     "font_variation_info_test.cpp",
     "skfontmgr_test.cpp",
     "font_unicode_query_test.cpp",
+    "font_language_query_test.cpp",
+    "font_feature_query_test.cpp",
     "text_blob_test.cpp",
     "typeface_test.cpp",
   ]
