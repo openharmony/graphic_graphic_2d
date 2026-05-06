@@ -22,6 +22,8 @@ group("test") {
     "render_server/unittest/transaction:unittest",
     "render_service/fuzztest/rsclienttorenderconnection_fuzzer:fuzztest",
     "render_service/fuzztest/rsmemorymanager_fuzzer:fuzztest",
+    "render_service/fuzztest/rsmemorymanager001_fuzzer:fuzztest",
+    "render_service/fuzztest/rsmemorymanager002_fuzzer:fuzztest",
     "render_service/fuzztest/rsirenderserviceipcinterfacecodeaccessverifier_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnection_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnection000_fuzzer:fuzztest",
