@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-
+#ifndef ROSEN_ARKUI_X
 std::shared_ptr<FilterPara> ConvertFrostedGlassBlurFilterToPara(const RSNGFilterBase& filter)
 {
     const auto& frostedGlassBlurFilter = static_cast<const RSNGFrostedGlassBlurFilter&>(filter);
@@ -134,14 +134,17 @@ std::shared_ptr<FilterPara> ConvertFrostedGlassFilterToPara(const RSNGFilterBase
     para->SetSkipFrameEnable(frostedGlassFilter.Getter<FrostedGlassSkipFrameEnableTag>()->Get());
     return para;
 }
+#endif
 } // namespace
 
 std::shared_ptr<FilterPara> RSNGFilterToParaHelper::ConvertFilterToPara(std::shared_ptr<RSNGFilterBase> filter)
 {
     using FilterToParaFunc = std::function<std::shared_ptr<FilterPara>(const RSNGFilterBase&)>;
     static std::unordered_map<RSNGEffectType, FilterToParaFunc> s_filterToParaLUT = {
+#ifndef ROSEN_ARKUI_X
         { RSNGEffectType::FROSTED_GLASS_BLUR, ConvertFrostedGlassBlurFilterToPara },
         { RSNGEffectType::FROSTED_GLASS, ConvertFrostedGlassFilterToPara },
+#endif
     };
     if (!filter) {
         return nullptr;
