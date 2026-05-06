@@ -218,10 +218,10 @@ rosen/modules/render_service_base/include/common/rs_common_def.h @huang_kaixing
 rosen/modules/render_service_base/include/platform/ohos/rs_iclient_to_service_connection_ipc_interface_code.h @huang_kaixing
 
 [HWC]
-rosen/modules/render_service/core/pipeline/hwc/ @wh_qwe
-rosen/modules/render_service/core/feature/hwc/ @wh_qwe
-rosen/modules/render_service_base/include/hwc/ @wh_qwe
-rosen/modules/render_service_base/src/hwc/ @wh_qwe
+rosen/modules/render_service/core/pipeline/hwc/ @xiaojianfeng_jeffery
+rosen/modules/render_service/core/feature/hwc/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/hwc/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/hwc/ @xiaojianfeng_jeffery
 
 [LTPO]
 interfaces/inner_api/hyper_graphic_manager/ @wh_qwe
