@@ -303,13 +303,13 @@ ohos_unittest("RSGraphicTest") {
     "$graphic_2d_root/rosen/modules/effect",
     "$rosen_text_root/adapter/skia",
     "rs_effect_feature/ng_shape_test",
+    "$graphic_2d_root/graphic_test/test/rs_effect_feature/ng_filter_test",
   ]
 
   deps = [
     "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main",
     "$graphic_2d_root/rosen/modules/effect/effect_ndk:native_effect_ndk",
     "$rosen_text_root:rosen_text",
-    "$graphic_2d_root/graphic_test/test/rs_effect_feature/ng_filter_test",
   ]
 
   defines = []
