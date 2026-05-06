@@ -352,9 +352,8 @@ void ConvertStrutStyle(const SPText::ParagraphStyle& style, TypographyStyle& typ
     typoStyle.lineStyleOnly = style.forceStrutHeight;
 }
 
-TypographyStyle Convert(const SPText::ParagraphStyle& style)
+void ConvertParagraphFields(const SPText::ParagraphStyle& style, TypographyStyle& typoStyle)
 {
-    TypographyStyle typoStyle;
     typoStyle.fontWeight = static_cast<FontWeight>(style.fontWeight);
     typoStyle.fontWidth = static_cast<FontWidth>(style.fontWidth);
     typoStyle.fontStyle = static_cast<FontStyle>(style.fontStyle);
@@ -378,6 +377,7 @@ TypographyStyle Convert(const SPText::ParagraphStyle& style)
     typoStyle.paragraphSpacing = style.paragraphSpacing;
     typoStyle.isEndAddParagraphSpacing = style.isEndAddParagraphSpacing;
     typoStyle.compressHeadPunctuation = style.compressHeadPunctuation;
+    typoStyle.punctuationOverflow = style.punctuationOverflow;
     typoStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
     typoStyle.defaultTextStyleUid = style.defaultTextStyleUid;
     typoStyle.halfLeading = style.halfLeading;
@@ -385,7 +385,7 @@ TypographyStyle Convert(const SPText::ParagraphStyle& style)
     typoStyle.enableAutoSpace = style.enableAutoSpace;
     typoStyle.verticalAlignment = style.verticalAlignment;
     typoStyle.maxLineHeight = style.maxLineHeight;
-    typoStyle.minLineHeight= style.minLineHeight;
+    typoStyle.minLineHeight = style.minLineHeight;
     typoStyle.lineSpacing = style.lineSpacing;
     typoStyle.lineHeightStyle = style.lineHeightStyle;
     typoStyle.includeFontPadding = style.includeFontPadding;
@@ -394,9 +394,14 @@ TypographyStyle Convert(const SPText::ParagraphStyle& style)
     typoStyle.firstLineIndent = style.firstLineIndent;
     typoStyle.tailIndents = style.tailIndents;
     typoStyle.headIndents = style.headIndents;
-    //tab
     typoStyle.tab.alignment = static_cast<TextAlign>(style.tab.alignment);
     typoStyle.tab.location = style.tab.location;
+}
+
+TypographyStyle Convert(const SPText::ParagraphStyle& style)
+{
+    TypographyStyle typoStyle;
+    ConvertParagraphFields(style, typoStyle);
 
     // Strut style
     ConvertStrutStyle(style, typoStyle);

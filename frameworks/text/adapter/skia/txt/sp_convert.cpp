@@ -137,6 +137,7 @@ void ConvertBasicParagraphStyle(const skt::ParagraphStyle& skStyle, ParagraphSty
     paraStyle.isEndAddParagraphSpacing = skStyle.getIsEndAddParagraphSpacing();
     paraStyle.isTrailingSpaceOptimized = skStyle.getTrailingSpaceOptimized();
     paraStyle.compressHeadPunctuation = skStyle.getCompressHeadPunctuation();
+    paraStyle.punctuationOverflow = skStyle.getPunctuationOverflow();
     paraStyle.defaultTextStyleUid = skStyle.getTextStyle().getTextStyleUid();
     paraStyle.maxLineHeight = skStyle.getTextStyle().getMaxLineHeight();
     paraStyle.minLineHeight = skStyle.getTextStyle().getMinLineHeight();

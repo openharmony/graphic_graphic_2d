@@ -254,6 +254,7 @@ void AniParagraphStyleConverter::ParseTypographyStyleToAni(
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textVerticalAlign,
             aniGetEnumIndex(AniTextEnum::textVerticalAlign, static_cast<uint32_t>(style.verticalAlignment))),
         AniTextUtils::CreateAniBooleanObj(env, style.compressHeadPunctuation),
+        AniTextUtils::CreateAniBooleanObj(env, style.punctuationOverflow),
         AniTextUtils::CreateAniDoubleObj(env, style.lineSpacing),
         AniTextUtils::CreateAniDoubleObj(env, style.firstLineIndent),
         AniTextUtils::CreateAniArrayAndInitData(env, style.tailIndents, style.tailIndents.size(),

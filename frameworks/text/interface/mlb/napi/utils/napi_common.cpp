@@ -967,6 +967,8 @@ napi_value CreateTypographyStyleJsValue(napi_env env, const TypographyStyle& typ
             CreateJsValue(env, typographyStyle.enableAutoSpace));
         napi_set_named_property(env, objValue, "compressHeadPunctuation",
             CreateJsValue(env, typographyStyle.compressHeadPunctuation));
+        napi_set_named_property(env, objValue, "punctuationOverflow",
+            CreateJsValue(env, typographyStyle.punctuationOverflow));
         napi_set_named_property(env, objValue, "verticalAlign",
             CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.verticalAlignment)));
         napi_set_named_property(env, objValue, "lineSpacing",
