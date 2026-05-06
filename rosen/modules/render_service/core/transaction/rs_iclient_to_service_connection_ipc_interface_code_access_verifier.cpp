@@ -473,6 +473,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_LAYER_TOP");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_HDR_FORCE_HWC_ENABLED): {
+            hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_HDR_FORCE_HWC_ENABLED");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FORCE_REFRESH): {
             hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH") ||
                 IsExfusionServiceCalling(codeEnumTypeName_ + "::SET_FORCE_REFRESH");

@@ -1335,6 +1335,17 @@ bool DOSetLayerTop()
     return true;
 }
 
+bool DOSetHdrForceHwcEnabled()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    std::string nodeIdStr = GetData<std::string>();
+    bool isHdrForceHwcEnabled = GetData<bool>();
+    rsToServiceConn_->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+    return true;
+}
+
 bool DoSetForceRefresh()
 {
     if (rsToServiceConn_ == nullptr) {
@@ -1643,6 +1654,7 @@ void DoFuzzerTest2()
     DOSetCurtainScreenUsingStatus();
     DOSetVirtualScreenStatus();
     DOSetLayerTop();
+    DOSetHdrForceHwcEnabled();
     DoSetForceRefresh();
     DOSetFreeMultiWindowStatus();
 }

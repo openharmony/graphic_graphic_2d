@@ -4123,6 +4123,10 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest013, 
     ErrCode ret = agent->SetLayerTop("123", true);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
+    // Test SetHdrForceHwcEnabled
+    ret = agent->SetHdrForceHwcEnabled("123", true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
     // Test SetWatermark
     std::shared_ptr<Media::PixelMap> watermark = nullptr;
     bool success = false;

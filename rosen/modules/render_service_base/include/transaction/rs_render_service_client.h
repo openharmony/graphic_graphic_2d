@@ -361,6 +361,8 @@ public:
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    void SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled);
+
     void SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh);
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

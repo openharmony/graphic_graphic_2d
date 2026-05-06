@@ -542,4 +542,58 @@ HWTEST_F(RSRenderPipelineAgentTest, CleanTest_ForRefreshTrue, TestSize.Level1)
     EXPECT_NE(agent->rsRenderPipeline_, nullptr);
     EXPECT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
 }
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_NullPipeline
+ * @tc.desc: Test SetHdrForceHwcEnabled when rsRenderPipeline_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetHdrForceHwcEnabled_NullPipeline, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::string nodeIdStr = "test_node";
+    ErrCode ret = agent->SetHdrForceHwcEnabled(nodeIdStr, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_NullMainThread
+ * @tc.desc: Test SetHdrForceHwcEnabled when GetMainThread() returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetHdrForceHwcEnabled_NullMainThread, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::string nodeIdStr = "test_node";
+    ErrCode ret = agent->SetHdrForceHwcEnabled(nodeIdStr, true);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_NormalCase
+ * @tc.desc: Test SetHdrForceHwcEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetHdrForceHwcEnabled_NormalCase, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    auto mainThread = RSMainThread::Instance();
+    renderPipeline->mainThread_ = mainThread;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::string nodeIdStr = "test_node";
+    ErrCode ret = agent->SetHdrForceHwcEnabled(nodeIdStr, true);
+    EXPECT_EQ(ret, ERR_OK);
+}
 } // namespace OHOS::Rosen

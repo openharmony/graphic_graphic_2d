@@ -1796,6 +1796,14 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     }
 }
 
+void RSRenderServiceClient::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService != nullptr) {
+        clientToService->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+    }
+}
+
 void RSRenderServiceClient::SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh)
 {
     if (auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection()) {

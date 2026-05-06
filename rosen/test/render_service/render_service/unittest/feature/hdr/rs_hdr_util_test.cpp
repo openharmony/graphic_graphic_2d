@@ -924,7 +924,7 @@ HWTEST_F(RSHdrUtilTest, HandleVirtualScreenHDRStatusTest, TestSize.Level1)
     NodeId id = 1;
     auto mirrorSourceNode = std::make_shared<RSScreenRenderNode>(id, 0);
     screenNode->SetMirrorSource(mirrorSourceNode);
-    mirrorSourceNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
+    mirrorSourceNode->CollectHdrStatus(screenNode->GetId(), HdrStatus::HDR_VIDEO);
     RSHdrUtil::HandleVirtualScreenHDRStatus(*screenNode); // mirror node is not null
 
     ScreenColorGamut colorGamut;

@@ -188,6 +188,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_COLOR_FOLLOW),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
@@ -2909,6 +2910,18 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetLayerTop(nodeIdStr, isTop);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED) : {
+            std::string nodeIdStr;
+            bool isHdrForceHwcEnabled{false};
+            if (!data.ReadString(nodeIdStr) ||
+                !data.ReadBool(isHdrForceHwcEnabled)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_HDR_FORCE_HWC_ENABLED Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH) : {

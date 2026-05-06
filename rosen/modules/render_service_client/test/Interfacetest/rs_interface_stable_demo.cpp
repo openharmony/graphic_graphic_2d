@@ -1236,6 +1236,9 @@ void TestLayerManagement(InterfaceClientFrameTest &testFrame)
     rsInterfaces.SetLayerTop("0", true);
     rsInterfaces.SetLayerTop("1", false);
 
+    rsInterfaces.SetHdrForceHwcEnabled("0", true);
+    rsInterfaces.SetHdrForceHwcEnabled("1", false);
+
     rsInterfaces.SetForceRefresh("0", true);
     rsInterfaces.SetForceRefresh("1", false);
 
@@ -1247,6 +1250,7 @@ void TestLayerManagement(InterfaceClientFrameTest &testFrame)
 
     // Abnormal call - empty string
     rsInterfaces.SetLayerTop("", true);
+    rsInterfaces.SetHdrForceHwcEnabled("", true);
     rsInterfaces.SetForceRefresh("", false);
     rsInterfaces.SetColorFollow("", true);
 

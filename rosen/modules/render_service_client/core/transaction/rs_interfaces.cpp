@@ -1072,6 +1072,11 @@ void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
 }
 
+void RSInterfaces::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    renderServiceClient_->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+}
+
 void RSInterfaces::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
 {
     renderServiceClient_->SetForceRefresh(nodeIdStr, isForceRefresh);

@@ -99,7 +99,8 @@ public:
     void SetExistHWCNode(bool isExistHWCNode);
     bool GetExistHWCNode() const;
 
-    void CollectHdrStatus(HdrStatus hdrStatus);
+    void CollectHdrStatus(NodeId id, HdrStatus hdrStatus);
+    const std::unordered_map<NodeId, HdrStatus>& GetScreenHDRStatusMap() const;
     void ResetDisplayHdrStatus();
     HdrStatus GetScreenHDRStatus() const;
 
@@ -233,6 +234,10 @@ public:
     {
         return layerSkipContext_;
     }
+
+    void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
+    bool GetHasForceHwcHdrSurface() const;
+
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
@@ -245,6 +250,7 @@ private:
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     uint32_t childDisplayCount_ = 0;
     HdrStatus screenHDRStatus_ = HdrStatus::NO_HDR;
+    std::unordered_map<NodeId, HdrStatus> screenHDRStatusMap_ = {};
     bool isMirrorScreen_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;
@@ -280,6 +286,7 @@ private:
     bool forceFreeze_ = false;
     bool hasMirroredScreenChanged_ = false;
     ScreenRotation logicalCameraRotationCorrection_ = ScreenRotation::ROTATION_0;
+    bool hasForceHwcHdrSurface_ = false;
 };
 } // namespace OHOS::Rosen
 

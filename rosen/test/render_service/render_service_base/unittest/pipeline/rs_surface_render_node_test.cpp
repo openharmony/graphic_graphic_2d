@@ -3382,5 +3382,39 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeGamutForceSRGBTest, TestSize.
     RsCommonHook::Instance().SetForceSRGBOutput(false);
     node->gamutCollector_.GetFirstLevelNodeGamut();
 }
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_NullParams
+ * @tc.desc: Test SetHdrForceHwcEnabled when stagingRenderParams_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetHdrForceHwcEnabled_NullParams, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    
+    surfaceNode->SetHdrForceHwcEnabled(true);
+    EXPECT_TRUE(surfaceNode->IsHdrForceHwcEnabled());
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_WithParams
+ * @tc.desc: Test SetHdrForceHwcEnabled when stagingRenderParams_ is valid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetHdrForceHwcEnabled_WithParams, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    
+    surfaceNode->SetHdrForceHwcEnabled(true);
+    EXPECT_TRUE(surfaceNode->IsHdrForceHwcEnabled());
+    
+    surfaceNode->SetHdrForceHwcEnabled(false);
+    EXPECT_FALSE(surfaceNode->IsHdrForceHwcEnabled());
+}
 } // namespace Rosen
 } // namespace OHOS

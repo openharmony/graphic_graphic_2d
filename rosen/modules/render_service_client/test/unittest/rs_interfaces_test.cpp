@@ -2704,6 +2704,19 @@ HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: SetHdrForceHwcEnabledTest
+ * @tc.desc: Test SetHdrForceHwcEnabled interface.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetHdrForceHwcEnabledTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetHdrForceHwcEnabled(nodeIdStr, true);
+}
+
+/*
  * @tc.name: SetForceRefresh_001
  * @tc.desc: Test SetForceRefresh with false.
  * @tc.type: FUNC

@@ -194,6 +194,11 @@ ErrCode RSServiceToRenderConnection::SetLayerTop(const std::string &nodeIdStr, b
     return errCode;
 }
 
+ErrCode RSServiceToRenderConnection::SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    return renderPipelineAgent_->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+}
+
 ErrCode RSServiceToRenderConnection::CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
     std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled)
 {
