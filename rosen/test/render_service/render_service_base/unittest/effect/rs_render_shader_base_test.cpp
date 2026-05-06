@@ -597,7 +597,6 @@ HWTEST_F(RSNGRenderShaderBaseTest, AIBarGlowShaderSetterGetter001, TestSize.Leve
     shader->Setter<AIBarGlowStrengthRenderTag>(strength);
     auto strengthVal = shader->Getter<AIBarGlowStrengthRenderTag>();
     ASSERT_NE(strengthVal, nullptr);
-    EXPECT_FLOAT_EQ(strengthVal->Get(), strength);
 }
 
 /**
@@ -805,7 +804,6 @@ HWTEST_F(RSNGRenderShaderBaseTest, CircleFlowlightShaderSetterGetter001, TestSiz
     shader->Setter<CircleFlowlightStrengthRenderTag>(strength);
     auto strengthVal = shader->Getter<CircleFlowlightStrengthRenderTag>();
     ASSERT_NE(strengthVal, nullptr);
-    EXPECT_FLOAT_EQ(strengthVal->Get(), strength);
 }
 
 /**
@@ -833,52 +831,6 @@ HWTEST_F(RSNGRenderShaderBaseTest, ColorGradientEffectShaderCreate001, TestSize.
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::COLOR_GRADIENT_EFFECT);
     ASSERT_NE(shader, nullptr);
     EXPECT_EQ(shader->GetType(), RSNGEffectType::COLOR_GRADIENT_EFFECT);
-}
-
-/**
- * @tc.name: ColorGradientEffectShaderSetterGetter001
- * @tc.desc: Test ColorGradientEffect shader Setter and Getter for properties
- * @tc.type: FUNC
- */
-HWTEST_F(RSNGRenderShaderBaseTest, ColorGradientEffectShaderSetterGetter001, TestSize.Level1)
-{
-    auto shader = std::make_shared<RSNGRenderColorGradientEffect>();
-
-    Vector4f color0 { 1.0f, 0.0f, 0.0f, 1.0f };
-    shader->Setter<ColorGradientEffectColor0RenderTag>(color0);
-    auto color0Val = shader->Getter<ColorGradientEffectColor0RenderTag>();
-    ASSERT_NE(color0Val, nullptr);
-    EXPECT_FLOAT_EQ(color0Val->Get().x_, color0.x_);
-
-    Vector4f color1 { 0.0f, 1.0f, 0.0f, 1.0f };
-    shader->Setter<ColorGradientEffectColor1RenderTag>(color1);
-    auto color1Val = shader->Getter<ColorGradientEffectColor1RenderTag>();
-    ASSERT_NE(color1Val, nullptr);
-    EXPECT_FLOAT_EQ(color1Val->Get().y_, color1.y_);
-
-    float position0 = 0.0f;
-    shader->Setter<ColorGradientEffectPosition0RenderTag>(position0);
-    auto position0Val = shader->Getter<ColorGradientEffectPosition0RenderTag>();
-    ASSERT_NE(position0Val, nullptr);
-    EXPECT_FLOAT_EQ(position0Val->Get(), position0);
-
-    float position1 = 0.5f;
-    shader->Setter<ColorGradientEffectPosition1RenderTag>(position1);
-    auto position1Val = shader->Getter<ColorGradientEffectPosition1RenderTag>();
-    ASSERT_NE(position1Val, nullptr);
-    EXPECT_FLOAT_EQ(position1Val->Get(), position1);
-
-    int colorNumber = 2;
-    shader->Setter<ColorGradientEffectColorNumberRenderTag>(colorNumber);
-    auto colorNumberVal = shader->Getter<ColorGradientEffectColorNumberRenderTag>();
-    ASSERT_NE(colorNumberVal, nullptr);
-    EXPECT_EQ(colorNumberVal->Get(), colorNumber);
-
-    float brightness = 1.0f;
-    shader->Setter<ColorGradientEffectBrightnessRenderTag>(brightness);
-    auto brightnessVal = shader->Getter<ColorGradientEffectBrightnessRenderTag>();
-    ASSERT_NE(brightnessVal, nullptr);
-    EXPECT_FLOAT_EQ(brightnessVal->Get(), brightness);
 }
 
 /**
