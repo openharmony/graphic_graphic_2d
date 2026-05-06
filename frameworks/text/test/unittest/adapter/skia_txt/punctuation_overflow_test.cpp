@@ -28,10 +28,53 @@ namespace Rosen {
 
 class PunctuationOverflowTest : public testing::Test {
 protected:
+    struct LayoutConfig {
+        double fontSize = PunctuationOverflowTest::fontSize;
+        double layoutWidth = 100.0;
+        bool punctuationOverflow = false;
+        TextDirection direction = TextDirection::LTR;
+        TextAlign textAlign = TextAlign::START;
+    };
+
     static void SetUpTestCase()
     {
         fontCollection_ = FontCollection::From(std::make_shared<txt::FontCollection>());
         ASSERT_NE(fontCollection_, nullptr);
+    }
+
+    static std::unique_ptr<TypographyCreate> CreateTypographyBuilder(const LayoutConfig& config)
+    {
+        TypographyStyle style;
+        style.punctuationOverflow = config.punctuationOverflow;
+        style.textDirection = config.direction;
+        style.textAlign = config.textAlign;
+
+        auto create = TypographyCreate::Create(style, fontCollection_);
+        return create;
+    }
+
+    static void AddTextStyle(std::unique_ptr<TypographyCreate>& create, double fontSize)
+    {
+        TextStyle textStyle;
+        textStyle.fontSize = fontSize;
+        create->PushStyle(textStyle);
+    }
+
+    static std::unique_ptr<Typography> BuildAndLayout(const std::u16string& text, const LayoutConfig& config)
+    {
+        auto create = CreateTypographyBuilder(config);
+        if (!create) {
+            return nullptr;
+        }
+        AddTextStyle(create, config.fontSize);
+        create->AppendText(text);
+
+        auto typography = create->CreateTypography();
+        if (!typography) {
+            return nullptr;
+        }
+        typography->Layout(config.layoutWidth);
+        return typography;
     }
 
     static std::unique_ptr<Typography> BuildAndLayout(
@@ -39,25 +82,13 @@ protected:
         bool punctuationOverflow, TextDirection direction = TextDirection::LTR,
         TextAlign textAlign = TextAlign::START)
     {
-        TypographyStyle style;
-        style.punctuationOverflow = punctuationOverflow;
-        style.textDirection = direction;
-        style.textAlign = textAlign;
-        TextStyle textStyle;
-        textStyle.fontSize = fontSize;
-
-        auto create = TypographyCreate::Create(style, fontCollection_);
-        if (!create) {
-            return nullptr;
-        }
-        create->PushStyle(textStyle);
-        create->AppendText(text);
-        auto typography = create->CreateTypography();
-        if (!typography) {
-            return nullptr;
-        }
-        typography->Layout(layoutWidth);
-        return typography;
+        LayoutConfig config;
+        config.fontSize = fontSize;
+        config.layoutWidth = layoutWidth;
+        config.punctuationOverflow = punctuationOverflow;
+        config.direction = direction;
+        config.textAlign = textAlign;
+        return BuildAndLayout(text, config);
     }
 
     static double MeasureTextWidth(const std::u16string& text, double fontSize)
@@ -70,7 +101,7 @@ protected:
     }
 
     static std::shared_ptr<FontCollection> fontCollection_;
-    static constexpr double FONT_SIZE = 20.0;
+    static constexpr double fontSize = 20.0;
 };
 
 std::shared_ptr<FontCollection> PunctuationOverflowTest::fontCollection_ = nullptr;
@@ -86,9 +117,9 @@ std::shared_ptr<FontCollection> PunctuationOverflowTest::fontCollection_ = nullp
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest001, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试。", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试。", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试。", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试。", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -105,9 +136,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest001, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest002, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试，", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试，", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试，", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试，", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -124,9 +155,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest002, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest003, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试、", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试、", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试、", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试、", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -143,9 +174,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest003, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest004, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试；", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试；", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试；", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试；", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -162,9 +193,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest004, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest005, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试：", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试：", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试：", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试：", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -181,9 +212,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest005, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest006, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试？", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试？", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试？", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试？", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -200,9 +231,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest006, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest007, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试！", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试！", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试！", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试！", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -223,9 +254,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest007, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest008, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试（", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试（", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试（", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试（", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -242,9 +273,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest008, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest009, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试《", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试《", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试《", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试《", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -261,9 +292,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest009, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest010, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试【", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试【", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试【", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试【", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -280,9 +311,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest010, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest011, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试\u201C", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试\u201C", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试\u201C", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试\u201C", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -299,9 +330,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest011, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest012, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试·", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试·", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试·", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试·", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -318,9 +349,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest012, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest013, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试——", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试——", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试——", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试——", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -341,9 +372,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest013, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest014, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"テスト文章テスト", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"テスト文章テスト。", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"テスト文章テスト。", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"テスト文章テスト", fontSize);
+    auto typEnabled = BuildAndLayout(u"テスト文章テスト。", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"テスト文章テスト。", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -360,9 +391,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest014, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest015, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"테스트 문장 테스트", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"테스트 문장 테스트.", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"테스트 문장 테스트.", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"테스트 문장 테스트", fontSize);
+    auto typEnabled = BuildAndLayout(u"테스트 문장 테스트.", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"테스트 문장 테스트.", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -379,9 +410,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest015, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest016, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"Hello World test", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"Hello World test.", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"Hello World test.", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"Hello World test", fontSize);
+    auto typEnabled = BuildAndLayout(u"Hello World test.", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"Hello World test.", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -398,9 +429,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest016, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest017, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"Hello测试Test", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"Hello测试Test。", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"Hello测试Test。", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"Hello测试Test", fontSize);
+    auto typEnabled = BuildAndLayout(u"Hello测试Test。", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"Hello测试Test。", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -417,9 +448,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest017, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest018, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试\u201D", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试\u201D", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试\u201D", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试\u201D", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -440,11 +471,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest018, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest019, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR);
+        u"测试文本测试。", fontSize, textWidth, true, TextDirection::LTR);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR);
+        u"测试文本测试。", fontSize, textWidth, false, TextDirection::LTR);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -461,11 +492,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest019, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest020, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"العربية", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"العربية", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"العربية،", FONT_SIZE, textWidth, true, TextDirection::RTL);
+        u"العربية،", fontSize, textWidth, true, TextDirection::RTL);
     auto typDisabled = BuildAndLayout(
-        u"العربية،", FONT_SIZE, textWidth, false, TextDirection::RTL);
+        u"العربية،", fontSize, textWidth, false, TextDirection::RTL);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -482,11 +513,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest020, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest021, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"العربية", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"العربية", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"العربية؟", FONT_SIZE, textWidth, true, TextDirection::RTL);
+        u"العربية؟", fontSize, textWidth, true, TextDirection::RTL);
     auto typDisabled = BuildAndLayout(
-        u"العربية؟", FONT_SIZE, textWidth, false, TextDirection::RTL);
+        u"العربية؟", fontSize, textWidth, false, TextDirection::RTL);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -503,11 +534,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest021, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest022, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"עברית", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"עברית", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"עברית.", FONT_SIZE, textWidth, true, TextDirection::RTL);
+        u"עברית.", fontSize, textWidth, true, TextDirection::RTL);
     auto typDisabled = BuildAndLayout(
-        u"עברית.", FONT_SIZE, textWidth, false, TextDirection::RTL);
+        u"עברית.", fontSize, textWidth, false, TextDirection::RTL);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -524,11 +555,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest022, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest023, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"Hello World Test", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"Hello World Test", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"Hello World Test。", FONT_SIZE, textWidth, true, TextDirection::LTR);
+        u"Hello World Test。", fontSize, textWidth, true, TextDirection::LTR);
     auto typDisabled = BuildAndLayout(
-        u"Hello World Test。", FONT_SIZE, textWidth, false, TextDirection::LTR);
+        u"Hello World Test。", fontSize, textWidth, false, TextDirection::LTR);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -549,9 +580,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest023, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest024, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试。。", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试。。", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试。。", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试。。", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -575,9 +606,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest024, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest025, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本测试", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本测试", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -594,9 +625,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest025, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest026, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"。测试文本测试", FONT_SIZE, textWidth, true);
-    auto typDisabled = BuildAndLayout(u"。测试文本测试", FONT_SIZE, textWidth, false);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
+    auto typEnabled = BuildAndLayout(u"。测试文本测试", fontSize, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"。测试文本测试", fontSize, textWidth, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -613,9 +644,9 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest026, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest027, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本。", FONT_SIZE);
-    auto typEnabled = BuildAndLayout(u"测试文本。", FONT_SIZE, textWidth + 100.0, true);
-    auto typDisabled = BuildAndLayout(u"测试文本。", FONT_SIZE, textWidth + 100.0, false);
+    double textWidth = MeasureTextWidth(u"测试文本。", fontSize);
+    auto typEnabled = BuildAndLayout(u"测试文本。", fontSize, textWidth + 100.0, true);
+    auto typDisabled = BuildAndLayout(u"测试文本。", fontSize, textWidth + 100.0, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -632,8 +663,8 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest027, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest028, TestSize.Level0)
 {
-    auto typEnabled = BuildAndLayout(u"测试文本测试文本。", FONT_SIZE, 30.0, true);
-    auto typDisabled = BuildAndLayout(u"测试文本测试文本。", FONT_SIZE, 30.0, false);
+    auto typEnabled = BuildAndLayout(u"测试文本测试文本。", fontSize, 30.0, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试文本。", fontSize, 30.0, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -650,8 +681,8 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest028, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest029, TestSize.Level0)
 {
-    auto typEnabled = BuildAndLayout(u"", FONT_SIZE, 100.0, true);
-    auto typDisabled = BuildAndLayout(u"", FONT_SIZE, 100.0, false);
+    auto typEnabled = BuildAndLayout(u"", fontSize, 100.0, true);
+    auto typDisabled = BuildAndLayout(u"", fontSize, 100.0, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -668,8 +699,8 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest029, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest030, TestSize.Level0)
 {
-    auto typEnabled = BuildAndLayout(u"。", FONT_SIZE, 100.0, true);
-    auto typDisabled = BuildAndLayout(u"。", FONT_SIZE, 100.0, false);
+    auto typEnabled = BuildAndLayout(u"。", fontSize, 100.0, true);
+    auto typDisabled = BuildAndLayout(u"。", fontSize, 100.0, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -686,8 +717,8 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest030, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest031, TestSize.Level0)
 {
-    auto typEnabled = BuildAndLayout(u"测试文本。\n第二行测试", FONT_SIZE, 500.0, true);
-    auto typDisabled = BuildAndLayout(u"测试文本。\n第二行测试", FONT_SIZE, 500.0, false);
+    auto typEnabled = BuildAndLayout(u"测试文本。\n第二行测试", fontSize, 500.0, true);
+    auto typDisabled = BuildAndLayout(u"测试文本。\n第二行测试", fontSize, 500.0, false);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -708,11 +739,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest031, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest032, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::LEFT);
+        u"测试文本测试。", fontSize, textWidth, true, TextDirection::LTR, TextAlign::LEFT);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::LEFT);
+        u"测试文本测试。", fontSize, textWidth, false, TextDirection::LTR, TextAlign::LEFT);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -729,11 +760,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest032, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest033, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::RIGHT);
+        u"测试文本测试。", fontSize, textWidth, true, TextDirection::LTR, TextAlign::RIGHT);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::RIGHT);
+        u"测试文本测试。", fontSize, textWidth, false, TextDirection::LTR, TextAlign::RIGHT);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -750,11 +781,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest033, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest034, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::CENTER);
+        u"测试文本测试。", fontSize, textWidth, true, TextDirection::LTR, TextAlign::CENTER);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::CENTER);
+        u"测试文本测试。", fontSize, textWidth, false, TextDirection::LTR, TextAlign::CENTER);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -771,11 +802,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest034, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest035, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::JUSTIFY);
+        u"测试文本测试。", fontSize, textWidth, true, TextDirection::LTR, TextAlign::JUSTIFY);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::JUSTIFY);
+        u"测试文本测试。", fontSize, textWidth, false, TextDirection::LTR, TextAlign::JUSTIFY);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -792,11 +823,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest035, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest036, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::START);
+        u"测试文本测试。", fontSize, textWidth, true, TextDirection::LTR, TextAlign::START);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::START);
+        u"测试文本测试。", fontSize, textWidth, false, TextDirection::LTR, TextAlign::START);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -813,11 +844,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest036, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest037, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::END);
+        u"测试文本测试。", fontSize, textWidth, true, TextDirection::LTR, TextAlign::END);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::END);
+        u"测试文本测试。", fontSize, textWidth, false, TextDirection::LTR, TextAlign::END);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -834,11 +865,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest037, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest038, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::RTL, TextAlign::JUSTIFY);
+        u"测试文本测试。", fontSize, textWidth, true, TextDirection::RTL, TextAlign::JUSTIFY);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::RTL, TextAlign::JUSTIFY);
+        u"测试文本测试。", fontSize, textWidth, false, TextDirection::RTL, TextAlign::JUSTIFY);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -855,11 +886,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest038, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest039, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::RTL, TextAlign::CENTER);
+        u"测试文本测试。", fontSize, textWidth, true, TextDirection::RTL, TextAlign::CENTER);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::RTL, TextAlign::CENTER);
+        u"测试文本测试。", fontSize, textWidth, false, TextDirection::RTL, TextAlign::CENTER);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
@@ -876,11 +907,11 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest039, TestSize.Level0)
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest040, TestSize.Level0)
 {
-    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    double textWidth = MeasureTextWidth(u"测试文本测试", fontSize);
     auto typEnabled = BuildAndLayout(
-        u"测试文本测试。测试文本。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::JUSTIFY);
+        u"测试文本测试。测试文本。", fontSize, textWidth, true, TextDirection::LTR, TextAlign::JUSTIFY);
     auto typDisabled = BuildAndLayout(
-        u"测试文本测试。测试文本。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::JUSTIFY);
+        u"测试文本测试。测试文本。", fontSize, textWidth, false, TextDirection::LTR, TextAlign::JUSTIFY);
     ASSERT_NE(typEnabled, nullptr);
     ASSERT_NE(typDisabled, nullptr);
 
