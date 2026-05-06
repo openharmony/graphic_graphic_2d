@@ -141,6 +141,7 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
                 vsyncName.c_str(), eventInfo.eventStatus);
             HGM_LOGI("disable frame split update, vsyncName:%{public}s, status:%{public}d",
                 vsyncName.c_str(), eventInfo.eventStatus);
+            continue;
         }
 
         if (auto vsyncLinker = vsyncLinkerMap_.find(vsyncName); vsyncLinker != vsyncLinkerMap_.end()) {
