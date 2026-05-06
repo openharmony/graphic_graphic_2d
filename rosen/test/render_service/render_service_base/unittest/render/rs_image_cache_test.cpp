@@ -137,6 +137,22 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheTest, TestSize.Level1)
     imageCache.CacheDrawingImage(1, img);
     imageCache.ReleaseDrawingImageCache(0);
     EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.ReleaseDrawingImageCache(1);
+    EXPECT_TRUE(imageCache.drawingImageCache_.empty());
+
+    imageCache.CacheDrawingImage(1, img);
+    img = nullptr;
+    imageCache.ReleaseDrawingImageCache(1);
+    EXPECT_TRUE(imageCache.drawingImageCache_.empty());
+
+    auto img2 = std::make_shared<Drawing::Image>();
+    imageCache.CacheDrawingImage(2, img2);
+    imageCache.IncreaseDrawingImageCacheRefCount(2);
+    imageCache.IncreaseDrawingImageCacheRefCount(2);
+    imageCache.ReleaseDrawingImageCache(2);
+    EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.ReleaseDrawingImageCache(2);
+    EXPECT_TRUE(imageCache.drawingImageCache_.empty());
     imageCache.drawingImageCache_.clear();
 }
 
@@ -870,6 +886,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest008, TestSize.Level1)
     imageCache.pixelMapCache_.clear();
 }
 
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
 /**
  * @tc.name: ReleaseDrawingImageCacheByPixelMapIdTest002
  * @tc.desc: Verify function ReleaseDrawingImageCacheByPixelMapIdTest
@@ -904,6 +921,7 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest002, TestSize
     imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
+#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**

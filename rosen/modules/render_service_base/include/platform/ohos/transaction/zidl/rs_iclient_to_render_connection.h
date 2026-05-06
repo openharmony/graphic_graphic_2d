@@ -87,7 +87,7 @@ public:
 
     virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
-    virtual ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    virtual ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success) = 0;
 
     virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;
@@ -117,8 +117,6 @@ public:
         SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable) = 0;
 
     virtual ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) = 0;
-
-    virtual bool GetHighContrastTextState() = 0;
 
     virtual ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) = 0;
     
@@ -182,7 +180,8 @@ public:
 #endif
     virtual uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
         const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) = 0;
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+        uint32_t rowCount = 0, uint32_t colCount = 0) = 0;
         
     virtual void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
         const std::vector<NodeId> &nodeIdList) = 0;
@@ -214,8 +213,10 @@ public:
     ) = 0;
 
     virtual int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) = 0;
-
+    
     virtual void RegisterRemoteRefreshCallback() = 0;
+
+    virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 };
 
 } // namespace Rosen

@@ -243,7 +243,6 @@ ohos_unittest("RSColorfulShadowFilterTest") {
     "rs_fly_out_shader_filter_test.cpp",
     "rs_foreground_effect_filter_test.cpp",
     "rs_hdr_ui_brightness_filter_test.cpp",
-    "rs_image_base_test.cpp",
   ]
 
   cflags = [
@@ -341,6 +340,10 @@ ohos_unittest("RSImageCacheTest") {
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
+
+  if (graphic_2d_feature_enable_image_detail_enhancer) {
+    defines += [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
   }
 
   subsystem_name = "graphic"

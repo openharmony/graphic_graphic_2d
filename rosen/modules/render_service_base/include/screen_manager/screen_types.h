@@ -118,7 +118,8 @@ enum class PanelPowerStatus : uint32_t {
 };
 
 typedef enum : uint32_t {
-    DISP_INTF_HDMI = 0,
+    DISP_INTF_UNKNOW = 0,
+    DISP_INTF_HDMI,
     DISP_INTF_LCD,
     DISP_INTF_BT1120,
     DISP_INTF_BT656,
@@ -131,6 +132,7 @@ typedef enum : uint32_t {
     DISP_INTF_PANEL,
     DISP_INTF_DP,
     DISP_INTF_EDP,
+    DISP_INTF_GPMI,
     DISP_INTF_BUTT,
     DISP_INVALID,
 } ScreenInterfaceType;

@@ -490,7 +490,7 @@ void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas,
 }
 
 void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
-    const std::shared_ptr<RSFilter>& rsFilter)
+    const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect)
 {
     RS_OPTIONAL_TRACE_NAME("DrawForegroundFilter restore");
     auto surface = canvas.GetSurface();
@@ -514,10 +514,14 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         return;
     }
 
+    Drawing::Rect dst = drawRect.has_value() ? Rect2DrawingRect(drawRect.value()) :
+        Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
+
     if (rsFilter->IsDrawingFilter()) {
         auto rsDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+        rsDrawingFilter->SetDisableFilterCache(canvas.GetDisableFilterCache());
         rsDrawingFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
-            imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
+            imageSnapshot->GetHeight()), dst);
         return;
     }
 
@@ -531,7 +535,7 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
     }
 
     foregroundFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
-        imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
+        imageSnapshot->GetHeight()), dst);
 }
 
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()
@@ -542,7 +546,7 @@ int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 }
 
 void RSPropertyDrawableUtils::DrawBackgroundEffect(
-    RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
+    RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter, NodeId filterId,
     const std::unique_ptr<RSFilterCacheManager>& cacheManager,
     Drawing::RectI& bounds, bool behindWindow)
 {
@@ -577,7 +581,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         if (canvas->GetDeviceClipBounds().IsEmpty()) {
             return;
         }
-        auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
+        auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, filterId, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         behindWindow ? canvas->SetBehindWindowData(data) : canvas->SetEffectData(data);
         return;
@@ -1804,6 +1808,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     if (renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
         return;
     }
+#ifndef ROSEN_ARKUI_X
     const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
     auto sdfShape = properties.GetSDFShape();
     if (sdfShape) {
@@ -1821,6 +1826,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     drawingFilter->SetNGRenderFilter(filter);
+#endif
 }
 
 std::shared_ptr<RSNGRenderShapeBase> RSPropertyDrawableUtils::CreateDefaultRRectShape(const RRect& sdfRRect,
@@ -1891,5 +1897,32 @@ void RSPropertyDrawableUtils::ApplySDFShapeToMagnifier(
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<MagnifierSDFShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
 }
+
+void RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(const RSProperties& properties,
+    const std::shared_ptr<RSNGRenderShaderBase>& shader, NodeId nodeId)
+{
+    if (!shader || shader->GetType() != RSNGEffectType::SPATIAL_GLASS_EFFECT) {
+        return;
+    }
+    const auto& effectShader = std::static_pointer_cast<RSNGRenderSpatialGlassEffect>(shader);
+
+    auto sdfShape = properties.GetSDFShape();
+    if (sdfShape) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect sdfShape, node %{public}" PRIu64,
+            nodeId);
+        effectShader->Setter<SpatialGlassEffectSdfShapeRenderTag>(sdfShape,
+            PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+        return;
+    }
+    auto sdfRRect = properties.GetRRectForSDF();
+    auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
+    ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect rrect %{public}s, node %{public}" PRIu64,
+        sdfRRect.ToString().c_str(), nodeId);
+    sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
+    effectShader->Setter<SpatialGlassEffectSdfShapeRenderTag>(sdfRRectShape,
+        PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+}
+
 } // namespace Rosen
 } // namespace OHOS

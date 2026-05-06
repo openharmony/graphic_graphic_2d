@@ -63,8 +63,12 @@ void RSImageCache::ReleaseDrawingImageCache(uint64_t uniqueId)
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = drawingImageCache_.find(uniqueId);
     if (it != drawingImageCache_.end()) {
-        it->second.second--;
-        if (it->second.first == nullptr || it->second.second == 0) {
+        auto& [ptr, count] = it->second;
+        if (ptr == nullptr || count == 0) {
+            drawingImageCache_.erase(it);
+            return;
+        }
+        if (--count == 0) {
             drawingImageCache_.erase(it);
         }
     }
@@ -319,11 +323,13 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
     auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
     if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
         pixelMapIdRelatedDrawingImageCache_.erase(it);
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
         // used for ScaleImageAsync
         bool isEnabled = RSImageDetailEnhancerThread::Instance().GetEnabled();
         if (isEnabled && RSImageDetailEnhancerThread::Instance().GetScaledImage(uniqueId)) {
             RSImageDetailEnhancerThread::Instance().ReleaseScaledImage(uniqueId);
         }
+#endif
     }
 }
 

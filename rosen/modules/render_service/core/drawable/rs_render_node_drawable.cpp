@@ -251,7 +251,6 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
             params.IsFreezedByUser());
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
-        hasSkipCacheLayer_ = false;
         UpdateCacheSurface(canvas, params);
         curDrawingCacheRoot_ = root;
         return;
@@ -269,7 +268,6 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
         RS_TRACE_NAME_FMT("UpdateCacheSurface with filter id:%" PRIu64 "", nodeId_);
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
-        hasSkipCacheLayer_ = false;
         UpdateCacheSurface(canvas, params);
         // if this NodeGroup contains other nodeGroup with filter, we should reset the isOffScreenWithClipHole_
         isOffScreenWithClipHole_ = isOffScreenWithClipHole;
@@ -385,8 +383,8 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
         "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
         hasFilter, params.GetDrawingCacheType());
     auto originalCacheType = GetCacheType();
-    // can not draw cache because skipCacheLayer in capture process, such as security layers...
-    if (GetCacheType() != DrawableCacheType::NONE && hasSkipCacheLayer_ && isInCapture) {
+    // can not draw cache because special node in capture process, such as security layers...
+    if (GetCacheType() != DrawableCacheType::NONE && params.NodeGroupHasChildInBlacklist() && isInCapture) {
         SetCacheType(DrawableCacheType::NONE);
     }
     if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE &&
@@ -458,9 +456,6 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
     RS_LOGD("RSRenderNodeDrawable::CheckCacheTAD drawingCacheIncludeProperty is %{public}d",
         params.GetDrawingCacheIncludeProperty());
-    if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
-        curDrawingCacheRoot_->SetSkipCacheLayer(true);
-    }
 
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!curCanvas) {
@@ -1248,6 +1243,28 @@ void RSRenderNodeDrawable::ClearOpincState()
     // Init opincRootNodeCount_ when the new thread init
     RSOpincDrawCache::ClearOpincRootNodeCount();
     RSOpincDrawCache::SetOpincBlockNodeSkip(true);
+}
+
+bool RSRenderNodeDrawable::IsBackFace(const Drawing::Matrix& matrix)
+{
+    Drawing::Matrix::Buffer buffer;
+    matrix.GetAll(buffer);
+
+    float a = buffer[0];
+    float b = buffer[1];
+    float c = buffer[2];
+    float d = buffer[3];
+    float e = buffer[4];
+    float f = buffer[5];
+    float g = buffer[6];
+    float h = buffer[7];
+    float i = buffer[8];
+
+    float det = a * (e * i - f * h)
+                  - b * (d * i - f * g)
+                  + c * (d * h - e * g);
+
+    return det < -EPSILON;
 }
 
 } // namespace OHOS::Rosen::DrawableV2

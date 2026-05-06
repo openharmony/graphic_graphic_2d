@@ -48,6 +48,9 @@ RSFoldScreenManager::~RSFoldScreenManager() noexcept {}
 
 void RSFoldScreenManager::SetExternalScreenId(ScreenId externalScreenId)
 {
+    if (externalScreenId_ != INVALID_SCREEN_ID) {
+        return;
+    }
     RS_LOGI("%{public}s The externalScreenId_ is set %{public}" PRIu64 ".", __func__, externalScreenId);
     externalScreenId_ = externalScreenId;
 }
@@ -73,46 +76,24 @@ void RSFoldScreenManager::HandleSensorData(float angle)
         RS_LOGW("%{public}s Invalid angle value, angle is %{public}f.", __func__, angle);
         return;
     }
+
+    ScreenId targetScreenId = (TransferAngleToScreenState(angle) == FoldState::FOLDED)
+        ? externalScreenId_ : innerScreenId_;
     std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
-    if (TransferAngleToScreenState(angle) == FoldState::FOLDED) {
-        if (activeScreenId_ != externalScreenId_ || !isPostureSensorDataHandled_) {
-            RS_LOGI("%{public}s: foldState is FoldState::FOLDED, angle is %{public}.2f.", __func__, angle);
-        }
-        if (activeScreenId_ != externalScreenId_) {
-            activeScreenId_ = externalScreenId_;
-            screenPreprocessor_.NotifyActiveScreenIdChanged(activeScreenId_);
-        }
-    } else {
-        if (activeScreenId_ != innerScreenId_ || !isPostureSensorDataHandled_) {
-            RS_LOGI("%{public}s: foldState is not FoldState::FOLDED, angle is %{public}.2f.", __func__, angle);
-        }
-        if (activeScreenId_ != innerScreenId_) {
-            activeScreenId_ = innerScreenId_;
-            screenPreprocessor_.NotifyActiveScreenIdChanged(activeScreenId_);
-        }
+    if (activeScreenId_ != targetScreenId) {
+        RS_LOGI("%{public}s: activeScreenId changed to %{public}" PRIu64 ", angle is %{public}.2f.", __func__,
+                targetScreenId, angle);
+        activeScreenId_ = targetScreenId;
+        lock.unlock();
+        screenPreprocessor_.NotifyActiveScreenIdChanged(targetScreenId);
     }
-    isPostureSensorDataHandled_ = true;
-    activeScreenIdAssignedCV_.notify_one();
 }
 #endif // RS_SUBSCRIBE_SENSOR_ENABLE
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 ScreenId RSFoldScreenManager::GetActiveScreenId()
 {
-    std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
-    if (isPostureSensorDataHandled_) {
-        RS_LOGW("%{public}s: posture sensor data has been handled, activeScreenId: %{public}" PRIu64, __func__,
-                activeScreenId_);
-        return activeScreenId_;
-    }
-    activeScreenIdAssignedCV_.wait_until(lock, std::chrono::system_clock::now() +
-        std::chrono::milliseconds(WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT), [this]() {
-            return isPostureSensorDataHandled_;
-        });
-    if (!isPostureSensorDataHandled_) {
-        RS_LOGW("%{public}s: timeout", __func__);
-    }
-    HILOG_COMM_WARN("GetActiveScreenId activeScreenId: %{public}" PRIu64, activeScreenId_);
+    std::lock_guard<std::mutex> lock(activeScreenIdAssignedMutex_);
     return activeScreenId_;
 }
 #else // RS_SUBSCRIBE_SENSOR_ENABLE
@@ -215,7 +196,8 @@ void RSFoldScreenManager::HandlePostureData(const SensorEvent* const event)
     PostureData* postureData = reinterpret_cast<PostureData*>(event[SENSOR_EVENT_FIRST_DATA].data);
     float angle = postureData->angle;
     RS_LOGD("%{public}s angle value in PostureData is: %{public}f.", __func__, angle);
-    HandleSensorData(angle);
+    mainHandler_->PostTask([this, angle]() { HandleSensorData(angle); },
+        AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 #endif // RS_SUBSCRIBE_SENSOR_ENABLE
 } // namespace Rosen

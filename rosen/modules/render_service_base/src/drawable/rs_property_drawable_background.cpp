@@ -117,6 +117,10 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
         Drawing::GE_SHADER_SDF_SHADOW, Drawing::DrawingPaintType::BRUSH);
     geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHAPE, geShape);
+    // Save sdf shape transform rect for further expand calculation
+    auto sdfTransformRect = sdfShape->GetTransformDrawRect();
+    stagingSdfTransformRect_ =
+        std::make_unique<Drawing::Rect>(RSPropertyDrawableUtils::Rect2DrawingRect(sdfTransformRect));
     stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
     stagingGeContainer_->AddToChainedFilter(geFilter);
     return true;
@@ -157,14 +161,18 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
         shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path, color_, colorStrategy_);
     }
     if (geContainer_) {
+        geContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
         auto drawingShadowColor = Drawing::Color(shadowColor.GetRed(), shadowColor.GetGreen(),
             shadowColor.GetBlue(), shadowColor.GetAlpha());
         Drawing::GESDFShadowParams shadow {drawingShadowColor, offsetX_, offsetY_,
             radius_, path, isFilled_, elevation_};
         auto geFilter = geContainer_->GetGEVisualEffect(Drawing::GE_SHADER_SDF_SHADOW);
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHADOW, shadow);
+        if (geFilter) {
+            geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHADOW, shadow);
+        }
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-        geRender->DrawShaderEffect(*canvas, *geContainer_, *rect);
+        geRender->DrawShaderEffect(*canvas, *geContainer_, !sdfTransformRect_ || sdfTransformRect_->IsEmpty() ?
+            (*rect) : (*sdfTransformRect_));
         return;
     }
     if (ROSEN_GNE(elevation_, 0.f)) {
@@ -357,6 +365,7 @@ bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     if (!shader) {
         return false;
     }
+    RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(properties, shader, node.GetId());
     needSync_ = true;
     stagingShader_ = shader;
     stagingCornerRadius_ = node.GetRenderProperties().GetCornerRadius().x_;
@@ -397,6 +406,7 @@ void RSBackgroundNGShaderDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing
         visualEffectContainer_->UpdateCachedBlurImage(canvas, nullptr, 0, 0);
     }
     visualEffectContainer_->UpdateCornerRadius(cornerRadius_);
+    visualEffectContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
     geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
 }
 
@@ -753,16 +763,15 @@ void RSBackgroundEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::
             GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound) : *rect;
         Drawing::Rect drawRect = renderRelativeRectInfo_ != nullptr ?
             GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound) : *rect;
-        RectF snapshotRelativeRect = GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
         auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
         if (filter) {
             filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
-                snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
+                rect->GetWidth(), rect->GetHeight());
         }
     }
     RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", renderNodeId_);
     RSPropertyDrawableUtils::DrawBackgroundEffect(
-        paintFilterCanvas, filter_, cacheManager_, boundsRect);
+        paintFilterCanvas, filter_, renderNodeId_, cacheManager_, boundsRect);
 }
 
 Drawing::RectI RSBackgroundEffectDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
@@ -1046,11 +1055,10 @@ void RSMaterialFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
         RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());
     Drawing::RectI snapshotRect = GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
     Drawing::RectI drawRect = GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound);
-    RectF snapshotRelativeRect = GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
     RS_TRACE_NAME_FMT("RSMaterialFilterDrawable::OnDraw node[%llu] ", renderNodeId_);
     if (rect) {
         filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
-            snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
+            rect->GetWidth(), rect->GetHeight());
     }
     int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
     RSPropertyDrawableUtils::DrawFilter(canvas, filter_,

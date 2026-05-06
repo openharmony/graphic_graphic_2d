@@ -141,6 +141,10 @@ void DoSetWatermark()
     std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
     dataP.WriteString(name);
     dataP.WriteParcelable(pixelmap.get());
+    uint32_t rowCount = GetData<uint32_t>();
+    uint32_t colCount = GetData<uint32_t>();
+    dataP.WriteUint32(rowCount);
+    dataP.WriteUint32(colCount);
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK);
     if (toServiceConnectionStub_ == nullptr) {
         return;
@@ -173,12 +177,16 @@ void DoSetSurfaceWatermark()
         nodeList.push_back(nodeId);
     }
     uint8_t watermarkType = GetData<uint8_t>();
+    uint32_t rowCount = GetData<uint32_t>();
+    uint32_t colCount = GetData<uint32_t>();
     dataParcel.WriteInt32(pid);
     dataParcel.WriteString(name);
     dataParcel.WriteBool(hasPixelMap);
     dataParcel.WriteParcelable(pixelmap.get());
     dataParcel.WriteUInt64Vector(nodeList);
     dataParcel.WriteUint8(watermarkType);
+    dataParcel.WriteUint32(rowCount);
+    dataParcel.WriteUint32(colCount);
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SURFACE_WATERMARK);
     if (toRenderConnectionStub_ == nullptr) {
         return;
@@ -260,7 +268,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
 
     OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
+            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
+            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
 
     auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
     OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =

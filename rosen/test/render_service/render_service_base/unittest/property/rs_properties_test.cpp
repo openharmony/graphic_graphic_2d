@@ -2192,6 +2192,24 @@ HWTEST_F(RSPropertiesTest, GetFrameRect001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRenderNodeId001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, GetRenderNodeId001, TestSize.Level1)
+{
+    RSProperties properties;
+    NodeId id = properties.GetRenderNodeId();
+    EXPECT_TRUE(id == INVALID_NODEID);
+
+    auto node = std::make_shared<RSRenderNode>(10);
+    properties.backref_ = node;
+    id = properties.GetRenderNodeId();
+    EXPECT_TRUE(id == 10);
+}
+
+/**
  * @tc.name: GetBgImageRect001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -3925,6 +3943,18 @@ HWTEST_F(RSPropertiesTest, SetOverlayNGShader002, TestSize.Level1)
     overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
     properties.SetOverlayNGShader(overlayShader);
     EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+}
+
+/**
+ * @tc.name: GetMaterialShader001
+ * @tc.desc: test GetMaterialShader when effect_ is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesTest, GetMaterialShader001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    EXPECT_EQ(properties.GetMaterialShader(), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

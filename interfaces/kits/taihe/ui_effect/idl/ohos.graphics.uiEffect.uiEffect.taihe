@@ -39,15 +39,48 @@ enum WaterRippleMode: i32 {
   MINI_RECV = 3
 }
 
-struct BrightnessBlender {
-  cubicRate: f64;
-  quadraticRate: f64;
-  linearRate: f64;
-  degree: f64;
-  saturation: f64;
-  positiveCoefficient: @sts_type("[double, double, double]") Opaque;
-  negativeCoefficient: @sts_type("[double, double, double]") Opaque;
-  fraction: f64;
+@tuple
+struct Tuple3F {
+  x: f64;
+  y: f64;
+  z: f64;
+}
+
+@class
+interface Blender {
+  getNativePtr(): i64;
+}
+
+@class
+interface BrightnessBlender: Blender {
+  @get getCubicRate(): f64;
+  @set setCubicRate(cubicRate: f64): void;
+  @get getQuadraticRate(): f64;
+  @set setQuadraticRate(quadraticRate: f64): void;
+  @get getLinearRate(): f64;
+  @set setLinearRate(linearRate: f64): void;
+  @get getDegree(): f64;
+  @set setDegree(degree: f64): void;
+  @get getSaturation(): f64;
+  @set setSaturation(saturation: f64): void;
+  @get getPositiveCoefficient(): Tuple3F;
+  @set setPositiveCoefficient(positiveCoefficient: Tuple3F): void;
+  @get getNegativeCoefficient(): Tuple3F;
+  @set setNegativeCoefficient(negativeCoefficient: Tuple3F): void;
+  @get getFraction(): f64;
+  @set setFraction(fraction: f64): void;
+}
+
+@class
+interface HdrBrightnessBlender: BrightnessBlender {
+}
+
+@class
+interface HdrDarkenBlender: Blender {
+  @get getHdrBrightnessRatio(): f64;
+  @set setHdrBrightnessRatio(hdrBrightnessRatio: f64): void;
+  @get getGrayscaleFactor(): Optional<Tuple3F>;
+  @set setGrayscaleFactor(grayscaleFactor: Optional<Tuple3F>): void;
 }
 
 struct Color {
@@ -151,12 +184,13 @@ interface VisualEffect {
   getNativePtr(): i64;
 }
 
+function CreateBlender(): Blender;
+
 function CreateBrightnessBlender(param: BrightnessBlenderParam): BrightnessBlender;
 
-struct HdrBrightnessBlender {
-  @extends brightnessBlender: BrightnessBlender;
-}
 function CreateHdrBrightnessBlender(param: BrightnessBlenderParam): HdrBrightnessBlender;
+
+function CreateHdrDarkenBlender(ratio: f64, factors: Optional<Tuple3F>): HdrDarkenBlender;
 
 function CreateFilter(): Filter;
 function CreateEffect(): VisualEffect;

@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_property_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_render_params.h"
@@ -238,23 +239,6 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetRenderParamsAndGetUifirstRenderParamsTest
- * @tc.desc: Test GetRenderParamsAndGetUifirstRenderParams
- * @tc.type: FUNC
- * @tc.require: issueI9UTMA
- */
-HWTEST(RSRenderNodeDrawableAdapterTest, GetRenderParamsAndGetUifirstRenderParamsTest, TestSize.Level1)
-{
-    NodeId id = 4;
-    auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    const auto& retParams = adapter->GetRenderParams();
-    EXPECT_EQ(retParams, nullptr);
-    const auto& retUifirstParams = adapter->GetUifirstRenderParams();
-    EXPECT_EQ(retUifirstParams, nullptr);
-}
-
-/**
  * @tc.name: DumpDrawableVecTest
  * @tc.desc: Test DumpDrawableVec
  * @tc.type: FUNC
@@ -391,32 +375,6 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawRangeImplAndRelatedTest, TestSize.Le
     adapter->DrawRangeImpl(drawingCanvas, rect, start, end);
     RSDrawable::DrawList drawCmdList;
     adapter->drawCmdList_.swap(drawCmdList);
-}
-
-/**
- * @tc.name: DrawUifirstContentChildrenTest
- * @tc.desc: Test DrawUifirstContentChildren
- * @tc.type: FUNC
- * @tc.require: issueI9UTMA
- */
-HWTEST(RSRenderNodeDrawableAdapterTest, DrawUifirstContentChildrenTest, TestSize.Level1)
-{
-    NodeId id = 9;
-    auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    Drawing::Canvas canvas;
-    Drawing::Rect rect;
-    adapter->DrawUifirstContentChildren(canvas, rect);
-    EXPECT_TRUE(adapter->uifirstDrawCmdList_.empty());
-
-    std::shared_ptr<RSTestDrawable> rsDrawable = std::make_shared<RSTestDrawable>();
-    adapter->uifirstDrawCmdList_.emplace_back(rsDrawable);
-    EXPECT_TRUE(!adapter->uifirstDrawCmdList_.empty());
-    adapter->uifirstDrawCmdIndex_.contentIndex_ = 0;
-    adapter->uifirstDrawCmdIndex_.childrenIndex_ = 0;
-    adapter->DrawUifirstContentChildren(canvas, rect);
-    RSDrawable::DrawList uifirstDrawCmdIndex;
-    adapter->uifirstDrawCmdList_.swap(uifirstDrawCmdIndex);
 }
 
 /**
@@ -774,6 +732,43 @@ HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForOcclusionTest, Test
         std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
     ASSERT_NE(adapter, nullptr);
     EXPECT_FALSE(adapter->IsFilterCacheValidForOcclusion());
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender
+ * @tc.desc: Test IsFilterCacheValidForPartialRender001 sysProp disable
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender001, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    bool defaultSysProp = RSFilterCacheManager::isCCMFilterCacheEnable_;
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = false;
+
+    EXPECT_FALSE(adapter->IsFilterCacheValidForPartialRender());
+
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = defaultSysProp;
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender_Background
+ * @tc.desc: Test IsFilterCacheValidForPartialRender_Background
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender_Background, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    EXPECT_TRUE(adapter->IsFilterCacheValidForPartialRender());
 }
 
 /**

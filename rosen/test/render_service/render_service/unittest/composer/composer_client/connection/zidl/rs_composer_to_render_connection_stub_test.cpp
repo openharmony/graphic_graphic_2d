@@ -1098,4 +1098,66 @@ HWTEST_F(RSComposerToRenderConnectionStubTest, Stub_OnRemoteRequest_ReleaseLayer
     EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
     EXPECT_FALSE(called);
 }
+
+/**
+ * Function: Stub_OnRemoteRequest_ReleaseLayerBuffers_ScreenIdReadFail_Line64_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. write valid token but missing screenId data
+ *                  2. expect COMPOSITOR_ERROR_BINDER_ERROR (line 64 true branch)
+ */
+HWTEST_F(RSComposerToRenderConnectionStubTest,
+    Stub_OnRemoteRequest_ReleaseLayerBuffers_ScreenIdReadFail_Line64_TrueBranch, TestSize.Level1)
+{
+    RSComposerToRenderConnection stub;
+    bool called = false;
+    stub.RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) { called = true; });
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+
+    ASSERT_TRUE(data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor()));
+    // Missing screenId data - ReadUint64 will fail, triggers line 64 true branch
+
+    int ret = stub.OnRemoteRequest(
+        IRSComposerToRenderConnection::ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS, data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+    EXPECT_FALSE(called);
+}
+
+/**
+ * Function: Stub_OnRemoteRequest_ReleaseLayerBuffers_ScreenIdReadSuccess_Line64_FalseBranch
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. write valid token and screenId successfully
+ *                  2. expect continuation to next checks (line 64 false branch)
+ */
+HWTEST_F(RSComposerToRenderConnectionStubTest,
+    Stub_OnRemoteRequest_ReleaseLayerBuffers_ScreenIdReadSuccess_Line64_FalseBranch, TestSize.Level1)
+{
+    RSComposerToRenderConnection stub;
+    ReleaseLayerBuffersInfo captured {};
+    stub.RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) { captured = info; });
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+
+    ASSERT_TRUE(data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint64(999u)); // screenId successfully written, line 64 false branch
+    // timestampVec (0 entries)
+    ASSERT_TRUE(data.WriteUint32(0u));
+    // releaseBufferFenceVec (0 entries)
+    ASSERT_TRUE(data.WriteUint32(0u));
+    ASSERT_TRUE(data.WriteInt64(12345)); // lastSwapBufferTime
+
+    int ret = stub.OnRemoteRequest(
+        IRSComposerToRenderConnection::ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS, data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    EXPECT_EQ(captured.screenId, 999u);
+    ASSERT_EQ(captured.timestampVec.size(), 0u);
+    ASSERT_EQ(captured.releaseBufferFenceVec.size(), 0u);
+    EXPECT_EQ(reply.ReadInt32(), COMPOSITOR_ERROR_OK);
+}
 } // namespace OHOS::Rosen

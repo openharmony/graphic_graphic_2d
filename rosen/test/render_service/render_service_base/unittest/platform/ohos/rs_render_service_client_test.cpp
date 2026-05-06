@@ -307,7 +307,7 @@ HWTEST_F(RSServiceClientTest, AddVirtualScreenBlackListTest001, TestSize.Level1)
     ScreenId screenId = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t ret = rsClient->AddVirtualScreenBlackList(screenId, blackListVector);
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(ret, READ_PARCEL_ERR);
 }
 
 /**
@@ -321,7 +321,7 @@ HWTEST_F(RSServiceClientTest, AddVirtualScreenBlackListTest002, TestSize.Level1)
     ASSERT_NE(rsClient, nullptr);
     std::vector<NodeId> blackList(MAX_SPECIAL_LAYER_NUM + 1);
     int32_t ret = rsClient->AddVirtualScreenBlackList(INVALID_SCREEN_ID, blackList);
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(ret, READ_PARCEL_ERR);
 }
 
 /**
@@ -336,7 +336,7 @@ HWTEST_F(RSServiceClientTest, RemoveVirtualScreenBlackListTest, TestSize.Level1)
     ScreenId screenId = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t ret = rsClient->RemoveVirtualScreenBlackList(screenId, blackListVector);
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(ret, READ_PARCEL_ERR);
 }
 
 /**
@@ -368,7 +368,7 @@ HWTEST_F(RSServiceClientTest, SetScreenChangeCallback001, TestSize.Level1)
     ScreenChangeReason errorReason = ScreenChangeReason::DEFAULT;
     bool callbacked = false;
     auto callback = [&screenId, &screenEvent, &errorReason, &callbacked]
-        (ScreenId id, ScreenEvent event, ScreenChangeReason reason) {
+        (ScreenId id, ScreenEvent event, ScreenChangeReason reason, sptr<IRemoteObject> remote) {
         screenId = id;
         screenEvent = event;
         errorReason = reason;
@@ -1133,18 +1133,6 @@ HWTEST_F(RSServiceClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
     uint64_t userId = 0;
     EXPECT_NE(rsClient->RegisterUIExtensionCallback(userId, callback),
         StatusCode::INVALID_ARGUMENTS);
-}
-
-/**
- * @tc.name: SetFreeMultiWindowStatus Test
- * @tc.desc: SetFreeMultiWindowStatus, input true
- * @tc.type:FUNC
- * @tc.require: issueIANPC2
- */
-HWTEST_F(RSServiceClientTest, SetFreeMultiWindowStatus, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    rsClient->SetFreeMultiWindowStatus(true);
 }
 
 /**

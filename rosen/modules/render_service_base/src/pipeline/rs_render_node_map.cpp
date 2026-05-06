@@ -374,6 +374,15 @@ void RSRenderNodeMap::TraversalNodesByPid(int pid,
     }
 }
 
+size_t RSRenderNodeMap::GetNodeCountByPid(pid_t pid) const
+{
+    const auto& itr = renderNodeMap_.find(pid);
+    if (itr != renderNodeMap_.end()) {
+        return itr->second.size();
+    }
+    return 0;
+}
+
 void RSRenderNodeMap::TraverseCanvasDrawingNodes(
     std::function<void(const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const
 {
@@ -503,6 +512,7 @@ std::vector<NodeId> RSRenderNodeMap::GetSelfDrawingNodeInProcess(pid_t pid)
 bool RSRenderNodeMap::AttachToDisplay(
     std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode, ScreenId screenId, bool toContainer) const
 {
+#ifndef ROSEN_ARKUI_X
     bool result = false;
     surfaceRenderNode->GetAttachedInfo() = std::nullopt;
     std::shared_ptr<RSRenderNode> displayRenderNodeTop = nullptr;
@@ -543,6 +553,9 @@ bool RSRenderNodeMap::AttachToDisplay(
         result = true;
     }
     return result;
+#else
+    return false;
+#endif
 }
 
 void RSRenderNodeMap::RegisterNeedAttachedNode(std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode)

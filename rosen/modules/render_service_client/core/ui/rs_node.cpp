@@ -48,7 +48,6 @@
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_implicit_animator.h"
-#include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_render_particle_animation.h"
 #include "command/rs_base_node_command.h"
 #include "command/rs_canvas_node_command.h"
@@ -76,6 +75,7 @@
 #include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_material_filter_modifier.h"
+#include "modifier_ng/appearance/rs_material_shader_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
 #include "modifier_ng/background/rs_background_color_modifier.h"
@@ -112,7 +112,7 @@
 #include "ui/rs_ui_patten_vec.h"
 #include "ui/rs_union_node.h"
 
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
 #include "modifier_render_thread/rs_modifiers_draw.h"
 #endif
 
@@ -219,11 +219,10 @@ RSNode::RSNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_p
 
 RSNode::~RSNode()
 {
-    if (!FallbackAnimationsToContext()) {
-        FallbackAnimationsToRoot();
-    }
+    FallbackAnimationsToContext();
+
     ClearAllModifiers();
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
     if (RSSystemProperties::GetHybridRenderEnabled()) {
         RSModifiersDraw::EraseDrawRegions(id_);
@@ -246,7 +245,9 @@ RSNode::~RSNode()
     }
     if (rsUIContext != nullptr) {
         // tell RT/RS to destroy related render node
-        rsUIContext->GetMutableNodeMap().UnregisterNode(id_);
+        if (!isShadowNode_ || g_isUniRenderEnabled) {
+            rsUIContext->GetMutableNodeMap().UnregisterNode(id_);
+        }
         auto transaction = rsUIContext->GetRSTransaction();
         if (transaction == nullptr || skipDestroyCommandInDestructor_) {
             RS_LOGD("RSNode::~RSNode stop destroy proxy:%{public}d, skip: %{public}d", transaction == nullptr,
@@ -288,98 +289,71 @@ std::shared_ptr<RSTransactionHandler> RSNode::GetRSTransaction() const
     return rsUIContext->GetRSTransaction();
 }
 
-void RSNode::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
-    const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
-        return;
-    }
-
-    std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
-        animationFinishCallback =
-            std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
-    }
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback));
-}
-
 void RSNode::OpenImplicitAnimation(const std::shared_ptr<RSUIContext> rsUIContext,
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
     const std::function<void()>& finishCallback)
 {
-    auto implicitAnimator =
-        rsUIContext ? rsUIContext->GetRSImplicitAnimator() : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::OpenImplicitAnimation, rsUIContext is null!");
         return;
     }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
+    if (finishCallback != nullptr && implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
         animationFinishCallback =
             std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
     implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, std::move(animationFinishCallback));
 }
 
-std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation()
+std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation(
+    const std::shared_ptr<RSUIContext> rsUIContext)
 {
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to close implicit animation, implicit animator is null!");
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::CloseImplicitAnimation, rsUIContext is null!");
         return {};
     }
-
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
     return implicitAnimator->CloseImplicitAnimation();
 }
 
-std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation(const std::shared_ptr<RSUIContext> rsUIContext)
+bool RSNode::CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext, bool nodeExceptionSensitive)
 {
-    auto implicitAnimator =
-        rsUIContext ? rsUIContext->GetRSImplicitAnimator() : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("multi-instance Failed to close implicit animation, implicit animator is null!");
-        return {};
-    }
-
-    return implicitAnimator->CloseImplicitAnimation();
-}
-
-bool RSNode::CloseImplicitCancelAnimation()
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to close implicit animation for cancel, implicit animator is null!");
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::CloseImplicitCancelAnimation, rsUIContext is null!");
         return false;
     }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
-    return implicitAnimator->CloseImplicitCancelAnimation() == CancelAnimationStatus::SUCCESS ? true : false;
-}
-
-bool RSNode::CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext)
-{
-    auto implicitAnimator =
-        rsUIContext ? rsUIContext->GetRSImplicitAnimator() : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("multi-instance Failed to close implicit animation for cancel, implicit animator is null!");
-        return false;
+    auto status = implicitAnimator->CloseImplicitCancelAnimation();
+    if (!nodeExceptionSensitive && status == CancelAnimationStatus::NODE_EXCEPTION) {
+        status = CancelAnimationStatus::SUCCESS;
     }
-
-    return implicitAnimator->CloseImplicitCancelAnimation() == CancelAnimationStatus::SUCCESS ? true : false;
+    if (status != CancelAnimationStatus::SUCCESS) {
+        ROSEN_LOGE("RSNode::CloseImplicitCancelAnimation failed with status: %{public}d", static_cast<int>(status));
+    }
+    return status == CancelAnimationStatus::SUCCESS;
 }
 
-CancelAnimationStatus RSNode::CloseImplicitCancelAnimationReturnStatus(const std::shared_ptr<RSUIContext> rsUIContext)
+CancelAnimationStatus RSNode::CloseImplicitCancelAnimationReturnStatus(
+    const std::shared_ptr<RSUIContext> rsUIContext, bool nodeExceptionSensitive)
 {
-    auto implicitAnimator =
-        rsUIContext ? rsUIContext->GetRSImplicitAnimator() : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("multi-instance Failed to close implicit animation for cancel, implicit animator is null!");
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGW("RSNode::CloseImplicitCancelAnimationReturnStatus, rsUIContext is null!");
         return CancelAnimationStatus::NULL_ANIMATOR;
     }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
-    return implicitAnimator->CloseImplicitCancelAnimation();
+    auto status = implicitAnimator->CloseImplicitCancelAnimation();
+    if (!nodeExceptionSensitive && status == CancelAnimationStatus::NODE_EXCEPTION) {
+        return CancelAnimationStatus::SUCCESS;
+    }
+    if (status != CancelAnimationStatus::SUCCESS) {
+        ROSEN_LOGE("RSNode::CloseImplicitCancelAnimationReturnStatus failed with status: %{public}d",
+            static_cast<int>(status));
+    }
+    return status;
 }
 
 void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
@@ -401,152 +375,76 @@ std::string RSNode::GetFrameNodeTag()
     return frameNodeTag_;
 }
 
+void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, float fraction,
+    const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
+{
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
+        return;
+    }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
+
+    implicitAnimator->BeginImplicitKeyFrameAnimation(fraction, timingCurve);
+    propertyCallback();
+    implicitAnimator->EndImplicitKeyFrameAnimation();
+}
+
 void RSNode::AddKeyFrame(
-    float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
+    const std::shared_ptr<RSUIContext> rsUIContext, float fraction, const PropertyCallback& propertyCallback)
 {
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::AddKeyFrame, rsUIContext is null!");
         return;
     }
-
-    implicitAnimator->BeginImplicitKeyFrameAnimation(fraction, timingCurve);
-    propertyCallback();
-    implicitAnimator->EndImplicitKeyFrameAnimation();
-}
-
-void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
-    float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
-{
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                        : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
-        return;
-    }
-
-    implicitAnimator->BeginImplicitKeyFrameAnimation(fraction, timingCurve);
-    propertyCallback();
-    implicitAnimator->EndImplicitKeyFrameAnimation();
-}
-
-void RSNode::AddKeyFrame(float fraction, const PropertyCallback& propertyCallback)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
-        return;
-    }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     implicitAnimator->BeginImplicitKeyFrameAnimation(fraction);
     propertyCallback();
     implicitAnimator->EndImplicitKeyFrameAnimation();
 }
 
-void RSNode::AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
-    float fraction, const PropertyCallback& propertyCallback)
+void RSNode::AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext, int duration,
+    const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
 {
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                        : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::AddDurationKeyFrame, rsUIContext is null!");
         return;
     }
-
-    implicitAnimator->BeginImplicitKeyFrameAnimation(fraction);
-    propertyCallback();
-    implicitAnimator->EndImplicitKeyFrameAnimation();
-}
-
-void RSNode::AddDurationKeyFrame(
-    int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
-        return;
-    }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     implicitAnimator->BeginImplicitDurationKeyFrameAnimation(duration, timingCurve);
     propertyCallback();
     implicitAnimator->EndImplicitDurationKeyFrameAnimation();
-}
-
-void RSNode::AddDurationKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
-    int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
-{
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                        : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to add keyframe, implicit animator is null!");
-        return;
-    }
-
-    implicitAnimator->BeginImplicitDurationKeyFrameAnimation(duration, timingCurve);
-    propertyCallback();
-    implicitAnimator->EndImplicitDurationKeyFrameAnimation();
-}
-
-bool RSNode::IsImplicitAnimationOpen()
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    return implicitAnimator && implicitAnimator->NeedImplicitAnimation();
 }
 
 bool RSNode::IsImplicitAnimationOpen(const std::shared_ptr<RSUIContext> rsUIContext)
 {
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                        : RSImplicitAnimatorMap::Instance().GetAnimator();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::IsImplicitAnimationOpen, rsUIContext is null!");
+        return false;
+    }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
     return implicitAnimator && implicitAnimator->NeedImplicitAnimation();
 }
 
-std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimingProtocol& timingProtocol,
-    const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
-    const std::function<void()>& finishCallback, const std::function<void()>& repeatCallback)
-{
-    if (propertyCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
-        return {};
-    }
-
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
-        return {};
-    }
-    std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
-        animationFinishCallback =
-            std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
-    }
-    std::shared_ptr<AnimationRepeatCallback> animationRepeatCallback;
-    if (repeatCallback != nullptr) {
-        animationRepeatCallback = std::make_shared<AnimationRepeatCallback>(repeatCallback);
-    }
-    implicitAnimator->OpenImplicitAnimation(
-        timingProtocol, timingCurve, std::move(animationFinishCallback), std::move(animationRepeatCallback));
-    propertyCallback();
-    return implicitAnimator->CloseImplicitAnimation();
-}
-
 std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const std::shared_ptr<RSUIContext> rsUIContext,
-    const RSAnimationTimingProtocol& timingProtocol,
-    const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
-    const std::function<void()>& finishCallback, const std::function<void()>& repeatCallback)
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+    const PropertyCallback& propertyCallback, const std::function<void()>& finishCallback,
+    const std::function<void()>& repeatCallback)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
+        ROSEN_LOGE("RSNode::Animate, property callback is null!");
+        return {};
+    }
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::Animate, rsUIContext is null!");
         return {};
     }
 
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                        : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
-        return {};
-    }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
+    if (finishCallback != nullptr && implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
         animationFinishCallback =
             std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
@@ -556,34 +454,6 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const std::shared_ptr<
     }
     implicitAnimator->OpenImplicitAnimation(
         timingProtocol, timingCurve, std::move(animationFinishCallback), std::move(animationRepeatCallback));
-    propertyCallback();
-    return implicitAnimator->CloseImplicitAnimation();
-}
-
-std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
-    const PropertyCallback& propertyCallback, const std::function<void()>& finishCallback, bool timingSensitive)
-{
-    if (propertyCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
-        return {};
-    }
-    if (finishCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, finish callback is null!");
-        propertyCallback();
-        return {};
-    }
-
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
-        propertyCallback();
-        return {};
-    }
-    auto finishCallbackType =
-        timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_INSENSITIVE;
-    // re-use the current options and replace the finish callback
-    auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
-    implicitAnimator->OpenImplicitAnimation(std::move(animationFinishCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
 }
@@ -592,85 +462,71 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     const std::shared_ptr<RSUIContext> rsUIContext, const PropertyCallback& propertyCallback,
     const std::function<void()>& finishCallback, bool timingSensitive)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
+        ROSEN_LOGE("RSNode::AnimateWithCurrentOptions, property callback is null!");
         return {};
     }
     if (finishCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, finish callback is null!");
+        ROSEN_LOGE("RSNode::AnimateWithCurrentOptions, finish callback is null!");
+        propertyCallback();
+        return {};
+    }
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::AnimateWithCurrentOptions, rsUIContext is null!");
         propertyCallback();
         return {};
     }
 
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                        : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
-        propertyCallback();
-        return {};
-    }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
     auto finishCallbackType =
         timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_INSENSITIVE;
-    // re-use the current options and replace the finish callback
-    auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
+    std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
+    if (implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
+        // re-use the current options and replace the finish callback
+        animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
+    }
     implicitAnimator->OpenImplicitAnimation(std::move(animationFinishCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
 }
 
 std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentCallback(
-    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
-    const PropertyCallback& propertyCallback)
+    const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
+    const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
+        ROSEN_LOGE("RSNode::AnimateWithCurrentCallback, property callback is null!");
         return {};
     }
 
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSNode::AnimateWithCurrentCallback, rsUIContext is null!");
         return {};
     }
+
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
     // re-use the current finish callback and replace the options
     implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
 }
 
-std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentCallback(
-    const std::shared_ptr<RSUIContext> rsUIContext,
-    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
-    const PropertyCallback& propertyCallback)
-{
-    if (propertyCallback == nullptr) {
-        ROSEN_LOGE("Failed to add curve animation, property callback is null!");
-        return {};
-    }
-
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                        : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
-        return {};
-    }
-    // re-use the current finish callback and replace the options
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
-    propertyCallback();
-    return implicitAnimator->CloseImplicitAnimation();
-}
-
-void RSNode::ExecuteWithoutAnimation(
-    const PropertyCallback& callback, const std::shared_ptr<RSUIContext> rsUIContext,
+void RSNode::ExecuteWithoutAnimation(const PropertyCallback& callback, const std::shared_ptr<RSUIContext> rsUIContext,
     std::shared_ptr<RSImplicitAnimator> implicitAnimator)
 {
     if (callback == nullptr) {
-        ROSEN_LOGE("Failed to execute without animation, property callback is null!");
+        ROSEN_LOGE("RSNode::ExecuteWithoutAnimation, property callback is null!");
+        return;
+    }
+    if (rsUIContext == nullptr && implicitAnimator == nullptr) {
+        ROSEN_LOGE("RSNode::ExecuteWithoutAnimation, both rsUIContext and implicitAnimator are null!");
+        callback();
         return;
     }
     if (implicitAnimator == nullptr) {
-        implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                       : RSImplicitAnimatorMap::Instance().GetAnimator();
+        implicitAnimator = rsUIContext->GetRSImplicitAnimator();
     }
     if (implicitAnimator == nullptr) {
         callback();
@@ -679,11 +535,12 @@ void RSNode::ExecuteWithoutAnimation(
     }
 }
 
-bool RSNode::FallbackAnimationsToContext()
+void RSNode::FallbackAnimationsToContext()
 {
     auto rsUIContext = rsUIContext_;
     if (rsUIContext == nullptr) {
-        return false;
+        ROSEN_LOGE("RSNode::FallbackAnimationsToContext, rsUIContext is null!");
+        return;
     }
     std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (auto& [animationId, animation] : animations_) {
@@ -695,29 +552,6 @@ bool RSNode::FallbackAnimationsToContext()
             continue;
         }
         rsUIContext->AddAnimationInner(std::move(animation));
-    }
-    animations_.clear();
-    return true;
-}
-
-void RSNode::FallbackAnimationsToRoot()
-{
-    auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
-    if (target == nullptr) {
-        ROSEN_LOGE("Failed to move animation to root, root node is null!");
-        return;
-    }
-    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
-    for (auto& [animationId, animation] : animations_) {
-        // Skip null or infinite UI animations to destroy them:
-        // - Continue prevents animation from being moved to root (no owner)
-        // - animations_.clear() removes the last reference, triggering destruction
-        // - This ensures infinite loop UI animations stop when node falls back
-        if (!animation || (animation->GetRepeatCount() == -1 && animation->IsUiAnimation())) {
-            continue;
-        }
-        RSNodeMap::MutableInstance().RegisterAnimationInstanceId(animationId, id_, instanceId_);
-        target->AddAnimationInner(std::move(animation));
     }
     animations_.clear();
 }
@@ -1543,10 +1377,32 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
         auto preTransaction = preUIContext->GetRSTransaction();
         auto curTransaction = rsUIContext->GetRSTransaction();
         if (preTransaction && curTransaction) {
-            preTransaction->MoveCommandByNodeId(curTransaction, id_);
+            // Move non-tree commands to the new UIContext. Tree hierarchy commands
+            // are excluded because they must be regenerated for the new context.
+            preTransaction->MoveCommandByNodeIdExcludeTreeCommands(curTransaction, id_);
+            RegenerateTreeHierarchyCommands();
         }
     }
     SetUIContextToken();
+}
+
+// Regenerates tree hierarchy commands (AddChild) for all children after
+// UIContext switching. This ensures the new UIContext builds the correct
+// node tree structure, since tree hierarchy commands are excluded during
+// command migration.
+void RSNode::RegenerateTreeHierarchyCommands()
+{
+    ROSEN_LOGI("RegenerateTreeHierarchyCommands nodeId:%{public}" PRIu64 " children:%{public}zu",
+        id_, children_.size());
+    for (uint32_t index = 0; index < children_.size(); index++) {
+        auto childPtr = children_[index].lock();
+        if (childPtr == nullptr) {
+            continue;
+        }
+        auto childId = childPtr->GetHierarchyCommandNodeId();
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
+        AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+    }
 }
 
 void RSNode::SetPersp(float persp)
@@ -2348,10 +2204,18 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             continue;
         }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
-            paramCounts[static_cast<size_t>(SetUIXXFilterCascadeType::FG_BLUR)]++;
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
             auto blurRadius = filterBlurPara->GetRadius();
-            SetForegroundEffectRadius(blurRadius);
+            auto filter = RSNGFilterHelper::CreateNGBlurFilter(blurRadius, blurRadius);
+            if (filter == nullptr) {
+                ROSEN_LOGE("CreateNGBlurFilter filter is nullptr");
+                continue;
+            }
+            if (headFilter) {
+                headFilter->Append(filter);
+            } else {
+                headFilter = filter;
+            }
         }
         if (filterPara->GetParaType() == FilterPara::FLY_OUT) {
             paramCounts[static_cast<size_t>(SetUIXXFilterCascadeType::FLY_OUT)]++;
@@ -2432,7 +2296,8 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT ||
-            visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT) {
+            visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::SPATIAL_GLASS_EFFECT) {
             SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
         }
 
@@ -2604,6 +2469,22 @@ void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregrou
     }
     SetPropertyNG<ModifierNG::RSForegroundShaderModifier,
         &ModifierNG::RSForegroundShaderModifier::SetForegroundShader>(foregroundShader);
+}
+
+void RSNode::SetMaterialShader(const std::shared_ptr<RSNGShaderBase>& materialShader)
+{
+    if (!materialShader) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_SHADER);
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::MATERIAL_SHADER)) {
+            return;
+        }
+        modifier->DetachProperty(ModifierNG::RSPropertyType::MATERIAL_SHADER);
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSMaterialShaderModifier,
+        &ModifierNG::RSMaterialShaderModifier::SetMaterialShader>(materialShader);
 }
 
 void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter)
@@ -2892,6 +2773,12 @@ void RSNode::SetClipToFrame(bool clipToFrame)
     SetPropertyNG<ModifierNG::RSFrameClipModifier, &ModifierNG::RSFrameClipModifier::SetClipToFrame>(clipToFrame);
 }
 
+void RSNode::SetDoubleSidedEnabled(bool isDoubleSided)
+{
+    SetPropertyNG<ModifierNG::RSVisibilityModifier,
+        &ModifierNG::RSVisibilityModifier::SetDoubleSidedEnabled>(isDoubleSided);
+}
+
 void RSNode::SetCustomClipToFrame(const Vector4f& clipRect)
 {
     SetPropertyNG<ModifierNG::RSFrameClipModifier, &ModifierNG::RSFrameClipModifier::SetCustomClipToFrame>(clipRect);
@@ -3108,14 +2995,11 @@ void RSNode::SetAttractionEffectDstPoint(const Vector2f& destinationPoint)
 
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
 {
-    auto rsUIContext = rsUIContext_;
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator()
-                                        : RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to notify transition, implicit animator is null!");
+    if (rsUIContext_ == nullptr) {
+        ROSEN_LOGE("RSNode::NotifyTransition, rsUIContext is null!");
         return;
     }
-
+    auto implicitAnimator = rsUIContext_->GetRSImplicitAnimator();
     if (!implicitAnimator->NeedImplicitAnimation()) {
         return;
     }
@@ -3517,7 +3401,7 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
         drawRegion_ = rect;
         std::unique_ptr<RSCommand> command = std::make_unique<RSSetDrawRegion>(GetId(), rect);
         AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
         if (RSSystemProperties::GetHybridRenderEnabled() && !drawRegion_->IsEmpty()) {
             RSModifiersDraw::AddDrawRegions(id_, drawRegion_);
         }
@@ -3533,32 +3417,11 @@ void RSNode::SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion)
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
 }
 
-void RSNode::RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId, const bool isInSameWindow)
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId, isInSameWindow);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
-}
-
-void RSNode::UnregisterTransitionPair(NodeId inNodeId, NodeId outNodeId)
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSUnregisterGeometryTransitionNodePair>(inNodeId, outNodeId);
-    auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, true);
-    }
-}
-
 void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId,
     const bool isInSameWindow)
 {
     if (rsUIContext == nullptr) {
-        ROSEN_LOGD("RSNode::RegisterTransitionPair, rsUIContext is nullptr");
-        RegisterTransitionPair(inNodeId, outNodeId, isInSameWindow);
+        ROSEN_LOGE("RSNode::RegisterTransitionPair, rsUIContext is nullptr");
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId,
@@ -3572,8 +3435,7 @@ void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIConte
 void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId)
 {
     if (rsUIContext == nullptr) {
-        ROSEN_LOGD("RSNode::UnregisterTransitionPair, rsUIContext is nullptr");
-        UnregisterTransitionPair(inNodeId, outNodeId);
+        ROSEN_LOGE("RSNode::UnregisterTransitionPair, rsUIContext is nullptr");
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSUnregisterGeometryTransitionNodePair>(inNodeId, outNodeId);
@@ -3946,12 +3808,6 @@ void RSNode::InitUniRenderEnabled()
     }
 }
 
-
-// RSNode::~RSNode()
-// {
-
-// }
-
 bool RSNode::IsUniRenderEnabled() const
 {
     return g_isUniRenderEnabled;
@@ -3970,7 +3826,7 @@ void RSNode::SetIsOnTheTree(bool flag)
     }
     isOnTheTreeInit_ = true;
     isOnTheTree_ = flag;
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     if (!flag) {
         RSModifiersDraw::InsertOffTreeNode(instanceId_, id_);
     } else {
@@ -4039,20 +3895,10 @@ void RSNode::AddChildInner(SharedPtr child, int index)
 
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (child->GetRSUIContext() != GetRSUIContext()) {
-        if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceNode>()) {
-            HILOG_COMM_INFO("RSNode::AddChild, ParentId:%{public}" PRIu64 ", ParentUIContext is %{public}" PRIu64
-                       " SurfaceNode:[Id: %{public}" PRIu64 ", name: %{public}s uiContext is %{public}" PRIu64 "]",
-                id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
-                surfaceNode->GetName().c_str(),
-                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
-            RS_TRACE_NAME_FMT("RSNode::AddChild, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
-                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is %" PRIu64 "]",
-                id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
-                surfaceNode->GetName().c_str(),
-                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
-        }
-        std::unique_ptr<RSCommand> child_command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
-        child->AddCommand(child_command, IsRenderServiceNode(), GetFollowType(), id_);
+        ROSEN_LOGW("RSNode::AddChildInner, child and parent have different RSUIContext, nodeId: %{public}" PRIu64
+                   ", childId: %{public}" PRIu64 ", parentToken: %{public}" PRIu64 ", childToken: %{public}" PRIu64,
+            id_, childId, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0,
+            child->GetRSUIContext() ? child->GetRSUIContext()->GetToken() : 0);
     }
     if (child->GetType() == RSUINodeType::SURFACE_NODE) {
         auto surfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(child);
@@ -4718,6 +4564,12 @@ std::shared_ptr<ModifierNG::RSModifier> RSNode::GetModifierCreatedBySetter(Modif
         return it->second;
     }
     return nullptr;
+}
+
+void RSNode::ReSortChildrenByZIndex()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSortChildrenByZIndex>(GetId());
+    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
 }
 } // namespace Rosen
 } // namespace OHOS

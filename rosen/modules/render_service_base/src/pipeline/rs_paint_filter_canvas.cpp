@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -568,6 +568,22 @@ void RSPaintFilterCanvasBase::DrawPicture(const Picture& picture)
 #else
     if (canvas_ != nullptr && OnFilter()) {
         canvas_->DrawPicture(picture);
+    }
+#endif
+}
+
+void RSPaintFilterCanvasBase::DrawGlyphs(int count, const uint16_t glyphs[], const Drawing::Point positions[],
+                                         Drawing::Point origin, const Drawing::Font* font)
+{
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr && OnFilter()) {
+            (*iter)->DrawGlyphs(count, glyphs, positions, origin, font);
+        }
+    }
+#else
+    if (canvas_ != nullptr && OnFilter()) {
+        canvas_->DrawGlyphs(count, glyphs, positions, origin, font);
     }
 #endif
 }
@@ -1766,6 +1782,19 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing:
       geCacheProvider_(std::move(cacheProvider))
 {}
 
+std::shared_ptr<Drawing::Image> RSPaintFilterCanvas::CachedEffectData::GetProviderDataChecked()
+{
+    if (geCacheProvider_ == nullptr || geCacheProvider_->GetFirst() == nullptr) {
+        return nullptr;
+    }
+    auto iGECacheData = geCacheProvider_->GetFirst();
+    auto imageCacheData = iGECacheData->As<GEImageCache>();
+    if (imageCacheData == nullptr) {
+        return nullptr;
+    }
+    return imageCacheData->data;
+}
+
 std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
 {
     if (cachedImage_ == nullptr) {
@@ -1875,6 +1904,21 @@ bool RSPaintFilterCanvas::GetHDREnabledVirtualScreen() const
 void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen)
 {
     hdrProperties_.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
+}
+
+bool RSPaintFilterCanvas::IsEDRSurface() const
+{
+    return hdrProperties_.isEDRSurface;
+}
+
+void RSPaintFilterCanvas::SetEDRSurface(bool isEDRSurface)
+{
+    hdrProperties_.isEDRSurface = isEDRSurface;
+}
+
+void RSPaintFilterCanvas::SetDisplayIntent(DisplayIntent displayIntent)
+{
+    hdrProperties_.displayIntent = displayIntent;
 }
 
 void RSPaintFilterCanvas::RecordState(const RSPaintFilterCanvas& other)
@@ -2135,6 +2179,17 @@ void RSPaintFilterCanvas::ClipRRectOptimization(Drawing::RoundRect clipRRect)
     };
     auto data = std::make_shared<RSPaintFilterCanvasBase::ClipRRectData>(cornerDatas, clipRRect, GetSaveCount());
     SaveClipRRect(data);
+}
+
+std::vector<std::shared_ptr<Drawing::Canvas>> RSPaintFilterCanvas::GetOffscreenCanvasVector() const
+{
+    std::vector<std::shared_ptr<Drawing::Canvas>> canvasList;
+    auto tempStack = offscreenDataList_;
+    while (!tempStack.empty()) {
+        canvasList.push_back(tempStack.top().offscreenCanvas_);
+        tempStack.pop();
+    }
+    return canvasList;
 }
 
 } // namespace Rosen

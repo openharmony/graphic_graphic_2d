@@ -36,7 +36,7 @@ public:
     bool FillParcelWithTransactionData(std::unique_ptr<RSTransactionData>& transactionData,
         std::shared_ptr<MessageParcel>& data);
 
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success) override;
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
@@ -66,8 +66,6 @@ public:
         SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable) override;
 
     ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
-
-    bool GetHighContrastTextState() override;
 
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) override;
 
@@ -139,7 +137,8 @@ public:
 #endif
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
         const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) override;
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+        uint32_t rowCount = 0, uint32_t colCount = 0) override;
         
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
         const std::vector<NodeId> &nodeIdList) override;
@@ -170,6 +169,8 @@ public:
     ) override;
 
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
+
+    void SetFreeMultiWindowStatus(bool enable) override;
 
     void RemoveToken() override {};
 

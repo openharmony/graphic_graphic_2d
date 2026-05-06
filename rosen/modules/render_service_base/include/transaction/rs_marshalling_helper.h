@@ -90,6 +90,7 @@ class RSRenderPathAnimation;
 class RSRenderSpringAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
+class RSAnimationTimingProtocol;
 class RSRenderPropertyBase;
 template<typename T>
 class RSRenderProperty;
@@ -288,6 +289,7 @@ public:
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
+    DECLARE_FUNCTION_OVERLOAD(RSAnimationTimingProtocol)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ModifierNG::RSRenderModifier>)
 #undef DECLARE_FUNCTION_OVERLOAD
@@ -512,6 +514,9 @@ public:
     static bool Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Data> val);
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
     static bool UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
+
+    static bool Marshalling(Parcel& parcel, sptr<Surface> surface);
+    static bool Unmarshalling(Parcel& parcel, sptr<Surface>& surface);
 
     static void BeginNoSharedMem(std::thread::id tid);
     static void EndNoSharedMem();

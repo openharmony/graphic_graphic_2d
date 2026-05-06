@@ -81,9 +81,6 @@ std::shared_ptr<RSLayer> RSSurfaceLayer::Create(RSLayerId rsLayerId,
     }
     std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
     if (layer != nullptr) {
-        RS_TRACE_NAME_FMT("%s use exist layer, id: %" PRIu64 ", name: %s",
-            __func__, rsLayerId, layer->GetSurfaceName().c_str());
-        RS_LOGD("%{public}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
         layer->SetRSLayerId(rsLayerId);
         return layer;
     }
@@ -771,7 +768,9 @@ LayerMask RSSurfaceLayer::GetLayerMaskInfo() const
 void RSSurfaceLayer::SetSurface(const sptr<IConsumerSurface>& surface)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    cSurface_ = surface;
+    if (cSurface_ != surface) {
+        cSurface_ = surface;
+    }
 }
 
 sptr<IConsumerSurface> RSSurfaceLayer::GetSurface() const

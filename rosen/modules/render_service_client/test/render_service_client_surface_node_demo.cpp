@@ -94,7 +94,7 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     if (!rsUiDirector) {
         return;
     }
-    rsUiDirector->Init();
+    
     std::cout << "Init Rosen Backend" << std::endl;
 
     auto rootNode = RSRootNode::Create();
@@ -190,8 +190,8 @@ int main()
     auto windowSurfaceNode = window->GetSurfaceNode();
     cout << "windowSurfaceNode id = " << windowSurfaceNode->GetId() << endl;
 
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     RSTransaction::FlushImplicitTransaction();
     sleep(1);
 

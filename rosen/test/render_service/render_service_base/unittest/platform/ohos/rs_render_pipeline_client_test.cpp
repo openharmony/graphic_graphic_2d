@@ -46,7 +46,8 @@ public:
 
 void RSPipelineClientTest::SetUpTestCase()
 {
-    rsClient = std::make_shared<RSRenderPipelineClient>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    rsClient = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
     uint64_t tokenId;
     const char* perms[2];
     perms[0] = "ohos.permission.CAPTURE_SCREEN";
@@ -575,6 +576,20 @@ HWTEST_F(RSPipelineClientTest, SurfaceWatermarkTest01, TestSize.Level1)
         SurfaceWatermarkType::CUSTOM_WATER_MARK), SurfaceWatermarkStatusCode::WATER_MARK_RENDER_SERVICE_NULL);
     rsClient->ClearSurfaceWatermark(0, "WATERMARK");
     rsClient->ClearSurfaceWatermarkForNodes(0, "WATERMARK", {});
+    RSRenderServiceConnectHub::Init();
+}
+
+/**
+ * @tc.name: SurfaceWatermarkGridTest01
+ * @tc.desc: SurfaceWatermarkGridTest01
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, SurfaceWatermarkGridTest01, TestSize.Level1)
+{
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->SetSurfaceWatermark(0, "WATERMARK", nullptr, {},
+        SurfaceWatermarkType::CUSTOM_WATER_MARK, 2, 2), SurfaceWatermarkStatusCode::WATER_MARK_RENDER_SERVICE_NULL);
     RSRenderServiceConnectHub::Init();
 }
 

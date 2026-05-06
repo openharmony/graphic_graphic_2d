@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_shader_effect.h"
 #include "draw/color.h"
+#include "draw/ui_color.h"
 #include "effect/shader_effect.h"
 #include "image/image.h"
 
@@ -305,6 +306,130 @@ HWTEST_F(SkiaShaderEffectTest, Serialize001, TestSize.Level1)
     skiaShaderEffect.Serialize();
     auto shader2 = skiaShaderEffect.GetShader();
     EXPECT_TRUE(shader2 == nullptr);
+}
+
+/**
+ * @tc.name: InitWithLinearGradientUIColor001
+ * @tc.desc: Test InitWithLinearGradient with UIColor and ColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithLinearGradientUIColor001, TestSize.Level1)
+{
+    Point startPt;
+    Point endPt;
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(0.5f, 0.5f, 0.5f, 1.0f));
+    colors.push_back(UIColor(0.8f, 0.8f, 0.8f, 1.0f));
+    std::vector<scalar> pos{0.0f, 1.0f};
+    auto colorSpace = std::make_shared<ColorSpace>();
+    SkiaShaderEffect skiaShaderEffect;
+    skiaShaderEffect.InitWithLinearGradient(startPt, endPt, colors, colorSpace, pos, TileMode::CLAMP, nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+}
+
+/**
+ * @tc.name: InitWithRadialGradientUIColor001
+ * @tc.desc: Test InitWithRadialGradient with UIColor and ColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithRadialGradientUIColor001, TestSize.Level1)
+{
+    Point centerPt;
+    scalar radius = 15.0f;
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(0.3f, 0.5f, 0.7f, 1.0f));
+    colors.push_back(UIColor(1.5f, 1.5f, 1.5f, 1.0f));
+    std::vector<scalar> pos{0.0f, 1.0f};
+    auto colorSpace = std::make_shared<ColorSpace>();
+    SkiaShaderEffect skiaShaderEffect;
+    skiaShaderEffect.InitWithRadialGradient(centerPt, radius, colors, colorSpace, pos, TileMode::CLAMP, nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+}
+
+/**
+ * @tc.name: InitWithTwoPointConicalUIColor001
+ * @tc.desc: Test InitWithTwoPointConical with UIColor and ColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithTwoPointConicalUIColor001, TestSize.Level1)
+{
+    Point startPt;
+    scalar startRadius = 10.0f;
+    Point endPt;
+    scalar endRadius = 25.0f;
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(0.1f, 0.2f, 0.3f, 1.0f));
+    colors.push_back(UIColor(0.5f, 0.5f, 0.5f, 1.0f));
+    std::vector<scalar> pos{0.0f, 1.0f};
+    auto colorSpace = std::make_shared<ColorSpace>();
+    Matrix matrix;
+    SkiaShaderEffect skiaShaderEffect;
+    skiaShaderEffect.InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, colors, colorSpace, pos,
+        TileMode::CLAMP, &matrix);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+}
+
+/**
+ * @tc.name: InitWithSweepGradientUIColor001
+ * @tc.desc: Test InitWithSweepGradient with UIColor and ColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithSweepGradientUIColor001, TestSize.Level1)
+{
+    Point centerPt;
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(0.7f, 0.8f, 0.9f, 1.0f));
+    colors.push_back(UIColor(0.2f, 0.2f, 0.2f, 1.0f));
+    std::vector<scalar> pos{0.0f, 1.0f};
+    scalar startAngle = 45.0f;
+    scalar endAngle = 60.0f;
+    auto colorSpace = std::make_shared<ColorSpace>();
+    SkiaShaderEffect skiaShaderEffect;
+    skiaShaderEffect.InitWithSweepGradient(centerPt, colors, colorSpace, pos, TileMode::CLAMP, startAngle, endAngle,
+        nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+}
+
+/**
+ * @tc.name: ConvertUIColorToColor4f001
+ * @tc.desc: Test ConvertUIColorToColor4f
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaShaderEffectTest, ConvertUIColorToColor4f001, TestSize.Level1)
+{
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(0.1f, 0.2f, 0.3f, 0.4f, 2.0f));
+    colors.push_back(UIColor(1.5f, 1.6f, 1.7f, 1.8f, 2.0f));
+    SkiaShaderEffect skiaShaderEffect;
+    auto result = skiaShaderEffect.ConvertUIColorToColor4f(colors);
+    EXPECT_TRUE(result.size() == colors.size());
+    EXPECT_FLOAT_EQ(result[0].redF_, 0.1f);
+    EXPECT_FLOAT_EQ(result[0].greenF_, 0.2f);
+    EXPECT_FLOAT_EQ(result[0].blueF_, 0.3f);
+    EXPECT_FLOAT_EQ(result[0].alphaF_, 0.4f);
+    EXPECT_FLOAT_EQ(result[1].redF_, 1.0f);
+    EXPECT_FLOAT_EQ(result[1].greenF_, 1.0f);
+    EXPECT_FLOAT_EQ(result[1].blueF_, 1.0f);
+    EXPECT_FLOAT_EQ(result[1].alphaF_, 1.0f);
+}
+
+/**
+ * @tc.name: ConvertUIColorToColor4f002
+ * @tc.desc: Test ConvertUIColorToColor4f with empty vector
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaShaderEffectTest, ConvertUIColorToColor4f002, TestSize.Level1)
+{
+    std::vector<UIColor> colors;
+    SkiaShaderEffect skiaShaderEffect;
+    auto result = skiaShaderEffect.ConvertUIColorToColor4f(colors);
+    EXPECT_TRUE(result.size() == 0);
 }
 
 } // namespace Drawing

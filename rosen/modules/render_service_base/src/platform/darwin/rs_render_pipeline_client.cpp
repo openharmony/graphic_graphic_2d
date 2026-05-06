@@ -20,6 +20,9 @@
 namespace OHOS {
 namespace Rosen {
 
+RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
+{
+}
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
@@ -29,7 +32,7 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 {
 }
 
-bool RSRenderPipelineClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     return {};
 }
@@ -91,11 +94,6 @@ void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfD
 uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
 {
     return {};
-}
-
-bool RSRenderPipelineClient::GetHighContrastTextState()
-{
-    return false;
 }
 
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
@@ -213,17 +211,14 @@ void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
 
 uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount, uint32_t colCount)
 {
     return 0;
 }
     
 void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
     const std::vector<NodeId> &nodeIdList)
-{
-}
-    
-void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
 }
 
@@ -277,6 +272,10 @@ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
 int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
 {
     return 0;
+}
+
+void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
+{
 }
 } // namespace Rosen
 } // namespace OHOS

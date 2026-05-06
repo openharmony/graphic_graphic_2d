@@ -25,10 +25,30 @@ std::shared_ptr<Drawing::Image> RSRenderThreadParams::GetWatermark(const std::st
     return iter->second.first;
 }
 
-void RSRenderThreadParams::SetWatermarks(std::unordered_map<std::string,
-    std::pair<std::shared_ptr<Drawing::Image>, pid_t>>& watermarks)
+uint32_t RSRenderThreadParams::GetWatermarkRowCount(const std::string& name) const
 {
-    surfaceWatermarks_ = watermarks;
+    auto iter = surfaceWatermarkGridCounts_.find(name);
+    if (iter == surfaceWatermarkGridCounts_.end()) {
+        return 0;
+    }
+    return iter->second.first;
+}
+
+uint32_t RSRenderThreadParams::GetWatermarkColCount(const std::string& name) const
+{
+    auto iter = surfaceWatermarkGridCounts_.find(name);
+    if (iter == surfaceWatermarkGridCounts_.end()) {
+        return 0;
+    }
+    return iter->second.second;
+}
+
+void RSRenderThreadParams::SetWatermarks(
+    std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>>& watermarks,
+    std::unordered_map<std::string, std::pair<uint32_t, uint32_t>>& gridCounts)
+{
+    surfaceWatermarks_ = std::move(watermarks);
+    surfaceWatermarkGridCounts_ = std::move(gridCounts);
 }
 
 void RSRenderThreadParams::SetSecurityDisplay(bool isSecurityDisplay)

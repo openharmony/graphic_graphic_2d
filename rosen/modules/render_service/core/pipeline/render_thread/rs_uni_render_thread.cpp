@@ -735,7 +735,14 @@ static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
     gpuContext->FreeGpuResources();
     gpuContext->PurgeUnlockedResources(true);
     std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
+    rendercontext->CleanAllShaderCache();
     gpuContext->FlushAndSubmit(true);
+}
+
+static void TrimMemShaderType()
+{
+    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
+    rendercontext->CleanAllShaderCache();
 }
 
 static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& dumpString,

@@ -703,20 +703,6 @@ HWTEST_F(RSInterfacesTest, RegisterAndUnRegisterFirstFrameCommitCallback001, Tes
 }
 
 /**
- * @tc.name: SetWindowContainer001
- * @tc.desc: test results of SetWindowContainer
- * @tc.type: FUNC
- * @tc.require: issueIBIK1X
- */
-HWTEST_F(RSInterfacesTest, SetWindowContainer001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    NodeId nodeId = {};
-    instance.SetWindowContainer(nodeId, false);
-    EXPECT_TRUE(instance.renderInterface_ != nullptr);
-}
-
-/**
  * @tc.name: GetPixelMapByProcessIdTest
  * @tc.desc: test results of GetPixelMapByProcessId
  * @tc.type: FUNC
@@ -754,19 +740,6 @@ HWTEST_F(RSInterfacesTest, SetOverlayDisplayMode001, TestSize.Level1)
     EXPECT_EQ(res, SUCCESS);
 }
 #endif
-
-/**
- * @tc.name: GetHighContrastTextState001
- * @tc.desc: test results of GetHighContrastTextState
- * @tc.type: FUNC
- * @tc.require: issueIC3FUZ
- */
-HWTEST_F(RSInterfacesTest, GetHighContrastTextState001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    EXPECT_EQ(instance.GetHighContrastTextState(), false);
-}
 
 /**
  * @tc.name: SetBehindWindowFilterEnabledTest
@@ -1105,4 +1078,46 @@ HWTEST_F(RSInterfacesTest, SetLogicalCameraRotationCorrectionTest001, TestSize.L
     ScreenRotation logicalRotation = ScreenRotation::ROTATION_90;
     EXPECT_EQ(instance.SetLogicalCameraRotationCorrection(screenId, logicalRotation), SUCCESS);
 }
+
+/**
+ * @tc.name: SetWatermarkGrid001
+ * @tc.desc: test results of SetWatermark with rowCount and colCount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetWatermarkGrid001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
+    instance.renderServiceClient_ = nullptr;
+    bool res = instance.SetWatermark("test", pixelmap, SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE, 2, 3);
+    EXPECT_FALSE(res);
+
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    res = instance.SetWatermark("test", pixelmap, SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE, 2, 3);
+    EXPECT_FALSE(res);
+}
+
+/**
+ * @tc.name: SetSurfaceWatermarkGrid001
+ * @tc.desc: test results of SetSurfaceWatermark with rowCount and colCount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetSurfaceWatermarkGrid001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    int width = 10;
+    int height = 10;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+
+    auto res = instance.SetSurfaceWatermark(0, "name", pixelmap, {},
+        SurfaceWatermarkType::CUSTOM_WATER_MARK, 2, 2);
+    EXPECT_EQ(SurfaceWatermarkStatusCode::WATER_MARK_RENDER_SERVICE_NULL, res);
+}
+
 } // namespace OHOS::Rosen

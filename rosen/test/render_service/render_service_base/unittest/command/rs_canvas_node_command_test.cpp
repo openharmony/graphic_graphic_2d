@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_canvas_node_command.h"
+#include "common/rs_common_def.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 
@@ -219,6 +220,24 @@ HWTEST_F(RSCanvasNodeCommandTest, SetPixelmap, TestSize.Level1)
     EXPECT_NE(node, nullptr);
     RSCanvasNodeCommandHelper::SetPixelmap(context, id, pixelmap);
     context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+
+/**
+ * @tc.name: CreateDOSProtectionTest
+ * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
+{
+    RSContext context;
+    pid_t pid = 1;
+    for (uint32_t i = 0; i <= MAX_NODE_COUNT_PER_PID; i++) {
+        NodeId existId = MakeNodeId(pid, i);
+        RSCanvasNodeCommandHelper::Create(context, existId, false);
+    }
+    NodeId newNodeId = MakeNodeId(pid, MAX_NODE_COUNT_PER_PID + 1);
+    RSCanvasNodeCommandHelper::Create(context, newNodeId, false);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(newNodeId), nullptr);
 }
 
 } // namespace OHOS::Rosen

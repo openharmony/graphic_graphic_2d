@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -102,6 +102,8 @@ public:
     void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling) override;
     void DrawRecordCmd(const std::shared_ptr<RecordCmd> recordCmd, const Matrix* matrix, const Brush* brush) override;
     void DrawPicture(const Picture& picture) override;
+    void DrawGlyphs(int count, const uint16_t glyphs[], const Point pts[],
+                    Point origin, const Font* font) override;
     void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y) override;
     void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate) override;
 

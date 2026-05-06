@@ -222,7 +222,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenBlackList, TestSi
     ScreenId id = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t repCode = 0;
-    EXPECT_EQ(proxy->AddVirtualScreenBlackList(id, blackListVector, repCode), 0);
+    EXPECT_EQ(proxy->AddVirtualScreenBlackList(id, blackListVector, repCode), ERR_INVALID_VALUE);
 }
 
 /**
@@ -236,7 +236,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenBlackList, Tes
     ScreenId id = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t repCode = 0;
-    EXPECT_EQ(proxy->RemoveVirtualScreenBlackList(id, blackListVector, repCode), 0);
+    EXPECT_EQ(proxy->RemoveVirtualScreenBlackList(id, blackListVector, repCode), ERR_INVALID_VALUE);
 }
 
 /**
@@ -250,7 +250,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetVirtualScreenTypeBlackListTest
     int32_t repCode = 0;
     std::vector<NodeType> typeBlackListVector;
     ASSERT_NE(proxy, nullptr);
-    ASSERT_EQ(proxy->SetVirtualScreenTypeBlackList(0, typeBlackListVector, repCode), 0);
+    ASSERT_EQ(proxy->SetVirtualScreenTypeBlackList(0, typeBlackListVector, repCode), ERR_INVALID_VALUE);
 }
 
 /**
@@ -263,7 +263,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenWhiteListTest, Te
 {
     int32_t repCode = 0;
     ASSERT_NE(proxy, nullptr);
-    ASSERT_EQ(proxy->AddVirtualScreenWhiteList(0, {}, repCode), 0);
+    ASSERT_EQ(proxy->AddVirtualScreenWhiteList(0, {}, repCode), ERR_INVALID_VALUE);
 }
 
 /**
@@ -276,7 +276,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenWhiteListTest,
 {
     int32_t repCode = 0;
     ASSERT_NE(proxy, nullptr);
-    ASSERT_EQ(proxy->RemoveVirtualScreenWhiteList(0, {}, repCode), 0);
+    ASSERT_EQ(proxy->RemoveVirtualScreenWhiteList(0, {}, repCode), ERR_INVALID_VALUE);
 }
 
 /**
@@ -1338,6 +1338,30 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation, TestS
 }
 
 /**
+ * @tc.name: SetCacheEnabledForRotation001
+ * @tc.desc: Test SetCacheEnabledForRotation with enabled = true, verify return value
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation001, TestSize.Level0)
+{
+    auto ret = proxy->SetCacheEnabledForRotation(true);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetCacheEnabledForRotation002
+ * @tc.desc: Test SetCacheEnabledForRotation with enabled = false, verify return value
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation002, TestSize.Level0)
+{
+    auto ret = proxy->SetCacheEnabledForRotation(false);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
  * @tc.name: NotifyHgmConfigEvent Test
  * @tc.desc: NotifyHgmConfigEvent Test
  * @tc.type:FUNC
@@ -1519,19 +1543,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetForceRefresh, TestSize.Level1)
     const std::string nodeIdStr = "123456";
     proxy->SetForceRefresh(nodeIdStr, true);
     proxy->SetForceRefresh(nodeIdStr, false);
-    ASSERT_TRUE(proxy);
-}
-
-/**
- * @tc.name: SetFreeMultiWindowStatus Test
- * @tc.desc: SetFreeMultiWindowStatus Test
- * @tc.type:FUNC
- * @tc.require: issueIB31K8
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, SetFreeMultiWindowStatus, TestSize.Level1)
-{
-    proxy->SetFreeMultiWindowStatus(true);
-    proxy->SetFreeMultiWindowStatus(false);
     ASSERT_TRUE(proxy);
 }
 

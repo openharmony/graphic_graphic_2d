@@ -65,7 +65,6 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {
         renderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
-        uifirstRenderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
     }
     ~RSRenderNodeDrawableAdapterBoy() override = default;
 
@@ -3824,6 +3823,20 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker003, TestSize.Level1)
     // Call PrepareColorPicker with darkMode = true, should not be overridden
     bool needSync = node.PrepareColorPicker(true);
     EXPECT_TRUE(needSync);
+}
+
+/**
+ * @tc.name: ReSortChildrenByZIndex001
+ * @tc.desc: Test ReSortChildrenByZIndex
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, ReSortChildrenByZIndex001, TestSize.Level1)
+{
+    RSRenderNode node(1);
+    EXPECT_TRUE(node.isFullChildrenListValid_);
+    node.ReSortChildrenByZIndex();
+    EXPECT_FALSE(node.isFullChildrenListValid_);
 }
 } // namespace Rosen
 } // namespace OHOS

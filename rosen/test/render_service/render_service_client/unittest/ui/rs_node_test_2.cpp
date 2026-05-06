@@ -212,7 +212,7 @@ HWTEST_F(RSNodeTest2, SetUIForegroundFilter, TestSize.Level1)
     para->SetRadius(FLOAT_DATA[1]);
     filterObj->AddPara(para);
     rsNode->SetUIForegroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == FLOAT_DATA[1]);
+    EXPECT_FALSE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == FLOAT_DATA[1]);
 }
 
 /**
@@ -1219,5 +1219,27 @@ HWTEST_F(RSNodeTest2, SetGravityPullCenterFlagTest, TestSize.Level1)
     rsNode->SetGravityPullCenterFlag(true);
     EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
     EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_CENTER_FLAG), properties.end());
+}
+
+/**
+ * @tc.name: ReSortChildrenByZIndexTest
+ * @tc.desc: test results of ReSortChildrenByZIndex
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, ReSortChildrenByZIndexTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->ReSortChildrenByZIndex();
+    rsNode = nullptr;
+    auto uiDirector = RSUIDirector::Create();
+    uiDirector->Init(true, true);
+    auto uiContext = uiDirector->GetRSUIContext();
+    rsNode = RSCanvasNode::Create(false, false, uiContext);
+    rsNode->ReSortChildrenByZIndex();
+    ASSERT_NE(uiContext, nullptr);
+    auto transaction = uiContext->GetRSTransaction();
+    ASSERT_NE(transaction, nullptr);
+    ASSERT_FALSE(transaction->IsEmpty());
 }
 } // namespace OHOS::Rosen

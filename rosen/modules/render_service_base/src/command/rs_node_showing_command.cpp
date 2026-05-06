@@ -107,10 +107,11 @@ bool RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid(pid_t calling
 bool RSNodeGetShowingPropertiesAndCancelAnimation::Marshalling(Parcel& parcel) const
 {
     bool result = RSMarshallingHelper::Marshalling(parcel, commandType) &&
-           RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
-           RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
-           RSMarshallingHelper::Marshalling(parcel, success_) &&
-           RSMarshallingHelper::Marshalling(parcel, propertiesMap_);
+                  RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
+                  RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
+                  RSMarshallingHelper::Marshalling(parcel, success_) &&
+                  RSMarshallingHelper::Marshalling(parcel, propertiesMap_) &&
+                  RSMarshallingHelper::Marshalling(parcel, nodeNotFound_);
     return result;
 }
 
@@ -148,6 +149,9 @@ bool RSNodeGetShowingPropertiesAndCancelAnimation::ReadFromParcel(Parcel& parcel
     if (!RSMarshallingHelper::Unmarshalling(parcel, propertiesMap_)) {
         return false;
     }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeNotFound_)) {
+        return false;
+    }
     return true;
 }
 
@@ -163,7 +167,7 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
         if (!node) {
             ROSEN_LOGE("RSNodeGetShowingPropertiesAndCancelAnimation::Process, "
                 "node [%{public}" PRIu64 "] is null!", nodeId);
-            success_ = false;
+            nodeNotFound_ = true;
             continue;
         }
         if (auto prop = node->GetProperty(propertyId)) {

@@ -84,6 +84,10 @@ void DoSetWatermark(FuzzedDataProvider& fdp)
     if (!dataP.WriteString(name) || !dataP.WriteParcelable(watermark.get())) {
         return;
     }
+    uint32_t rowCount = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t colCount = fdp.ConsumeIntegral<uint32_t>();
+    dataP.WriteUint32(rowCount);
+    dataP.WriteUint32(colCount);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -104,6 +108,8 @@ void DoSetSurfaceWatermark(FuzzedDataProvider& fdp)
         nodeIdList.push_back(fdp.ConsumeIntegral<NodeId>());
     }
     SurfaceWatermarkType watermarkType = static_cast<SurfaceWatermarkType>(fdp.ConsumeIntegral<uint8_t>());
+    uint32_t rowCount = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t colCount = fdp.ConsumeIntegral<uint32_t>();
     
     if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
@@ -120,7 +126,8 @@ void DoSetSurfaceWatermark(FuzzedDataProvider& fdp)
             return;
         }
     }
-    if (!dataP.WriteUInt64Vector(nodeIdList) || !dataP.WriteUint8(static_cast<uint8_t>(watermarkType))) {
+    if (!dataP.WriteUInt64Vector(nodeIdList) || !dataP.WriteUint8(static_cast<uint8_t>(watermarkType)) ||
+        !dataP.WriteUint32(rowCount) || !dataP.WriteUint32(colCount)) {
         return;
     }
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -217,7 +224,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     runner->Run();
     OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
+            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
+            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
     auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
     OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
         OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(

@@ -56,6 +56,7 @@ ohos_fuzztest("NdkDrawingGpuContextFuzzTest") {
     "image_framework:image_native",
     "image_framework:pixelmap",
     "image_framework:pixelmap_ndk",
+    "napi:ace_napi",
     "openssl:libcrypto_shared"
   ]
 

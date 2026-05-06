@@ -135,6 +135,7 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/appearance/rs_hdr_brightness_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_mask_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_material_filter_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_material_shader_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_outline_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_particle_effect_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_pixel_stretch_render_modifier.cpp",
@@ -196,6 +197,8 @@ ohos_source_set("render_service_base_src") {
     "src/delegate/rs_functional_delegate.cpp",
 
     #ipc_callbacks
+    "src/ipc_callbacks/active_screen_id_changed_callback_proxy.cpp",
+    "src/ipc_callbacks/active_screen_id_changed_callback_stub.cpp",
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
     "src/ipc_callbacks/buffer_clear_callback_proxy.cpp",
@@ -412,6 +415,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
     "src/feature/buffer_reclaim/rs_buffer_reclaim.cpp",
     "src/feature/uifirst/rs_frame_control.cpp",
+    "src/feature/uifirst/rs_drawable_updater.cpp",
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
@@ -424,6 +428,7 @@ ohos_source_set("render_service_base_src") {
       #drawable
       "src/drawable/rs_color_picker_drawable.cpp",
       "src/drawable/rs_drawable.cpp",
+      "src/drawable/rs_material_shader_drawable.cpp",
       "src/drawable/rs_misc_drawable.cpp",
       "src/drawable/rs_property_drawable.cpp",
       "src/drawable/rs_property_drawable_background.cpp",
@@ -475,6 +480,9 @@ ohos_source_set("render_service_base_src") {
     sources -= [
       #command
       "src/command/rs_display_node_command.cpp",
+      "src/command/rs_frame_rate_linker_command.cpp",
+      "src/feature/window_keyframe/rs_window_keyframe_node_command.cpp",
+      "src/command/rs_union_node_command.cpp",
 
       #common
       "src/common/rs_thread_handler_generic.cpp",
@@ -517,6 +525,14 @@ ohos_source_set("render_service_base_src") {
       "src/screen_manager/rs_screen_mode_info.cpp",
       "src/screen_manager/rs_screen_props.cpp",
       "src/screen_manager/rs_virtual_screen_resolution.cpp",
+
+      "src/pipeline/rs_logical_display_render_node.cpp",
+      "src/pipeline/rs_union_render_node.cpp", # union render node is not supported in arkui-x
+      "src/effect/rs_render_mask_base.cpp",
+      "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
+      "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
+      "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.cpp",
+      "src/feature/power_off_render_skip/rs_power_off_render_controller.cpp",
     ]
   }
 
@@ -534,7 +550,7 @@ ohos_source_set("render_service_base_src") {
     if (!use_libfuzzer) {
       cflags += [ "-flto=thin" ]
     }
-    if (enhanced_opt) {
+    if (enhanced_opt && !use_libfuzzer) {
       if (!use_libfuzzer) {
         cflags += [ "-fwhole-program-vtables" ]
       }
@@ -561,7 +577,7 @@ ohos_source_set("render_service_base_src") {
     }
   }
 
-  if (graphic_2d_feature_product != "wearable") {
+  if (graphic_2d_feature_enable_drm) {
     defines += [ "IS_ENABLE_DRM" ]
   }
 
@@ -683,6 +699,10 @@ ohos_source_set("render_service_base_src") {
     sources += graphic_2d_mhc_configs.librender_service_mhc_sources
   }
 
+  if (graphic_2d_feature_enable_mediacommon) {
+    defines += [ "RS_GRAPHIC_MEDIACOMMON_ENABLE" ]
+  }
+
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
@@ -798,6 +818,10 @@ ohos_source_set("render_service_base_src") {
     external_deps += [ "qos_manager:qos" ]
   }
 
+  if (graphic_2d_feature_enable_image_detail_enhancer) {
+    defines += [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -871,7 +895,7 @@ ohos_shared_library("librender_service_base") {
     "$graphic_2d_root/utils/socketpair:socketpair_public_config",
     "$graphic_2d_root/rosen/modules/composer/vsync:vsync_public_config",
   ]
-  if (enhanced_opt) {
+  if (enhanced_opt && !use_libfuzzer) {
     configs = [ ":render_service_base_link_config" ]
   }
 

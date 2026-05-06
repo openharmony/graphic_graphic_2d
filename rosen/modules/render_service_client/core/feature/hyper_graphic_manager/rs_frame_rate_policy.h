@@ -59,7 +59,7 @@ public:
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity);
     bool GetTouchOrPointerAction(int32_t pointerAction);
 
-    const std::unordered_set<std::string>& GetPageNameList() const;
+    std::unordered_set<std::string> GetPageNameList() const;
 
 private:
     RSFrameRatePolicy() = default;
@@ -74,7 +74,7 @@ private:
     std::unordered_set<std::string> pageNameList_;
     int32_t currentRefreshRateModeName_ = -1;
     std::unordered_map<std::string, std::unordered_map<std::string, AnimDynamicAttribute>> animAttributes_;
-    std::mutex mutex_;
+    mutable std::mutex mutex_;
     std::atomic<std::chrono::steady_clock::time_point> sendMoveTime_ = std::chrono::steady_clock::now();
     std::atomic<std::chrono::steady_clock::time_point> sendAxisUpdateTime_ = std::chrono::steady_clock::now();
 };

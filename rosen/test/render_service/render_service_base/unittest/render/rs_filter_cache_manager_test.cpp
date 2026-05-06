@@ -308,10 +308,15 @@ HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataTest, TestSize.Level
     auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
     // for test
+    NodeId id = 1;
     std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
     std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
-    rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, srcRect, dstRect);
+    rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
     EXPECT_TRUE(filterCanvas.GetDeviceClipBounds().IsEmpty());
+
+    // test for HveFilter
+    HveFilter::GetHveFilter().PushHveFilterSurfaceNodeMapping(id, 1);
+    rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
 }
 
 /**
@@ -340,6 +345,7 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
     info.srcRect_ = Drawing::Rect(0, 0, 100, 100);
     info.dstRect_ = Drawing::Rect(0, 0, 100, 100);
     info.solidLayerColor_ = RgbPalette::Black();
+    info.surfaceNodeId_ = 1;
     HveFilter::GetHveFilter().PushSurfaceNodeInfo(info);
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
     HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
@@ -654,6 +660,35 @@ HWTEST_F(RSFilterCacheManagerTest, IsFilterCacheValidForOcclusionTest, TestSize.
     rsFilterCacheManager->renderClearType_ = FilterCacheType::FILTERED_SNAPSHOT;
     rsFilterCacheManager->InvalidateFilterCache(rsFilterCacheManager->renderClearType_);
     EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender
+ * @tc.desc: test results of IsFilterCacheValidForPartialRender different FilterCacheType
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST_F(RSFilterCacheManagerTest, IsFilterCacheValidForPartialRenderTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+
+    // cacheType: FilterCacheType::NONE
+    rsFilterCacheManager->cachedSnapshot_ = nullptr;
+    rsFilterCacheManager->cachedFilteredSnapshot_ = nullptr;
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForPartialRender());
+
+    // cacheType: FilterCacheType::SNAPSHOT
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    rsFilterCacheManager->cachedFilteredSnapshot_ = nullptr;
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForPartialRender());
+
+    // cacheType: FilterCacheType::FILTERED_SNAPSHOT
+    rsFilterCacheManager->cachedSnapshot_ = nullptr;
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_TRUE(rsFilterCacheManager->IsFilterCacheValidForPartialRender());
 }
 
 /**

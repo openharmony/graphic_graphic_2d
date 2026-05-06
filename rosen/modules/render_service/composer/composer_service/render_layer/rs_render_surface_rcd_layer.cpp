@@ -56,7 +56,6 @@ void RSRenderSurfaceRCDLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLay
     } else {
         ROSEN_LOGD("%{public}s type err:%{public}d", __func__, static_cast<int32_t>(type));
     }
-    ROSEN_LOGD("%{public}s type:%{public}d", __func__, static_cast<int32_t>(type));
 }
 
 void RSRenderSurfaceRCDLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer)

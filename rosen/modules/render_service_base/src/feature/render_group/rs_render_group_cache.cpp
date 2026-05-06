@@ -64,6 +64,15 @@ bool RSRenderGroupCache::SetChildHasTranslateOnSqueeze(bool val)
     return true;
 }
 
+bool RSRenderGroupCache::SetNodeGroupHasChildInBlacklist(bool inBlacklist)
+{
+    if (nodeGroupHasChildInBlacklist_ == inBlacklist) {
+        return false;
+    }
+    nodeGroupHasChildInBlacklist_ = inBlacklist;
+    return true;
+}
+
 bool RSRenderGroupCache::SetNeedClipHoleForFilter(bool val)
 {
     if (needClipHoleForFilter_ == val) {

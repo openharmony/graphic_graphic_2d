@@ -193,6 +193,10 @@ public:
     void AddUiCaptureTask(NodeId id, std::function<void()> task);
     void ProcessUiCaptureTasks();
 
+    void AddWindowCapTask(NodeId id, std::function<void()> task);
+    void CheckWindowCapTasks();
+    void ProcessWindowCapTasks();
+
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
     void SetAccessibilityConfigChanged();
@@ -218,10 +222,12 @@ public:
     SystemAnimatedScenes GetSystemAnimatedScenes();
     bool GetIsRegularAnimation() const;
     // Save marks, and use it for SurfaceNodes later.
-    void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
         std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
-        SurfaceWatermarkType watermarkType, bool isSystemCalling = false);
+        SurfaceWatermarkType watermarkType, bool isSystemCalling = false,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
     void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
     void ClearSurfaceWatermark(pid_t pid);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
@@ -788,6 +794,9 @@ private:
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
+    // for window captures
+    std::vector<std::tuple<NodeId, std::function<void()>, uint64_t, uint64_t, bool>> pendingWindowCapTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> windowCapTasks_;
     // uiextension
     std::mutex uiExtensionMutex_;
     UIExtensionCallbackData uiExtensionCallbackData_;

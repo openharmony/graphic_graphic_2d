@@ -104,8 +104,7 @@ int main()
     std::cout << "rs client alpha offscreen demo create window " << rect.width_ << " " << rect.height_ << std::endl;
     auto surfaceNode = window->GetSurfaceNode();
 
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
     RSTransaction::FlushImplicitTransaction();
     sleep(1);
     cout << "rs demo unirender enable : " << RSSystemProperties::GetUniRenderEnabled() << endl;

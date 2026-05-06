@@ -24,7 +24,7 @@ RSConnectToRenderProcessProxy::RSConnectToRenderProcessProxy(const sptr<IRemoteO
     : IRemoteProxy<RSIConnectToRenderProcess>(impl) {}
 
 sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderConnection(
-    const sptr<RSIConnectionToken>& token)
+    const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -41,19 +41,30 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection WriteRemoteObject callback->AsObject() err.");
         return nullptr;
     }
+    if (!data.WriteBool(needRefresh)) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection needRefresh err.");
+        return nullptr;
+    }
     uint32_t code = static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::CREATE_CONNECTION);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: Send Request err.");
         return nullptr;
     }
-    sptr<RSIClientToRenderConnection> newConn;
     bool hasRemoteObj = false;
-    if (reply.ReadBool(hasRemoteObj)) {
-        if (hasRemoteObj) {
-            auto obj = reply.ReadRemoteObject();
-            newConn = iface_cast<RSIClientToRenderConnection>(obj);
-        }
+    if (!reply.ReadBool(hasRemoteObj) || !hasRemoteObj) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: hasRemoteObj err.");
+        return nullptr;
+    }
+    auto obj = reply.ReadRemoteObject();
+    if (obj == nullptr) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: ReadRemoteObject err.");
+        return nullptr;
+    }
+    sptr<RSIClientToRenderConnection> newConn = iface_cast<RSIClientToRenderConnection>(obj);
+    if (newConn == nullptr) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: RSIClientToRenderConnection err.");
+        return nullptr;
     }
     return newConn;
 }

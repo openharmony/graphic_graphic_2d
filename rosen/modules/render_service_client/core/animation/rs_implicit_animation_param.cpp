@@ -27,6 +27,22 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+void UpdateStatusByPriority(CancelAnimationStatus& status, CancelAnimationStatus newResult)
+{
+    if (newResult == CancelAnimationStatus::TASK_EXECUTION_FAILURE ||
+        status == CancelAnimationStatus::TASK_EXECUTION_FAILURE) {
+        status = CancelAnimationStatus::TASK_EXECUTION_FAILURE;
+        return;
+    }
+    if (newResult == CancelAnimationStatus::NODE_EXCEPTION || status == CancelAnimationStatus::NODE_EXCEPTION) {
+        status = CancelAnimationStatus::NODE_EXCEPTION;
+        return;
+    }
+    status = CancelAnimationStatus::SUCCESS;
+}
+}
+
 RSImplicitAnimationParam::RSImplicitAnimationParam(
     const RSAnimationTimingProtocol& timingProtocol, ImplicitAnimationParamType type)
     : animationType_(type), timingProtocol_(timingProtocol)
@@ -86,17 +102,19 @@ CancelAnimationStatus RSImplicitCancelAnimationParam::SyncProperties(const std::
     }
     pendingSyncList_.clear();
 
-    bool ret = true;
+    CancelAnimationStatus status = CancelAnimationStatus::SUCCESS;
     if (!renderServicePropertiesMap.empty()) {
-        ret = ret && ExecuteSyncPropertiesTask(std::move(renderServicePropertiesMap), true, rsUIContext);
+        UpdateStatusByPriority(status,
+            ExecuteSyncPropertiesTask(std::move(renderServicePropertiesMap), true, rsUIContext));
     }
     if (!renderThreadPropertiesMap.empty()) {
-        ret = ret && ExecuteSyncPropertiesTask(std::move(renderThreadPropertiesMap), false, rsUIContext);
+        UpdateStatusByPriority(status,
+            ExecuteSyncPropertiesTask(std::move(renderThreadPropertiesMap), false, rsUIContext));
     }
-    return ret ? CancelAnimationStatus::SUCCESS : CancelAnimationStatus::TASK_EXECUTION_FAILURE;
+    return status;
 }
 
-bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
+CancelAnimationStatus RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
     RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap&& propertiesMap, bool isRenderService,
     const std::shared_ptr<RSUIContext>& rsUIContext)
 {
@@ -113,7 +131,7 @@ bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
     // Test if the task is executed successfully
     if (!task || !task->IsSuccess()) {
         ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to execute task.");
-        return false;
+        return CancelAnimationStatus::TASK_EXECUTION_FAILURE;
     }
 
     // Apply task result
@@ -142,7 +160,10 @@ bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
             property->UpdateOnAllAnimationFinish();
         }
     }
-    return true;
+    if (task->HasNodeNotFound()) {
+        return CancelAnimationStatus::NODE_EXCEPTION;
+    }
+    return CancelAnimationStatus::SUCCESS;
 }
 
 std::shared_ptr<RSAnimation> RSImplicitCancelAnimationParam::CreateEmptyAnimation(

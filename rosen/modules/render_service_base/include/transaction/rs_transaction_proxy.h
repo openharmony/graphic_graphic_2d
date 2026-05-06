@@ -37,7 +37,7 @@ class RSSyncTask;
 class RSTransactionHandler;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::function<void(std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
     std::shared_ptr<RSTransactionHandler>)>;
 class RSB_EXPORT RSTransactionProxy final {
 public:
@@ -87,6 +87,11 @@ public:
 
     void StartCloseSyncTransactionFallbackTask(bool isOpen);
 
+    void SetRSRenderPipelineClient(std::shared_ptr<RSRenderPipelineClient> rsRenderPipelineClient)
+    {
+        renderPipelineClient_ = rsRenderPipelineClient;
+    }
+
 private:
     RSTransactionProxy();
     virtual ~RSTransactionProxy();
@@ -113,7 +118,7 @@ private:
     std::mutex mutexForRT_;
     std::unique_ptr<RSTransactionData> implicitTransactionDataFromRT_{std::make_unique<RSTransactionData>()};
 
-    std::shared_ptr<RSIRenderClient> renderPipelineClient_ = RSIRenderClient::CreateRenderPiplineClient();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient_ = nullptr;
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
     uint64_t timestamp_ = 0;
     static std::once_flag flag_;

@@ -48,9 +48,12 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
                 ret = ERR_UNKNOWN_OBJECT;
                 break;
             }
-
+            bool needRefresh = false;
+            if (!data.ReadBool(needRefresh)) {
+                RS_LOGW("RSConnectToRenderProcessStub::CREATE_CONNECTION remoteObj Read needRefresh Faild");
+            }
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
-            auto newRenderConn = CreateRenderConnection(token);
+            auto newRenderConn = CreateRenderConnection(token, needRefresh);
             reply.WriteBool(newRenderConn != nullptr);
             if (newRenderConn) {
                 auto replyObj = newRenderConn->AsObject();

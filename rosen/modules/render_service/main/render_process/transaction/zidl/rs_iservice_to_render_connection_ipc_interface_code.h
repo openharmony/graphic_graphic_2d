@@ -22,6 +22,9 @@ namespace OHOS {
 namespace Rosen {
 
 enum class RSIServiceToRenderConnectionInterfaceCode : CodeUnderlyingType {
+    NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER = 1,
+    NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER = 2,
+    NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER = 3,
     DFX_DUMP = 4,
     NOTIFY_PACKAGE_EVENT = 5,
     GET_MEMORY_GRAPHIC = 6,
@@ -53,7 +56,6 @@ enum class RSIServiceToRenderConnectionInterfaceCode : CodeUnderlyingType {
     SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST = 34,
     REPORT_EVENT_GAMESTATE = 50,
     GET_SURFACE_ROOT_NODE = 51,
-    SET_FREE_MULTI_WINDOW_STATUS = 0x000024,
     REPORT_JANK_STATS = 0x000025,
     REPORT_EVENT_RESPONSE = 0x000026,
     REPORT_EVENT_COMPLETE = 0x000027,
@@ -81,6 +83,7 @@ enum class RSIServiceToRenderConnectionInterfaceCode : CodeUnderlyingType {
     CLEAN_RESOURCE = 0X00F010,
     SET_BACKLIGHT_LEVEL = 0x00F011,
     ON_GLOBAL_BLACKLIST_CHANGED = 0x00F012,
+    SET_CACHE_ENABLED_FOR_ROTATION = 0x00F013,
 };
 
 } // namespace Rosen

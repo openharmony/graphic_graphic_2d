@@ -125,6 +125,10 @@ public:
         EffectRectType rectType);
 
     static void GetDescription(std::shared_ptr<RSNGRenderFilterBase>& filter, std::string& filterString);
+
+    static bool HasCustomRegion(const std::shared_ptr<RSNGRenderFilterBase>& filter);
+
+    static void PrepareForForeground(std::shared_ptr<RSNGRenderFilterBase>& filter);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

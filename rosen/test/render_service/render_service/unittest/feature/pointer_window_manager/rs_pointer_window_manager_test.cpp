@@ -200,6 +200,53 @@ HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirectTest, TestSiz
 }
 
 /**
+ * @tc.name: HardCursorCreateLayerForDirect008
+ * @tc.desc: Test HardCursorCreateLayerForDirect when GetHardCursorStatus is false
+ * @tc.type: FUNC
+ * @tc.require: issue23429
+ */
+HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirect008, TestSize.Level1)
+{
+    auto processor = std::make_shared<RSUniRenderProcessor>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
+    surfaceNode->name_ = "pointer window";
+    surfaceNode->isOnTheTree_ = true;
+    surfaceNode->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(1);
+    surfaceNode->stagingRenderParams_ = nullptr;
+    surfaceNode->SetHardCursorStatus(false);
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    rsPointerWindowManager.hardCursorNodeMap_.clear();
+    rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
+    ASSERT_NE(rsPointerWindowManager.GetHardCursorNode().size(), 0);
+    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor);
+}
+ 
+/**
+ * @tc.name: HardCursorCreateLayerForDirect009
+ * @tc.desc: Test HardCursorCreateLayerForDirect when GetHardCursorStatus is true
+ * @tc.type: FUNC
+ * @tc.require: issue23429
+ */
+HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirect009, TestSize.Level1)
+{
+    auto processor = std::make_shared<RSUniRenderProcessor>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
+    surfaceNode->name_ = "pointer window";
+    surfaceNode->isOnTheTree_ = true;
+    surfaceNode->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(1);
+    surfaceNode->stagingRenderParams_ = nullptr;
+    surfaceNode->SetHardCursorStatus(true);
+ 
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    rsPointerWindowManager.hardCursorNodeMap_.clear();
+    rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
+    ASSERT_NE(rsPointerWindowManager.GetHardCursorNode().size(), 0);
+    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor);
+}
+
+/**
  * @tc.name: SetIsPointerEnableHwcTest
  * @tc.desc: Test SetIsPointerEnableHwc and GetIsPointerEnableHwc
  * @tc.type: FUNC

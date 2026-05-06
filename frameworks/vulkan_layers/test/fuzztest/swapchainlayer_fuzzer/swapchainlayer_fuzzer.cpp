@@ -21,6 +21,7 @@
 #include <vector>
 #include <iostream>
 #include <dlfcn.h>
+#include <fuzzer/FuzzedDataProvider.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_ohos.h>
 
@@ -34,29 +35,6 @@ namespace OHOS {
         PFN_vkCreateSurfaceOHOS vkCreateSurfaceOHOS = nullptr;
         PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR = nullptr;
         bool g_isSupportedVulkan = false;
-        const uint8_t* g_data = nullptr;
-        size_t g_size = 0;
-        size_t g_pos = 0;
-    }
-
-    /*
-    * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
-    * tips: only support basic type
-    */
-    template<class T>
-    T GetData()
-    {
-        T object {};
-        size_t objectSize = sizeof(object);
-        if (g_data == nullptr || objectSize > g_size - g_pos) {
-            return object;
-        }
-        errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
-        if (ret != EOK) {
-            return {};
-        }
-        g_pos += objectSize;
-        return object;
     }
 
     void DLOpenLibVulkan()
@@ -123,10 +101,7 @@ namespace OHOS {
             return false;
         }
 
-        // initialize
-        g_data = data;
-        g_size = size;
-        g_pos = 0;
+        FuzzedDataProvider fdp(data, size);
 
         // test
         DLOpenLibVulkan();
@@ -135,8 +110,8 @@ namespace OHOS {
         }
         if (g_isSupportedVulkan) {
             VkSurfaceCreateInfoOHOS surfaceCreateInfo = {};
-            surfaceCreateInfo.sType = GetData<VkStructureType>();
-            surfaceCreateInfo.flags = GetData<VkSurfaceCreateFlagsOHOS>();
+            surfaceCreateInfo.sType = static_cast<VkStructureType>(fdp.ConsumeIntegral<uint32_t>());
+            surfaceCreateInfo.flags = static_cast<VkSurfaceCreateFlagsOHOS>(fdp.ConsumeIntegral<uint32_t>());
             VkSurfaceKHR surface;
             vkCreateSurfaceOHOS(instance, &surfaceCreateInfo, NULL, &surface);
             vkDestroySurfaceKHR(instance, surface, nullptr);

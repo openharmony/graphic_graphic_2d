@@ -1458,4 +1458,46 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw004, TestSi
     drawable->OnDraw(&canvas, &rect);
     ASSERT_NE(drawable->clipPath_, nullptr);
 }
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable005
+ * @tc.desc: Test OnUpdate with SDFShape set (true branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable005, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBackgroundNGShaderDrawable>(
+        DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node));
+    EXPECT_NE(drawable, nullptr);
+
+    EXPECT_TRUE(drawable->OnUpdate(node));
+}
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable006
+ * @tc.desc: Test OnUpdate without SDFShape (false branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable006, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBackgroundNGShaderDrawable>(
+        DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node));
+    EXPECT_NE(drawable, nullptr);
+
+    EXPECT_TRUE(drawable->OnUpdate(node));
+}
 } // namespace OHOS::Rosen

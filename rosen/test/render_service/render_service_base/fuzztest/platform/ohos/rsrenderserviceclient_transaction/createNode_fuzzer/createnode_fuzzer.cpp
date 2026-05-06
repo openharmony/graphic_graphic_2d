@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "transaction/rs_render_pipeline_client.h"
-
+#include "transaction/rs_interfaces.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -37,7 +37,7 @@ void DoCreateNode(FuzzedDataProvider& fdp)
         .isMirrored = fdp.ConsumeBool(),
         .mirrorNodeId = fdp.ConsumeIntegral<uint64_t>(),
         .isSync = fdp.ConsumeBool() };
-    g_renderPipelineClient->CreateNode(displayNodeConfig, static_cast<NodeId>(nodeId));
+    g_renderPipelineClient->CreateDisplayNode(displayNodeConfig, static_cast<NodeId>(nodeId));
 }
 
 } // anonymous namespace
@@ -48,7 +48,10 @@ void DoCreateNode(FuzzedDataProvider& fdp)
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
     // Initialize RSRenderPipelineClient using std::make_shared (consistent with business code and TDD)
-    OHOS::Rosen::g_renderPipelineClient = std::make_shared<OHOS::Rosen::RSRenderPipelineClient>();
+    auto screenId = OHOS::Rosen::RSInterfaces::GetInstance().GetDefaultScreenId();
+    auto connectToRender =
+        OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    OHOS::Rosen::g_renderPipelineClient = std::make_shared<OHOS::Rosen::RSRenderPipelineClient>(connectToRender);
     return 0;
 }
 

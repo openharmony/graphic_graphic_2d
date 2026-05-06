@@ -395,7 +395,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
 
     OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
+            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
+            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
 
     auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
     OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
@@ -416,6 +418,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
         new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
     OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
+    toRenderConnection->cleanDone_ = true;
 
     OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection> g_rsConn =
         OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection>::MakeSptr(
@@ -423,9 +426,12 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::RSMainThread::Instance()->hgmRenderContext_ =
         std::make_shared<OHOS::Rosen::HgmRenderContext>(g_rsConn);
  
-    OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
-    OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
-    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
+    auto mainThread = OHOS::Rosen::RSMainThread::Instance();
+    if (mainThread->receiver_ != nullptr) {
+        mainThread->receiver_->connection_ = nullptr;
+    }
+    mainThread->receiver_ = nullptr;
+    mainThread->mainLoop_ = []() {};
     return 0;
 }
 

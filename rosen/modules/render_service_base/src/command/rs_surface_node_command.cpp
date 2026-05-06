@@ -164,10 +164,11 @@ void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, Node
     }
 }
 
-void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(RSContext& context, NodeId id)
+void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(
+    RSContext& context, NodeId id, sptr<IRemoteObject> connectToRender)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->ConnectToNodeInRenderService();
+        node->ConnectToNodeInRenderService(connectToRender);
     }
 }
 
@@ -283,6 +284,15 @@ void SurfaceNodeCommandHelper::CreateSurfaceExt(RSContext& context, NodeId id,
     auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
     if (node != nullptr) {
         node->SetSurfaceTexture(surfaceExt);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetSurfaceCaptureCallBack(
+    RSContext& context, NodeId id, std::function<std::shared_ptr<Media::PixelMap>()> callback)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+    if (node != nullptr) {
+        node->SetSurfaceCaptureCallback(callback);
     }
 }
 #endif
@@ -418,12 +428,14 @@ void SurfaceNodeCommandHelper::AttachToWindowContainer(RSContext& context, NodeI
 
 void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId)
 {
+#ifndef ROSEN_ARKUI_X
     const auto& nodeMap = context.GetNodeMap();
     auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
     if (surfaceRenderNode == nullptr) {
         RS_LOGE("SurfaceNodeCommandHelper::DetachFromWindowContainer Invalid surfaceRenderNode");
         return;
     }
+    surfaceRenderNode->attachedInfo_ = std::nullopt;
     nodeMap.TraverseLogicalDisplayNodes(
         [surfaceRenderNode, screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
@@ -442,6 +454,7 @@ void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, Nod
             }
         }
     );
+#endif
 }
 
 void SurfaceNodeCommandHelper::SetRegionToBeMagnified(

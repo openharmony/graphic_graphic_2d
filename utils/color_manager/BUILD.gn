@@ -80,9 +80,9 @@ if (current_os == "ohos") {
   ohos_shared_library("color_manager") {
     branch_protector_ret = "pac_ret"
     deps = [ ":color_manager_source" ]
-    public_external_deps = [ "bounds_checking_function:libsec_shared" ]
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
     public_configs = [ ":export" ]
-    public_external_deps += [ "skia:skia_canvaskit" ]
+    public_external_deps = [ "skia:skia_canvaskit" ]
     subsystem_name = "graphic"
     part_name = "graphic_2d"
   }

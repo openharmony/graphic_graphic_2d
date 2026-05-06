@@ -26,6 +26,7 @@
 #include "text/font_mgr.h"
 #include "text/typeface.h"
 #include "utils/log.h"
+#include "utils/text_histogram.h"
 
 using namespace OHOS::Rosen;
 
@@ -147,13 +148,17 @@ static uint32_t RegisterFontInternal(OH_Drawing_FontCollection* fontCollection,
 uint32_t OH_Drawing_RegisterFont(
     OH_Drawing_FontCollection* fontCollection, const char* fontFamily, const char* familySrc)
 {
-    return RegisterFontInternal(fontCollection, fontFamily, familySrc, 0);
+    uint32_t result = RegisterFontInternal(fontCollection, fontFamily, familySrc, 0);
+    TEXT_HISTOGRAM_BOOLEAN(result == 0);
+    return result;
 }
 
 uint32_t OH_Drawing_RegisterFontByIndex(OH_Drawing_FontCollection* fontCollection,
     const char* fontFamily, const char* familySrc, uint32_t index)
 {
-    return RegisterFontInternal(fontCollection, fontFamily, familySrc, index);
+    uint32_t result = RegisterFontInternal(fontCollection, fontFamily, familySrc, index);
+    TEXT_HISTOGRAM_BOOLEAN(result == 0);
+    return result;
 }
 
 static uint32_t RegisterFontBufferInternal(OH_Drawing_FontCollection* fontCollection,
@@ -175,27 +180,35 @@ static uint32_t RegisterFontBufferInternal(OH_Drawing_FontCollection* fontCollec
 uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection* fontCollection, const char* fontFamily,
     uint8_t* fontBuffer, size_t length)
 {
-    return RegisterFontBufferInternal(fontCollection, fontFamily, fontBuffer, length, 0);
+    uint32_t result = RegisterFontBufferInternal(fontCollection, fontFamily, fontBuffer, length, 0);
+    TEXT_HISTOGRAM_BOOLEAN(result == 0);
+    return result;
 }
 
 uint32_t OH_Drawing_RegisterFontBufferByIndex(OH_Drawing_FontCollection* fontCollection,
     const char* fontFamily, uint8_t* fontBuffer, size_t length, uint32_t index)
 {
-    return RegisterFontBufferInternal(fontCollection, fontFamily, fontBuffer, length, index);
+    uint32_t result = RegisterFontBufferInternal(fontCollection, fontFamily, fontBuffer, length, index);
+    TEXT_HISTOGRAM_BOOLEAN(result == 0);
+    return result;
 }
 
 uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, const char* fontFamily)
 {
     if (fontCollection == nullptr || fontFamily == nullptr) {
+        TEXT_HISTOGRAM_BOOLEAN(false);
         return ERROR_NULL_FONT_COLLECTION;
     }
     std::string family(fontFamily);
     if (family.empty() || SPText::DefaultFamilyNameMgr::IsThemeFontFamily(family)) {
+        TEXT_HISTOGRAM_BOOLEAN(false);
         return ERROR_NULL_FONT_COLLECTION;
     }
 
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
-    return !fc->UnloadFont(fontFamily);
+    uint32_t result = !fc->UnloadFont(fontFamily);
+    TEXT_HISTOGRAM_BOOLEAN(result == 0);
+    return result;
 }
 
 bool OH_Drawing_IsFontSupportedFromPath(const char* fontPath)

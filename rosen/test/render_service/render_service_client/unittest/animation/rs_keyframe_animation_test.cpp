@@ -47,7 +47,8 @@ void RSKeyframeAnimationTest::TearDown() {}
 HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, Level1)
 {
     auto value = std::make_shared<RSProperty<float>>();
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSKeyframeAnimation rsKeyframeAnimation(rsUIContext, value);
     RSAnimationTimingCurve timingCurve;
     rsKeyframeAnimation.AddKeyFrame(1.f, value, timingCurve);

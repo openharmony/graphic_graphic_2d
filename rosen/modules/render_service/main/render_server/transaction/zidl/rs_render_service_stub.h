@@ -20,9 +20,9 @@
 #include <message_option.h>
 #include <message_parcel.h>
 
-#include "platform/ohos/transaction/zidl/rs_irender_service.h"
-#include "platform/ohos/transaction/rs_irender_service_ipc_interface_code_access_verifier.h"
 #include "ipc_security/rs_ipc_interface_code_security_manager.h"
+#include "platform/ohos/transaction/rs_irender_service_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "transaction/rs_render_service_security_utils.h"
 
 namespace OHOS {

@@ -61,7 +61,10 @@ int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel&
     MessageParcel& reply, MessageOption& option)
 {
     ReleaseLayerBuffersInfo releaseLayerInfo;
-    releaseLayerInfo.screenId = data.ReadUint64();
+    if (!data.ReadUint64(releaseLayerInfo.screenId)) {
+        RS_LOGE("%{public}s read screenId error", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     uint32_t vecSize;
     if (!data.ReadUint32(vecSize)) {
         RS_LOGE("%{public}s read vecSize error", __func__);
@@ -121,7 +124,7 @@ int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel&
                 return parcel.ReadFileDescriptor();
             };
             uint32_t sequence;
-            auto ret = ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc);
+            auto ret = ReadSurfaceBufferImplWithAllProperties(data, sequence, buffer, readSafeFdFunc);
             if (ret != GSERROR_OK) {
                 return ERR_INVALID_DATA;
             }

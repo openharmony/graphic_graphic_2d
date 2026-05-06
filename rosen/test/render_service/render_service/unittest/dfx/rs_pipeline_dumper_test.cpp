@@ -670,7 +670,7 @@ HWTEST_F(RSPipelineDumperTest, ExtractDumpInfo_NotUniRender, TestSize.Level1)
 
 /*
  * @tc.name: DumpNodesNotOnTree_BasicFlow
- * @tc.desc: Test DumpNodesNotOnTheTree basic functionality
+ * @tc.desc: Test DumpSurfaceNodesNotOnTree basic functionality
  * @tc.type: FUNC
  * @tc.require: AR000GSH6G
  */
@@ -1282,12 +1282,12 @@ HWTEST_F(RSPipelineDumperTest, DumpMem_WithMultipleArgs, TestSize.Level1)
 }
 
 /*
- * @tc.name: DumpNodesNotOnTheTree_Command
- * @tc.desc: Test DumpNodesNotOnTheTree via registered command
+ * @tc.name: DumpSurfaceNodesNotOnTree_Command
+ * @tc.desc: Test DumpSurfaceNodesNotOnTree via registered command
  * @tc.type: FUNC
  * @tc.require: AR000GSH6G
  */
-HWTEST_F(RSPipelineDumperTest, DumpNodesNotOnTheTree_Command, TestSize.Level1)
+HWTEST_F(RSPipelineDumperTest, DumpSurfaceNodesNotOnTree_Command, TestSize.Level1)
 {
     // Given: Initialized dumper
     ASSERT_NE(dumper_, nullptr);
@@ -1295,6 +1295,27 @@ HWTEST_F(RSPipelineDumperTest, DumpNodesNotOnTheTree_Command, TestSize.Level1)
 
     // When: Execute nodeNotOnTree command
     std::unordered_set<std::u16string> argSets = { u"nodeNotOnTree" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should execute without crash
+    EXPECT_FALSE(out.empty());
+}
+
+/*
+ * @tc.name: DumpRenderNodesNotOnTree_Command
+ * @tc.desc: Test DumpRenderNodesNotOnTree via registered command
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpRenderNodesNotOnTree_Command, TestSize.Level1)
+{
+    // Given: Initialized dumper
+    ASSERT_NE(dumper_, nullptr);
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Execute allNodeNotOnTree command
+    std::unordered_set<std::u16string> argSets = { u"allNodeNotOnTree" };
     std::string out;
     dumpManager_->CmdExec(argSets, out, nullptr);
 
@@ -1473,19 +1494,38 @@ HWTEST_F(RSPipelineDumperTest, DumpSurfaceNode_LargeId, TestSize.Level1)
 }
 
 /*
- * @tc.name: DumpNodesNotOnTheTree_DirectCall
- * @tc.desc: Direct call DumpNodesNotOnTheTree function
+ * @tc.name: DumpSurfaceNodesNotOnTree_DirectCall
+ * @tc.desc: Direct call DumpSurfaceNodesNotOnTree function
  * @tc.type: FUNC
  * @tc.require: AR000GSH6G
  */
-HWTEST_F(RSPipelineDumperTest, DumpNodesNotOnTheTree_DirectCall, TestSize.Level1)
+HWTEST_F(RSPipelineDumperTest, DumpSurfaceNodesNotOnTree_DirectCall, TestSize.Level1)
 {
     // Given: A dumper instance
     ASSERT_NE(dumper_, nullptr);
 
-    // When: Directly call DumpNodesNotOnTheTree
+    // When: Directly call DumpSurfaceNodesNotOnTree
     std::string dumpString;
-    dumper_->DumpNodesNotOnTheTree(dumpString);
+    dumper_->DumpSurfaceNodesNotOnTree(dumpString);
+
+    // Then: Should generate output
+    EXPECT_FALSE(dumpString.empty());
+}
+
+/*
+ * @tc.name: DumpRenderNodesNotOnTree_DirectCall
+ * @tc.desc: Direct call DumpRenderNodesNotOnTree function
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpRenderNodesNotOnTree_DirectCall, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call DumpRenderNodesNotOnTree
+    std::string dumpString;
+    dumper_->DumpRenderNodesNotOnTree(dumpString);
 
     // Then: Should generate output
     EXPECT_FALSE(dumpString.empty());

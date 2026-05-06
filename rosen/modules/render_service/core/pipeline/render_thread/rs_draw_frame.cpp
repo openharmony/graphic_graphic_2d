@@ -106,6 +106,8 @@ void RSDrawFrame::RenderFrame()
     RSMhcManager::Instance().UpdateFrameId();
 #endif
     RSUifirstManager::Instance().PostUifistSubTasks();
+    RSMainThread::Instance()->CheckWindowCapTasks();
+    RSMainThread::Instance()->ProcessWindowCapTasks();
     UnblockMainThread();
     RsFrameReport::CheckUnblockMainThreadPoint();
     Render();
@@ -334,7 +336,7 @@ void RSDrawFrame::Sync()
         }
     }
     pendingSyncNodes.clear();
-    HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
+    HveFilter::GetHveFilter().Sync();
 
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
 #ifdef SUBTREE_PARALLEL_ENABLE

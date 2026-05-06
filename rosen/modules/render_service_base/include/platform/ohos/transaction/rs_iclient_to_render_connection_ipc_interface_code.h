@@ -80,6 +80,8 @@ enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
     UNREGISTER_FRAME_STABILITY_DETECTION = 0X16001,
     START_FRAME_STABILITY_COLLECTION = 0X16002,
     GET_FRAME_STABILITY_RESULT = 0X16003,
+    
+    SET_FREE_MULTI_WINDOW_STATUS = 0X17000,
 };
 } // namespace Rosen
 } // namespace OHOS

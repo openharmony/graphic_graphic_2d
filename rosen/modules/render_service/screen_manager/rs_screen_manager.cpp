@@ -66,7 +66,7 @@ bool RSScreenManager::Init(const std::shared_ptr<AppExecFwk::EventHandler>& main
     preprocessor_ = std::make_unique<RSScreenPreprocessor>(
         *this, *callbackMgr_, mainHandler, isFoldScreenFlag_);
     if (isFoldScreenFlag_) {
-        foldScreenManager_ = std::make_unique<RSFoldScreenManager>(*preprocessor_);
+        foldScreenManager_ = std::make_unique<RSFoldScreenManager>(*preprocessor_, mainHandler);
     }
     if (!preprocessor_->Init()) {
         return false;
@@ -77,7 +77,7 @@ bool RSScreenManager::Init(const std::shared_ptr<AppExecFwk::EventHandler>& main
     return true;
 }
 
-ScreenId RSScreenManager::GetActiveScreenId()
+ScreenId RSScreenManager::GetActiveScreenId() const
 {
     return foldScreenManager_ ? foldScreenManager_->GetActiveScreenId() : INVALID_SCREEN_ID;
 }
@@ -1116,6 +1116,17 @@ bool RSScreenManager::GetVirtualScreenAutoRotation(ScreenId id) const
     return screen->GetVirtualScreenAutoRotation();
 }
 
+void RSScreenManager::OnActiveScreenIdChangedCallbackChanged(sptr<RSIScreenManagerAgentListener> agentListener) const
+{
+    ScreenId activeScreenId = GetActiveScreenId();
+    if (activeScreenId == INVALID_SCREEN_ID) {
+        RS_LOGW("%{public}s: activeScreenId:%{public}" PRIu64 " is not satisfied callback condition.", __func__,
+                activeScreenId);
+        return;
+    }
+    callbackMgr_->NotifyActiveScreenIdChangedToAgentListener(activeScreenId, agentListener);
+}
+
 void RSScreenManager::DisplayDump(std::string& dumpString)
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
@@ -1499,7 +1510,7 @@ std::shared_ptr<RSScreen> RSScreenManager::GetScreen(ScreenId id) const
     }
     return iter->second;
 }
-void RSScreenManager::ExecuteCallback(const sptr<RSIScreenChangeCallback>& callback) const
+void RSScreenManager::OnScreenChangeCallbackChanged(sptr<RSIScreenManagerAgentListener> agentListener) const
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
     for (const auto& [id, screen] : screens_) {
@@ -1510,8 +1521,7 @@ void RSScreenManager::ExecuteCallback(const sptr<RSIScreenChangeCallback>& callb
         if (screen->IsVirtual()) {
             continue;
         }
-        sptr<IRemoteObject> conn = callbackMgr_->GetClientToRenderConnection(id);
-        callback->OnScreenChanged(id, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, conn);
+        callbackMgr_->NotifyScreenConnectedToAgentListener(id, ScreenChangeReason::DEFAULT, agentListener);
     }
 }
 

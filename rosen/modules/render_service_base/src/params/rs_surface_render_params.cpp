@@ -653,10 +653,10 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
-    targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
-    targetSurfaceParams->uiFirstParentFlag_ = uiFirstParentFlag_;
-    targetSurfaceParams->uifirstStartingWindowId_ = uifirstStartingWindowId_;
-    targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;
+    targetSurfaceParams->uifirstParams_.cacheType = uifirstParams_.cacheType;
+    targetSurfaceParams->uifirstParams_.parentEnabled = uifirstParams_.parentEnabled;
+    targetSurfaceParams->uifirstParams_.startingWindowId = uifirstParams_.startingWindowId;
+    targetSurfaceParams->uifirstParams_.childrenDirtyRect = uifirstParams_.childrenDirtyRect;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     targetSurfaceParams->leashPersistentId_ = leashPersistentId_;
     targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
@@ -717,11 +717,11 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->colorFollow_ = colorFollow_;
     targetSurfaceParams->screenRect_ = screenRect_;
     targetSurfaceParams->dirtyRegionMatrix_ = dirtyRegionMatrix_;
-    targetSurfaceParams->uiFirstFrameGravity_ = uiFirstFrameGravity_;
+    targetSurfaceParams->uifirstParams_.frameGravity = uifirstParams_.frameGravity;
     targetSurfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
     targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     targetSurfaceParams->isSurfaceBufferOpaque_ = isSurfaceBufferOpaque_;
-    targetSurfaceParams->uiFirstVisibleFilterRect_ = uiFirstVisibleFilterRect_;
+    targetSurfaceParams->uifirstParams_.visibleFilterRect = uifirstParams_.visibleFilterRect;
     if (captureConfig_ && captureConfig_->isConfigTriggered == false) {
         // avoid being double moved by uifirstRenderParams_
         captureConfig_->isConfigTriggered = true;
@@ -731,8 +731,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
     targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
     targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
-    targetSurfaceParams->isUIFirstLeashAllEnable_ = isUIFirstLeashAllEnable_;
-    targetSurfaceParams->isPartialSynced_ = isPartialSynced_;
+    targetSurfaceParams->uifirstParams_.leashAllEnabled = uifirstParams_.leashAllEnabled;
+    targetSurfaceParams->uifirstParams_.isPartialSynced = uifirstParams_.isPartialSynced;
     RSRenderParams::OnSync(target);
 }
 
@@ -866,30 +866,30 @@ bool RSSurfaceRenderParams::GetIsParticipateInOcclusion() const
 
 void RSSurfaceRenderParams::SetUIFirstLeashAllEnable(bool enable)
 {
-    if (isUIFirstLeashAllEnable_ == enable) {
+    if (uifirstParams_.leashAllEnabled == enable) {
         return;
     }
-    isUIFirstLeashAllEnable_ = enable;
+    uifirstParams_.leashAllEnabled = enable;
     needSync_ = true;
 }
 
 bool RSSurfaceRenderParams::IsUIFirstLeashAllEnable() const
 {
-    return isUIFirstLeashAllEnable_;
+    return uifirstParams_.leashAllEnabled;
 }
 
 void RSSurfaceRenderParams::SetPartialSynced(bool isPartialSynced)
 {
-    if (isPartialSynced_ == isPartialSynced) {
+    if (uifirstParams_.isPartialSynced == isPartialSynced) {
         return;
     }
-    isPartialSynced_ = isPartialSynced;
+    uifirstParams_.isPartialSynced = isPartialSynced;
     needSync_ = true;
 }
 
 bool RSSurfaceRenderParams::IsPartialSynced() const
 {
-    return isPartialSynced_;
+    return uifirstParams_.isPartialSynced;
 }
 
 void RSSurfaceRenderParams::SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams)

@@ -16,16 +16,34 @@
 #include "rs_service_to_render_connection.h"
 
 #include "frame_report.h"
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
-#include "rs_trace.h"
+#include "platform/common/rs_system_properties.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSServiceToRenderConnection"
 
 namespace OHOS {
 namespace Rosen {
+bool RSServiceToRenderConnection::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+    const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+    const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
+{
+    return renderProcessAgent_->NotifyScreenConnectInfoToRender(
+        screenProperty, renderToComposerConn, composerToRenderConn);
+}
+
+bool RSServiceToRenderConnection::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
+{
+    return renderProcessAgent_->NotifyScreenDisconnectInfoToRender(screenId);
+}
+
+bool RSServiceToRenderConnection::NotifyScreenPropertyChangedInfoToRender(
+    ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& screenProperty)
+{
+    return renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(id, type, screenProperty);
+}
+
 int32_t RSServiceToRenderConnection::NotifyScreenRefresh(ScreenId screenId)
 {
     return renderPipelineAgent_->NotifyScreenRefresh(screenId);
@@ -221,9 +239,9 @@ ErrCode RSServiceToRenderConnection::GetPixelMapByProcessId(std::vector<PixelMap
 }
 
 ErrCode RSServiceToRenderConnection::SetWatermark(pid_t callingPid, const std::string& name,
-    std::shared_ptr<Media::PixelMap> watermark, bool& success)
+    std::shared_ptr<Media::PixelMap> watermark, bool& success, uint32_t rowCount, uint32_t colCount)
 {
-    return renderPipelineAgent_->SetWatermark(callingPid, name, watermark, success);
+    return renderPipelineAgent_->SetWatermark(callingPid, name, watermark, success, rowCount, colCount);
 }
 
 void RSServiceToRenderConnection::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
@@ -240,11 +258,6 @@ ErrCode RSServiceToRenderConnection::GetSurfaceRootNodeId(NodeId& windowNodeId)
 {
     renderPipelineAgent_->GetSurfaceRootNodeId(windowNodeId);
     return ERR_OK;
-}
-
-void RSServiceToRenderConnection::SetFreeMultiWindowStatus(bool enable)
-{
-    renderPipelineAgent_->SetFreeMultiWindowStatus(enable);
 }
 
 int32_t RSServiceToRenderConnection::RegisterSelfDrawingNodeRectChangeCallback(
@@ -321,6 +334,11 @@ void RSServiceToRenderConnection::OnScreenBacklightChanged(ScreenId screenId, ui
 void RSServiceToRenderConnection::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
 {
     renderPipelineAgent_->OnGlobalBlacklistChanged(globalBlackList);
+}
+
+void RSServiceToRenderConnection::SetCacheEnabledForRotation(bool enabled)
+{
+    renderPipelineAgent_->SetCacheEnabledForRotation(enabled);
 }
 } // namespace Rosen
 } // namespace OHOS

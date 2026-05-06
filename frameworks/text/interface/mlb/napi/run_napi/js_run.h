@@ -44,6 +44,7 @@ public:
     static napi_value GetTypographicBounds(napi_env env, napi_callback_info info);
     static napi_value GetAdvances(napi_env env, napi_callback_info info);
     static napi_value GetTextDirection(napi_env env, napi_callback_info info);
+    static napi_value GetTextStyle(napi_env env, napi_callback_info info);
     void SetParagraph(std::shared_ptr<Typography> paragraph);
 
 private:
@@ -61,6 +62,7 @@ private:
     napi_value OnGetTypographicBounds(napi_env env, napi_callback_info info);
     napi_value OnGetAdvances(napi_env env, napi_callback_info info);
     napi_value OnGetTextDirection(napi_env env, napi_callback_info info);
+    napi_value OnGetTextStyle(napi_env env, napi_callback_info info);
 
     static bool CreateConstructor(napi_env env);
     std::shared_ptr<Run> run_;

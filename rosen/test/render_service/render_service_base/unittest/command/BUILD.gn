@@ -36,6 +36,7 @@ ohos_unittest("RSNodeCommandTest1") {
     "rs_proxy_node_command_test.cpp",
     "rs_root_node_command_test.cpp",
     "rs_surface_node_command_test.cpp",
+    "rs_union_node_command_test.cpp",
   ]
 
   configs = [

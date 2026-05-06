@@ -18,12 +18,12 @@ group("default") {
   public_deps = [ ":graphic.rc" ]
 
   if (graphic_2d_feature_bootanimation_enable) {
-    public_deps += [ "frameworks/bootanimation:bootanimation" ]
-    public_deps += [ "frameworks/bootanimation:bootanimation_para" ]
-    public_deps += [ "frameworks/bootanimation:bootanimation_pics" ]
-    public_deps += [ "frameworks/bootanimation:bootanimation_sounds" ]
-    public_deps += [ "frameworks/bootanimation:bootanimation_video" ]
-    public_deps += [ "frameworks/bootanimation:bootanimation.rc" ]
+    deps = [ "frameworks/bootanimation:bootanimation" ]
+    deps += [ "frameworks/bootanimation:bootanimation_para" ]
+    deps += [ "frameworks/bootanimation:bootanimation_pics" ]
+    deps += [ "frameworks/bootanimation:bootanimation_sounds" ]
+    deps += [ "frameworks/bootanimation:bootanimation_video" ]
+    deps += [ "frameworks/bootanimation:bootanimation.rc" ]
   }
 }
 
@@ -64,5 +64,5 @@ group("libnative_image") {
 }
 
 group("libbootanimation_utils") {
-  public_deps = [ "frameworks/bootanimation/utils:libbootanimation_utils" ]
+  deps = [ "frameworks/bootanimation/utils:libbootanimation_utils" ]
 }

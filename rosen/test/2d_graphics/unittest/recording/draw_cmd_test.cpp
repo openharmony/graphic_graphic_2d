@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -354,8 +354,8 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
     OpDataHandle opDataHandle;
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
-        globalUniqueId, TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
+    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId,
+        TextBlobRenderOption(), 0, 0, paintHandle};
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0));
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle, 0));
 }
@@ -374,7 +374,7 @@ HWTEST_F(DrawCmdTest, PatchTypefaceIds001, TestSize.Level1)
     uint64_t globalUniqueId = 1;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId,
-        TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
+        TextBlobRenderOption(), 0, 0, paintHandle};
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0);
     drawCmdList->PatchTypefaceIds();
@@ -1021,7 +1021,7 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId,
-        TextContrast::FOLLOW_SYSTEM, 10, 10, paintHandle}; // 10: x, y
+        TextBlobRenderOption(), 10, 10, paintHandle}; // 10: x, y
     handler.GenerateCachedOpItem(*drawCmdList, &canvas);
 }
 
@@ -2102,6 +2102,37 @@ HWTEST_F(DrawCmdTest, DrawParticleOpItemNullHandle, TestSize.Level1)
     EXPECT_TRUE(recordingCanvas != nullptr);
     EXPECT_EQ(recordingCanvas->GetWidth(), 10);
     EXPECT_EQ(recordingCanvas->GetHeight(), 10);
+}
+
+/**
+ * @tc.name: DrawGlyphs
+ * @tc.desc: Test DrawGlyphs
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, DrawGlyphs000, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    uint64_t globalUniqueId = 1;
+    PaintHandle paintHandle;
+    OpFontHandle fontHandle;
+    Point point;
+    std::pair<size_t, size_t> glyphs;
+    std::pair<size_t, size_t> positions;
+    DrawGlyphsOpItem::ConstructorHandle handle{glyphs, positions, point,
+                                               fontHandle, globalUniqueId, paintHandle};
+    Paint paint;
+    Font font;
+    std::vector<uint16_t> glyphs2;
+    std::vector<Point> position2;
+    DrawGlyphsOpItem opItem{glyphs2, position2, point, &font, paint};
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    DrawGlyphsOpItem opItem1 { *drawCmdList, &handle };
+    opItem1.Marshalling(*drawCmdList);
+    opItem1.Unmarshalling(*drawCmdList, &handle);
 }
 } // namespace Drawing
 } // namespace Rosen

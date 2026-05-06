@@ -59,10 +59,10 @@ void RSColorPickerManager::SetSystemDarkColorMode(bool isSystemDarkColorMode)
 }
 
 void RSColorPickerManager::ScheduleColorPick(
-    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params)
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params, NodeId filterId)
 {
     auto ptr = std::static_pointer_cast<IColorPickerManager>(shared_from_this());
-    RSColorPickerUtils::ExtractSnapshotAndScheduleColorPick(canvas, rect, ptr);
+    RSColorPickerUtils::ExtractSnapshotAndScheduleColorPick(canvas, rect, ptr, filterId);
 }
 
 void RSColorPickerManager::HandleColorUpdate(Drawing::ColorQuad newColor)

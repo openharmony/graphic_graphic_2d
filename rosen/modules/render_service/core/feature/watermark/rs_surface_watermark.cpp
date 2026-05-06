@@ -14,15 +14,130 @@
  */
 #include <algorithm>
 #include "feature/watermark/rs_surface_watermark.h"
+#include "params/rs_surface_render_params.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
 namespace OHOS {
 namespace Rosen {
 constexpr uint32_t MAX_LIMIT_SURFACE_WATER_MARK_IMG = 1000;
 
+void RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(RSPaintFilterCanvas& canvas,
+    const RSSurfaceRenderParams& params)
+{
+    if (params.IsSystemWatermarkEmpty() && params.IsCustomWatermarkEmpty()) {
+        RS_LOGE("RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark Name:%{public}s Id:%{public}" PRIu64
+            " water mark count is zero", params.GetName().c_str(), params.GetId());
+        return;
+    }
+    RS_TRACE_NAME("RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark");
+    for (auto watermarkType = static_cast<uint8_t>(CUSTOM_WATER_MARK);
+        watermarkType < static_cast<uint8_t>(SYSTEM_WATER_MARK); watermarkType++) {
+        DrawWatermark(canvas, params, static_cast<SurfaceWatermarkType>(watermarkType));
+    }
+}
+
+void RSSurfaceWatermarkHelper::DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params,
+    const SurfaceWatermarkType& watermarkType)
+{
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!renderThreadParams) {
+        RS_LOGE("RSSurfaceWatermarkHelper::DrawWatermark renderThreadParams is nullptr");
+        return;
+    }
+    auto surfaceRect = params.GetBounds();
+    for (const auto& [name, isEnabled] : params.GetSurfaceWatermarkEnabledMap(watermarkType)) {
+        if (!isEnabled) {
+            continue;
+        }
+        auto imagePtr = renderThreadParams->GetWatermark(name);
+        if (!imagePtr || imagePtr->GetWidth() == 0 || imagePtr->GetHeight() == 0) {
+            continue;
+        }
+        uint32_t rowCount = renderThreadParams->GetWatermarkRowCount(name);
+        uint32_t colCount = renderThreadParams->GetWatermarkColCount(name);
+        bool useGrid = (rowCount > 0 && colCount > 0);
+        if (useGrid) {
+            float cellW = surfaceRect.GetWidth() / static_cast<float>(colCount);
+            float cellH = surfaceRect.GetHeight() / static_cast<float>(rowCount);
+            float imageW = static_cast<float>(imagePtr->GetWidth());
+            float imageH = static_cast<float>(imagePtr->GetHeight());
+            if (imageW > cellW || imageH > cellH) {
+                useGrid = false;
+            }
+        }
+        if (useGrid) {
+            auto effect = GetGridWatermarkEffect();
+            if (effect) {
+                Drawing::RuntimeShaderBuilder builder(effect);
+                builder.SetChild("watermark",
+                    Drawing::ShaderEffect::CreateImageShader(
+                        *imagePtr, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
+                        Drawing::SamplingOptions(), Drawing::Matrix()));
+                builder.SetUniform("surfaceSize", surfaceRect.GetWidth(), surfaceRect.GetHeight());
+                builder.SetUniform("imageSize",
+                    static_cast<float>(imagePtr->GetWidth()),
+                    static_cast<float>(imagePtr->GetHeight()));
+                builder.SetUniform("gridCount",
+                    static_cast<float>(colCount),
+                    static_cast<float>(rowCount));
+                auto shader = builder.MakeShader(nullptr, false);
+                if (shader) {
+                    Drawing::Brush brush;
+                    brush.SetShaderEffect(shader);
+                    canvas.Save();
+                    canvas.Translate(surfaceRect.GetLeft(), surfaceRect.GetTop());
+                    canvas.AttachBrush(brush);
+                    canvas.DrawRect(Drawing::Rect(0, 0, surfaceRect.GetWidth(), surfaceRect.GetHeight()));
+                    canvas.DetachBrush();
+                    canvas.Restore();
+                }
+            }
+        } else {
+            Drawing::Brush brush;
+            brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
+                *imagePtr, Drawing::TileMode::REPEAT, Drawing::TileMode::REPEAT,
+                Drawing::SamplingOptions(), Drawing::Matrix()));
+            canvas.AttachBrush(brush);
+            canvas.DrawRect(surfaceRect);
+            canvas.DetachBrush();
+        }
+    }
+}
+
+std::shared_ptr<Drawing::RuntimeEffect> RSSurfaceWatermarkHelper::GetGridWatermarkEffect()
+{
+    static std::shared_ptr<Drawing::RuntimeEffect> effect = []() {
+        static constexpr char prog[] = R"(
+            uniform shader watermark;
+            uniform float2 surfaceSize;
+            uniform float2 imageSize;
+            uniform float2 gridCount;
+            half4 main(float2 coords) {
+                float cellW = surfaceSize.x / gridCount.x;
+                float cellH = surfaceSize.y / gridCount.y;
+                float localX = coords.x - cellW * floor(coords.x / cellW);
+                float localY = coords.y - cellH * floor(coords.y / cellH);
+                float offsetX = (cellW - imageSize.x) / 2.0;
+                float offsetY = (cellH - imageSize.y) / 2.0;
+                float sampleX = localX - offsetX;
+                float sampleY = localY - offsetY;
+                if (sampleX < 0.0 || sampleX > imageSize.x || sampleY < 0.0 || sampleY > imageSize.y) {
+                    return half4(0.0);
+                }
+                return watermark.eval(float2(sampleX, sampleY));
+            }
+        )";
+        return Drawing::RuntimeEffect::CreateForShader(prog);
+    }();
+    return effect;
+}
+
 uint32_t RSSurfaceWatermarkHelper::SetSurfaceWatermark(pid_t pid,
     const std::string& name, std::shared_ptr<Media::PixelMap> pixelMap, const std::vector<NodeId>& nodeIdList,
     SurfaceWatermarkType watermarkType,
-    RSContext& mainContext, bool isSystemCalling)
+    RSContext& mainContext, bool isSystemCalling,
+    uint32_t rowCount, uint32_t colCount)
 {
     // 0. Clear history residual node and get maxSize for same watermark name
     RS_LOGI("RSSurfaceWatermarkHelper::SetSurfaceWatermark pid:[%{public}d], watermarkType:[%{public}d]",
@@ -49,7 +164,7 @@ uint32_t RSSurfaceWatermarkHelper::SetSurfaceWatermark(pid_t pid,
     }
     // When SCB is restored, the pixelMap is passed as a null pointer.
     param.isWatermarkChange_ = (pixelMap == nullptr) ? false : true;
-    std::shared_ptr<Drawing::Image> tmpImagePtr = (!param.isWatermarkChange_) ? iter->second.first :
+    std::shared_ptr<Drawing::Image> tmpImagePtr = (!param.isWatermarkChange_) ? iter->second.image :
         RSPixelMapUtil::ExtractDrawingImage(pixelMap);
 
     // 2.Check pixelMap is Invaild
@@ -93,7 +208,7 @@ uint32_t RSSurfaceWatermarkHelper::SetSurfaceWatermark(pid_t pid,
     auto [newErrocode, _] = TraverseAndOperateNodeList(pid, name,
         nodeIdList, mainContext, doFunc, isSystemCalling, watermarkType);
     errocode |= newErrocode;
-    surfaceWatermarks_[name] = {tmpImagePtr, pid};
+    surfaceWatermarks_[name] = {tmpImagePtr, pid, rowCount, colCount};
     return errocode;
 }
 
@@ -197,7 +312,7 @@ void RSSurfaceWatermarkHelper::ClearSurfaceWatermark(pid_t pid, const std::strin
 void RSSurfaceWatermarkHelper::ClearSurfaceWatermark(pid_t pid, RSContext& mainContext)
 {
     EraseIf(surfaceWatermarks_, [pid, this, &mainContext](const auto& pair) {
-        if (pair.second.second != pid) {
+        if (pair.second.pid != pid) {
             return false;
         }
         auto name = pair.first;

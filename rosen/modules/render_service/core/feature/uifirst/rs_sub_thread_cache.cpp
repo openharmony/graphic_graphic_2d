@@ -29,6 +29,7 @@
 #include "draw/brush.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/watermark/rs_surface_watermark.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
@@ -227,7 +228,7 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
         RS_LOGE("DrawCacheSurface surfaceDrawable is nullptr. id:%{public}" PRIu64, nodeId_);
         return false;
     }
-    if (ROSEN_EQ(surfaceDrawable->boundsWidth_, 0.f) || ROSEN_EQ(surfaceDrawable->boundsHeight_, 0.f)) {
+    if (ROSEN_EQ(boundSize.x_, 0.f) || ROSEN_EQ(boundSize.y_, 0.f)) {
         HILOG_COMM_ERROR("DrawCacheSurface surface bound is 0. id:%{public}" PRIu64, nodeId_);
         return false;
     }
@@ -324,16 +325,13 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     float height = 0.0f;
     if (const auto& params = nodeDrawable->GetUifirstRenderParams()) {
         auto size = params->GetCacheSize();
-        nodeDrawable->boundsWidth_ = params->IsUIFirstLeashAllEnable() ?
+        width = params->IsUIFirstLeashAllEnable() ?
             params->GetLocalDrawRect().GetWidth() : size.x_;
-        nodeDrawable->boundsHeight_ = params->IsUIFirstLeashAllEnable() ?
+        height = params->IsUIFirstLeashAllEnable() ?
             params->GetLocalDrawRect().GetHeight() : size.y_;
     } else {
         RS_LOGE("uifirst cannot get cachesize");
     }
-
-    width = nodeDrawable->boundsWidth_;
-    height = nodeDrawable->boundsHeight_;
 
     auto params = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
     if (params && params->IsUIFirstLeashAllEnable()) {
@@ -1204,7 +1202,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     if (needDrawInUniRenderThread) {
         surfaceDrawable->DrawForeground(canvas, bounds);
     }
-    surfaceDrawable->DrawCommSurfaceWatermark(canvas, surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(canvas, surfaceParams);
     if (uniParams.GetUIFirstDebugEnabled()) {
         DrawUIFirstDfx(canvas, enableType, surfaceParams, drawCacheSuccess);
     }

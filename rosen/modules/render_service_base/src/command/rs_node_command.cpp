@@ -111,7 +111,7 @@ void RSNodeCommandHelper::ForceUifirstNode(RSContext& context, NodeId nodeId, bo
     bool isUifirstEnable)
 {
     auto& nodeMap = context.GetNodeMap();
-    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+    if (auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->MarkUifirstNode(isForceFlag, isUifirstEnable);
     }
 }
@@ -374,6 +374,15 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
             node->CollectAllChildren(node, nodeIds);
             RS_OPTIONAL_TRACE_NAME_FMT("Layer node childs number:%zu id:%llu", nodeIds.size(), node->GetId());
         }
+    }
+}
+
+void RSNodeCommandHelper::ReSortChildrenByZIndex(RSContext& context, NodeId nodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->ReSortChildrenByZIndex();
     }
 }
 } // namespace Rosen

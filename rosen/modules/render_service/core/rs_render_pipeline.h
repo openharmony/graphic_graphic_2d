@@ -19,6 +19,7 @@
 #include <event_handler.h>
 #include <map>
 #include <unordered_set>
+
 #include "common/rs_common_def.h"
 #include "common/rs_thread_handler.h"
 #include "dfx/rs_pipeline_dump_manager.h"
@@ -37,7 +38,7 @@
 #include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
 #include "rs_composer_client_manager.h"
 #include "vsync_receiver.h"
-#include "vsync/vsync_manager_agent.h"
+#include "vsync_manager_agent.h"
 #include "screen_manager/rs_screen_property.h"
 #include "screen_manager/screen_types.h"
 #include "memory/rs_memory_manager.h"

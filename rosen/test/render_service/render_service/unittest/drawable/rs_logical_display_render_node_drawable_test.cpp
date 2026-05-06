@@ -722,8 +722,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawExpandDisplayTest001, TestS
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     ASSERT_NE(renderParams, nullptr);
     renderParams->SetAncestorScreenDrawable(nullptr);
-    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
-    displayDrawable_->DrawExpandDisplay(*renderParams, processor);
+    displayDrawable_->DrawExpandDisplay(*renderParams);
     EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
 }
 
@@ -745,30 +744,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawExpandDisplayTest002, TestS
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
     ASSERT_NE(screenParams, nullptr);
     screenParams->hasHdrPresent_ = true;
-    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
-    displayDrawable_->DrawExpandDisplay(*renderParams, processor);
-    EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
-}
-
-/**
- * @tc.name: DrawExpandDisplayTest003
- * @tc.desc: Test DrawExpandDisplay when processor is not RSUniRenderVirtualProcessor
- * @tc.type: FUNC
- * @tc.require: #23004
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawExpandDisplayTest003, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
-    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(renderParams, nullptr);
-    auto screenDrawable = screenNode_->GetRenderDrawable();
-    ASSERT_NE(screenDrawable, nullptr);
-    renderParams->SetAncestorScreenDrawable(screenDrawable);
-    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
-    ASSERT_NE(screenParams, nullptr);
-    auto processor = std::make_shared<RSUniRenderProcessor>();
-    displayDrawable_->DrawExpandDisplay(*renderParams, processor);
+    displayDrawable_->DrawExpandDisplay(*renderParams);
     EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
 }
 
@@ -4187,6 +4163,58 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed003, TestSiz
     
     Drawing::Rect dstRect(0, 0, 400, 400);
     displayDrawable_->DrawWatermarkIfNeed(canvas, dstRect);
+}
+
+/**
+ * @tc.name: DrawWatermarkIfNeedGridTest
+ * @tc.desc: Test DrawWatermarkIfNeed with grid watermark (rowCount > 0 && colCount > 0)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeedGridTest, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_TRUE(params);
+    ScreenId screenId = 100;
+    uint32_t width = 400;
+    uint32_t height = 400;
+    params->SetScreenId(screenId);
+
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_TRUE(pixelMap != nullptr);
+    auto img = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    ASSERT_TRUE(img != nullptr);
+
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, img, 2, 2);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_EQ(renderThreadParams->GetWatermarkRowCount(), 2);
+    EXPECT_EQ(renderThreadParams->GetWatermarkColCount(), 2);
+
+    Drawing::Canvas drawingCanvas(400, 400);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, img, 0, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, img, 1, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(false, nullptr, 0, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
 }
 
 /**

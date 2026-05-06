@@ -112,10 +112,16 @@ public :
 
     static void SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList);
     static const std::unordered_set<NodeId>& GetGlobalBlackList();
+
+    static void UpdateScreenMirrorSourceMap(ScreenId mirrorScreenId, ScreenId sourceScreenId);
+    static ScreenId GetMirrorSourceScreenId(ScreenId mirrorScreenId);
+    static void ClearScreenMirrorSourceMap();
 private :
     static std::unordered_map<SpecialLayerType,
         std::unordered_map<NodeId, std::unordered_set<ScreenId>>> screenSpecialLayerInfoByNode_;
     static std::unordered_set<NodeId> globalBlackList_;
+    // key: mirrorScreenId, value: sourceScreenId
+    static std::unordered_map<ScreenId, ScreenId> screenMirrorSourceMap_;
 };
 
 class AutoSpecialLayerStateRecover {
