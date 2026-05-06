@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "gtest/gtest.h" 
-#include "ge_visual_effect_impl.h" 
-#include "effect/rs_render_filter_base.h" 
-#include "pipeline/rs_render_node.h" 
-#include "render/rs_render_filter_base.h" 
-#include "transaction/rs_marshalling_helper.h" 
-#include "ge_visual_effect.h"	 
-#include "ge_visual_effect_container.h"	 
-#include "parcel.h"	 
-#include "render/rs_path.h"	 
+#include "gtest/gtest.h"
+#include "ge_visual_effect_impl.h"
+#include "effect/rs_render_filter_base.h"
+#include "pipeline/rs_render_node.h"
+#include "render/rs_render_filter_base.h"
+#include "transaction/rs_marshalling_helper.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+#include "parcel.h"
+#include "render/rs_path.h"
 #include "effect/rs_render_mask_base.h"
 
 using namespace testing;
