@@ -16,10 +16,11 @@
 #include <string>
 #include <vector>
 
-#include "effect/rs_render_shape_base.h"
 #include "ng_sdf_test_utils.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
+
+#include "effect/rs_render_shape_base.h"
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 
 using namespace testing;
@@ -35,18 +36,19 @@ const std::string BACKGROUND_IMAGE_PATH = "/data/local/tmp/fg_test.jpg";
 
 struct EllipseParam {
     Vector2f center;
-    Vector2f radius;
+    float width;
+    float height;
 };
 
 const std::vector<EllipseParam> ellipseParams = {
-    {Vector2f(300.0f, 260.0f), Vector2f(160.0f, 160.0f)},
-    {Vector2f(300.0f, 260.0f), Vector2f(230.0f, 90.0f)},
-    {Vector2f(300.0f, 260.0f), Vector2f(90.0f, 230.0f)},
-    {Vector2f(250.0f, 220.0f), Vector2f(150.0f, 70.0f)},
-    {Vector2f(350.0f, 300.0f), Vector2f(80.0f, 180.0f)},
-    {Vector2f(300.0f, 260.0f), Vector2f(260.0f, 40.0f)},
+    { Vector2f(300.0f, 260.0f), 320.0f, 320.0f },
+    { Vector2f(300.0f, 260.0f), 460.0f, 180.0f },
+    { Vector2f(300.0f, 260.0f), 180.0f, 460.0f },
+    { Vector2f(250.0f, 220.0f), 300.0f, 140.0f },
+    { Vector2f(350.0f, 300.0f), 160.0f, 360.0f },
+    { Vector2f(300.0f, 260.0f), 520.0f, 80.0f },
 };
-}
+} // namespace
 
 class NGSDFEllipseTest : public RSGraphicTest {
 public:
@@ -98,16 +100,17 @@ static std::shared_ptr<RSNGShapeBase> CreateEllipseShape(const EllipseParam& par
     auto childShape = CreateShape(RSNGEffectType::SDF_ELLIPSE_SHAPE);
     auto ellipseShape = std::static_pointer_cast<RSNGSDFEllipseShape>(childShape);
     ellipseShape->Setter<SDFEllipseShapeCenterTag>(param.center);
-    ellipseShape->Setter<SDFEllipseShapeRadiusTag>(param.radius);
+    ellipseShape->Setter<SDFEllipseShapeWidthTag>(param.width);
+    ellipseShape->Setter<SDFEllipseShapeHeightTag>(param.height);
     return childShape;
 }
 
-static void SetUpSDFEllipseNode(const std::shared_ptr<RSCanvasNode>& node, const EllipseParam& param,
-    int sizeX, int sizeY)
+static void SetUpSDFEllipseNode(
+    const std::shared_ptr<RSCanvasNode>& node, const EllipseParam& param, int sizeX, int sizeY)
 {
     auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
     InitFrostedGlassFilter(frostedGlassFilter);
-    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    Rosen::Vector4f bounds { 0, 0, sizeX, sizeY };
     node->SetBounds(bounds);
     node->SetFrame(bounds);
     node->SetMaterialNGFilter(frostedGlassFilter);
@@ -125,7 +128,7 @@ GRAPHIC_TEST(NGSDFEllipseTest, EFFECT_TEST, Set_SDF_EllipseShape_Test_1)
         auto backgroundTestNode = RSCanvasNode::Create();
         SetUpSDFEllipseNode(backgroundTestNode, ellipseParams[i], sizeX, sizeY);
 
-        auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
+        auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, { x, y, sizeX, sizeY });
         childNode->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
         GetRootNode()->AddChild(childNode);
@@ -139,7 +142,7 @@ GRAPHIC_TEST(NGSDFEllipseTest, EFFECT_TEST, Set_SDF_EllipseShape_Properties_Test
     auto sizeX = SCREEN_WIDTH / COLUMN_COUNT;
     auto sizeY = SCREEN_HEIGHT * COLUMN_COUNT / rowCount;
     Color color(0, 0, 0);
-    Vector4<Color> outlineColor = {color, color, color, color};
+    Vector4<Color> outlineColor = { color, color, color, color };
     for (int i = 0; i < rowCount; i++) {
         int x = (i % COLUMN_COUNT) * sizeX;
         int y = (i / COLUMN_COUNT) * sizeY;
@@ -154,7 +157,7 @@ GRAPHIC_TEST(NGSDFEllipseTest, EFFECT_TEST, Set_SDF_EllipseShape_Properties_Test
         backgroundTestNode->SetShadowColor(0xFF00FF00);
         backgroundTestNode->SetClipToBounds(i == 1);
 
-        auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
+        auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, { x, y, sizeX, sizeY });
         childNode->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
         GetRootNode()->AddChild(childNode);
