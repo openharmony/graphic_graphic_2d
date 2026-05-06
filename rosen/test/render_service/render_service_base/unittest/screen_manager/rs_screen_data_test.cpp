@@ -66,10 +66,45 @@ HWTEST_F(RSScreenDataTest, Unmarshalling001, TestSize.Level1)
     std::vector<RSScreenModeInfo> supportModeInfo = { screenModeInfo1, screenModeInfo2 };
     RSScreenCapability capability;
     RSScreenModeInfo activityModeInfo;
-    RSScreenData screenData(capability, activityModeInfo, supportModeInfo, ScreenPowerStatus::POWER_STATUS_OFF);
+    RSScreenData screenData(capability, activityModeInfo, supportModeInfo,
+        ScreenPowerStatus::POWER_STATUS_OFF, ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL);
     Parcel parcel;
     ASSERT_TRUE(screenData.Marshalling(parcel));
     ASSERT_NE(std::shared_ptr<RSScreenData>(RSScreenData::Unmarshalling(parcel)), nullptr);
+}
+
+/**
+ * @tc.name: Unmarshalling002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenDataTest, Unmarshalling002, TestSize.Level1)
+{
+    RSScreenModeInfo screenModeInfo1;
+    screenModeInfo1.SetScreenWidth(-1);
+    screenModeInfo1.SetScreenHeight(-1);
+    screenModeInfo1.SetScreenRefreshRate(0);
+    screenModeInfo1.SetScreenModeId(-1);
+    RSScreenModeInfo screenModeInfo2;
+    std::vector<RSScreenModeInfo> supportModeInfo = { screenModeInfo1, screenModeInfo2 };
+    RSScreenCapability capability;
+    RSScreenModeInfo activityModeInfo;
+    RSScreenData screenData(capability, activityModeInfo, supportModeInfo,
+        ScreenPowerStatus::POWER_STATUS_OFF, ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL);
+
+    Parcel parcel;
+    // Construct a parcel data packet that does not contain the ScreenConnectionType field
+    ASSERT_TRUE(parcel.WriteParcelable(&capability));
+    ASSERT_TRUE(parcel.WriteParcelable(&activityModeInfo));
+    ASSERT_TRUE(parcel.WriteUint32(static_cast<uint32_t>(supportModeInfo.size())));
+    for (size_t i = 0; i < supportModeInfo.size(); i++) {
+        ASSERT_TRUE(parcel.WriteParcelable(&supportModeInfo[i]));
+    }
+    ASSERT_TRUE(parcel.WriteUint8(static_cast<uint8_t>(ScreenPowerStatus::POWER_STATUS_ON)));
+
+    std::shared_ptr<RSScreenData> unmarshalledData(RSScreenData::Unmarshalling(parcel));
+    ASSERT_EQ(unmarshalledData, nullptr);
 }
 
 /**
@@ -85,7 +120,8 @@ HWTEST_F(RSScreenDataTest, marshallingAndUnmarshallling001, TestSize.Level1)
     std::vector<RSScreenModeInfo> supportModeInfo = {ri1, ri2};
     RSScreenCapability capability;
     RSScreenModeInfo activityModeInfo;
-    RSScreenData screenData(capability, activityModeInfo, supportModeInfo, ScreenPowerStatus::POWER_STATUS_OFF);
+    RSScreenData screenData(capability, activityModeInfo, supportModeInfo,
+        ScreenPowerStatus::POWER_STATUS_OFF, ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL);
     Parcel parcel;
     char* buffer = static_cast<char *>(malloc(parcel.GetMaxCapacity()));
     auto bufferSize = parcel.GetMaxCapacity();

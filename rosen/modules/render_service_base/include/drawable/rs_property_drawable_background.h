@@ -246,6 +246,8 @@ public:
 private:
     bool stagingEmptyShape_ = false;
     bool emptyShape_ = false;
+    std::shared_ptr<Drawing::Path> stagingClipPath_;
+    std::shared_ptr<Drawing::Path> clipPath_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

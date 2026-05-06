@@ -371,7 +371,6 @@ constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::BORDER,
     RSDrawableSlot::PIXEL_STRETCH,
     RSDrawableSlot::RESTORE_FOREGROUND_FILTER,
-    RSDrawableSlot::FOREGROUND_SHADER,
 };
 constexpr std::array frameDirtyTypes = {
     RSDrawableSlot::CLIP_TO_FRAME,

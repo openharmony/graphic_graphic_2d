@@ -57,6 +57,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetForceUIFirst, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAncoFlags, Uint64, Uint32);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetHDRPresent, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetDarkColorMode, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSkipDraw, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSSurfaceNodeSetWatermarkEnabled, Uint64, String, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAbilityState, Uint64, RSSurfaceNodeAbilityState);
