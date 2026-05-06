@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,1205 +34,860 @@ protected:
         ASSERT_NE(fontCollection_, nullptr);
     }
 
+    static std::unique_ptr<Typography> BuildAndLayout(
+        const std::u16string& text, double fontSize, double layoutWidth,
+        bool punctuationOverflow, TextDirection direction = TextDirection::LTR,
+        TextAlign textAlign = TextAlign::START)
+    {
+        TypographyStyle style;
+        style.punctuationOverflow = punctuationOverflow;
+        style.textDirection = direction;
+        style.textAlign = textAlign;
+        TextStyle textStyle;
+        textStyle.fontSize = fontSize;
+
+        auto create = TypographyCreate::Create(style, fontCollection_);
+        if (!create) {
+            return nullptr;
+        }
+        create->PushStyle(textStyle);
+        create->AppendText(text);
+        auto typography = create->CreateTypography();
+        if (!typography) {
+            return nullptr;
+        }
+        typography->Layout(layoutWidth);
+        return typography;
+    }
+
+    static double MeasureTextWidth(const std::u16string& text, double fontSize)
+    {
+        auto typography = BuildAndLayout(text, fontSize, 10000.0, false);
+        if (!typography) {
+            return -1.0;
+        }
+        return typography->GetLongestLineWithIndent();
+    }
+
     static std::shared_ptr<FontCollection> fontCollection_;
+    static constexpr double FONT_SIZE = 20.0;
 };
 
 std::shared_ptr<FontCollection> PunctuationOverflowTest::fontCollection_ = nullptr;
 
 // ============================================================================
-// Group 1: Basic functionality verification
+// Group 1: Chinese punctuation types
 // ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest001
- * @tc.desc: Test single punctuation hanging - line count comparison
+ * @tc.desc: Chinese period (。), measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest001, TestSize.Level0)
 {
-    const std::u16string text = u"这是一行很长很长很长很长很长的文本。";
-    const double layoutWidth = 200.0;
-    const double fontSize = 20.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试。", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试。", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    // Create typography with punctuationOverflow disabled
-    TypographyStyle styleDisabled;
-    styleDisabled.punctuationOverflow = false;
-    TextStyle textStyleDisabled;
-    textStyleDisabled.fontSize = fontSize;
-
-    auto createDisabled = TypographyCreate::Create(styleDisabled, fontCollection_);
-    ASSERT_NE(createDisabled, nullptr);
-    createDisabled->PushStyle(textStyleDisabled);
-    createDisabled->AppendText(text);
-    auto typographyDisabled = createDisabled->CreateTypography();
-    ASSERT_NE(typographyDisabled, nullptr);
-    typographyDisabled->Layout(layoutWidth);
-    int lineCountDisabled = typographyDisabled->GetLineCount();
-
-    // Create typography with punctuationOverflow enabled
-    TypographyStyle styleEnabled;
-    styleEnabled.punctuationOverflow = true;
-    TextStyle textStyleEnabled;
-    textStyleEnabled.fontSize = fontSize;
-
-    auto createEnabled = TypographyCreate::Create(styleEnabled, fontCollection_);
-    ASSERT_NE(createEnabled, nullptr);
-    createEnabled->PushStyle(textStyleEnabled);
-    createEnabled->AppendText(text);
-    auto typographyEnabled = createEnabled->CreateTypography();
-    ASSERT_NE(typographyEnabled, nullptr);
-    typographyEnabled->Layout(layoutWidth);
-    int lineCountEnabled = typographyEnabled->GetLineCount();
-
-    // When punctuationOverflow is enabled, there should be fewer or equal lines
-    bool isValid = (lineCountEnabled <= lineCountDisabled);
-    EXPECT_EQ(isValid, false);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), textWidth);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest002
- * @tc.desc: Test single punctuation hanging - actual width comparison
+ * @tc.desc: Chinese comma (，), measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest002, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本。";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试，", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试，", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    double maxWidth = typography->GetMaxWidth();
-    double actualWidth = typography->GetActualWidth();
-
-    EXPECT_EQ(maxWidth, -1.0);
-    bool actualWidthValid = (actualWidth > 0.0);
-    EXPECT_EQ(actualWidthValid, false);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), textWidth);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest003
- * @tc.desc: Test two consecutive punctuations - forced wrap
+ * @tc.desc: Enumeration comma (、), measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest003, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本。。";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试、", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试、", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    int lineCount = typography->GetLineCount();
-    EXPECT_EQ(lineCount, -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), textWidth);
 }
-
-// ============================================================================
-// Group 2: Punctuation coverage
-// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest004
- * @tc.desc: Test period punctuation (。)
+ * @tc.desc: Semicolon (；), measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest004, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本。";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试；", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试；", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), textWidth);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest005
- * @tc.desc: Test comma punctuation (，)
+ * @tc.desc: Colon (：), measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest005, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本，";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试：", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试：", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), textWidth);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest006
- * @tc.desc: Test enumeration comma (、)
+ * @tc.desc: Question mark (？), measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest006, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本、";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试？", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试？", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), textWidth);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest007
- * @tc.desc: Test semicolon (；)
+ * @tc.desc: Exclamation mark (！), measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest007, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本；";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试！", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试！", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), textWidth);
 }
+
+// ============================================================================
+// Group 2: Non-hanging punctuation - should NOT trigger hanging
+// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest008
- * @tc.desc: Test colon (：)
+ * @tc.desc: Left parenthesis (（) at line end - should not hang, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest008, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本：";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试（", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试（", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 2);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest009
- * @tc.desc: Test question mark (？)
+ * @tc.desc: Left book title mark (《) at line end - should not hang, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest009, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本？";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试《", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试《", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 2);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest010
- * @tc.desc: Test exclamation mark (！)
+ * @tc.desc: Left bracket (【) at line end - should not hang, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest010, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本！";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试【", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试【", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 2);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest011
- * @tc.desc: Test paired quotation marks (""'')
+ * @tc.desc: Left double quotation mark (\u201C) at line end - should not hang.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest011, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本测试\"";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试\u201C", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试\u201C", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 2);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest012
- * @tc.desc: Test parentheses (（))
+ * @tc.desc: Middle dot (·) at line end - should not hang.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest012, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本（测试）";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试·", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试·", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 2);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest013
- * @tc.desc: Test book title marks (《》)
+ * @tc.desc: Dash (——) at line end - should not hang.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest013, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本《测试》";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试——", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试——", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 2);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 // ============================================================================
-// Group 3: Text direction tests
+// Group 3: Different languages
 // ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest014
- * @tc.desc: Test LTR text with Chinese punctuation
+ * @tc.desc: Japanese text with period (。), measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest014, TestSize.Level0)
 {
-    const std::u16string text = u"Hello World Hello Test。";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"テスト文章テスト", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"テスト文章テスト。", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"テスト文章テスト。", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    style.textDirection = TextDirection::LTR;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), textWidth);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest015
- * @tc.desc: Test RTL text with punctuation
+ * @tc.desc: Korean text with period, measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest015, TestSize.Level0)
 {
-    const std::u16string text = u"\u0627\u0644\u0639\u0631\u0628\u064A\u0629\u3002"; // العربية。
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"테스트 문장 테스트", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"테스트 문장 테스트.", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"테스트 문장 테스트.", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    style.textDirection = TextDirection::RTL;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
-
-// ============================================================================
-// Group 4: Boundary condition tests
-// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest016
- * @tc.desc: Test critical width boundary
+ * @tc.desc: English text with period, measure text width then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest016, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本。";
-    const double layoutWidth = 100.0;
-    const double fontSize = 20.0;
+    double textWidth = MeasureTextWidth(u"Hello World test", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"Hello World test.", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"Hello World test.", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest017
- * @tc.desc: Test insufficient width - punctuation must wrap
+ * @tc.desc: Mixed Chinese/English text with Chinese period, measure then compare.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest017, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本。";
-    const double layoutWidth = 50.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"Hello测试Test", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"Hello测试Test。", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"Hello测试Test。", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest018
- * @tc.desc: Test multi-line text with punctuation at end of each line
+ * @tc.desc: Chinese text with right quotation mark (\u201D), measure then compare.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest018, TestSize.Level0)
 {
-    const std::u16string text = u"第一行文本，第二行文本，第三行文本，";
-    const double layoutWidth = 120.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试\u201D", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试\u201D", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
-    auto lineMetrics = typography->GetLineMetrics();
-    EXPECT_EQ(lineMetrics.size(), static_cast<size_t>(-1));
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
+
+// ============================================================================
+// Group 4: LTR and RTL text direction
+// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest019
- * @tc.desc: Test adequate width - single line display
+ * @tc.desc: LTR direction with Chinese period, measure text width then compare.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest019, TestSize.Level0)
 {
-    const std::u16string text = u"测试。";
-    const double layoutWidth = 500.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
-
-// ============================================================================
-// Group 5: Composite scenario tests
-// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest020
- * @tc.desc: Test mixed Chinese and English text
+ * @tc.desc: RTL Arabic text with Arabic comma (\u060C), measure then compare.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest020, TestSize.Level0)
 {
-    const std::u16string text = u"Hello测试World。";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"العربية", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"العربية،", FONT_SIZE, textWidth, true, TextDirection::RTL);
+    auto typDisabled = BuildAndLayout(
+        u"العربية،", FONT_SIZE, textWidth, false, TextDirection::RTL);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
-
-// ============================================================================
-// Group 6: Exception scenario tests
-// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest021
- * @tc.desc: Test empty text - should not crash
+ * @tc.desc: RTL Arabic text with Arabic question mark (\u061F), measure then compare.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest021, TestSize.Level0)
 {
-    const std::u16string text = u"";
-    const double layoutWidth = 100.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"العربية", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"العربية؟", FONT_SIZE, textWidth, true, TextDirection::RTL);
+    auto typDisabled = BuildAndLayout(
+        u"العربية؟", FONT_SIZE, textWidth, false, TextDirection::RTL);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest022
- * @tc.desc: Test punctuation only text
+ * @tc.desc: RTL Hebrew text with period, measure then compare.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest022, TestSize.Level0)
 {
-    const std::u16string text = u"。";
-    const double layoutWidth = 50.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"עברית", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"עברית.", FONT_SIZE, textWidth, true, TextDirection::RTL);
+    auto typDisabled = BuildAndLayout(
+        u"עברית.", FONT_SIZE, textWidth, false, TextDirection::RTL);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest023
- * @tc.desc: Test punctuation at line start - should not trigger hanging
+ * @tc.desc: LTR English with Chinese period at end, measure then compare.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest023, TestSize.Level0)
 {
-    const std::u16string text = u"。测试文本";
-    const double layoutWidth = 100.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"Hello World Test", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"Hello World Test。", FONT_SIZE, textWidth, true, TextDirection::LTR);
+    auto typDisabled = BuildAndLayout(
+        u"Hello World Test。", FONT_SIZE, textWidth, false, TextDirection::LTR);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
+
+// ============================================================================
+// Group 5: Edge cases
+// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest024
- * @tc.desc: Test toggle between enabled and disabled
+ * @tc.desc: Two trailing punctuations (。。), measure then compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest024, TestSize.Level0)
 {
-    const std::u16string text = u"测试文本测试文本测试文本。";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试。。", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试。。", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    // Test with punctuationOverflow disabled
-    TypographyStyle styleDisabled;
-    styleDisabled.punctuationOverflow = false;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 
-    auto createDisabled = TypographyCreate::Create(styleDisabled, fontCollection_);
-    ASSERT_NE(createDisabled, nullptr);
-    createDisabled->PushStyle(textStyle);
-    createDisabled->AppendText(text);
-    auto typographyDisabled = createDisabled->CreateTypography();
-    ASSERT_NE(typographyDisabled, nullptr);
-    typographyDisabled->Layout(layoutWidth);
-
-    // Test with punctuationOverflow enabled
-    TypographyStyle styleEnabled;
-    styleEnabled.punctuationOverflow = true;
-
-    auto createEnabled = TypographyCreate::Create(styleEnabled, fontCollection_);
-    ASSERT_NE(createEnabled, nullptr);
-    createEnabled->PushStyle(textStyle);
-    createEnabled->AppendText(text);
-    auto typographyEnabled = createEnabled->CreateTypography();
-    ASSERT_NE(typographyEnabled, nullptr);
-    typographyEnabled->Layout(layoutWidth);
-
-    EXPECT_EQ(typographyDisabled->GetLineCount(), -1);
-    EXPECT_EQ(typographyEnabled->GetLineCount(), -1);
+    auto metricsEnabled = typEnabled->GetLineMetrics();
+    auto metricsDisabled = typDisabled->GetLineMetrics();
+    EXPECT_EQ(metricsEnabled.size(), 0u);
+    EXPECT_EQ(metricsDisabled.size(), 0u);
+    EXPECT_DOUBLE_EQ(metricsEnabled[0].width, 0.0);
+    EXPECT_DOUBLE_EQ(metricsDisabled[0].width, 0.0);
 }
-
-// ============================================================================
-// Group 7: Multi-line and hard line break tests
-// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest025
- * @tc.desc: Test multi-line text with punctuation at end of each line
+ * @tc.desc: No trailing punctuation - both enabled and disabled should produce same result.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest025, TestSize.Level0)
 {
-    // Multiple lines, each ending with punctuation
-    const std::u16string text = u"第一行很长很长的文本内容。第二行很长很长的文本内容。第三行很长很长的文本内容。";
-    const double layoutWidth = 150.0;
-    const double fontSize = 16.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本测试", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 1);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest026
- * @tc.desc: Test hard newline (\n) with punctuation at line end
+ * @tc.desc: Punctuation at start of text - not a trailing hanging scenario.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest026, TestSize.Level0)
 {
-    // Text with explicit newline character and punctuation at end
-    const std::u16string text = u"测试文本内容。\n第二行测试内容。";
-    const double layoutWidth = 200.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"。测试文本测试", FONT_SIZE, textWidth, true);
+    auto typDisabled = BuildAndLayout(u"。测试文本测试", FONT_SIZE, textWidth, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest027
- * @tc.desc: Test hard newline (\n) with punctuation before newline
+ * @tc.desc: Very wide layout - text fits on one line, no difference.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest027, TestSize.Level0)
 {
-    // Punctuation followed by hard newline - should not hang because of newline
-    const std::u16string text = u"测试文本内容。\n第二行测试内容";
-    const double layoutWidth = 200.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本。", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(u"测试文本。", FONT_SIZE, textWidth + 100.0, true);
+    auto typDisabled = BuildAndLayout(u"测试文本。", FONT_SIZE, textWidth + 100.0, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 1);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest028
- * @tc.desc: Test multiple hard newlines with punctuation
+ * @tc.desc: Very narrow layout - text wraps heavily.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest028, TestSize.Level0)
 {
-    // Multiple hard newlines with punctuation
-    const std::u16string text = u"第一行。\n第二行，\n第三行；";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    auto typEnabled = BuildAndLayout(u"测试文本测试文本。", FONT_SIZE, 30.0, true);
+    auto typDisabled = BuildAndLayout(u"测试文本测试文本。", FONT_SIZE, 30.0, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest029
- * @tc.desc: Test hard newline in middle of long text
+ * @tc.desc: Empty text - should not crash.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest029, TestSize.Level0)
 {
-    // Long text with hard newline in the middle
-    const std::u16string text = u"这是一段很长很长的文本内容需要换行显示。\n这是第二段很长很长的文本内容也需要换行显示。";
-    const double layoutWidth = 200.0;
-    const double fontSize = 16.0;
+    auto typEnabled = BuildAndLayout(u"", FONT_SIZE, 100.0, true);
+    auto typDisabled = BuildAndLayout(u"", FONT_SIZE, 100.0, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
-
-// ============================================================================
-// Group 8: Ellipsis scenario tests
-// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest030
- * @tc.desc: Test Chinese ellipsis (six dots) at line end
+ * @tc.desc: Punctuation-only text, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest030, TestSize.Level0)
 {
-    // Chinese ellipsis (six dots: ……)
-    const std::u16string text = u"测试文本测试文本测试文本……";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    auto typEnabled = BuildAndLayout(u"。", FONT_SIZE, 100.0, true);
+    auto typDisabled = BuildAndLayout(u"。", FONT_SIZE, 100.0, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 1);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest031
- * @tc.desc: Test single ellipsis character (……) hanging behavior
+ * @tc.desc: Hard newline with punctuation before \n, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest031, TestSize.Level0)
 {
-    // Single ellipsis as punctuation
-    const std::u16string text = u"测试文本……";
-    const double layoutWidth = 100.0;
-    const double fontSize = 18.0;
+    auto typEnabled = BuildAndLayout(u"测试文本。\n第二行测试", FONT_SIZE, 500.0, true);
+    auto typDisabled = BuildAndLayout(u"测试文本。\n第二行测试", FONT_SIZE, 500.0, false);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 2);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
+
+// ============================================================================
+// Group 6: Text alignment scenarios
+// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest032
- * @tc.desc: Test text ending with period followed by ellipsis
+ * @tc.desc: LEFT alignment with trailing period, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest032, TestSize.Level0)
 {
-    // Period followed by ellipsis
-    const std::u16string text = u"测试文本测试文本。……";
-    const double layoutWidth = 120.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::LEFT);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::LEFT);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest033
- * @tc.desc: Test ellipsis with maxLines constraint
+ * @tc.desc: RIGHT alignment with trailing period, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest033, TestSize.Level0)
 {
-    // Ellipsis with maxLines constraint
-    const std::u16string text = u"测试文本测试文本测试文本测试文本……";
-    const double layoutWidth = 100.0;
-    const double fontSize = 18.0;
-    const size_t maxLines = 2;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::RIGHT);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::RIGHT);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    style.maxLines = maxLines;
-    style.ellipsis = u"\u2026";  // Standard ellipsis character
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
-    EXPECT_EQ(typography->DidExceedMaxLines(), false);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest034
- * @tc.desc: Test ellipsis in middle of text line
+ * @tc.desc: CENTER alignment with trailing period, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest034, TestSize.Level0)
 {
-    // Ellipsis in middle, not at line end
-    const std::u16string text = u"测试文本……继续内容";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::CENTER);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::CENTER);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
-
-// ============================================================================
-// Group 9: Composite multi-line scenario tests
-// ============================================================================
 
 /*
  * @tc.name: PunctuationOverflowTest035
- * @tc.desc: Test multi-line paragraph with mixed punctuation types
+ * @tc.desc: JUSTIFY alignment with trailing period, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest035, TestSize.Level0)
 {
-    // Multiple lines with different punctuation types at end
-    const std::u16string text = u"第一行内容很长，需要换行。第二行内容也很长，继续测试。第三行内容再次展示！";
-    const double layoutWidth = 120.0;
-    const double fontSize = 16.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::JUSTIFY);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::JUSTIFY);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    int lineCount = typography->GetLineCount();
-    EXPECT_EQ(lineCount, -1);
-    // Verify we can get line metrics for each line
-    auto lineMetrics = typography->GetLineMetrics();
-    EXPECT_EQ(lineMetrics.size(), static_cast<size_t>(-1));
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest036
- * @tc.desc: Test very long text spanning many lines with punctuation
+ * @tc.desc: START alignment with trailing period, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest036, TestSize.Level0)
 {
-    // Very long text that spans multiple lines
-    const std::u16string text =
-        u"这是一段非常非常长的文本内容，它包含了很多字和标点符号。"
-        u"这段文本会跨越很多行，每一行都可能以不同的标点符号结尾。"
-        u"我们测试第一行，测试第二行，测试第三行，"
-        u"测试第四行，测试第五行，测试第六行。";
-    const double layoutWidth = 100.0;
-    const double fontSize = 16.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::START);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::START);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
-    // Verify each line has valid metrics
-    auto lineMetrics = typography->GetLineMetrics();
-    for (size_t i = 0; i < lineMetrics.size(); ++i) {
-        bool hasValidWidth = (lineMetrics[i].width > 0.0);
-        EXPECT_EQ(hasValidWidth, true);    }
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest037
- * @tc.desc: Test hard newline mixed with soft wrapping
+ * @tc.desc: END alignment with trailing period, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest037, TestSize.Level0)
 {
-    // Mix of hard newlines and soft wrapping
-    const std::u16string text = u"第一段内容很长需要软换行。\n第二段内容很短。\n第三段内容又很长需要软换行继续显示。";
-    const double layoutWidth = 120.0;
-    const double fontSize = 16.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::END);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::END);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest038
- * @tc.desc: Test punctuation hanging with ellipsis and newline combination
+ * @tc.desc: JUSTIFY alignment with RTL direction and trailing period, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest038, TestSize.Level0)
 {
-    // Ellipsis followed by hard newline
-    const std::u16string text = u"测试文本内容……\n第二行继续内容。";
-    const double layoutWidth = 150.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::RTL, TextAlign::JUSTIFY);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::RTL, TextAlign::JUSTIFY);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest039
- * @tc.desc: Test multiple consecutive ellipsis
+ * @tc.desc: CENTER alignment with RTL direction and trailing period, compare enabled vs disabled.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest039, TestSize.Level0)
 {
-    // Multiple consecutive ellipsis (should wrap)
-    const std::u16string text = u"测试文本…………";
-    const double layoutWidth = 100.0;
-    const double fontSize = 18.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, true, TextDirection::RTL, TextAlign::CENTER);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。", FONT_SIZE, textWidth, false, TextDirection::RTL, TextAlign::CENTER);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 /*
  * @tc.name: PunctuationOverflowTest040
- * @tc.desc: Test paragraph with varying line lengths and punctuation
+ * @tc.desc: JUSTIFY alignment with multi-line text and multiple trailing punctuations.
  * @tc.type: FUNC
  */
 HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest040, TestSize.Level0)
 {
-    // Lines with different lengths, some ending with punctuation
-    const std::u16string text = u"短。中等长度的文本内容。很长的文本内容需要换行显示，测试标点悬挂功能。极短。";
-    const double layoutWidth = 120.0;
-    const double fontSize = 16.0;
+    double textWidth = MeasureTextWidth(u"测试文本测试", FONT_SIZE);
+    auto typEnabled = BuildAndLayout(
+        u"测试文本测试。测试文本。", FONT_SIZE, textWidth, true, TextDirection::LTR, TextAlign::JUSTIFY);
+    auto typDisabled = BuildAndLayout(
+        u"测试文本测试。测试文本。", FONT_SIZE, textWidth, false, TextDirection::LTR, TextAlign::JUSTIFY);
+    ASSERT_NE(typEnabled, nullptr);
+    ASSERT_NE(typDisabled, nullptr);
 
-    TypographyStyle style;
-    style.punctuationOverflow = true;
-    TextStyle textStyle;
-    textStyle.fontSize = fontSize;
-
-    auto create = TypographyCreate::Create(style, fontCollection_);
-    ASSERT_NE(create, nullptr);
-    create->PushStyle(textStyle);
-    create->AppendText(text);
-    auto typography = create->CreateTypography();
-    ASSERT_NE(typography, nullptr);
-    typography->Layout(layoutWidth);
-
-    EXPECT_EQ(typography->GetLineCount(), -1);
-    // Verify width variation across lines
-    auto lineMetrics = typography->GetLineMetrics();
-    bool hasMetrics = (lineMetrics.size() > 0);
-    EXPECT_EQ(hasMetrics, true);
+    EXPECT_EQ(typEnabled->GetLineCount(), 0);
+    EXPECT_EQ(typDisabled->GetLineCount(), 0);
+    EXPECT_DOUBLE_EQ(typEnabled->GetLongestLineWithIndent(), 0.0);
+    EXPECT_DOUBLE_EQ(typDisabled->GetLongestLineWithIndent(), 0.0);
 }
 
 } // namespace Rosen
