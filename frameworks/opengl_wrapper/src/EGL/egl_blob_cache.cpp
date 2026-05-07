@@ -12,7 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "egl_blob_cache.h"
+#include <atomic>
+ #include "egl_blob_cache.h"
 #include "wrapper_log.h"
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -54,6 +55,8 @@ namespace {
         return result < a;
 #endif
     }
+    static std::mutex blobCacheMutex_;
+    std::atomic<bool> saveSubThreadStatus_ = false;
 }
 
 BlobCache* BlobCache::Get()
@@ -96,6 +99,7 @@ BlobCache::BlobCache()
     initStatus_ = false;
     fileName_ = std::string("/blobShader");
     saveStatus_ = false;
+    saveSubThreadStatus_ = false;
     blobSize_ = 0;
 }
 
@@ -108,6 +112,7 @@ BlobCache::~BlobCache()
 
 void BlobCache::Terminate()
 {
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
     if (blobCache_) {
         blobCache_->WriteToDisk();
         delete blobCache_;
@@ -152,13 +157,19 @@ EGLsizeiANDROID BlobCache::GetBlobFunc(const void *key, EGLsizeiANDROID keySize,
 void BlobCache::SetBlobLock(const void* key, EGLsizeiANDROID keySize, const void* value,
                             EGLsizeiANDROID valueSize)
 {
-    std::lock_guard<std::mutex> lock(blobmutex_);
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
+    if (!blobCache_) {
+        return;
+    }
     SetBlob(key, keySize, value, valueSize);
 }
 EGLsizeiANDROID BlobCache::GetBlobLock(const void *key, EGLsizeiANDROID keySize, void *value,
                                        EGLsizeiANDROID valueSize)
 {
-    std::lock_guard<std::mutex> lock(blobmutex_);
+    std::lock_guard<std::mutex> lock(blobCacheMutex_);
+    if (!blobCache_) {
+        return 0;
+    }
     return GetBlob(key, keySize, value, valueSize);
 }
 
@@ -208,14 +219,15 @@ void BlobCache::SetBlob(const void *key, EGLsizeiANDROID keySize, const void *va
     mBlobMap_.emplace(keyBlob, valueBlob);
     MoveToFront(keyBlob);
     ++blobSize_;
-    if (!saveStatus_) {
-        saveStatus_ = true;
-        std::thread deferSaveThread([this]() {
+    if (!saveSubThreadStatus_) {
+        saveSubThreadStatus_ = true;
+        std::thread deferSaveThread([]() {
             sleep(DEFER_SAVE_MIN);
+            std::lock_guard<std::mutex> lock(blobCacheMutex_);
             if (blobCache_) {
                 blobCache_->WriteToDisk();
             }
-            saveStatus_ = false;
+            saveSubThreadStatus_ = false;
         });
         deferSaveThread.detach();
     }
@@ -316,7 +328,9 @@ size_t BlobCache::GetCacheSize() const
 
 void BlobCache::WriteToDisk()
 {
-    std::lock_guard<std::mutex> lock(blobmutex_);
+    if (!blobCache_) {
+        return;
+    }
     struct stat dirStat;
     if (stat(g_dirInfo.cacheDir.c_str(), &dirStat) != 0) {
         return;
