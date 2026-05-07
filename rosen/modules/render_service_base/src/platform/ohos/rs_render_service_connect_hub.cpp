@@ -222,7 +222,7 @@ void RSRenderServiceConnectHub::AddRenderProcessConnectionToken(sptr<RSIConnecti
         return;
     }
     std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
-    if (connRenderProcesses_.find(token) !+ connRenderProcesses_.end()) {
+    if (connRenderProcesses_.find(token) != connRenderProcesses_.end()) {
         return;
     }
     connRenderProcesses_[token] = renderPrecess;
