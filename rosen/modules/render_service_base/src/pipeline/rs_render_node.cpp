@@ -5204,7 +5204,7 @@ const RSRenderNode::ModifiersNGMap& RSRenderNode::GetAllModifiers() const
 bool RSRenderNode::HasValidDrawCmd() const
 {
     // modifiers with draw cmdlist, such as CONTENT_STYLE, TRANSITION_STYLE, BACKGROUND_STYLE, FOREGROUND_STYLE,
-    // OVERLAY_STYLE and NODE_MODIFIER, should judge wheter there is valid cmdlist in modifier.
+    // OVERLAY_STYLE and NODE_MODIFIER, should judge whether there is valid cmdlist in modifier.
     for (uint16_t type = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSITION_STYLE);
         type <= static_cast<uint16_t>(ModifierNG::RSModifierType::NODE_MODIFIER); type++) {
         const auto& modifierContainer = GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
@@ -5216,7 +5216,7 @@ bool RSRenderNode::HasValidDrawCmd() const
         }
     }
 
-    // oter modifiers
+    // other modifiers
     bool ret = !GetModifiersNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER).empty() ||
                !GetModifiersNG(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR).empty() ||
                !GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS).empty() ||
@@ -5247,7 +5247,7 @@ bool RSRenderNode::HasDrawCmdModifiers() const
                !GetModifiersNG(ModifierNG::RSModifierType::CHILDREN).empty();
     if (!ret) {
         const auto& clipToFrameModifiers = GetModifiersNG(ModifierNG::RSModifierType::CLIP_TO_FRAME);
-        for (auto modifier : clipToFrameModifiers) {
+        for (const auto& modifier : clipToFrameModifiers) {
             if (modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
                 ret = true;
                 break;
