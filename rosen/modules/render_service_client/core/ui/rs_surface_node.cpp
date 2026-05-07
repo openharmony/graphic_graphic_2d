@@ -129,9 +129,16 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
         } else {
             AddCommand(command, isWindow);
         }
-        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
-            GetId(), rsUIContext->GetConnectToRender());
-        AddCommand(command, isWindow);
+#ifdef ROSEN_OHOS
+        if (rsUIContext != nullptr) {
+            command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
+                GetId(), rsUIContext->GetConnectToRender());
+            AddCommand(command, isWindow);
+        } else {
+            ROSEN_LOGE("RSSurfaceNode::SendDataToRender,"
+                "RSSurfaceNodeConnectToNodeInRenderService rsUIContext is nullptr");
+        }
+#endif
  
         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
