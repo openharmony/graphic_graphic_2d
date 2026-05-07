@@ -36,7 +36,7 @@ The `callback` sub-module provides two-level event callback dispatch for screen 
 │  │         │  └── OnHwcEvent                                   │                 │ │
 │  │         └──────────────────────────────────────────────────┘                 │ │
 │  │         ┌──────────────────────────────────────────────────┐                 │ │
-│  │         │  agentListeners_ (multiple, DMS/SCB etc.)         │                 │ │
+│  │         │  agentListeners_ (multiple, DMS/BootAnimation etc.)         │                 │ │
 │  │         │  ├── OnScreenConnected(id, reason, remoteConn)    │                 │ │
 │  │         │  ├── OnScreenDisconnected(id, reason)             │                 │ │
 │  │         │  ├── OnScreenSwitchingNotify(status)              │                 │ │
