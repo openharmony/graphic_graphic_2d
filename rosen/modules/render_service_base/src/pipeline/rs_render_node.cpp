@@ -3391,10 +3391,13 @@ void RSRenderNode::UpdateShadowRect()
         RectI shadowRect;
         auto rRect = GetRenderProperties().GetRRect();
         RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rRect, false, false);
-        stagingRenderParams_->SetShadowRect(
-            Drawing::Rect(static_cast<float>(shadowRect.GetLeft()), static_cast<float>(shadowRect.GetTop()),
-                static_cast<float>(shadowRect.GetRight()), static_cast<float>(shadowRect.GetBottom())));
-        RS_OPTIONAL_TRACE_NAME_FMT("UpdateShadowRect id:%llu shadowRect:%s", GetId(), shadowRect.ToString().c_str());
+        stagingRenderParams_->SetShadowRect(Drawing::Rect(
+            static_cast<float>(shadowRect.GetLeft()),
+            static_cast<float>(shadowRect.GetTop()),
+            static_cast<float>(shadowRect.GetRight()),
+            static_cast<float>(shadowRect.GetBottom())));
+        RS_OPTIONAL_TRACE_NAME_FMT("UpdateShadowRect id:%llu shadowRect:%s",
+            GetId(), shadowRect.ToString().c_str());
     } else {
         stagingRenderParams_->SetShadowRect(Drawing::Rect());
     }
