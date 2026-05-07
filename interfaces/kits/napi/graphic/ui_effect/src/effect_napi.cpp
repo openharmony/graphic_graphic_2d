@@ -216,7 +216,7 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender wrap fail"));
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.createBrightnessBlender, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.createBrightnessBlender", 1);
     return nativeObj;
 }
 
@@ -262,7 +262,7 @@ napi_value EffectNapi::CreateHdrBrightnessBlender(napi_env env, napi_callback_in
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender wrap fail"));
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.createHdrBrightnessBlender, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.createHdrBrightnessBlender", 1);
     return nativeObj;
 }
 
@@ -309,7 +309,7 @@ napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
         UIEFFECT_LOG_E("EffectNapi CreateBorderLight napi_unwrap fail"));
     visualEffectObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.borderLight, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.borderLight", 1);
     return thisVar;
 }
 
@@ -789,7 +789,7 @@ napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_inf
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && effectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi SetBackgroundColorBlender effectObj is nullptr"));
     effectObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.backgroundColorBlender, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.backgroundColorBlender", 1);
     return thisVar;
 }
 
@@ -883,7 +883,7 @@ napi_value EffectNapi::CreateColorGradientEffect(napi_env env, napi_callback_inf
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateColorGradientEffect napi_unwrap fail"));
     visualEffectObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.VisualEffect.colorGradient, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.VisualEffect.colorGradient", 1);
     return thisVar;
 }
 
@@ -1180,7 +1180,7 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect napi_unwrap fail"));
     visualEffectObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.liquidMaterial, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.liquidMaterial", 1);
     return thisVar;
 }
 

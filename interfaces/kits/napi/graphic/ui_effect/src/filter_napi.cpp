@@ -265,7 +265,7 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     para->SetRadius(radius);
     filterObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.blur, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.blur", 1);
     return _this;
 }
 
@@ -354,7 +354,7 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetPixelStretch napi_unwrap fail"));
     filterObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.pixelStretch, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.pixelStretch", 1);
     return thisVar;
 }
 
@@ -418,7 +418,7 @@ napi_value FilterNapi::SetBezierWarp(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetBezierWarp napi_unwrap fail"));
     filterObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.bezierWarp, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.bezierWarp", 1);
     return thisVar;
 }
 
@@ -484,7 +484,7 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetContentLight napi_unwrap fail"));
     filterObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.contentLight, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.contentLight", 1);
     return thisVar;
 }
 
@@ -735,7 +735,7 @@ napi_value FilterNapi::SetRadiusGradientBlurPara(napi_env env, napi_callback_inf
         FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara napi_unwrap fail"));
     filterObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.radiusGradientBlur, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.radiusGradientBlur", 1);
     return thisVar;
 }
 
@@ -819,7 +819,7 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetWaterRipple napi_unwrap fail"));
     filterObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.waterRipple, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.waterRipple", 1);
     return thisVar;
 }
 
@@ -860,7 +860,7 @@ napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetWaterRipple napi_unwrap fail"));
     filterObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.flyInFlyOutEffect, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.flyInFlyOutEffect", 1);
     return thisVar;
 }
 
@@ -959,7 +959,7 @@ napi_value FilterNapi::SetColorGradient(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetColorGradient napi_unwrap fail"));
     filterObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.colorGradient, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.colorGradient", 1);
     return thisVar;
 }
 
@@ -996,7 +996,7 @@ napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr, FILTER_LOG_E("FilterNapi SetDistort para is nullptr"));
     para->SetDistortionK(distortionK);
     filterObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.distort, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.distort", 1);
     return thisVar;
 }
 
@@ -1037,7 +1037,7 @@ napi_value FilterNapi::SetDisplacementDistort(napi_env env, napi_callback_info i
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetDisplacementDistort unwrap filterObj fail"));
     filterObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.displacementDistort, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.displacementDistort", 1);
     return thisVar;
 }
 
@@ -1089,7 +1089,7 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetEdgeLight unwrap filterObj fail"));
     filterObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.edgeLight, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.edgeLight", 1);
     return thisVar;
 }
 
@@ -1148,7 +1148,7 @@ napi_value FilterNapi::SetMaskDirectionLight(napi_env env, napi_callback_info in
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, thisVar,
         FILTER_LOG_E("FilterNapi SetMaskDirectionLight unwrap filterObj fail"));
     filterObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.directionLight, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.directionLight", 1);
     return thisVar;
 }
 
@@ -1197,7 +1197,7 @@ napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info in
         para != nullptr, nullptr, FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio para is nullptr"));
     para->SetBrightnessRatio(static_cast<float>(brightnessRatio));
     filterObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.hdrBrightnessRatio, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.hdrBrightnessRatio", 1);
     return thisVar;
 }
 
@@ -1252,7 +1252,7 @@ napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetMaskTransition napi_unwrap fail"));
     filterObj->AddPara(para);
 
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.maskTransition, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.maskTransition", 1);
     return thisVar;
 }
 
@@ -1330,7 +1330,7 @@ napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetMaskDispersion unwrap filterObj fail"));
     filterObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.maskDispersion, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.maskDispersion", 1);
     return thisVar;
 }
 
@@ -1374,7 +1374,7 @@ napi_value FilterNapi::SetVariableRadiusBlur(napi_env env, napi_callback_info in
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetVariableRadiusBlur napi_unwrap fail"));
     filterObj->AddPara(para);
-    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.variableRadiusBlur, 1");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.variableRadiusBlur", 1);
     return thisVar;
 }
 
