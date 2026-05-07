@@ -757,10 +757,10 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
     if (surfaceId == 0) {
         auto rsUIContext = GetRSUIContext();
         if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
-            ROSEN_LOGW("RSDisplayNode::CreateNode uiContext is nullptr");
+            ROSEN_LOGW("RSSurfaceNode::CreateNode uiContext is nullptr");
             std::shared_ptr<RSRenderInterface> rsRenderInterface =
                 std::shared_ptr<RSRenderInterface>(new RSRenderInterface());
-            rsRenderInterface->CreateNodeAndSurface(config, unobscured);
+            surface_ = rsRenderInterface->CreateNodeAndSurface(config, unobscured);
         } else {
             surface_ = rsUIContext->GetRSRenderInterface()->CreateNodeAndSurface(config, unobscured);
         }
