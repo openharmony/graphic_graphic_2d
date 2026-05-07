@@ -388,6 +388,7 @@ napi_value MaskNapi::CreateWaveGradientMask(napi_env env, napi_callback_info inf
     UIEFFECT_NAPI_CHECK_RET_D(ParseWaveGradientMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateWaveGradientMask parsing mask input fail."));
     MASK_LOG_I("MaskNapi CreateWaveGradientMask parsing mask success.");
+    API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createWaveGradientMask", 1);
     return Create(env, maskPara);
 }
 
@@ -412,6 +413,7 @@ napi_value MaskNapi::CreateRippleMask(napi_env env, napi_callback_info info)
     auto maskPara = std::make_shared<RippleMaskPara>();
     UIEFFECT_NAPI_CHECK_RET_D(ParseRippleMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateRippleMask parsing mask input fail."));
+    API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createRippleMask", 1);
     return Create(env, maskPara);
 }
 
@@ -435,6 +437,7 @@ napi_value MaskNapi::CreateRadialGradientMask(napi_env env, napi_callback_info i
     auto maskPara = std::make_shared<RadialGradientMaskPara>();
     UIEFFECT_NAPI_CHECK_RET_D(ParseRadialGradientMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateRadialGradientMask parsing mask input fail."));
+    API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createRadialGradientMask", 1);
     return Create(env, maskPara);
 }
 
@@ -500,6 +503,7 @@ napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
     napi_value thisVar = nullptr;
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     if (status == napi_ok && realArgc == NUM_1) {
+        API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createPixelMapMask", 1);
         return CreateImageMask(env, info);
     }
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
@@ -515,6 +519,7 @@ napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createPixelMapMask", 1);
     return Create(env, para);
 }
 
@@ -602,6 +607,7 @@ napi_value MaskNapi::CreateUseEffectMask(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Mask.createUseEffectMask", 1);
     return Create(env, para);
 }
 
