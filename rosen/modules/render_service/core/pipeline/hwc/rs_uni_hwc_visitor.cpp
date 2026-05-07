@@ -538,9 +538,6 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
                 hwcNodePtr->ResetMakeImageState();
             }
         }
-        if (RSSystemParameters::GetArsrPreEnabled() && surfaceNode->CheckIfDoArsrPre()) {
-            surfaceNode->SetArsrTag(true);
-        }
         UpdateHwcNodeEnableByGlobalFilter(surfaceNode);
         surfaceNode->ResetNeedCollectHwcNode();
         const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
