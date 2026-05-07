@@ -42,6 +42,11 @@ namespace Rosen {
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
 #endif
 
+RSRenderInterface::RSRenderInterface()
+{
+    renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>();
+}
+
 RSRenderInterface::RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote)
 {
     renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);

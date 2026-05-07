@@ -1,0 +1,584 @@
+diff --git a/rosen/modules/render_service/core/transaction/rs_connect_to_render_process.cpp b/rosen/modules/render_service/core/transaction/rs_connect_to_render_process.cpp
+index add6e8c8254f683f775f729e8652f60ac7e9a32e..d5b166d018108bf155dbe0192ed51464bb442651 100644
+--- a/rosen/modules/render_service/core/transaction/rs_connect_to_render_process.cpp
++++ b/rosen/modules/render_service/core/transaction/rs_connect_to_render_process.cpp
+@@ -40,5 +40,10 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnecti
+     renderPipelineAgent_->AddConnection(tokenObj, newRenderConn);
+     return newRenderConn;
+ }
++
++bool RSConnectToRenderProcess::RemoveConnection(const sptr<RSIConnectionToken>& token)
++{
++    return renderPipelineAgent_->RemoveConnection(token);
++}
+ } // namespace Rosen
+ } // namespace OHOS
+\ No newline at end of file
+diff --git a/rosen/modules/render_service/core/transaction/rs_connect_to_render_process.h b/rosen/modules/render_service/core/transaction/rs_connect_to_render_process.h
+index 8e748be2bda6a22d8c999ce2e5a134364b0a7a0c..dab0029b3adc30fe4c3d4e2540293ee28b777d41 100644
+--- a/rosen/modules/render_service/core/transaction/rs_connect_to_render_process.h
++++ b/rosen/modules/render_service/core/transaction/rs_connect_to_render_process.h
+@@ -33,7 +33,7 @@ public:
+ private:
+     sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token,
+         bool needRefresh) override;
+-
++    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
+     const sptr<RSRenderPipelineAgent> renderPipelineAgent_;
+ };
+ } // namespace Rosen
+diff --git a/rosen/modules/render_service/core/transaction/zidl/rs_connect_to_render_process_stub.cpp b/rosen/modules/render_service/core/transaction/zidl/rs_connect_to_render_process_stub.cpp
+index 13f1c76fbffa0be5c510dd627ac8294b3ddb0db0..2e84d7ab9faefe4c8aa05675c7400eea98a145b3 100644
+--- a/rosen/modules/render_service/core/transaction/zidl/rs_connect_to_render_process_stub.cpp
++++ b/rosen/modules/render_service/core/transaction/zidl/rs_connect_to_render_process_stub.cpp
+@@ -61,6 +61,39 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
+             }
+             break;
+         }
++        case static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::REMOVE_CONNECTION) : {
++            auto interfaceToken = data.ReadInterfaceToken();
++            if (interfaceToken != RSIConnectToRenderProcess::GetDescriptor()) {
++                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION ReadInterfaceToken failed");
++                ret = ERR_INVALID_STATE;
++                break;
++            }
++            auto remoteObj = data.ReadRemoteObject();
++            if (remoteObj == nullptr) {
++                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION Read remoteObj failed!");
++                ret = ERR_NULL_OBJECT;
++                break;
++            }
++            if (!remoteObj->IsProxyObject()) {
++                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION remoteObj !IsProxyObject() failed!");
++                ret = ERR_UNKNOWN_OBJECT;
++                break;
++            }
++            auto token = iface_cast<RSIConnectionToken>(remoteObj);
++            if (token == nullptr) {
++                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION RSIConnectionToken failed!");
++                ret = ERR_UNKNOWN_OBJECT;
++                break;
++            }
++            
++            auto result = RemoveConnection(token);
++            if (!reply.WriteBool(result)) {
++                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION WriteBool failed!");
++                ret = ERR_UNKNOWN_OBJECT;
++                break;
++            }
++            break;
++        }
+         default:
+             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+     }
+diff --git a/rosen/modules/render_service_base/include/platform/ohos/transaction/rs_iconnect_to_render_process_ipc_interface_code.h b/rosen/modules/render_service_base/include/platform/ohos/transaction/rs_iconnect_to_render_process_ipc_interface_code.h
+index c2483da2f02938fa368cbcacef67c0d4908ab119..4ffb46e98886f837e2cf00faa6fb2b519dea4987 100644
+--- a/rosen/modules/render_service_base/include/platform/ohos/transaction/rs_iconnect_to_render_process_ipc_interface_code.h
++++ b/rosen/modules/render_service_base/include/platform/ohos/transaction/rs_iconnect_to_render_process_ipc_interface_code.h
+@@ -23,6 +23,7 @@ namespace Rosen {
+ 
+ enum class RSIConnectToRenderProcessInterfaceCode : CodeUnderlyingType {
+     CREATE_CONNECTION = 0,
++    REMOVE_CONNECTION = 1,
+ };
+ 
+ } // namespace Rosen
+diff --git a/rosen/modules/render_service_base/include/platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h b/rosen/modules/render_service_base/include/platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h
+index 0ff8ea8ccfd1d4de4b61e4854db83ce86f08f3fd..537a0e01e671cf45b2f1605328f6f091807f7c02 100644
+--- a/rosen/modules/render_service_base/include/platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h
++++ b/rosen/modules/render_service_base/include/platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h
+@@ -35,6 +35,7 @@ public:
+     {
+         return nullptr;
+     }
++    virtual bool RemoveConnection(const sptr<RSIConnectionToken>& token) = 0;
+ };
+ } // namespace Rosen
+ } // namespace OHOS
+diff --git a/rosen/modules/render_service_base/include/transaction/rs_render_pipeline_client.h b/rosen/modules/render_service_base/include/transaction/rs_render_pipeline_client.h
+index 09251ed8cbb3f39b6942b37d1c9c7768275c63d8..584029e0c81000379fdc5c65298284d340c5592b 100644
+--- a/rosen/modules/render_service_base/include/transaction/rs_render_pipeline_client.h
++++ b/rosen/modules/render_service_base/include/transaction/rs_render_pipeline_client.h
+@@ -86,6 +86,7 @@ using FrameStabilityCallback = std::function<void(bool)>;
+ 
+ class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
+ public:
++    RSRenderPipelineClient();
+     RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote);
+     ~RSRenderPipelineClient() = default;
+     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+diff --git a/rosen/modules/render_service_base/src/platform/darwin/rs_render_pipeline_client.cpp b/rosen/modules/render_service_base/src/platform/darwin/rs_render_pipeline_client.cpp
+index 23f58d826f69e9d5a2e838533aa77c0f663f2490..a0e05272b7d1eac0565f4234d745bf5425616572 100644
+--- a/rosen/modules/render_service_base/src/platform/darwin/rs_render_pipeline_client.cpp
++++ b/rosen/modules/render_service_base/src/platform/darwin/rs_render_pipeline_client.cpp
+@@ -20,6 +20,10 @@
+ namespace OHOS {
+ namespace Rosen {
+ 
++RSRenderPipelineClient::RSRenderPipelineClient()
++{
++}
++
+ RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
+ {
+ }
+diff --git a/rosen/modules/render_service_base/src/platform/ohos/rs_render_pipeline_client.cpp b/rosen/modules/render_service_base/src/platform/ohos/rs_render_pipeline_client.cpp
+index 7fbaf681a2f2cd50b08290bff8c6e7f8ee3f60e2..f56b4c3ed8b86c4348340efbe70d2ac12da014d2 100644
+--- a/rosen/modules/render_service_base/src/platform/ohos/rs_render_pipeline_client.cpp
++++ b/rosen/modules/render_service_base/src/platform/ohos/rs_render_pipeline_client.cpp
+@@ -62,6 +62,11 @@
+ 
+ namespace OHOS {
+ namespace Rosen {
++RSRenderPipelineClient::RSRenderPipelineClient()
++{
++    clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
++}
++
+ RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
+ {
+     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+@@ -75,6 +80,7 @@ RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRen
+         bool needRefresh = AppExecFwk::AppImageObserverManager::GetInstance().IsBeforeImageCreationPoint();
+         ROSEN_LOGI("RSRenderPipelineClient call CreateConnection, needRefresh:[%{public}d]", needRefresh);
+         clientToRenderConnection_ = conn->CreateRenderConnection(token_, needRefresh);
++        RSRenderServiceConnectHub::GetInstance()->AddRenderProcessConnectionToken(token_, conn);
+     } else {
+         clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
+     }
+@@ -951,34 +957,31 @@ int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId
+ 
+ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
+ {
+-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+-    if (renderPipeline == nullptr) {
+-        ROSEN_LOGE("RSRenderPipelineClient::SetLogicalCameraRotationCorrection renderPipeline is nullptr!");
++    if (clientToRenderConnection_ == nullptr) {
++        ROSEN_LOGE("RSRenderPipelineClient::SetLogicalCameraRotationCorrection clientToRenderConnection_ is nullptr!");
+         return RENDER_SERVICE_NULL;
+     }
+     RS_LOGD("RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}"
+         PRIu64 ", logicalCorrection: %{public}u", id, logicalCorrection);
+-    return renderPipeline->SetLogicalCameraRotationCorrection(id, logicalCorrection);
++    return clientToRenderConnection_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+ }
+ 
+ int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+ {
+-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+-    if (renderPipeline == nullptr) {
+-        ROSEN_LOGE("RSRenderPipelineClient::GetMaxGpuBufferSize renderPipeline is nullptr!");
++    if (clientToRenderConnection_ == nullptr) {
++        ROSEN_LOGE("RSRenderPipelineClient::GetMaxGpuBufferSize clientToRenderConnection_ is nullptr!");
+         return RENDER_SERVICE_NULL;
+     }
+-    return renderPipeline->GetMaxGpuBufferSize(maxWidth, maxHeight);
++    return clientToRenderConnection_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+ }
+ 
+ void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
+ {
+-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+-    if (renderPipeline == nullptr) {
+-        ROSEN_LOGE("RSRenderPipelineClient::SetFreeMultiWindowStatus renderPipeline == nullptr!");
++    if (clientToRenderConnection_ == nullptr) {
++        ROSEN_LOGE("RSRenderPipelineClient::SetFreeMultiWindowStatus clientToRenderConnection_ == nullptr!");
+         return;
+     }
+-    renderPipeline->SetFreeMultiWindowStatus(enable);
++    clientToRenderConnection_->SetFreeMultiWindowStatus(enable);
+ }
+ class CustomFrameStabilityCallback : public RSFrameStabilityCallbackStub {
+ public:
+@@ -1001,9 +1004,8 @@ int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
+     const FrameStabilityConfig& config,
+     const FrameStabilityCallback& callback)
+ {
+-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+-    if (renderPipeline == nullptr) {
+-        ROSEN_LOGE("RegisterFrameStabilityDetection renderPipeline == nullptr!");
++    if (clientToRenderConnection_ == nullptr) {
++        ROSEN_LOGE("RegisterFrameStabilityDetection clientToRenderConnection_ == nullptr!");
+         return RENDER_SERVICE_NULL;
+     }
+     if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
+@@ -1016,26 +1018,24 @@ int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
+         return INVALID_ARGUMENTS;
+     }
+     sptr<CustomFrameStabilityCallback> cb = new CustomFrameStabilityCallback(callback);
+-    return renderPipeline->RegisterFrameStabilityDetection(target, config, cb);
++    return clientToRenderConnection_->RegisterFrameStabilityDetection(target, config, cb);
+ }
+ 
+ int32_t RSRenderPipelineClient::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+ {
+-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+-    if (renderPipeline == nullptr) {
+-        ROSEN_LOGE("RSRenderPipelineClient::UnregisterFrameStabilityDetection renderPipeline == nullptr!");
++    if (clientToRenderConnection_ == nullptr) {
++        ROSEN_LOGE("RSRenderPipelineClient::UnregisterFrameStabilityDetection clientToRenderConnection_ == nullptr!");
+         return RENDER_SERVICE_NULL;
+     }
+-    return renderPipeline->UnregisterFrameStabilityDetection(target);
++    return clientToRenderConnection_->UnregisterFrameStabilityDetection(target);
+ }
+ 
+ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
+     const FrameStabilityTarget& target,
+     const FrameStabilityConfig& config)
+ {
+-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+-    if (renderPipeline == nullptr) {
+-        ROSEN_LOGE("RSRenderPipelineClient::StartFrameStabilityCollection renderPipeline == nullptr!");
++    if (clientToRenderConnection_ == nullptr) {
++        ROSEN_LOGE("RSRenderPipelineClient::StartFrameStabilityCollection clientToRenderConnection_ == nullptr!");
+         return RENDER_SERVICE_NULL;
+     }
+     if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
+@@ -1047,17 +1047,16 @@ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
+         ROSEN_LOGE("StartFrameStabilityCollection invalid changePercent: %{public}f", config.changePercent);
+         return INVALID_ARGUMENTS;
+     }
+-    return renderPipeline->StartFrameStabilityCollection(target, config);
++    return clientToRenderConnection_->StartFrameStabilityCollection(target, config);
+ }
+ 
+ int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+ {
+-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+-    if (renderPipeline == nullptr) {
+-        ROSEN_LOGE("RSRenderPipelineClient::GetFrameStabilityResult renderPipeline == nullptr!");
++    if (clientToRenderConnection_ == nullptr) {
++        ROSEN_LOGE("RSRenderPipelineClient::GetFrameStabilityResult clientToRenderConnection_ == nullptr!");
+         return RENDER_SERVICE_NULL;
+     }
+-    return renderPipeline->GetFrameStabilityResult(target, result);
++    return clientToRenderConnection_->GetFrameStabilityResult(target, result);
+ }
+ } // namespace Rosen
+ } // namespace OHOS
+diff --git a/rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connect_hub.cpp b/rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connect_hub.cpp
+index fb97769f7dc56e71b5a78d7518224bf3d1a01e1c..28464dd4ad896d3185135ec45baff40228640fef 100755
+--- a/rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connect_hub.cpp
++++ b/rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connect_hub.cpp
+@@ -76,10 +76,12 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
+         ROSEN_LOGI("token_ is deleted");
+         return;
+     }
+-    ROSEN_LOGI("RefCount: %{public}d", token_->GetSptrRefCount());
++    ROSEN_LOGI("RSRenderServiceConnectHub::RefCount: token_:%{public}d, conn_:%{public}d, renderConn_:%{public}d",
++        token_->GetSptrRefCount(), conn_->GetSptrRefCount(), renderConn_->GetSptrRefCount());
+     while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
+         token_->DecStrongRef(this);
+     }
++    CleanConnectRenderProcess();
+     renderService_->RemoveConnection(token_);
+     token_ = nullptr;
+     conn_ = nullptr;
+@@ -211,5 +213,59 @@ void RSRenderServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const
+ 
+     rsConnHub->ConnectDied();
+ }
++
++void RSRenderServiceConnectHub::AddRenderProcessConnectionToken(sptr<RSIConnectionToken> token,
++    sptr<RSIConnectToRenderProcess> renderPrecess)
++{
++    if (token == nullptr) {
++        ROSEN_LOGE("RSRenderServiceConnectHub::AddRenderProcessConnectionToken token is nullptr");
++        return;
++    }
++    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
++    if (connRenderProcesses_.find(token) != connRenderProcesses_.end()) {
++        return;
++    }
++    connRenderProcesses_[token] = renderPrecess;
++}
++
++void RSRenderServiceConnectHub::RemoveRenderProcessConnectionToken(sptr<RSIConnectionToken> token)
++{
++    if (token == nullptr) {
++        ROSEN_LOGW("RSRenderServiceConnectHub::RemoveRenderProcessConnectionToken token is nullptr");
++        return;
++    }
++    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
++    connRenderProcesses_.erase(token);
++}
++
++void RSRenderServiceConnectHub::CleanConnectRenderProcess()
++{
++    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
++    if (connRenderProcesses_.size() == 0) {
++        ROSEN_LOGI("RSRenderServiceConnectHub::CleanConnectRenderProcess connection already release");
++        return;
++    }
++
++    for (auto iter = connRenderProcesses_.begin(); iter != connRenderProcesses_.end();) {
++        sptr<RSIConnectionToken> token = iter->first;
++        sptr<RSIConnectToRenderProcess> renderPrecess = iter->second;
++
++        if (token == nullptr) {
++            ROSEN_LOGE("RSRenderServiceConnectHub::CleanConnectRenderProcess token is nullptr");
++            iter = connRenderProcesses_.erase(iter);
++            continue;
++        }
++
++        while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
++            token_->DecStrongRef(token.GetRefPtr());
++        }
++
++        if (renderPrecess != nullptr) {
++            renderPrecess->RemoveConnection(token);
++        }
++        iter = connRenderProcesses_.erase(iter);
++    }
++}
++
+ } // namespace Rosen
+ } // namespace OHOS
+diff --git a/rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connect_hub.h b/rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connect_hub.h
+index e9c19fed60d31045935d61512b754b822c2c8b39..8a73d086350174524666808e9542d6bcd7383a76 100644
+--- a/rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connect_hub.h
++++ b/rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connect_hub.h
+@@ -19,7 +19,7 @@
+ #include <mutex>
+ #include "platform/common/rs_log.h"
+ #include "platform/ohos/transaction/zidl/rs_irender_service.h"
+-
++#include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
+ namespace OHOS {
+ namespace Rosen {
+ using OnConnectCallback = std::function<void(sptr<RSIClientToRenderConnection>&)>;
+@@ -46,7 +46,9 @@ public:
+     {
+         return token_.GetRefPtr();
+     }
+-
++    void AddRenderProcessConnectionToken(sptr<RSIConnectionToken> token,
++        sptr<RSIConnectToRenderProcess> renderPrecess);
++    void RemoveRenderProcessConnectionToken(sptr<RSIConnectionToken> token);
+ private:
+     static sptr<RSRenderServiceConnectHub> GetInstance();
+     static void Init();
+@@ -70,6 +72,7 @@ private:
+     };
+ 
+     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderServiceConnection();
++    void CleanConnectRenderProcess();
+     bool Connect();
+     void ConnectDied();
+ 
+@@ -79,10 +82,12 @@ private:
+     sptr<RSIClientToServiceConnection> conn_;
+     sptr<RSIClientToRenderConnection> renderConn_;
+     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
+-
++    std::mutex renderPipelineClientMutex_;
++    std::map<sptr<RSIConnectionToken>, sptr<RSIConnectToRenderProcess>> connRenderProcesses_;
+     static std::once_flag flag_;
+     static sptr<RSRenderServiceConnectHub> instance_;
+     static OnConnectCallback onConnectCallback_;
++    friend class RSRenderPipelineClient;
+ };
+ } // namespace Rosen
+ } // namespace OHOS
+diff --git a/rosen/modules/render_service_base/src/platform/ohos/transaction/zidl/rs_connect_to_render_process_proxy.cpp b/rosen/modules/render_service_base/src/platform/ohos/transaction/zidl/rs_connect_to_render_process_proxy.cpp
+index a8fc0d62508bc3bec21e50b7fcd9a2d49700f942..4ac9542494f0f1e4820422b6788e9730d6e88657 100644
+--- a/rosen/modules/render_service_base/src/platform/ohos/transaction/zidl/rs_connect_to_render_process_proxy.cpp
++++ b/rosen/modules/render_service_base/src/platform/ohos/transaction/zidl/rs_connect_to_render_process_proxy.cpp
+@@ -70,5 +70,39 @@ int32_t RSConnectToRenderProcessProxy::SendRequest(uint32_t code, MessageParcel&
+     }
+     return Remote()->SendRequest(code, data, reply, option);
+ }
++
++bool RSConnectToRenderProcessProxy::RemoveConnection(const sptr<RSIConnectionToken>& token)
++{
++    if (token == nullptr) {
++        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection: token is null.");
++        return false;
++    }
++
++    MessageParcel data;
++    MessageParcel reply;
++    MessageOption option;
++    option.SetFlags(MessageOption::TF_SYNC);
++    if (!data.WriteInterfaceToken(RSIConnectToRenderProcess::GetDescriptor())) {
++        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection WriteInterfaceToken failed.");
++        return false;
++    }
++    if (!data.WriteRemoteObject(token->AsObject())) {
++        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection WriteRemoteObject failed.");
++        return false;
++    }
++
++    uint32_t code = static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::REMOVE_CONNECTION);
++    int32_t err = SendRequest(code, data, reply, option);
++    if (err != NO_ERROR) {
++        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection SendRequest failed, err is %{public}d.", err);
++        return false;
++    }
++    bool result = false;
++    if (!reply.ReadBool(result)) {
++        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection ReadBool failed");
++        return false;
++    }
++    return result;
++}
+ } // namespace Rosen
+ } // namespace OHOS
+\ No newline at end of file
+diff --git a/rosen/modules/render_service_base/src/platform/ohos/transaction/zidl/rs_connect_to_render_process_proxy.h b/rosen/modules/render_service_base/src/platform/ohos/transaction/zidl/rs_connect_to_render_process_proxy.h
+index d3e0b9ad7894e7bbbad6c601543f009a6e9aa3b7..10d4bb8c9ab1b537088d945d14fb6a09da97991c 100644
+--- a/rosen/modules/render_service_base/src/platform/ohos/transaction/zidl/rs_connect_to_render_process_proxy.h
++++ b/rosen/modules/render_service_base/src/platform/ohos/transaction/zidl/rs_connect_to_render_process_proxy.h
+@@ -31,7 +31,7 @@ public:
+     sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token,
+         bool needRefresh) override;
+     int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
+-
++    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
+ private:
+     static inline BrokerDelegator<RSConnectToRenderProcessProxy> delegator_;
+ };
+diff --git a/rosen/modules/render_service_base/src/platform/windows/rs_render_pipeline_client.cpp b/rosen/modules/render_service_base/src/platform/windows/rs_render_pipeline_client.cpp
+index 542c4aebfeb342224c23060ba15b49c6d0338a4c..dba4a55afc5835110144347b172efcadd33a8efc 100644
+--- a/rosen/modules/render_service_base/src/platform/windows/rs_render_pipeline_client.cpp
++++ b/rosen/modules/render_service_base/src/platform/windows/rs_render_pipeline_client.cpp
+@@ -20,6 +20,10 @@
+ namespace OHOS {
+ namespace Rosen {
+ 
++RSRenderPipelineClient::RSRenderPipelineClient()
++{
++}
++
+ RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
+ {
+ }
+diff --git a/rosen/modules/render_service_base/src/transaction/rs_transaction_proxy.cpp b/rosen/modules/render_service_base/src/transaction/rs_transaction_proxy.cpp
+index a47381f235ef8aa6562e46a934ebd22ebaa38754..e156c6fd02f983b68df7069c53d009f0fa2308fa 100644
+--- a/rosen/modules/render_service_base/src/transaction/rs_transaction_proxy.cpp
++++ b/rosen/modules/render_service_base/src/transaction/rs_transaction_proxy.cpp
+@@ -54,6 +54,7 @@ RSTransactionProxy* RSTransactionProxy::GetInstance()
+ RSTransactionProxy::RSTransactionProxy()
+ {
+     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
++    renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>();
+ }
+ 
+ RSTransactionProxy::~RSTransactionProxy()
+@@ -186,7 +187,11 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
+     transactionData->tid_ = tid;
+     transactionData->dvsyncTimeUpdate_ = dvsyncTimeUpdate;
+     transactionData->dvsyncTime_ = dvsyncTime;
+-    
++    if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
++        commitTransactionCallback_(renderPipelineClient_,
++            std::move(transactionData), transactionDataIndex_, nullptr);
++        return;
++    }
+     renderPipelineClient_->CommitTransaction(transactionData);
+     transactionDataIndex_ = transactionData->GetIndex();
+ }
+diff --git a/rosen/modules/render_service_client/core/transaction/rs_render_interface.cpp b/rosen/modules/render_service_client/core/transaction/rs_render_interface.cpp
+index 07c09680d6ab9f72c1c31674318dc59eda5b3583..b16c18c0a7e1cd879972cf6e7e1eb6e60777a7c6 100644
+--- a/rosen/modules/render_service_client/core/transaction/rs_render_interface.cpp
++++ b/rosen/modules/render_service_client/core/transaction/rs_render_interface.cpp
+@@ -42,6 +42,11 @@ namespace Rosen {
+ constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
+ #endif
+ 
++RSRenderInterface::RSRenderInterface()
++{
++    renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>();
++}
++
+ RSRenderInterface::RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote)
+ {
+     renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
+diff --git a/rosen/modules/render_service_client/core/transaction/rs_render_interface.h b/rosen/modules/render_service_client/core/transaction/rs_render_interface.h
+index cf7cc78da6da8b5e1f2bfbcb8e268847ec569661..febbe6cfe2c2daa60f2dfd753e65bb223bfa7cfb 100644
+--- a/rosen/modules/render_service_client/core/transaction/rs_render_interface.h
++++ b/rosen/modules/render_service_client/core/transaction/rs_render_interface.h
+@@ -411,6 +411,7 @@ public:
+     void SetFreeMultiWindowStatus(bool enable);
+ 
+ private:
++    RSRenderInterface();
+     RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
+ 
+     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
+diff --git a/rosen/modules/render_service_client/core/ui/rs_surface_node.cpp b/rosen/modules/render_service_client/core/ui/rs_surface_node.cpp
+index d29ac1de014a104f59ba5679d9dbc7d60ffcf2cb..73ac1a8c07d73a07b573586736dbda348e2b8167 100644
+--- a/rosen/modules/render_service_client/core/ui/rs_surface_node.cpp
++++ b/rosen/modules/render_service_client/core/ui/rs_surface_node.cpp
+@@ -129,9 +129,16 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
+         } else {
+             AddCommand(command, isWindow);
+         }
+-        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
+-            GetId(), rsUIContext->GetConnectToRender());
+-        AddCommand(command, isWindow);
++#ifdef ROSEN_OHOS
++        if (rsUIContext != nullptr) {
++            command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
++                GetId(), rsUIContext->GetConnectToRender());
++            AddCommand(command, isWindow);
++        } else {
++            ROSEN_LOGE("RSSurfaceNode::SendDataToRender,"
++                "RSSurfaceNodeConnectToNodeInRenderService rsUIContext is nullptr");
++        }
++#endif
+  
+         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
+@@ -225,10 +232,16 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
+         } else {
+             node->AddCommand(command, isWindow);
+         }
++#ifdef ROSEN_OHOS
++    if (rsUIContext != nullptr) {
+         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
+             node->GetId(), rsUIContext->GetConnectToRender());
+         node->AddCommand(command, isWindow);
+-
++    } else {
++        ROSEN_LOGE("RSSurfaceNode::Create,"
++ 	        "RSSurfaceNodeConnectToNodeInRenderService rsUIContext is nullptr");
++    }
++#endif
+         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
+         node->AddCommand(command, isWindow);
+@@ -288,10 +301,11 @@ void RSSurfaceNode::CreateNodeInRenderThread()
+         command = std::make_unique<RSSurfaceNodeCreate>(GetId(), RSSurfaceNodeType::ABILITY_COMPONENT_NODE, false);
+         AddCommand(command, false);
+ 
+-        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
+-            GetId(), GetRSUIContext()->GetConnectToRender());
+-        AddCommand(command, false);
+-
++#ifdef ROSEN_OHOS
++    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
++        GetId(), GetRSUIContext()->GetConnectToRender());
++    AddCommand(command, false);
++#endif
+         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
+         AddCommand(command, false);
+@@ -757,10 +771,13 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
+     if (surfaceId == 0) {
+         auto rsUIContext = GetRSUIContext();
+         if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
+-            ROSEN_LOGE("RSDisplayNode::CreateNode uiContext is nullptr");
+-            return false;
++            ROSEN_LOGW("RSSurfaceNode::CreateNode uiContext is nullptr");
++            std::shared_ptr<RSRenderInterface> rsRenderInterface =
++                std::shared_ptr<RSRenderInterface>(new RSRenderInterface());
++            surface_ = rsRenderInterface->CreateNodeAndSurface(config, unobscured);
++        } else {
++            surface_ = rsUIContext->GetRSRenderInterface()->CreateNodeAndSurface(config, unobscured);
+         }
+-        surface_ = rsUIContext->GetRSRenderInterface()->CreateNodeAndSurface(config, unobscured);
+     } else {
+ #ifndef ROSEN_CROSS_PLATFORM
+         sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
