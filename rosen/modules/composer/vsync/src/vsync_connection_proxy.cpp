@@ -159,12 +159,7 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount, bool com
     if (res != NO_ERROR) {
         return VSYNC_ERROR_UNKOWN;
     }
-    int32_t value = 0;
-    if (!ret.ReadInt32(value)) {
-        VLOGE("ReadInt32 failed");
-        return VSYNC_ERROR_API_FAILED;
-    }
-    return static_cast<VsyncError>(value);
+    return VSYNC_ERROR_OK;
 }
 
 VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
