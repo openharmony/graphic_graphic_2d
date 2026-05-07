@@ -39,7 +39,7 @@ class RSTestStyleModifier : public ModifierNG::RSRenderModifier {
 public:
     RSTestStyleModifier() = default;
     ~RSTestStyleModifier() override = default;
-    static inline constexpr auto Type = ModType;
+    static inline constexpr auto type = ModType;
     ModifierNG::RSModifierType GetType() const override { return Type; }
     Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
     {
