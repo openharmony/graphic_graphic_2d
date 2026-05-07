@@ -918,151 +918,370 @@ HWTEST_F(RSUifirstManagerTest2, MarkSubHighPriorityType, TestSize.Level1)
     ASSERT_FALSE(surfaceParams->GetPreSubHighPriorityType());
 }
 
-/**
- * @tc.name: CheckHasTransAndFilter001
- * @tc.desc: Test strategy with trans and blur scenes by uifirst.
- * @tc.type: FUNC
- * @tc.require: issueIC4F7H
- */
-HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter001, TestSize.Level1)
+static void SetNodeTransparent(RSSurfaceRenderNode& node)
 {
-    // no children node
-    auto parentNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(parentNode, nullptr);
-    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    bool result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
-    ASSERT_EQ(result, false);
-
-    // canvas children node
-    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    NodeId nodeId = 100;
-    auto childNode1 = std::make_shared<RSCanvasRenderNode>(nodeId);
-    parentNode->AddChild(childNode1);
-    parentNode->GenerateFullChildrenList();
-    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
-    ASSERT_EQ(result, false);
-
-    // surface children node, but surface is not app window
-    auto childNode2 = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(childNode2, nullptr);
-    parentNode->AddChild(childNode2);
-    parentNode->GenerateFullChildrenList();
-    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
-    ASSERT_EQ(result, false);
-
-    // children type is app window
-    auto childNode3 = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(childNode3, nullptr);
-    childNode3->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    parentNode->AddChild(childNode3);
-    parentNode->GenerateFullChildrenList();
-    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
-    ASSERT_EQ(result, false);
+    node.SetGlobalAlpha(0.0f);
+    node.SetAbilityBGAlpha(0);
+}
+static void SetNodeOpaque(RSSurfaceRenderNode& node)
+{
+    node.SetGlobalAlpha(1.0f);
+    node.SetAbilityBGAlpha(255); // 255 is fully opaque
 }
 
 /**
- * @tc.name: CheckHasTransAndFilter002
- * @tc.desc: Test strategy with trans and blur scenes by uifirst.
+ * @tc.name: CheckHasTransAndFilter_NotLeashWindow
+ * @tc.desc: Non-leash window returns false immediately
  * @tc.type: FUNC
- * @tc.require: issueIC4F7H
+ * @tc.require: issue23596
  */
-HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter002, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_NotLeashWindow, TestSize.Level1)
 {
-    // leash window --> app window
-    auto parentNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(parentNode, nullptr);
-    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    auto childNode1 = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(childNode1, nullptr);
-    childNode1->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    childNode1->absDrawRect_ = {0, 0, 100, 100};
-    parentNode->AddChild(childNode1);
-    parentNode->GenerateFullChildrenList();
-    auto result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
-    ASSERT_EQ(result, false);
-
-    // leash window ---> (app window, default surface) --> rootNode
-    auto childNode2 = RSTestUtil::CreateSurfaceNode();
-    childNode2->absDrawRect_ = {0, 0, 50, 50};
-    parentNode->AddChild(childNode2);
-    parentNode->GenerateFullChildrenList();
-    NodeId nodeId = 200;
-    auto rootChildNode = std::make_shared<RSRootRenderNode>(nodeId);
-    childNode1->AddChild(rootChildNode);
-    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
-    ASSERT_EQ(result, false);
-
-    // leash window ---> (app window, default surface) --> rootNode --> canvasNode
-    nodeId = 300;
-    auto canvasChildNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    rootChildNode->AddChild(canvasChildNode);
-    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
-    ASSERT_EQ(result, false);
-
-    // has filter and transparent
-    parentNode->childHasVisibleFilter_ = true;
-    childNode2->absDrawRect_ = {0, 0, 200, 200};
-    childNode2->abilityBgAlpha_ = 0;
-    childNode2->globalAlpha_ = 0;
-    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
-    ASSERT_EQ(result, true);
+    // Not a leash window → early return false
+    auto nonLeashNode = RSTestUtil::CreateSurfaceNode();
+    nonLeashNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*nonLeashNode));
 }
 
 /**
- * @tc.name: CheckHasTransAndFilter003
- * @tc.desc: Test strategy with trans and blur scenes by uifirst.
+ * @tc.name: CheckHasTransAndFilter_NoChildren
+ * @tc.desc: Leash window with no children returns false
  * @tc.type: FUNC
- * @tc.require: issue21834
+ * @tc.require: issue23596
  */
-HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter003, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_NoChildren, TestSize.Level1)
 {
-    auto leashWindow = RSTestUtil::CreateSurfaceNode();
-    leashWindow->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    leashWindow->childHasVisibleFilter_ = true;
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
 
+/**
+ * @tc.name: CheckHasTransAndFilter_OnlyNonSurfaceChildren
+ * @tc.desc: Leash window with only non-surface children returns false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_OnlyNonSurfaceChildren, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->AddChild(std::make_shared<RSCanvasRenderNode>(100));
+    leashNode->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
+
+/**
+ * @tc.name: CheckHasTransAndFilter_OpaqueAppWindow
+ * @tc.desc: Leash + opaque AppWindow, no other surface → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_OpaqueAppWindow, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     auto appWindow = RSTestUtil::CreateSurfaceNode();
     appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeOpaque(*appWindow);
+    appWindow->oldDirty_ = {0, 0, 100, 100};
+    leashNode->AddChild(appWindow);
+    leashNode->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
+
+/**
+ * @tc.name: CheckHasTransAndFilter_TransparentAppWindowNoBlur
+ * @tc.desc: Transparent app window but leash window has no visible filter → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_TransparentAppWindowNoBlur, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->childHasVisibleFilter_ = false;
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeTransparent(*appWindow);
+    appWindow->oldDirty_ = {0, 0, 100, 100};
+    leashNode->AddChild(appWindow);
+    leashNode->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
+
+/**
+ * @tc.name: CheckHasTransAndFilter_TransparentAppWindowWithBlur
+ * @tc.desc: Transparent app window + leash window has visible filter → true (Path A)
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_TransparentAppWindowWithBlur, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->childHasVisibleFilter_ = true;
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeTransparent(*appWindow);
+    appWindow->oldDirty_ = {0, 0, 100, 100};
+    leashNode->AddChild(appWindow);
+    leashNode->GenerateFullChildrenList();
+    ASSERT_TRUE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
+
+/**
+ * @tc.name: CheckHasTransAndFilter_TransparentAppWindowHasBgNode
+ * @tc.desc: Transparent app window but has opaque bg node → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_TransparentAppWindowHasBgNode, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->childHasVisibleFilter_ = true;
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeTransparent(*appWindow);
+
+    auto rootNode = std::make_shared<RSRootRenderNode>(1000);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1001);
+    canvasNode->GetMutableRenderProperties().SetBackgroundColor(RSColor(255, 255, 255));
+    rootNode->AddChild(canvasNode);
+    rootNode->GenerateFullChildrenList();
+    appWindow->AddChild(rootNode);
+    appWindow->GenerateFullChildrenList();
+    appWindow->oldDirty_ = {0, 0, 100, 100};
+    leashNode->AddChild(appWindow);
+    leashNode->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
+
+/**
+ * @tc.name: CheckHasTransAndFilter_BlurChildInsideMainRect
+ * @tc.desc: Transparent blur child inside main rect → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_BlurChildInsideMainRect, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->childHasVisibleFilter_ = false;
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeOpaque(*appWindow);
+    appWindow->oldDirty_ = {0, 0, 100, 100};
     auto subWindow = RSTestUtil::CreateSurfaceNode();
-    subWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeTransparent(*subWindow);
+    subWindow->childHasVisibleFilter_ = true;
+    subWindow->oldDirty_ = {10, 10, 50, 50}; // inside main rect
+    leashNode->AddChild(appWindow);
+    leashNode->AddChild(subWindow);
+    leashNode->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
 
-    leashWindow->AddChild(appWindow);
-    leashWindow->AddChild(subWindow);
-    leashWindow->GenerateFullChildrenList();
+/**
+ * @tc.name: CheckHasTransAndFilter_BlurChildOutsideMainRect
+ * @tc.desc: Transparent blur child outside main rect → true (Path B)
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_BlurChildOutsideMainRect, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->childHasVisibleFilter_ = false;
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeOpaque(*appWindow);
+    appWindow->oldDirty_ = {0, 0, 100, 100};
+    auto subWindow = RSTestUtil::CreateSurfaceNode();
+    SetNodeTransparent(*subWindow);
+    subWindow->childHasVisibleFilter_ = true;
+    subWindow->oldDirty_ = {0, 0, 200, 200}; // outside main rect
+    leashNode->AddChild(appWindow);
+    leashNode->AddChild(subWindow);
+    leashNode->GenerateFullChildrenList();
+    ASSERT_TRUE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
 
-    // app window is opaque
-    appWindow->SetGlobalAlpha(1.0f);
-    appWindow->SetAbilityBGAlpha(255);
-    appWindow->absDrawRect_ = { 0, 0, 100, 100 };
-    appWindow->childHasVisibleFilter_ = true;
+/**
+ * @tc.name: CheckHasTransAndFilter_OpaqueChildOutsideMainRect
+ * @tc.desc: Opaque child outside main rect → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_OpaqueChildOutsideMainRect, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->childHasVisibleFilter_ = false;
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeOpaque(*appWindow);
+    appWindow->oldDirty_ = {0, 0, 100, 100};
+    auto subWindow = RSTestUtil::CreateSurfaceNode();
+    SetNodeOpaque(*subWindow); // not transparent
+    subWindow->childHasVisibleFilter_ = true;
+    subWindow->oldDirty_ = {0, 0, 200, 200};
+    leashNode->AddChild(appWindow);
+    leashNode->AddChild(subWindow);
+    leashNode->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
+
+/**
+ * @tc.name: CheckHasTransAndFilter_TransparentChildNoBlurOutsideMainRect
+ * @tc.desc: Transparent child without blur outside main rect → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_TransparentChildNoBlurOutsideMainRect, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->childHasVisibleFilter_ = false;
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeOpaque(*appWindow);
+    appWindow->oldDirty_ = {0, 0, 100, 100};
+    auto subWindow = RSTestUtil::CreateSurfaceNode();
+    SetNodeTransparent(*subWindow);
+    subWindow->childHasVisibleFilter_ = false; // no visible filter
+    subWindow->oldDirty_ = {0, 0, 200, 200};
+    leashNode->AddChild(appWindow);
+    leashNode->AddChild(subWindow);
+    leashNode->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
+
+/**
+ * @tc.name: HasBgNodeBelowRootNode_NoChildren
+ * @tc.desc: AppWindow with no children → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, HasBgNodeBelowRootNode_NoChildren, TestSize.Level1)
+{
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindow->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.HasBgNodeBelowRootNode(*appWindow));
+}
+
+/**
+ * @tc.name: HasBgNodeBelowRootNode_FirstChildNotRootNode
+ * @tc.desc: AppWindow's first child is not RSRootRenderNode → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, HasBgNodeBelowRootNode_FirstChildNotRootNode, TestSize.Level1)
+{
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    // Add a CanvasNode as first child instead of RootNode
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(100);
+    appWindow->AddChild(canvasNode);
+    appWindow->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.HasBgNodeBelowRootNode(*appWindow));
+}
+
+/**
+ * @tc.name: HasBgNodeBelowRootNode_RootNodeNoChildren
+ * @tc.desc: RootNode has no children → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, HasBgNodeBelowRootNode_RootNodeNoChildren, TestSize.Level1)
+{
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     auto rootNode = std::make_shared<RSRootRenderNode>(100);
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(200);
+    appWindow->AddChild(rootNode);
+    appWindow->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.HasBgNodeBelowRootNode(*appWindow));
+}
+
+/**
+ * @tc.name: HasBgNodeBelowRootNode_FirstChildNotCanvasNode
+ * @tc.desc: RootNode's first child is not RSCanvasRenderNode → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, HasBgNodeBelowRootNode_FirstChildNotCanvasNode, TestSize.Level1)
+{
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto rootNode = std::make_shared<RSRootRenderNode>(100);
+    // Add a non-CanvasNode as first child (use RSRenderNode base type via SurfaceNode)
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    rootNode->AddChild(surfaceNode);
+    appWindow->AddChild(rootNode);
+    appWindow->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.HasBgNodeBelowRootNode(*appWindow));
+}
+
+/**
+ * @tc.name: HasBgNodeBelowRootNode_CanvasNodeTransparentBg
+ * @tc.desc: CanvasNode has transparent background color → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, HasBgNodeBelowRootNode_CanvasNodeTransparentBg, TestSize.Level1)
+{
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto rootNode = std::make_shared<RSRootRenderNode>(100);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(101);
+    // Set transparent background (alpha = 0)
+    canvasNode->GetMutableRenderProperties().SetBackgroundColor(RSColor(255, 255, 255, 0));
     rootNode->AddChild(canvasNode);
     appWindow->AddChild(rootNode);
+    appWindow->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.HasBgNodeBelowRootNode(*appWindow));
+}
 
-    auto subRootNode = std::make_shared<RSRootRenderNode>(300);
-    auto subCanvasNode = std::make_shared<RSCanvasRenderNode>(400);
-    subRootNode->AddChild(subCanvasNode);
-    subWindow->AddChild(subRootNode);
+/**
+ * @tc.name: HasBgNodeBelowRootNode_CanvasNodeOpaqueBg
+ * @tc.desc: CanvasNode has opaque background color → true
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, HasBgNodeBelowRootNode_CanvasNodeOpaqueBg, TestSize.Level1)
+{
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto rootNode = std::make_shared<RSRootRenderNode>(100);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(101);
+    // Set opaque background (alpha = 255)
+    canvasNode->GetMutableRenderProperties().SetBackgroundColor(RSColor(255, 255, 255, 255));
+    rootNode->AddChild(canvasNode);
+    appWindow->AddChild(rootNode);
+    appWindow->GenerateFullChildrenList();
+    ASSERT_TRUE(uifirstManager_.HasBgNodeBelowRootNode(*appWindow));
+}
 
-    // sub window is opaque
-    subWindow->SetGlobalAlpha(1.0f);
-    subWindow->SetAbilityBGAlpha(255);
-    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
-
-    // sub window is transparent
-    subWindow->SetGlobalAlpha(0.f);
-    subWindow->SetAbilityBGAlpha(0);
-    subWindow->childHasVisibleFilter_ = false;
-    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
-
-    subWindow->childHasVisibleFilter_ = true;
-    // sub window inside main window
-    subWindow->absDrawRect_ = { 10, 10, 50, 50 };
-    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
-
-    // sub window outside main window
-    subWindow->absDrawRect_ = { 0, 0, 200, 200 };
-    ASSERT_TRUE(uifirstManager_.CheckHasTransAndFilter(*leashWindow));
+/**
+ * @tc.name: HasBgNodeBelowRootNode_CanvasNodeSemiTransparentBg
+ * @tc.desc: CanvasNode has semi-transparent background color → true
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, HasBgNodeBelowRootNode_CanvasNodeSemiTransparentBg, TestSize.Level1)
+{
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto rootNode = std::make_shared<RSRootRenderNode>(100);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(101);
+    // Set semi-transparent background (alpha = 128)
+    canvasNode->GetMutableRenderProperties().SetBackgroundColor(RSColor(255, 255, 255, 128));
+    rootNode->AddChild(canvasNode);
+    appWindow->AddChild(rootNode);
+    appWindow->GenerateFullChildrenList();
+    ASSERT_TRUE(uifirstManager_.HasBgNodeBelowRootNode(*appWindow));
 }
 
 /**
