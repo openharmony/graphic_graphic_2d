@@ -232,10 +232,16 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         } else {
             node->AddCommand(command, isWindow);
         }
+#ifdef ROSEN_OHOS
+    if (rsUIContext != nullptr) {
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
             node->GetId(), rsUIContext->GetConnectToRender());
         node->AddCommand(command, isWindow);
-
+    } else {
+        ROSEN_LOGE("RSSurfaceNode::Create,"
+ 	        "RSSurfaceNodeConnectToNodeInRenderService rsUIContext is nullptr");
+    }
+#endif
         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
         node->AddCommand(command, isWindow);
