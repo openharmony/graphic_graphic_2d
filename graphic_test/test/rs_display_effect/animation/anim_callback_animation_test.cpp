@@ -14,6 +14,7 @@
  */
 
 #include "animation/rs_curve_animation.h"
+#include "animation/rs_transition_effect.h"
 #include "anim_custom_modifier_test.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_text.h"
@@ -1216,6 +1217,49 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_GetMotionPath_Test_1)
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_NotifyTransition_Test_1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto testNode = RSCanvasNode::Create(false, false, rsUiContext);
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    testNode->SetBackgroundColor(0xffff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    auto effect = RSTransitionEffect::Create()->Opacity(0.0f);
+    testNode->NotifyTransition(effect, true);
+
+    std::string countStr = "Animations count: " + std::to_string(testNode->GetAnimationsCount());
+    auto countNode = AddTestNode(countStr, 200);
+    GetRootNode()->AddChild(countNode);
+    RegisterNode(countNode);
+}
+
+GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_NotifyTransition_Test_2)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto testNode = RSCanvasNode::Create(false, false, rsUiContext);
+    testNode->SetBounds({ 0, 0, 500, 500 });
+    testNode->SetBackgroundColor(0xffff0000);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetDuration(1000);
+    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
+    RSNode::OpenImplicitAnimation(rsUiContext, protocol, timingCurve);
+
+    testNode->NotifyTransition(RSTransitionEffect::OPACITY, true);
+    RSNode::CloseImplicitAnimation(rsUiContext);
+
+    std::string countStr = "Animations count: " + std::to_string(testNode->GetAnimationsCount());
+    auto countNode = AddTestNode(countStr, 200);
+    GetRootNode()->AddChild(countNode);
+    RegisterNode(countNode);
 }
 
 } // namespace OHOS::Rosen
