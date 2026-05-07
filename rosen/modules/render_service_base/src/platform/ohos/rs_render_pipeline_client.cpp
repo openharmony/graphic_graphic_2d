@@ -62,6 +62,11 @@
 
 namespace OHOS {
 namespace Rosen {
+RSRenderPipelineClient::RSRenderPipelineClient()
+{
+    clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
+}
+
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
