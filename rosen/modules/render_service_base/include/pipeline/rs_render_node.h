@@ -580,6 +580,7 @@ public:
     ModifierNGContainer GetModifiersNG(ModifierNG::RSModifierType type) const;
     const ModifiersNGMap& GetAllModifiers() const;
     bool HasDrawCmdModifiers() const;
+    bool HasValidDrawCmd() const;
     bool HasContentStyleModifierOnly() const;
 
     size_t GetAllModifierSize();
