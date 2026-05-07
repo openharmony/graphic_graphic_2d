@@ -38,6 +38,7 @@ group("unittest") {
     ":RSRenderServiceUnitTest",
     ":RSRenderServiceVisitorTest",
     ":RSRoundCornerDisplayTest",
+    ":RSSolidLayerTest",
     ":RSSLRScaleTest",
     ":RSUniHwcVisitorTest",
     ":RSHwcContextTest",
@@ -1353,7 +1354,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
-    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/core", 
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
@@ -1369,7 +1370,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
     "$graphic_2d_root/utils/socketpair/export",
-    "$graphic_2d_root/rosen/modules/render_service/vsync",
+    "$graphic_2d_root/rosen/modules/render_service/vsync", 
   ]
 
   cflags = [
