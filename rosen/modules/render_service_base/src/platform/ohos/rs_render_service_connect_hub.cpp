@@ -246,8 +246,6 @@ void RSRenderServiceConnectHub::CleanConnectRenderProcess()
         return;
     }
 
-    ROSEN_LOGI("CleanConnectRenderProcess release begin size:%{public}lu", connRenderProcesses_.size());
-
     for (auto iter = connRenderProcesses_.begin(); iter != connRenderProcesses_.end();) {
         sptr<RSIConnectionToken> token = iter->first;
         sptr<RSIConnectToRenderProcess> renderPrecess = iter->second;
@@ -258,7 +256,6 @@ void RSRenderServiceConnectHub::CleanConnectRenderProcess()
             continue;
         }
 
-        ROSEN_LOGI("CleanConnectRenderProcess::RefCount: token_:%{public}lu", token_->GetSptrRefCount());
         while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
             token_->DecStrongRef(token.GetRefPtr());
         }
