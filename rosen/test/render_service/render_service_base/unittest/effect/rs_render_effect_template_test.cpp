@@ -21,7 +21,6 @@
 #include "effect/rs_render_effect_template.h"
 #include "effect/rs_render_property_tag.h"
 #include "effect/rs_render_shader_base.h"
-#include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_render_node.h"
 
 using namespace testing;
