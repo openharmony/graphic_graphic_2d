@@ -17,6 +17,7 @@
 #include "parcel.h" // Assumed definition of Parcel
 #include "ge_visual_effect_container.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS::Rosen {
