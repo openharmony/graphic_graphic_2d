@@ -466,7 +466,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRect007, TestSize.Level1)
     EXPECT_TRUE(result == expected);
 }
 
-/*
+/**
  * @tc.name: CreateBorderSDFShader001
  * @tc.desc: Verify that Create returns a non-null instance for BORDER_SDF_SHADER type
  * @tc.type: FUNC
