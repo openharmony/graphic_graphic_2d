@@ -248,13 +248,14 @@ void RSRenderServiceConnectHub::CleanConnectRenderProcess()
 
     ROSEN_LOGI("CleanConnectRenderProcess release begin size:%{public}lu", connRenderProcesses_.size());
 
-    for (auto it = connRenderProcesses_.begin(); it != connRenderProcesses_.end(); ++it) {
-        sptr<RSIConnectionToken> token = it->first;
-        sptr<RSIConnectToRenderProcess> renderPrecess = it->second;
+    for (auto iter = connRenderProcesses_.begin(); iter != connRenderProcesses_.end();) {
+        sptr<RSIConnectionToken> token = iter->first;
+        sptr<RSIConnectToRenderProcess> renderPrecess = iter->second;
 
         if (token == nullptr) {
             ROSEN_LOGE("RSRenderServiceConnectHub::CleanConnectRenderProcess token is nullptr");
-            return;
+            iter = connRenderProcesses_.erase(iter);
+            continue;
         }
 
         ROSEN_LOGI("CleanConnectRenderProcess::RefCount: token_:%{public}lu", token_->GetSptrRefCount());
@@ -265,7 +266,7 @@ void RSRenderServiceConnectHub::CleanConnectRenderProcess()
         if (renderPrecess != nullptr) {
             renderPrecess->RemoveConnection(token);
         }
-        connRenderProcesses_.clear();
+        iter = connRenderProcesses_.erase(iter);
     }
 }
 
