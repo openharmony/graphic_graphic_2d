@@ -3946,6 +3946,94 @@ HWTEST_F(RSPropertiesTest, SetOverlayNGShader002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetAndGetBorderSDFShader001
+ * @tc.desc: Test SetBorderSDFShader lazy-creates border_ and GetBorderSDFShader returns shader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetAndGetBorderSDFShader001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetBorderSDFShader(), nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    properties.SetBorderSDFShader(shader);
+    EXPECT_EQ(properties.GetBorderSDFShader(), shader);
+    EXPECT_NE(properties.border_, nullptr);
+}
+
+/**
+ * @tc.name: SetBorderSDFShaderWithExistingBorder001
+ * @tc.desc: Test SetBorderSDFShader when border_ already exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetBorderSDFShaderWithExistingBorder001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.border_ = std::make_shared<RSBorder>();
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    properties.SetBorderSDFShader(shader);
+    EXPECT_EQ(properties.GetBorderSDFShader(), shader);
+}
+
+/**
+ * @tc.name: GetBorderSDFShaderNullBorder001
+ * @tc.desc: Test GetBorderSDFShader returns nullptr when border_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, GetBorderSDFShaderNullBorder001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.border_, nullptr);
+    EXPECT_EQ(properties.GetBorderSDFShader(), nullptr);
+}
+
+/**
+ * @tc.name: SetAndGetOutlineSDFShader001
+ * @tc.desc: Test SetOutlineSDFShader lazy-creates outline_ and GetOutlineSDFShader returns shader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetAndGetOutlineSDFShader001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetOutlineSDFShader(), nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    properties.SetOutlineSDFShader(shader);
+    EXPECT_EQ(properties.GetOutlineSDFShader(), shader);
+    EXPECT_NE(properties.outline_, nullptr);
+}
+
+/**
+ * @tc.name: SetOutlineSDFShaderWithExistingOutline001
+ * @tc.desc: Test SetOutlineSDFShader when outline_ already exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetOutlineSDFShaderWithExistingOutline001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.outline_ = std::make_shared<RSBorder>(true);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    properties.SetOutlineSDFShader(shader);
+    EXPECT_EQ(properties.GetOutlineSDFShader(), shader);
+}
+
+/**
+ * @tc.name: GetOutlineSDFShaderNullOutline001
+ * @tc.desc: Test GetOutlineSDFShader returns nullptr when outline_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, GetOutlineSDFShaderNullOutline001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.outline_, nullptr);
+    EXPECT_EQ(properties.GetOutlineSDFShader(), nullptr);
+}
+
+/**
  * @tc.name: GetMaterialShader001
  * @tc.desc: test GetMaterialShader when effect_ is nullptr
  * @tc.type:FUNC

@@ -36,6 +36,7 @@ public:
     void SetOutlineDashWidth(const Vector4f& dashWidth);
     void SetOutlineDashGap(const Vector4f& dashGap);
     void SetOutlineRadius(const Vector4f& radius);
+    void SetOutlineSDFShader(const std::shared_ptr<RSNGShaderBase>& shader);
 
     const Vector4<Color> GetOutlineColor() const;
     const Vector4f GetOutlineWidth() const;
@@ -43,6 +44,7 @@ public:
     const Vector4f GetOutlineDashWidth() const;
     const Vector4f GetOutlineDashGap() const;
     const Vector4f GetOutlineRadius() const;
+    std::shared_ptr<RSNGShaderBase> GetOutlineSDFShader() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_OUTLINE_MODIFIER_H

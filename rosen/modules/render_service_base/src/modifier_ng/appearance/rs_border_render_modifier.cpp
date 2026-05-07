@@ -26,6 +26,9 @@ const RSBorderRenderModifier::LegacyPropertyApplierMap RSBorderRenderModifier::L
         RSRenderModifier::PropertyApplyHelper<Vector4f, &RSProperties::SetBorderDashWidth> },
     { RSPropertyType::BORDER_DASH_GAP,
         RSRenderModifier::PropertyApplyHelper<Vector4f, &RSProperties::SetBorderDashGap> },
+    { RSPropertyType::BORDER_SDF_SHADER,
+        RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderShaderBase>,
+            &RSProperties::SetBorderSDFShader> },
 };
 
 void RSBorderRenderModifier::ResetProperties(RSProperties& properties)

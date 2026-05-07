@@ -337,11 +337,13 @@ public:
     void SetBorderStyle(Vector4<uint32_t> style);
     void SetBorderDashWidth(const Vector4f& dashWidth);
     void SetBorderDashGap(const Vector4f& dashGap);
+    void SetBorderSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     Vector4<Color> GetBorderColor() const;
     Vector4f GetBorderWidth() const;
     Vector4<uint32_t> GetBorderStyle() const;
     Vector4f GetBorderDashWidth() const;
     Vector4f GetBorderDashGap() const;
+    std::shared_ptr<RSNGRenderShaderBase> GetBorderSDFShader() const;
     const std::shared_ptr<RSBorder>& GetBorder() const;
     void SetOutlineColor(Vector4<Color> color);
     void SetOutlineWidth(Vector4f width);
@@ -349,12 +351,14 @@ public:
     void SetOutlineDashWidth(const Vector4f& dashWidth);
     void SetOutlineDashGap(const Vector4f& dashGap);
     void SetOutlineRadius(Vector4f radius);
+    void SetOutlineSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     Vector4<Color> GetOutlineColor() const;
     Vector4f GetOutlineWidth() const;
     Vector4<uint32_t> GetOutlineStyle() const;
     Vector4f GetOutlineDashWidth() const;
     Vector4f GetOutlineDashGap() const;
     Vector4f GetOutlineRadius() const;
+    std::shared_ptr<RSNGRenderShaderBase> GetOutlineSDFShader() const;
     const std::shared_ptr<RSBorder>& GetOutline() const
     {
         return outline_;

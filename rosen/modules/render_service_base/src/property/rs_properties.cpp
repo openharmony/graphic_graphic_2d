@@ -1009,6 +1009,16 @@ void RSProperties::SetBorderDashGap(const Vector4f& dashGap)
     contentDirty_ = true;
 }
 
+void RSProperties::SetBorderSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
+{
+    if (!border_) {
+        border_ = std::make_shared<RSBorder>();
+    }
+    border_->SetSDFShader(renderShader);
+    SetDirty();
+    contentDirty_ = true;
+}
+
 Vector4<Color> RSProperties::GetBorderColor() const
 {
     return border_ ? border_->GetColorFour() : Vector4<Color>(RgbPalette::Transparent());
@@ -1032,6 +1042,11 @@ Vector4f RSProperties::GetBorderDashWidth() const
 Vector4f RSProperties::GetBorderDashGap() const
 {
     return border_ ? border_->GetDashGapFour() : Vector4f(0.f);
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetBorderSDFShader() const
+{
+    return border_ ? border_->GetSDFShader() : nullptr;
 }
 
 const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
@@ -1106,6 +1121,16 @@ void RSProperties::SetOutlineRadius(Vector4f radius)
     contentDirty_ = true;
 }
 
+void RSProperties::SetOutlineSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
+{
+    if (!outline_) {
+        outline_ = std::make_shared<RSBorder>(true);
+    }
+    outline_->SetSDFShader(renderShader);
+    SetDirty();
+    contentDirty_ = true;
+}
+
 Vector4<Color> RSProperties::GetOutlineColor() const
 {
     return outline_ ? outline_->GetColorFour() : Vector4<Color>(RgbPalette::Transparent());
@@ -1134,6 +1159,11 @@ Vector4f RSProperties::GetOutlineDashGap() const
 Vector4f RSProperties::GetOutlineRadius() const
 {
     return outline_ ? outline_->GetRadiusFour() : Vector4fZero;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetOutlineSDFShader() const
+{
+    return outline_ ? outline_->GetSDFShader() : nullptr;
 }
 
 void RSProperties::SetForegroundEffectRadius(const float foregroundEffectRadius)

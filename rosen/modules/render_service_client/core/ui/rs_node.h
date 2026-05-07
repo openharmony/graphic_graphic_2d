@@ -1039,6 +1039,13 @@ public:
     void SetBorderDashGap(const Vector4f& dashGap);
 
     /**
+     * @brief Sets the SDF border shader.
+     *
+     * @param shader Indicates the SDF border shader to be applied.
+     */
+    void SetBorderSDFShader(const std::shared_ptr<RSNGShaderBase>& shader);
+
+    /**
      * @brief Sets the color of the outer border.
      *
      * @param color Indicates outer border color for each side.
@@ -1107,6 +1114,13 @@ public:
      * @param radius Indicates outline radius for each side.
      */
     void SetOutlineRadius(const Vector4f& radius);
+
+    /**
+     * @brief Sets the SDF outline shader.
+     *
+     * @param shader Indicates the SDF outline shader to be applied.
+     */
+    void SetOutlineSDFShader(const std::shared_ptr<RSNGShaderBase>& shader);
 
     /**
      * @brief Sets color picker params of the node.

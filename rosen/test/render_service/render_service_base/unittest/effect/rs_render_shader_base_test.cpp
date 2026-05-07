@@ -465,4 +465,16 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRect007, TestSize.Level1)
         shapeWidth + outerBorderBloomWidth * 2.0f, shapeHeight + outerBorderBloomWidth * 2.0f);
     EXPECT_TRUE(result == expected);
 }
+
+/*
+ * @tc.name: CreateBorderSDFShader001
+ * @tc.desc: Verify that Create returns a non-null instance for BORDER_SDF_SHADER type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, CreateBorderSDFShader001, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    EXPECT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::BORDER_SDF_SHADER);
+}
 } // namespace OHOS::Rosen

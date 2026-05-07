@@ -573,6 +573,14 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, RBCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, LBCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, BarrelDistortion, Vector4f);
 
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderSDFShader, Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderSDFShader, Width, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(BorderSDFShader, IsOutline, bool);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(BorderSDFShader, Style, int);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderSDFShader, DashWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderSDFShader, DashGap, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(BorderSDFShader, Shape, std::shared_ptr<RSNGRenderShapeBase>);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialPointLight, LightIntensity, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialPointLight, LightPosition, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialPointLight, Attenuation, float);

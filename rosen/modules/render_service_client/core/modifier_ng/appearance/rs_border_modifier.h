@@ -40,6 +40,8 @@ public:
     Vector4f GetBorderDashWidth() const;
     void SetBorderDashGap(const Vector4f& dashGap);
     Vector4f GetBorderDashGap() const;
+    void SetBorderSDFShader(const std::shared_ptr<RSNGShaderBase>& shader);
+    std::shared_ptr<RSNGShaderBase> GetBorderSDFShader() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_BORDER_MODIFIER_H

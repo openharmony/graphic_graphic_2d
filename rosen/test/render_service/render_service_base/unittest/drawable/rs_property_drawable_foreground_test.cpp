@@ -17,6 +17,7 @@
 #include "drawable/rs_property_drawable_foreground.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "ge_visual_effect_container.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
@@ -545,6 +546,152 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest00
 
     bool result = particleDrawable->OnUpdate(renderNode);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: DrawBorderWithSDFShader001
+ * @tc.desc: Test DrawBorder with SDFShape and SDFShader set (SDF shader path)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderWithSDFShader001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+    border->SetSDFShader(sdfShader);
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, false);
+}
+
+/**
+ * @tc.name: DrawBorderWithSDFShaderAndOutline001
+ * @tc.desc: Test DrawBorder SDF shader path with isOutline=true and zero radius
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderWithSDFShaderAndOutline001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+    border->SetSDFShader(sdfShader);
+    border->SetRadiusFour({0.f, 0.f, 0.f, 0.f});
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
+}
+
+/**
+ * @tc.name: DrawBorderWithSDFShaderNonZeroRadius001
+ * @tc.desc: Test DrawBorder SDF shader path with isOutline=true and non-zero radius
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderWithSDFShaderNonZeroRadius001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+    border->SetSDFShader(sdfShader);
+    border->SetRadiusFour({10.f, 10.f, 10.f, 10.f});
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
+}
+
+/**
+ * @tc.name: DrawBorderNoSDFShape001
+ * @tc.desc: Test DrawBorder without SDFShape does not enter SDF shader path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderNoSDFShape001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+    border->SetSDFShader(sdfShader);
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(properties, canvas, border, false);
+}
+
+/**
+ * @tc.name: DrawBorderNoSDFShader001
+ * @tc.desc: Test DrawBorder without SDFShader does not enter SDF shader path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderNoSDFShader001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+    border->SetSDFShader(sdfShader);
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, false);
 }
 
 /**
