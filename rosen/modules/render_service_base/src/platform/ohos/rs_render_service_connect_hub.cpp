@@ -267,7 +267,6 @@ void RSRenderServiceConnectHub::CleanConnectRenderProcess()
         }
         connRenderProcesses_.clear();
     }
-
 }
 
 } // namespace Rosen
