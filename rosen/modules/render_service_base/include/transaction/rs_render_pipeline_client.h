@@ -86,6 +86,7 @@ using FrameStabilityCallback = std::function<void(bool)>;
 
 class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
 public:
+    RSRenderPipelineClient();
     RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote);
     ~RSRenderPipelineClient() = default;
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
