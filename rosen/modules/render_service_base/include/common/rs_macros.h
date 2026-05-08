@@ -39,9 +39,11 @@
 #ifdef _WIN32
 #define RS_EXPORT __attribute__((dllexport))
 #define RS_IMPORT __attribute__((dllimport))
+#define RS_HIDDEN
 #else
 #define RS_EXPORT __attribute__((visibility("default")))
 #define RS_IMPORT __attribute__((visibility("default")))
+#define RS_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
 #ifdef MODULE_RSB

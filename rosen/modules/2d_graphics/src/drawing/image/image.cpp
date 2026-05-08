@@ -28,6 +28,8 @@ BackendTexture::BackendTexture() noexcept
 BackendTexture::BackendTexture(bool isValid) noexcept
     : isValid_(isValid) {}
 
+BackendTexture::~BackendTexture() = default;
+
 bool BackendTexture::IsValid() const
 {
     return isValid_;
@@ -46,6 +48,8 @@ const TextureInfo& BackendTexture::GetTextureInfo() const
 Image::Image() noexcept : imageImplPtr(ImplFactory::CreateImageImpl()) {}
 
 Image::Image(void* rawImg) noexcept : imageImplPtr(ImplFactory::CreateImageImpl(rawImg)) {}
+
+Image::~Image() = default;
 
 bool Image::BuildFromBitmap(const Bitmap& bitmap, bool ignoreAlpha)
 {

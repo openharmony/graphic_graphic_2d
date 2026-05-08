@@ -251,7 +251,7 @@ class DRAWING_API BackendTexture {
 public:
     BackendTexture() noexcept;
     BackendTexture(bool isValid) noexcept;
-    virtual ~BackendTexture() {};
+    virtual ~BackendTexture();
 
     bool IsValid() const;
     void SetTextureInfo(const TextureInfo& textureInfo);
@@ -267,7 +267,7 @@ public:
     Image() noexcept;
     // constructor adopt a raw image ptr, using for ArkUI, should remove after enable multi-media image decode.
     explicit Image(void* rawImg) noexcept;
-    virtual ~Image() {};
+    virtual ~Image();
     bool BuildFromBitmap(const Bitmap& bitmap, bool ignoreAlpha = false);
 
     /**

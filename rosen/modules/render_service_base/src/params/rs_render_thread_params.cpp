@@ -16,6 +16,10 @@
 #include "params/rs_render_thread_params.h"
 
 namespace OHOS::Rosen {
+#ifndef _WIN32
+thread_local std::unique_ptr<RSRenderThreadParams> RSRenderThreadParamsManager::renderThreadParams_ = nullptr;
+#endif
+
 std::shared_ptr<Drawing::Image> RSRenderThreadParams::GetWatermark(const std::string& name) const
 {
     auto iter = surfaceWatermarks_.find(name);

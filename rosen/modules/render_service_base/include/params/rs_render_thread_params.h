@@ -749,7 +749,11 @@ public:
     void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams);
     const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const;
 private:
+#ifdef _WIN32
     static inline thread_local std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr;
+#else
+    static thread_local std::unique_ptr<RSRenderThreadParams> renderThreadParams_;
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H

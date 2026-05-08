@@ -1257,7 +1257,8 @@ private:
     // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
     // `for (auto child : *GetSortedChildren()) { ... }` will crash.
     // When an empty list is needed, use EmptyChildrenList instead.
-    static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
+    static const inline RS_HIDDEN auto EmptyChildrenList =
+        std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;

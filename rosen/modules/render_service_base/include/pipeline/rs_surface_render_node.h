@@ -2278,7 +2278,7 @@ private:
     std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;
 
     // UIExtension record, <UIExtension, hostAPP>
-    inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
+    inline static RS_HIDDEN std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
     friend class SurfaceNodeCommandHelper;
     friend class RSUifirstManager;
     friend class RSUniRenderVisitor;

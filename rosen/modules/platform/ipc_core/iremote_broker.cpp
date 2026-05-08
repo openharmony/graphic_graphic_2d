@@ -16,6 +16,7 @@
 #include "iremote_broker.h"
 
 namespace OHOS {
+BrokerDelegatorBase::~BrokerDelegatorBase() = default;
 BrokerRegistration &BrokerRegistration::Get()
 {
     static BrokerRegistration instance;

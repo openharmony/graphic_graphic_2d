@@ -16,6 +16,8 @@
 #include "modifier_ng/background/rs_background_color_render_modifier.h"
 
 namespace OHOS::Rosen::ModifierNG {
+RSBackgroundColorRenderModifier::~RSBackgroundColorRenderModifier() = default;
+
 const RSBackgroundColorRenderModifier::LegacyPropertyApplierMap
     RSBackgroundColorRenderModifier::LegacyPropertyApplierMap_ = {
         { RSPropertyType::BACKGROUND_COLOR, RSRenderModifier::PropertyApplyHelperAdd<Color,

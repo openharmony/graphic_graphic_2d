@@ -280,8 +280,14 @@ template("render_service_client_source_set") {
 
     deps = [
       "$graphic_2d_root/rosen/modules/platform:ipc_core",
-      "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     ]
+
+    if (!(is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path))) {
+      deps += [
+        "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
+      ]
+    }
+
     public_deps = []
     if (enable_export_macro) {
       defines += [ "ENABLE_EXPORT_MACRO" ]
@@ -445,10 +451,14 @@ config("render_service_client_link_config") {
       "-Wl,-Bsymbolic",
     ]
     if (target_cpu == "arm64" && defined(build_ext_path)) {
-      ldflags += [ 
+      render_service_client_version_script =
+        rebase_path("//foundation/graphic/graphic_2d/rosen/modules/render_service_client/librender_service_client.versionscript",
+                    root_build_dir)
+      ldflags += [
+        "-Wl,--version-script=${render_service_client_version_script}",
         "-Wl,--emit-relocs",
-        "-Wl,--no-relax", 
-        "-mno-fix-cortex-a53-843419" 
+        "-Wl,--no-relax",
+        "-mno-fix-cortex-a53-843419"
       ]
     }
   }

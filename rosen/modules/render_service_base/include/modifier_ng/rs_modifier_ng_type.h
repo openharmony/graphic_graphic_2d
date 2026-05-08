@@ -19,6 +19,7 @@
 #include <bitset>
 #include <string>
 #include <unordered_map>
+#include "common/rs_macros.h"
 
 namespace OHOS::Rosen::ModifierNG {
 enum class RSModifierType : uint16_t {
@@ -92,7 +93,7 @@ public:
     }
 
 private:
-    static inline std::unordered_map<RSModifierType, RSPropertyType> modifierToPropertyMap_ = {
+    static inline RS_HIDDEN std::unordered_map<RSModifierType, RSPropertyType> modifierToPropertyMap_ = {
         { RSModifierType::TRANSITION_STYLE, RSPropertyType::TRANSITION_STYLE },
         { RSModifierType::BACKGROUND_STYLE, RSPropertyType::BACKGROUND_STYLE },
         { RSModifierType::CONTENT_STYLE, RSPropertyType::CONTENT_STYLE },

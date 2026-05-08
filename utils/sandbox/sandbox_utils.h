@@ -18,13 +18,24 @@
 
 #include <cstdio>
 #include <unistd.h>
+#include <cstdlib>
+#include <cstring>
 
 namespace OHOS {
 #ifdef _WIN32
-__attribute__((dllexport)) pid_t GetRealPid(void);
-#else
-__attribute__((visibility("default"))) pid_t GetRealPid(void);
+__attribute__((dllexport)) pid_t GetRealPidWin(void);
 #endif
+
+inline pid_t GetRealPid(void)
+{
+#ifdef _WIN32
+    return GetRealPidWin();
+#elif defined(OHOS_LITE) || defined(__APPLE__) || defined(__gnu_linux__)
+    return getpid();
+#else
+    return getprocpid();
+#endif
+}
 } // namespace OHOS
 
 #endif // SANDBOX_UTILS_H
