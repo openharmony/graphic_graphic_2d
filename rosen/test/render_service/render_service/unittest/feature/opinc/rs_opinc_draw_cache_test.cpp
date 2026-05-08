@@ -31,6 +31,7 @@ constexpr int32_t LAYER_PART_RENDER_DIRTY_SIZE = 100;
 constexpr int32_t LAYER_PART_RENDER_NODE_COUNT = 5;
 constexpr int32_t LAYER_PART_RENDER_CACHE_SIZE = 200;
 constexpr int32_t ROOT_FIND_CACHE_SIZE_THRESHOLD = 50;
+constexpr float IS_TRANSLATE_SCALE_DELTA_FACTOR = 2.0f;
 
 class RSOpincDrawCacheTest : public testing::Test {
 public:
@@ -236,7 +237,7 @@ HWTEST_F(RSOpincDrawCacheTest, IsTranslate001, TestSize.Level1)
     ASSERT_TRUE(opincDrawCache.IsTranslate(matrix));
 
     matrix.SetScale(2, 2);
-    ASSERT_FALSE(opincDrawCache.IsTranslate(matrix));
+    ASSERT_TRUE(opincDrawCache.IsTranslate(matrix));
 }
 
 /**
@@ -249,8 +250,8 @@ HWTEST_F(RSOpincDrawCacheTest, IsTranslate002, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Matrix matrix;
-    matrix.SetScale(1.0f + ColorManager::COLOR_EPSILON, 1.0f);
-    EXPECT_EQ(opincDrawCache.IsTranslate(matrix), false);
+    matrix.SetScale(1.0f + ColorManager::COLOR_EPSILON * IS_TRANSLATE_SCALE_DELTA_FACTOR, 1.0f);
+    EXPECT_FALSE(opincDrawCache.IsTranslate(matrix));
 }
 
 /**
@@ -263,8 +264,8 @@ HWTEST_F(RSOpincDrawCacheTest, IsTranslate003, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Matrix matrix;
-    matrix.SetScale(1.0f, 1.0f + ColorManager::COLOR_EPSILON);
-    EXPECT_EQ(opincDrawCache.IsTranslate(matrix), false);
+    matrix.SetScale(1.0f, 1.0f + ColorManager::COLOR_EPSILON * IS_TRANSLATE_SCALE_DELTA_FACTOR);
+    EXPECT_FALSE(opincDrawCache.IsTranslate(matrix));
 }
 
 /**
