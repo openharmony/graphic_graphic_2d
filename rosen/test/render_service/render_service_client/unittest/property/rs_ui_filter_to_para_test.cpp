@@ -18,8 +18,10 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
+#ifndef ROSEN_ARKUI_X
 #include "ui_effect/filter/include/filter_frosted_glass_blur_para.h"
 #include "ui_effect/filter/include/filter_frosted_glass_para.h"
+#endif
 #include "ui_effect/filter/include/filter_para.h"
 #include "ui_effect/mask/include/mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
@@ -55,6 +57,7 @@ HWTEST_F(RSUIFilterToParaTest, ConvertFilterToParaNullptrInput, TestSize.Level1)
     EXPECT_EQ(result, nullptr);
 }
 
+#ifndef ROSEN_ARKUI_X
 /**
  * @tc.name: ConvertFilterToParaFrostedGlassBlurFilter
  * @tc.desc: test RSNGFilterToParaHelper::ConvertFilterToPara with FROSTED_GLASS_BLUR filter
@@ -545,5 +548,6 @@ HWTEST_F(RSUIFilterToParaTest, FrostedGlassParaDefaultValues, TestSize.Level1)
     EXPECT_EQ(para->GetSkipFrameEnable(), false);
     EXPECT_EQ(para->GetParaType(), FilterPara::ParaType::FROSTED_GLASS);
 }
+#endif
 
 } // namespace OHOS::Rosen
