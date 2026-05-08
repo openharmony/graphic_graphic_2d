@@ -299,6 +299,19 @@ void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfD
     }
 }
 
+float RSRenderPipelineClient::GetAlphaValue(NodeId id)
+{
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetAlphaValue clientToRenderConnection_ is nullptr!");
+        return DEFAULT_ALPHA_VALUE;
+    }
+    float alpha = DEFAULT_ALPHA_VALUE;
+    auto errCode = clientToRenderConnection_->GetAlphaValue(id, alpha);
+    ROSEN_LOGI("RSRenderPipelineClient::GetAlphaValue errCode=%{public}d, alpha=%{public}f, nodeId=%{public}" PRIu64,
+        errCode, alpha, id);
+    return alpha;
+}
+
 bool RSRenderPipelineClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {

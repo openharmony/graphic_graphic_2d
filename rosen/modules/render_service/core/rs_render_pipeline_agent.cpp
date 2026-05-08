@@ -325,6 +325,25 @@ ErrCode RSRenderPipelineAgent::SetHardwareEnabled(NodeId id, bool isEnabled, Sel
     return ERR_OK;
 }
 
+ErrCode RSRenderPipelineAgent::GetAlphaValue(NodeId id, float& alpha)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::GetAlphaValue rsRenderPipeline is null: nodeId=%{public}" PRIu64, id);
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = rsRenderPipeline_, id, &alpha]() -> void {
+        auto& context = renderPipeline->GetMainThread()->GetContext();
+        auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+        if (node) {
+            alpha = node->GetRenderProperties().GetAlpha();
+        }
+        RS_LOGI("RSRenderPipelineAgent::GetAlphaValue: hasNode=%{public}d, alpha=%{public}f, nodeId=%{public}" PRIu64,
+            node != nullptr, alpha, id);
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
 ErrCode RSRenderPipelineAgent::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode)
 {
     if (rsRenderPipeline_ == nullptr) {

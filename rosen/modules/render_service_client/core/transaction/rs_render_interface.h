@@ -420,6 +420,7 @@ private:
     RSInterfaceErrorCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
     void SetHardwareEnabled(NodeId id, bool isEnabled,
         SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT, bool dynamicHardwareEnable = true);
+    float GetAlphaValue(NodeId id);
     std::shared_ptr<RSRenderPipelineClient> GetRSRenderPipelineClient() const
     {
         return renderPipelineClient_;

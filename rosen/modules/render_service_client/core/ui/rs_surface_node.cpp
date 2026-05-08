@@ -919,6 +919,16 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
         GetId(), isEnabled, selfDrawingType, dynamicHardwareEnable);
 }
 
+float RSSurfaceNode::GetAlphaValue()
+{
+    auto rsUIContext = GetRSUIContext();
+    if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
+        ROSEN_LOGE("RSSurfaceNode::GetAlphaValue uiContext is nullptr");
+        return DEFAULT_ALPHA_VALUE;
+    }
+    return rsUIContext->GetRSRenderInterface()->GetAlphaValue(GetId());
+}
+
 void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHardwareAndFixRotation>(GetId(), flag);

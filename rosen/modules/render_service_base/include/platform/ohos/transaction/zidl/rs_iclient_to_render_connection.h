@@ -116,6 +116,8 @@ public:
     virtual ErrCode SetHardwareEnabled(NodeId id, bool isEnabled,
         SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable) = 0;
 
+    virtual ErrCode GetAlphaValue(NodeId id, float& alpha) { return ERR_OK; }
+
     virtual ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) = 0;
 
     virtual ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) = 0;

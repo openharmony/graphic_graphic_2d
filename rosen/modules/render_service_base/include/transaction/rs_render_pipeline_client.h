@@ -123,6 +123,8 @@ public:
     void SetHardwareEnabled(NodeId id, bool isEnabled,
         SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable);
 
+    float GetAlphaValue(NodeId id);
+
     uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,

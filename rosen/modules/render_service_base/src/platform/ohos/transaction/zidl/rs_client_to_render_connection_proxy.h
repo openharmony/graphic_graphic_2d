@@ -65,6 +65,8 @@ public:
     ErrCode SetHardwareEnabled(NodeId id, bool isEnabled,
         SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable) override;
 
+    ErrCode GetAlphaValue(NodeId id, float& alpha) override;
+
     ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
 
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) override;

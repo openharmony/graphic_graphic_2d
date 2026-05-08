@@ -354,6 +354,15 @@ void RSRenderInterface::SetHardwareEnabled(
     }
 }
 
+float RSRenderInterface::GetAlphaValue(NodeId id)
+{
+    if (renderPipelineClient_ == nullptr) {
+        ROSEN_LOGE("RSRenderInterface::GetAlphaValue renderPipelineClient_ nullptr");
+        return DEFAULT_ALPHA_VALUE;
+    }
+    return renderPipelineClient_->GetAlphaValue(id);
+}
+
 void RSRenderInterface::ClearUifirstCache(NodeId id)
 {
     if (renderPipelineClient_ == nullptr) {

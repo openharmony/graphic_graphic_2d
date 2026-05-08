@@ -395,6 +395,15 @@ ErrCode RSClientToRenderConnection::SetHardwareEnabled(NodeId id, bool isEnabled
     return renderPipelineAgent_->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
 }
 
+ErrCode RSClientToRenderConnection::GetAlphaValue(NodeId id, float& alpha)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("RSClientToRenderConnection::GetAlphaValue renderPipelineAgent_ nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->GetAlphaValue(id, alpha);
+}
+
 ErrCode RSClientToRenderConnection::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode)
 {
     if (renderPipelineAgent_ == nullptr) {
