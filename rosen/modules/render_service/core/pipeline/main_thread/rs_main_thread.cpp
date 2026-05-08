@@ -722,11 +722,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #ifdef RS_ENABLE_GPU
     RSRcdRenderManager::InitInstance();
 #endif
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE) || defined (RS_ENABLE_VK)
-    RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetImageManager());
-#endif
-#endif
 
 #if defined(ACCESSIBILITY_ENABLE)
     RS_LOGI("AccessibilityConfig init");

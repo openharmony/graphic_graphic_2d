@@ -1533,11 +1533,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
 
     RSAutoCanvasRestore arc(&canvas);
     auto params = RSUniRenderUtil::DealWithBufferDrawParam(canvas, surfaceParams, *this);
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    if (IsHardwareEnabledTopSurface() && RSUniRenderThread::Instance().GetRSRenderThreadParams()->HasMirrorDisplay()) {
-        RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(canvas.GetSurface()->GetImageSnapshot());
-    }
-#endif
 
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
 }

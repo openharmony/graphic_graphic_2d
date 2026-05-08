@@ -1082,14 +1082,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     processor->ProcessScreenSurfaceForRenderThread(*this);
     processor->PostProcess();
     RS_TRACE_END();
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    if (RSMagicPointerRenderManager::GetInstance().GetPointerColorInversionEnabled() && !mirroredDrawable) {
-        RSMagicPointerRenderManager::GetInstance().ProcessColorPicker(processor, curCanvas_->GetGPUContext(),
-            screenInfo);
-        RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
-    }
-#endif
 }
 
 void RSScreenRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo)
