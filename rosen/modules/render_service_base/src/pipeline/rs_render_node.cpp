@@ -130,6 +130,11 @@ bool RSRenderNode::IsPureContainer() const
 
 bool RSRenderNode::IsPureBackgroundColor() const
 {
+    if (HasValidDrawCmd()) {
+        RS_LOGD("drawCmdList is not none");
+        return false;
+    }
+
     static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
         RSDrawableSlot::SAVE_ALL,
         RSDrawableSlot::BG_SAVE_BOUNDS,
@@ -5194,6 +5199,38 @@ RSRenderNode::ModifierNGContainer RSRenderNode::GetModifiersNG(ModifierNG::RSMod
 const RSRenderNode::ModifiersNGMap& RSRenderNode::GetAllModifiers() const
 {
     return modifiersNG_;
+}
+
+bool RSRenderNode::HasValidDrawCmd() const
+{
+    // modifiers with draw cmdlist, such as CONTENT_STYLE, TRANSITION_STYLE, BACKGROUND_STYLE, FOREGROUND_STYLE,
+    // OVERLAY_STYLE and NODE_MODIFIER, should judge whether there is valid cmdlist in modifier.
+    for (uint16_t type = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSITION_STYLE);
+        type <= static_cast<uint16_t>(ModifierNG::RSModifierType::NODE_MODIFIER); type++) {
+        const auto& modifierContainer = GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
+        for (const auto& modifier : modifierContainer) {
+            const auto& cmdList = modifier->GetPropertyDrawCmdList();
+            if (cmdList != nullptr && !cmdList->IsEmpty()) {
+                return true;
+            }
+        }
+    }
+
+    // other modifiers
+    bool ret = !GetModifiersNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER).empty() ||
+               !GetModifiersNG(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR).empty() ||
+               !GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS).empty() ||
+               !GetModifiersNG(ModifierNG::RSModifierType::CHILDREN).empty();
+    if (!ret) {
+        const auto& clipToFrameModifiers = GetModifiersNG(ModifierNG::RSModifierType::CLIP_TO_FRAME);
+        for (const auto& modifier : clipToFrameModifiers) {
+            if (modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
+                ret = true;
+                break;
+            }
+        }
+    }
+    return ret;
 }
 
 bool RSRenderNode::HasDrawCmdModifiers() const
