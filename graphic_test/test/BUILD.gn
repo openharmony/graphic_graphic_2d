@@ -29,6 +29,7 @@ rs_display_effect_sources = [
   "rs_display_effect/animation/anim_curve_animation_test.cpp",
   "rs_display_effect/animation/anim_curve_animation_test2.cpp",
   "rs_display_effect/animation/anim_custom_modifier_test.cpp",
+  "rs_display_effect/animation/anim_geometry_transition_test.cpp",
   "rs_display_effect/animation/animation_protocol_test.cpp",
   "rs_display_effect/animation/point_custom_modifier_test.cpp",
   "rs_display_effect/content_display/canvas_drawing_node_test.cpp",
@@ -217,6 +218,8 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_filter_test/ng_filter_material_blur_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_other_extend_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_sound_wave_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_heat_distortion_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_blur_bubbles_rise_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_mask_frame_gradient_test.cpp",
 ]
 rs_framework_sources = [
@@ -243,6 +246,7 @@ rs_func_feature_sources = [
   "rs_func_feature/clonenode/clone_node_test.cpp",
   "rs_func_feature/register_buffer_available_callback/register_buffer_available_callback_test.cpp",
   "rs_func_feature/camera_rotation_feature/rotation_correction_test.cpp",
+  "rs_func_feature/render_group/render_group_test.cpp",
 ]
 rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/boundary_test.cpp",
@@ -250,6 +254,7 @@ rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/filter_test.cpp",
   "rs_perform_feature/dirty_region/merge_dirty_rect_test.cpp",
   "rs_perform_feature/dirty_region/merge_dirty_history_test.cpp",
+  "rs_perform_feature/dirty_region/partialrender_filter_test.cpp",
   "rs_perform_feature/dirty_region/pixel_stretch_dirty_test.cpp",
   "rs_perform_feature/dirty_region/subsurface_test.cpp",
   "rs_perform_feature/dirty_region/uni_render_util_test.cpp",

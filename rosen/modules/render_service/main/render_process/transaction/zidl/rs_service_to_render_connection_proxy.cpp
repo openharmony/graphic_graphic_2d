@@ -875,7 +875,7 @@ void RSServiceToRenderConnectionProxy::SetVmaCacheStatus(bool flag)
 }
 
 ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const std::string& name,
-    std::shared_ptr<Media::PixelMap> watermark, bool& success)
+    std::shared_ptr<Media::PixelMap> watermark, bool& success, uint32_t rowCount, uint32_t colCount)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -898,6 +898,11 @@ ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const s
     }
     if (!data.WriteParcelable(watermark.get())) {
         ROSEN_LOGE("%{public}s: WriteParcelable watermark.get() err.", __func__);
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(rowCount) || !data.WriteUint32(colCount)) {
+        ROSEN_LOGE("%{public}s: WriteUint32 rowCount/colCount err.", __func__);
         success = false;
         return ERR_INVALID_VALUE;
     }
@@ -1302,7 +1307,12 @@ ErrCode RSServiceToRenderConnectionProxy::RepaintEverything()
         ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return ERR_INVALID_VALUE;
     }
-    auto replyMessage = reply.ReadInt32();
+    ErrCode replyMessage = ERR_INVALID_VALUE;
+    if (!reply.ReadInt32(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 failed.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+
     return replyMessage;
 }
 
@@ -1386,7 +1396,11 @@ int32_t RSServiceToRenderConnectionProxy::RegisterSelfDrawingNodeRectChangeCallb
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Send request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result = 0;
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: ReadInt32 fail.");
+        return RS_CONNECTION_ERROR;
+    }
     return result;
 }
 
@@ -1795,6 +1809,26 @@ void RSServiceToRenderConnectionProxy::OnGlobalBlacklistChanged(const std::unord
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy sendrequest failed, error is %{public}d", err);
+    }
+}
+void RSServiceToRenderConnectionProxy::SetCacheEnabledForRotation(bool enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return;
+    }
+    if (!data.WriteBool(enabled)) {
+        RS_LOGE("%{public}s: Write enabled failed", __func__);
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_CACHE_ENABLED_FOR_ROTATION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
     }
 }
 } // namespace Rosen

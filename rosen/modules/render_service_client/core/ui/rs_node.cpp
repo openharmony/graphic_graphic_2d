@@ -75,6 +75,7 @@
 #include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_material_filter_modifier.h"
+#include "modifier_ng/appearance/rs_material_shader_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
 #include "modifier_ng/background/rs_background_color_modifier.h"
@@ -111,7 +112,7 @@
 #include "ui/rs_ui_patten_vec.h"
 #include "ui/rs_union_node.h"
 
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
 #include "modifier_render_thread/rs_modifiers_draw.h"
 #endif
 
@@ -221,7 +222,7 @@ RSNode::~RSNode()
     FallbackAnimationsToContext();
 
     ClearAllModifiers();
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
     if (RSSystemProperties::GetHybridRenderEnabled()) {
         RSModifiersDraw::EraseDrawRegions(id_);
@@ -317,17 +318,26 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation(
     return implicitAnimator->CloseImplicitAnimation();
 }
 
-bool RSNode::CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext)
+bool RSNode::CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext, bool nodeExceptionSensitive)
 {
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("RSNode::CloseImplicitCancelAnimation, rsUIContext is null!");
         return false;
     }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
-    return implicitAnimator->CloseImplicitCancelAnimation() == CancelAnimationStatus::SUCCESS ? true : false;
+
+    auto status = implicitAnimator->CloseImplicitCancelAnimation();
+    if (!nodeExceptionSensitive && status == CancelAnimationStatus::NODE_EXCEPTION) {
+        status = CancelAnimationStatus::SUCCESS;
+    }
+    if (status != CancelAnimationStatus::SUCCESS) {
+        ROSEN_LOGE("RSNode::CloseImplicitCancelAnimation failed with status: %{public}d", static_cast<int>(status));
+    }
+    return status == CancelAnimationStatus::SUCCESS;
 }
 
-CancelAnimationStatus RSNode::CloseImplicitCancelAnimationReturnStatus(const std::shared_ptr<RSUIContext> rsUIContext)
+CancelAnimationStatus RSNode::CloseImplicitCancelAnimationReturnStatus(
+    const std::shared_ptr<RSUIContext> rsUIContext, bool nodeExceptionSensitive)
 {
     if (rsUIContext == nullptr) {
         ROSEN_LOGW("RSNode::CloseImplicitCancelAnimationReturnStatus, rsUIContext is null!");
@@ -335,7 +345,15 @@ CancelAnimationStatus RSNode::CloseImplicitCancelAnimationReturnStatus(const std
     }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
-    return implicitAnimator->CloseImplicitCancelAnimation();
+    auto status = implicitAnimator->CloseImplicitCancelAnimation();
+    if (!nodeExceptionSensitive && status == CancelAnimationStatus::NODE_EXCEPTION) {
+        return CancelAnimationStatus::SUCCESS;
+    }
+    if (status != CancelAnimationStatus::SUCCESS) {
+        ROSEN_LOGE("RSNode::CloseImplicitCancelAnimationReturnStatus failed with status: %{public}d",
+            static_cast<int>(status));
+    }
+    return status;
 }
 
 void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
@@ -1804,6 +1822,21 @@ void RSNode::SetBorderDashGap(const Vector4f& dashGap)
     SetPropertyNG<ModifierNG::RSBorderModifier, &ModifierNG::RSBorderModifier::SetBorderDashGap>(dashGap);
 }
 
+void RSNode::SetBorderSDFShader(const std::shared_ptr<RSNGShaderBase>& shader)
+{
+    if (!shader) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BORDER);
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::BORDER_SDF_SHADER)) {
+            return;
+        }
+        modifier->DetachProperty(ModifierNG::RSPropertyType::BORDER_SDF_SHADER);
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSBorderModifier, &ModifierNG::RSBorderModifier::SetBorderSDFShader>(shader);
+}
+
 void RSNode::SetOuterBorderColor(const Vector4<Color>& color)
 {
     SetOutlineColor(color);
@@ -1854,6 +1887,21 @@ void RSNode::SetOutlineDashGap(const Vector4f& dashGap)
 void RSNode::SetOutlineRadius(const Vector4f& radius)
 {
     SetPropertyNG<ModifierNG::RSOutlineModifier, &ModifierNG::RSOutlineModifier::SetOutlineRadius>(radius);
+}
+
+void RSNode::SetOutlineSDFShader(const std::shared_ptr<RSNGShaderBase>& shader)
+{
+    if (!shader) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::OUTLINE);
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::OUTLINE_SDF_SHADER)) {
+            return;
+        }
+        modifier->DetachProperty(ModifierNG::RSPropertyType::OUTLINE_SDF_SHADER);
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSOutlineModifier, &ModifierNG::RSOutlineModifier::SetOutlineSDFShader>(shader);
 }
 
 bool RSNode::RegisterColorPickerCallback(uint64_t interval, ColorPickerCallback callback, uint32_t notifyThreshold)
@@ -2186,10 +2234,18 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             continue;
         }
         if (filterPara->GetParaType() == FilterPara::BLUR) {
-            paramCounts[static_cast<size_t>(SetUIXXFilterCascadeType::FG_BLUR)]++;
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
             auto blurRadius = filterBlurPara->GetRadius();
-            SetForegroundEffectRadius(blurRadius);
+            auto filter = RSNGFilterHelper::CreateNGBlurFilter(blurRadius, blurRadius);
+            if (filter == nullptr) {
+                ROSEN_LOGE("CreateNGBlurFilter filter is nullptr");
+                continue;
+            }
+            if (headFilter) {
+                headFilter->Append(filter);
+            } else {
+                headFilter = filter;
+            }
         }
         if (filterPara->GetParaType() == FilterPara::FLY_OUT) {
             paramCounts[static_cast<size_t>(SetUIXXFilterCascadeType::FLY_OUT)]++;
@@ -2443,6 +2499,22 @@ void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregrou
     }
     SetPropertyNG<ModifierNG::RSForegroundShaderModifier,
         &ModifierNG::RSForegroundShaderModifier::SetForegroundShader>(foregroundShader);
+}
+
+void RSNode::SetMaterialShader(const std::shared_ptr<RSNGShaderBase>& materialShader)
+{
+    if (!materialShader) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_SHADER);
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::MATERIAL_SHADER)) {
+            return;
+        }
+        modifier->DetachProperty(ModifierNG::RSPropertyType::MATERIAL_SHADER);
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSMaterialShaderModifier,
+        &ModifierNG::RSMaterialShaderModifier::SetMaterialShader>(materialShader);
 }
 
 void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter)
@@ -3359,7 +3431,7 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
         drawRegion_ = rect;
         std::unique_ptr<RSCommand> command = std::make_unique<RSSetDrawRegion>(GetId(), rect);
         AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
         if (RSSystemProperties::GetHybridRenderEnabled() && !drawRegion_->IsEmpty()) {
             RSModifiersDraw::AddDrawRegions(id_, drawRegion_);
         }
@@ -3784,7 +3856,7 @@ void RSNode::SetIsOnTheTree(bool flag)
     }
     isOnTheTreeInit_ = true;
     isOnTheTree_ = flag;
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     if (!flag) {
         RSModifiersDraw::InsertOffTreeNode(instanceId_, id_);
     } else {

@@ -44,10 +44,10 @@ namespace drawing {
     native clean(): void;
   }
 
-  let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
+  let destroyRegister: FinalizationRegistry<Cleaner> = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
     cleaner.clean();
   });
-  let unregisterToken = new object();
+  let unregisterToken: Object = new object();
 
   /**
    * Enumerate blending modes for colors.

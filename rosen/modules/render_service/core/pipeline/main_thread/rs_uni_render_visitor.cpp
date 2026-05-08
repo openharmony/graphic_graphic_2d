@@ -69,6 +69,7 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_effect_luminance_manager.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "system/rs_system_parameters.h"
 #include "hgm_core.h"
 #ifndef ROSEN_CROSS_PLATFORM
@@ -4248,7 +4249,8 @@ void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
     using State = DrawableV2::ColorPickerState;
     if (colorPicker->GetState() == State::COLOR_PICK_THIS_FRAME && curSurfaceNode_) {
         RectI colorPickerRect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-        hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
+        hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(),
+            std::make_pair(node.GetId(), colorPickerRect));
     }
 }
 

@@ -15,16 +15,20 @@
 #ifndef UIEFFECT_FILTER_FROSTED_GLASS_BLUR_PARA_H
 #define UIEFFECT_FILTER_FROSTED_GLASS_BLUR_PARA_H
 #include <iostream>
+
 #include "filter_para.h"
+
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class FrostedGlassBlurPara : public FilterPara {
+class RSC_EXPORT FrostedGlassBlurPara : public FilterPara {
 public:
     FrostedGlassBlurPara()
     {
         this->type_ = FilterPara::ParaType::FROSTED_GLASS_BLUR;
     }
+    FrostedGlassBlurPara(const FrostedGlassBlurPara& other);
     ~FrostedGlassBlurPara() override = default;
 
     void SetBlurRadius(float radius)
@@ -57,10 +61,23 @@ public:
         return refractOutPx_;
     }
 
+    void SetSkipFrameEnable(bool isSkipFrameEnable)
+    {
+        isSkipFrameEnable_ = isSkipFrameEnable;
+    }
+
     bool GetSkipFrameEnable() const
     {
         return isSkipFrameEnable_;
     }
+
+    bool Marshalling(Parcel& parcel) const override;
+
+    static void RegisterUnmarshallingCallback();
+
+    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
+
+    std::shared_ptr<FilterPara> Clone() const override;
 
 private:
     float radius_ = 0.0f;

@@ -65,8 +65,7 @@ public:
     void UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
         RSRenderNode& filterNode, uint32_t filterZOrder = 0);
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
-    bool IsHveBlurFilterEnabled(const RSRenderNode& renderNode,
-        const std::pair<NodeId, RectI>& fliter, RSSurfaceRenderNode& hwcNode);
+    bool IsHveBlurFilterEnabled(const RSRenderNode& filterNode, const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
     void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
         RSSurfaceRenderNode& hwcNode);
     void UpdateHwcNodeEnableByGlobalDirtyFilter(const std::vector<std::pair<NodeId, RectI>>& dirtyFilter,
@@ -127,7 +126,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
 
     // Track surfaces that have ColorPicker tasks this frame with their rects for intersection checking
-    std::unordered_map<NodeId, RectI> colorPickerHwcDisabledSurfaces_;
+    std::unordered_map<NodeId, std::pair<NodeId, RectI>> colorPickerHwcDisabledSurfaces_;
 
     uint32_t curZOrderForHwcEnableByFilter_ = 0;
 

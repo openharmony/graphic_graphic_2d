@@ -93,6 +93,11 @@ pid_t Utils::GetPid()
 {
     return _getpid();
 }
+
+std::string Utils::GetProcessName(pid_t pid)
+{
+    return "";
+}
 #else
 // Cpu routines
 int32_t Utils::GetCpuId()
@@ -119,7 +124,19 @@ pid_t Utils::GetPid()
 {
     return getpid();
 }
+
+std::string Utils::GetProcessName(pid_t pid)
+{
+    std::string name;
+    LoadContent("/proc/" + std::to_string(pid) + "/cmdline", name);
+    return name;
+}
 #endif
+
+std::string Utils::GetCurrentProcessName()
+{
+    return GetProcessName(GetPid());
+}
 
 // String routines
 std::string Utils::Format(const char* format, va_list args)
@@ -322,12 +339,11 @@ std::string Utils::GetFileName(const std::string& path)
 #ifdef RENDER_PROFILER_APPLICATION
     return std::filesystem::path(path).filename().string();
 #else
-    std::string filename;
     const size_t lastSlashIdx = path.rfind('/');
     if (std::string::npos != lastSlashIdx) {
-        filename = path.substr(lastSlashIdx + 1);
+        return path.substr(lastSlashIdx + 1);
     }
-    return filename;
+    return path;
 #endif
 }
 
@@ -439,6 +455,7 @@ void Utils::LoadContent(const std::string& path, std::string& content)
         copy(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), std::back_inserter(content));
         Replace("\r", content);
         Replace("\n", content);
+        content = std::string(content.data(), std::strlen(content.data()));
     }
 }
 

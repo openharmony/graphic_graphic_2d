@@ -147,6 +147,9 @@ private:
 
     NodeId stagingNodeId_ = INVALID_NODEID;
     NodeId renderNodeId_ = INVALID_NODEID;
+
+    std::unique_ptr<RectF> stagingDrawRect_ = nullptr;
+    std::unique_ptr<RectF> drawRect_ = nullptr;
 };
 
 class RSForegroundColorDrawable : public RSPropertyDrawable {
@@ -201,6 +204,8 @@ public:
 private:
     static void DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
         const std::shared_ptr<RSBorder>& border, const bool& isOutline);
+    static void DrawBorderSDFShader(Drawing::Canvas& canvas, Drawing::Rect& rect, const bool& isOutline,
+        std::shared_ptr<RSNGRenderShapeBase> shape, std::shared_ptr<RSNGRenderShaderBase> shader);
 };
 
 class RSOutlineDrawable : public RSPropertyDrawable {

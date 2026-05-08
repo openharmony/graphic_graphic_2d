@@ -48,7 +48,8 @@ bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemS
     return {};
 }
 
-bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+    uint32_t rowCount, uint32_t colCount)
 {
     return false;
 }

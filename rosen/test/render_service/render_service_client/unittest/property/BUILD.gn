@@ -22,6 +22,8 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
 
   sources = [
     "rs_ui_filter_base_test.cpp",
+    "rs_ui_filter_to_para_test.cpp",
+    "rs_ui_mask_to_para_test.cpp",
     "rs_ui_shader_base_test.cpp"
   ]
 

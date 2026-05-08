@@ -57,7 +57,7 @@ namespace OHOS::Rosen {
 std::atomic_bool RSProfiler::recordAbortRequested_ = false;
 std::atomic_uint32_t RSProfiler::mode_ = static_cast<uint32_t>(Mode::NONE);
 RSProfiler::LogicalDisplayChildren RSProfiler::displayChildren_;
-    static thread_local uint32_t g_subMode = static_cast<uint32_t>(SubMode::NONE);
+static thread_local uint32_t g_subMode = static_cast<uint32_t>(SubMode::NONE);
 static std::vector<pid_t> g_pids;
 static pid_t g_pid = 0;
 static NodeId g_parentNode = 0;

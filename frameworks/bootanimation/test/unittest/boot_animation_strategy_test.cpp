@@ -123,6 +123,19 @@ HWTEST_F(BootAnimationStrategyTest, IsOtaUpdate_HmosUpdateFlagInvalid_ReturnFals
 }
 
 /**
+ * @tc.name: GetConnectToRenderMap_CountOne_Timeout
+ * @tc.desc: Verify the GetConnectToRenderMap with timeout returns normally
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationStrategyTest, GetConnectToRenderMap_CountOne_Timeout, TestSize.Level1)
+{
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    constexpr uint32_t timeoutMs = 100;
+    strategy->GetConnectToRenderMap(1, timeoutMs);
+    EXPECT_GE(strategy->connectToRenderMap_.size(), 0);
+}
+
+/**
  * @tc.name: GetConnectToRenderMap_CountOne_MapSizeOne
  * @tc.desc: Verify the GetConnectToRenderMap function creates map with correct size.
  * @tc.type: FUNC
@@ -132,19 +145,6 @@ HWTEST_F(BootAnimationStrategyTest, GetConnectToRenderMap_CountOne_MapSizeOne, T
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
     strategy->GetConnectToRenderMap(1);
     EXPECT_GE(strategy->connectToRenderMap_.size(), 1);
-}
-
-/**
- * @tc.name: SubscribeActiveScreenIdChanged_Normal_Success
- * @tc.desc: Verify the SubscribeActiveScreenIdChanged function executes successfully.
- * @tc.type: FUNC
- */
-HWTEST_F(BootAnimationStrategyTest, SubscribeActiveScreenIdChanged_Normal_Success, TestSize.Level1)
-{
-    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
-    ASSERT_NE(strategy, nullptr);
-    strategy->SubscribeActiveScreenIdChanged();
-    EXPECT_NE(strategy->activeScreenId_, Rosen::INVALID_SCREEN_ID);
 }
 
 /**

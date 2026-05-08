@@ -134,8 +134,10 @@ enum class RSNGEffectType : int16_t {
     DISTORT_CHROMA,
     SDF_EDGE_LIGHT,
     SDF_EDGE_LIGHT_EFFECT,
+    BORDER_SDF_SHADER,
     SPATIAL_POINT_LIGHT,
     SPATIAL_GLASS_EFFECT,
+    MOTION_BLUR,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

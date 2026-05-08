@@ -1700,6 +1700,74 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetVmaCacheStatus_SendRequestFail
     mockProxy->SetVmaCacheStatus(true);
 }
 
+// ==================== SetCacheEnabledForRotation Tests ====================
+
+/**
+ * @tc.name: SetCacheEnabledForRotation_True_Success
+ * @tc.desc: Test SetCacheEnabledForRotation with enabled = true
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetCacheEnabledForRotation_True_Success, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
+
+    mockProxy->SetCacheEnabledForRotation(true);
+}
+
+/**
+ * @tc.name: SetCacheEnabledForRotation_False_Success
+ * @tc.desc: Test SetCacheEnabledForRotation with enabled = false
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetCacheEnabledForRotation_False_Success, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
+
+    mockProxy->SetCacheEnabledForRotation(false);
+}
+
+/**
+ * @tc.name: SetCacheEnabledForRotation_SendRequestFail
+ * @tc.desc: Test SetCacheEnabledForRotation when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetCacheEnabledForRotation_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+
+    mockProxy->SetCacheEnabledForRotation(true);
+}
+
+/**
+ * @tc.name: SetCacheEnabledForRotationTest001
+ * @tc.desc: Test SetCacheEnabledForRotationStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetCacheEnabledForRotationTest001, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+
+    proxy->SetCacheEnabledForRotation(false);
+    proxy->SetCacheEnabledForRotation(true);
+
+    proxy->SetCacheEnabledForRotation(true);
+    proxy->SetCacheEnabledForRotation(false);
+    ASSERT_NE(proxy, nullptr);
+}
+
 // ==================== NotifyPackageEvent Tests ====================
 
 /**

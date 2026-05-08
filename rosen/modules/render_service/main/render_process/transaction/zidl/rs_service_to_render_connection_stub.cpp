@@ -22,6 +22,7 @@
 #include "common/rs_xcollie.h"
 #include "platform/common/rs_log.h"
 #include "gfx/dump/rs_dump_manager.h"
+#include "rs_profiler.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSServiceToRenderConnectionStub"
@@ -44,6 +45,7 @@ static void TypefaceXcollieCallback(void* arg)
 int RSServiceToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
     int ret = ERR_NONE;
     if (auto interfaceToken = data.ReadInterfaceToken();
         interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
@@ -359,8 +361,18 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSServiceToRenderStub::SET_WATERMARK:std::shared_ptr<Media::PixelMap> watermark == nullptr");
                 break;
             }
+            uint32_t rowCount = 0;
+            uint32_t colCount = 0;
+            if (!data.ReadUint32(rowCount)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadUint32(colCount)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool success;
-            if (SetWatermark(callingPid, name, watermark, success) != ERR_OK || !success) {
+            if (SetWatermark(callingPid, name, watermark, success, rowCount, colCount) != ERR_OK || !success) {
                 RS_LOGE("RSServiceToRenderStub::SetWatermark failed");
             }
             break;
@@ -1021,6 +1033,15 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             OnGlobalBlacklistChanged({globalBlackList.begin(), globalBlackList.end()});
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_CACHE_ENABLED_FOR_ROTATION): {
+            bool enabled = false;
+            if (!data.ReadBool(enabled)) {
+                RS_LOGE("%{public}s: ReadBool enabled failed", __func__);
+                return ERR_INVALID_STATE;
+            }
+            SetCacheEnabledForRotation(enabled);
             break;
         }
         default:

@@ -100,6 +100,11 @@ public:
         return this->propertiesMap_;
     }
 
+    bool HasNodeNotFound() const
+    {
+        return nodeNotFound_;
+    }
+
     uint16_t GetType() const override
     {
         return commandType;
@@ -108,6 +113,7 @@ public:
 private:
     RSNodeGetShowingPropertiesAndCancelAnimation(uint64_t timeoutNS): RSSyncTask(timeoutNS) {}
     PropertiesMap propertiesMap_;
+    bool nodeNotFound_ = false;
     using Registrar = RSCommandRegister<commandType, commandSubType, Unmarshalling>;
     static Registrar instance_;
 };

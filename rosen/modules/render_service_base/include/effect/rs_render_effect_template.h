@@ -119,8 +119,10 @@ public:
             case RSNGEffectType::SDF_EDGE_LIGHT_EFFECT: return "SDFEdgeLightEffect";
             case RSNGEffectType::MAGNIFIER: return "Magnifier";
             case RSNGEffectType::DISTORTION_COLLAPSE: return "DistortionCollapse";
+            case RSNGEffectType::BORDER_SDF_SHADER: return "BorderSDFShader";
             case RSNGEffectType::SPATIAL_POINT_LIGHT: return "SpatialPointLight";
             case RSNGEffectType::SPATIAL_GLASS_EFFECT: return "SpatialGlassEffect";
+            case RSNGEffectType::MOTION_BLUR: return "MotionBlur";
             default: return "UNKNOWN";
         }
     }

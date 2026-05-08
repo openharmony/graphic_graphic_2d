@@ -209,6 +209,49 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process001, TestSize.
 }
 
 /**
+ * @tc.name: Process_WithNodeNotFound
+ * @tc.desc: test results of Process with nodeNotFound
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process_WithNodeNotFound, TestSize.Level1)
+{
+    RSContext context;
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    NodeId nodeId = 100;
+    PropertyId propertyId = 1;
+    auto renderProperty = std::make_shared<RSRenderProperty<bool>>();
+    std::vector<AnimationId> animationIds = { 0 };
+
+    std::pair<std::pair<NodeId, PropertyId>, std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>
+        entry(std::make_pair(nodeId, propertyId), std::make_pair(renderProperty, animationIds));
+    animation.propertiesMap_.insert(entry);
+
+    animation.Process(context);
+
+    EXPECT_TRUE(animation.HasNodeNotFound());
+    EXPECT_TRUE(animation.IsSuccess());
+}
+
+/**
+ * @tc.name: HasNodeNotFound_ReturnsCorrectValue
+ * @tc.desc: test HasNodeNotFound returns correct value
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, HasNodeNotFound_ReturnsCorrectValue, TestSize.Level1)
+{
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+
+    EXPECT_FALSE(animation.HasNodeNotFound());
+
+    animation.nodeNotFound_ = true;
+    EXPECT_TRUE(animation.HasNodeNotFound());
+}
+
+/**
  * @tc.name: Process003
  * @tc.desc: test results of Process
  * @tc.type: FUNC

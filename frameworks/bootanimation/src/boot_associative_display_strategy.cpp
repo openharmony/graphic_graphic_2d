@@ -77,6 +77,7 @@ void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootA
             bootCompileProgress_->Init(configPath_, config, connectToRender);
         }
     }
+
     while (!CheckExitAnimation()) {
         usleep(SLEEP_TIME_US);
     }

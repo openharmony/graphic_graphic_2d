@@ -426,7 +426,8 @@ ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> sur
 }
 
 ErrCode RSClientToServiceConnection::SetWatermark(
-    const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success)
+    const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success,
+    uint32_t rowCount, uint32_t colCount)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
@@ -446,7 +447,8 @@ ErrCode RSClientToServiceConnection::SetWatermark(
     }
     for (auto conn : serviceToRenderConns) {
         bool successTmp = true;
-        if (conn->SetWatermark(callingPid, name, watermark, successTmp) != ERR_OK || successTmp != true) {
+        if (conn->SetWatermark(callingPid, name, watermark, successTmp, rowCount, colCount) != ERR_OK ||
+            successTmp != true) {
             RS_LOGE("RSClientToServiceConnection::SetWatermark a connection failed!");
             success = false;
             return ERR_INVALID_VALUE;
@@ -1894,7 +1896,23 @@ void RSClientToServiceConnection::ReportGameStateData(GameStateData info)
 ErrCode RSClientToServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
+    if (RSSystemProperties::GetCacheEnabledForRotation() == isEnabled) {
+        return ERR_OK;
+    }
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.size() == 0) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    for (auto& conn : serviceToRenderConns) {
+        if (conn != nullptr) {
+            conn->SetCacheEnabledForRotation(isEnabled);
+        }
+    }
     return ERR_OK;
 }
 

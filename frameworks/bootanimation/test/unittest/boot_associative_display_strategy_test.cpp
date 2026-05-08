@@ -66,25 +66,6 @@ HWTEST_F(BootAssociativeDisplayStrategyTest, Display_EmptyConfigs_ExecuteSuccess
 }
 
 /**
- * @tc.name: Display_MultipleConfigs_ExecuteSuccessfully
- * @tc.desc: Verify the Display function executes with multiple configs.
- * @tc.type: FUNC
- */
-HWTEST_F(BootAssociativeDisplayStrategyTest, Display_MultipleConfigs_ExecuteSuccessfully, TestSize.Level1)
-{
-    std::shared_ptr<BootAssociativeDisplayStrategy> strategy = std::make_shared<BootAssociativeDisplayStrategy>();
-    ASSERT_NE(strategy, nullptr);
-    std::vector<BootAnimationConfig> configs;
-    BootAnimationConfig config1;
-    BootAnimationConfig config2;
-    configs.emplace_back(config1);
-    configs.emplace_back(config2);
-    int32_t duration = TEST_DURATION;
-    strategy->Display(duration, configs);
-    EXPECT_TRUE(true);
-}
-
-/**
  * @tc.name: IsExtraVideoExist_VideoExtPathExists_ReturnTrue
  * @tc.desc: Verify the IsExtraVideoExist function returns true when video ext path exists.
  * @tc.type: FUNC

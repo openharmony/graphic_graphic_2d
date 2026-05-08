@@ -329,7 +329,7 @@ void RSImage::DrawImageRect(
         return;
     }
     //used for ScaleImageAsync
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#if defined(RS_ENABLE_IMAGE_DETAIL_ENHANCER) && defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     RSImageParams rsImageParams = {
         pixelMap_, nodeId_, dst_, uniqueId_, image_, false, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
     };
@@ -598,7 +598,7 @@ std::string RSImage::PixelSamplingDump() const
 
 void RSImage::ImageSamplingDump(uint64_t imageId) const
 {
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#if defined(RS_ENABLE_IMAGE_DETAIL_ENHANCER) && defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     RSImageDetailEnhancerThread::Instance().ImageSamplingDump(imageId);
 #endif
 }
@@ -778,7 +778,7 @@ void RSImage::DrawImageOnCanvas(
             return;
         }
 // used for ScaleImageAsync
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#if defined(RS_ENABLE_IMAGE_DETAIL_ENHANCER) && defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         RSImageParams rsImageParams = {
             pixelMap_, nodeId_, dst_, uniqueId_, image_, false, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
         };
@@ -805,7 +805,7 @@ void RSImage::DrawImageWithFirMatrixRotateOnCanvas(
     filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, sigma, false));
     pen.SetFilter(filter);
     canvas.AttachPen(pen);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#if defined(RS_ENABLE_IMAGE_DETAIL_ENHANCER) && defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     RSImageParams rsImageParams = {
         pixelMap_, nodeId_, dst_, uniqueId_, image_, true, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
     };

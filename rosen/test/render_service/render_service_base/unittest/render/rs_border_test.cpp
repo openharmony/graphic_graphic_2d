@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "include/render/rs_border.h"
+#include "effect/rs_render_shader_base.h"
 
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
@@ -1483,5 +1484,66 @@ HWTEST_F(RSBorderTest, DrawLeftBorderTest, TestSize.Level1)
     border->SetStyle(BorderStyle::DASHED);
     border->DrawLeftBorder(canvas, pen, borderGeo);
     EXPECT_FALSE(border->styles_.empty());
+}
+
+/**
+ * @tc.name: SetAndGetSDFShader001
+ * @tc.desc: Test SetSDFShader and GetSDFShader with valid shader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBorderTest, SetAndGetSDFShader001, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    EXPECT_EQ(border->GetSDFShader(), nullptr);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    border->SetSDFShader(shader);
+    EXPECT_EQ(border->GetSDFShader(), shader);
+
+    border->SetSDFShader(nullptr);
+    EXPECT_EQ(border->GetSDFShader(), nullptr);
+}
+
+/**
+ * @tc.name: HasBorderWithSDFShader001
+ * @tc.desc: Test HasBorder returns true when sdfShader_ is set (early return branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBorderTest, HasBorderWithSDFShader001, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    EXPECT_FALSE(border->HasBorder());
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    border->SetSDFShader(shader);
+    EXPECT_TRUE(border->HasBorder());
+
+    border->SetSDFShader(nullptr);
+    EXPECT_FALSE(border->HasBorder());
+
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(1.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+    EXPECT_TRUE(border->HasBorder());
+}
+
+/**
+ * @tc.name: ToStringWithSDFShader001
+ * @tc.desc: Test ToString includes sdfShader dump when sdfShader_ is set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBorderTest, ToStringWithSDFShader001, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>();
+    std::string strNoShader = border->ToString();
+    EXPECT_EQ(strNoShader.find("sdfShader"), std::string::npos);
+
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    border->SetSDFShader(shader);
+    std::string strWithShader = border->ToString();
+    EXPECT_NE(strWithShader.find("sdfShader"), std::string::npos);
 }
 } // namespace OHOS::Rosen

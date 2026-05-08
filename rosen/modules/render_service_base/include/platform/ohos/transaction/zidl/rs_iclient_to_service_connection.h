@@ -120,7 +120,7 @@ public:
         ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) = 0;
 
     virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
-        bool& success) = 0;
+        bool& success, uint32_t rowCount = 0, uint32_t colCount = 0) = 0;
 
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;

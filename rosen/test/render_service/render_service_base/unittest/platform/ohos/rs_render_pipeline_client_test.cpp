@@ -580,6 +580,20 @@ HWTEST_F(RSPipelineClientTest, SurfaceWatermarkTest01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SurfaceWatermarkGridTest01
+ * @tc.desc: SurfaceWatermarkGridTest01
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, SurfaceWatermarkGridTest01, TestSize.Level1)
+{
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->SetSurfaceWatermark(0, "WATERMARK", nullptr, {},
+        SurfaceWatermarkType::CUSTOM_WATER_MARK, 2, 2), SurfaceWatermarkStatusCode::WATER_MARK_RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+}
+
+/**
  * @tc.name: TriggerSurfaceCaptureCallback001
  * @tc.desc: TriggerSurfaceCaptureCallback
  * @tc.type:FUNC

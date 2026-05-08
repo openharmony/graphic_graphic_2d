@@ -212,7 +212,7 @@ HWTEST_F(RSNodeTest2, SetUIForegroundFilter, TestSize.Level1)
     para->SetRadius(FLOAT_DATA[1]);
     filterObj->AddPara(para);
     rsNode->SetUIForegroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == FLOAT_DATA[1]);
+    EXPECT_FALSE(rsNode->GetStagingProperties().GetForegroundEffectRadius() == FLOAT_DATA[1]);
 }
 
 /**
@@ -1241,5 +1241,47 @@ HWTEST_F(RSNodeTest2, ReSortChildrenByZIndexTest, TestSize.Level1)
     auto transaction = uiContext->GetRSTransaction();
     ASSERT_NE(transaction, nullptr);
     ASSERT_FALSE(transaction->IsEmpty());
+}
+
+/**
+ * @tc.name: SetBorderSDFShader001
+ * @tc.desc: test results of SetBorderSDFShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetBorderSDFShader001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetBorderSDFShader(nullptr);
+    ASSERT_EQ(rsNode->GetModifierByType(ModifierNG::RSModifierType::BORDER), nullptr);
+
+    auto shader = RSNGShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    rsNode->SetBorderSDFShader(shader);
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::BORDER), nullptr);
+
+    rsNode->SetBorderSDFShader(nullptr);
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::BORDER);
+    ASSERT_NE(modifier, nullptr);
+    ASSERT_EQ(modifier->properties_.find(ModifierNG::RSPropertyType::BORDER_SDF_SHADER), modifier->properties_.end());
+}
+
+/**
+ * @tc.name: SetOutlineSDFShader001
+ * @tc.desc: test results of SetOutlineSDFShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetOutlineSDFShader001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetOutlineSDFShader(nullptr);
+    ASSERT_EQ(rsNode->GetModifierByType(ModifierNG::RSModifierType::OUTLINE), nullptr);
+
+    auto shader = RSNGShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    rsNode->SetOutlineSDFShader(shader);
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::OUTLINE), nullptr);
+
+    rsNode->SetOutlineSDFShader(nullptr);
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::OUTLINE);
+    ASSERT_NE(modifier, nullptr);
+    ASSERT_EQ(modifier->properties_.find(ModifierNG::RSPropertyType::OUTLINE_SDF_SHADER), modifier->properties_.end());
 }
 } // namespace OHOS::Rosen

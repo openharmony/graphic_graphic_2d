@@ -38,7 +38,7 @@ void RSDynamicLayerSkipController::Init(const RectI& screenRect, bool globalDisa
     screenLayerInvalid_ = false;
     globalOccluderDetected_ = false;
     occluderInstanceRootNodeId_ = INVALID_NODEID;
-    fullScreenSelfDrawingSurface_.clear();
+    targetSelfDrawingSurface_.clear();
     visitedRenderNodeCount_ = 0;
 }
 
@@ -66,6 +66,12 @@ void RSDynamicLayerSkipController::VisitRenderNode(std::shared_ptr<RSSurfaceRend
 bool RSDynamicLayerSkipController::HasFullScreenSelfDrawingSurface(RSSurfaceRenderNode& rootNode) const
 {
     return false;
+}
+
+void RSDynamicLayerSkipController::DetectScreenLayerValidityInner(
+    std::shared_ptr<RSRenderNode> node, Occlusion::Region& targetArea, int32_t totalTargetCount)
+{
+    return;
 }
 
 void RSDynamicLayerSkipController::DetectScreenLayerValidity(RSSurfaceRenderNode& rootNode)

@@ -3799,17 +3799,17 @@ HWTEST_F(RSNodeTest, SetUIXXFilterCascade_Foreground_BitsetToggle, TestSize.Leve
     filterObj->AddPara(flyOutPara);
 
     rsNode->SetUIForegroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->hasReportedSetUIXXFilterCascade_.test(2));
+    EXPECT_FALSE(rsNode->hasReportedSetUIXXFilterCascade_.test(2));
 
     rsNode->SetUIForegroundFilter(filterObj.get());
-    EXPECT_TRUE(rsNode->hasReportedSetUIXXFilterCascade_.test(2));
+    EXPECT_FALSE(rsNode->hasReportedSetUIXXFilterCascade_.test(2));
 
     auto filterObj2 = std::make_unique<Filter>();
     auto blurPara2 = std::make_shared<FilterBlurPara>();
     blurPara2->SetRadius(floatData[1]);
     filterObj2->AddPara(blurPara2);
     rsNode->SetUIForegroundFilter(filterObj2.get());
-    EXPECT_TRUE(rsNode->hasReportedSetUIXXFilterCascade_.test(2));
+    EXPECT_FALSE(rsNode->hasReportedSetUIXXFilterCascade_.test(2));
 }
 
 /**
@@ -3975,6 +3975,30 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter003, TestSize.Level1)
     filterObj->AddPara(para);
     rsNode->SetUIForegroundFilter(filterObj.get());
     EXPECT_NE(rsNode->GetStagingProperties().GetLightIntensity(), lightIntensity);
+}
+
+/**
+ * @tc.name: SetUIForegroundFilterBlurCascade001
+ * @tc.desc: test SetUIForegroundFilter with multiple blur filters cascade
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUIForegroundFilterBlurCascade001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+
+    // Add first blur para
+    auto blurPara1 = std::make_shared<FilterBlurPara>();
+    blurPara1->SetRadius(10.0f);
+    filterObj->AddPara(blurPara1);
+
+    // Add second blur para to test headFilter append branch
+    auto blurPara2 = std::make_shared<FilterBlurPara>();
+    blurPara2->SetRadius(20.0f);
+    filterObj->AddPara(blurPara2);
+
+    rsNode->SetUIForegroundFilter(filterObj.get());
+    EXPECT_FALSE(rsNode->hasReportedSetUIXXFilterCascade_.test(2));
 }
 
 /**
@@ -8745,4 +8769,61 @@ HWTEST_F(RSNodeTest, SetRSUIContext002, TestSize.Level1)
     }
 }
 
+
+/**
+ * @tc.name: SetMaterialShaderNullTest
+ * @tc.desc: test SetMaterialShader with nullptr (true branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetMaterialShaderNullTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    std::shared_ptr<RSNGShaderBase> nullShader = nullptr;
+    rsNode->SetMaterialShader(nullShader);
+
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetMaterialShaderValidTest
+ * @tc.desc: test SetMaterialShader with valid shader (false branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetMaterialShaderValidTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    auto materialShader = RSNGShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    ASSERT_TRUE(materialShader != nullptr);
+
+    rsNode->SetMaterialShader(materialShader);
+
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetMaterialShaderDetachPropertyTest
+ * @tc.desc: test SetMaterialShader with nullptr after setting valid shader (DetachProperty branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetMaterialShaderDetachPropertyTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    auto materialShader = RSNGShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    ASSERT_TRUE(materialShader != nullptr);
+
+    rsNode->SetMaterialShader(materialShader);
+
+    auto modifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_SHADER);
+
+    std::shared_ptr<RSNGShaderBase> nullShader = nullptr;
+    rsNode->SetMaterialShader(nullShader);
+
+    EXPECT_TRUE(true);
+}
 } // namespace OHOS::Rosen

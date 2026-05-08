@@ -803,7 +803,11 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
         EFFECT_COMM_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
         return nullptr;
     }
-    return Drawing::Surface::MakeRenderTarget(gpuContext_.get(), false, imageInfo_);
+    
+    RS_TRACE_NAME_FMT("EffectImageChain::CreateGPUSurface Imageinfo:Image_Width:%d, Imageinfo_Height:%d",
+        imageInfo_.GetWidth(), imageInfo_.GetHeight());
+    auto surface = Drawing::Surface::MakeRenderTarget(gpuContext_.get(), false, imageInfo_);
+    return surface;
 #else
     EFFECT_LOG_W("EffectImageChain::CreateGPUSurface: GPU rendering is not supported.");
     return nullptr;

@@ -39,6 +39,7 @@ constexpr uint32_t WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT = 6 * 1024 * 1024;
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
 constexpr int32_t SECURITYMASK_IMAGE_WIDTH_LIMIT = 4096;
 constexpr int32_t SECURITYMASK_IMAGE_HEIGHT_LIMIT = 4096;
+constexpr uint32_t MAX_WATERMARK_GRID_COUNT = 255;
 }
 #endif
 RSInterfaces &RSInterfaces::GetInstance()
@@ -164,7 +165,7 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 }
 
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
-    SaSurfaceWatermarkMaxSize maxSizeEnum)
+    SaSurfaceWatermarkMaxSize maxSizeEnum, uint32_t rowCount, uint32_t colCount)
 {
 #ifdef ROSEN_OHOS
     if (renderServiceClient_ == nullptr) {
@@ -174,6 +175,11 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
         ROSEN_LOGE("SetWatermark failed, name[%{public}s] is error.", name.c_str());
         return false;
     }
+    if (rowCount > MAX_WATERMARK_GRID_COUNT || colCount > MAX_WATERMARK_GRID_COUNT) {
+        ROSEN_LOGE("SetSurfaceWatermark failed, rowCount[%{public}u] or colCount[%{public}u] out of range",
+            rowCount, colCount);
+        return false;
+    }
     uint32_t limitMaxSize = ((maxSizeEnum == SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE) ?
         WATERMARK_PIXELMAP_SIZE_LIMIT : WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT);
     if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > limitMaxSize)) {
@@ -181,7 +187,7 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
             watermark->IsAstc(), watermark->GetCapacity(), limitMaxSize, static_cast<uint32_t>(maxSizeEnum));
         return false;
     }
-    return renderServiceClient_->SetWatermark(name, watermark);
+    return renderServiceClient_->SetWatermark(name, watermark, rowCount, colCount);
 #else
     return false;
 #endif
@@ -189,7 +195,8 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
 
 uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string& name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount, uint32_t colCount)
 {
     return 0;
 }

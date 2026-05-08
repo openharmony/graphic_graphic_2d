@@ -350,9 +350,10 @@ public:
         const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation(
         const std::shared_ptr<RSUIContext> rsUIContext);
-    static bool CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext);
+    static bool CloseImplicitCancelAnimation(
+        const std::shared_ptr<RSUIContext> rsUIContext, bool nodeExceptionSensitive = false);
     static CancelAnimationStatus CloseImplicitCancelAnimationReturnStatus(
-        const std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+        const std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool nodeExceptionSensitive = false);
     static bool IsImplicitAnimationOpen(const std::shared_ptr<RSUIContext> rsUIContext);
     static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
         float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
@@ -1038,6 +1039,13 @@ public:
     void SetBorderDashGap(const Vector4f& dashGap);
 
     /**
+     * @brief Sets the SDF border shader.
+     *
+     * @param shader Indicates the SDF border shader to be applied.
+     */
+    void SetBorderSDFShader(const std::shared_ptr<RSNGShaderBase>& shader);
+
+    /**
      * @brief Sets the color of the outer border.
      *
      * @param color Indicates outer border color for each side.
@@ -1106,6 +1114,13 @@ public:
      * @param radius Indicates outline radius for each side.
      */
     void SetOutlineRadius(const Vector4f& radius);
+
+    /**
+     * @brief Sets the SDF outline shader.
+     *
+     * @param shader Indicates the SDF outline shader to be applied.
+     */
+    void SetOutlineSDFShader(const std::shared_ptr<RSNGShaderBase>& shader);
 
     /**
      * @brief Sets color picker params of the node.
@@ -1230,6 +1245,13 @@ public:
      * @param backgroundShader Indicates the background shader to be applied.
      */
     void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
+
+    /**
+     * @brief Sets the material shader.
+     *
+     * @param materialShader Indicates the material shader to be applied.
+     */
+    void SetMaterialShader(const std::shared_ptr<RSNGShaderBase>& materialShader);
 
     /**
      * @brief Sets the foreground shader.

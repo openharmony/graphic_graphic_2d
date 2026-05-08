@@ -28,6 +28,9 @@ const RSOutlineRenderModifier::LegacyPropertyApplierMap RSOutlineRenderModifier:
         RSRenderModifier::PropertyApplyHelper<Vector4f, &RSProperties::SetOutlineDashGap> },
     { RSPropertyType::OUTLINE_RADIUS, RSRenderModifier::PropertyApplyHelperAdd<Vector4f,
                                           &RSProperties::SetOutlineRadius, &RSProperties::GetOutlineRadius> },
+    { RSPropertyType::OUTLINE_SDF_SHADER,
+        RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderShaderBase>,
+            &RSProperties::SetOutlineSDFShader> },
 };
 
 void RSOutlineRenderModifier::ResetProperties(RSProperties& properties)

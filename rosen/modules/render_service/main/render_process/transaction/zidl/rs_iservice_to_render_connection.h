@@ -83,7 +83,8 @@ public:
 
     // Watermark
     virtual ErrCode SetWatermark(
-        pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) = 0;
+        pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success,
+        uint32_t rowCount = 0, uint32_t colCount = 0) = 0;
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) = 0;
 
     // Vrate
@@ -136,6 +137,7 @@ public:
     virtual int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
     virtual void ForceRefreshOneFrameWithNextVSync() = 0;
+    virtual void SetCacheEnabledForRotation(bool enabled) = 0;
 };
 
 } // namespace Rosen

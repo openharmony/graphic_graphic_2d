@@ -1201,7 +1201,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
                                     RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(nodeId) &&
                                     config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isUseSelfDrawBufferUsage) {
-        defaultUsage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+        defaultUsage |= BUFFER_USAGE_AUXILLARY_BUFFER0;
     }
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
@@ -1556,14 +1556,15 @@ float RSRenderPipelineAgent::GetRotationInfoFromSurfaceBuffer(const sptr<Surface
 }
 
 ErrCode RSRenderPipelineAgent::SetWatermark(
-    pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success)
+    pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success,
+    uint32_t rowCount, uint32_t colCount)
 {
     if (rsRenderPipeline_ == nullptr) {
         success = false;
         return ERR_INVALID_VALUE;
     }
-    auto task = [renderPipeline = rsRenderPipeline_, callingPid, name, watermark]() -> void {
-        renderPipeline->GetMainThread()->SetWatermark(callingPid, name, watermark);
+    auto task = [renderPipeline = rsRenderPipeline_, callingPid, name, watermark, rowCount, colCount]() -> void {
+        renderPipeline->GetMainThread()->SetWatermark(callingPid, name, watermark, rowCount, colCount);
     };
     rsRenderPipeline_->GetMainThread()->PostTask(task);
     success = true;
@@ -2067,16 +2068,17 @@ void RSRenderPipelineAgent::OnGlobalBlacklistChanged(const std::unordered_set<No
 
 uint32_t RSRenderPipelineAgent::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType, bool isSystemCalling)
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType, bool isSystemCalling,
+    uint32_t rowCount, uint32_t colCount)
 {
     if (rsRenderPipeline_ == nullptr) {
         return WATER_MARK_IPC_ERROR;
     }
     uint32_t res =  SurfaceWatermarkStatusCode::WATER_MARK_RS_CONNECTION_ERROR;
     auto task = [renderPipeline = rsRenderPipeline_, &name, &nodeIdList, &watermark, &watermarkType,
-        pid, isSystemCalling, &res]() -> void {
+        pid, isSystemCalling, rowCount, colCount, &res]() -> void {
         res = renderPipeline->GetMainThread()->SetSurfaceWatermark(pid, name, watermark,
-            nodeIdList, watermarkType, isSystemCalling);
+            nodeIdList, watermarkType, isSystemCalling, rowCount, colCount);
     };
     rsRenderPipeline_->PostMainThreadSyncTask(task);
     return res;
@@ -2104,6 +2106,14 @@ void RSRenderPipelineAgent::ClearSurfaceWatermark(pid_t pid,
         renderPipeline->GetMainThread()->ClearSurfaceWatermark(pid, name, isSystemCalling);
     };
     rsRenderPipeline_->PostMainThreadTask(task);
+}
+
+void RSRenderPipelineAgent::SetCacheEnabledForRotation(bool enabled)
+{
+    if (RSSystemProperties::GetCacheEnabledForRotation() == enabled) {
+        return;
+    }
+    RSSystemProperties::SetCacheEnabledForRotation(enabled);
 }
 
 std::string RSRenderPipelineAgent::GetBundleName(pid_t pid)
@@ -2227,5 +2237,6 @@ int32_t RSRenderPipelineAgent::GetFrameStabilityResult(pid_t pid, const FrameSta
     rsRenderPipeline_->PostMainThreadSyncTask(task);
     return repCode;
 }
+
 } // namespace Rosen
 } // namespace OHOS

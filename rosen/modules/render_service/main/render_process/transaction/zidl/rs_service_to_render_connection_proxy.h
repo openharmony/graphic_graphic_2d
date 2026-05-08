@@ -73,7 +73,8 @@ public:
 
     // Watermark
     ErrCode SetWatermark(
-        pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
+        pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success,
+        uint32_t rowCount = 0, uint32_t colCount = 0) override;
     void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) override;
 
     // Vrate
@@ -124,6 +125,7 @@ public:
     ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) override;
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
+    void SetCacheEnabledForRotation(bool enabled) override;
     void SetVmaCacheStatus(bool flag) override;
 
 private:

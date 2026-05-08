@@ -773,6 +773,7 @@ typedef enum : uint32_t {
     WATER_MARK_PIXELMAP_INVALID = (1U << 13),
     WATER_MARK_NOT_SURFACE_NODE_ERROR = (1U << 14),
     WATER_MARK_INVALID_WATERMARK_TYPE = (1U << 15),
+    WATER_MARK_INVALID_GRID_COUNT = (1U << 16),
 } SurfaceWatermarkStatusCode;
 
 typedef enum : uint8_t {

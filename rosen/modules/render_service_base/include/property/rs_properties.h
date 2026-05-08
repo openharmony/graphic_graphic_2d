@@ -337,11 +337,13 @@ public:
     void SetBorderStyle(Vector4<uint32_t> style);
     void SetBorderDashWidth(const Vector4f& dashWidth);
     void SetBorderDashGap(const Vector4f& dashGap);
+    void SetBorderSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     Vector4<Color> GetBorderColor() const;
     Vector4f GetBorderWidth() const;
     Vector4<uint32_t> GetBorderStyle() const;
     Vector4f GetBorderDashWidth() const;
     Vector4f GetBorderDashGap() const;
+    std::shared_ptr<RSNGRenderShaderBase> GetBorderSDFShader() const;
     const std::shared_ptr<RSBorder>& GetBorder() const;
     void SetOutlineColor(Vector4<Color> color);
     void SetOutlineWidth(Vector4f width);
@@ -349,12 +351,14 @@ public:
     void SetOutlineDashWidth(const Vector4f& dashWidth);
     void SetOutlineDashGap(const Vector4f& dashGap);
     void SetOutlineRadius(Vector4f radius);
+    void SetOutlineSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     Vector4<Color> GetOutlineColor() const;
     Vector4f GetOutlineWidth() const;
     Vector4<uint32_t> GetOutlineStyle() const;
     Vector4f GetOutlineDashWidth() const;
     Vector4f GetOutlineDashGap() const;
     Vector4f GetOutlineRadius() const;
+    std::shared_ptr<RSNGRenderShaderBase> GetOutlineSDFShader() const;
     const std::shared_ptr<RSBorder>& GetOutline() const
     {
         return outline_;
@@ -397,6 +401,8 @@ public:
     std::shared_ptr<RSNGRenderShapeBase> GetSDFShape() const;
     void SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetMaterialNGFilter() const;
+    void SetMaterialShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
+    std::shared_ptr<RSNGRenderShaderBase> GetMaterialShader() const;
     void SetCompositingNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetCompositingNGFilter() const;
 
@@ -692,6 +698,7 @@ public:
     bool UpdateGeometryByParent(const Drawing::Matrix* parentMatrix, const std::optional<Drawing::Point>& offset);
     RectF GetLocalBoundsAndFramesRect() const;
     RectF GetBoundsRect() const;
+    NodeId GetRenderNodeId() const;
 
     bool IsGeoDirty() const;
     bool IsCurGeoDirty() const;
@@ -1004,6 +1011,7 @@ private:
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> olRenderShader_ = nullptr; // for overlay shader
+        std::shared_ptr<RSNGRenderShaderBase> mtRenderShader_ = nullptr; // for material shader
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;
     };
     inline float DecreasePrecision(float value)
@@ -1094,7 +1102,6 @@ private:
     bool isDrawn_ = false;
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
-    bool needDisabledPartialRender_ = false;
     bool needHwcFilter_ = false;
     bool needForceSubmit_ = false;
     bool hasHarmonium_ = false;

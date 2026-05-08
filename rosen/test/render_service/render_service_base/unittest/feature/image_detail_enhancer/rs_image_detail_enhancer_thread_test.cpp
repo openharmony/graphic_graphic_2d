@@ -34,7 +34,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 using namespace Drawing;
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#if defined(RS_ENABLE_IMAGE_DETAIL_ENHANCER) && defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 // Sample valid params for unit test
 static RSImageDetailEnhanceParams params = { true, 500, 3000, 0.5f, 5.0f };
 static RSImageDetailEnhanceAlgoParams slrParams = {
@@ -50,20 +50,6 @@ static RSImageDetailEnhanceAlgoParams esrParams = {
     9000000,
 };
 #endif
-
-// static RSImageDetailEnhanceParams params = { true, 500, 3000, 0.5f, 5.0f };  car 2 compile
-static RSImageDetailEnhanceAlgoParams slrParams = {
-    true,
-    {{ 0.0f, 0.5f, 0.3f }},
-    360000,
-    640000,
-};
-static RSImageDetailEnhanceAlgoParams esrParams = {
-    true,
-    {{ 1.0f, 2.0f, 0.3f }, { 2.0f, 4.0f, 0.2f }, { 4.0f, 5.0f, 0.15f }},
-    360000,
-    9000000,
-};
 
 class RSImageDetailEnhancerThreadTest : public testing::Test {
 public:
@@ -91,6 +77,7 @@ void DetailEnhancerUtilsTest::TearDownTestCase() {}
 void DetailEnhancerUtilsTest::SetUp() {}
 void DetailEnhancerUtilsTest::TearDown() {}
 
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 static sptr<SurfaceBuffer> CreateSurfaceBuffer(int width, int height)
 {
@@ -1333,5 +1320,6 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ImageSamplingDumpTest, TestSize.Level1
     rsImageDetailEnhancerThread.SetScaledImage(imageId2, image2);
     rsImageDetailEnhancerThread.ImageSamplingDump(imageId2);
 }
+#endif
 #endif
 } // namespace OHOS::Rosen
