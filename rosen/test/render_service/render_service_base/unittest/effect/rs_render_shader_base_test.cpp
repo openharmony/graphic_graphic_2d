@@ -35,11 +35,11 @@ void RSNGRenderShaderBaseTest::SetUp() {}
 void RSNGRenderShaderBaseTest::TearDown() {}
 
 /**
- * @tc.name: CreateShaderForValidTypes
+ * @tc.name: Create001
  * @tc.desc: Verify that the create method returns a non-empty instance for the registered shader type
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CreateShaderForValidTypes, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, Create001, TestSize.Level1)
 {
     // Test three known filter types
     auto contour = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
@@ -62,11 +62,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, CreateShaderForValidTypes, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateShaderForInvalidType
+ * @tc.name: Create002
  * @tc.desc: Test that the create method returns a nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CreateShaderForInvalidType, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, Create002, TestSize.Level1)
 {
     // Use an invalid enum value
     RSNGEffectType invalidType = static_cast<RSNGEffectType>(-1);
@@ -75,11 +75,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, CreateShaderForInvalidType, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetShaderTypeString
+ * @tc.name: GetShaderTypeString001
  * @tc.desc: Test GetEffectTypeString by valid type and unknown type
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, GetShaderTypeString, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, GetShaderTypeString001, TestSize.Level1)
 {
     // Valid types
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::INVALID), "Invalid");
@@ -94,11 +94,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, GetShaderTypeString, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpSingleEffect
+ * @tc.name: Dump001
  * @tc.desc: Test Dump with one effect type
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, DumpSingleEffect, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, Dump001, TestSize.Level1)
 {
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
     ASSERT_NE(shader, nullptr);
@@ -112,11 +112,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, DumpSingleEffect, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpChainedEffects
+ * @tc.name: Dump002
  * @tc.desc: Test Dump with two effect type
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, DumpChainedEffects, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, Dump002, TestSize.Level1)
 {
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
     auto next = RSNGRenderShaderBase::Create(RSNGEffectType::WAVY_RIPPLE_LIGHT);
@@ -156,11 +156,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, AppendToGEContainerTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UnmarshallingSingleEffect
+ * @tc.name: Unmarshalling001
  * @tc.desc: Test Unmarshalling with valid parcel
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, UnmarshallingSingleEffect, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, Unmarshalling001, TestSize.Level1)
 {
     auto original = RSNGRenderShaderBase::Create(RSNGEffectType::WAVY_RIPPLE_LIGHT);
     EXPECT_NE(original, nullptr);
@@ -174,11 +174,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, UnmarshallingSingleEffect, TestSize.Level1)
 }
 
 /**
- * @tc.name: UnmarshallingChainedEffects
+ * @tc.name: Unmarshalling002
  * @tc.desc: Test Unmarshalling with two valid parcel
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, UnmarshallingChainedEffects, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, Unmarshalling002, TestSize.Level1)
 {
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
     auto next = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
@@ -199,11 +199,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, UnmarshallingChainedEffects, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckEnableEDR
+ * @tc.name: CheckEnableEDR001
  * @tc.desc: 验证 Unmarshalling 方法在链式Parcel（两节点）时返回true并正确链接两个实例
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CheckEnableEDR, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, CheckEnableEDR001, TestSize.Level1)
 {
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
     auto next = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
@@ -224,11 +224,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, CheckEnableEDR, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRotationAngle
+ * @tc.name: SetRotationAngle001
  * @tc.desc: test SetRotationAngle
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, SetRotationAngle, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, SetRotationAngle001, TestSize.Level1)
 {
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
     std::shared_ptr<RSNGRenderShaderBase> emptyHead = nullptr;
@@ -259,11 +259,11 @@ HWTEST_F(RSNGRenderShaderBaseTest, SetRotationAngle, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCornerRadius
+ * @tc.name: SetCornerRadius001
  * @tc.desc: test SetCornerRadius
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, SetCornerRadius, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, SetCornerRadius001, TestSize.Level1)
 {
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
     std::shared_ptr<RSNGRenderShaderBase> emptyHead = nullptr;
@@ -307,12 +307,12 @@ HWTEST_F(RSNGRenderShaderBaseTest, SetCornerRadius, TestSize.Level1)
 }
 
 /**
- * @tc.name: CalcRectWithNullShader
+ * @tc.name: CalcRect001
  * @tc.desc: test CalcRect with null shader
  * @tc.type: FUNC
  * @tc.require: issue23101
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithNullShader, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, CalcRect001, TestSize.Level1)
 {
     std::shared_ptr<RSNGRenderShaderBase> shader = nullptr;
     RectF bound(0.0f, 0.0f, 100.0f, 100.0f);
@@ -320,12 +320,12 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithNullShader, TestSize.Level1)
     EXPECT_TRUE(result.IsEmpty());
 }
 /**
- * @tc.name: CalcRectWithNonSDFShader
+ * @tc.name: CalcRect002
  * @tc.desc: test CalcRect with non SDF_EDGE_LIGHT_EFFECT shader
  * @tc.type: FUNC
  * @tc.require: issue23101
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithNonSDFShader, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, CalcRect002, TestSize.Level1)
 {
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     ASSERT_NE(shader, nullptr);
@@ -334,12 +334,12 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithNonSDFShader, TestSize.Level1)
     EXPECT_TRUE(result == bound);
 }
 /**
- * @tc.name: CalcRectWithSDFShaderMaxBorderWidth
+ * @tc.name: CalcRect003
  * @tc.desc: test CalcRect with SDF_EDGE_LIGHT_EFFECT, maxBorderWidth > outerBorderBloomWidth
  * @tc.type: FUNC
  * @tc.require: issue23101
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithSDFShaderMaxBorderWidth, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, CalcRect003, TestSize.Level1)
 {
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     ASSERT_NE(shader, nullptr);
@@ -357,12 +357,12 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithSDFShaderMaxBorderWidth, TestSize
     EXPECT_TRUE(result == expected);
 }
 /**
- * @tc.name: CalcRectWithSDFShaderOuterBorderBloomWidth
+ * @tc.name: CalcRect004
  * @tc.desc: test CalcRect with SDF_EDGE_LIGHT_EFFECT, maxBorderWidth < outerBorderBloomWidth
  * @tc.type: FUNC
  * @tc.require: issue23101
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithSDFShaderOuterBorderBloomWidth, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, CalcRect004, TestSize.Level1)
 {
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     ASSERT_NE(shader, nullptr);
@@ -380,12 +380,12 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithSDFShaderOuterBorderBloomWidth, T
     EXPECT_TRUE(result == expected);
 }
 /**
- * @tc.name: CalcRectWithChainedShaders
+ * @tc.name: CalcRect005
  * @tc.desc: test CalcRect with chained shaders
  * @tc.type: FUNC
  * @tc.require: issue23101
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithChainedShaders, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, CalcRect005, TestSize.Level1)
 {
     auto head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     auto next = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
@@ -406,12 +406,12 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithChainedShaders, TestSize.Level1)
     EXPECT_TRUE(result == expected);
 }
 /**
- * @tc.name: CalcRectWithZeroBorderWidths
+ * @tc.name: CalcRect006
  * @tc.desc: test CalcRect with zero border widths
  * @tc.type: FUNC
  * @tc.require: issue23101
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithZeroBorderWidths, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, CalcRect006, TestSize.Level1)
 {
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     ASSERT_NE(shader, nullptr);
@@ -472,7 +472,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRect007, TestSize.Level1)
  * @tc.desc: Verify that Create returns a non-null instance for BORDER_SDF_SHADER type
  * @tc.type: FUNC
  */
-HWTEST_F(RSNGRenderShaderBaseTest, CreateBorderSDFShader, TestSize.Level1)
+HWTEST_F(RSNGRenderShaderBaseTest, CreateBorderSDFShader001, TestSize.Level1)
 {
     auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
     EXPECT_NE(shader, nullptr);
