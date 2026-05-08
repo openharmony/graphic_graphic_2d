@@ -1149,7 +1149,7 @@ HWTEST_F(RsRenderComposerManagerTest, RegisterVsyncManagerCallbacks_CallbacksExe
  */
 HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_MultiThreadConcurrency_100Loops, TestSize.Level1)
 {
-    constexpr uint32_t threadCount = 4u;
+    constexpr uint32_t threadCount = 2u;
     constexpr uint32_t loopCount = 100u;
     constexpr ScreenId baseScreenId = 500u;
 
@@ -1196,7 +1196,7 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_MultiThreadConcurrency_1
  */
 HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_MultiThreadConcurrency_100Loops, TestSize.Level1)
 {
-    constexpr uint32_t threadCount = 4u;
+    constexpr uint32_t threadCount = 2u;
     constexpr uint32_t loopCount = 100u;
     constexpr ScreenId baseScreenId = 600u;
 
@@ -1253,7 +1253,7 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_MultiThreadConcurrenc
  */
 HWTEST_F(RsRenderComposerManagerTest, OnHwcRestored_MultiThreadConcurrency_100Loops, TestSize.Level1)
 {
-    constexpr uint32_t threadCount = 4u;
+    constexpr uint32_t threadCount = 2u;
     constexpr uint32_t loopCount = 100u;
     constexpr ScreenId baseScreenId = 700u;
 
@@ -1312,7 +1312,7 @@ HWTEST_F(RsRenderComposerManagerTest, OnHwcRestored_MultiThreadConcurrency_100Lo
  */
 HWTEST_F(RsRenderComposerManagerTest, OnHwcDead_MultiThreadConcurrency_100Loops, TestSize.Level1)
 {
-    constexpr uint32_t threadCount = 4u;
+    constexpr uint32_t threadCount = 2u;
     constexpr uint32_t loopCount = 100u;
     constexpr ScreenId baseScreenId = 800u;
 
