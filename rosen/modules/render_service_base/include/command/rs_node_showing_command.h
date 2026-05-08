@@ -152,7 +152,7 @@ private:
     NodeId nodeId_;
     AnimationId animationId_;
     float fraction_ { 0.0f };
-    static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
+    static inline RS_HIDDEN RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
 };
 } // namespace Rosen
 } // namespace OHOS

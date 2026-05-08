@@ -41,7 +41,7 @@ ohos_fuzztest("RSForegroundRenderModifierFuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  sources = [ "rs_foreground_render_modifier_fuzzer.cpp" ]
+  sources = [ "rsforegroundrendermodifier_fuzzer.cpp" ]
 
   external_deps = [
     "c_utils:utils",

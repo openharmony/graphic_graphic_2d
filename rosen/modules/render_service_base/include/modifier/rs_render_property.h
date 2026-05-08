@@ -168,7 +168,7 @@ public:
     RSRenderPropertyBase(const RSRenderPropertyBase&&) = delete;
     RSRenderPropertyBase& operator=(const RSRenderPropertyBase&) = delete;
     RSRenderPropertyBase& operator=(const RSRenderPropertyBase&&) = delete;
-    virtual ~RSRenderPropertyBase() = default;
+    virtual ~RSRenderPropertyBase();
 
     PropertyId GetId() const
     {
@@ -242,7 +242,7 @@ protected:
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier_;
 
     using UnmarshallingFunc = std::function<bool (Parcel&, std::shared_ptr<RSRenderPropertyBase>&)>;
-    inline static std::unordered_map<uint16_t, UnmarshallingFunc> UnmarshallingFuncs_;
+    inline static RS_HIDDEN std::unordered_map<uint16_t, UnmarshallingFunc> UnmarshallingFuncs_;
 
     class RSPropertyUnmarshallingFuncRegister {
     public:

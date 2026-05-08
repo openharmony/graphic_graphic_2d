@@ -172,7 +172,7 @@ bool RSUniHwcVisitor::CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& no
             return true;
         }
 
-        bool willNotDraw = node->IsPureBackgroundColor() && !node->HasDrawCmdModifiers();
+        bool willNotDraw = node->IsPureBackgroundColor();
         RS_LOGD("solidLayer: id:%{public}" PRIu64 ", willNotDraw: %{public}d", node->GetId(), willNotDraw);
         if (!willNotDraw) {
             RS_LOGD("solidLayer: presence drawing, id:%{public}" PRIu64, node->GetId());
@@ -537,9 +537,6 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
                 }
                 hwcNodePtr->ResetMakeImageState();
             }
-        }
-        if (RSSystemParameters::GetArsrPreEnabled() && surfaceNode->CheckIfDoArsrPre()) {
-            surfaceNode->SetArsrTag(true);
         }
         UpdateHwcNodeEnableByGlobalFilter(surfaceNode);
         surfaceNode->ResetNeedCollectHwcNode();

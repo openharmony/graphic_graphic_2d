@@ -138,6 +138,18 @@ public:
     bool GetItalic() const;
 
     /**
+     * @brief   Get fontStyle is monospace.
+     * @return  If fontStyle is monospace, return true.
+     */
+    bool GetMonospace() const;
+
+    /**
+     * @brief   Get fontStyle is IsColored.
+     * @return  If fontStyle is IsColored, return false.
+     */
+    bool IsColored() const;
+
+    /**
      * @brief   Get a 32bit value for this typeface, unique for the underlying font data.
      * @return  UniqueID.
      */

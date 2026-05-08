@@ -41,7 +41,7 @@ ohos_fuzztest("RSCustomModifierFuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  sources = [ "rs_custom_modifier_fuzzer.cpp" ]
+  sources = [ "rscustommodifier_fuzzer.cpp" ]
 
   external_deps = [
     "c_utils:utils",

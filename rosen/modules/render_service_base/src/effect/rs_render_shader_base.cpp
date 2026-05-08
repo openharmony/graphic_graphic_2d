@@ -126,6 +126,9 @@ static std::unordered_map<RSNGEffectType, ShaderGetDrawRect> getDrawRectLUT = {
             auto sdfShape =
                 sdfEdgeLightEffect->Getter<OHOS::Rosen::SDFEdgeLightEffectSDFShapeRenderTag>()->Get();
             if (sdfShape) {
+                if (sdfShape->GetTransformDrawRect().IsEmpty()) {
+                    RSNGRenderShapeHelper::CalcRect(sdfShape, rect);
+                }
                 auto transformRect = sdfShape->GetTransformDrawRect();
                 return transformRect.MakeOutset(std::max(maxBorderWidth, outerBorderBloomWidth));
             }

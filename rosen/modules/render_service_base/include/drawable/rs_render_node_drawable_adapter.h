@@ -391,7 +391,7 @@ private:
                             std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
-    static inline std::mutex cacheMapMutex_;
+    static inline RS_HIDDEN std::mutex cacheMapMutex_;
     static DrawableVec toClearDrawableVec_;
     static CmdListVec toClearCmdListVec_;
     std::atomic<DrawSkipType> drawSkipType_ = DrawSkipType::NONE;

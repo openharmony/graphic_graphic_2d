@@ -23,6 +23,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+RuntimeShaderBuilder::~RuntimeShaderBuilder() = default;
+
 RuntimeShaderBuilder::RuntimeShaderBuilder(std::shared_ptr<RuntimeEffect> runtimeEffect) noexcept
     : impl_(ImplFactory::CreateRuntimeShaderBuilderImpl(runtimeEffect))
 {}

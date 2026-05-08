@@ -221,6 +221,7 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, double x, double y)
     RSCanvasParagraphPainter painter(canvas, paints_);
     painter.SetAnimation(animationFunc_);
     painter.SetHmSymbols(hmSymbols_);
+    painter.SetForceReuseRasterResult(forceReuseRasterResult_);
     paragraph_->paint(&painter, x, y);
 }
 
@@ -228,6 +229,7 @@ void ParagraphImpl::Paint(Drawing::Canvas* canvas, Drawing::Path* path, double h
 {
     RSCanvasParagraphPainter painter(canvas, paints_);
     painter.SetAnimation(animationFunc_);
+    painter.SetForceReuseRasterResult(forceReuseRasterResult_);
     paragraph_->paint(&painter, path, hOffset, vOffset);
 }
 
@@ -759,6 +761,16 @@ void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) const
             fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
         }
     }
+}
+
+void ParagraphImpl::SetForceReuseRasterResult(bool flag)
+{
+    forceReuseRasterResult_ = flag;
+}
+
+bool ParagraphImpl::GetForceReuseRasterResult() const
+{
+    return forceReuseRasterResult_;
 }
 } // namespace SPText
 } // namespace Rosen

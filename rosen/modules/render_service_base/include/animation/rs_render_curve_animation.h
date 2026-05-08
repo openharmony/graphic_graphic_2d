@@ -60,7 +60,9 @@ private:
     std::shared_ptr<RSRenderPropertyBase> startValue_ {};
     std::shared_ptr<RSRenderPropertyBase> endValue_ {};
     std::shared_ptr<RSInterpolator> interpolator_ { RSInterpolator::DEFAULT };
-    inline static std::shared_ptr<RSInterpolator> linearInterpolator_ { std::make_shared<LinearInterpolator>() };
+    inline static RS_HIDDEN std::shared_ptr<RSInterpolator> linearInterpolator_ {
+        std::make_shared<LinearInterpolator>()
+    };
 };
 } // namespace Rosen
 } // namespace OHOS

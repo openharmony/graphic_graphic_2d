@@ -63,6 +63,7 @@ private:
     static ani_object GetProcessState(ani_env* env, ani_object object);
     static ani_object GetTextDisplayState(ani_env* env, ani_object object);
     static ani_object GetParagraphStyle(ani_env* env, ani_object object);
+    static void ForceReuseRasterResult(ani_env* env, ani_object object, ani_boolean isForce);
     static ani_object GetCharacterRangeForGlyphRange(ani_env* env, ani_object object,
         ani_object glyphRange, ani_object encoding);
     static ani_object GetGlyphRangeForCharacterRange(ani_env* env, ani_object object,

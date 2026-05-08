@@ -17,6 +17,7 @@
 #include "parcel.h" // Assumed definition of Parcel
 #include "ge_visual_effect_container.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS::Rosen {
@@ -427,7 +428,47 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRectWithZeroBorderWidths, TestSize.Level1
 }
 
 /**
- * @tc.name: CreateBorderSDFShader
+ * @tc.name: CalcRect007
+ * @tc.desc: test CalcRect with sdfShape, transformDrawRect differs from bound
+ * @tc.type: FUNC
+ * @tc.require: issue23101
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, CalcRect007, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    ASSERT_NE(shader, nullptr);
+    auto sdfEdgeLightEffect = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    constexpr float maxBorderWidth = 8.0f;
+    constexpr float outerBorderBloomWidth = 12.0f;
+    sdfEdgeLightEffect->Setter<SDFEdgeLightEffectMaxBorderWidthRenderTag>(maxBorderWidth,
+        PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    sdfEdgeLightEffect->Setter<SDFEdgeLightEffectOuterBorderBloomWidthRenderTag>(outerBorderBloomWidth,
+        PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    EXPECT_TRUE(sdfShape->GetTransformDrawRect().IsEmpty());
+    sdfEdgeLightEffect->Setter<SDFEdgeLightEffectSDFShapeRenderTag>(sdfShape,
+        PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    RectF bound(0.0f, 0.0f, 100.0f, 100.0f);
+    RSNGRenderShaderHelper::CalcRect(shader, bound);
+
+    sdfShape->transformDrawRect_ = RectF(10.0f, 10.0f, 80.0f, 80.0f);
+    EXPECT_FALSE(sdfShape->GetTransformDrawRect().IsEmpty());
+    constexpr float shapeLeft = 10.0f;
+    constexpr float shapeTop = 15.0f;
+    constexpr float shapeWidth = 80.0f;
+    constexpr float shapeHeight = 70.0f;
+    RectF shapeBound(shapeLeft, shapeTop, shapeWidth, shapeHeight);
+    RSNGRenderShapeHelper::CalcRect(sdfShape, shapeBound);
+    RectF result = RSNGRenderShaderHelper::CalcRect(shader, bound);
+    RectF expected(-outerBorderBloomWidth + shapeLeft, -outerBorderBloomWidth + shapeTop,
+        shapeWidth + outerBorderBloomWidth * 2.0f, shapeHeight + outerBorderBloomWidth * 2.0f);
+    EXPECT_TRUE(result == expected);
+}
+
+/**
+ * @tc.name: CreateBorderSDFShader001
  * @tc.desc: Verify that Create returns a non-null instance for BORDER_SDF_SHADER type
  * @tc.type: FUNC
  */

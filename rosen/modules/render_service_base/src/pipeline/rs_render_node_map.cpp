@@ -279,7 +279,9 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
             } else {
                 subIter->second->RemoveFromTree(false);
             }
-            subIter->second->GetAnimationManager().FilterAnimationByPid(pid);
+            if (auto animationManager = subIter->second->GetAnimationManager()) {
+                animationManager->FilterAnimationByPid(pid);
+            }
             subIter = subMap.erase(subIter);
         }
         renderNodeMap_.erase(iter);
@@ -349,7 +351,9 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
 
     if (auto fallbackNode = GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid
-        fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
+        if (auto animationManager = fallbackNode->GetAnimationManager()) {
+            animationManager->FilterAnimationByPid(pid);
+        }
     }
     RSRenderNodeGC::Instance().ReleaseNodeNotOnTree(pid);
 }

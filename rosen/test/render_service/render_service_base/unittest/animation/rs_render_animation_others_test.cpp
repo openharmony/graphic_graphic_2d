@@ -155,16 +155,18 @@ HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot004, TestSize.Leve
 
     // Create and add an animation
     auto animation = std::make_shared<RSRenderAnimationMock>();
-    node.GetAnimationManager().AddAnimation(animation);
+    node.AddAnimation(animation);
 
     // Get the fallback node by accessing private member directly (UT can access private members)
     auto& nodeMap = context->GetMutableNodeMap();
     auto& fallbackNode = nodeMap.renderNodeMap_[0][0];
 
     // Cover branch: animation is not group child -> skip if block
-    size_t beforeCount = fallbackNode->GetAnimationManager().GetAnimations().size();
+    auto animationManager = fallbackNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    size_t beforeCount = animationManager->GetAnimations().size();
     node.FallbackAnimationsToRoot();
-    size_t afterCount = fallbackNode->GetAnimationManager().GetAnimations().size();
+    size_t afterCount = animationManager->GetAnimations().size();
 
     // Animation should be moved to fallback node
     EXPECT_EQ(afterCount, beforeCount + 1);
@@ -195,16 +197,18 @@ HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot005, TestSize.Leve
     animation->SetGroupAnimator(groupAnimator);
 
     // Add animation to node
-    node.GetAnimationManager().AddAnimation(animation);
+    node.AddAnimation(animation);
 
     // Get the fallback node by accessing private member directly
     auto& nodeMap = context->GetMutableNodeMap();
     auto& fallbackNode = nodeMap.renderNodeMap_[0][0];
 
     // Cover branch: IsGroupAnimationChild() == true -> call Attach and RemoveFromGroupAnimator
-    size_t beforeCount = fallbackNode->GetAnimationManager().GetAnimations().size();
+    auto animationManager = fallbackNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    size_t beforeCount = animationManager->GetAnimations().size();
     node.FallbackAnimationsToRoot();
-    size_t afterCount = fallbackNode->GetAnimationManager().GetAnimations().size();
+    size_t afterCount = animationManager->GetAnimations().size();
 
     // Animation should be moved to fallback node
     EXPECT_EQ(afterCount, beforeCount + 1);
@@ -228,16 +232,18 @@ HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot006, TestSize.Leve
     auto animation = std::make_shared<RSRenderAnimationMock>();
     animation->Start();
     animation->Pause();
-    node.GetAnimationManager().AddAnimation(animation);
+    node.AddAnimation(animation);
 
     // Get the fallback node by accessing private member directly
     auto& nodeMap = context->GetMutableNodeMap();
     auto& fallbackNode = nodeMap.renderNodeMap_[0][0];
 
     // Cover branch: IsPaused() == true -> call Resume
-    size_t beforeCount = fallbackNode->GetAnimationManager().GetAnimations().size();
+    auto animationManager = fallbackNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    size_t beforeCount = animationManager->GetAnimations().size();
     node.FallbackAnimationsToRoot();
-    size_t afterCount = fallbackNode->GetAnimationManager().GetAnimations().size();
+    size_t afterCount = animationManager->GetAnimations().size();
 
     // Animation should be moved to fallback node and resumed
     EXPECT_EQ(afterCount, beforeCount + 1);
@@ -265,25 +271,27 @@ HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot007, TestSize.Leve
 
     // Add multiple animations: normal, group child, paused
     auto animation1 = std::make_shared<RSRenderAnimationMock>(1001);
-    node.GetAnimationManager().AddAnimation(animation1);
+    node.AddAnimation(animation1);
 
     auto animation2 = std::make_shared<RSRenderAnimationMock>(1002);
     animation2->SetGroupAnimator(groupAnimator);
-    node.GetAnimationManager().AddAnimation(animation2);
+    node.AddAnimation(animation2);
 
     auto animation3 = std::make_shared<RSRenderAnimationMock>(1003);
     animation3->Start();
     animation3->Pause();
-    node.GetAnimationManager().AddAnimation(animation3);
+    node.AddAnimation(animation3);
 
     // Get the fallback node by accessing private member directly
     auto& nodeMap = context->GetMutableNodeMap();
     auto& fallbackNode = nodeMap.renderNodeMap_[0][0];
 
     // Cover all branches in one test
-    size_t beforeCount = fallbackNode->GetAnimationManager().GetAnimations().size();
+    auto animationManager = fallbackNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    size_t beforeCount = animationManager->GetAnimations().size();
     node.FallbackAnimationsToRoot();
-    size_t afterCount = fallbackNode->GetAnimationManager().GetAnimations().size();
+    size_t afterCount = animationManager->GetAnimations().size();
 
     // All animations should be moved to fallback node
     EXPECT_EQ(afterCount, beforeCount + 3);
@@ -313,7 +321,7 @@ HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot008, TestSize.Leve
     // Create animation and set as group child
     auto animation = std::make_shared<RSRenderAnimationMock>();
     animation->SetGroupAnimator(groupAnimator);
-    node.GetAnimationManager().AddAnimation(animation);
+    node.AddAnimation(animation);
 
     // Verify group animator exists before fallback
     auto groupBefore = context->GetInteractiveImplictAnimatorMap().GetInteractiveImplictAnimator(10001);
@@ -328,7 +336,8 @@ HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot008, TestSize.Leve
 
     // After RemoveFromGroupAnimator, animation should no longer be associated with group
     // Verify animation was moved to fallback node
-    EXPECT_FALSE(fallbackNode->GetAnimationManager().GetAnimations().empty());
+    ASSERT_NE(fallbackNode->GetAnimationManager(), nullptr);
+    EXPECT_FALSE(fallbackNode->GetAnimationManager()->GetAnimations().empty());
 
     GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot008 end";
 }

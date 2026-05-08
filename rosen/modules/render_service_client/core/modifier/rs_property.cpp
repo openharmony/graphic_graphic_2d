@@ -76,6 +76,8 @@ PropertyId GeneratePropertyId()
 RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 {}
 
+RSPropertyBase::~RSPropertyBase() = default;
+
 // LCOV_EXCL_START
 void RSPropertyBase::MarkCustomModifierDirty()
 {

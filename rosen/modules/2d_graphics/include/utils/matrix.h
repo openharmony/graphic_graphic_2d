@@ -63,7 +63,7 @@ public:
     Matrix();
     Matrix(const Matrix& matrix);
     Matrix& operator=(const Matrix& matrix);
-    virtual ~Matrix() {}
+    virtual ~Matrix();
     static Matrix Skew(scalar kx, scalar ky)
     {
         Matrix m;

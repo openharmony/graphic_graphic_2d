@@ -23,6 +23,7 @@ namespace Rosen {
 
 enum class RSIConnectToRenderProcessInterfaceCode : CodeUnderlyingType {
     CREATE_CONNECTION = 0,
+    REMOVE_CONNECTION = 1,
 };
 
 } // namespace Rosen

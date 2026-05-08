@@ -65,6 +65,11 @@ public:
         hmSymbols_ = hmSymbols;
     }
 
+    void SetForceReuseRasterResult(bool flag)
+    {
+        forceReuseRasterResult_ = flag;
+    }
+
     std::shared_ptr<HMSymbolRun> generateSymbolRun(const std::shared_ptr<RSTextBlob>& blob, const PaintRecord& pr);
 
 private:
@@ -73,6 +78,7 @@ private:
     std::function<bool(
         const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc_ = nullptr;
     std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
+    bool forceReuseRasterResult_{false};
 };
 } // namespace SPText
 } // namespace Rosen

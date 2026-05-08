@@ -54,4 +54,26 @@ HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, Level1)
     rsKeyframeAnimation.AddKeyFrame(1.f, value, timingCurve);
     ASSERT_NE(value, nullptr);
 }
+
+/**
+ * @tc.name: AddKeyFrameTest002
+ * @tc.desc: Test AddKeyFrame to cover if else branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest002, Level1)
+{
+    auto value = std::make_shared<RSProperty<float>>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    RSKeyframeAnimation rsKeyframeAnimation(rsUIContext, value);
+    RSAnimationTimingCurve timingCurve;
+
+    rsKeyframeAnimation.AddKeyFrame(10, 20, value, timingCurve);
+    rsKeyframeAnimation.AddKeyFrame(30, 40, value, timingCurve);
+    rsKeyframeAnimation.AddKeyFrame(30, 50, value, timingCurve);
+    rsKeyframeAnimation.AddKeyFrame(40, 50, value, timingCurve);
+    rsKeyframeAnimation.AddKeyFrame(40, 50, value, timingCurve);
+
+    EXPECT_EQ(rsKeyframeAnimation.durationKeyframes_.size(), 4);
 }
+} // namespace OHOS::Rosen

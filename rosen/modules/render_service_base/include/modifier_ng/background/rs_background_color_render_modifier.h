@@ -22,7 +22,7 @@ namespace OHOS::Rosen::ModifierNG {
 class RSB_EXPORT RSBackgroundColorRenderModifier : public RSDisplayListRenderModifier {
 public:
     RSBackgroundColorRenderModifier() = default;
-    ~RSBackgroundColorRenderModifier() override = default;
+    ~RSBackgroundColorRenderModifier() override;
 
     static inline constexpr auto Type = RSModifierType::BACKGROUND_COLOR;
     // LCOV_EXCL_START

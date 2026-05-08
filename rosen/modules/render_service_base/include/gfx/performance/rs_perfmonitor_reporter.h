@@ -109,7 +109,7 @@ private:
     std::mutex drawingCacheLastReportTimeMapMutex_;
     std::unordered_map<NodeId,
         std::chrono::time_point<high_resolution_clock>> drawingCacheLastReportTimeMap_;
-    static inline const std::string RENDERGROUP_SUBHEALTH_EVENT_NAME = "RENDERGROUP_SUBHEALTH_EVENT";
+    static inline const RS_HIDDEN std::string RENDERGROUP_SUBHEALTH_EVENT_NAME = "RENDERGROUP_SUBHEALTH_EVENT";
 };
 
 } // namespace Rosen

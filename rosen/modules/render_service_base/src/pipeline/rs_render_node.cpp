@@ -130,6 +130,11 @@ bool RSRenderNode::IsPureContainer() const
 
 bool RSRenderNode::IsPureBackgroundColor() const
 {
+    if (HasValidDrawCmd()) {
+        RS_LOGD("drawCmdList is not none");
+        return false;
+    }
+
     static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
         RSDrawableSlot::SAVE_ALL,
         RSDrawableSlot::BG_SAVE_BOUNDS,
@@ -1231,7 +1236,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 #endif
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
-    animationManager_.DumpAnimations(out);
+    if (animationManager_) {
+        animationManager_->DumpAnimations(out);
+    }
     ChildrenListDump(out);
 
     for (auto& child : children_) {
@@ -1694,7 +1701,7 @@ RSRenderNode::~RSRenderNode()
 
 void RSRenderNode::FallbackAnimationsToRoot()
 {
-    if (animationManager_.animations_.empty()) {
+    if (!animationManager_ || animationManager_->animations_.empty()) {
         return;
     }
 
@@ -1710,7 +1717,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
     }
     context->RegisterAnimatingRenderNode(target);
 
-    for (auto& [unused, animation] : animationManager_.animations_) {
+    for (auto& [unused, animation] : animationManager_->animations_) {
         if (animation->IsPaused()) {
             animation->Resume();
         }
@@ -1722,9 +1729,9 @@ void RSRenderNode::FallbackAnimationsToRoot()
             animation->Attach(target.get());
             animation->RemoveFromGroupAnimator();
         }
-        target->animationManager_.AddAnimation(std::move(animation));
+        target->AddAnimation(std::move(animation));
     }
-    animationManager_.animations_.clear();
+    animationManager_->animations_.clear();
     // Check the next frame's VSync has been requested. If there is no request, add another VSync request
     if (!context->IsRequestedNextVsyncAnimate()) {
         context->RequestVsync();
@@ -1741,10 +1748,10 @@ void RSRenderNode::ActivateDisplaySync()
 
 void RSRenderNode::UpdateDisplaySyncRange()
 {
-    if (!displaySync_) {
+    if (!animationManager_ || !displaySync_) {
         return;
     }
-    auto animationRange = animationManager_.GetFrameRateRange();
+    auto animationRange = animationManager_->GetFrameRateRange();
     if (animationRange.IsValid()) {
         displaySync_->SetExpectedFrameRateRange(animationRange);
     }
@@ -1754,6 +1761,10 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
     int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime, int64_t period, bool isDisplaySyncEnabled)
 {
     RS_PROFILER_ANIMATION_NODE(GetType(), selfDrawRect_.GetWidth() * selfDrawRect_.GetWidth());
+    if (!animationManager_) {
+        ROSEN_LOGE("%{public}s: animationManager is nullptr, node[id:%{public}" PRIu64 "]", __func__, GetId());
+        return std::make_tuple(false, false, false);
+    }
     int64_t nextFrameTimeForThisAnimate = 0;
     bool needSkipCurrentAnimate = displaySync_ &&
         displaySync_->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTimeForThisAnimate);
@@ -1772,9 +1783,13 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
         }
     }
 
-    auto animateResult = animationManager_.Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
+    auto animateResult = animationManager_->Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
+    }
+    if (animationManager_->animations_.empty()) {
+        animationManager_.reset();
+        ROSEN_LOGD("%{public}s: animationManager reset", __func__);
     }
     return animateResult;
 }
@@ -3326,11 +3341,13 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     AddToPendingSyncList();
 
     // update rate decider scale reference size and scale.
-    animationManager_.SetRateDeciderSize(GetRenderProperties().GetBoundsWidth(),
-        GetRenderProperties().GetBoundsHeight());
-    animationManager_.SetRateDeciderScale(GetRenderProperties().GetScaleX(), GetRenderProperties().GetScaleY());
-    auto& rect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    animationManager_.SetRateDeciderAbsRect(rect.GetWidth(), rect.GetHeight());
+    if (animationManager_) {
+        animationManager_->SetRateDeciderSize(GetRenderProperties().GetBoundsWidth(),
+            GetRenderProperties().GetBoundsHeight());
+        animationManager_->SetRateDeciderScale(GetRenderProperties().GetScaleX(), GetRenderProperties().GetScaleY());
+        auto& rect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        animationManager_->SetRateDeciderAbsRect(rect.GetWidth(), rect.GetHeight());
+    }
 }
 
 void RSRenderNode::MarkParentNeedRegenerateChildren() const
@@ -4285,10 +4302,19 @@ bool RSRenderNode::IsRenderUpdateIgnored() const
 {
     return isRenderUpdateIgnored_;
 }
-RSAnimationManager& RSRenderNode::GetAnimationManager()
+std::shared_ptr<RSAnimationManager> RSRenderNode::GetAnimationManager() const
 {
     return animationManager_;
 }
+
+void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+{
+    if (!animationManager_) {
+        animationManager_ = std::make_shared<RSAnimationManager>();
+    }
+    animationManager_->AddAnimation(animation);
+}
+
 RectI RSRenderNode::GetOldDirty() const
 {
     return oldDirty_;
@@ -4413,7 +4439,7 @@ bool RSRenderNode::HasSubSurface() const
 }
 bool RSRenderNode::HasAnimation() const
 {
-    return !animationManager_.animations_.empty();
+    return animationManager_ && !animationManager_->animations_.empty();
 }
 void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
@@ -5194,6 +5220,38 @@ RSRenderNode::ModifierNGContainer RSRenderNode::GetModifiersNG(ModifierNG::RSMod
 const RSRenderNode::ModifiersNGMap& RSRenderNode::GetAllModifiers() const
 {
     return modifiersNG_;
+}
+
+bool RSRenderNode::HasValidDrawCmd() const
+{
+    // modifiers with draw cmdlist, such as CONTENT_STYLE, TRANSITION_STYLE, BACKGROUND_STYLE, FOREGROUND_STYLE,
+    // OVERLAY_STYLE and NODE_MODIFIER, should judge whether there is valid cmdlist in modifier.
+    for (uint16_t type = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSITION_STYLE);
+        type <= static_cast<uint16_t>(ModifierNG::RSModifierType::NODE_MODIFIER); type++) {
+        const auto& modifierContainer = GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
+        for (const auto& modifier : modifierContainer) {
+            const auto& cmdList = modifier->GetPropertyDrawCmdList();
+            if (cmdList != nullptr && !cmdList->IsEmpty()) {
+                return true;
+            }
+        }
+    }
+
+    // other modifiers
+    bool ret = !GetModifiersNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER).empty() ||
+               !GetModifiersNG(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR).empty() ||
+               !GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS).empty() ||
+               !GetModifiersNG(ModifierNG::RSModifierType::CHILDREN).empty();
+    if (!ret) {
+        const auto& clipToFrameModifiers = GetModifiersNG(ModifierNG::RSModifierType::CLIP_TO_FRAME);
+        for (const auto& modifier : clipToFrameModifiers) {
+            if (modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
+                ret = true;
+                break;
+            }
+        }
+    }
+    return ret;
 }
 
 bool RSRenderNode::HasDrawCmdModifiers() const

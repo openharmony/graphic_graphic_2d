@@ -27,11 +27,7 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSAnimationTraceUtils {
 public:
-    static RSAnimationTraceUtils& GetInstance()
-    {
-        static RSAnimationTraceUtils instance;
-        return instance;
-    };
+    static RSAnimationTraceUtils& GetInstance();
     void AddAnimationNameTrace(const std::string& str) const;
     void AddAnimationFinishTrace(
         const std::string info, const uint64_t nodeId, const uint64_t animationId, bool isAddLogInfo) const;

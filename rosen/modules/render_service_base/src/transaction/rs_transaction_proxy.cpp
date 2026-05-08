@@ -54,6 +54,7 @@ RSTransactionProxy* RSTransactionProxy::GetInstance()
 RSTransactionProxy::RSTransactionProxy()
 {
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+    renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>();
 }
 
 RSTransactionProxy::~RSTransactionProxy()
@@ -186,7 +187,11 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     transactionData->tid_ = tid;
     transactionData->dvsyncTimeUpdate_ = dvsyncTimeUpdate;
     transactionData->dvsyncTime_ = dvsyncTime;
-    
+    if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
+        commitTransactionCallback_(renderPipelineClient_,
+            std::move(transactionData), transactionDataIndex_, nullptr);
+        return;
+    }
     renderPipelineClient_->CommitTransaction(transactionData);
     transactionDataIndex_ = transactionData->GetIndex();
 }

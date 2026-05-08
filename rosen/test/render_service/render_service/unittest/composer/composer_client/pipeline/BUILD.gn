@@ -127,6 +127,7 @@ ohos_unittest("RSRenderComposerClientTest") {
     "-Dprotected=public",
   ]
   sources = [
+    "rs_render_composer_client_remote_mutil_test.cpp",
     "rs_render_composer_client_remote_test.cpp",
     "rs_render_composer_client_test.cpp"
   ]

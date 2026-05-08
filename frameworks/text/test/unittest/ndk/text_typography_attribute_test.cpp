@@ -849,4 +849,117 @@ HWTEST_F(NdkTypographyTest, TypographyStyleFirstLineHeadIndentTest003, TestSize.
     EXPECT_NEAR(value, -1.0, FLOAT_DATA_EPSILON);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
+
+/*
+ * @tc.name: NdkTypographyForceReuseRasterResultTest001
+ * @tc.desc: Verify default value, set/get force reuse raster result.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, NdkTypographyForceReuseRasterResultTest001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, DEFAULT_TEXT);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    bool value = true;
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
+        OH_DRAWING_SUCCESS);
+    EXPECT_FALSE(value);
+    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, true),
+        OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
+        OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(value);
+    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, false),
+        OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
+        OH_DRAWING_SUCCESS);
+    EXPECT_FALSE(value);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: NdkTypographyForceReuseRasterResultTest002
+ * @tc.desc: Verify nullptr and invalid params return error
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, NdkTypographyForceReuseRasterResultTest002, TestSize.Level0)
+{
+    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(
+        nullptr, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, true), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    bool value = false;
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(
+        nullptr, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_TypographyAttributeId invalidId = static_cast<OH_Drawing_TypographyAttributeId>(999);
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_TypographyCreate* handler =OH_Drawing_CreateTypographyHandler(typoStyle,
+        OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, DEFAULT_TEXT);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, nullptr),
+        OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(nullptr, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, &value),
+        OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(nullptr, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, true),
+        OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_SetTypographyAttributeBool(typography, invalidId, true),
+        OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    EXPECT_EQ(OH_Drawing_GetTypographyAttributeBool(typography, invalidId, &value),
+        OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: NdkTypographyForceReuseRasterResultTest003
+ * @tc.desc: Verify Paint with flag set does not crash when setting force reuse raster result.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, NdkTypographyForceReuseRasterResultTest003, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, DEFAULT_FONT_SIZE);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, DEFAULT_TEXT);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, true);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
+    OH_Drawing_BitmapBuild(bitmap, 600, 200, nullptr);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_CanvasBind(canvas, bitmap);
+    OH_Drawing_CanvasClear(canvas, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
+    EXPECT_NO_FATAL_FAILURE(OH_Drawing_TypographyPaint(typography, canvas, 10.0, 15.0));
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_BitmapDestroy(bitmap);
+    OH_Drawing_CanvasDestroy(canvas);
+}
 } // namespace OHOS

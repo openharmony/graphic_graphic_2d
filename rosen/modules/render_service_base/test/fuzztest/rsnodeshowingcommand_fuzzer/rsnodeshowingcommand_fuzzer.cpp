@@ -101,7 +101,7 @@ namespace OHOS {
         auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
         auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
             animationId, GetData<PropertyId>(), property, property1, property2);
-        node->GetAnimationManager().AddAnimation(renderCurveAnimation);
+        node->AddAnimation(renderCurveAnimation);
         task->Process(context);
 
         delete copy;

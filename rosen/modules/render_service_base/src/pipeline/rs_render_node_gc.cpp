@@ -407,7 +407,9 @@ void RSRenderNodeGC::ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<ui
             parent->RemoveChildFromFulllist(renderNode->GetId());
         }
         renderNode->RemoveFromTree(false);
-        renderNode->GetAnimationManager().FilterAnimationByPid(pid);
+        if (auto animationManager = renderNode->GetAnimationManager()) {
+            animationManager->FilterAnimationByPid(pid);
+        }
         subIter = subMap.erase(subIter);
     }
     renderNodeNumsInBucketMap_ -= (subMapSize - subMap.size());

@@ -48,7 +48,11 @@ void RSRenderInteractiveImplictAnimator::AddAnimations(std::vector<std::pair<Nod
                 "RSRenderInteractiveImplictAnimator::AddAnimations - node null, nodeId: %{public}" PRIu64, nodeId);
             continue;
         }
-        auto animation = node->GetAnimationManager().GetAnimation(animationId);
+        auto animationManager = node->GetAnimationManager();
+        if (!animationManager) {
+            continue;
+        }
+        auto animation = animationManager->GetAnimation(animationId);
         if (animation == nullptr) {
             ROSEN_LOGE("RSRenderInteractiveImplictAnimator::AddAnimations - animation null, "
                 "nodeId: %{public}" PRIu64 ", animationId: %{public}" PRIu64, nodeId, animationId);
@@ -412,9 +416,12 @@ void RSRenderTimeDrivenGroupAnimator::FinishAnimator(RSInteractiveAnimationPosit
         }
 
         animation->FinishOnPosition(finishPos);
-        auto& animationManager = node->GetAnimationManager();
-        animationManager.OnAnimationFinished(animation);
-        animationManager.RemoveAnimation(animation->GetAnimationId());
+        auto animationManager = node->GetAnimationManager();
+        if (!animationManager) {
+            continue;
+        }
+        animationManager->OnAnimationFinished(animation);
+        animationManager->RemoveAnimation(animation->GetAnimationId());
     }
     state_ = GroupAnimatorState::FINISHED;
     context->GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(id_);

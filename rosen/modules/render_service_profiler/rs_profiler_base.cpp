@@ -576,7 +576,9 @@ void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
         map.screenNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
 
     if (auto fallbackNode = map.GetAnimationFallbackNode()) {
-        fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
+        if (auto animationManager = fallbackNode->GetAnimationManager()) {
+            animationManager->FilterAnimationByPid(pid);
+        }
     }
 }
 
@@ -600,7 +602,9 @@ void RSProfiler::FilterMockNode(RSContext& context)
 
     if (auto fallbackNode = nodeMap.GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid
-        FilterAnimationForPlayback(fallbackNode->GetAnimationManager());
+        if (auto animationManager = fallbackNode->GetAnimationManager()) {
+            FilterAnimationForPlayback(animationManager);
+        }
     }
 }
 
@@ -1263,9 +1267,12 @@ std::string RSProfiler::DumpSurfaceNode(const RSRenderNode& node)
 }
 
 // RSAnimationManager
-void RSProfiler::FilterAnimationForPlayback(RSAnimationManager& manager)
+void RSProfiler::FilterAnimationForPlayback(std::shared_ptr<RSAnimationManager> manager)
 {
-    EraseIf(manager.animations_, [](const auto& pair) -> bool {
+    if (manager == nullptr) {
+        return;
+    }
+    EraseIf(manager->animations_, [](const auto& pair) -> bool {
         if (!Utils::IsNodeIdPatched(pair.first)) {
             return false;
         }
