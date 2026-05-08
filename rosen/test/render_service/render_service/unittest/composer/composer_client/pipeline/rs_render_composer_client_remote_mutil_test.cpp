@@ -48,6 +48,7 @@ public:
     static inline int pipeFd_[2] = {};
     static inline int pipe1Fd_[2] = {};
     static inline int32_t systemAbilityID_ = 345135;
+    static inline sptr<SurfaceBuffer> buffer_ = nullptr;
     static inline sptr<SurfaceBuffer> bufferRemote_ = nullptr;
 };
 
@@ -104,20 +105,20 @@ void RSRenderComposerClientRemoteMutilTest::SetUpTestCase()
         sptr<IRSComposerToRenderConnection> composerToRender = sptr<RSComposerToRenderConnection>::MakeSptr();
         composerClient_ = RSComposerClient::Create(renderToComposer, composerToRender);
 
-        std::shared_ptr<RSLayer> rsLayer2 = RSSurfaceLayer::Create(1, composerClient_->GetComposerContext());
-        EXPECT_NE(rsLayer2, nullptr);
-        sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-        ASSERT_NE(buffer, nullptr);
+        std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(0, composerClient_->GetComposerContext());
+        EXPECT_NE(rsLayer, nullptr);
+        buffer_ = SurfaceBuffer::Create();
+        ASSERT_NE(buffer_, nullptr);
         int32_t width = 100;
         int32_t height = 100;
         BufferRequestConfig cfg { width, height, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
             BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
-        auto ret = buffer->Alloc(cfg);
+        auto ret = buffer_->Alloc(cfg);
         ASSERT_EQ(ret, GSERROR_OK);
 
-        auto bufferAddr = static_cast<uint32_t*>(buffer->GetVirAddr());
+        auto bufferAddr = static_cast<uint32_t*>(buffer_->GetVirAddr());
         if (bufferAddr != nullptr) {
-            int32_t stride = buffer->GetStride();
+            int32_t stride = buffer_->GetStride();
             int32_t strideInPixels = stride / sizeof(uint32_t);
             for (int32_t y = 0; y < height; y++) {
                 uint32_t* rowStart = bufferAddr + y * strideInPixels;
@@ -126,7 +127,7 @@ void RSRenderComposerClientRemoteMutilTest::SetUpTestCase()
                 }
             }
         }
-        rsLayer2->SetBuffer(buffer);
+        rsLayer->SetBuffer(buffer_);
         ComposerInfo composerInfo;
         composerClient_->CommitLayers(composerInfo);
 
@@ -202,10 +203,27 @@ void RSRenderComposerClientRemoteMutilTest::TearDownTestCase()
  */
 HWTEST_F(RSRenderComposerClientRemoteMutilTest, CommitLayers001, TestSize.Level0)
 {
-    std::shared_ptr<RSLayer> rsLayer1 = RSSurfaceLayer::Create(1, composerClientRemote_->GetComposerContext());
-    EXPECT_NE(rsLayer1, nullptr);
+    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(1, composerClientRemote_->GetComposerContext());
+    EXPECT_NE(rsLayer, nullptr);
 
-    rsLayer1->SetBuffer(bufferRemote_);
+    rsLayer->SetBuffer(bufferRemote_);
+    ComposerInfo composerInfo;
+    composerClientRemote_->CommitLayers(composerInfo);
+}
+
+/*
+ * Function: CommitLayers002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. check ret for CommitLayers func
+ */
+HWTEST_F(RSRenderComposerClientRemoteMutilTest, CommitLayers002, TestSize.Level0)
+{
+    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(2, composerClientRemote_->GetComposerContext());
+    EXPECT_NE(rsLayer, nullptr);
+
+    rsLayer->SetBuffer(buffer_);
     ComposerInfo composerInfo;
     composerClientRemote_->CommitLayers(composerInfo);
 }
