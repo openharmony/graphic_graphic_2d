@@ -31,7 +31,7 @@ public:
     sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token,
         bool needRefresh) override;
     int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
-
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 private:
     static inline BrokerDelegator<RSConnectToRenderProcessProxy> delegator_;
 };

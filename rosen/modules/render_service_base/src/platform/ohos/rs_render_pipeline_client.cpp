@@ -62,6 +62,11 @@
 
 namespace OHOS {
 namespace Rosen {
+RSRenderPipelineClient::RSRenderPipelineClient()
+{
+    clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
+}
+
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
@@ -75,6 +80,7 @@ RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRen
         bool needRefresh = AppExecFwk::AppImageObserverManager::GetInstance().IsBeforeImageCreationPoint();
         ROSEN_LOGI("RSRenderPipelineClient call CreateConnection, needRefresh:[%{public}d]", needRefresh);
         clientToRenderConnection_ = conn->CreateRenderConnection(token_, needRefresh);
+        RSRenderServiceConnectHub::GetInstance()->AddRenderProcessConnectionToken(token_, conn);
     } else {
         clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
     }
@@ -952,34 +958,31 @@ int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId 
 
 int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {
-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::SetLogicalCameraRotationCorrection renderPipeline is nullptr!");
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SetLogicalCameraRotationCorrection clientToRenderConnection_ is nullptr!");
         return RENDER_SERVICE_NULL;
     }
     RS_LOGD("RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}"
         PRIu64 ", logicalCorrection: %{public}u", id, logicalCorrection);
-    return renderPipeline->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+    return clientToRenderConnection_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
 
 int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetMaxGpuBufferSize renderPipeline is nullptr!");
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetMaxGpuBufferSize clientToRenderConnection_ is nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return renderPipeline->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    return clientToRenderConnection_->GetMaxGpuBufferSize(maxWidth, maxHeight);
 }
 
 void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
 {
-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::SetFreeMultiWindowStatus renderPipeline == nullptr!");
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SetFreeMultiWindowStatus clientToRenderConnection_ == nullptr!");
         return;
     }
-    renderPipeline->SetFreeMultiWindowStatus(enable);
+    clientToRenderConnection_->SetFreeMultiWindowStatus(enable);
 }
 class CustomFrameStabilityCallback : public RSFrameStabilityCallbackStub {
 public:
@@ -1002,9 +1005,8 @@ int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
     const FrameStabilityConfig& config,
     const FrameStabilityCallback& callback)
 {
-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RegisterFrameStabilityDetection renderPipeline == nullptr!");
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("RegisterFrameStabilityDetection clientToRenderConnection_ == nullptr!");
         return RENDER_SERVICE_NULL;
     }
     if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
@@ -1017,26 +1019,24 @@ int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
         return INVALID_ARGUMENTS;
     }
     sptr<CustomFrameStabilityCallback> cb = new CustomFrameStabilityCallback(callback);
-    return renderPipeline->RegisterFrameStabilityDetection(target, config, cb);
+    return clientToRenderConnection_->RegisterFrameStabilityDetection(target, config, cb);
 }
 
 int32_t RSRenderPipelineClient::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
 {
-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::UnregisterFrameStabilityDetection renderPipeline == nullptr!");
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::UnregisterFrameStabilityDetection clientToRenderConnection_ == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return renderPipeline->UnregisterFrameStabilityDetection(target);
+    return clientToRenderConnection_->UnregisterFrameStabilityDetection(target);
 }
 
 int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config)
 {
-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::StartFrameStabilityCollection renderPipeline == nullptr!");
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::StartFrameStabilityCollection clientToRenderConnection_ == nullptr!");
         return RENDER_SERVICE_NULL;
     }
     if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
@@ -1048,17 +1048,16 @@ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
         ROSEN_LOGE("StartFrameStabilityCollection invalid changePercent: %{public}f", config.changePercent);
         return INVALID_ARGUMENTS;
     }
-    return renderPipeline->StartFrameStabilityCollection(target, config);
+    return clientToRenderConnection_->StartFrameStabilityCollection(target, config);
 }
 
 int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
 {
-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetFrameStabilityResult renderPipeline == nullptr!");
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetFrameStabilityResult clientToRenderConnection_ == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return renderPipeline->GetFrameStabilityResult(target, result);
+    return clientToRenderConnection_->GetFrameStabilityResult(target, result);
 }
 } // namespace Rosen
 } // namespace OHOS
