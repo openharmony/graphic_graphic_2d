@@ -41,10 +41,12 @@ ohos_fuzztest("NdkShaderEffectFuzzTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
   ]
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "skia:skia_canvaskit",
     "image_framework:image_native",
     "image_framework:pixelmap",
     "image_framework:pixelmap_ndk",
