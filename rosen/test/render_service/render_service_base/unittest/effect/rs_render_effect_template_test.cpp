@@ -73,12 +73,14 @@ HWTEST_F(RSNGRenderEffectTemplateTest, GetEffectTypeStringForMaskTypes, TestSize
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::PIXEL_MAP_MASK), "PixelMapMask");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::RADIAL_GRADIENT_MASK), "RadialGradientMask");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::WAVE_GRADIENT_MASK), "WaveGradientMask");
-    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::WAVE_DISTURBANCE_MASK), "WaveDisturbanceMask");
+    EXPECT_EQ(
+        RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::WAVE_DISTURBANCE_MASK), "WaveDisturbanceMask");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::FRAME_GRADIENT_MASK), "FrameGradientMask");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::IMAGE_MASK), "ImageMask");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::USE_EFFECT_MASK), "UseEffectMask");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::DUPOLI_NOISE_MASK), "DupoliNoiseMask");
-    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::NOISY_FRAME_GRADIENT_MASK), "NoisyFrameGradientMask");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::NOISY_FRAME_GRADIENT_MASK),
+        "NoisyFrameGradientMask");
 }
 
 /**
@@ -89,7 +91,8 @@ HWTEST_F(RSNGRenderEffectTemplateTest, GetEffectTypeStringForMaskTypes, TestSize
 HWTEST_F(RSNGRenderEffectTemplateTest, GetEffectTypeStringForSDFShapeTypes, TestSize.Level1)
 {
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_UNION_OP_SHAPE), "SDFUnionOpShape");
-    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE), "SDFSmoothUnionOpShape");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE),
+        "SDFSmoothUnionOpShape");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_RRECT_SHAPE), "SDFRRectShape");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_TRIANGLE_SHAPE), "SDFTriangleShape");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_PIXELMAP_SHAPE), "SDFPixelmapShape");
@@ -107,11 +110,13 @@ HWTEST_F(RSNGRenderEffectTemplateTest, GetEffectTypeStringForSDFShapeTypes, Test
  */
 HWTEST_F(RSNGRenderEffectTemplateTest, GetEffectTypeStringForShaderEffectTypes, TestSize.Level1)
 {
-    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT), "ContourDiagonalFlowLight");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT),
+        "ContourDiagonalFlowLight");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::DOT_MATRIX_SHADER), "DotMatrixShader");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::WAVY_RIPPLE_LIGHT), "WavyRippleLight");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::AURORA_NOISE), "AuroraNoise");
-    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::PARTICLE_CIRCULAR_HALO), "ParticleCircularHalo");
+    EXPECT_EQ(
+        RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::PARTICLE_CIRCULAR_HALO), "ParticleCircularHalo");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::LIGHT_CAVE), "LightCave");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::BORDER_LIGHT), "BorderLight");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::HARMONIUM_EFFECT), "HarmoniumEffect");
@@ -129,7 +134,8 @@ HWTEST_F(RSNGRenderEffectTemplateTest, GetEffectTypeStringForGlowAndFlowlightTyp
 {
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::AIBAR_GLOW), "AIBarGlow");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::AIBAR_RECT_HALO), "AIBarRectHalo");
-    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::ROUNDED_RECT_FLOWLIGHT), "RoundedRectFlowlight");
+    EXPECT_EQ(
+        RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::ROUNDED_RECT_FLOWLIGHT), "RoundedRectFlowlight");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::GRADIENT_FLOW_COLORS), "GradientFlowColors");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::CIRCLE_FLOWLIGHT), "CircleFlowlight");
 }
