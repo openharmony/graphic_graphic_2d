@@ -3757,8 +3757,13 @@ void RSMainThread::Animate(uint64_t timestamp)
             RS_LOGD("Animate removing expired animating node");
             return true;
         }
-        totalAnimationSize += node->animationManager_.GetAnimationsSize();
-        node->animationManager_.SetRateDeciderEnable(
+        auto animationManager = node->GetAnimationManager();
+        if (!animationManager) {
+            RS_LOGE("Animate animationManager is nullptr");
+            return true;
+        }
+        totalAnimationSize += animationManager->GetAnimationsSize();
+        animationManager->SetRateDeciderEnable(
             isRateDeciderEnabled, hgmRenderContext_->GetConvertFrameRateFunc());
         nextFrameTime = (node.use_count() == 1) ? 0 : nextFrameTime;
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
@@ -3768,7 +3773,7 @@ void RSMainThread::Animate(uint64_t timestamp)
             RS_LOGD("Animate removing finished animating node %{public}" PRIu64, node->GetId());
         } else {
             node->UpdateDisplaySyncRange();
-            hgmRenderContext_->GetRSCurrRangeRef().Merge(node->animationManager_.GetDecideFrameRateRange());
+            hgmRenderContext_->GetRSCurrRangeRef().Merge(animationManager->GetDecideFrameRateRange());
         }
         // request vsync if: 1. node has running animation, or 2. transition animation just ended
         needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync || (node.use_count() == 1);
@@ -3782,8 +3787,8 @@ void RSMainThread::Animate(uint64_t timestamp)
             }
             curWinAnim = true;
         }
-        if (needPrintAnimationDFX && needRequestNextVsync && node->animationManager_.GetAnimationsSize() > 0) {
-            animationPids.insert(node->animationManager_.GetAnimationPid());
+        if (needPrintAnimationDFX && needRequestNextVsync && animationManager->GetAnimationsSize() > 0) {
+            animationPids.insert(animationManager->GetAnimationPid());
         }
         return !hasRunningAnimation;
     });

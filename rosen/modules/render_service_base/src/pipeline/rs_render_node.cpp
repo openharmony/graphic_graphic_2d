@@ -1236,7 +1236,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 #endif
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
-    animationManager_.DumpAnimations(out);
+    if (animationManager_) {
+        animationManager_->DumpAnimations(out);
+    }
     ChildrenListDump(out);
 
     for (auto& child : children_) {
@@ -1477,8 +1479,8 @@ void RSRenderNode::ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManag
     if (geoUpdateDelay_) {
         if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             auto absChildrenRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
-            subTreeDirtyRegion_ = absChildrenRect.IntersectRect(oldClipRect_);
-            dirtyManager.MergeDirtyRect(subTreeDirtyRegion_);
+            auto subTreeDirtyRegion = absChildrenRect.IntersectRect(oldClipRect_);
+            dirtyManager.MergeDirtyRect(subTreeDirtyRegion);
         }
     }
     lastFrameSubTreeSkipped_ = false;
@@ -1699,7 +1701,7 @@ RSRenderNode::~RSRenderNode()
 
 void RSRenderNode::FallbackAnimationsToRoot()
 {
-    if (animationManager_.animations_.empty()) {
+    if (!animationManager_ || animationManager_->animations_.empty()) {
         return;
     }
 
@@ -1715,7 +1717,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
     }
     context->RegisterAnimatingRenderNode(target);
 
-    for (auto& [unused, animation] : animationManager_.animations_) {
+    for (auto& [unused, animation] : animationManager_->animations_) {
         if (animation->IsPaused()) {
             animation->Resume();
         }
@@ -1727,9 +1729,9 @@ void RSRenderNode::FallbackAnimationsToRoot()
             animation->Attach(target.get());
             animation->RemoveFromGroupAnimator();
         }
-        target->animationManager_.AddAnimation(std::move(animation));
+        target->AddAnimation(std::move(animation));
     }
-    animationManager_.animations_.clear();
+    animationManager_->animations_.clear();
     // Check the next frame's VSync has been requested. If there is no request, add another VSync request
     if (!context->IsRequestedNextVsyncAnimate()) {
         context->RequestVsync();
@@ -1746,10 +1748,10 @@ void RSRenderNode::ActivateDisplaySync()
 
 void RSRenderNode::UpdateDisplaySyncRange()
 {
-    if (!displaySync_) {
+    if (!animationManager_ || !displaySync_) {
         return;
     }
-    auto animationRange = animationManager_.GetFrameRateRange();
+    auto animationRange = animationManager_->GetFrameRateRange();
     if (animationRange.IsValid()) {
         displaySync_->SetExpectedFrameRateRange(animationRange);
     }
@@ -1759,6 +1761,10 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
     int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime, int64_t period, bool isDisplaySyncEnabled)
 {
     RS_PROFILER_ANIMATION_NODE(GetType(), selfDrawRect_.GetWidth() * selfDrawRect_.GetWidth());
+    if (!animationManager_) {
+        ROSEN_LOGE("%{public}s: animationManager is nullptr, node[id:%{public}" PRIu64 "]", __func__, GetId());
+        return std::make_tuple(false, false, false);
+    }
     int64_t nextFrameTimeForThisAnimate = 0;
     bool needSkipCurrentAnimate = displaySync_ &&
         displaySync_->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTimeForThisAnimate);
@@ -1777,9 +1783,13 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
         }
     }
 
-    auto animateResult = animationManager_.Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
+    auto animateResult = animationManager_->Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
+    }
+    if (animationManager_->animations_.empty()) {
+        animationManager_.reset();
+        ROSEN_LOGD("%{public}s: animationManager reset", __func__);
     }
     return animateResult;
 }
@@ -2103,9 +2113,9 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         // updateDrawRect info when this node need to use cmdlistDrawRegion
         if (geoPtr && (accumGeoDirty || properties.geoDirty_ ||
             isSelfDrawingNode_ || selfDrawRectChanged || GetNeedUseCmdlistDrawRegion())) {
-            absDrawRectF_ = geoPtr->MapRectWithoutRounding(selfDrawRect_, geoPtr->GetAbsMatrix());
-            absDrawRect_ = geoPtr->InflateToRectI(absDrawRectF_);
-            innerAbsDrawRect_ = geoPtr->DeflateToRectI(absDrawRectF_);
+            auto absDrawRectF = geoPtr->MapRectWithoutRounding(selfDrawRect_, geoPtr->GetAbsMatrix());
+            absDrawRect_ = geoPtr->InflateToRectI(absDrawRectF);
+            innerAbsDrawRect_ = geoPtr->DeflateToRectI(absDrawRectF);
             absCmdlistDrawRect_ = GetNeedUseCmdlistDrawRegion() ?
                 geoPtr->MapRect(cmdlistDrawRegion_, geoPtr->GetAbsMatrix()) : RectI(0, 0, 0, 0);
             if (isSelfDrawingNode_) {
@@ -2186,6 +2196,11 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
             dirtyManager.UpdateDirtyRegionInfoForDfx(
                 GetId(), GetType(), DirtyRegionType::OVERLAY_RECT, geoPtr->MapAbsRect(*drawRegion));
         }
+        if (LastFrameSubTreeSkipped()) {
+            auto absChildrenRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
+            dirtyManager.UpdateDirtyRegionInfoForDfx(
+                GetId(), GetType(), DirtyRegionType::SUBTREE_SKIP_RECT, absChildrenRect.IntersectRect(oldClipRect_));
+        }
     }
 
     // update dirty region information in abs Coords.
@@ -2193,10 +2208,6 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
         GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
     dirtyManager.UpdateDirtyRegionInfoForDfx(
         GetId(), GetType(), DirtyRegionType::FILTER_RECT, GetFilterRegion());
-    if (LastFrameSubTreeSkipped()) {
-        dirtyManager.UpdateDirtyRegionInfoForDfx(
-            GetId(), GetType(), DirtyRegionType::SUBTREE_SKIP_RECT, subTreeDirtyRegion_);
-    }
     if (properties.GetClipToBounds() || properties.GetClipToFrame()) {
         dirtyManager.UpdateDirtyRegionInfoForDfx(
             GetId(), GetType(), DirtyRegionType::PREPARE_CLIP_RECT, GetAbsDrawRect());
@@ -2445,18 +2456,20 @@ bool RSRenderNode::IsContentDirty() const
     return isContentDirty_ || GetRenderProperties().IsContentDirty();
 }
 
-void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled)
+bool RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled)
 {
     auto dirtyRect = GetRenderProperties().GetDirtyRect();
+    bool isRenderUpdateIgnored = false;
     // should judge if there's any child out of parent
     if (!isPartialRenderEnabled || HasChildrenOutOfRect()) {
-        isRenderUpdateIgnored_ = false;
+        isRenderUpdateIgnored = false;
     } else if (dirtyRegion.IsEmpty() || dirtyRect.IsEmpty()) {
-        isRenderUpdateIgnored_ = true;
+        isRenderUpdateIgnored = true;
     } else {
         RectI intersectRect = dirtyRegion.IntersectRect(dirtyRect);
-        isRenderUpdateIgnored_ = intersectRect.IsEmpty();
+        isRenderUpdateIgnored = intersectRect.IsEmpty();
     }
+    return isRenderUpdateIgnored;
 }
 
 
@@ -3331,11 +3344,13 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     AddToPendingSyncList();
 
     // update rate decider scale reference size and scale.
-    animationManager_.SetRateDeciderSize(GetRenderProperties().GetBoundsWidth(),
-        GetRenderProperties().GetBoundsHeight());
-    animationManager_.SetRateDeciderScale(GetRenderProperties().GetScaleX(), GetRenderProperties().GetScaleY());
-    auto& rect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    animationManager_.SetRateDeciderAbsRect(rect.GetWidth(), rect.GetHeight());
+    if (animationManager_) {
+        animationManager_->SetRateDeciderSize(GetRenderProperties().GetBoundsWidth(),
+            GetRenderProperties().GetBoundsHeight());
+        animationManager_->SetRateDeciderScale(GetRenderProperties().GetScaleX(), GetRenderProperties().GetScaleY());
+        auto& rect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        animationManager_->SetRateDeciderAbsRect(rect.GetWidth(), rect.GetHeight());
+    }
 }
 
 void RSRenderNode::MarkParentNeedRegenerateChildren() const
@@ -4286,14 +4301,19 @@ void RSRenderNode::ResetDirtyStatus()
     cmdlistDrawRegion_.Clear();
 }
 
-bool RSRenderNode::IsRenderUpdateIgnored() const
-{
-    return isRenderUpdateIgnored_;
-}
-RSAnimationManager& RSRenderNode::GetAnimationManager()
+std::shared_ptr<RSAnimationManager> RSRenderNode::GetAnimationManager() const
 {
     return animationManager_;
 }
+
+void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+{
+    if (!animationManager_) {
+        animationManager_ = std::make_shared<RSAnimationManager>();
+    }
+    animationManager_->AddAnimation(animation);
+}
+
 RectI RSRenderNode::GetOldDirty() const
 {
     return oldDirty_;
@@ -4418,7 +4438,7 @@ bool RSRenderNode::HasSubSurface() const
 }
 bool RSRenderNode::HasAnimation() const
 {
-    return !animationManager_.animations_.empty();
+    return animationManager_ && !animationManager_->animations_.empty();
 }
 void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
@@ -4429,12 +4449,7 @@ void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
         RS_OPTIONAL_TRACE_NAME_FMT("node %" PRIu64" set large draw region from arkui: %s",
             GetId(), rect->ToString().c_str());
     }
-    drawRegion_ = rect;
     GetMutableRenderProperties().SetDrawRegion(rect);
-}
-const std::shared_ptr<RectF>& RSRenderNode::GetDrawRegion() const
-{
-    return drawRegion_;
 }
 void RSRenderNode::SetOutOfParent(OutOfParentType outOfParent)
 {
@@ -4460,8 +4475,26 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType() const
 void RSRenderNode::SyncWhiteListInfoToParent()
 {
     if (auto nodeParent = GetParent().lock()) {
-        nodeParent->AddScreensWithSubTreeWhitelist(screensWithSubTreeWhitelist_);
+        auto& parentParams = nodeParent->GetStagingRenderParams();
+        parentParams->AddScreensWithSubTreeWhitelist(
+            stagingRenderParams_->GetScreensWithSubTreeWhitelist());
     }
+}
+
+void RSRenderNode::AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
+{
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
+    stagingRenderParams_->AddScreensWithSubTreeWhitelist(screenIds);
+}
+
+void RSRenderNode::SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
+{
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
+    stagingRenderParams_->SetScreensWithSubTreeWhitelist(screenIds);
 }
 
 void RSRenderNode::MarkNonGeometryChanged()
@@ -4509,7 +4542,6 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
     stagingRenderParams_->SetFirstLevelCrossNode(isFirstLevelCrossNode_);
     stagingRenderParams_->SetAbsRotation(absRotation_);
-    stagingRenderParams_->SetScreensWithSubTreeWhitelist(screensWithSubTreeWhitelist_);
     auto cloneSourceNode = GetSourceCrossNode().lock();
     if (cloneSourceNode) {
         stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());

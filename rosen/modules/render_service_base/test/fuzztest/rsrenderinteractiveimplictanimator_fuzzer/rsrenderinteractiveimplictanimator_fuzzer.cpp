@@ -90,7 +90,9 @@ namespace OHOS {
         auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(value3);
         auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
             animationId, propertyId, property, property1, property2);
-        renderNode->GetAnimationManager().AddAnimation(renderCurveAnimation);
+        if (auto animationManager = renderNode->GetAnimationManager()) {
+            animationManager->AddAnimation(renderCurveAnimation);
+        }
         std::vector<std::pair<NodeId, AnimationId>> animations;
         animations.emplace_back(nodeId, animationId);
         interactiveAnimator->AddAnimations(animations);
@@ -137,7 +139,9 @@ namespace OHOS {
         auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(value1);
         auto renderCurveAnimation1 =
             std::make_shared<RSRenderCurveAnimation>(animationId1, propertyId, property1, property1, property1);
-        renderNode1->GetAnimationManager().AddAnimation(renderCurveAnimation1);
+        if (auto animationManager = renderNode1->GetAnimationManager()) {
+            animationManager->AddAnimation(renderCurveAnimation1);
+        }
 
         std::vector<std::pair<NodeId, AnimationId>> animations;
         animations.emplace_back(nodeId1, animationId1);
