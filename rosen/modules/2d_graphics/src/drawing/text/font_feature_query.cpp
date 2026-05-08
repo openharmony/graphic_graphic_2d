@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <memory>
+#include <set>
 
 #include "font_harfbuzz.h"
 #include "utils/log.h"
