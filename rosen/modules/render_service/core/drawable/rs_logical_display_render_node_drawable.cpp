@@ -201,7 +201,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             RSUniRenderThread::Instance().SetWhiteList(screenProperty.GetWhiteList());
             curSecExemption_ = params->GetSecurityExemption();
             uniParam->SetSecExemption(curSecExemption_);
-            DrawExpandDisplay(*params);
+            DrawExpandDisplay(*params, processor);
             lastSecExemption_ = curSecExemption_;
         }
         uniParam->SetSecurityDisplay(false);
@@ -403,7 +403,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canva
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, canvas, *screenParams);
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRenderParams& params)
+void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRenderParams& params,
+    std::shared_ptr<RSUniRenderVirtualProcessor> processor)
 {
     RS_TRACE_FUNC();
     auto [_, screenParam] = GetScreenParams(params);

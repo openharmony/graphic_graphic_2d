@@ -39,7 +39,6 @@ public:
     void PostProcess() override;
 
 private:
-private:
     std::unique_ptr<RSRenderFrame> renderFrame_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
 };

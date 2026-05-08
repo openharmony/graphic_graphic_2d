@@ -538,10 +538,6 @@ void RSUniRenderVirtualProcessor::PostProcess()
         return;
     }
 
-    // Multiple surfaces without regions: copy primary content to secondaries before flushing
-    if (!needsOffscreenRender_) {
-        CopyToSecondarySurfaces();
-    }
     FlushAllSurfaces();
 }
 
