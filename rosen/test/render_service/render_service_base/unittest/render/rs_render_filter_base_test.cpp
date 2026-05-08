@@ -148,13 +148,13 @@ HWTEST_F(RSRenderFilterBaseTest, UpdateCacheData, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetEffectCount
+ * @tc.name: GetEffectCount001
  * @tc.desc: 1. Test the behavior of Append method, including appending self, appending valid filters,
  *           handling null filters, and ensuring filters already in the chain are not appended again
  *           2. Test GetEffectCount method to verify the number of filters in the chain
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, GetEffectCount, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, GetEffectCount001, TestSize.Level1)
 {
     // Test single filter
     auto filter1 = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
@@ -184,11 +184,11 @@ HWTEST_F(RSRenderFilterBaseTest, GetEffectCount, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpFilterInfo
+ * @tc.name: Dump001
  * @tc.desc: Test the Dump method outputs correct filter type information
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, DumpFilterInfo, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, Dump001, TestSize.Level1)
 {
     std::shared_ptr<RSNGRenderFilterBase> filter = std::make_shared<RSNGRenderBlurFilter>();
     std::string out;
@@ -202,11 +202,11 @@ HWTEST_F(RSRenderFilterBaseTest, DumpFilterInfo, TestSize.Level1)
 }
 
 /**
- * @tc.name: TemplateContains
+ * @tc.name: TemplateContains001
  * @tc.desc: querify the RSNGRenderFilterTemplate's Contains template interface
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, TemplateContains, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, TemplateContains001, TestSize.Level1)
 {
     auto filter = std::make_shared<RSNGRenderBlurFilter>();
     EXPECT_TRUE(filter->Contains<BlurRadiusXRenderTag>());
@@ -214,11 +214,11 @@ HWTEST_F(RSRenderFilterBaseTest, TemplateContains, TestSize.Level1)
 }
 
 /**
- * @tc.name: TemplateGetterSetter
+ * @tc.name: TemplateGetterSetter001
  * @tc.desc: querify the RSNGRenderFilterTemplate's Getter and Setter template interfaces
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, TemplateGetterSetter, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, TemplateGetterSetter001, TestSize.Level1)
 {
     auto filter = std::make_shared<RSNGRenderBlurFilter>();
     using TargetTag = BlurRadiusXRenderTag;
@@ -230,12 +230,12 @@ HWTEST_F(RSRenderFilterBaseTest, TemplateGetterSetter, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarshallingAndUnmarshallingSingleFilter
+ * @tc.name: MarshallingAndUnmarshalling001
  * @tc.desc: Test the Marshalling and Unmarshalling methods can
  *           serialize and deserialize a single filter correctly
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshallingSingleFilter, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1)
 {
     // Test Marshalling and Unmarshalling of a single filter and chained filters
     Parcel parcel;
@@ -286,12 +286,12 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshallingSingleFilter, TestSi
 }
 
 /**
- * @tc.name: MarshallingAndUnmarshallingLongChain
+ * @tc.name: MarshallingAndUnmarshalling002
  * @tc.desc: Test the Marshalling and Unmarshalling methods can handle
  *           a filter chain that exceeds the RSNGRenderFilterBase::EFFECT_COUNT_LIMIT
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshallingLongChain, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1)
 {
     // Test Marshalling long filter chain
     auto longFilter = std::make_shared<RSNGRenderBlurFilter>();
