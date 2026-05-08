@@ -512,8 +512,8 @@ public:
     void UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
     bool IsRenderUpdateIgnored() const;
 
-    // used for animation test
-    RSAnimationManager& GetAnimationManager();
+    std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
+    void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
 
     void ApplyAlphaAndBoundsGeometry(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -1316,7 +1316,7 @@ private:
     Drawing::Matrix oldAbsMatrix_;
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
     bool released_ = false;
-    RSAnimationManager animationManager_;
+    std::shared_ptr<RSAnimationManager> animationManager_;
     RSOpincCache opincCache_;
     std::unordered_set<NodeId> subtreeParallelNodes_;
     bool isAllChildRepaintBoundary_ = false;

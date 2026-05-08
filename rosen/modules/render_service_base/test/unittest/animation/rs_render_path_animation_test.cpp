@@ -521,5 +521,61 @@ HWTEST_F(RSRenderPathAnimationTest, OnRemoveOnCompletion001, TestSize.Level1)
     renderPathAnimation->OnRemoveOnCompletion();
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnRemoveOnCompletion001 end";
 }
+
+/**
+ * @tc.name: OnAttach002
+ * @tc.desc: Verify OnAttach with non-null animationManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAttach002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAttach002 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE,
+        PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE,
+        PROPERTY_ID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE,
+        PROPERTY_ID);
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
+        property, property1, property2, 1.0f, path);
+    EXPECT_TRUE(renderPathAnimation != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    renderPathAnimation->Attach(renderNode.get());
+    // Make animationManager_ non-null by adding an animation
+    renderNode->AddAnimation(renderPathAnimation);
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+    renderPathAnimation->OnAttach();
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAttach002 end";
+}
+
+/**
+ * @tc.name: OnDetach002
+ * @tc.desc: Verify OnDetach with non-null animationManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnDetach002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnDetach002 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE,
+        PROPERTY_ID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE,
+        PROPERTY_ID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE,
+        PROPERTY_ID);
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
+        property, property1, property2, 1.0f, path);
+    EXPECT_TRUE(renderPathAnimation != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    renderPathAnimation->Attach(renderNode.get());
+    // Make animationManager_ non-null and register path animation via OnAttach
+    renderNode->AddAnimation(renderPathAnimation);
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+    renderPathAnimation->OnAttach();
+    // OnDetach with non-null animationManager: will unregister path animation
+    renderPathAnimation->OnDetach();
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnDetach002 end";
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -58,6 +58,7 @@
 #include "render_service/composer/composer_client/connection/rs_composer_to_render_connection.h"
 #include "transaction/rs_connect_to_render_process.h"
 #include "animation/rs_animation_timing_protocol.h"
+#include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interactive_implict_animator.h"
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
@@ -7032,5 +7033,34 @@ HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
     mainThread->RmvSurfaceFpsOp(rmvList);
     surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
     EXPECT_EQ(surfaceFpsOpList.size(), 0u);
+}
+
+/**
+ * @tc.name: AnimateWithAnimationManager
+ * @tc.desc: Cover branch: animationManager is non-null in RSMainThread::Animate loop
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, AnimateWithAnimationManager, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSMainThreadTest AnimateWithAnimationManager start";
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 9999;
+    auto node = std::make_shared<RSRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+
+    // Make animationManager_ non-null by adding an animation
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    ASSERT_NE(node->GetAnimationManager(), nullptr);
+
+    mainThread->context_->RegisterAnimatingRenderNode(node);
+    mainThread->Animate(1);
+
+    GTEST_LOG_(INFO) << "RSMainThreadTest AnimateWithAnimationManager end";
 }
 } // namespace OHOS::Rosen

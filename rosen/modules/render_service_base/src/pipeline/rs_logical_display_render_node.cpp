@@ -181,7 +181,10 @@ bool RSLogicalDisplayRenderNode::IsOnlyHDRAnimation()
     if (modifiers.empty()) {
         return false;
     }
-    const auto& animationsMap = GetAnimationManager().GetAnimations();
+    if (!GetAnimationManager()) {
+        return false;
+    }
+    const auto& animationsMap = GetAnimationManager()->GetAnimations();
     for (const auto& modifier : modifiers) {
         if (!modifier) {
             continue;

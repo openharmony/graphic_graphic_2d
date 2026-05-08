@@ -170,7 +170,11 @@ void RSRenderParticleAnimation::OnAttach()
         ROSEN_LOGE("RSRenderParticleAnimation::OnAttach, target is nullptr");
         return;
     }
-    auto particleAnimations = target->GetAnimationManager().GetParticleAnimations();
+    auto animationManager = target->GetAnimationManager();
+    if (!animationManager) {
+        return;
+    }
+    auto particleAnimations = animationManager->GetParticleAnimations();
     if (!particleAnimations.empty()) {
         for (const auto& pair : particleAnimations) {
             auto property = target->GetProperty(pair.first);
@@ -178,11 +182,11 @@ void RSRenderParticleAnimation::OnAttach()
             if (modifierNG != nullptr) {
                 target->RemoveModifierNG(modifierNG->GetId());
             }
-            target->GetAnimationManager().RemoveAnimation(pair.second);
-            target->GetAnimationManager().UnregisterParticleAnimation(pair.first, pair.second);
+            animationManager->RemoveAnimation(pair.second);
+            animationManager->UnregisterParticleAnimation(pair.first, pair.second);
         }
     }
-    target->GetAnimationManager().RegisterParticleAnimation(GetPropertyId(), GetAnimationId());
+    animationManager->RegisterParticleAnimation(GetPropertyId(), GetAnimationId());
 }
 
 void RSRenderParticleAnimation::OnDetach()
@@ -198,7 +202,9 @@ void RSRenderParticleAnimation::OnDetach()
     }
     auto propertyId = GetPropertyId();
     auto id = GetAnimationId();
-    target->GetAnimationManager().UnregisterParticleAnimation(propertyId, id);
+    if (auto animationManager = target->GetAnimationManager()) {
+        animationManager->UnregisterParticleAnimation(propertyId, id);
+    }
 }
 
 bool RSRenderParticleAnimation::Marshalling(Parcel& parcel) const

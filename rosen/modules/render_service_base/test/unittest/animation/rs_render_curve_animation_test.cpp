@@ -780,12 +780,14 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAttach003, TestSize.Level1)
     EXPECT_NE(target, nullptr);
     // test property type is DRAW_CMD_LIST
     // test preDrawCmdListAnimationId_ is 0
-    target->GetAnimationManager().preDrawCmdListAnimationId_ = 0;
+    auto animationManager = target->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->preDrawCmdListAnimationId_ = 0;
     renderCurveAnimation->OnAttach();
     // test preDrawCmdListAnimationId_ > 0
-    target->GetAnimationManager().preDrawCmdListAnimationId_ = ANIMATION_ID;
-    // test target->GetAnimationManager().GetAnimation(ANIMATION_ID) is null
-    EXPECT_EQ(target->GetAnimationManager().GetAnimation(ANIMATION_ID), nullptr);
+    animationManager->preDrawCmdListAnimationId_ = ANIMATION_ID;
+    // test animationManager->GetAnimation(ANIMATION_ID) is null
+    EXPECT_EQ(animationManager->GetAnimation(ANIMATION_ID), nullptr);
     renderCurveAnimation->OnAttach();
 }
 
@@ -814,9 +816,11 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAttach004, TestSize.Level1)
     EXPECT_NE(target, nullptr);
     // test property type is DRAW_CMD_LIST
     // test preDrawCmdListAnimationId_ > 0
-    target->GetAnimationManager().preDrawCmdListAnimationId_ = ANIMATION_ID_2;
-    target->GetAnimationManager().AddAnimation(renderCurveAnimation2);
-    auto preAnimation = target->GetAnimationManager().GetAnimation(ANIMATION_ID_2);
+    auto animationManager = target->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->preDrawCmdListAnimationId_ = ANIMATION_ID_2;
+    animationManager->AddAnimation(renderCurveAnimation2);
+    auto preAnimation = animationManager->GetAnimation(ANIMATION_ID_2);
     ASSERT_NE(preAnimation, nullptr);
     // test preAnimaton propertyId is not equal this propertyId
     EXPECT_NE(preAnimation->GetPropertyId(), renderCurveAnimation->property_->GetId());
@@ -846,9 +850,11 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAttach005, TestSize.Level1)
     EXPECT_NE(target, nullptr);
     // test property type is DRAW_CMD_LIST
     // test preAnimaton is not nullptr
-    target->GetAnimationManager().preDrawCmdListAnimationId_ = ANIMATION_ID;
-    target->GetAnimationManager().AddAnimation(renderCurveAnimation);
-    auto preAnimation = target->GetAnimationManager().GetAnimation(ANIMATION_ID);
+    auto animationManager = target->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->preDrawCmdListAnimationId_ = ANIMATION_ID;
+    animationManager->AddAnimation(renderCurveAnimation);
+    auto preAnimation = animationManager->GetAnimation(ANIMATION_ID);
     ASSERT_NE(preAnimation, nullptr);
     // test preAnimaton propertyId is equal this propertyId
     EXPECT_EQ(preAnimation->GetPropertyId(), renderCurveAnimation->property_->GetId());
@@ -879,6 +885,94 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAttach006, TestSize.Level1)
     EXPECT_NE(target, nullptr);
     // test property_ is nullptr
     EXPECT_EQ(renderCurveAnimation->property_, nullptr);
+    renderCurveAnimation->OnAttach();
+}
+
+/**
+ * @tc.name: RSRenderCurveAnimationTest_OnAttach
+ * @tc.desc: Verify OnAttach with non-null animationManager and DRAW_CMD_LIST property
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderCurveAnimationTest, OnAttach007, TestSize.Level1)
+{
+    auto property = std::make_shared<MockCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property1 = std::make_shared<MockCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property2 = std::make_shared<MockCmdListProperty>(1.0f, PROPERTY_ID);
+
+    auto renderCurveAnimation =
+        std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    ASSERT_NE(renderCurveAnimation, nullptr);
+    renderCurveAnimation->AttachRenderProperty(property);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    renderCurveAnimation->Attach(renderNode.get());
+    // Make animationManager_ non-null by adding an animation to the node
+    renderNode->AddAnimation(renderCurveAnimation);
+    auto target = renderCurveAnimation->GetTarget();
+    EXPECT_NE(target, nullptr);
+    // animationManager is now non-null, OnAttach should proceed past null check
+    renderCurveAnimation->OnAttach();
+}
+
+/**
+ * @tc.name: RSRenderCurveAnimationTest_OnAttach
+ * @tc.desc: Verify OnAttach with non-null animationManager, existing preDrawCmdListAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderCurveAnimationTest, OnAttach008, TestSize.Level1)
+{
+    auto property = std::make_shared<MockCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property1 = std::make_shared<MockCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property2 = std::make_shared<MockCmdListProperty>(1.0f, PROPERTY_ID);
+
+    auto renderCurveAnimation2 =
+        std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID_2, PROPERTY_ID_2, property, property1, property2);
+    auto renderCurveAnimation =
+        std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    ASSERT_NE(renderCurveAnimation, nullptr);
+    renderCurveAnimation->AttachRenderProperty(property);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    renderCurveAnimation->Attach(renderNode.get());
+    // Make animationManager_ non-null by adding animations to the node
+    renderNode->AddAnimation(renderCurveAnimation);
+    renderNode->AddAnimation(renderCurveAnimation2);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    // Set preDrawCmdListAnimationId_ to an existing animation
+    animationManager->preDrawCmdListAnimationId_ = ANIMATION_ID_2;
+    auto preAnimation = animationManager->GetAnimation(ANIMATION_ID_2);
+    ASSERT_NE(preAnimation, nullptr);
+    // preAnimation has different propertyId, should not FinishOnCurrentPosition
+    EXPECT_NE(preAnimation->GetPropertyId(), renderCurveAnimation->property_->GetId());
+    renderCurveAnimation->OnAttach();
+}
+
+/**
+ * @tc.name: RSRenderCurveAnimationTest_OnAttach
+ * @tc.desc: Verify OnAttach with non-null animationManager, same propertyId preDrawCmdListAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderCurveAnimationTest, OnAttach009, TestSize.Level1)
+{
+    auto property = std::make_shared<MockCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property1 = std::make_shared<MockCmdListProperty>(0.0f, PROPERTY_ID);
+    auto property2 = std::make_shared<MockCmdListProperty>(1.0f, PROPERTY_ID);
+
+    auto renderCurveAnimation =
+        std::make_shared<RSRenderCurveAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    ASSERT_NE(renderCurveAnimation, nullptr);
+    renderCurveAnimation->AttachRenderProperty(property);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    renderCurveAnimation->Attach(renderNode.get());
+    // Make animationManager_ non-null by adding the animation to the node
+    renderNode->AddAnimation(renderCurveAnimation);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    // Set preDrawCmdListAnimationId_ to the same animation (same propertyId)
+    animationManager->preDrawCmdListAnimationId_ = ANIMATION_ID;
+    auto preAnimation = animationManager->GetAnimation(ANIMATION_ID);
+    ASSERT_NE(preAnimation, nullptr);
+    // preAnimation has same propertyId, should call FinishOnCurrentPosition
+    EXPECT_EQ(preAnimation->GetPropertyId(), renderCurveAnimation->property_->GetId());
     renderCurveAnimation->OnAttach();
 }
 

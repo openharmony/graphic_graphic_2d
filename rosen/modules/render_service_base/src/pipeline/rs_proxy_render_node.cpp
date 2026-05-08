@@ -149,7 +149,9 @@ void RSProxyRenderNode::CleanUp(bool removeModifiers)
     // remove all modifiers and animations added via proxy node
     const auto pid_of_this_node = ExtractPid(GetId());
     target->FilterModifiersByPid(pid_of_this_node);
-    target->GetAnimationManager().FilterAnimationByPid(pid_of_this_node);
+    if (auto animationManager = target->GetAnimationManager()) {
+        animationManager->FilterAnimationByPid(pid_of_this_node);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1230,7 +1230,11 @@ void RSProperties::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUp
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }
@@ -1253,7 +1257,11 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }
@@ -1276,7 +1284,11 @@ void RSProperties::SetParticleRippleFields(const std::shared_ptr<ParticleRippleF
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }
@@ -1299,7 +1311,11 @@ void RSProperties::SetParticleVelocityFields(const std::shared_ptr<ParticleVeloc
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }
@@ -1322,7 +1338,11 @@ void RSProperties::SetParticleFields(const std::shared_ptr<ParticleFieldCollecti
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }

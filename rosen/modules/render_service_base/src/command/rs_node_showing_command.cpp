@@ -86,8 +86,9 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
     }
     success_ = (property_ != nullptr);
     if (success_) {
-        auto& animationManager = node->GetAnimationManager();
-        animationManager.CancelAnimationByPropertyId(property_->GetId());
+        if (auto animationManager = node->GetAnimationManager()) {
+            animationManager->CancelAnimationByPropertyId(property_->GetId());
+        }
     }
 }
 
@@ -173,7 +174,9 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
         if (auto prop = node->GetProperty(propertyId)) {
             property = prop;
         }
-        node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
+        if (auto animationManager = node->GetAnimationManager()) {
+            animationManager->AttemptCancelAnimationByAnimationId(animations);
+        }
     }
 }
 
@@ -250,7 +253,12 @@ void RSNodeGetAnimationsValueFraction::Process(RSContext& context)
         ROSEN_LOGE("RSNodeGetAnimationsValueFraction::Process, node is null!");
         return;
     }
-    auto animation = node->GetAnimationManager().GetAnimation(animationId_);
+    auto animationManager = node->GetAnimationManager();
+    if (!animationManager) {
+        ROSEN_LOGE("%{public}s: animationManager is null!", __func__);
+        return;
+    }
+    auto animation = animationManager->GetAnimation(animationId_);
     if (animation == nullptr) {
         ROSEN_LOGE("RSNodeGetAnimationsValueFraction::Process, animation is null!");
         return;
