@@ -416,6 +416,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/buffer_reclaim/rs_buffer_reclaim.cpp",
     "src/feature/uifirst/rs_frame_control.cpp",
     "src/feature/uifirst/rs_drawable_updater.cpp",
+    "src/feature/behind_window_filter/rs_behind_window_filter_manager.cpp",
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",

@@ -91,6 +91,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<SpirvCacheParam>(); }},
     {FEATURE_CONFIGS[BUFFER_RECLAIM], [] { return std::make_unique<BufferReclaimParamParse>(); },
         [] { return std::make_unique<BufferReclaimParam>(); }},
+    {FEATURE_CONFIGS[BEHIND_WINDOW_FILTER], [] { return std::make_unique<BehindWindowFilterParamParse>(); },
+        [] { return std::make_unique<BehindWindowFilterParam>(); }},
 };
 
 void GraphicFeatureParamManager::Init()
