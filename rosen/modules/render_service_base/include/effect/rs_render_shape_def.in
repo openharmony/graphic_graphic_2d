@@ -56,6 +56,12 @@ DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
     ADD_PROPERTY_TAG(SDFTransformShape, GravityHotZone)
 );
 
+DECLARE_SHAPE(SDFPathShape, SDF_PATH_SHAPE,
+    ADD_PROPERTY_TAG(SDFPathShape, Path),
+    ADD_PROPERTY_TAG(SDFPathShape, Offset),
+    ADD_PROPERTY_TAG(SDFPathShape, Scale)
+);
+
 DECLARE_SHAPE(SDFPixelmapShape, SDF_PIXELMAP_SHAPE,
     ADD_PROPERTY_TAG(SDFPixelmapShape, Image)
 );

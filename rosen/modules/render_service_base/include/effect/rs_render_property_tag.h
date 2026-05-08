@@ -18,6 +18,7 @@
 
 #include "modifier/rs_render_property.h"
 #include "pixel_map.h"
+#include "render/rs_path.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -105,6 +106,7 @@ enum class RSNGEffectType : int16_t {
     SDF_SMOOTH_UNION_OP_SHAPE,
     SDF_RRECT_SHAPE,
     SDF_TRIANGLE_SHAPE,
+    SDF_PATH_SHAPE,
     SDF_PIXELMAP_SHAPE,
     SDF_TRANSFORM_SHAPE,
     SDF_EMPTY_SHAPE,
