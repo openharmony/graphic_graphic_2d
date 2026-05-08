@@ -20,6 +20,7 @@
 #include <memory>
 #include <set>
 #include <cstdint>
+#include <unordered_map>
 
 #include "utils/log.h"
 
