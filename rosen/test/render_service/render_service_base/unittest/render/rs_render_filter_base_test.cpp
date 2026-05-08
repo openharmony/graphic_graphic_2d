@@ -43,11 +43,11 @@ void RSRenderFilterBaseTest::SetUp() {}
 void RSRenderFilterBaseTest::TearDown() {}
 
 /**
- * @tc.name: UpdateVisualEffectParamImplWithRRect
+ * @tc.name: UpdateVisualEffectParamImpl001
  * @tc.desc: Test the UpdateVisualEffectParamImpl
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImplWithRRect, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImpl001, TestSize.Level1)
 {
     auto testEffect = std::make_shared<Drawing::GEVisualEffect>(
         RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_RRECT_SHAPE));
@@ -59,11 +59,11 @@ HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImplWithRRect, TestSize.
 }
 
 /**
- * @tc.name: UpdateVisualEffectParamImplWithInt
+ * @tc.name: UpdateVisualEffectParamImpl002
  * @tc.desc: Test the UpdateVisualEffectParamImpl
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImplWithInt, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImpl002, TestSize.Level1)
 {
     auto testEffect = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_KAWASE_BLUR);
     EXPECT_NE(testEffect, nullptr);
@@ -89,11 +89,11 @@ HWTEST_F(RSRenderFilterBaseTest, GenerateGEVisualEffect, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateAndGetType
+ * @tc.name: CreateAndGetType001
  * @tc.desc: Test the factory method can create filter with correct type
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderFilterBaseTest, CreateAndGetType, TestSize.Level1)
+HWTEST_F(RSRenderFilterBaseTest, CreateAndGetType001, TestSize.Level1)
 {
     // normal filter types
     auto filterTypes = {
