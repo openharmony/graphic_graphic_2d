@@ -26,6 +26,7 @@
 #include "pixel_map.h"
 #include "effect_kit_napi_utils.h"
 #include "napi/native_node_api.h"
+#include "histogram_plugin_macros.h"
 
 namespace {
     constexpr uint32_t NUM_0 = 0;
@@ -654,6 +655,8 @@ napi_value FilterNapi::EllipticalGradientBlur(napi_env env, napi_callback_info i
         positions,
         degrees);
     thisFilter->AddEffectFilter(ellipticalGradientBlur);
+
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.ellipticalGradientBlur", 1);
     return _this;
 }
 
@@ -684,6 +687,8 @@ napi_value FilterNapi::Brightness(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("FilterNapi Brightness napi_unwrap fail"));
     auto brightness = EffectImageFilter::Brightness(fBright);
     thisFilter->AddEffectFilter(brightness);
+
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.brightness", 1);
     return _this;
 }
 
@@ -699,6 +704,8 @@ napi_value FilterNapi::Grayscale(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("FilterNapi Grayscale napi_unwrap fail"));
     auto grayscale = EffectImageFilter::Grayscale();
     thisFilter->AddEffectFilter(grayscale);
+
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.grayscale", 1);
     return _this;
 }
 
@@ -714,6 +721,8 @@ napi_value FilterNapi::Invert(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("FilterNapi Invert napi_unwrap fail"));
     auto invert = EffectImageFilter::Invert();
     thisFilter->AddEffectFilter(invert);
+
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.invert", 1);
     return _this;
 }
 
@@ -771,6 +780,8 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("FilterNapi SetColorMatrix napi_unwrap fail"));
     auto applyColorMatrix = EffectImageFilter::ApplyColorMatrix(colorMatrix);
     thisFilter->AddEffectFilter(applyColorMatrix);
+
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.setColorMatrix", 1);
     return _this;
 }
 }  // namespace Rosen
