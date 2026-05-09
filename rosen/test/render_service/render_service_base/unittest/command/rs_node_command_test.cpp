@@ -430,7 +430,6 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPair001, TestSize.Level1)
  * @tc.type: FUNC
  */
 HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair001, TestSize.Level1)
-
 {
     RSContext context;
     NodeId inNodeId = 100;
