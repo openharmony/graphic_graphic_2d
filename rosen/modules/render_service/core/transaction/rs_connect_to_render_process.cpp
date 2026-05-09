@@ -40,5 +40,10 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnecti
     renderPipelineAgent_->AddConnection(tokenObj, newRenderConn);
     return newRenderConn;
 }
+
+bool RSConnectToRenderProcess::RemoveConnection(const sptr<RSIConnectionToken>& token)
+{
+    return renderPipelineAgent_->RemoveConnection(token);
+}
 } // namespace Rosen
 } // namespace OHOS

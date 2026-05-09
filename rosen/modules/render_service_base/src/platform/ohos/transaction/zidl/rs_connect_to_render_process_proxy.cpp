@@ -77,5 +77,39 @@ int32_t RSConnectToRenderProcessProxy::SendRequest(uint32_t code, MessageParcel&
     }
     return Remote()->SendRequest(code, data, reply, option);
 }
+
+bool RSConnectToRenderProcessProxy::RemoveConnection(const sptr<RSIConnectionToken>& token)
+{
+    if (token == nullptr) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection: token is null.");
+        return false;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIConnectToRenderProcess::GetDescriptor())) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection WriteInterfaceToken failed.");
+        return false;
+    }
+    if (!data.WriteRemoteObject(token->AsObject())) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection WriteRemoteObject failed.");
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::REMOVE_CONNECTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection SendRequest failed, err is %{public}d.", err);
+        return false;
+    }
+    bool result = false;
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection ReadBool failed");
+        return false;
+    }
+    return result;
+}
 } // namespace Rosen
 } // namespace OHOS

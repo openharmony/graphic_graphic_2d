@@ -43,6 +43,11 @@ constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
 constexpr uint32_t MAX_WATERMARK_GRID_COUNT = 255;
 #endif
 
+RSRenderInterface::RSRenderInterface()
+{
+    renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>();
+}
+
 RSRenderInterface::RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote)
 {
     renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);

@@ -129,9 +129,16 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
         } else {
             AddCommand(command, isWindow);
         }
-        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
-            GetId(), rsUIContext->GetConnectToRender());
-        AddCommand(command, isWindow);
+#ifdef ROSEN_OHOS
+        if (rsUIContext != nullptr) {
+            command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
+                GetId(), rsUIContext->GetConnectToRender());
+            AddCommand(command, isWindow);
+        } else {
+            ROSEN_LOGE("RSSurfaceNode::SendDataToRender,"
+                "RSSurfaceNodeConnectToNodeInRenderService rsUIContext is nullptr");
+        }
+#endif
  
         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
@@ -757,10 +764,13 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
     if (surfaceId == 0) {
         auto rsUIContext = GetRSUIContext();
         if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
-            ROSEN_LOGE("RSDisplayNode::CreateNode uiContext is nullptr");
-            return false;
+            ROSEN_LOGW("RSSurfaceNode::CreateNode uiContext is nullptr");
+            std::shared_ptr<RSRenderInterface> rsRenderInterface =
+                std::shared_ptr<RSRenderInterface>(new RSRenderInterface());
+            surface_ = rsRenderInterface->CreateNodeAndSurface(config, unobscured);
+        } else {
+            surface_ = rsUIContext->GetRSRenderInterface()->CreateNodeAndSurface(config, unobscured);
         }
-        surface_ = rsUIContext->GetRSRenderInterface()->CreateNodeAndSurface(config, unobscured);
     } else {
 #ifndef ROSEN_CROSS_PLATFORM
         sptr<Surface> surface = SurfaceUtils::GetInstance()->GetSurface(surfaceId);
