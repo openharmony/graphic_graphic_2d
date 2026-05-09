@@ -303,7 +303,7 @@ bool RSOverlayNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     stagingRRect_ = RRect(properties.GetRRect());
     stagingNodeId_ = node.GetId();
     stagingScreenNodeId_ = node.GetScreenNodeId();
-    auto sdfShape = properties.GetSDFShape();
+    auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
     if (sdfShape) {
         std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
         std::shared_ptr<Drawing::GEShaderShape> geShape =

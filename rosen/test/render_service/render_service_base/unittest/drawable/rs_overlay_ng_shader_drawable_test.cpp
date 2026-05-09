@@ -1491,4 +1491,53 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, DrawSDFBorderLightTest007, TestS
     Drawing::Canvas canvasTest;
     drawable->DrawSDFBorderLight(canvasTest, validShader);
 }
+
+/**
+ * @tc.name: OnUpdateSDFShapeTest001
+ * @tc.desc: OnUpdate test when GetResolvedSDFShape returns valid shape
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateSDFShapeTest001, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> drawable =
+        std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto rrectShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(rrectShape);
+    sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(RRect(RectF(0, 0, 100, 100), 10, 10));
+    renderNodeTest.GetMutableRenderProperties().SetSDFShape(rrectShape);
+
+    std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
+    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    illuminated->illuminatedType_ = IlluminatedType::BORDER;
+    illuminated->lightSourcesAndPosMap_.emplace(
+        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+
+    EXPECT_TRUE(drawable->OnUpdate(renderNodeTest));
+    EXPECT_NE(drawable->stagingSDFShaderEffect_, nullptr);
+}
+
+/**
+ * @tc.name: OnUpdateSDFShapeTest002
+ * @tc.desc: OnUpdate test when GetResolvedSDFShape returns nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateSDFShapeTest002, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> drawable =
+        std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
+    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    illuminated->illuminatedType_ = IlluminatedType::BORDER;
+    illuminated->lightSourcesAndPosMap_.emplace(
+        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+
+    EXPECT_TRUE(drawable->OnUpdate(renderNodeTest));
+    EXPECT_EQ(drawable->stagingSDFShaderEffect_, nullptr);
+}
 } // namespace OHOS::Rosen
