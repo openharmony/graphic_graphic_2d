@@ -1401,6 +1401,22 @@ HWTEST_F(RSSurfaceNodeTest, SetHardwareEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetAlphaValue Test
+ * @tc.desc: GetAlphaValue
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeTest, GetAlphaValue, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetAlpha(DEFAULT_ALPHA_VALUE);
+    float alpha = surfaceNode->GetAlphaValue();
+    EXPECT_EQ(alpha, DEFAULT_ALPHA_VALUE);
+}
+
+/**
  * @tc.name: DetachToDisplay Test
  * @tc.desc: DetachToDisplay
  * @tc.type: FUNC

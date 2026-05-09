@@ -557,6 +557,21 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, NotifyLightFactorStatus, TestSize.
 }
 
 /**
+ * @tc.name: GetAlphaValue Test
+ * @tc.desc: GetAlphaValue Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, GetAlphaValue, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    NodeId id = 1;
+    float alpha = DEFAULT_ALPHA_VALUE;
+    auto err = proxy->GetAlphaValue(id, alpha);
+    EXPECT_NE(err, ERR_TIMED_OUT);
+}
+
+/**
  * @tc.name: FreezeScreenTest
  * @tc.desc: FreezeScreen test to freeze or unfreeze screen.
  * @tc.type:FUNC
