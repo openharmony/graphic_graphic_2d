@@ -613,6 +613,7 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":DemoGetScreenCapabilityTest",
     ":RSFoldScreenManagerTest",
     ":RSScreenCallbackManagerTest",
     ":RSScreenManagerAgentTest",
