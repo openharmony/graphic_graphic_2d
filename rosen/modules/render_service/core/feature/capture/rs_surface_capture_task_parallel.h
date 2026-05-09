@@ -53,7 +53,8 @@ public:
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
         std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0, bool syncRender = false);
+        sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0, bool syncRender = false,
+        CaptureError errorCode = CaptureError::CAPTURE_OK);
     static std::function<void()> CreateSurfaceSyncCopyTaskWithDoublePixelMap(
         std::shared_ptr<Drawing::Surface> surface, std::unique_ptr<Media::PixelMap> pixelMap,
         std::shared_ptr<Drawing::Surface> surfaceHDR, std::unique_ptr<Media::PixelMap> pixelMapHDR, NodeId id,

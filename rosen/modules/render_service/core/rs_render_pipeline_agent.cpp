@@ -449,7 +449,7 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
         auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("TakeSurfaceCapture failed, node is nullptr");
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_NODE);
             return;
         }
         auto displayCaptureHasPermission = screenCapturePermission && isSystemCalling;
@@ -459,7 +459,7 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
             RS_LOGE("TakeSurfaceCapture failed, node type: %{public}u, "
                 "screenCapturePermission: %{public}u, isSystemCalling: %{public}u, selfCapture: %{public}u",
                 node->GetType(), screenCapturePermission, isSystemCalling, selfCapture);
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
             return;
         }
         

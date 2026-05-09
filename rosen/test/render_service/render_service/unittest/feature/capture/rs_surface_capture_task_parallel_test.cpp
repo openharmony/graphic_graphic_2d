@@ -516,6 +516,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources006, TestSize.Level2)
 
     RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
     ASSERT_EQ(true, task.CreateResources());
+    ASSERT_NE(task.errorCode_, CaptureError::AUTO_NOT_SUPPORT);
 
     nodeMap.UnregisterRenderNode(leashNodeId);
     nodeMap.UnregisterRenderNode(appWindowNodeId);
