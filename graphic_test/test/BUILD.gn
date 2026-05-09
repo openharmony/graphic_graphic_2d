@@ -164,6 +164,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_mask_test/ng_mask_radial_gradient_test.cpp",
   "rs_effect_feature/ng_mask_test/ng_mask_wave_gradient_test.cpp",
   "rs_effect_feature/ng_mask_test/ng_mask_pixel_map_test.cpp",
+  "rs_effect_feature/ng_mask_test/ng_mask_dupoli_noise_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_harmonium_effect_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_wavy_ripple_light_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_border_light_test.cpp",
@@ -222,6 +223,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_filter_test/ng_filter_heat_distortion_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_blur_bubbles_rise_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_mask_frame_gradient_test.cpp",
+  "rs_effect_feature/ng_effect_test/ng_mask_noisy_frame_gradient_test.cpp",
 ]
 rs_framework_sources = [
   "rs_framework/uni_render_ui/surface_test.cpp",
@@ -302,6 +304,7 @@ ohos_unittest("RSGraphicTest") {
     "$graphic_2d_root/rosen/modules/effect",
     "$rosen_text_root/adapter/skia",
     "rs_effect_feature/ng_shape_test",
+    "$graphic_2d_root/graphic_test/test/rs_effect_feature/ng_filter_test",
   ]
 
   deps = [
