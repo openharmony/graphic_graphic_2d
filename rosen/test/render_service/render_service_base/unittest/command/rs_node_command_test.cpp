@@ -426,23 +426,166 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPair001, TestSize.Level1)
 
 /**
  * @tc.name: UnregisterGeometryTransitionPair001
- * @tc.desc: test results of UnregisterGeometryTransitionPair
+ * @tc.desc: test UnregisterGeometryTransitionPair when both nodes don't exist
  * @tc.type: FUNC
- * @tc.require: issueI9P2KH
  */
 HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair001, TestSize.Level1)
 {
     RSContext context;
-    NodeId inNodeId = 0;
-    NodeId outNodeId = 0;
+    NodeId inNodeId = 100;
+    NodeId outNodeId = 101;
     RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, outNodeId);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_, nullptr);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId), nullptr);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(outNodeId), nullptr);
+}
+
+/**
+ * @tc.name: UnregisterGeometryTransitionPair002
+ * @tc.desc: test UnregisterGeometryTransitionPair when both nodes are properly paired and unregistered
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 2;
     RSCanvasNodeCommandHelper::Create(context, inNodeId, false);
-    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    RSCanvasNodeCommandHelper::Create(context, outNodeId, false);
     RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId, true);
-    RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    auto outNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(outNodeId);
     ASSERT_NE(inNode, nullptr);
-    EXPECT_EQ(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_NE(outNode, nullptr);
+    ASSERT_NE(inNode->GetSharedTransitionParam(), nullptr);
+    ASSERT_NE(outNode->GetSharedTransitionParam(), nullptr);
+
+    RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    EXPECT_EQ(inNode->GetSharedTransitionParam(), nullptr);
+    EXPECT_EQ(outNode->GetSharedTransitionParam(), nullptr);
+}
+
+/**
+ * @tc.name: UnregisterGeometryTransitionPair003
+ * @tc.desc: test UnregisterGeometryTransitionPair when nodes exist but have no param
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair003, TestSize.Level1)
+{
+    RSContext context;
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 2;
+    RSCanvasNodeCommandHelper::Create(context, inNodeId, false);
+    RSCanvasNodeCommandHelper::Create(context, outNodeId, false);
+
+    RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    auto outNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(outNodeId);
+    ASSERT_NE(inNode, nullptr);
+    ASSERT_NE(outNode, nullptr);
+    EXPECT_EQ(inNode->GetSharedTransitionParam(), nullptr);
+    EXPECT_EQ(outNode->GetSharedTransitionParam(), nullptr);
+}
+
+/**
+ * @tc.name: UnregisterGeometryTransitionPair004
+ * @tc.desc: test UnregisterGeometryTransitionPair when inNode has param but outNode param is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair004, TestSize.Level1)
+{
+    RSContext context;
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 2;
+    RSCanvasNodeCommandHelper::Create(context, inNodeId, false);
+    RSCanvasNodeCommandHelper::Create(context, outNodeId, false);
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId, true);
+    auto outNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(outNodeId);
+    ASSERT_NE(outNode, nullptr);
+    outNode->SetSharedTransitionParam(nullptr);
+
+    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    ASSERT_NE(inNode, nullptr);
+    ASSERT_NE(inNode->GetSharedTransitionParam(), nullptr);
+
+    RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    EXPECT_EQ(inNode->GetSharedTransitionParam(), nullptr);
+    EXPECT_EQ(outNode->GetSharedTransitionParam(), nullptr);
+}
+
+/**
+ * @tc.name: UnregisterGeometryTransitionPair005
+ * @tc.desc: test UnregisterGeometryTransitionPair when outNode has param but inNode param is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair005, TestSize.Level1)
+{
+    RSContext context;
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 2;
+    RSCanvasNodeCommandHelper::Create(context, inNodeId, false);
+    RSCanvasNodeCommandHelper::Create(context, outNodeId, false);
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId, true);
+    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    ASSERT_NE(inNode, nullptr);
+    inNode->SetSharedTransitionParam(nullptr);
+
+    auto outNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(outNodeId);
+    ASSERT_NE(outNode, nullptr);
+    ASSERT_NE(outNode->GetSharedTransitionParam(), nullptr);
+
+    RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    EXPECT_EQ(inNode->GetSharedTransitionParam(), nullptr);
+    EXPECT_EQ(outNode->GetSharedTransitionParam(), nullptr);
+}
+
+/**
+ * @tc.name: UnregisterGeometryTransitionPair006
+ * @tc.desc: test UnregisterGeometryTransitionPair when inNode param outNodeId_ does not match
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair006, TestSize.Level1)
+{
+    RSContext context;
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 2;
+    NodeId wrongOutNodeId = 3;
+    RSCanvasNodeCommandHelper::Create(context, inNodeId, false);
+    RSCanvasNodeCommandHelper::Create(context, outNodeId, false);
+    RSCanvasNodeCommandHelper::Create(context, wrongOutNodeId, false);
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId, true);
+    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    auto outNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(outNodeId);
+    ASSERT_NE(inNode, nullptr);
+    ASSERT_NE(outNode, nullptr);
+
+    RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, wrongOutNodeId);
+    EXPECT_NE(inNode->GetSharedTransitionParam(), nullptr);
+    EXPECT_NE(outNode->GetSharedTransitionParam(), nullptr);
+}
+
+/**
+ * @tc.name: UnregisterGeometryTransitionPair007
+ * @tc.desc: test UnregisterGeometryTransitionPair when outNode param inNodeId_ does not match
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair007, TestSize.Level1)
+{
+    RSContext context;
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 2;
+    NodeId wrongInNodeId = 3;
+    RSCanvasNodeCommandHelper::Create(context, inNodeId, false);
+    RSCanvasNodeCommandHelper::Create(context, outNodeId, false);
+    RSCanvasNodeCommandHelper::Create(context, wrongInNodeId, false);
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId, true);
+    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    auto outNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(outNodeId);
+    ASSERT_NE(inNode, nullptr);
+    ASSERT_NE(outNode, nullptr);
+
+    RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, wrongInNodeId, outNodeId);
+    EXPECT_NE(inNode->GetSharedTransitionParam(), nullptr);
+    EXPECT_NE(outNode->GetSharedTransitionParam(), nullptr);
 }
 
 /**
