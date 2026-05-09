@@ -4103,6 +4103,10 @@ void RSProperties::GenerateForegroundFilter()
         filter_ = nullptr;
     }
 
+    if (GetCompositingNGFilter()) {
+        ComposeNGRenderFilter(filter_, GetCompositingNGFilter());
+    }
+
     if (GetFilter() == nullptr) {
         ROSEN_LOGD("RSProperties::GenerateForegroundFilter failed");
     }
