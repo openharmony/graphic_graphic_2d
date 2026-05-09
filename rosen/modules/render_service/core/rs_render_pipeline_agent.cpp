@@ -340,7 +340,10 @@ ErrCode RSRenderPipelineAgent::GetAlphaValue(NodeId id, float& alpha)
         RS_LOGI("RSRenderPipelineAgent::GetAlphaValue: hasNode=%{public}d, alpha=%{public}f, nodeId=%{public}" PRIu64,
             node != nullptr, alpha, id);
     };
-    rsRenderPipeline_->PostMainThreadTask(task);
+    if (!rsRenderPipeline_->PostMainThreadSyncTask(task)) {
+        RS_LOGE("RSRenderPipelineAgent::GetAlphaValue post task failed: nodeId=%{public}" PRIu64, id);
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
