@@ -38,7 +38,7 @@ void FontEventCallbackManager::OnUnloadFontFinish(const FontEventInfo& info)
 void FontEventCallbackManager::CallbackSet::AddCallback(FontEventCallback cb)
 {
     std::lock_guard<std::mutex> lock(mutex);
-    if (cb) {
+    if (cb != nullptr) {
         callbacks.insert(std::move(cb));
     }
 }
