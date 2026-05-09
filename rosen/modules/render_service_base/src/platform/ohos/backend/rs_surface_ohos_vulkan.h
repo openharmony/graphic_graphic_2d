@@ -20,7 +20,6 @@
 
 #include <list>
 #include <unordered_map>
-#include <mutex>
 #include <optional>
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
@@ -111,7 +110,6 @@ private:
     std::mutex hpaeSurfaceBufferListMutex_;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
     // Intermediate state for 3-phase flush.
-    // Thread safety: flushState_ must be accessed under flushStateMutex_.
     struct FlushState {
         VkSemaphore semaphore = VK_NULL_HANDLE;
         // Store buffer key instead of raw pointer into mSurfaceMap to avoid dangling pointer
@@ -153,7 +151,6 @@ private:
 #endif
     };
     FlushState flushState_;
-    std::mutex flushStateMutex_;
     void CreateVkSemaphore(VkSemaphore& semaphore,
         RsVulkanContext& vkContext, NativeBufferUtils::NativeSurfaceInfo& nativeSurface);
 #if defined(ROSEN_OHOS) && defined(RS_GRAPHIC_MEDIACOMMON_ENABLE)
@@ -165,7 +162,7 @@ private:
     void SubmitGpuAndHpaeTask(const uint64_t& preFrameId, const uint64_t& curFrameId);
     void SubmitHapeTask(const uint64_t& curFrameId);
 #endif
-    void CancelBuffer(NativeBufferUtils::NativeSurfaceInfo& surface);
+    void CancelBuffer(NativeWindowBuffer* buffer);
     void ReleasePreAllocateBuffer();
 };
 

@@ -108,8 +108,10 @@ public:
         std::vector<NodeId> whiteList = {});
 
     // ========== Multi-Surface Virtual Screen Dynamic Surface Management ==========
-    // These methods are ONLY for multi-surface virtual screens (created via CreateVirtualScreen with vector<SurfaceRegionConfig>)
-    // For single-surface virtual screens, use SetVirtualScreenSurface instead.
+    // These methods are for managing surfaces on virtual screens.
+    // For single-surface virtual screens, use SetVirtualScreenSurface.
+    // For multi-surface virtual screens (created via CreateVirtualScreen with vector<SurfaceRegionConfig>),
+    // use AddVirtualScreenSurface / RemoveVirtualScreenSurface / SetVirtualScreenSurfaces.
 
     /**
      * @brief Add surfaces to existing multi-surface virtual screen.

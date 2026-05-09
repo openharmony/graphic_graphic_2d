@@ -48,6 +48,7 @@ constexpr size_t MAX_OBJECTNUM = 512;
 constexpr size_t MAX_DATA_SIZE = 1024 * 1024; // 1MB
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 const uint32_t MAX_VOTER_SIZE = 100;
+constexpr uint32_t MAX_SURFACE_REGION_CONFIG_COUNT = 16;
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
@@ -449,6 +450,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (configCount > MAX_SURFACE_REGION_CONFIG_COUNT) {
+                RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN configCount exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
 
             std::vector<SurfaceRegionConfig> surfaceConfigs;
             surfaceConfigs.reserve(configCount);
@@ -459,6 +465,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 if (remoteObject == nullptr) {
                     RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN read surface failed!");
                     ret = ERR_NULL_OBJECT;
+                    readFailed = true;
                     break;
                 }
                 auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
@@ -507,6 +514,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (configCount > MAX_SURFACE_REGION_CONFIG_COUNT) {
+                RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_SURFACE configCount exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
 
             std::vector<SurfaceRegionConfig> surfaceConfigs;
             surfaceConfigs.reserve(configCount);
@@ -552,15 +564,28 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (surfaceCount > MAX_SURFACE_REGION_CONFIG_COUNT) {
+                RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_SURFACE surfaceCount exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
 
             std::vector<sptr<Surface>> surfaces;
             surfaces.reserve(surfaceCount);
+            bool readFailed = false;
             for (uint32_t i = 0; i < surfaceCount; ++i) {
                 auto remoteObject = data.ReadRemoteObject();
-                if (remoteObject != nullptr) {
-                    auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
-                    surfaces.push_back(Surface::CreateSurfaceAsProducer(bufferProducer));
+                if (remoteObject == nullptr) {
+                    RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_SURFACE read surface failed!");
+                    ret = ERR_NULL_OBJECT;
+                    readFailed = true;
+                    break;
                 }
+                auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+                surfaces.push_back(Surface::CreateSurfaceAsProducer(bufferProducer));
+            }
+            if (readFailed) {
+                break;
             }
 
             int32_t status = RemoveVirtualScreenSurface(id, surfaces);
@@ -616,6 +641,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (configCount > MAX_SURFACE_REGION_CONFIG_COUNT) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACES configCount exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
 
             std::vector<SurfaceRegionConfig> surfaceConfigs;
             surfaceConfigs.reserve(configCount);
@@ -640,12 +670,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
 
-            int32_t setStatus = SetVirtualScreenSurfaces(id, surfaceConfigs);
-            if (!reply.WriteInt32(setStatus)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACES Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
+            SetVirtualScreenSurfaces(id, surfaceConfigs);
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST): {
             // read the parcel data.

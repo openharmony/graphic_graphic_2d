@@ -756,7 +756,7 @@ ScreenId RSClientToServiceConnectionProxy::CreateVirtualScreen(
     std::vector<SurfaceRegionConfig> validConfigs;
     validConfigs.reserve(surfaceConfigs.size());
     for (const auto& config : surfaceConfigs) {
-        if (config.surface != nullptr) {
+        if (config.surface != nullptr && config.surface->GetProducer() != nullptr) {
             validConfigs.push_back(config);
         }
     }
@@ -817,7 +817,7 @@ int32_t RSClientToServiceConnectionProxy::AddVirtualScreenSurface(
         return WRITE_PARCEL_ERR;
     }
 
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("AddVirtualScreenSurface: WriteUint64 id err.");
         return WRITE_PARCEL_ERR;
@@ -827,7 +827,7 @@ int32_t RSClientToServiceConnectionProxy::AddVirtualScreenSurface(
     std::vector<SurfaceRegionConfig> validConfigs;
     validConfigs.reserve(surfaceConfigs.size());
     for (const auto& config : surfaceConfigs) {
-        if (config.surface != nullptr) {
+        if (config.surface != nullptr && config.surface->GetProducer() != nullptr) {
             validConfigs.push_back(config);
         }
     }
@@ -885,7 +885,7 @@ int32_t RSClientToServiceConnectionProxy::RemoveVirtualScreenSurface(
         return WRITE_PARCEL_ERR;
     }
 
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("RemoveVirtualScreenSurface: WriteUint64 id err.");
         return WRITE_PARCEL_ERR;
@@ -898,6 +898,10 @@ int32_t RSClientToServiceConnectionProxy::RemoveVirtualScreenSurface(
 
     for (const auto& surface : surfaces) {
         auto producer = surface->GetProducer();
+        if (producer == nullptr) {
+            ROSEN_LOGE("RemoveVirtualScreenSurface: producer is nullptr!");
+            return WRITE_PARCEL_ERR;
+        }
         if (!data.WriteRemoteObject(producer->AsObject())) {
             ROSEN_LOGE("RemoveVirtualScreenSurface: WriteRemoteObject producer err.");
             return WRITE_PARCEL_ERR;
@@ -933,13 +937,17 @@ int32_t RSClientToServiceConnectionProxy::UpdateVirtualScreenSurfaceRegion(
         return WRITE_PARCEL_ERR;
     }
 
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("UpdateVirtualScreenSurfaceRegion: WriteUint64 id err.");
         return WRITE_PARCEL_ERR;
     }
 
     auto producer = surface->GetProducer();
+    if (producer == nullptr) {
+        ROSEN_LOGE("UpdateVirtualScreenSurfaceRegion: GetProducer is null.");
+        return WRITE_PARCEL_ERR;
+    }
     if (!data.WriteRemoteObject(producer->AsObject())) {
         ROSEN_LOGE("UpdateVirtualScreenSurfaceRegion: WriteRemoteObject producer err.");
         return WRITE_PARCEL_ERR;
@@ -985,7 +993,7 @@ int32_t RSClientToServiceConnectionProxy::SetVirtualScreenSurfaces(
     std::vector<SurfaceRegionConfig> validConfigs;
     validConfigs.reserve(surfaceConfigs.size());
     for (const auto& config : surfaceConfigs) {
-        if (config.surface != nullptr) {
+        if (config.surface != nullptr && config.surface->GetProducer() != nullptr) {
             validConfigs.push_back(config);
         }
     }
@@ -1015,9 +1023,7 @@ int32_t RSClientToServiceConnectionProxy::SetVirtualScreenSurfaces(
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetVirtualScreenSurfaces: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-
-    int32_t retStatus = reply.ReadInt32();
-    return retStatus;
+    return ERR_OK;
 }
 
 int32_t RSClientToServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)

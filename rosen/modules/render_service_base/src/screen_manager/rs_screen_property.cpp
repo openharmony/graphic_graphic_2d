@@ -364,7 +364,7 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
         UNMARSHALL_CASE(ScreenPropertyType::POWER_STATUS)
         UNMARSHALL_CASE(ScreenPropertyType::SCREEN_TYPE)
         UNMARSHALL_CASE(ScreenPropertyType::CONNECTION_TYPE)
-        UNMARSHALL_CASE(ScreenPropertyType::PRODUCER_SURFACE)
+        UNMARSHALL_CASE(ScreenPropertyType::MULTI_SURFACE_CONFIGS)
         UNMARSHALL_CASE(ScreenPropertyType::SCALE_MODE)
         UNMARSHALL_CASE(ScreenPropertyType::SCREEN_STATUS)
         UNMARSHALL_CASE(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION)

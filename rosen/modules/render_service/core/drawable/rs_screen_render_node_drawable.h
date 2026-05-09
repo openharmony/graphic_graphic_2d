@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_DRAWABLE_RS_SCREEN_RENDER_NODE_DRAWABLE_H
 
 #include <memory>
+#include <unordered_map>
 
 #include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
@@ -99,14 +100,22 @@ public:
     {
         return surface_;
     }
-    void SetVirtualSurface(std::shared_ptr<RSSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
+    void SetVirtualSurface(const std::shared_ptr<RSSurface>& virtualSurface, uint64_t pSurfaceUniqueId)
     {
-        virtualSurfaces_[pSurfaceUniqueId] = virtualSurface;
+        if (virtualSurface == nullptr) {
+            virtualSurfaces_.erase(pSurfaceUniqueId);
+            return;
+        }
+        virtualSurfaces_.insert_or_assign(pSurfaceUniqueId, virtualSurface);
     }
-    std::shared_ptr<RSSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId)
+    std::shared_ptr<RSSurface> GetVirtualSurface(uint64_t pSurfaceUniqueId) const
     {
         auto it = virtualSurfaces_.find(pSurfaceUniqueId);
         return it != virtualSurfaces_.end() ? it->second : nullptr;
+    }
+    void ClearVirtualSurfaces()
+    {
+        virtualSurfaces_.clear();
     }
     bool SkipFrame(uint32_t refreshRate, const RSScreenProperty& screenProperty);
     bool IsRenderSkipIfScreenOff() const
@@ -194,7 +203,7 @@ private:
     static constexpr uint32_t BUFFER_SIZE = 4;
     bool surfaceCreated_ = false;
     std::shared_ptr<RSSurface> surface_ = nullptr;
-    std::map<uint64_t, std::shared_ptr<RSSurface>> virtualSurfaces_ = {};
+    std::unordered_map<uint64_t, std::shared_ptr<RSSurface>> virtualSurfaces_ = {};
     ScreenRotation firstBufferRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
 
     bool isMirrorSLRCopy_ = false;

@@ -119,7 +119,7 @@ public:
     sptr<SyncFence> GetFrameAcquireFence();
 
     // Multi-surface support
-    bool IsMultiSurfaceMode() const { return surfaceFrames_.size() > 1 && needsOffscreenRender_; }
+    bool IsMultiSurfaceExtendMode() const { return surfaceFrames_.size() > 1 && needsOffscreenRender_; }
     const std::vector<SurfaceFrameConfig>& GetSurfaceFrames() const { return surfaceFrames_; }
     void BlitRegionsToSurfaces(const std::shared_ptr<Drawing::Image>& offscreenImage);
 
@@ -131,14 +131,15 @@ private:
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     bool EnableSlrScale();
     GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
-    GDError SetColorSapceVecForMetadata(const std::vector<uint8_t>& colorSpaceVec);
+    GSError SetColorSpaceVecForMetadata(const std::vector<uint8_t>& colorSpaceVec);
 
     // Multi-surface private methods
     void RequestFramesForAllSurfaces(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     void CopyToSecondarySurfaces();
     void FlushAllSurfaces();
     void FlushGpu();
-    void FlushBuffer(sptr<SyncFence>& fence);
+    void FlushBuffer(std::vector<sptr<SyncFence>>& fences);
+    sptr<SyncFence> MergeAcquireFences(const std::vector<sptr<SyncFence>>& fences) const;
 
     static inline const std::map<GraphicColorGamut,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType> COLORSPACE_TYPE {

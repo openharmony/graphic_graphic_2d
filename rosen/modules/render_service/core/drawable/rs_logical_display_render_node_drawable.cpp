@@ -419,9 +419,13 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
 
     // Check for multi-surface extend mode (only when surfaces have specified regions)
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
-    bool isMultiSurfaceExtend = virtualProcessor && virtualProcessor->IsMultiSurfaceMode();
+    bool isMultiSurfaceExtend = virtualProcessor && virtualProcessor->IsMultiSurfaceExtendMode();
 
     if (isMultiSurfaceExtend) {
+        if (screenParam->GetHDRPresent()) {
+            curCanvas_->SetHDREnabledVirtualScreen(true);
+            curCanvas_->SetHdrOn(true);
+        }
         // Multi-surface with regions: render to offscreen, then blit regions to each surface
         PrepareOffscreenRender(*this, false, false);
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
@@ -434,6 +438,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
             RS_LOGE("%{public}s: Failed to get offscreen image for multi-surface extend mode", __func__);
         }
         // Note: FinishOffscreenRender is not needed here since we're not drawing back to a single canvas
+        canvasBackup_ = nullptr;
     } else if (screenParam->GetHDRPresent()) {
         RS_LOGD("%{public}s HDRCast isHDREnabledVirtualScreen true", __func__);
         curCanvas_->SetHDREnabledVirtualScreen(true);

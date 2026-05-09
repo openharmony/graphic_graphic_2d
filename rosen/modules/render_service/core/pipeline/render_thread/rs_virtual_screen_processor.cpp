@@ -49,7 +49,6 @@ bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RS
             node.GetScreenId());
         return false;
     }
-    // Non-unirender path only uses the first surface; multi-surface blitting is handled by RSVirtualScreenProcessor.
     auto producerSurface = surfaceConfigs[0].surface;
     if (producerSurface == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::Init: ProducerSurface is null!");

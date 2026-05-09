@@ -3660,18 +3660,20 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSRenderParticleVector& 
 #ifndef ROSEN_CROSS_PLATFORM
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SurfaceRegionConfig& val)
 {
-    if (!parcel.WriteParcelable(val.surface.GetRefPtr())) {
+    if (!Marshalling(parcel, val.surface)) {
         return false;
     }
     if (!Marshalling(parcel, val.region)) {
         return false;
-        }
+    }
     return true;
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SurfaceRegionConfig& val)
 {
-    val.surface = sptr<Surface>(parcel.ReadParcelable<Surface>());
+    if (!Unmarshalling(parcel, val.surface)) {
+        return false;
+    }
     if (!Unmarshalling(parcel, val.region)) {
         return false;
     }

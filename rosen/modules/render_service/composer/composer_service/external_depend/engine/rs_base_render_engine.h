@@ -169,7 +169,6 @@ public:
 
     void CancelCurrentFrame()
     {
-        flushPhaseActive_ = false;
         if (targetSurface_ != nullptr) {
 #if defined(RS_ENABLE_VK)
             if (RSSystemProperties::IsUseVulkan()) {
@@ -180,6 +179,9 @@ public:
             }
 #endif
         }
+        flushPhaseActive_ = false;
+        targetSurface_ = nullptr;
+        surfaceFrame_ = nullptr;
     }
 
     const std::shared_ptr<RSSurfaceOhos>& GetSurface() const
