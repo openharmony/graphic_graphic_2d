@@ -81,6 +81,11 @@ public:
     void UpdateNodeColorSpace() override;
     void MarkNodeColorSpace(int8_t colorSpace) override;
 
+    // Temporary for node slimming dump verification, will be removed after slimming merged
+    const RSPaintFilterCanvas::SaveStatus& GetCanvasNodeSaveCount() const
+    {
+        return canvasNodeSaveCount_;
+    }
 protected:
     explicit RSCanvasRenderNode(NodeId id,
         const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);

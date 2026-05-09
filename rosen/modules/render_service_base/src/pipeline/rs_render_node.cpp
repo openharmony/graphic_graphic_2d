@@ -1200,6 +1200,23 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (isContainBootAnimation_) {
         out += ", isContainBootAnimation: true";
     }
+    out += ", isNewOnTree: " + std::to_string(isNewOnTree_);
+    out += ", isSelfDrawingNode: " + std::to_string(isSelfDrawingNode_);
+    out += ", selfAddForSubSurfaceCnt: " + std::to_string(selfAddForSubSurfaceCnt_);
+    out += ", visitedForSubSurfaceCnt: " + std::to_string(visitedForSubSurfaceCnt_);
+    out += ", isNodeSingleFrameComposer: " + std::to_string(isNodeSingleFrameComposer_);
+    out += ", singleFrameComposer: " + std::to_string(singleFrameComposer_ != nullptr);
+    out += ", appPid: " + std::to_string(appPid_);
+    out += ", renderNodeSaveCount: [" +
+        std::to_string(renderNodeSaveCount_.canvasSaveCount) + "," +
+        std::to_string(renderNodeSaveCount_.alphaSaveCount) + "," +
+        std::to_string(renderNodeSaveCount_.envSaveCount) + "]";
+    out += ", globalAlpha: " + std::to_string(globalAlpha_);
+    out += ", isPurgeable: " + std::to_string(isPurgeable_);
+    out += ", isAccessibilityConfigChanged: " + std::to_string(isAccessibilityConfigChanged_);
+    out += ", drawableVecNeedClear: " + std::to_string(drawableVecNeedClear_);
+    out += ", subSurfaceCnt: " + std::to_string(subSurfaceCnt_);
+    out += ", nodeName: [" + nodeName_ + "]";
     if (dirtyStatus_ != NodeDirty::CLEAN) {
         out += ", isNodeDirty: " + std::to_string(static_cast<int>(dirtyStatus_));
     }
@@ -1427,6 +1444,13 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         auto canvasDrawingNode = static_cast<const RSCanvasDrawingRenderNode*>(this);
         out += ", lastResetSurfaceTime: " + std::to_string(canvasDrawingNode->lastResetSurfaceTime_);
         out += ", opCountAfterReset: " + std::to_string(canvasDrawingNode->opCountAfterReset_);
+    } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
+        auto canvasNode = static_cast<const RSCanvasRenderNode*>(this);
+        auto& saveCount = canvasNode->GetCanvasNodeSaveCount();
+        out += ", canvasNodeSaveCount: [" +
+            std::to_string(saveCount.canvasSaveCount) + "," +
+            std::to_string(saveCount.alphaSaveCount) + "," +
+            std::to_string(saveCount.envSaveCount) + "]";
     }
 }
 
