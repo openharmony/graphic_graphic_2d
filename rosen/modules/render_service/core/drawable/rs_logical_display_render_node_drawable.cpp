@@ -1008,10 +1008,15 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     virtualProcesser->CanvasClipRegionForUniscaleMode();
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
 
+    auto mirrorSourceScreenInfo = mirroredScreenParams->GetScreenInfo();
+    float mirrorSourceSamplingScale = mirrorSourceScreenInfo.isSamplingOn ? mirrorSourceScreenInfo.samplingScale : 1.0f;
+
     curCanvas_->Save();
     if (slrManager) {
-        auto scaleNum = slrManager->GetScaleNum();
+        auto scaleNum = slrManager->GetScaleNum() * mirrorSourceSamplingScale;
         curCanvas_->Scale(scaleNum, scaleNum);
+    } else if (mirrorSourceScreenInfo.isSamplingOn) {
+        curCanvas_->Scale(mirrorSourceSamplingScale, mirrorSourceSamplingScale);
     }
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hwcNodes;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hwcTopNodes;
@@ -1033,11 +1038,10 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     }
     curCanvas_->Save();
     if (slrManager) {
-        auto scaleNum = slrManager->GetScaleNum();
+        auto scaleNum = slrManager->GetScaleNum() * mirrorSourceSamplingScale;
         curCanvas_->Scale(scaleNum, scaleNum);
-    } else if (mirroredScreenParams && mirroredScreenParams->GetScreenInfo().isSamplingOn) {
-        auto scaleNum = mirroredScreenParams->GetScreenInfo().samplingScale;
-        curCanvas_->Scale(scaleNum, scaleNum);
+    } else if (mirrorSourceScreenInfo.isSamplingOn) {
+        curCanvas_->Scale(mirrorSourceSamplingScale, mirrorSourceSamplingScale);
     }
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, *curCanvas_, *mirroredScreenParams);
     curCanvas_->Restore();
