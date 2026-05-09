@@ -2172,4 +2172,338 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer_ScreenNodeConsumeBufferFail
     RSLayerPtr layer = composerAdapter_->CreateLayer(*rsScreenNode);
     EXPECT_EQ(layer, nullptr);
 }
+
+/**
+ * @tc.name: GetComposerInfoSrcRect_TransformRotate90Test001
+ * @tc.desc: Test GetComposerInfoSrcRect when transformType is GRAPHIC_ROTATE_90
+ *           When transform is ROTATE_90 or ROTATE_270, boundsWidth and boundsHeight should be swapped
+ *           Covers branch: transformType == GRAPHIC_ROTATE_90 || GRAPHIC_ROTATE_270 -> swap boundsWidth/boundsHeight
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect_TransformRotate90Test001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto buffer = new SurfaceBufferImpl(0);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
+
+    composerAdapter_->Init(info, nullptr);
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    consumer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+
+    RectI rect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(rect);
+
+    composerAdapter_->GetComposerInfoSrcRect(composeInfo, *surfaceNode);
+    ASSERT_GE(composeInfo.srcRect.w, 0);
+    ASSERT_GE(composeInfo.srcRect.h, 0);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
+
+/**
+ * @tc.name: GetComposerInfoSrcRect_NoIntersectTest001
+ * @tc.desc: Test GetComposerInfoSrcRect when srcRect does not intersect with bufferRect
+ *           When srcRect is completely outside bufferRect, Intersect returns false
+ *           Covers branch: srcRect.Intersect(bufferRect) == false -> srcRect = {0, 0, 0, 0}
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect_NoIntersectTest001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto buffer = new SurfaceBufferImpl(0);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
+
+    composerAdapter_->Init(info, nullptr);
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    RectI rect{-10000, -10000, 100, 100};
+    surfaceNode->SetSrcRect(rect);
+
+    composeInfo.srcRect.x = -10000;
+    composeInfo.srcRect.y = -10000;
+    composeInfo.srcRect.w = 100;
+    composeInfo.srcRect.h = 100;
+
+    composerAdapter_->GetComposerInfoSrcRect(composeInfo, *surfaceNode);
+    EXPECT_EQ(composeInfo.srcRect.x, 0);
+    EXPECT_EQ(composeInfo.srcRect.y, 0);
+    EXPECT_EQ(composeInfo.srcRect.w, 0);
+    EXPECT_EQ(composeInfo.srcRect.h, 0);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
+
+/**
+ * @tc.name: GetComposerInfoSrcRect_ScalingModeCropTest001
+ * @tc.desc: Test GetComposerInfoSrcRect when buffer ScalingMode is SCALING_MODE_SCALE_CROP
+ *           When scaling mode is SCALE_CROP, use smaller scale for x and y
+ *           Covers branch: GetSurfaceBufferScalingMode() == SCALING_MODE_SCALE_CROP
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect_ScalingModeCropTest001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto buffer = new SurfaceBufferImpl(0);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
+
+    composerAdapter_->Init(info, nullptr);
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+
+    if (composeInfo.buffer) {
+        composeInfo.buffer->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_CROP);
+    }
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    RectI rect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(rect);
+
+    composerAdapter_->GetComposerInfoSrcRect(composeInfo, *surfaceNode);
+    ASSERT_GE(composeInfo.srcRect.w, 0);
+    ASSERT_GE(composeInfo.srcRect.h, 0);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
+
+/**
+ * @tc.name: GetComposerInfoSrcRect_GeoAbsRectEqualsDstRectTest001
+ * @tc.desc: Test GetComposerInfoSrcRect when geo->GetAbsRect() == node.GetDstRect()
+ *           When node is completely in screen, we do not need to crop the buffer
+ *           Covers branch: geo && geo->GetAbsRect() == node.GetDstRect() -> no crop
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect_GeoAbsRectEqualsDstRectTest001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto buffer = new SurfaceBufferImpl(0);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
+
+    composerAdapter_->Init(info, nullptr);
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    RectI rect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(rect);
+    surfaceNode->SetDstRect(rect);
+
+    auto geo = surfaceNode->GetRenderProperties().GetBoundsGeometry();
+    if (geo) {
+        geo->absRect_ = rect;
+    }
+
+    composerAdapter_->GetComposerInfoSrcRect(composeInfo, *surfaceNode);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
+
+/**
+ * @tc.name: GetComposerInfoSrcRect_DrawableTransformRotate270Test001
+ * @tc.desc: Test GetComposerInfoSrcRect(drawable) when transformType is GRAPHIC_ROTATE_270
+ *           Covers branch for drawable version: transformType == GRAPHIC_ROTATE_270 -> swap bounds
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect_DrawableTransformRotate270Test001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto buffer = new SurfaceBufferImpl(0);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
+
+    composerAdapter_->Init(info, nullptr);
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(drawable, nullptr);
+
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    consumer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
+
+    composerAdapter_->GetComposerInfoSrcRect(composeInfo, *drawable);
+    ASSERT_GE(composeInfo.srcRect.w, 0);
+    ASSERT_GE(composeInfo.srcRect.h, 0);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
+
+/**
+ * @tc.name: GetComposerInfoSrcRect_DrawableScalingModeCropTest001
+ * @tc.desc: Test GetComposerInfoSrcRect(drawable) when buffer ScalingMode is SCALING_MODE_SCALE_CROP
+ *           Covers branch for drawable version: GetSurfaceBufferScalingMode() == SCALING_MODE_SCALE_CROP
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect_DrawableScalingModeCropTest001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto buffer = new SurfaceBufferImpl(0);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
+
+    composerAdapter_->Init(info, nullptr);
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+
+    if (composeInfo.buffer) {
+        composeInfo.buffer->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_CROP);
+    }
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(drawable, nullptr);
+
+    composerAdapter_->GetComposerInfoSrcRect(composeInfo, *drawable);
+    ASSERT_GE(composeInfo.srcRect.w, 0);
+    ASSERT_GE(composeInfo.srcRect.h, 0);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
+
+/**
+ * @tc.name: GetComposerInfoSrcRect_DrawableNoIntersectTest001
+ * @tc.desc: Test GetComposerInfoSrcRect(drawable) when srcRect does not intersect with bufferRect
+ *           Covers branch for drawable version: Intersect false -> srcRect = {0, 0, 0, 0}
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect_DrawableNoIntersectTest001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    auto buffer = new SurfaceBufferImpl(0);
+    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
+
+    composerAdapter_->Init(info, nullptr);
+    ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+
+    composeInfo.srcRect.x = -10000;
+    composeInfo.srcRect.y = -10000;
+    composeInfo.srcRect.w = 100;
+    composeInfo.srcRect.h = 100;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(drawable, nullptr);
+
+    composerAdapter_->GetComposerInfoSrcRect(composeInfo, *drawable);
+    EXPECT_EQ(composeInfo.srcRect.x, 0);
+    EXPECT_EQ(composeInfo.srcRect.y, 0);
+    EXPECT_EQ(composeInfo.srcRect.w, 0);
+    EXPECT_EQ(composeInfo.srcRect.h, 0);
+
+    if (buffer) {
+        delete buffer;
+        buffer = nullptr;
+    }
+}
 } // namespace

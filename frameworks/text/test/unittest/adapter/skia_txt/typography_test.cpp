@@ -1720,5 +1720,225 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoSymbolNullptrTest, Test
     // {SymbolRun0} should NOT appear (nullptr was skipped)
     EXPECT_EQ(dumpInfo.find("{SymbolRun0}"), std::string::npos);
 }
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest001
+ * @tc.desc: Verify default value is false, set/get works correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    typography->SetForceReuseRasterResult(true);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl, nullptr);
+    EXPECT_TRUE(paragraphImpl->GetForceReuseRasterResult());
+    
+    typography->SetForceReuseRasterResult(false);
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    typography->Paint(&canvas, 0, 0);
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    SPText::ParagraphImpl* paragraphImpl2 =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl2, nullptr);
+    EXPECT_FALSE(paragraphImpl2->GetForceReuseRasterResult());
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest002
+ * @tc.desc: Verify Paint with flag set does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest002, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->SetForceReuseRasterResult(true);
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    OHOS::Rosen::Drawing::Bitmap bitmap;
+    OHOS::Rosen::Drawing::BitmapFormat format {
+        OHOS::Rosen::Drawing::ColorType::COLORTYPE_RGBA_8888,
+        OHOS::Rosen::Drawing::AlphaType::ALPHATYPE_OPAQUE
+    };
+    bitmap.Build(200, 100, format);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    canvas.Bind(bitmap);
+    canvas.Clear(OHOS::Rosen::Drawing::Color::COLOR_WHITE);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest003
+ * @tc.desc: Verify Layout does not affect the flag state
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest004, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->SetForceReuseRasterResult(true);
+    typography->Layout(500.0);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+    typography->Layout(300.0);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest004
+ * @tc.desc: Verify PaintOnPath with flag set does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest005, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->SetForceReuseRasterResult(true);
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    OHOS::Rosen::Drawing::Bitmap bitmap;
+    OHOS::Rosen::Drawing::BitmapFormat format {
+        OHOS::Rosen::Drawing::ColorType::COLORTYPE_RGBA_8888,
+        OHOS::Rosen::Drawing::AlphaType::ALPHATYPE_OPAQUE
+    };
+    bitmap.Build(200, 100, format);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    canvas.Bind(bitmap);
+    canvas.Clear(OHOS::Rosen::Drawing::Color::COLOR_WHITE);
+    OHOS::Rosen::Drawing::Path path;
+    path.MoveTo(10, 50);
+    path.LineTo(190, 50);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, &path, 0, 0));
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest005
+ * @tc.desc: Verify repeated Set/Get cycles return consistent values
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest007, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    ASSERT_NE(typography, nullptr);
+    for (int i = 0; i < 100; i++) {
+        typography->SetForceReuseRasterResult(true);
+        EXPECT_TRUE(typography->GetForceReuseRasterResult());
+        typography->SetForceReuseRasterResult(false);
+        EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    }
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest006
+ * @tc.desc: Verify flag only takes effect on next Paint after Set
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest008, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    OHOS::Rosen::Drawing::Bitmap bitmap;
+    OHOS::Rosen::Drawing::BitmapFormat format {
+        OHOS::Rosen::Drawing::ColorType::COLORTYPE_RGBA_8888,
+        OHOS::Rosen::Drawing::AlphaType::ALPHATYPE_OPAQUE
+    };
+    bitmap.Build(200, 100, format);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    canvas.Bind(bitmap);
+    canvas.Clear(OHOS::Rosen::Drawing::Color::COLOR_WHITE);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+
+    typography->SetForceReuseRasterResult(true);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest007
+ * @tc.desc: Verify toggle flag between Paints works correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest009, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    OHOS::Rosen::Drawing::Bitmap bitmap;
+    OHOS::Rosen::Drawing::BitmapFormat format {
+        OHOS::Rosen::Drawing::ColorType::COLORTYPE_RGBA_8888,
+        OHOS::Rosen::Drawing::AlphaType::ALPHATYPE_OPAQUE
+    };
+    bitmap.Build(200, 100, format);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    canvas.Bind(bitmap);
+    canvas.Clear(OHOS::Rosen::Drawing::Color::COLOR_WHITE);
+    typography->SetForceReuseRasterResult(true);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+
+    typography->SetForceReuseRasterResult(false);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+}
 } // namespace Rosen
 } // namespace OHOS

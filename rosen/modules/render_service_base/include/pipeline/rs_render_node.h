@@ -512,8 +512,8 @@ public:
     void UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
     bool IsRenderUpdateIgnored() const;
 
-    // used for animation test
-    RSAnimationManager& GetAnimationManager();
+    std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
+    void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
 
     void ApplyAlphaAndBoundsGeometry(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -580,6 +580,7 @@ public:
     ModifierNGContainer GetModifiersNG(ModifierNG::RSModifierType type) const;
     const ModifiersNGMap& GetAllModifiers() const;
     bool HasDrawCmdModifiers() const;
+    bool HasValidDrawCmd() const;
     bool HasContentStyleModifierOnly() const;
 
     size_t GetAllModifierSize();
@@ -799,6 +800,7 @@ public:
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
         const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
+    void UpdateSDFTransformRectInfo();
     void UpdateFilterRectInfo();
     std::shared_ptr<RSFilter> GetRSFilterWithSlot(RSDrawableSlot slot) const;
 
@@ -1256,7 +1258,8 @@ private:
     // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
     // `for (auto child : *GetSortedChildren()) { ... }` will crash.
     // When an empty list is needed, use EmptyChildrenList instead.
-    static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
+    static const inline RS_HIDDEN auto EmptyChildrenList =
+        std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
@@ -1313,7 +1316,7 @@ private:
     Drawing::Matrix oldAbsMatrix_;
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
     bool released_ = false;
-    RSAnimationManager animationManager_;
+    std::shared_ptr<RSAnimationManager> animationManager_;
     RSOpincCache opincCache_;
     std::unordered_set<NodeId> subtreeParallelNodes_;
     bool isAllChildRepaintBoundary_ = false;

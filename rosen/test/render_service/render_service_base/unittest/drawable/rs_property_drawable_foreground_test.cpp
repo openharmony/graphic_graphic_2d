@@ -15,7 +15,9 @@
 
 #include <gtest/gtest.h>
 #include "drawable/rs_property_drawable_foreground.h"
+#include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shape_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "ge_visual_effect_container.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
@@ -544,5 +546,297 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest00
 
     bool result = particleDrawable->OnUpdate(renderNode);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: DrawBorderWithSDFShader001
+ * @tc.desc: Test DrawBorder with SDFShape and SDFShader set (SDF shader path)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderWithSDFShader001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+    border->SetSDFShader(sdfShader);
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, false);
+}
+
+/**
+ * @tc.name: DrawBorderWithSDFShaderAndOutline001
+ * @tc.desc: Test DrawBorder SDF shader path with isOutline=true and zero radius
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderWithSDFShaderAndOutline001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+    border->SetSDFShader(sdfShader);
+    border->SetRadiusFour({0.f, 0.f, 0.f, 0.f});
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
+}
+
+/**
+ * @tc.name: DrawBorderWithSDFShaderNonZeroRadius001
+ * @tc.desc: Test DrawBorder SDF shader path with isOutline=true and non-zero radius
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderWithSDFShaderNonZeroRadius001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+    border->SetSDFShader(sdfShader);
+    border->SetRadiusFour({10.f, 10.f, 10.f, 10.f});
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
+}
+
+/**
+ * @tc.name: DrawBorderNoSDFShape001
+ * @tc.desc: Test DrawBorder without SDFShape does not enter SDF shader path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderNoSDFShape001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+    border->SetSDFShader(sdfShader);
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(properties, canvas, border, false);
+}
+
+/**
+ * @tc.name: DrawBorderNoSDFShader001
+ * @tc.desc: Test DrawBorder without SDFShader does not enter SDF shader path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderNoSDFShader001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    border->colors_.emplace_back(Color(0xFF, 0xFF, 0xFF, 0xFF));
+    border->widths_.emplace_back(2.0f);
+    border->styles_.emplace_back(BorderStyle::SOLID);
+
+    auto sdfShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(sdfShader, nullptr);
+    border->SetSDFShader(sdfShader);
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable =
+        std::make_shared<DrawableV2::RSBorderDrawable>();
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, false);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableDrawRectTest001
+ * @tc.desc: Test RSForegroundFilterRestoreDrawable::OnUpdate with custom draw rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableDrawRectTest001, TestSize.Level1)
+{
+    RSRenderNode renderNode(1);
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+    
+    renderNode.GetMutableRenderProperties().SetForegroundFilter(drawingFilter);
+    renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    
+    EXPECT_TRUE(drawable->OnUpdate(renderNode));
+    EXPECT_EQ(drawable->stagingDrawRect_, nullptr);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableDrawRectTest002
+ * @tc.desc: Test RSForegroundFilterRestoreDrawable::OnSync with custom draw rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableDrawRectTest002, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto stagingDrawRect = std::make_unique<RectF>(10.0f, 10.0f, 50.0f, 50.0f);
+    drawable->stagingDrawRect_ = std::make_unique<RectF>(*stagingDrawRect);
+    drawable->needSync_ = true;
+    
+    drawable->OnSync();
+    
+    EXPECT_FALSE(drawable->needSync_);
+    EXPECT_NE(drawable->drawRect_, nullptr);
+    EXPECT_EQ(drawable->drawRect_->left_, stagingDrawRect->left_);
+    EXPECT_EQ(drawable->drawRect_->top_, stagingDrawRect->top_);
+    EXPECT_EQ(drawable->drawRect_->width_, stagingDrawRect->width_);
+    EXPECT_EQ(drawable->drawRect_->height_, stagingDrawRect->height_);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableDrawRectTest003
+ * @tc.desc: Test RSForegroundFilterRestoreDrawable::OnSync with null staging draw rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableDrawRectTest003, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    drawable->stagingDrawRect_ = nullptr;
+    drawable->drawRect_ = std::make_unique<RectF>(10.0f, 10.0f, 50.0f, 50.0f);
+    drawable->needSync_ = true;
+    
+    drawable->OnSync();
+    
+    EXPECT_FALSE(drawable->needSync_);
+    EXPECT_EQ(drawable->drawRect_, nullptr);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableHasCustomRegion001
+ * @tc.desc: Test RSForegroundFilterRestoreDrawable::OnUpdate with HasCustomRegion true (line 383 coverage)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableHasCustomRegion001, TestSize.Level1)
+{
+    RSRenderNode renderNode(1);
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+    
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->SetHasCustomRegion(true);
+    
+    renderNode.GetMutableRenderProperties().SetForegroundFilter(drawingFilter);
+    renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    
+    EXPECT_TRUE(drawable->OnUpdate(renderNode));
+    EXPECT_NE(drawable->stagingDrawRect_, nullptr);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableIsDrawingFilter002
+ * @tc.desc: Test OnUpdate with IsDrawingFilter true but HasCustomRegion false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableIsDrawingFilter002, TestSize.Level1)
+{
+    RSRenderNode renderNode(1);
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+
+    drawingFilter->SetHasCustomRegion(false);
+
+    renderNode.GetMutableRenderProperties().SetForegroundFilter(drawingFilter);
+    renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+
+    EXPECT_TRUE(drawable->OnUpdate(renderNode));
+    EXPECT_EQ(drawable->stagingDrawRect_, nullptr);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableIsDrawingFilter003
+ * @tc.desc: Test OnUpdate with IsDrawingFilter false (non-drawing filter)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableIsDrawingFilter003, TestSize.Level1)
+{
+    RSRenderNode renderNode(1);
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto rsFilter = std::make_shared<RSFilter>();
+    EXPECT_FALSE(rsFilter->IsDrawingFilter());
+
+    renderNode.GetMutableRenderProperties().SetForegroundFilter(rsFilter);
+    renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+
+    EXPECT_TRUE(drawable->OnUpdate(renderNode));
+    EXPECT_EQ(drawable->stagingDrawRect_, nullptr);
 }
 } // namespace OHOS::Rosen

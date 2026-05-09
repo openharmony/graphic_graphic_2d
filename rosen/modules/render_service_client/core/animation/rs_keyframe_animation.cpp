@@ -23,7 +23,9 @@
 #include "platform/common/rs_log.h"
 
 static constexpr int DURATION_MIN = 0;
-static constexpr int DURATION_VALUE_INDEX = 2;
+static constexpr int START_DURATION_INDEX = 0;
+static constexpr int END_DURATION_INDEX = 1;
+static constexpr int PROPERTY_VALUE_INDEX = 2;
 
 namespace OHOS {
 namespace Rosen {
@@ -67,6 +69,15 @@ void RSKeyframeAnimation::AddKeyFrame(int startDuration, int endDuration,
         return;
     }
 
+    for (auto& it : durationKeyframes_) {
+        auto start = std::get<START_DURATION_INDEX>(it);
+        auto end = std::get<END_DURATION_INDEX>(it);
+        if (startDuration == start && endDuration == end) {
+            std::get<PROPERTY_VALUE_INDEX>(it) = value;
+            return;
+        }
+    }
+
     durationKeyframes_.push_back({ startDuration, endDuration, value, timingCurve });
 }
 
@@ -86,8 +97,8 @@ void RSKeyframeAnimation::InitInterpolationValue()
         durationKeyframes_.insert(durationKeyframes_.begin(),
             { DURATION_MIN, DURATION_MIN, GetOriginValue(), RSAnimationTimingCurve::LINEAR });
 
-        startValue_ = std::get<DURATION_VALUE_INDEX>(durationKeyframes_.front());
-        endValue_ = std::get<DURATION_VALUE_INDEX>(durationKeyframes_.back());
+        startValue_ = std::get<PROPERTY_VALUE_INDEX>(durationKeyframes_.front());
+        endValue_ = std::get<PROPERTY_VALUE_INDEX>(durationKeyframes_.back());
         RSPropertyAnimation::InitInterpolationValue();
         return;
     }

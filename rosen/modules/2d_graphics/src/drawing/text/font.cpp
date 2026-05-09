@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,9 +20,9 @@
 #include "impl_factory.h"
 #include "impl_interface/font_impl.h"
 #include "text/font_mgr.h"
+#include "utils/text_utils.h"
 #include "utils/log.h"
 #include "font_harfbuzz.h"
-
 
 namespace OHOS {
 namespace Rosen {
@@ -368,6 +368,64 @@ bool Font::GetPathForGlyph(uint16_t glyph, Path* path) const
 void Font::GetTextPath(const void* text, size_t byteLength, TextEncoding encoding, float x, float y, Path* path) const
 {
     fontImpl_->GetTextPath(text, byteLength, encoding, x, y, path);
+}
+
+void Font::GetTextPathWithFallback(const void* text, size_t byteLength, TextEncoding encoding,
+    float x, float y, Path* path) const
+{
+    if (path == nullptr || text == nullptr || byteLength == 0) {
+        LOGE("Font::GetTextPathWithFallback invalid params");
+        return;
+    }
+
+    if (encoding == TextEncoding::GLYPH_ID) {
+        GetTextPath(text, byteLength, encoding, x, y, path);
+        return;
+    }
+
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    if (fontMgr == nullptr) {
+        LOGD("Font::GetTextPathWithFallback fontMgr is nullptr");
+        GetTextPath(text, byteLength, encoding, x, y, path);
+        return;
+    }
+
+    path->Reset();
+    std::vector<int32_t> codepoints;
+    size_t len = std::min(GetStrLength(text, byteLength, encoding), byteLength);
+    if (!DecodeTextToCodepoints(text, len, encoding, codepoints) || codepoints.empty()) {
+        LOGE("Font::GetTextPathWithFallback decode text failed");
+        return;
+    }
+    std::shared_ptr<Typeface> currentTypeface = GetTypeface();
+    auto fallbacks = fontMgr->GetFallbacksForString(codepoints, currentTypeface,
+        currentTypeface ? currentTypeface->GetFontStyle() : FontStyle());
+    if (fallbacks.empty()) {
+        LOGD("Font::GetTextPathWithFallback fallbacks is empty");
+        GetTextPath(text, byteLength, encoding, x, y, path);
+        return;
+    }
+
+    float currentX = x;
+    for (const auto& run : fallbacks) {
+        if (run.glyphIds.empty()) {
+            continue;
+        }
+        Font runFont(*this);
+        if (run.typeface) {
+            runFont.SetTypeface(run.typeface);
+        }
+
+        size_t glyphCount = run.glyphIds.size();
+        Path runPath;
+        runFont.GetTextPath(run.glyphIds.data(), glyphCount * sizeof(uint16_t),
+            TextEncoding::GLYPH_ID, 0, 0, &runPath);
+
+        path->AddPath(runPath, currentX, y);
+        float runWidth = runFont.MeasureText(run.glyphIds.data(),
+            glyphCount * sizeof(uint16_t), TextEncoding::GLYPH_ID);
+        currentX += runWidth;
+    }
 }
 
 void Font::SetThemeFontFollowed(bool followed)

@@ -15,9 +15,7 @@
 
 #include "rscanvasdrawingnode_fuzzer.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <securec.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "ui/rs_canvas_drawing_node.h"
 #include "command/rs_canvas_drawing_node_command.h"
@@ -33,137 +31,113 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* g_data = nullptr;
-size_t g_size = 0;
-size_t g_pos;
-} // namespace
-
-/*
- * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
- * tips: only support basic type
- */
-template<class T>
-T GetData()
-{
-    T object {};
-    size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
-    if (ret != EOK) {
-        return {};
-    }
-    g_pos += objectSize;
-    return object;
+const uint8_t DO_NODE = 0;
+const uint8_t DO_CREATE = 1;
+const uint8_t DO_GET_BITMAP = 2;
+const uint8_t DO_GET_PIXELMAP = 3;
+const uint8_t DO_RESET_SURFACE = 4;
+const uint8_t DO_TEXTURE_EXPORT = 5;
+const uint8_t TARGET_SIZE = 6;
 }
 
-bool Init(const uint8_t* data, size_t size)
+void DoRSCanvasDrawingNode(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    return true;
-}
-
-bool DoRSCanvasDrawingNode()
-{
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
+    bool isRenderServiceNode = fdp.ConsumeBool();
+    bool isTextureExportNode = fdp.ConsumeBool();
     RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
-    return true;
 }
 
-bool DoCreate()
+void DoCreate(FuzzedDataProvider& fdp)
 {
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
+    bool isRenderServiceNode = fdp.ConsumeBool();
+    bool isTextureExportNode = fdp.ConsumeBool();
     RSCanvasDrawingNode::SharedPtr node = RSCanvasDrawingNode::Create(isRenderServiceNode, isTextureExportNode);
-    return true;
 }
 
-bool DoGetBitmap()
+void DoGetBitmap(FuzzedDataProvider& fdp)
 {
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
+    bool isRenderServiceNode = fdp.ConsumeBool();
+    bool isTextureExportNode = fdp.ConsumeBool();
     RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
     Drawing::Bitmap bitmap;
-    int w = GetData<int>();
-    int h = GetData<int>();
+    int w = fdp.ConsumeIntegral<int>();
+    int h = fdp.ConsumeIntegral<int>();
     auto list = std::make_shared<Drawing::DrawCmdList>(w, h);
-    float fLeft = GetData<float>();
-    float fTop = GetData<float>();
-    float fRight = GetData<float>();
-    float fBottom = GetData<float>();
+    float fLeft = fdp.ConsumeFloatingPoint<float>();
+    float fTop = fdp.ConsumeFloatingPoint<float>();
+    float fRight = fdp.ConsumeFloatingPoint<float>();
+    float fBottom = fdp.ConsumeFloatingPoint<float>();
     Drawing::Rect rect { fLeft, fTop, fRight, fBottom };
     canvasDrawingNode.GetBitmap(bitmap, list, &rect);
-    return true;
 }
 
-bool DoGetPixelmap()
+void DoGetPixelmap(FuzzedDataProvider& fdp)
 {
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
+    bool isRenderServiceNode = fdp.ConsumeBool();
+    bool isTextureExportNode = fdp.ConsumeBool();
     RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
-    std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
-    int w = GetData<int>();
-    int h = GetData<int>();
+    auto pixelmap = std::make_shared<Media::PixelMap>();
+    int w = fdp.ConsumeIntegral<int>();
+    int h = fdp.ConsumeIntegral<int>();
     auto list = std::make_shared<Drawing::DrawCmdList>(w, h);
-    float fLeft = GetData<float>();
-    float fTop = GetData<float>();
-    float fRight = GetData<float>();
-    float fBottom = GetData<float>();
+    float fLeft = fdp.ConsumeFloatingPoint<float>();
+    float fTop = fdp.ConsumeFloatingPoint<float>();
+    float fRight = fdp.ConsumeFloatingPoint<float>();
+    float fBottom = fdp.ConsumeFloatingPoint<float>();
     Drawing::Rect rect { fLeft, fTop, fRight, fBottom };
     canvasDrawingNode.GetPixelmap(pixelmap, list, &rect);
-    return true;
 }
 
-bool DoResetSurface()
+void DoResetSurface(FuzzedDataProvider& fdp)
 {
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
+    bool isRenderServiceNode = fdp.ConsumeBool();
+    bool isTextureExportNode = fdp.ConsumeBool();
     RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
-    int w = GetData<int>();
-    int h = GetData<int>();
+    int w = fdp.ConsumeIntegral<int>();
+    int h = fdp.ConsumeIntegral<int>();
     canvasDrawingNode.ResetSurface(w, h);
-    return true;
 }
 
-bool DoCreateTextureExportRenderNodeInRT()
+void DoCreateTextureExportNodeInRT(FuzzedDataProvider& fdp)
 {
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
+    bool isRenderServiceNode = fdp.ConsumeBool();
+    bool isTextureExportNode = fdp.ConsumeBool();
     RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
     canvasDrawingNode.CreateRenderNodeForTextureExportSwitch();
-    return true;
 }
+
 } // namespace Rosen
 } // namespace OHOS
 
-/* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (!OHOS::Rosen::Init(data, size)) {
+    if (data == nullptr) {
         return -1;
     }
-    
-    /* Run your code on data */
-    OHOS::Rosen::DoRSCanvasDrawingNode();
-    OHOS::Rosen::DoCreate();
-    OHOS::Rosen::DoGetBitmap();
-    OHOS::Rosen::DoGetPixelmap();
-    OHOS::Rosen::DoResetSurface();
-    OHOS::Rosen::DoCreateTextureExportRenderNodeInRT();
+
+    FuzzedDataProvider fdp(data, size);
+    uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_NODE:
+            OHOS::Rosen::DoRSCanvasDrawingNode(fdp);
+            break;
+        case OHOS::Rosen::DO_CREATE:
+            OHOS::Rosen::DoCreate(fdp);
+            break;
+        case OHOS::Rosen::DO_GET_BITMAP:
+            OHOS::Rosen::DoGetBitmap(fdp);
+            break;
+        case OHOS::Rosen::DO_GET_PIXELMAP:
+            OHOS::Rosen::DoGetPixelmap(fdp);
+            break;
+        case OHOS::Rosen::DO_RESET_SURFACE:
+            OHOS::Rosen::DoResetSurface(fdp);
+            break;
+        case OHOS::Rosen::DO_TEXTURE_EXPORT:
+            OHOS::Rosen::DoCreateTextureExportNodeInRT(fdp);
+            break;
+        default:
+            break;
+    }
     return 0;
 }
-

@@ -86,16 +86,22 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderCircleFlowlight>();
         }
     },
+#ifndef ROSEN_ARKUI_X
     {RSNGEffectType::FROSTED_GLASS_EFFECT, [] {
             return std::make_shared<RSNGRenderFrostedGlassEffect>();
         }
     },
+#endif
     {RSNGEffectType::DISTORT_CHROMA, [] {
             return std::make_shared<RSNGRenderDistortChroma>();
         }
     },
     {RSNGEffectType::SDF_EDGE_LIGHT_EFFECT, [] {
             return std::make_shared<RSNGRenderSDFEdgeLightEffect>();
+        }
+    },
+    {RSNGEffectType::BORDER_SDF_SHADER, [] {
+            return std::make_shared<RSNGRenderBorderSDFShader>();
         }
     },
     {RSNGEffectType::SPATIAL_POINT_LIGHT, [] {
@@ -120,10 +126,23 @@ static std::unordered_map<RSNGEffectType, ShaderGetDrawRect> getDrawRectLUT = {
             auto sdfShape =
                 sdfEdgeLightEffect->Getter<OHOS::Rosen::SDFEdgeLightEffectSDFShapeRenderTag>()->Get();
             if (sdfShape) {
+                if (sdfShape->GetTransformDrawRect().IsEmpty()) {
+                    RSNGRenderShapeHelper::CalcRect(sdfShape, rect);
+                }
                 auto transformRect = sdfShape->GetTransformDrawRect();
                 return transformRect.MakeOutset(std::max(maxBorderWidth, outerBorderBloomWidth));
             }
             return rect.MakeOutset(std::max(maxBorderWidth, outerBorderBloomWidth));
+        }
+    },
+    {
+        RSNGEffectType::FROSTED_GLASS_EFFECT, [](std::shared_ptr<RSNGRenderShaderBase> filter, const RectF& rect) {
+            auto frostedGlassEffect = std::static_pointer_cast<RSNGRenderFrostedGlassEffect>(filter);
+            auto shape = frostedGlassEffect->Getter<OHOS::Rosen::FrostedGlassEffectShapeRenderTag>()->Get();
+            if (shape && shape->GetTransformDrawRect().IsEmpty()) {
+                RSNGRenderShapeHelper::CalcRect(shape, rect);
+            }
+            return shape == nullptr ? rect : shape->GetTransformDrawRect();
         }
     }
 };

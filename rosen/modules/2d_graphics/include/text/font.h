@@ -333,6 +333,22 @@ public:
     void GetTextPath(const void* text, size_t byteLength, TextEncoding encoding, float x, float y, Path* path) const;
 
     /**
+     * @brief            Get the text outline path with font fallback support.
+     *                   When the current font does not support certain characters,
+     *                   it automatically finds fallback fonts from system.
+     *                   For GLYPH_ID encoding, fallback is not supported and
+     *                   it will call GetTextPath directly.
+     * @param text       Indicates the character storage encoded with text encoding.
+     * @param byteLength Indicates the text length in bytes.
+     * @param encoding   Indicates the text encoding.
+     * @param x          Indicates x coordinates of the text.
+     * @param y          Indicates y coordinates of the text.
+     * @param path       The pointer of path object.
+     */
+    void GetTextPathWithFallback(const void* text, size_t byteLength, TextEncoding encoding,
+        float x, float y, Path* path) const;
+
+    /**
      * @brief             Sets whether to follow the theme font. If the value is true, the theme font is used when typeface is not set.
      * @param followed    Indicates whether to follow the theme font.
      */

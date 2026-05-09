@@ -51,6 +51,8 @@ public:
 
     // Process routines
     static pid_t GetPid();
+    static std::string GetProcessName(pid_t pid);
+    static std::string GetCurrentProcessName();
 
     // String routines
     static std::string Format(const char* format, va_list args);

@@ -57,9 +57,21 @@ static inline sptr<SyncFence> TryMergeFence(sptr<SyncFence> fence1, sptr<SyncFen
     return fenceRet;
 }
 
-static inline sptr<SyncFence> TryMergeFence(std::vector<sptr<SyncFence>> fences)
+static inline sptr<SyncFence> GetValidFence(std::vector<sptr<SyncFence>>& fences)
 {
-    sptr<SyncFence> mergedFence = SyncFence::InvalidFence();
+    for (auto iter = fences.begin(); iter != fences.end(); ++iter) {
+        auto fence = *iter;
+        if (fence && fence->Get() != -1) {
+            fences.erase(iter);
+            return fence;
+        }
+    }
+    return SyncFence::InvalidFence();
+}
+
+static inline sptr<SyncFence> TryMergeFence(std::vector<sptr<SyncFence>>& fences)
+{
+    sptr<SyncFence> mergedFence = GetValidFence(fences);
     if (!TryWaitFences(fences)) {
         for (auto& fence : fences) {
             if (fence == nullptr) {

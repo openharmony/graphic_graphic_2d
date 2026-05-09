@@ -34,8 +34,8 @@ public:
     ~RSColorPickerManager() noexcept = default;
 
     std::optional<Drawing::ColorQuad> GetColorPick() override;
-    void ScheduleColorPick(
-        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params) override;
+    void ScheduleColorPick(RSPaintFilterCanvas& canvas,
+        const Drawing::Rect* rect, const ColorPickerParam& params, NodeId filterId) override;
     void SetSystemDarkColorMode(bool isSystemDarkColorMode) override;
     void ResetColorMemory() override {}
     EquivalentDarkMode GetLastEquivalentDarkMode() override;

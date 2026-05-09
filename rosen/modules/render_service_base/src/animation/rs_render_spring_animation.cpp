@@ -121,10 +121,15 @@ void RSRenderSpringAnimation::OnAttach()
         ROSEN_LOGE("RSRenderSpringAnimation::OnAttach, target is nullptr");
         return;
     }
+    auto animationManager = target->GetAnimationManager();
+    if (!animationManager) {
+        ROSEN_LOGE("%{public}s: animationManager is nullptr", __func__);
+        return;
+    }
     // check if any other spring animation running on this property
     auto propertyId = GetPropertyId();
-    auto prevAnimation = target->GetAnimationManager().QuerySpringAnimation(propertyId);
-    target->GetAnimationManager().RegisterSpringAnimation(propertyId, GetAnimationId());
+    auto prevAnimation = animationManager->QuerySpringAnimation(propertyId);
+    animationManager->RegisterSpringAnimation(propertyId, GetAnimationId());
     // stop running the previous animation and inherit velocity from it
     InheritSpringAnimation(prevAnimation, false);
 }
@@ -188,7 +193,9 @@ void RSRenderSpringAnimation::OnDetach()
     }
     auto propertyId = GetPropertyId();
     auto id = GetAnimationId();
-    target->GetAnimationManager().UnregisterSpringAnimation(propertyId, id);
+    if (auto animationManager = target->GetAnimationManager()) {
+        animationManager->UnregisterSpringAnimation(propertyId, id);
+    }
 }
 
 void RSRenderSpringAnimation::OnInitialize(int64_t time, bool isCustom)

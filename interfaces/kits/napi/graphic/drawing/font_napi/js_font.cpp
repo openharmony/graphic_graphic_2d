@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,6 +66,7 @@ static napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("createPathForGlyph", JsFont::CreatePathForGlyph),
     DECLARE_NAPI_FUNCTION("getBounds", JsFont::GetBounds),
     DECLARE_NAPI_FUNCTION("getTextPath", JsFont::CreatePathForText),
+    DECLARE_NAPI_FUNCTION("getTextPathWithFallback", JsFont::CreatePathForTextWithFallback),
     DECLARE_NAPI_FUNCTION("setThemeFontFollowed", JsFont::SetThemeFontFollowed),
     DECLARE_NAPI_FUNCTION("isThemeFontFollowed", JsFont::IsThemeFontFollowed),
     DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsFont::FontTransferDynamic),
@@ -161,6 +162,12 @@ napi_value JsFont::CreatePathForText(napi_env env, napi_callback_info info)
 {
     JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
     return (me != nullptr) ? me->OnCreatePathForText(env, info) : nullptr;
+}
+
+napi_value JsFont::CreatePathForTextWithFallback(napi_env env, napi_callback_info info)
+{
+    JsFont* me = CheckParamsAndGetThis<JsFont>(env, info);
+    return (me != nullptr) ? me->OnCreatePathForTextWithFallback(env, info) : nullptr;
 }
 
 napi_value JsFont::CreateFont(napi_env env, napi_callback_info info)
@@ -1089,6 +1096,42 @@ napi_value JsFont::OnCreatePathForText(napi_env env, napi_callback_info info)
     std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
     std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
     realFont->GetTextPath(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
+    return JsPath::CreateJsPath(env, path);
+}
+
+napi_value JsFont::OnCreatePathForTextWithFallback(napi_env env, napi_callback_info info)
+{
+    if (m_font == nullptr) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+    }
+
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    std::string text = "";
+    if (!ConvertFromJsValue(env, argv[ARGC_ZERO], text)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the first parameter");
+    }
+
+    uint32_t byteLength = 0;
+    if (!ConvertFromJsNumber(env, argv[ARGC_ONE], byteLength)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the second parameter");
+    }
+
+    double x = 0.0;
+    if (!ConvertFromJsNumber(env, argv[ARGC_TWO], x)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the third parameter");
+    }
+
+    double y = 0.0;
+    if (!ConvertFromJsNumber(env, argv[ARGC_THREE], y)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to convert the fourth parameter");
+    }
+
+    std::shared_ptr<Path> path = std::make_shared<Path>();
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
+    realFont->GetTextPathWithFallback(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
     return JsPath::CreateJsPath(env, path);
 }
 

@@ -100,6 +100,11 @@ public:
         return this->propertiesMap_;
     }
 
+    bool HasNodeNotFound() const
+    {
+        return nodeNotFound_;
+    }
+
     uint16_t GetType() const override
     {
         return commandType;
@@ -108,6 +113,7 @@ public:
 private:
     RSNodeGetShowingPropertiesAndCancelAnimation(uint64_t timeoutNS): RSSyncTask(timeoutNS) {}
     PropertiesMap propertiesMap_;
+    bool nodeNotFound_ = false;
     using Registrar = RSCommandRegister<commandType, commandSubType, Unmarshalling>;
     static Registrar instance_;
 };
@@ -146,7 +152,7 @@ private:
     NodeId nodeId_;
     AnimationId animationId_;
     float fraction_ { 0.0f };
-    static inline RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
+    static inline RS_HIDDEN RSCommandRegister<commandType, commandSubType, Unmarshalling> registry;
 };
 } // namespace Rosen
 } // namespace OHOS

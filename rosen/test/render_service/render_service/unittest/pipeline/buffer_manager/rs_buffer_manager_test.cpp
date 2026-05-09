@@ -1434,10 +1434,250 @@ HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_MultipleBuffersTest001, 
     std::string output;
     mgr->DumpPendingReleaseBuffers(output);
 
-    // Verify multiple buffers output
     EXPECT_NE(output.find("Total entries: 2"), std::string::npos);
     EXPECT_NE(output.find("Valid buffers: 2"), std::string::npos);
     EXPECT_NE(output.find("Expired buffers: 0"), std::string::npos);
     EXPECT_NE(output.find("Total fences: 2"), std::string::npos);
+}
+
+/**
+ * @tc.name: GetValidFence_EmptyFencesVectorTest001
+ * @tc.desc: Test GetValidFence branch when fences vector is empty
+ *           When mergedFences_ is empty, GetValidFence should return InvalidFence
+ *           Covers branch: empty vector -> return InvalidFence()
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, GetValidFence_EmptyFencesVectorTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-empty-fences");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_ = {};
+    info.bufferOwnerCount_ = std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>();
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    EXPECT_NO_FATAL_FAILURE(mgr->ReleaseBufferById(buffer->GetBufferId()));
+}
+
+/**
+ * @tc.name: GetValidFence_NullFenceInVectorTest001
+ * @tc.desc: Test GetValidFence branch when fence is nullptr
+ *           When fence == nullptr, condition `fence && fence->Get() != -1` is false
+ *           Fence should be skipped, continue iterating
+ *           Covers branch: fence == nullptr -> skip
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, GetValidFence_NullFenceInVectorTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-null-fence");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    sptr<SyncFence> validFence = new SyncFence(dup(STDOUT_FILENO));
+
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_.push_back(nullptr);
+    info.mergedFences_.push_back(validFence);
+    info.bufferOwnerCount_ = std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>();
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    EXPECT_NO_FATAL_FAILURE(mgr->ReleaseBufferById(buffer->GetBufferId()));
+}
+
+/**
+ * @tc.name: GetValidFence_InvalidFenceInVectorTest001
+ * @tc.desc: Test GetValidFence branch when fence->Get() == -1 (invalid fence)
+ *           When fence->Get() == -1, condition `fence->Get() != -1` is false
+ *           Fence should be skipped, continue iterating
+ *           Covers branch: fence->Get() == -1 -> skip
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, GetValidFence_InvalidFenceInVectorTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-invalid-fence");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    sptr<SyncFence> validFence = new SyncFence(dup(STDOUT_FILENO));
+
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_.push_back(SyncFence::InvalidFence());
+    info.mergedFences_.push_back(validFence);
+    info.bufferOwnerCount_ = std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>();
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    EXPECT_NO_FATAL_FAILURE(mgr->ReleaseBufferById(buffer->GetBufferId()));
+}
+
+/**
+ * @tc.name: GetValidFence_ValidFenceReturnTest001
+ * @tc.desc: Test GetValidFence branch when valid fence is found
+ *           When fence != nullptr && fence->Get() != -1, should return that fence
+ *           Fence should be removed from vector
+ *           Covers branch: valid fence -> return and erase from vector
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, GetValidFence_ValidFenceReturnTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-valid-fence");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    sptr<SyncFence> validFence = new SyncFence(dup(STDOUT_FILENO));
+
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_.push_back(validFence);
+    info.bufferOwnerCount_ = std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>();
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    EXPECT_NO_FATAL_FAILURE(mgr->ReleaseBufferById(buffer->GetBufferId()));
+}
+
+/**
+ * @tc.name: GetValidFence_MultipleValidFencesTest001
+ * @tc.desc: Test GetValidFence branch with multiple valid fences
+ *           Should return the first valid fence and erase it from vector
+ *           Covers branch: return first valid fence when multiple exist
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, GetValidFence_MultipleValidFencesTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-multi-valid");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    sptr<SyncFence> fence1 = new SyncFence(dup(STDOUT_FILENO));
+    sptr<SyncFence> fence2 = new SyncFence(dup(STDERR_FILENO));
+
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_.push_back(fence1);
+    info.mergedFences_.push_back(fence2);
+    info.bufferOwnerCount_ = std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>();
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    EXPECT_NO_FATAL_FAILURE(mgr->ReleaseBufferById(buffer->GetBufferId()));
+}
+
+/**
+ * @tc.name: GetValidFence_AllInvalidFencesTest001
+ * @tc.desc: Test GetValidFence branch when all fences are invalid/null
+ *           When all fences are nullptr or Get() == -1, should return InvalidFence()
+ *           Covers branch: all invalid -> return InvalidFence() after loop ends
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, GetValidFence_AllInvalidFencesTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-all-invalid");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_.push_back(nullptr);
+    info.mergedFences_.push_back(SyncFence::InvalidFence());
+    info.mergedFences_.push_back(nullptr);
+    info.bufferOwnerCount_ = std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>();
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    EXPECT_NO_FATAL_FAILURE(mgr->ReleaseBufferById(buffer->GetBufferId()));
+}
+
+/**
+ * @tc.name: GetValidFence_MixedFencesFirstNullTest001
+ * @tc.desc: Test GetValidFence with mixed fences: nullptr, invalid, valid
+ *           First fence is nullptr, should skip and find the valid one
+ *           Covers branch: iterate past null fence to find valid fence
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, GetValidFence_MixedFencesFirstNullTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-mixed-null");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    sptr<SyncFence> validFence = new SyncFence(dup(STDOUT_FILENO));
+
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_.push_back(nullptr);
+    info.mergedFences_.push_back(SyncFence::InvalidFence());
+    info.mergedFences_.push_back(validFence);
+    info.bufferOwnerCount_ = std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>();
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    EXPECT_NO_FATAL_FAILURE(mgr->ReleaseBufferById(buffer->GetBufferId()));
+}
+
+/**
+ * @tc.name: GetValidFence_MixedFencesFirstInvalidTest001
+ * @tc.desc: Test GetValidFence with mixed fences: invalid, null, valid
+ *           First fence is invalid (Get() == -1), should skip and find the valid one
+ *           Covers branch: iterate past invalid fence to find valid fence
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, GetValidFence_MixedFencesFirstInvalidTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-mixed-invalid");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    sptr<SyncFence> validFence = new SyncFence(dup(STDOUT_FILENO));
+
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_.push_back(SyncFence::InvalidFence());
+    info.mergedFences_.push_back(nullptr);
+    info.mergedFences_.push_back(validFence);
+    info.bufferOwnerCount_ = std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>();
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    EXPECT_NO_FATAL_FAILURE(mgr->ReleaseBufferById(buffer->GetBufferId()));
 }
 }

@@ -140,9 +140,9 @@ GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Same_Wi
     auto highLevelParentNode = RSCanvasNode::Create();
 
     rootNode->AddChild(lowLevelNode);
+    rootNode->AddChild(idleNode);
     rootNode->AddChild(highLevelParentNode);
     highLevelParentNode->AddChild(highLevelNode);
-    rootNode->AddChild(idleNode);
 
     RSNode::RegisterTransitionPair(GetRSUIContext(), lowLevelNode->GetId(), highLevelNode->GetId(), true);
 
@@ -182,8 +182,8 @@ GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Same_Wi
 
     rootNode->AddChild(lowLevelParentNode);
     lowLevelParentNode->AddChild(lowLevelNode);
-    rootNode->AddChild(highLevelNode);
     rootNode->AddChild(idleNode);
+    rootNode->AddChild(highLevelNode);
 
     RSNode::RegisterTransitionPair(GetRSUIContext(), lowLevelNode->GetId(), highLevelNode->GetId(), true);
 
@@ -224,9 +224,9 @@ GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Same_Wi
 
     rootNode->AddChild(lowLevelParentNode);
     lowLevelParentNode->AddChild(lowLevelNode);
+    rootNode->AddChild(idleNode);
     rootNode->AddChild(highLevelParentNode);
     highLevelParentNode->AddChild(highLevelNode);
-    rootNode->AddChild(idleNode);
 
     RSNode::RegisterTransitionPair(GetRSUIContext(), lowLevelNode->GetId(), highLevelNode->GetId(), true);
 
@@ -241,7 +241,7 @@ GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Same_Wi
 
 // direct_low, direct_high
 // in_different_window
-GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Different_Window_Test)
+GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Different_Window_Test_1)
 {
     auto rootNode = RSCanvasNode::Create();
     Rosen::Vector4f bounds{0, 0, screenWidth, screenHeight};
@@ -272,6 +272,132 @@ GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Differe
     RegisterNode(rootNode);
     RegisterNode(lowLevelNode);
     RegisterNode(highLevelNode);
+    RegisterNode(idleNode);
+    GetRootNode()->AddChild(rootNode);
+}
+
+// direct_low, no_direct_high
+// in_different_window
+GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Different_Window_Test_2)
+{
+    auto rootNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, screenWidth, screenHeight};
+    rootNode->SetBounds(bounds);
+    rootNode->SetFrame(bounds);
+    auto lowLevelNode = RSCanvasNode::Create();
+    Rosen::Vector4f boundsLow{100, 300, 300, 300};
+    lowLevelNode->SetBounds(boundsLow);
+    lowLevelNode->SetFrame(boundsLow);
+    lowLevelNode->SetBackgroundColor(0xFF0000FF); // blue
+    auto highLevelNode = RSCanvasNode::Create();
+    Rosen::Vector4f boundsHigh{300, 300, 300, 300};
+    highLevelNode->SetBounds(boundsHigh);
+    highLevelNode->SetFrame(boundsHigh);
+    highLevelNode->SetBackgroundColor(0xFF00FF00); // green
+    auto idleNode = RSCanvasNode::Create();
+    Rosen::Vector4f boundsIdle{200, 200, 200, 200};
+    idleNode->SetBounds(boundsIdle);
+    idleNode->SetFrame(boundsIdle);
+    idleNode->SetBackgroundColor(0xFFFF0000); // red
+
+    auto highLevelParentNode = RSCanvasNode::Create();
+
+    rootNode->AddChild(lowLevelNode);
+    rootNode->AddChild(idleNode);
+    rootNode->AddChild(highLevelParentNode);
+    highLevelParentNode->AddChild(highLevelNode);
+
+    RSNode::RegisterTransitionPair(GetRSUIContext(), lowLevelNode->GetId(), highLevelNode->GetId(), false);
+
+    RegisterNode(rootNode);
+    RegisterNode(lowLevelNode);
+    RegisterNode(highLevelNode);
+    RegisterNode(highLevelParentNode);
+    RegisterNode(idleNode);
+    GetRootNode()->AddChild(rootNode);
+}
+
+// no_direct_low, direct_high
+// in_different_window
+GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Different_Window_Test_3)
+{
+    auto rootNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, screenWidth, screenHeight};
+    rootNode->SetBounds(bounds);
+    rootNode->SetFrame(bounds);
+    auto lowLevelNode = RSCanvasNode::Create();
+    Rosen::Vector4f boundsLow{100, 300, 300, 300};
+    lowLevelNode->SetBounds(boundsLow);
+    lowLevelNode->SetFrame(boundsLow);
+    lowLevelNode->SetBackgroundColor(0xFF0000FF); // blue
+    auto highLevelNode = RSCanvasNode::Create();
+    Rosen::Vector4f boundsHigh{300, 300, 300, 300};
+    highLevelNode->SetBounds(boundsHigh);
+    highLevelNode->SetFrame(boundsHigh);
+    highLevelNode->SetBackgroundColor(0xFF00FF00); // green
+    auto idleNode = RSCanvasNode::Create();
+    Rosen::Vector4f boundsIdle{200, 200, 200, 200};
+    idleNode->SetBounds(boundsIdle);
+    idleNode->SetFrame(boundsIdle);
+    idleNode->SetBackgroundColor(0xFFFF0000); // red
+
+    auto lowLevelParentNode = RSCanvasNode::Create();
+
+    rootNode->AddChild(lowLevelParentNode);
+    lowLevelParentNode->AddChild(lowLevelNode);
+    rootNode->AddChild(idleNode);
+    rootNode->AddChild(highLevelNode);
+
+    RSNode::RegisterTransitionPair(GetRSUIContext(), lowLevelNode->GetId(), highLevelNode->GetId(), false);
+
+    RegisterNode(rootNode);
+    RegisterNode(lowLevelNode);
+    RegisterNode(highLevelNode);
+    RegisterNode(lowLevelParentNode);
+    RegisterNode(idleNode);
+    GetRootNode()->AddChild(rootNode);
+}
+
+// no_direct_low, no_direct_high
+// in_different_window
+GRAPHIC_TEST(GeometryTransitionTest, ANIMATION_TEST, Set_Transition_Pair_Different_Window_Test_4)
+{
+    auto rootNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, screenWidth, screenHeight};
+    rootNode->SetBounds(bounds);
+    rootNode->SetFrame(bounds);
+    auto lowLevelNode = RSCanvasNode::Create();
+    Rosen::Vector4f boundsLow{100, 300, 300, 300};
+    lowLevelNode->SetBounds(boundsLow);
+    lowLevelNode->SetFrame(boundsLow);
+    lowLevelNode->SetBackgroundColor(0xFF0000FF); // blue
+    auto highLevelNode = RSCanvasNode::Create();
+    Rosen::Vector4f boundsHigh{300, 300, 300, 300};
+    highLevelNode->SetBounds(boundsHigh);
+    highLevelNode->SetFrame(boundsHigh);
+    highLevelNode->SetBackgroundColor(0xFF00FF00); // green
+    auto idleNode = RSCanvasNode::Create();
+    Rosen::Vector4f boundsIdle{200, 200, 200, 200};
+    idleNode->SetBounds(boundsIdle);
+    idleNode->SetFrame(boundsIdle);
+    idleNode->SetBackgroundColor(0xFFFF0000); // red
+
+    auto lowLevelParentNode = RSCanvasNode::Create();
+    auto highLevelParentNode = RSCanvasNode::Create();
+
+    rootNode->AddChild(lowLevelParentNode);
+    lowLevelParentNode->AddChild(lowLevelNode);
+    rootNode->AddChild(idleNode);
+    rootNode->AddChild(highLevelParentNode);
+    highLevelParentNode->AddChild(highLevelNode);
+
+    RSNode::RegisterTransitionPair(GetRSUIContext(), lowLevelNode->GetId(), highLevelNode->GetId(), false);
+
+    RegisterNode(rootNode);
+    RegisterNode(lowLevelNode);
+    RegisterNode(highLevelNode);
+    RegisterNode(lowLevelParentNode);
+    RegisterNode(highLevelParentNode);
     RegisterNode(idleNode);
     GetRootNode()->AddChild(rootNode);
 }

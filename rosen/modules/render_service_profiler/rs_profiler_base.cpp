@@ -57,7 +57,7 @@ namespace OHOS::Rosen {
 std::atomic_bool RSProfiler::recordAbortRequested_ = false;
 std::atomic_uint32_t RSProfiler::mode_ = static_cast<uint32_t>(Mode::NONE);
 RSProfiler::LogicalDisplayChildren RSProfiler::displayChildren_;
-    static thread_local uint32_t g_subMode = static_cast<uint32_t>(SubMode::NONE);
+static thread_local uint32_t g_subMode = static_cast<uint32_t>(SubMode::NONE);
 static std::vector<pid_t> g_pids;
 static pid_t g_pid = 0;
 static NodeId g_parentNode = 0;
@@ -576,7 +576,9 @@ void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
         map.screenNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
 
     if (auto fallbackNode = map.GetAnimationFallbackNode()) {
-        fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
+        if (auto animationManager = fallbackNode->GetAnimationManager()) {
+            animationManager->FilterAnimationByPid(pid);
+        }
     }
 }
 
@@ -600,7 +602,9 @@ void RSProfiler::FilterMockNode(RSContext& context)
 
     if (auto fallbackNode = nodeMap.GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid
-        FilterAnimationForPlayback(fallbackNode->GetAnimationManager());
+        if (auto animationManager = fallbackNode->GetAnimationManager()) {
+            FilterAnimationForPlayback(animationManager);
+        }
     }
 }
 
@@ -1263,9 +1267,12 @@ std::string RSProfiler::DumpSurfaceNode(const RSRenderNode& node)
 }
 
 // RSAnimationManager
-void RSProfiler::FilterAnimationForPlayback(RSAnimationManager& manager)
+void RSProfiler::FilterAnimationForPlayback(std::shared_ptr<RSAnimationManager> manager)
 {
-    EraseIf(manager.animations_, [](const auto& pair) -> bool {
+    if (manager == nullptr) {
+        return;
+    }
+    EraseIf(manager->animations_, [](const auto& pair) -> bool {
         if (!Utils::IsNodeIdPatched(pair.first)) {
             return false;
         }

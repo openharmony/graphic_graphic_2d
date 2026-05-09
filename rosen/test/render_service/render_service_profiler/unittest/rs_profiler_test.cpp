@@ -31,6 +31,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
+#include "transaction/rs_service_to_render_connection.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -99,23 +100,30 @@ public:
     };
 };
 
-RSRenderService* GetAndInitRenderService()
+void InitProfiler()
 {
     MemoryTrack::Instance();
     MemorySnapshot::Instance();
     RSRenderNodeGC::Instance();
 
-    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto mainThread = RSMainThread::Instance();
-    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    mainThread->handler_->eventRunner_->Run();
+    if (mainThread) {
+        const auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+        mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+        mainThread->handler_->eventRunner_->Run();
+    }
 
     auto pipeline = std::make_shared<RSRenderPipeline>();
     pipeline->mainThread_ = mainThread;
 
-    auto renderService = new RSRenderService();
-    renderService->renderPipeline_ = pipeline;
-    return renderService;
+    const auto serviceToRenderConnection =
+        sptr<RSServiceToRenderConnection>::MakeSptr(new RSRenderPipelineAgent(pipeline));
+    RSProfiler::Init(pipeline, serviceToRenderConnection);
+}
+
+void ShutdownProfiler()
+{
+    RSProfiler::Init(nullptr, nullptr);
 }
 
 void GenerateFullChildrenListForAll(const RSContext& context)
@@ -135,7 +143,7 @@ HWTEST_F(RSProfilerTest, InterfaceTest, testing::ext::TestSize.Level1)
 {
     RSProfiler::testing_ = true;
     EXPECT_NO_THROW({
-        RSProfiler::Init(nullptr);
+        ShutdownProfiler();
         RSProfiler::OnFrameBegin();
         RSProfiler::OnRenderBegin();
         RSProfiler::OnRenderEnd();
@@ -145,7 +153,7 @@ HWTEST_F(RSProfilerTest, InterfaceTest, testing::ext::TestSize.Level1)
     });
     RSProfiler::testing_ = false;
     EXPECT_NO_THROW({
-        RSProfiler::Init(nullptr);
+        ShutdownProfiler();
         RSProfiler::OnFrameBegin();
         RSProfiler::OnRenderBegin();
         RSProfiler::OnRenderEnd();
@@ -187,7 +195,7 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
         "rstree_save_frame 1", "rstree_load_frame 1",
     };
     EXPECT_NO_THROW({
-        RSProfiler::Init(nullptr);
+        ShutdownProfiler();
         Network::PushCommand(cmds);
         for (auto cmd : cmds) {
             RSProfiler::ProcessCommands();
@@ -243,25 +251,18 @@ HWTEST_F(RSProfilerTest, UnmarshalSelfDrawingBuffersTest, Level1)
 }
 
 class RSProfilerTestWithContext : public testing::Test {
-    static RSRenderService* renderService;
-
 public:
     static void SetUpTestCase()
     {
-        renderService = GetAndInitRenderService();
-        RSProfiler::Init(renderService);
+        InitProfiler();
     };
     static void TearDownTestCase()
     {
-        delete renderService;
-        renderService = nullptr;
-        RSProfiler::Init(nullptr);
+        ShutdownProfiler();
     };
     void SetUp() override {};
     void TearDown() override {};
 };
-
-RSRenderService* RSProfilerTestWithContext::renderService;
 
 void checkTree(std::shared_ptr<RSBaseRenderNode> rootNode, NodeId topNodeId, bool isPatched = false)
 {
@@ -295,8 +296,7 @@ void checkTree(std::shared_ptr<RSBaseRenderNode> rootNode, NodeId topNodeId, boo
 HWTEST_F(RSProfilerTest, LogEventStart, testing::ext::TestSize.Level1)
 {
     RSProfiler::testing_ = true;
-    sptr<RSRenderService> renderService = GetAndInitRenderService();
-    RSProfiler::Init(renderService);
+    InitProfiler();
 
     std::vector<std::string> args = { "WAITFORFINISH" };
     ArgList argList(args);
@@ -318,6 +318,7 @@ HWTEST_F(RSProfilerTest, LogEventStart, testing::ext::TestSize.Level1)
 
     RSProfiler::RecordStop(argList);
     RSProfiler::SetMode(Mode::NONE);
+    ShutdownProfiler();
 
     EXPECT_DOUBLE_EQ(static_cast<double>(readTime), timeSinceRecordStart);
     EXPECT_EQ(readProperty, RSCaptureData::VAL_EVENT_TYPE_VSYNC);
@@ -344,8 +345,7 @@ HWTEST_F(RSProfilerTestWithContext, SecureScreen, testing::ext::TestSize.Level1)
 HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
 {
     RSProfiler::testing_ = true;
-    sptr<RSRenderService> renderService = GetAndInitRenderService();
-    RSProfiler::Init(renderService);
+    InitProfiler();
 
     std::vector<std::string> args = { "WAITFORFINISH" };
     ArgList argList(args);
@@ -388,6 +388,7 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
     EXPECT_NEAR(readCDTime, 1.f, 1e-2);
 
     RSProfiler::SetMode(Mode::NONE);
+    ShutdownProfiler();
 }
 
 /*

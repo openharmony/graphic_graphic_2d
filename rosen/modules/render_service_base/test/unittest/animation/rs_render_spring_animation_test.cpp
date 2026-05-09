@@ -698,10 +698,12 @@ HWTEST_F(RSRenderSpringAnimationTest, OnDetach001, TestSize.Level1)
     EXPECT_TRUE(renderNode != nullptr);
 
     renderSpringAnimation->Attach(renderNode.get());
-    renderNode->GetAnimationManager().AddAnimation(renderSpringAnimation);
-    EXPECT_TRUE(renderNode->GetAnimationManager().QuerySpringAnimation(PROPERTY_ID) != nullptr);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->AddAnimation(renderSpringAnimation);
+    EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) != nullptr);
     renderSpringAnimation->OnDetach();
-    EXPECT_TRUE(renderNode->GetAnimationManager().QuerySpringAnimation(PROPERTY_ID) == nullptr);
+    EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) == nullptr);
 }
 
 /**
@@ -996,11 +998,76 @@ HWTEST_F(RSRenderSpringAnimationTest, CallLogicallyFinishCallback001, TestSize.L
     EXPECT_TRUE(renderNode != nullptr);
 
     renderSpringAnimation->Attach(renderNode.get());
-    renderNode->GetAnimationManager().AddAnimation(renderSpringAnimation);
-    EXPECT_TRUE(renderNode->GetAnimationManager().QuerySpringAnimation(PROPERTY_ID) != nullptr);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->AddAnimation(renderSpringAnimation);
+    EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) != nullptr);
 
     renderSpringAnimation->CallLogicallyFinishCallback();
     EXPECT_TRUE(RSMessageProcessor::Instance().HasTransaction());
+}
+
+/**
+ * @tc.name: OnAttach002
+ * @tc.desc: Verify OnAttach with non-null animationManager registers spring animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnAttach002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+
+    renderSpringAnimation->Attach(renderNode.get());
+    // Make animationManager_ non-null by adding an animation
+    renderNode->AddAnimation(renderSpringAnimation);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    // OnAttach with non-null animationManager: will register spring animation
+    renderSpringAnimation->OnAttach();
+    EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) != nullptr);
+}
+
+/**
+ * @tc.name: OnDetach002
+ * @tc.desc: Verify OnDetach with non-null animationManager unregisters spring animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, OnDetach002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    EXPECT_TRUE(renderNode != nullptr);
+
+    renderSpringAnimation->Attach(renderNode.get());
+    renderNode->AddAnimation(renderSpringAnimation);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    renderSpringAnimation->OnAttach();
+    EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) != nullptr);
+    // OnDetach with non-null animationManager: will unregister spring animation
+    renderSpringAnimation->OnDetach();
+    EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) == nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

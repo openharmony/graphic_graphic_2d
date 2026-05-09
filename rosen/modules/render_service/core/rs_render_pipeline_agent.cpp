@@ -1201,7 +1201,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
                                     RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(nodeId) &&
                                     config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isUseSelfDrawBufferUsage) {
-        defaultUsage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+        defaultUsage |= BUFFER_USAGE_AUXILLARY_BUFFER0;
     }
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
@@ -2108,6 +2108,14 @@ void RSRenderPipelineAgent::ClearSurfaceWatermark(pid_t pid,
     rsRenderPipeline_->PostMainThreadTask(task);
 }
 
+void RSRenderPipelineAgent::SetCacheEnabledForRotation(bool enabled)
+{
+    if (RSSystemProperties::GetCacheEnabledForRotation() == enabled) {
+        return;
+    }
+    RSSystemProperties::SetCacheEnabledForRotation(enabled);
+}
+
 std::string RSRenderPipelineAgent::GetBundleName(pid_t pid)
 {
     std::lock_guard<std::mutex> lock(pidToBundleMutex_);
@@ -2229,5 +2237,6 @@ int32_t RSRenderPipelineAgent::GetFrameStabilityResult(pid_t pid, const FrameSta
     rsRenderPipeline_->PostMainThreadSyncTask(task);
     return repCode;
 }
+
 } // namespace Rosen
 } // namespace OHOS

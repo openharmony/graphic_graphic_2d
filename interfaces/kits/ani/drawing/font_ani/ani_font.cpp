@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -130,6 +130,8 @@ static const std::array g_methods = {
     ani_native_function { "createPathForGlyph", nullptr, reinterpret_cast<void*>(AniFont::CreatePathForGlyph) },
     ani_native_function { "getBounds", nullptr, reinterpret_cast<void*>(AniFont::GetBounds) },
     ani_native_function { "getTextPath", nullptr, reinterpret_cast<void*>(AniFont::GetTextPath) },
+    ani_native_function { "getTextPathWithFallback", nullptr,
+        reinterpret_cast<void*>(AniFont::GetTextPathWithFallback) },
     ani_native_function { "setThemeFontFollowed", nullptr, reinterpret_cast<void*>(AniFont::SetThemeFontFollowed) },
     ani_native_function { "isThemeFontFollowed", nullptr, reinterpret_cast<void*>(AniFont::IsThemeFontFollowed) },
     ani_native_function { "measureSingleCharacterWithFeatures", nullptr,
@@ -866,6 +868,34 @@ ani_object AniFont::GetTextPath(ani_env* env, ani_object obj, ani_string aniText
     if (ANI_OK != env->Object_SetField_Long(aniObj,
         AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
         ROSEN_LOGE("AniFont::GetTextPath failed cause by Object_SetField_Long");
+        delete aniPath;
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
+}
+
+ani_object AniFont::GetTextPathWithFallback(ani_env* env, ani_object obj, ani_string aniText,
+    ani_int byteLength, ani_double x, ani_double y)
+{
+    auto aniFont = GetNativeFromObj<AniFont>(env, obj, AniGlobalField::GetInstance().fontNativeObj);
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniFont::GetTextPathWithFallback font is nullptr.");
+        return CreateAniUndefined(env);
+    }
+
+    std::string text = CreateStdString(env, aniText);
+    std::shared_ptr<Font> font = aniFont->GetFont();
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? font : themeFont;
+    std::shared_ptr<Path> path = std::make_shared<Path>();
+    realFont->GetTextPathWithFallback(text.c_str(), byteLength, TextEncoding::UTF8, x, y, path.get());
+    AniPath* aniPath = new AniPath(path);
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
+        AniGlobalMethod::GetInstance().pathCtor);
+    if (ANI_OK != env->Object_SetField_Long(aniObj,
+        AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
+        ROSEN_LOGE("AniFont::GetTextPathWithFallback failed cause by Object_SetField_Long");
         delete aniPath;
         return CreateAniUndefined(env);
     }

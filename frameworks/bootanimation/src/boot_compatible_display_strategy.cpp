@@ -79,7 +79,8 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
         return;
     }
 
-    GetConnectToRenderMap(configs.size());
+    constexpr uint32_t WAIT_FOR_CONNECT_TO_RENDER_MS = 10000;
+    GetConnectToRenderMap(configs.size(), WAIT_FOR_CONNECT_TO_RENDER_MS);
     for (auto& config : configs) {
         if (!PrepareScreenConfig(config)) {
             continue;

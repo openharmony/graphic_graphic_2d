@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "animation/rs_render_curve_animation.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -197,6 +198,31 @@ HWTEST_F(RSProxyRenderNodeTest, CleanUp, TestSize.Level1)
     removeModifiers = false;
     node->CleanUp(removeModifiers);
     ASSERT_EQ(node->target_.lock()->contextAlpha_, 1.0f);
+}
+
+/**
+ * @tc.name: CleanUpWithAnimationManager
+ * @tc.desc: Verify CleanUp with target having non-null animationManager
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProxyRenderNodeTest, CleanUpWithAnimationManager, TestSize.Level1)
+{
+    NodeId id = 10;
+    NodeId targetId = 11;
+    RSSurfaceRenderNodeConfig config;
+    auto target = std::make_shared<RSSurfaceRenderNode>(config);
+    // Add animation to target to make animationManager_ non-null
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    target->AddAnimation(animation);
+    ASSERT_NE(target->GetAnimationManager(), nullptr);
+
+    auto node = std::make_shared<RSProxyRenderNode>(id, target, targetId);
+    bool removeModifiers = true;
+    node->CleanUp(removeModifiers);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -20,6 +20,7 @@
 DECLARE_ANIMATABLE_PROPERTY_TAG(Blur, RadiusX, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(Blur, RadiusY, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(Blur, DisableSystemAdaptation, bool);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Blur, ExpandDrawRegion, bool);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(MaterialBlur, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(MaterialBlur, Saturation, float);
@@ -318,6 +319,11 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravityStrength, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravitySpacing, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravityHotZone, float);
 
+// SDFPathShape
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFPathShape, Path, std::shared_ptr<RSPath>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFPathShape, Offset, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFPathShape, Scale, Vector2f);
+
 // SDFPixelmapShape
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFPixelmapShape, Image, std::shared_ptr<Media::PixelMap>);
 
@@ -384,6 +390,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, GradientEnd, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, EffectAlpha, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Progress, float);
 
+#ifndef ROSEN_ARKUI_X
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BlurParams, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEmboss, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEdl, Vector2f);
@@ -423,7 +430,7 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, BaseMaterialType, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, MaterialColor, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SamplingScale, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, SkipFrameEnable, bool);
-
+#endif
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color0, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color1, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color2, Vector4f);
@@ -438,7 +445,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Strength, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, DistortStrength, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, BlendGradient, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(CircleFlowlight, Mask, MASK_PTR);
-
+#ifndef ROSEN_ARKUI_X
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, AntiAlias, Vector2f);
@@ -473,7 +480,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, SkipFrameEnable, bool);
-
+#endif
 DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, SpreadFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, BloomIntensityCutoff, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, LightMaxIntensity, float);
@@ -571,6 +578,14 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, RBCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, LBCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, BarrelDistortion, Vector4f);
 
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderSDFShader, Color, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderSDFShader, Width, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(BorderSDFShader, IsOutline, bool);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(BorderSDFShader, Style, int);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderSDFShader, DashWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BorderSDFShader, DashGap, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(BorderSDFShader, Shape, std::shared_ptr<RSNGRenderShapeBase>);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialPointLight, LightIntensity, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialPointLight, LightPosition, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialPointLight, Attenuation, float);
@@ -606,3 +621,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, SdPos, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, SdNeg, Vector3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, SdfShape, std::shared_ptr<RSNGRenderShapeBase>);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, DepthImage, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Radius, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, Anchor, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(MotionBlur, SampleCount, int);

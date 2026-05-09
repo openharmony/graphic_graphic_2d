@@ -118,12 +118,17 @@ void RSRenderCurveAnimation::OnAttach()
     if (property_->GetPropertyType() != RSPropertyType::DRAW_CMD_LIST) {
         return;
     }
-    auto animationId = target->GetAnimationManager().preDrawCmdListAnimationId_;
-    auto preAnimation = target->GetAnimationManager().GetAnimation(animationId);
+    auto animationManager = target->GetAnimationManager();
+    if (!animationManager) {
+        return;
+    }
+    // check if any other DrawCmdList animation running on this property , and stop it
+    auto animationId = animationManager->preDrawCmdListAnimationId_;
+    auto preAnimation = animationManager->GetAnimation(animationId);
     if (preAnimation && preAnimation->GetPropertyId() == property_->GetId()) {
         preAnimation->FinishOnCurrentPosition();
     }
-    target->GetAnimationManager().preDrawCmdListAnimationId_ = id_;
+    animationManager->preDrawCmdListAnimationId_ = id_;
 }
 } // namespace Rosen
 } // namespace OHOS

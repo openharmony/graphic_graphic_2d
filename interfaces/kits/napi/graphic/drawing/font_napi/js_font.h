@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -69,6 +69,7 @@ public:
     static napi_value CreatePathForGlyph(napi_env env, napi_callback_info info);
     static napi_value GetBounds(napi_env env, napi_callback_info info);
     static napi_value CreatePathForText(napi_env env, napi_callback_info info);
+    static napi_value CreatePathForTextWithFallback(napi_env env, napi_callback_info info);
     static napi_value SetThemeFontFollowed(napi_env env, napi_callback_info info);
     static napi_value IsThemeFontFollowed(napi_env env, napi_callback_info info);
     static napi_value FontTransferDynamic(napi_env env, napi_callback_info info);
@@ -114,6 +115,7 @@ private:
     napi_value OnCreatePathForGlyph(napi_env env, napi_callback_info info);
     napi_value OnGetBounds(napi_env env, napi_callback_info info);
     napi_value OnCreatePathForText(napi_env env, napi_callback_info info);
+    napi_value OnCreatePathForTextWithFallback(napi_env env, napi_callback_info info);
     napi_value OnSetThemeFontFollowed(napi_env env, napi_callback_info info);
     napi_value OnIsThemeFontFollowed(napi_env env, napi_callback_info info);
 

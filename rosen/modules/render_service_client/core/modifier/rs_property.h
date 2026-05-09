@@ -126,7 +126,7 @@ public:
     /**
      * @brief Destructor for RSPropertyBase.
      */
-    virtual ~RSPropertyBase() = default;
+    virtual ~RSPropertyBase();
 
     /**
      * @brief Gets the ID of the property.

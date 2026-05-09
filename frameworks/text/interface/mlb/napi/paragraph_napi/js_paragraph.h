@@ -70,6 +70,7 @@ public:
     static napi_value GetTextDisplayState(napi_env env, napi_callback_info info);
     static napi_value GetParagraphStyle(napi_env env, napi_callback_info info);
     static napi_value LayoutWithConstraints(napi_env env, napi_callback_info info);
+    static napi_value ForceReuseRasterResult(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnLayout(napi_env env, napi_callback_info info);
@@ -109,6 +110,7 @@ private:
     napi_value OnGetTextDisplayState(napi_env env, napi_callback_info info);
     napi_value OnGetParagraphStyle(napi_env env, napi_callback_info info);
     napi_value OnLayoutWithConstraints(napi_env env, napi_callback_info info);
+    napi_value OnForceReuseRasterResult(napi_env env, napi_callback_info info);
     static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
     static std::mutex constructorMutex_;

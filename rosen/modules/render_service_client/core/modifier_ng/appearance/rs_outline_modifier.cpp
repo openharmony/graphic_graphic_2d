@@ -75,4 +75,14 @@ const Vector4f RSOutlineModifier::GetOutlineRadius() const
 {
     return Getter(RSPropertyType::OUTLINE_RADIUS, Vector4f(0.f));
 }
+
+void RSOutlineModifier::SetOutlineSDFShader(const std::shared_ptr<RSNGShaderBase>& shader)
+{
+    Setter<RSProperty, std::shared_ptr<RSNGShaderBase>>(RSPropertyType::OUTLINE_SDF_SHADER, shader);
+}
+
+std::shared_ptr<RSNGShaderBase> RSOutlineModifier::GetOutlineSDFShader() const
+{
+    return Getter<std::shared_ptr<RSNGShaderBase>>(RSPropertyType::OUTLINE_SDF_SHADER, nullptr);
+}
 } // namespace OHOS::Rosen::ModifierNG

@@ -232,7 +232,7 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue004, testing::
         0x00500D);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP), 0x005010);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID),
-        0x005012);
+        0x005013);
     EXPECT_EQ(static_cast<uint32_t>(
         RSIClientToServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK), 0x00500E);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK),

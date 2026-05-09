@@ -17,6 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
+RSAnimationTimingProtocol::~RSAnimationTimingProtocol() = default;
 const RSAnimationTimingProtocol RSAnimationTimingProtocol::DEFAULT = RSAnimationTimingProtocol(300);
 const RSAnimationTimingProtocol RSAnimationTimingProtocol::IMMEDIATE = RSAnimationTimingProtocol(0);
 } // namespace Rosen

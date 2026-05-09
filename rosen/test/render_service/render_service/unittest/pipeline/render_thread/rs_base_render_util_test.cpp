@@ -1737,9 +1737,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_NullSurfaceNodeParamsTest001
 
 /**
  * @tc.name: GetRotationLockParam_LogicalDegreeZeroTest001
- * @tc.desc: Test GetRotationLockParam when logicalDegree is 0
- *           The if (logicalDegree == 0) branch at line 1345 should be true
- *           totalRotationCorrectionDegree should equal screenDegree
+ * @tc.desc: Test GetRotationLockParam
  * @tc.type: FUNC
  * @tc.require: issue41
  */
@@ -1763,14 +1761,14 @@ HWTEST_F(RSBaseRenderUtilTest, GetRotationLockParam_LogicalDegreeZeroTest001, Te
     auto screenNodeParams = static_cast<RSScreenRenderParams*>(screenNode->GetStagingRenderParams().get());
     screenNodeParams->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_0);
 
-    // Set app rotation to 180 degrees (should be ignored when logicalDegree is 0)
+    // Set app rotation to 180 degrees (should not be ignored when logicalDegree is 0)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
     surfaceParams->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
 
     RSBaseRenderUtil::GetRotationLockParam(*node, screenNode);
 
-    // When logicalDegree is 0, totalRotationCorrectionDegree should equal screenDegree (90)
-    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 90);
+    // When logicalDegree is 0, totalRotationCorrectionDegree should equal screenDegree + logicalDegree +appDegree
+    EXPECT_EQ(surfaceParams->GetRotationCorrectionDegree(), 270);
 }
 
 /**

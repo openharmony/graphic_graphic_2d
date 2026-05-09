@@ -37,6 +37,7 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "feature/hdr/rs_colorspace_util.h"
@@ -129,6 +130,11 @@ bool RSRenderNode::IsPureContainer() const
 
 bool RSRenderNode::IsPureBackgroundColor() const
 {
+    if (HasValidDrawCmd()) {
+        RS_LOGD("drawCmdList is not none");
+        return false;
+    }
+
     static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
         RSDrawableSlot::SAVE_ALL,
         RSDrawableSlot::BG_SAVE_BOUNDS,
@@ -1230,7 +1236,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 #endif
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
-    animationManager_.DumpAnimations(out);
+    if (animationManager_) {
+        animationManager_->DumpAnimations(out);
+    }
     ChildrenListDump(out);
 
     for (auto& child : children_) {
@@ -1405,6 +1413,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", Size: [" + std::to_string(rootNode->GetRenderProperties().GetFrameWidth()) + ", " +
             std::to_string(rootNode->GetRenderProperties().GetFrameHeight()) + "]";
         out += ", EnableRender: " + std::to_string(rootNode->GetEnableRender());
+#ifndef ROSEN_ARKUI_X
     } else if (GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE) {
         auto displayNode = static_cast<const RSLogicalDisplayRenderNode*>(this);
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
@@ -1413,6 +1422,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
     } else if (GetType() == RSRenderNodeType::WINDOW_KEYFRAME_NODE) {
         auto wndKeyframeNode = static_cast<const RSWindowKeyFrameRenderNode*>(this);
         out += ", linkedNodeId: " + std::to_string(wndKeyframeNode->GetLinkedNodeId());
+#endif
     } else if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = static_cast<const RSCanvasDrawingRenderNode*>(this);
         out += ", lastResetSurfaceTime: " + std::to_string(canvasDrawingNode->lastResetSurfaceTime_);
@@ -1691,7 +1701,7 @@ RSRenderNode::~RSRenderNode()
 
 void RSRenderNode::FallbackAnimationsToRoot()
 {
-    if (animationManager_.animations_.empty()) {
+    if (!animationManager_ || animationManager_->animations_.empty()) {
         return;
     }
 
@@ -1707,7 +1717,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
     }
     context->RegisterAnimatingRenderNode(target);
 
-    for (auto& [unused, animation] : animationManager_.animations_) {
+    for (auto& [unused, animation] : animationManager_->animations_) {
         if (animation->IsPaused()) {
             animation->Resume();
         }
@@ -1719,9 +1729,9 @@ void RSRenderNode::FallbackAnimationsToRoot()
             animation->Attach(target.get());
             animation->RemoveFromGroupAnimator();
         }
-        target->animationManager_.AddAnimation(std::move(animation));
+        target->AddAnimation(std::move(animation));
     }
-    animationManager_.animations_.clear();
+    animationManager_->animations_.clear();
     // Check the next frame's VSync has been requested. If there is no request, add another VSync request
     if (!context->IsRequestedNextVsyncAnimate()) {
         context->RequestVsync();
@@ -1738,10 +1748,10 @@ void RSRenderNode::ActivateDisplaySync()
 
 void RSRenderNode::UpdateDisplaySyncRange()
 {
-    if (!displaySync_) {
+    if (!animationManager_ || !displaySync_) {
         return;
     }
-    auto animationRange = animationManager_.GetFrameRateRange();
+    auto animationRange = animationManager_->GetFrameRateRange();
     if (animationRange.IsValid()) {
         displaySync_->SetExpectedFrameRateRange(animationRange);
     }
@@ -1751,6 +1761,10 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
     int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime, int64_t period, bool isDisplaySyncEnabled)
 {
     RS_PROFILER_ANIMATION_NODE(GetType(), selfDrawRect_.GetWidth() * selfDrawRect_.GetWidth());
+    if (!animationManager_) {
+        ROSEN_LOGE("%{public}s: animationManager is nullptr, node[id:%{public}" PRIu64 "]", __func__, GetId());
+        return std::make_tuple(false, false, false);
+    }
     int64_t nextFrameTimeForThisAnimate = 0;
     bool needSkipCurrentAnimate = displaySync_ &&
         displaySync_->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTimeForThisAnimate);
@@ -1769,9 +1783,13 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
         }
     }
 
-    auto animateResult = animationManager_.Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
+    auto animateResult = animationManager_->Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
+    }
+    if (animationManager_->animations_.empty()) {
+        animationManager_.reset();
+        ROSEN_LOGD("%{public}s: animationManager reset", __func__);
     }
     return animateResult;
 }
@@ -1949,6 +1967,13 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
         }
         selfDrawRect_ = selfDrawRect_.JoinRect(filter->GetRect(boundsRect, EffectRectType::TOTAL));
     }
+    const auto& foregroundNGFilter = GetRenderProperties().GetForegroundNGFilter();
+    selfDrawRect_ =
+        selfDrawRect_.JoinRect(RSNGRenderFilterHelper::CalcRect(foregroundNGFilter, boundsRect, EffectRectType::DRAW));
+    const auto& materialShader = GetRenderProperties().GetMaterialShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(materialShader, boundsRect));
+    const auto& backgroundNGShader = GetRenderProperties().GetBackgroundNGShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(backgroundNGShader, boundsRect));
     const auto& overlayNGShader = GetRenderProperties().GetOverlayNGShader();
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(overlayNGShader, boundsRect));
 }
@@ -2611,7 +2636,8 @@ void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged
     auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
             dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
             dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE) ||
-            dirtySlots_.count(RSDrawableSlot::MATERIAL_FILTER);
+            dirtySlots_.count(RSDrawableSlot::MATERIAL_FILTER) ||
+            dirtySlots_.count(RSDrawableSlot::MATERIAL_SHADER);
     const auto& properties = GetRenderProperties();
 
     RSCacheFilterParaArray filterCacheHandles {
@@ -2775,6 +2801,7 @@ void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
         return;
     }
     auto hasBackground =
+        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::MATERIAL_SHADER)) ||
         findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)) ||
         findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_SHADER)) ||
         findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_IMAGE));
@@ -3276,10 +3303,11 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_EFFECT))) {
         ProcessBehindWindowAfterApplyModifiers();
     }
+#ifndef ROSEN_ARKUI_X
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS))) {
         RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(shared_from_this());
     }
-
+#endif
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
         " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(),
@@ -3302,6 +3330,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         auto canvasdrawingnode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         canvasdrawingnode->CheckCanvasDrawingPostPlaybacked();
     }
+    UpdateSDFTransformRectInfo();
     UpdateDrawableVecV2();
 
     UpdateFilterCacheWithBackgroundDirty();
@@ -3312,11 +3341,13 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     AddToPendingSyncList();
 
     // update rate decider scale reference size and scale.
-    animationManager_.SetRateDeciderSize(GetRenderProperties().GetBoundsWidth(),
-        GetRenderProperties().GetBoundsHeight());
-    animationManager_.SetRateDeciderScale(GetRenderProperties().GetScaleX(), GetRenderProperties().GetScaleY());
-    auto& rect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    animationManager_.SetRateDeciderAbsRect(rect.GetWidth(), rect.GetHeight());
+    if (animationManager_) {
+        animationManager_->SetRateDeciderSize(GetRenderProperties().GetBoundsWidth(),
+            GetRenderProperties().GetBoundsHeight());
+        animationManager_->SetRateDeciderScale(GetRenderProperties().GetScaleX(), GetRenderProperties().GetScaleY());
+        auto& rect = GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        animationManager_->SetRateDeciderAbsRect(rect.GetWidth(), rect.GetHeight());
+    }
 }
 
 void RSRenderNode::MarkParentNeedRegenerateChildren() const
@@ -3444,6 +3475,10 @@ void RSRenderNode::UpdateDisplayList()
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SHADOW);
 
     AppendDrawFunc(RSDrawableSlot::OUTLINE);
+
+    // Update index of MATERIAL_SHADER
+    stagingDrawCmdIndex_.materialShaderIndex_ = AppendDrawFunc(RSDrawableSlot::MATERIAL_SHADER);
+    
     stagingDrawCmdIndex_.renderGroupBeginIndex_ = stagingDrawCmdList_.size();
     stagingDrawCmdIndex_.foregroundFilterBeginIndex_ = static_cast<int8_t>(stagingDrawCmdList_.size());
 
@@ -3972,7 +4007,9 @@ void RSRenderNode::OnTreeStateChanged()
     if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
         ProcessBehindWindowOnTreeStateChanged();
     }
+#ifndef ROSEN_ARKUI_X
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(shared_from_this());
+#endif
 }
 
 void RSRenderNode::HandleNodeRemovedFromTree()
@@ -4265,10 +4302,19 @@ bool RSRenderNode::IsRenderUpdateIgnored() const
 {
     return isRenderUpdateIgnored_;
 }
-RSAnimationManager& RSRenderNode::GetAnimationManager()
+std::shared_ptr<RSAnimationManager> RSRenderNode::GetAnimationManager() const
 {
     return animationManager_;
 }
+
+void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
+{
+    if (!animationManager_) {
+        animationManager_ = std::make_shared<RSAnimationManager>();
+    }
+    animationManager_->AddAnimation(animation);
+}
+
 RectI RSRenderNode::GetOldDirty() const
 {
     return oldDirty_;
@@ -4393,7 +4439,7 @@ bool RSRenderNode::HasSubSurface() const
 }
 bool RSRenderNode::HasAnimation() const
 {
-    return !animationManager_.animations_.empty();
+    return animationManager_ && !animationManager_->animations_.empty();
 }
 void RSRenderNode::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 {
@@ -5176,6 +5222,38 @@ const RSRenderNode::ModifiersNGMap& RSRenderNode::GetAllModifiers() const
     return modifiersNG_;
 }
 
+bool RSRenderNode::HasValidDrawCmd() const
+{
+    // modifiers with draw cmdlist, such as CONTENT_STYLE, TRANSITION_STYLE, BACKGROUND_STYLE, FOREGROUND_STYLE,
+    // OVERLAY_STYLE and NODE_MODIFIER, should judge whether there is valid cmdlist in modifier.
+    for (uint16_t type = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSITION_STYLE);
+        type <= static_cast<uint16_t>(ModifierNG::RSModifierType::NODE_MODIFIER); type++) {
+        const auto& modifierContainer = GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
+        for (const auto& modifier : modifierContainer) {
+            const auto& cmdList = modifier->GetPropertyDrawCmdList();
+            if (cmdList != nullptr && !cmdList->IsEmpty()) {
+                return true;
+            }
+        }
+    }
+
+    // other modifiers
+    bool ret = !GetModifiersNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER).empty() ||
+               !GetModifiersNG(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR).empty() ||
+               !GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS).empty() ||
+               !GetModifiersNG(ModifierNG::RSModifierType::CHILDREN).empty();
+    if (!ret) {
+        const auto& clipToFrameModifiers = GetModifiersNG(ModifierNG::RSModifierType::CLIP_TO_FRAME);
+        for (const auto& modifier : clipToFrameModifiers) {
+            if (modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
+                ret = true;
+                break;
+            }
+        }
+    }
+    return ret;
+}
+
 bool RSRenderNode::HasDrawCmdModifiers() const
 {
     bool ret = !GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE).empty() ||
@@ -5420,7 +5498,7 @@ std::shared_ptr<RSFilter> RSRenderNode::GetRSFilterWithSlot(RSDrawableSlot slot)
     }
 }
 
-void RSRenderNode::UpdateFilterRectInfo()
+void RSRenderNode::UpdateSDFTransformRectInfo()
 {
     auto boundsRect = GetRenderProperties().GetBoundsRect();
     auto sdfShape = GetRenderProperties().GetSDFShape();
@@ -5428,6 +5506,11 @@ void RSRenderNode::UpdateFilterRectInfo()
         // Calc transform draw rect and store in sdf shape instance
         RSNGRenderShapeHelper::CalcRect(sdfShape, boundsRect);
     }
+}
+
+void RSRenderNode::UpdateFilterRectInfo()
+{
+    auto boundsRect = GetRenderProperties().GetBoundsRect();
     for (auto slot : filterDrawableSlotsSupportGetRect) {
         std::shared_ptr<RSFilter> filter = GetRSFilterWithSlot(slot);
         if (filter == nullptr) {

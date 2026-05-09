@@ -15,7 +15,6 @@
 #include <chrono>
 #include <thread>
 #include <unistd.h>
-#include <vulkan/vulkan.h>
 #include <window.h>
 #include <gtest/gtest.h>
 #include <dlfcn.h>
@@ -29,6 +28,7 @@
 #include "transaction/rs_transaction.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+#include "vulkan/vulkan.h"
 
 using namespace testing;
 using namespace testing::ext;

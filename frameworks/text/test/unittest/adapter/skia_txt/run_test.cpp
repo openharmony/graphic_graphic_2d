@@ -274,5 +274,16 @@ HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest003, TestSize.Level0)
     EXPECT_EQ(runNull->GetTextDirection(), OHOS::Rosen::TextDirection::LTR);
     EXPECT_EQ(runNull->GetAdvances(0, 0), std::vector<Drawing::Point>());
 }
+
+/*
+ * @tc.name: RunGetTextStyleTest001
+ * @tc.desc: test for nullptr, only for get textStyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingRunTest, RunGetTextStyleTest001, TestSize.Level0)
+{
+    std::unique_ptr<AdapterTxt::RunImpl> runNull = std::make_unique<AdapterTxt::RunImpl>(nullptr);
+    EXPECT_DOUBLE_EQ(runNull->GetTextStyle().fontSize, 14.0); // 14.0: the default fontsize
+}
 } // namespace Rosen
 } // namespace OHOS

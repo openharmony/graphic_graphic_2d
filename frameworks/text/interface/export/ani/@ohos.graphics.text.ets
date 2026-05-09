@@ -29,7 +29,7 @@ const TEXT_LOG_TAG = "Text";
 export default namespace text {
   loadLibraryWithPermissionCheck('drawing_ani_core', "@ohos.graphics.text");
   loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text");
-  const ERROR_INVALID_PARAM = 401;
+  const ERROR_INVALID_PARAM: int = 401;
 
   class Cleaner {
     static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
@@ -42,10 +42,10 @@ export default namespace text {
     native clean(): void;
   }
 
-  let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
+  let destroyRegister: FinalizationRegistry<Cleaner> = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
     cleaner.clean();
   });
-  let unregisterToken = new object();
+  let unregisterToken: Object = new object();
 
   export class FontCollection {
     static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
@@ -208,6 +208,7 @@ export default namespace text {
     native getProcessState(): TextProcessState;
     native getTextDisplayState(): TextDisplayState;
     native getParagraphStyle(): ParagraphStyle;
+    native forceReuseRasterResult(isForce: boolean): void;
     native getCharacterRangeForGlyphRange(glyphRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getGlyphRangeForCharacterRange(characterRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getCharacterPositionAtCoordinate(x: double, y: double, encoding: drawing.TextEncoding): PositionWithAffinity;
@@ -998,6 +999,7 @@ export default namespace text {
     native getImageBounds(): common2D.Rect;
     native getTextDirection(): TextDirection;
     native getAdvances(range: Range): Array<common2D.Point> | undefined;
+    native getTextStyle(): TextStyle;
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {

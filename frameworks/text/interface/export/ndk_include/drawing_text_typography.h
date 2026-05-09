@@ -680,6 +680,52 @@ typedef enum OH_Drawing_TypographyStyleAttributeId {
 } OH_Drawing_TypographyStyleAttributeId;
 
 /**
+ * @brief Enumerates typography attribute.
+ *
+ * @since 26.0.0
+ */
+typedef enum OH_Drawing_TypographyAttributeId {
+    /**
+     * Whether to force reuse the rasterization result.
+     * True means to force reuse of the rasterization result. False means to allow updates to the rasterization result.
+     * The default value is false.
+     * @since 26.0.0
+     */
+    TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT = 0,
+} OH_Drawing_TypographyAttributeId;
+
+/**
+ * @brief Gets the bool type property's value from the typography.
+ *
+ * @param typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param id Indicates the attribute id.
+ * @param value Indicates the return value of the interface.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the typography or value is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetTypographyAttributeBool(const OH_Drawing_Typography* typography,
+    OH_Drawing_TypographyAttributeId id, bool* value);
+
+/**
+ * @brief Sets bool value to the typography attribute.
+ *
+ * @param typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param id Indicates the attribute id.
+ * @param value Indicates the value to set.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the typography is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_SetTypographyAttributeBool(OH_Drawing_Typography* typography,
+    OH_Drawing_TypographyAttributeId id, bool value);
+
+
+/**
  * @brief Sets double value to the text style attribute.
  *
  * @param style Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.

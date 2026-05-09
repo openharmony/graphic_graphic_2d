@@ -1675,6 +1675,9 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode003, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
     surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -1714,6 +1717,9 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode004, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
     surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
 
     auto& rtThread = RSUniRenderThread::Instance();
     if (!rtThread.GetRSRenderThreadParams()) {
@@ -2025,6 +2031,9 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode005, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
     surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
 
     auto& rtThread = RSUniRenderThread::Instance();
     if (!rtThread.GetRSRenderThreadParams()) {
@@ -2072,6 +2081,9 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode006, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
     surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
 
     auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
     ASSERT_NE(hardwareSurfaceNode, nullptr);
@@ -2130,6 +2142,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode007, TestSize.Level1)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->layerInfo_.zOrder = lowZOrder;
+    surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
 
     auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
     ASSERT_NE(hardwareSurfaceNode, nullptr);
@@ -2199,6 +2212,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode008, TestSize.Level1)
     auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawableAdapter->renderParams_.get());
     ASSERT_NE(hardwareParams, nullptr);
     hardwareParams->layerInfo_.zOrder = lowZOrder;
+    surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
 
     auto& rtThread = RSUniRenderThread::Instance();
     if (!rtThread.GetRSRenderThreadParams()) {
@@ -2250,6 +2264,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode009, TestSize.Level1)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->layerInfo_.zOrder = equalZOrder;
+    surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
 
     auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
     ASSERT_NE(hardwareSurfaceNode, nullptr);
@@ -2356,6 +2371,7 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode011, TestSize.Level1)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->layerInfo_.zOrder = highZOrder;
+    surfaceParams->backgroundColor_.alpha_ = UINT8_MAX;
 
     auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
     ASSERT_NE(hardwareSurfaceNode, nullptr);
@@ -2381,5 +2397,47 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode011, TestSize.Level1)
     screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode012
+ * @tc.desc: test ProcessSingleSelfDrawingNode with transparent background color
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode012, TestSize.Level1)
+{
+    constexpr NodeId displayNodeId = 1;
+    constexpr NodeId defaultDisplayId = 2;
+    constexpr NodeId surfaceId = 3;
+
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->backgroundColor_ = Color(UINT8_MAX, UINT8_MAX, UINT8_MAX, 0);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, false);
 }
 } // namespace OHOS::Rosen

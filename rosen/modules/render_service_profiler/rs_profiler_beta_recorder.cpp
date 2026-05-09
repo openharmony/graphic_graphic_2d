@@ -54,9 +54,10 @@ static bool HasInitializationFinished()
 
 static std::string GetBetaRecordFileName(uint32_t index)
 {
-    constexpr uint32_t ten = 10u;
-    const std::string cacheFile("/data/service/el0/render_service/file");
-    return cacheFile + ((index < ten) ? "0" : "") + std::to_string(index) + ".ohr";
+    const auto process = Utils::GetFileName(Utils::GetCurrentProcessName());
+    return ((process.find("render_service:") == process.npos) || (process == "render_service:0"))
+               ? Utils::Format("/data/service/el0/render_service/file%02d.ohr", index)
+               : Utils::Format("/data/service/el0/render_service/%s-file%02d.ohr", process.data(), index);
 }
 
 void RSProfiler::LaunchBetaRecordFileSplitThread()

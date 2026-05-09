@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <vector>
 
 #include "impl_interface/font_mgr_impl.h"
 #include "text/font_style.h"
@@ -39,6 +40,11 @@ public:
         : strData(std::move(data)), strLen(dataLen) {}
     std::unique_ptr<uint8_t[]> strData; // A byte array in UTF-16BE encoding
     uint32_t strLen;
+};
+
+struct FontFallbackInfo {
+    std::shared_ptr<Typeface> typeface;
+    std::vector<uint16_t> glyphIds;
 };
 
 class DRAWING_API FontMgr {
@@ -105,6 +111,42 @@ public:
     Typeface* MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                         const char* bcp47[], int bcp47Count,
                                         int32_t character) const;
+
+    /**
+     * @brief             Resolve typeface and glyph IDs for each codepoint in a string.
+     *
+     * Two-phase matching strategy:
+     *   Phase 1 (prior typeface): If @p prior is provided, every codepoint is probed
+     *            with it via Font::UnicharToGlyph.  Codepoints that produce a non-zero
+     *            glyph ID are assigned to the prior typeface immediately.
+     *   Phase 2 (system fallback): Remaining unmatched codepoints are resolved through
+     *            MatchFamilyStyleCharacter.  Each newly discovered typeface is also used
+     *            to probe the remaining unmatched codepoints (batch optimisation), so
+     *            that one MatchFamilyStyleCharacter call can cover many codepoints.
+     *
+     * Codepoints that remain unmatched after both phases appear in the output as a run
+     * with typeface == nullptr and glyphId == 0.
+     *
+     * The output is a vector of FontFallbackInfo, where consecutive codepoints that
+     * share the same typeface (including nullptr) are merged into a single run.
+     *
+     * @param codepoints  UTF-32 codepoints (UCS-4, one codepoint per int32_t).
+     * @param prior       A preferred typeface to try first for all codepoints.
+     *                    May be nullptr, in which case Phase 1 is skipped entirely.
+     * @param fontStyle   Font style used for system fallback matching.
+     * @param bcp47       BCP 47 locale tags (e.g. { "zh-Hant" }) that influence
+     *                    which fallback font is chosen for locale-dependent scripts.
+     * @param familyName  Font family name hint passed to MatchFamilyStyleCharacter,
+     *                    or nullptr for the system default.
+     * @return            A vector of FontFallbackInfo runs ordered by position.
+     *                    Each run contains a typeface (may be nullptr for unmatched
+     *                    codepoints) and the corresponding glyph IDs (0 if unmatched).
+     *                    Returns an empty vector when @p codepoints is empty or
+     *                    the font manager is not initialised.
+     */
+    std::vector<FontFallbackInfo> GetFallbacksForString(const std::vector<int32_t>& codepoints,
+        const std::shared_ptr<Typeface>& prior = nullptr, const FontStyle& fontStyle = {},
+        const std::vector<std::string>& bcp47 = {}, const char* familyName = nullptr) const;
 
     /**
      * @brief             Find a fontStyleSet for the given familyName.

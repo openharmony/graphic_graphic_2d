@@ -15,9 +15,7 @@
 
 #include "rsrootnode_fuzzer.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <securec.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -25,93 +23,74 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* g_data = nullptr;
-size_t g_size = 0;
-size_t g_pos;
-} // namespace
-
-/*
- * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
- * tips: only support basic type
- */
-template<class T>
-T GetData()
-{
-    T object {};
-    size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
-    if (ret != EOK) {
-        return {};
-    }
-    g_pos += objectSize;
-    return object;
+const uint8_t DO_CREATE = 0;
+const uint8_t DO_GET_TYPE = 1;
+const uint8_t DO_ATTACH_SURFACE = 2;
+const uint8_t DO_ENABLE_RENDER = 3;
+const uint8_t DO_BOUNDS_CHANGED = 4;
+const uint8_t TARGET_SIZE = 5;
 }
 
-bool Init(const uint8_t* data, size_t size)
+void DoCreate(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    return true;
+    RSRootNode::Create(fdp.ConsumeBool());
 }
 
-bool DoCreate()
+void DoGetType(FuzzedDataProvider& fdp)
 {
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    RSRootNode::Create(isRenderServiceNode);
-    return true;
-}
-
-bool DoGetType()
-{
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    auto node = std::make_shared<RSRootNode>(isRenderServiceNode);
+    auto node = std::make_shared<RSRootNode>(fdp.ConsumeBool());
     node->GetType();
-    return true;
 }
 
-bool DoSetEnableRender()
+void DoAttachRSSurfaceNode(FuzzedDataProvider& fdp)
 {
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    auto node = std::make_shared<RSRootNode>(isRenderServiceNode);
-    bool flag = GetData<bool>();
-    node->SetEnableRender(flag);
-    return true;
+    auto node = std::make_shared<RSRootNode>(fdp.ConsumeBool());
+    Rosen::RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    node->AttachRSSurfaceNode(surfaceNode);
 }
 
-bool DoOnBoundsSizeChanged()
+void DoSetEnableRender(FuzzedDataProvider& fdp)
 {
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    auto node = std::make_shared<RSRootNode>(isRenderServiceNode);
+    auto node = std::make_shared<RSRootNode>(fdp.ConsumeBool());
+    node->SetEnableRender(fdp.ConsumeBool());
+}
+
+void DoOnBoundsSizeChanged(FuzzedDataProvider& fdp)
+{
+    auto node = std::make_shared<RSRootNode>(fdp.ConsumeBool());
     node->OnBoundsSizeChanged();
-    return true;
 }
+
 } // namespace Rosen
 } // namespace OHOS
 
-/* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (!OHOS::Rosen::Init(data, size)) {
+    if (data == nullptr) {
         return -1;
     }
-    
-    /* Run your code on data */
-    OHOS::Rosen::DoCreate();
-    OHOS::Rosen::DoGetType();
-    OHOS::Rosen::DoSetEnableRender();
-    OHOS::Rosen::DoOnBoundsSizeChanged();
+
+    FuzzedDataProvider fdp(data, size);
+    uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_CREATE:
+            OHOS::Rosen::DoCreate(fdp);
+            break;
+        case OHOS::Rosen::DO_GET_TYPE:
+            OHOS::Rosen::DoGetType(fdp);
+            break;
+        case OHOS::Rosen::DO_ATTACH_SURFACE:
+            OHOS::Rosen::DoAttachRSSurfaceNode(fdp);
+            break;
+        case OHOS::Rosen::DO_ENABLE_RENDER:
+            OHOS::Rosen::DoSetEnableRender(fdp);
+            break;
+        case OHOS::Rosen::DO_BOUNDS_CHANGED:
+            OHOS::Rosen::DoOnBoundsSizeChanged(fdp);
+            break;
+        default:
+            break;
+    }
     return 0;
 }
-

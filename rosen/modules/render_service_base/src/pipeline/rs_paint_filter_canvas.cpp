@@ -1782,6 +1782,19 @@ RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing:
       geCacheProvider_(std::move(cacheProvider))
 {}
 
+std::shared_ptr<Drawing::Image> RSPaintFilterCanvas::CachedEffectData::GetProviderDataChecked()
+{
+    if (geCacheProvider_ == nullptr || geCacheProvider_->GetFirst() == nullptr) {
+        return nullptr;
+    }
+    auto iGECacheData = geCacheProvider_->GetFirst();
+    auto imageCacheData = iGECacheData->As<GEImageCache>();
+    if (imageCacheData == nullptr) {
+        return nullptr;
+    }
+    return imageCacheData->data;
+}
+
 std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const
 {
     if (cachedImage_ == nullptr) {

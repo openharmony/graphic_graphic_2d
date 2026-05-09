@@ -125,6 +125,20 @@ bool SkiaTypeface::GetItalic() const
     return skTypeface_->isItalic();
 }
 
+bool SkiaTypeface::GetMonospace() const
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+    return skTypeface_->isFixedPitch();
+}
+
+bool SkiaTypeface::IsColored() const
+{
+    return false;
+}
+
 uint32_t SkiaTypeface::GetUniqueID() const
 {
     if (!skTypeface_) {

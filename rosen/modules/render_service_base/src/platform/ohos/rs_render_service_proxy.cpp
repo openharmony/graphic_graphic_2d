@@ -105,7 +105,12 @@ bool RSRenderServiceProxy::RemoveConnection(const sptr<RSIConnectionToken>& toke
         ROSEN_LOGE("RemoveConnection(): SendRequest failed, err is %{public}d.", err);
         return false;
     }
-    return reply.ReadBool();
+    bool result = false;
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RemoveConnection():  ReadBool failed");
+        return false;
+    }
+    return result;
 }
 
 sptr<IRemoteObject> RSRenderServiceProxy::RegisterRenderProcessConnection()

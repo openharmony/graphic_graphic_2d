@@ -15,11 +15,14 @@
 #ifndef UIEFFECT_MASK_H
 #define UIEFFECT_MASK_H
 #include <memory>
+
 #include "mask_para.h"
+
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-class Mask final {
+class RSC_EXPORT Mask final {
 public:
     Mask() = default;
     ~Mask() = default;
@@ -38,6 +41,8 @@ public:
     {
         return para_;
     }
+
+    static void RegisterUnmarshallingCallback();
 
 private:
     std::shared_ptr<MaskPara> para_ = std::make_shared<MaskPara>();

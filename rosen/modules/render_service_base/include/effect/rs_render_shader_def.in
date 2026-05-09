@@ -121,7 +121,7 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, BlendK),
     ADD_PROPERTY_TAG(ColorGradientEffect, Brightness)
 );
-
+#ifndef ROSEN_ARKUI_X
 DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl),
@@ -153,7 +153,7 @@ DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, WaveMask),
     ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor)
 );
-
+#endif
 DECLARE_SHADER(HarmoniumEffect, HARMONIUM_EFFECT,
     ADD_PROPERTY_TAG(HarmoniumEffect, Mask),
     ADD_PROPERTY_TAG(HarmoniumEffect, MaskClock),
@@ -282,6 +282,16 @@ DECLARE_SHADER(SDFEdgeLightEffect, SDF_EDGE_LIGHT_EFFECT,
     ADD_PROPERTY_TAG(SDFEdgeLightEffect, SDFImage),
     ADD_PROPERTY_TAG(SDFEdgeLightEffect, LightMask),
     ADD_PROPERTY_TAG(SDFEdgeLightEffect, SDFShape)
+);
+
+DECLARE_SHADER(BorderSDFShader, BORDER_SDF_SHADER,
+    ADD_PROPERTY_TAG(BorderSDFShader, Color),
+    ADD_PROPERTY_TAG(BorderSDFShader, Width),
+    ADD_PROPERTY_TAG(BorderSDFShader, IsOutline),
+    ADD_PROPERTY_TAG(BorderSDFShader, Style),
+    ADD_PROPERTY_TAG(BorderSDFShader, DashWidth),
+    ADD_PROPERTY_TAG(BorderSDFShader, DashGap),
+    ADD_PROPERTY_TAG(BorderSDFShader, Shape)
 );
 
 DECLARE_SHADER(SpatialPointLight, SPATIAL_POINT_LIGHT,

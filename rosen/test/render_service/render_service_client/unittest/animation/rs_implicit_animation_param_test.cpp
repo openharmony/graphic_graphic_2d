@@ -13,17 +13,20 @@
  * limitations under the License.
  */
 
+#include <unistd.h>
+
 #include "gtest/gtest.h"
+
 #include "animation/rs_animation.h"
+#include "animation/rs_curve_animation.h"
 #include "animation/rs_implicit_animation_param.h"
+#include "animation/rs_keyframe_animation.h"
 #include "animation/rs_motion_path_option.h"
 #include "modifier/rs_property.h"
-#include "ui/rs_node.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_node.h"
 #include "ui/rs_ui_context_manager.h"
-#include "animation/rs_curve_animation.h"
-#include "animation/rs_keyframe_animation.h"
-#include <unistd.h>
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"
 #include "sandbox_utils.h"
@@ -51,12 +54,21 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSUIContext> CreateRSUIContext();
 };
 
 void RSImplicitAnimationParamTest::SetUpTestCase() {}
 void RSImplicitAnimationParamTest::TearDownTestCase() {}
 void RSImplicitAnimationParamTest::SetUp() {}
 void RSImplicitAnimationParamTest::TearDown() {}
+
+std::shared_ptr<RSUIContext> RSImplicitAnimationParamTest::CreateRSUIContext()
+{
+    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+    sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+    return rsUIContext;
+}
 
 /**
  * @tc.name: ApplyTimingProtocolTest
@@ -325,61 +337,45 @@ HWTEST_F(RSImplicitAnimationParamTest, SyncPropertiesTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ExecuteSyncPropertiesTaskTest
- * @tc.desc: Verify the ExecuteSyncPropertiesTask
+ * @tc.name: ExecuteSyncPropertiesTask_WithNullContext
+ * @tc.desc: Verify ExecuteSyncPropertiesTask returns TASK_EXECUTION_FAILURE when rsUIContext is null
  * @tc.type: FUNC
  */
-HWTEST_F(RSImplicitAnimationParamTest, ExecuteSyncPropertiesTaskTest, TestSize.Level1)
+HWTEST_F(RSImplicitAnimationParamTest, ExecuteSyncPropertiesTask_WithNullContext, TestSize.Level1)
 {
     RSAnimationTimingProtocol protocol;
-    RSAnimationTimingCurve curve = RSAnimationTimingCurve::EASE_IN_OUT;
     RSImplicitCancelAnimationParam animationParam(protocol);
 
-    // case1: rsUIContext is null
     std::shared_ptr<RSUIContext> rsUIContext = nullptr;
-    {
-        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
-        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
-    }
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
+    auto result = animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext);
+    EXPECT_EQ(result, CancelAnimationStatus::TASK_EXECUTION_FAILURE);
+}
 
-    // case2: rsUIContext not null
+/**
+ * @tc.name: ExecuteSyncPropertiesTask_ReturnTaskExecutionFailure
+ * @tc.desc: Verify ExecuteSyncPropertiesTask returns TASK_EXECUTION_FAILURE in unit test environment
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, ExecuteSyncPropertiesTask_ReturnTaskExecutionFailure, TestSize.Level1)
+{
+    RSAnimationTimingProtocol protocol;
+    RSImplicitCancelAnimationParam animationParam(protocol);
+
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    {
-        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
-        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
-    }
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
 
     auto node = RSCanvasNode::Create();
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto renderProperty = std::make_shared<RSRenderAnimatableProperty<float>>(1.f);
-    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMapValue;
-    propertiesMapValue.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), property->GetId()),
+
+    RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
+    propertiesMap.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), property->GetId()),
         std::make_pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>(
             renderProperty, node->GetAnimationByPropertyId(property->GetId())));
-    propertiesMapValue.emplace(std::make_pair<NodeId, PropertyId>(node->GetId(), property->GetId()),
-        std::make_pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>(
-            nullptr, node->GetAnimationByPropertyId(property->GetId())));
 
-    {
-        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap = propertiesMapValue;
-        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
-    }
-
-    // case3: in node map
-    auto& nodeMap = rsUIContext->GetMutableNodeMap();
-    nodeMap.RegisterNode(node);
-    {
-        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap = propertiesMapValue;
-        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
-    }
-
-    // cas4: node has property
-    node->properties_[property->GetId()] = property;
-    {
-        RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap = propertiesMapValue;
-        ASSERT_FALSE(animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext));
-    }
+    auto result = animationParam.ExecuteSyncPropertiesTask(std::move(propertiesMap), false, rsUIContext);
+    EXPECT_EQ(result, CancelAnimationStatus::TASK_EXECUTION_FAILURE);
 }
 
 /**
@@ -421,5 +417,23 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimationTest, TestSize.Level1)
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
     auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_TRUE(animationParam.CreateAnimation(rsUIContext, property, startValue, endValue));
+}
+
+/**
+ * @tc.name: UpdateStatusByPriority_ReturnEmptyPendingSyncList
+ * @tc.desc: Verify SyncProperties returns EMPTY_PENDING_SYNC_LIST when no properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimationParamTest, UpdateStatusByPriority_ReturnEmptyPendingSyncList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest UpdateStatusByPriority_ReturnEmptyPendingSyncList start";
+    RSAnimationTimingProtocol protocol;
+    RSImplicitCancelAnimationParam animationParam(protocol);
+
+    auto rsUIContext = CreateRSUIContext();
+    auto status = animationParam.SyncProperties(rsUIContext);
+    EXPECT_EQ(status, CancelAnimationStatus::EMPTY_PENDING_SYNC_LIST);
+
+    GTEST_LOG_(INFO) << "RSAnimationTest UpdateStatusByPriority_ReturnEmptyPendingSyncList end";
 }
 } // namespace OHOS::Rosen

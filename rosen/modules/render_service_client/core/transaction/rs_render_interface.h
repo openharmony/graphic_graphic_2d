@@ -412,6 +412,7 @@ public:
     void SetFreeMultiWindowStatus(bool enable);
 
 private:
+    RSRenderInterface();
     RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);

@@ -45,6 +45,10 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSDFTriangleShape>();
         }
     },
+    {RSNGEffectType::SDF_PATH_SHAPE, [] {
+            return std::make_shared<RSNGRenderSDFPathShape>();
+        }
+    },
     {RSNGEffectType::SDF_PIXELMAP_SHAPE, [] {
             return std::make_shared<RSNGRenderSDFPixelmapShape>();
         }
@@ -149,15 +153,19 @@ std::shared_ptr<RSNGRenderShapeBase> RSNGRenderShapeBase::Create(RSNGEffectType 
     return false;
 }
 
-RectF RSNGRenderShapeHelper::CalcRect(const std::shared_ptr<RSNGRenderShapeBase>& shape, const RectF& bound)
+RectF RSNGRenderShapeHelper::CalcRect(
+    const std::shared_ptr<RSNGRenderShapeBase>& shape, const RectF& bound, bool needUpdate)
 {
     if (shape == nullptr) {
         return bound;
     }
 
     auto iter = getTransformRectLUT.find(shape->GetType());
-    shape->transformDrawRect_ = iter == getTransformRectLUT.end() ? bound : iter->second(shape, bound);
-    return shape->transformDrawRect_;
+    auto result = iter == getTransformRectLUT.end() ? bound : iter->second(shape, bound);
+    if (needUpdate) {
+        shape->transformDrawRect_ = bound.JoinRect(result);
+    }
+    return result;
 }
 } // namespace Rosen
 } // namespace OHOS

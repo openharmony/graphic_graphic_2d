@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int DEFAULT_QUICK_SKIP_PREPARE_TYPE_VALUE = 3;
-int ConvertToInt(const char *originValue, int defaultValue)
+static int ConvertToInt(const char *originValue, int defaultValue)
 {
     return originValue == nullptr ? defaultValue : std::atoi(originValue);
 }

@@ -37,7 +37,7 @@ public:
 HWTEST_F(RSProfilerSocketTest, RSProfilerSocketConnectedTest, testing::ext::TestSize.Level1)
 {
     Socket s;
-    s.Open(5050);
+    s.Open("render_service_profiler");
     s.Shutdown();
     EXPECT_FALSE(s.Connected());
 }
@@ -51,7 +51,7 @@ HWTEST_F(RSProfilerSocketTest, RSProfilerSocketConnectedTest, testing::ext::Test
 HWTEST_F(RSProfilerSocketTest, RSProfilerSocketShutdownTest, testing::ext::TestSize.Level1)
 {
     Socket s;
-    s.Open(5050);
+    s.Open("render_service_profiler");
     s.Shutdown();
     EXPECT_EQ(s.GetState(), SocketState::SHUTDOWN);
     EXPECT_EQ(s.socket_, -1);
