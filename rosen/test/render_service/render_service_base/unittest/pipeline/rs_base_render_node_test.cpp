@@ -1085,8 +1085,7 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateRenderStatus, TestSize.Level1)
     node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
 
     isPartialRenderEnabled = true;
-    node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
-    ASSERT_TRUE(node->isRenderUpdateIgnored_);
+    ASSERT_TRUE(node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled));
 }
 
 /**

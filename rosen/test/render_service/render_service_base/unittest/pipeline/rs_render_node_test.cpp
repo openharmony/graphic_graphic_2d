@@ -152,6 +152,9 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderStatus001, TestSize.Level1)
     RectI dirtyRegion;
     bool isPartialRenderEnabled = false;
     node.UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
+
+    isPartialRenderEnabled = true;
+    ASSERT_TRUE(node.UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled));
 }
 
 /**
@@ -3551,7 +3554,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionInfoForDFX001, TestSize.Level1)
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     canvasNode->lastFrameSubTreeSkipped_ = true;
-    canvasNode->subTreeDirtyRegion_ = RectI(0, 0, DEFAULT_BOUNDS_SIZE, DEFAULT_BOUNDS_SIZE);
     // 'resize' added to avoid segmentation fault crash in
     // the RSDirtyRegionManager::UpdateDirtyRegionInfoForDfx() in line
     // dirtyCanvasNodeInfo_[dirtyType].emplace(std::make_pair(id, rect))
@@ -3938,9 +3940,6 @@ HWTEST_F(RSRenderNodeTest, SyncWhiteListInfoToParent, TestSize.Level1)
     parent = std::make_shared<RSRenderNode>(id + 1);
     node->SetParent(parent);
     ASSERT_NE(node->parent_.lock(), nullptr);
-    ScreenId screenId = 1;
-    node->screensWithSubTreeWhitelist_.insert(screenId);
-    node->SyncWhiteListInfoToParent();
 }
 
 /*

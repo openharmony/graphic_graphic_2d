@@ -509,8 +509,7 @@ public:
     {
         return renderProperties_;
     }
-    void UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
-    bool IsRenderUpdateIgnored() const;
+    bool UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
 
     std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
@@ -662,7 +661,6 @@ public:
     }
 
     void SetDrawRegion(const std::shared_ptr<RectF>& rect);
-    const std::shared_ptr<RectF>& GetDrawRegion() const;
     void SetOutOfParent(OutOfParentType outOfParent);
     OutOfParentType GetOutOfParent() const;
 
@@ -1006,16 +1004,9 @@ public:
     {
         return opincCache_;
     }
+    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
 
-    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-    {
-        screensWithSubTreeWhitelist_.insert(screenIds.begin(), screenIds.end());
-    }
-
-    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-    {
-        screensWithSubTreeWhitelist_ = screenIds;
-    }
+    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
 
     void SyncWhiteListInfoToParent();
     bool IsForegroundFilterEnable();
@@ -1135,7 +1126,6 @@ protected:
         isDirtyRegionUpdated_ = true;
     }
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
-    bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
     bool IsSelfDrawingNode() const;
     bool needClearSurface_ = false;
@@ -1273,7 +1263,6 @@ private:
     RectF selfDrawRect_;
     // map parentMatrix
     RectI absDrawRect_;
-    RectF absDrawRectF_;
     RectI oldAbsDrawRect_;
     // round in by absDrawRectF_, only used for opaque region calculations
     RectI innerAbsDrawRect_;
@@ -1287,7 +1276,6 @@ private:
     RectI oldClipRect_;
     // aim to record children rect in abs coords, without considering clip
     // aim to record current frame clipped children dirty region, in abs coords
-    RectI subTreeDirtyRegion_;
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     RectI globalCornerRect_;
     RectF selfDrawingNodeDirtyRect_;
@@ -1330,8 +1318,6 @@ private:
     std::string nodeName_ = "";
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
-
-    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_ = {};
 
     RSProperties renderProperties_;
 
