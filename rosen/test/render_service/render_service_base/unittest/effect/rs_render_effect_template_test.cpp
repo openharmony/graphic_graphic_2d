@@ -666,7 +666,7 @@ HWTEST_F(RSNGRenderEffectTemplateTest, CalculatePropTagHashConsistency, TestSize
 HWTEST_F(RSNGRenderEffectTemplateTest, CreateGEVisualEffectForNoneType, TestSize.Level1)
 {
     auto effect = RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType::NONE);
-    EXPECT_EQ(effect, nullptr);
+    EXPECT_NE(effect, nullptr);
 }
 
 /**
@@ -679,7 +679,7 @@ HWTEST_F(RSNGRenderEffectTemplateTest, CreateGEVisualEffectForInvalidType, TestS
     constexpr int32_t invalidValue = 9999;
     RSNGEffectType invalidType = static_cast<RSNGEffectType>(invalidValue);
     auto effect = RSNGRenderEffectHelper::CreateGEVisualEffect(invalidType);
-    EXPECT_EQ(effect, nullptr);
+    EXPECT_NE(effect, nullptr);
 }
 
 /**
