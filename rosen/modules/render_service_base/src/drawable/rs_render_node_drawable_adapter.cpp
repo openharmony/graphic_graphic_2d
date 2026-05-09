@@ -527,6 +527,9 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
     curCanvas->ResetClip();
     curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    if (curDrawingCacheRoot_) {
+        curDrawingCacheRoot_->SetShouldClipHole(true);
+    }
     UpdateFilterInfoForNodeGroup(curCanvas);
 }
 
