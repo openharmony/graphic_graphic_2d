@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@
 #include "skia_typeface.h"
 #include "src/core/SkFontPriv.h"
 #include "text/font.h"
+#include "utils/text_utils.h"
 #include "utils/log.h"
 
 
@@ -345,29 +346,8 @@ void SkiaFont::GetTextPath(const void* text, size_t byteLength, TextEncoding enc
     }
     SkPath& skpath = skPathImpl->GetMutablePath();
 
-    size_t strLength = 0;
-    switch (encoding) {
-        case TextEncoding::UTF8: {
-            strLength = std::char_traits<char>::length(static_cast<const char*>(text)) * sizeof(char);
-            break;
-        }
-        case TextEncoding::UTF16: {
-            strLength = std::char_traits<char16_t>::length(static_cast<const char16_t*>(text)) * sizeof(char16_t);
-            break;
-        }
-        case TextEncoding::UTF32: {
-            strLength = std::char_traits<char32_t>::length(static_cast<const char32_t*>(text)) * sizeof(char32_t);
-            break;
-        }
-        case TextEncoding::GLYPH_ID: {
-            strLength = byteLength;
-            break;
-        }
-        default:
-            break;
-    }
-    SkTextUtils::GetPath(text, std::min(strLength, byteLength), static_cast<SkTextEncoding>(encoding), x, y, skFont_,
-        &skpath);
+    SkTextUtils::GetPath(text, std::min(GetStrLength(text, byteLength, encoding), byteLength),
+        static_cast<SkTextEncoding>(encoding), x, y, skFont_, &skpath);
 }
 
 const SkFont& SkiaFont::GetFont() const
