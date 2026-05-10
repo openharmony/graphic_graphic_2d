@@ -70,7 +70,7 @@ const std::vector<std::vector<Vector2f>> contourValues = {
     {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.1f}, Vector2f{0.0f, 0.8f}, Vector2f{0.8f, 1.0f},
     Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.2f}, Vector2f{1.0f, 0.0f}, Vector2f{0.5f, 0.0f},},
     {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.4f}, Vector2f{0.0f, 0.6f}, Vector2f{0.8f, 1.0f},
-    Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.8f}, Vector2f{1.0f, 0.0f}, Vector2f{0.8f, 0.0f},},
+    Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.8f}, Vector2f{1.0f, 0.0f}, Vector2f{0.8f, 0.0f},}
 };
 
 // Thickness values
@@ -157,7 +157,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
         InitContourDiagonalFlowLight(contourLight);
         contourLight->Setter<ContourDiagonalFlowLightContourTag>(contourValues[i]);
-        contourLight->Setter<ContourDiagonalFlowLightThicknessTag>(10.0f);
+        contourLight->Setter<ContourDiagonalFlowLightThicknessTag>(thicknessValues[i]);
         contourLight->Setter<ContourDiagonalFlowLightHaloRadiusTag>(haloRadiusValues[i]);
         contourLight->Setter<ContourDiagonalFlowLightLightWeightTag>(lightWeightValues[i]);
 
