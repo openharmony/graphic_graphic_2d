@@ -60,7 +60,7 @@ public:
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity);
     bool GetTouchOrPointerAction(int32_t pointerAction);
 
-std::unordered_set<std::string> GetPageNameList() const;
+    std::unordered_set<std::string> GetPageNameList() const;
 
 private:
     RSFrameRatePolicy() = default;
