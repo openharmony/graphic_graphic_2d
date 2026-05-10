@@ -24,6 +24,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "use_locale_for_text_break_test.cpp",
     "font_collection_test.cpp",
     "orphan_char_optimization_test.cpp",
+    "punctuation_overflow_test.cpp",
     "run_test.cpp",
     "style_copy_test.cpp",
     "text_line_base_test.cpp",

@@ -382,6 +382,7 @@ export default namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    punctuationOverflow?: boolean;
     lineSpacing?: double;
     firstLineHeadIndent?: double;
     tailIndents?: Array<double>;
@@ -405,6 +406,7 @@ export default namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    punctuationOverflow?: boolean;
     lineSpacing?: double;
     firstLineHeadIndent?: double;
     tailIndents?: Array<double>;
@@ -426,6 +428,7 @@ export default namespace text {
       autoSpace?: boolean,
       verticalAlign?: TextVerticalAlign,
       compressHeadPunctuation?: boolean,
+      punctuationOverflow?: boolean,
       lineSpacing?: double,
       firstLineHeadIndent?: double,
       tailIndents?: Array<double>,
@@ -447,6 +450,7 @@ export default namespace text {
       this.autoSpace = autoSpace;
       this.verticalAlign = verticalAlign;
       this.compressHeadPunctuation = compressHeadPunctuation;
+      this.punctuationOverflow = punctuationOverflow;
       this.lineSpacing = lineSpacing;
       this.firstLineHeadIndent = firstLineHeadIndent;
       this.tailIndents = tailIndents;

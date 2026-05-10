@@ -199,6 +199,7 @@ void ParagraphBuilderImpl::ParagraphStyleToSkParagraphStyle(const ParagraphStyle
     skStyle.setParagraphSpacing(txt.paragraphSpacing);
     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
     skStyle.setCompressHeadPunctuation(txt.compressHeadPunctuation);
+    skStyle.setPunctuationOverflow(txt.punctuationOverflow);
     skStyle.setTrailingSpaceOptimized(txt.isTrailingSpaceOptimized);
     skStyle.setEnableAutoSpace(txt.enableAutoSpace);
     skStyle.setVerticalAlignment(static_cast<skt::TextVerticalAlign>(txt.verticalAlignment));

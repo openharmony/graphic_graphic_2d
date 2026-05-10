@@ -1874,5 +1874,228 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0046, TestSize.L
 
     EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
+// ============================================================================
+// Punctuation overflow relayout tests
+// ============================================================================
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0047
+ * @tc.desc: Relayout with punctuationOverflow enabled, same width, unchanged styles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0047, TestSize.Level0)
+{
+    double maxWidth = 300.0;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.punctuationOverflow = true;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 30;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"测试文本测试。");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0048
+ * @tc.desc: Relayout with punctuationOverflow changed from disabled to enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0048, TestSize.Level0)
+{
+    double maxWidth = 300.0;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 30;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"测试文本测试。");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+    int preLineCount = typography->GetLineCount();
+
+    typographyStyle.punctuationOverflow = true;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::PUNCTUATION_OVERFLOW));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+    int relayoutLineCount = typography->GetLineCount();
+
+    EXPECT_EQ(preLineCount, 1);
+    EXPECT_EQ(relayoutLineCount, 1);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0049
+ * @tc.desc: Relayout with punctuationOverflow changed from enabled to disabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0049, TestSize.Level0)
+{
+    double maxWidth = 300.0;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.punctuationOverflow = true;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 30;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"测试文本测试。");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+    int preLineCount = typography->GetLineCount();
+
+    typographyStyle.punctuationOverflow = false;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::PUNCTUATION_OVERFLOW));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+    int relayoutLineCount = typography->GetLineCount();
+
+    EXPECT_EQ(preLineCount, 1);
+    EXPECT_EQ(relayoutLineCount, 1);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0050
+ * @tc.desc: Relayout with different width and punctuationOverflow enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0050, TestSize.Level0)
+{
+    double maxWidth = 210.0;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.punctuationOverflow = true;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 30;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"测试文本测试。");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth * 2, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0051
+ * @tc.desc: Repeated Layout with same width, punctuationOverflow enabled, result consistent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0051, TestSize.Level0)
+{
+    double maxWidth = 209.0;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.punctuationOverflow = true;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 30;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"测试文本测试。");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double firstWidth = typography->GetLongestLineWithIndent();
+
+    typography->Layout(maxWidth);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), firstWidth));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0052
+ * @tc.desc: MarkDirty then Layout with punctuationOverflow enabled, result consistent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0052, TestSize.Level0)
+{
+    double maxWidth = 210.0;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.punctuationOverflow = true;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 30;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"测试文本测试。");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double firstWidth = typography->GetLongestLineWithIndent();
+
+    typography->MarkDirty();
+    typography->Layout(maxWidth);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), firstWidth));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0053
+ * @tc.desc: Layout with wider width then back to tight width, punctuationOverflow enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0053, TestSize.Level0)
+{
+    double maxWidth = 209.0;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.punctuationOverflow = true;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 30;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"测试文本测试。");
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double tightWidth = typography->GetLongestLineWithIndent();
+
+    typography->Layout(maxWidth + 200.0);
+    double wideWidth = typography->GetLongestLineWithIndent();
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(tightWidth, wideWidth));
+
+    typography->MarkDirty();
+    typography->Layout(maxWidth);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), tightWidth));
+}
+
 } // namespace Rosen
 } // namespace OHOS

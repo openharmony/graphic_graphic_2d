@@ -545,6 +545,7 @@ void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, Typ
     SetDoubleValueFromJS(env, argValue, "firstLineHeadIndent", pographyStyle.firstLineIndent);
     ParseDoubleArrayFromJsProperty(env, argValue, "tailIndents", pographyStyle.tailIndents);
     ParseDoubleArrayFromJsProperty(env, argValue, "headIndents", pographyStyle.headIndents);
+    SetBoolValueFromJS(env, argValue, "punctuationOverflow", pographyStyle.punctuationOverflow);
 }
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan)
@@ -966,6 +967,8 @@ napi_value CreateTypographyStyleJsValue(napi_env env, const TypographyStyle& typ
             CreateJsValue(env, typographyStyle.enableAutoSpace));
         napi_set_named_property(env, objValue, "compressHeadPunctuation",
             CreateJsValue(env, typographyStyle.compressHeadPunctuation));
+        napi_set_named_property(env, objValue, "punctuationOverflow",
+            CreateJsValue(env, typographyStyle.punctuationOverflow));
         napi_set_named_property(env, objValue, "verticalAlign",
             CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.verticalAlignment)));
         napi_set_named_property(env, objValue, "lineSpacing",
