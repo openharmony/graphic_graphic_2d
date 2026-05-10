@@ -247,4 +247,29 @@ HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest004, TestSize.Level1)
 
     RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
 }
+
+/**
+ * @tc.name: ParseFeatureMultiParamTest005
+ * @tc.desc: Test ParseFeatureMultiParam with no-element child node type
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest005, TestSize.Level1)
+{
+    OPIncParamParse opincParamParse;
+    xmlNode node;
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+
+    xmlNode childNode;
+    childNode.type = xmlElementType::XML_ATTRIBUTE_NODE;
+    node.xmlChildrenNode = &childNode;
+
+    auto res = opincParamParse.ParseFeatureMultiParam(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    auto whiteList = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
+    EXPECT_EQ(whiteList.size(), 0u);
+
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
+}
 }
