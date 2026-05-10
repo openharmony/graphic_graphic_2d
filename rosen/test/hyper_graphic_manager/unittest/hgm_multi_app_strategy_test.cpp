@@ -519,7 +519,7 @@ HWTEST_F(HgmMultiAppStrategyTest, AppType, Function | SmallTest | Level0)
         multiAppStrategy_->GetVoteRes(strategyConfig);
         ASSERT_EQ(strategyConfig.min, fps0);
         ASSERT_EQ(strategyConfig.max, fps0);
-        
+
         multiAppStrategy_->HandlePkgsEvent({ otherPkgName + ":" + defaultPidStr + ":" + std::to_string(appType1) });
         multiAppStrategy_->GetVoteRes(strategyConfig);
         ASSERT_EQ(strategyConfig.min, fps1);
@@ -620,7 +620,7 @@ HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level0)
         multiAppStrategy_->HandlePkgsEvent({ pkgName0 + ":" + std::to_string(pid0) });
         auto foregroundPidAppMap = multiAppStrategy_->GetForegroundPidApp();
         ASSERT_TRUE(foregroundPidAppMap.find(pid0) != foregroundPidAppMap.end());
-        
+
         multiAppStrategy_->HandlePkgsEvent({ pkgName1 + ":" + std::to_string(pid1) + ":" + std::to_string(gameType0) });
         foregroundPidAppMap = multiAppStrategy_->GetForegroundPidApp();
         auto backgroundPid = multiAppStrategy_->GetBackgroundPid();

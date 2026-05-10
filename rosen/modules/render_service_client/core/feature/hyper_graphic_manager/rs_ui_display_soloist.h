@@ -48,6 +48,7 @@ public:
 
     SoloistIdType GetId() const;
     static std::shared_ptr<SoloistId> Create();
+
 private:
     static SoloistIdType GenerateId();
     const SoloistIdType id_;
@@ -74,6 +75,7 @@ public:
     enum ActiveStatus subStatus_ = ActiveStatus::INACTIVE;
     bool useExclusiveThread_ = false;
     FrameRateRange frameRateRange_;
+
 private:
     void Init();
     bool IsCommonDivisor(int32_t expectedRate, int32_t vsyncRate);
@@ -91,7 +93,7 @@ private:
 
     std::shared_ptr<AppExecFwk::EventHandler> subVsyncHandler_ = nullptr;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> subReceiver_ = nullptr;
-    VSyncReceiver::FrameCallback subFrameCallback_ = {
+    VSyncReceiver::FrameCallback subFrameCallback_{
         .userData_ = this,
         .callback_ = OnVsync,
     };
@@ -113,7 +115,7 @@ private:
     std::mutex mtx_;
     bool hasRequestedVsync_ = false;
     bool destroyed_ = false;
-    std::string vsyncTimeoutTaskName_ = "";
+    std::string vsyncTimeoutTaskName_;
 #ifdef RS_ENABLE_GPU
     AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ =
         [this] { this->OnVsyncTimeOut(); };
@@ -164,7 +166,7 @@ private:
     static void OnVsync(TimestampType timestamp, void* client);
     void VsyncCallbackInner(TimestampType timestamp);
     void DispatchSoloistCallback(TimestampType timestamp);
-    VSyncReceiver::FrameCallback managerFrameCallback_ = {
+    VSyncReceiver::FrameCallback managerFrameCallback_{
         .userData_ = this,
         .callback_ = OnVsync,
     };

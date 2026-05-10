@@ -365,7 +365,7 @@ void HgmSoftVSyncManager::SetQosVSyncRate(const uint32_t currRefreshRate,
     for (const auto& data : appChangeData_) {
         auto linkerId = data.first;
         auto prefer = data.second;
-        
+
         auto linker = appFrameRateLinkers.find(linkerId);
         if (linker != appFrameRateLinkers.end()  && appDistributor_ != nullptr && linker->second != nullptr) {
             // perfer equals 0 means keeping the original rhythm without skipping, just pass 1

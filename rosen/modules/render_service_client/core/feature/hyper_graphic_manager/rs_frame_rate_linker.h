@@ -20,8 +20,8 @@
 #include <memory>
 #include <unistd.h>
 
-#include "common/rs_common_def.h"
 #include "animation/rs_frame_rate_range.h"
+#include "common/rs_common_def.h"
 #include "ui/rs_ui_context.h"
 
 namespace OHOS {
@@ -40,6 +40,7 @@ public:
     void SetEnable(bool enabled);
     bool IsEnable();
     static std::shared_ptr<RSFrameRateLinker> Create();
+
 private:
     void InitUniRenderEnabled();
     static FrameRateLinkerId GenerateId();

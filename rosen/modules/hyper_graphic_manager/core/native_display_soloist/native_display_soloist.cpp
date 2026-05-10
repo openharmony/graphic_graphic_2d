@@ -14,8 +14,9 @@
  */
 
 #include "native_display_soloist.h"
-#include "hgm_log.h"
+
 #include "feature/hyper_graphic_manager/rs_ui_display_soloist.h"
+#include "hgm_log.h"
 #include "transaction/rs_interfaces.h"
 #include "vsync_receiver.h"
 

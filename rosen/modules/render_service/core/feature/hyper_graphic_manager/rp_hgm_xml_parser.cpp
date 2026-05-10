@@ -15,8 +15,8 @@
 
 #include "rp_hgm_xml_parser.h"
 
-#include "hgm_log.h"
 #include "hgm_command.h"
+#include "hgm_log.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RPHgmXMLParser"
