@@ -52,7 +52,7 @@ std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const int i, const int colum
     int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
     int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
 
-    auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto effectChildNode = RSCanvasNode::Create();
     effectChildNode->SetBounds(x, y, sizeX, sizeY);
     effectChildNode->SetFrame(x, y, sizeX, sizeY);
     effectChildNode->SetOverlayNGShader(auroraNoise);
