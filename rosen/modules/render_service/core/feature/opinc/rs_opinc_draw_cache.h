@@ -163,7 +163,7 @@ private:
     int64_t reuseCount_ = 0;
     bool isOpincRootNode_ = false;
     bool opincBlockNodeSkipTemp_ = true;
-    bool isOpincCaculateStart_ = false;
+    bool isOpincCalculateStart_ = false;
     bool isOpincMarkCached_ = false;
     bool isAdd_ = false;
     static thread_local bool opincBlockNodeSkip_;

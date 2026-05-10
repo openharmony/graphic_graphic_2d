@@ -67,9 +67,10 @@ void RSOpincDrawCache::OpincCalculateBefore(Drawing::Canvas& canvas, const RSRen
 {
 #ifdef RS_ENABLE_GPU
     opincBlockNodeSkipTemp_ = opincBlockNodeSkip_;
-    isOpincCaculateStart_ = false;
+    isOpincCalculateStart_ = false;
     if (IsAutoCacheEnable() && IsOpListDrawAreaEnable()) {
-        isOpincCaculateStart_ = canvas.OpCalculateBefore(params.GetMatrix());
+        isOpincCalculateStart_ = canvas.OpCalculateBefore(params.GetMatrix());
+        RS_OPTIONAL_TRACE_NAME_FMT("canvas OpCalculateBefore return %d", isOpincCalculateStart_);
         opincBlockNodeSkip_ = false;
     }
 #endif
@@ -77,8 +78,8 @@ void RSOpincDrawCache::OpincCalculateBefore(Drawing::Canvas& canvas, const RSRen
 
 void RSOpincDrawCache::OpincCalculateAfter(Drawing::Canvas& canvas)
 {
-    if (isOpincCaculateStart_) {
-        isOpincCaculateStart_ = false;
+    if (isOpincCalculateStart_) {
+        isOpincCalculateStart_ = false;
         auto localBound = Drawing::Rect(0.f, 0.f, static_cast<float>(GetOpincCacheMaxWidth()),
             static_cast<float>(GetOpincCacheMaxHeight()));
         auto drawAreaTemp = canvas.OpCalculateAfter(localBound);
@@ -91,6 +92,8 @@ void RSOpincDrawCache::OpincCalculateAfter(Drawing::Canvas& canvas)
             opListDrawAreas_ = std::move(*drawAreaTemp);
             isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
         }
+        RS_OPTIONAL_TRACE_NAME_FMT("canvas OpCalculateAfter isDrawAreaEnable:%d, opCanCache:%d",
+            isDrawAreaEnable_, opCanCache_);
     }
     opincBlockNodeSkip_ = opincBlockNodeSkipTemp_;
 }
@@ -146,8 +149,9 @@ bool RSOpincDrawCache::IsOpListDrawAreaEnable()
 
 bool RSOpincDrawCache::IsTranslate(Drawing::Matrix& mat)
 {
-    return (mat.Get(Drawing::Matrix::SCALE_X) == 1.0f) && (mat.Get(Drawing::Matrix::SCALE_Y) == 1.0f) &&
-        (mat.Get(Drawing::Matrix::SKEW_X) == 0.0f) && (mat.Get(Drawing::Matrix::SKEW_Y) == 0.0f);
+    return ColorManager::FloatEqual(mat.Get(Drawing::Matrix::SCALE_X), mat.Get(Drawing::Matrix::SCALE_Y)) &&
+        ColorManager::FloatEqual(mat.Get(Drawing::Matrix::SKEW_X), 0.0f) &&
+        ColorManager::FloatEqual(mat.Get(Drawing::Matrix::SKEW_Y), 0.0f);
 }
 
 void RSOpincDrawCache::NodeCacheStateDisable()
@@ -300,6 +304,7 @@ void RSOpincDrawCache::AfterDrawCache(Drawing::Canvas& canvas, RSRenderParams& p
         if (IsTranslate(totalMatrix) && (ROSEN_EQ(rootAlpha, 0.0f) || ROSEN_EQ(rootAlpha, 1.0f))) {
             isOnlyTranslate = true;
         }
+        RS_OPTIONAL_TRACE_NAME_FMT("isDrawAreaEnable:%d, isOnlyTranslate:%d", isDrawAreaEnable_, isOnlyTranslate);
         if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_ENABLE && isOnlyTranslate) {
             recordState_ = NodeRecordState::RECORD_CACHING;
         } else if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_DISABLE) {
