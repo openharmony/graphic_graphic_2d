@@ -1156,6 +1156,8 @@ export default namespace text {
     index?: int;
     variationAxisRecords?: Array<FontVariationAxis>;
     variationInstanceRecords?: Array<FontVariationInstance>;
+    languages?: Array<string>;
+    fontFeatures?: Array<string>;
   }
 
   class FontDescriptorInternal implements FontDescriptor {
@@ -1181,6 +1183,8 @@ export default namespace text {
     index?: int;
     variationAxisRecords?: Array<FontVariationAxis>;
     variationInstanceRecords?: Array<FontVariationInstance>;
+    languages?: Array<string>;
+    fontFeatures?: Array<string>;
     constructor(
       path: string,
       postScriptName: string,
@@ -1204,6 +1208,8 @@ export default namespace text {
       index: int,
       variationAxisRecords?: Array<FontVariationAxis>,
       variationInstanceRecords?: Array<FontVariationInstance>,
+      languages?: Array<string>,
+      fontFeatures?: Array<string>,
     ) {
       this.path = path;
       this.postScriptName = postScriptName;
@@ -1227,6 +1233,8 @@ export default namespace text {
       this.index = index;
       this.variationAxisRecords = variationAxisRecords;
       this.variationInstanceRecords = variationInstanceRecords;
+      this.languages = languages;
+      this.fontFeatures = fontFeatures;
     }
   }
 

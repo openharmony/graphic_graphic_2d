@@ -1465,6 +1465,58 @@ HWTEST_F(FontParserTest, DualAxisVariableFontInstancesTest, TestSize.Level0)
 
     testFile.close();
 }
+
+/**
+ * @tc.name: ParserFontDescriptorsFromPathLanguagesTest
+ * @tc.desc: Test languages field from ParserFontDescriptorsFromPath with ttf file
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, ParserFontDescriptorsFromPathLanguagesTest, TestSize.Level0)
+{
+    // Test case 1: Valid font file path
+    std::ifstream testFile(TEST_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+    testFile.close();
+
+    auto descriptors = FontParser::ParserFontDescriptorsFromPath(TEST_FONT_PATH);
+    ASSERT_EQ(descriptors.size(), 1);
+
+    auto desc = descriptors[0];
+    ASSERT_NE(desc, nullptr);
+    EXPECT_EQ(desc->languages.size(), 53);
+
+    // Test case 2: Invalid font file path
+    auto invalidDescriptors = FontParser::ParserFontDescriptorsFromPath(NON_EXISTENT_PATH);
+    EXPECT_EQ(invalidDescriptors.size(), 0);
+
+    // Test case 3: Empty string path
+    auto emptyDescriptors = FontParser::ParserFontDescriptorsFromPath("");
+    EXPECT_EQ(emptyDescriptors.size(), 0);
+}
+
+/**
+ * @tc.name: ParserFontDescriptorsFromPathFontFeaturesTest
+ * @tc.desc: Test fontFeatures field from ParserFontDescriptorsFromPath with ttc file
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, ParserFontDescriptorsFromPathFontFeaturesTest, TestSize.Level0)
+{
+    // Test case 1: Valid font file path
+    std::ifstream testFile(TEST_TTC_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+    testFile.close();
+
+    auto descriptors = FontParser::ParserFontDescriptorsFromPath(TEST_TTC_PATH);
+    ASSERT_EQ(descriptors.size(), 10);
+
+    auto desc = descriptors[0];
+    ASSERT_NE(desc, nullptr);
+    EXPECT_EQ(desc->fontFeatures.size(), 0);
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

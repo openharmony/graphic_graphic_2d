@@ -292,6 +292,34 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     return status;
 }
 
+static ani_ref CreateAniStringArray(ani_env* env, const std::vector<std::string>& strings)
+{
+    if (strings.empty()) {
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+
+    ani_object arrayObj = AniTextUtils::CreateAniArray(env, strings.size());
+    ani_boolean isUndefined = false;
+    env->Reference_IsUndefined(arrayObj, &isUndefined);
+    if (isUndefined) {
+        TEXT_LOGE("Failed to create string array");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+
+    ani_size index = 0;
+    for (const auto& str : strings) {
+        ani_string aniStr = AniTextUtils::CreateAniStringObj(env, str);
+        ani_status status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet,
+            index, aniStr);
+        if (status != ANI_OK) {
+            TEXT_LOGE("Failed to set string array element, index %{public}zu, status %{public}d", index, status);
+            continue;
+        }
+        index++;
+    }
+    return arrayObj;
+}
+
 ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDesc, ani_object& aniObj)
 {
     if (fontDesc == nullptr) {
@@ -340,7 +368,9 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         AniTextUtils::CreateAniStringObj(env, fontDesc->license),
         ani_int(fontDesc->index),
         variationAxesRef,
-        variationInstancesRef);
+        variationInstancesRef,
+        CreateAniStringArray(env, fontDesc->languages),
+        CreateAniStringArray(env, fontDesc->fontFeatures));
     return ANI_OK;
 }
 
