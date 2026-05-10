@@ -64,13 +64,13 @@ const int SCREEN_HEIGHT = 2000;
 // Contour values
 const std::vector<std::vector<Vector2f>> contourValues = {
     {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.5f}, Vector2f{0.0f, 1.0f}, Vector2f{0.5f, 1.0f},
-        Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.5f}, Vector2f{1.0f, 0.0f}, Vector2f{0.5f, 0.0f}},
+     Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.5f}, Vector2f{1.0f, 0.0f}, Vector2f{0.5f, 0.0f}},
     {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.8f}, Vector2f{0.0f, 1.0f}, Vector2f{0.2f, 1.0f},
-        Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.7f}, Vector2f{1.0f, 0.0f}, Vector2f{0.8f, 0.0f}},
+     Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.7f}, Vector2f{1.0f, 0.0f}, Vector2f{0.8f, 0.0f}},
     {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.1f}, Vector2f{0.0f, 0.8f}, Vector2f{0.8f, 1.0f},
-        Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.2f}, Vector2f{1.0f, 0.0f}, Vector2f{0.5f, 0.0f}},
+     Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.2f}, Vector2f{1.0f, 0.0f}, Vector2f{0.5f, 0.0f}},
     {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.4f}, Vector2f{0.0f, 0.6f}, Vector2f{0.8f, 1.0f},
-        Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.8f}, Vector2f{1.0f, 0.0f}, Vector2f{0.8f, 0.0f}}
+     Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.8f}, Vector2f{1.0f, 0.0f}, Vector2f{0.8f, 0.0f}}
 };
 
 // Thickness values
