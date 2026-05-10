@@ -125,13 +125,13 @@ private:
 
 GRAPHIC_TEST(NGShaderParticleCircularHaloTest, EFFECT_TEST, Set_Particle_Circular_Halo_Radius_Test)
 {
-    const size_t columnCount = 4;
+    const size_t columnCount = 1;
     const size_t rowCount = 1;
 
     for (size_t i = 0; i < radii.size(); i++) {
         auto particleHalo = std::make_shared<RSNGParticleCircularHalo>();
         InitParticleCircularHalo(particleHalo);
-        particleHalo->Setter<ParticleCircularHaloCenterTag>(Vector2f{600.0f, 1000.0f});
+        particleHalo->Setter<ParticleCircularHaloCenterTag>(Vector2f{0.5f, 0.5f});
         particleHalo->Setter<ParticleCircularHaloRadiusTag>(radii[i]);
         particleHalo->Setter<ParticleCircularHaloNoiseTag>(0.5f);
 
@@ -141,14 +141,14 @@ GRAPHIC_TEST(NGShaderParticleCircularHaloTest, EFFECT_TEST, Set_Particle_Circula
 
 GRAPHIC_TEST(NGShaderParticleCircularHaloTest, EFFECT_TEST, Set_Particle_Circular_Halo_Noise_Test)
 {
-    const size_t columnCount = 4;
+    const size_t columnCount = 1;
     const size_t rowCount = 1;
 
     for (size_t i = 0; i < noises.size(); i++) {
         auto particleHalo = std::make_shared<RSNGParticleCircularHalo>();
         InitParticleCircularHalo(particleHalo);
-        particleHalo->Setter<ParticleCircularHaloCenterTag>(Vector2f{600.0f, 1000.0f});
-        particleHalo->Setter<ParticleCircularHaloRadiusTag>(200.0f);
+        particleHalo->Setter<ParticleCircularHaloCenterTag>(Vector2f{0.5f, 0.5f});
+        particleHalo->Setter<ParticleCircularHaloRadiusTag>(0.2f);
         particleHalo->Setter<ParticleCircularHaloNoiseTag>(noises[i]);
 
         SetEffectChildNode(i, columnCount, rowCount, effectNode, particleHalo);
