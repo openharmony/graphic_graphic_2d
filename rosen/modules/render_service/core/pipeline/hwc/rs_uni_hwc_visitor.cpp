@@ -1009,6 +1009,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 auto screenId = uniRenderVisitor_.curScreenNode_->GetScreenId();
                 RSMainThread::Instance()->GetMutableAIBarNodes()[screenId].insert(renderNode);
                 intersectedWithAIBar = true;
+                HveFilter::GetHveFilter().PushHveFilterSurfaceNodeMapping(filter->first, hwcNode.GetId());
                 bool intersectHwcDamage = RSSystemProperties::GetAIBarOptEnabled() ?
                     RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(hwcNode, filter->second) : true;
                 if (renderNode->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage)) {
