@@ -995,6 +995,120 @@ HWTEST_F(RSScreenManagerTest, GetScreenCapability_002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetScreenCapability_003_DP
+ * @tc.desc: Test GetScreenCapability with DISP_INTF_DP type
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenCapability_003_DP, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    ScreenId screenId = mockScreenId_;
+
+    GraphicDisplayCapability dpCapability = {
+        .name = "DP_Screen",
+        .type = GRAPHIC_DISP_INTF_DP,
+        .phyWidth = 1920,
+        .phyHeight = 1080,
+        .supportLayers = 0,
+        .virtualDispCount = 0,
+        .supportWriteBack = true,
+        .propertyCount = 0
+    };
+    // Mock GetScreenCapability return DP capability
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCapability(screenId, _))
+        .WillOnce(DoAll(SetArgReferee<1>(dpCapability), testing::Return(0)));
+
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    rsScreen->ScreenCapabilityInit();
+    screenManager_->screens_[screenId] = rsScreen;
+
+    RSScreenCapability screenCapability = screenManager_->GetScreenCapability(screenId);
+    ASSERT_EQ(screenCapability.GetType(), DISP_INTF_DP);
+
+    screenManager_->screens_.erase(screenId);
+}
+
+/*
+ * @tc.name: GetScreenCapability_004_EDP
+ * @tc.desc: Test GetScreenCapability with DISP_INTF_EDP type
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenCapability_004_EDP, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    ScreenId screenId = mockScreenId_;
+
+    GraphicDisplayCapability edpCapability = {
+        .name = "EDP_Screen",
+        .type = GRAPHIC_DISP_INTF_EDP,
+        .phyWidth = 1920,
+        .phyHeight = 1080,
+        .supportLayers = 0,
+        .virtualDispCount = 0,
+        .supportWriteBack = true,
+        .propertyCount = 0
+    };
+    // Mock GetScreenCapability return EDP capability
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCapability(screenId, _))
+        .WillOnce(DoAll(SetArgReferee<1>(edpCapability), testing::Return(0)));
+
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    rsScreen->ScreenCapabilityInit();
+    screenManager_->screens_[screenId] = rsScreen;
+
+    RSScreenCapability screenCapability = screenManager_->GetScreenCapability(screenId);
+    ASSERT_EQ(screenCapability.GetType(), DISP_INTF_EDP);
+
+    screenManager_->screens_.erase(screenId);
+}
+
+/*
+ * @tc.name: GetScreenCapability_005_GPMI
+ * @tc.desc: Test GetScreenCapability with DISP_INTF_GPMI type
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenCapability_005_GPMI, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    ScreenId screenId = mockScreenId_;
+
+    GraphicDisplayCapability gpmiCapability = {
+        .name = "GPMI_Screen",
+        .type = GRAPHIC_DISP_INTF_GPMI,
+        .phyWidth = 1920,
+        .phyHeight = 1080,
+        .supportLayers = 0,
+        .virtualDispCount = 0,
+        .supportWriteBack = true,
+        .propertyCount = 0
+    };
+    // Mock GetScreenCapability return GPMI capability
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCapability(screenId, _))
+        .WillOnce(DoAll(SetArgReferee<1>(gpmiCapability), testing::Return(0)));
+
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    rsScreen->ScreenCapabilityInit();
+    screenManager_->screens_[screenId] = rsScreen;
+
+    RSScreenCapability screenCapability = screenManager_->GetScreenCapability(screenId);
+    ASSERT_EQ(screenCapability.GetType(), DISP_INTF_GPMI);
+
+    screenManager_->screens_.erase(screenId);
+}
+
+/*
  * @tc.name: SetVirtualScreenSurface_002
  * @tc.desc: Test SetVirtualScreenSurface
  * @tc.type: FUNC
