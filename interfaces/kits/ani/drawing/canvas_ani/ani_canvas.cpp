@@ -1728,15 +1728,15 @@ bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit,
 
 int32_t GlyphSafeAdd(int32_t a, int32_t b)
 {
-    const int32_t MAX = std::numeric_limits<int32_t>::max();
-    const int32_t MIN = std::numeric_limits<int32_t>::min();
+    const int32_t MAX_INT32 = std::numeric_limits<int32_t>::max();
+    const int32_t MIN_INT32 = std::numeric_limits<int32_t>::min();
     if (b > 0) {
-        if (a > MAX - b) {
-            return MAX;
+        if (a > MAX_INT32 - b) {
+            return MAX_INT32;
         }
     } else if (b < 0) {
-        if (a < MIN - b) {
-            return MIN;
+        if (a < MIN_INT32 - b) {
+            return MIN_INT32;
         }
     }
     return a + b;

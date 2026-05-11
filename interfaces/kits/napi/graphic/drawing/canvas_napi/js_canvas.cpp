@@ -1128,15 +1128,15 @@ napi_value JsCanvas::DrawGlyphs(napi_env env, napi_callback_info info)
 
 int32_t GlyphSafeAdd(int32_t a, int32_t b)
 {
-    const int32_t MAX = std::numeric_limits<int32_t>::max();
-    const int32_t MIN = std::numeric_limits<int32_t>::min();
+    const int32_t MAX_INT32 = std::numeric_limits<int32_t>::max();
+    const int32_t MIN_INT32 = std::numeric_limits<int32_t>::min();
     if (b > 0) {
-        if (a > MAX - b) {
-            return MAX;
+        if (a > MAX_INT32 - b) {
+            return MAX_INT32;
         }
     } else if (b < 0) {
-        if (a < MIN - b) {
-            return MIN;
+        if (a < MIN_INT32 - b) {
+            return MIN_INT32;
         }
     }
     return a + b;
@@ -1145,7 +1145,6 @@ int32_t GlyphSafeAdd(int32_t a, int32_t b)
 napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
 {
     if (m_canvas == nullptr) {
-        ROSEN_LOGE("JsCanvas::OnDrawGlyphs canvas is null");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     napi_value argv[ARGC_SIX] = {nullptr};
@@ -1181,7 +1180,6 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
     GET_UNWRAP_PARAM(ARGC_FIVE, jsFont);
     std::shared_ptr<Font> font = jsFont->GetFont();
     if (font == nullptr) {
-        ROSEN_LOGE("JsCanvas::OnDrawGlyphs font is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
