@@ -916,6 +916,9 @@ void RSRenderPipelineAgent::RegisterCanvasCallback(pid_t remotePid, sptr<RSICanv
 int32_t RSRenderPipelineAgent::SubmitCanvasPreAllocatedBuffer(
     pid_t remotePid, NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
+    if (!NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
+        return FEATURE_DISABLED;
+    }
     if (rsRenderPipeline_ == nullptr) {
         return INVALID_ARGUMENTS;
     }
