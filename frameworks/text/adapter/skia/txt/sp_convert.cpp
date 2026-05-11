@@ -47,6 +47,7 @@ void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textS
     textStyle.lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(skStyle.getLineHeightStyle());
     textStyle.fontEdging = skStyle.getFontEdging();
     textStyle.isFakeBoldEnabled = skStyle.isFakeBoldEnabled();
+    textStyle.fontTypefaces = skStyle.getFontTypefaces();
 }
 
 TextStyle SkStyleToSPTextStyle(const skia::textlayout::TextStyle& skStyle,

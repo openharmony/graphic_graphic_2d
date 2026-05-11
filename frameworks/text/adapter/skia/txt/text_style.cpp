@@ -118,12 +118,23 @@ bool TextStyle::operator==(TextStyle const& other) const
         lineHeightStyle == other.lineHeightStyle &&
         badgeType == other.badgeType &&
         fontEdging == other.fontEdging &&
-        isFakeBoldEnabled == other.isFakeBoldEnabled;
+        isFakeBoldEnabled == other.isFakeBoldEnabled &&
+        fontTypefaces == other.fontTypefaces;
 }
 
 bool TextStyle::operator!=(TextStyle const& other) const
 {
     return !(*this == other);
+}
+
+void TextStyle::SetFontTypefaces(const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces)
+{
+    fontTypefaces = typefaces;
+}
+
+const std::vector<std::shared_ptr<Drawing::Typeface>>& TextStyle::GetFontTypefaces() const
+{
+    return fontTypefaces;
 }
 } // namespace SPText
 } // namespace Rosen

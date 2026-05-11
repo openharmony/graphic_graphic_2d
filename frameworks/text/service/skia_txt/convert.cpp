@@ -240,6 +240,8 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.minLineHeight = style.minLineHeight;
     textStyle.lineHeightStyle = style.lineHeightStyle;
     textStyle.fontEdging = style.fontEdging;
+    // Copy fontTypefaces for priority font shaping
+    textStyle.fontTypefaces = style.fontTypefaces;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;
@@ -296,6 +298,7 @@ void SplitTextStyleConvert(TextStyle& textStyle, const SPText::TextStyle& style)
     textStyle.minLineHeight = style.minLineHeight;
     textStyle.maxLineHeight = style.maxLineHeight;
     textStyle.fontEdging = style.fontEdging;
+    textStyle.fontTypefaces = style.fontTypefaces;
 }
 
 TextStyle Convert(const SPText::TextStyle& style)

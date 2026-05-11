@@ -218,23 +218,31 @@ skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
     return skStyle;
 }
 
-skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& txt)
+namespace {
+void SetPaintProperties(skt::TextStyle& skStyle, const TextStyle& txt)
 {
-    skt::TextStyle skStyle;
-
     skStyle.setColor(txt.color);
     skStyle.setDecoration(static_cast<skt::TextDecoration>(txt.decoration));
     skStyle.setDecorationColor(txt.decorationColor);
     skStyle.setDecorationStyle(static_cast<skt::TextDecorationStyle>(txt.decorationStyle));
     skStyle.setDecorationThicknessMultiplier(SkDoubleToScalar(txt.decorationThicknessMultiplier));
+    skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
+        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius, txt.backgroundRect.leftBottomRadius });
+    skStyle.resetShadows();
+    for (const TextShadow& txtShadow : txt.textShadows) {
+        skStyle.addShadow(TextFontUtils::MakeTextShadow(txtShadow));
+    }
+}
+
+void SetShapeProperties(skt::TextStyle& skStyle, const TextStyle& txt)
+{
     skStyle.setFontStyle(TextFontUtils::MakeFontStyle(txt.fontWeight, txt.fontWidth, txt.fontStyle));
     skStyle.setTextBaseline(static_cast<skt::TextBaseline>(txt.baseline));
-
     std::vector<SkString> fonts;
     std::transform(txt.fontFamilies.begin(), txt.fontFamilies.end(), std::back_inserter(fonts),
         [](const std::string& f) { return SkString(f.c_str()); });
     skStyle.setFontFamilies(fonts);
-
+    skStyle.setFontTypefaces(txt.fontTypefaces);
     skStyle.setFontSize(SkDoubleToScalar(txt.fontSize));
     skStyle.setLetterSpacing(SkDoubleToScalar(txt.letterSpacing));
     skStyle.setWordSpacing(SkDoubleToScalar(txt.wordSpacing));
@@ -242,13 +250,6 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.setHeightOverride(txt.heightOverride);
     skStyle.setHalfLeading(txt.halfLeading);
     skStyle.setBaselineShift(txt.baseLineShift);
-
-    skStyle.setLocale(SkString(txt.locale.empty() ? DefaultLocale() : txt.locale.c_str()));
-    skStyle.setStyleId(txt.styleId);
-    skStyle.setTextStyleUid(txt.textStyleUid);
-    skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
-        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius, txt.backgroundRect.leftBottomRadius });
-
     skStyle.resetFontFeatures();
     for (const auto& ff : txt.fontFeatures.GetFontFeatures()) {
         skStyle.addFontFeature(SkString(ff.first.c_str()), ff.second);
@@ -257,27 +258,40 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     if (!txt.fontVariations.GetAxisValues().empty()) {
         TextFontUtils::MakeFontArguments(skStyle, txt.fontVariations);
     }
-
-    skStyle.resetShadows();
-    for (const TextShadow& txtShadow : txt.textShadows) {
-        skStyle.addShadow(TextFontUtils::MakeTextShadow(txtShadow));
-    }
-
-    if (txt.isPlaceholder) {
-        skStyle.setPlaceholder();
-    }
-
     if (txt.symbol.GetSymbolType() == SymbolType::CUSTOM) {
         skStyle.setCustomSymbol(true);
     }
 
     skStyle.setTextBadgeType(static_cast<skt::TextBadgeType>(txt.badgeType));
+    skStyle.setFakeBoldEnabled(txt.isFakeBoldEnabled);
+    skStyle.setFontEdging(txt.fontEdging);
+}
+
+void SetLineProperties(skt::TextStyle& skStyle, const TextStyle& txt)
+{
     skStyle.setMaxLineHeight(txt.maxLineHeight);
     skStyle.setMinLineHeight(txt.minLineHeight);
     skStyle.setLineHeightStyle(static_cast<skt::LineHeightStyle>(txt.lineHeightStyle));
-    skStyle.setFontEdging(txt.fontEdging);
-    skStyle.setFakeBoldEnabled(txt.isFakeBoldEnabled);
+}
 
+void SetOtherProperties(skt::TextStyle& skStyle, const TextStyle& txt)
+{
+    skStyle.setLocale(SkString(txt.locale.empty() ? DefaultLocale() : txt.locale.c_str()));
+    skStyle.setStyleId(txt.styleId);
+    skStyle.setTextStyleUid(txt.textStyleUid);
+    if (txt.isPlaceholder) {
+        skStyle.setPlaceholder();
+    }
+}
+} // anonymous namespace
+
+skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& txt)
+{
+    skt::TextStyle skStyle;
+    SetPaintProperties(skStyle, txt);
+    SetShapeProperties(skStyle, txt);
+    SetLineProperties(skStyle, txt);
+    SetOtherProperties(skStyle, txt);
     return skStyle;
 }
 

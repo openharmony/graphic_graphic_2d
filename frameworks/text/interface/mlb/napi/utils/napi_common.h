@@ -513,6 +513,8 @@ napi_value CreatePointJsValue(napi_env env, const OHOS::Rosen::Drawing::PointF& 
 
 napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>& textShadows);
 
+napi_value CreateTypefaceArrayJsValue(napi_env env, const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces);
+
 napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle);
 
 napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle);
@@ -607,6 +609,14 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
 void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle);
 
 void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+void ReceiveFontTypefaces(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+// Helper functions for fontTypefaces extraction
+std::shared_ptr<Drawing::Typeface> ExtractTypefaceFromJS(napi_env env, napi_value jsObject);
+
+std::vector<std::shared_ptr<Drawing::Typeface>> ExtractTypefacesFromArray(
+    napi_env env, napi_value typefacesArray, uint32_t arrayLength);
 
 size_t GetParamLen(napi_env env, napi_value param);
 

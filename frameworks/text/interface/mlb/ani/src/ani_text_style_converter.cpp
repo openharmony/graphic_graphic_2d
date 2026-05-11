@@ -20,6 +20,8 @@
 #include "ani_text_utils.h"
 #include "draw/color.h"
 #include "text/font_types.h"
+#include "text/typeface.h"
+#include "typeface_ani/ani_typeface.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -108,6 +110,7 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
             AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
             return utf8Str;
         });
+    ParseFontTypefacesToNative(env, obj, textStyle);
     AniTextUtils::ReadOptionalU16StringField(
         env, obj, AniGlobalMethod::GetInstance().textStyleEllipsis, textStyle.ellipsis);
     AniTextUtils::ReadOptionalStringField(env, obj, AniGlobalMethod::GetInstance().textStyleLocale, textStyle.locale);
@@ -354,7 +357,8 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontWidth,
             aniGetEnumIndex(AniTextEnum::fontWidth, static_cast<uint32_t>(textStyle.fontWidth))),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontEdging,
-            aniGetEnumIndex(AniTextEnum::fontEdging, static_cast<uint32_t>(textStyle.fontEdging)))
+            aniGetEnumIndex(AniTextEnum::fontEdging, static_cast<uint32_t>(textStyle.fontEdging))),
+        ParseFontTypefacesToAni(env, textStyle)
     );
     return aniObj;
 }
@@ -432,5 +436,55 @@ ani_object AniTextStyleConverter::ParseFontVariationsToAni(ani_env* env, const F
     ani_object aniObj = AniTextUtils::CreateAniObject(
         env, AniGlobalClass::GetInstance().fontVariation, AniGlobalMethod::GetInstance().fontVariationCtor);
     return aniObj;
+}
+
+ani_object AniTextStyleConverter::ParseFontTypefacesToAni(ani_env* env, const TextStyle& textStyle)
+{
+    // Create ANI array from native fontTypefaces vector
+    ani_object arrayObj = AniTextUtils::CreateAniArrayAndInitData(
+        env, textStyle.fontTypefaces, textStyle.fontTypefaces.size(),
+        [](ani_env* env, const std::shared_ptr<Drawing::Typeface>& typeface) {
+            // Create AniTypeface wrapper from native Typeface
+            // Reuse the private CreateAniTypeface method by directly calling it
+            ani_object aniTypefaceObj = AniTextUtils::CreateAniObject(env,
+                OHOS::Rosen::Drawing::AniGlobalClass::GetInstance().typeface,
+                OHOS::Rosen::Drawing::AniGlobalMethod::GetInstance().typefaceCtor);
+            if (aniTypefaceObj == nullptr) {
+                TEXT_LOGW("Failed to create AniTypeface object");
+                return aniTypefaceObj;
+            }
+
+            // Create native AniTypeface wrapper
+            auto* aniTypeface = new OHOS::Rosen::Drawing::AniTypeface(typeface);
+            ani_status status = env->Object_SetField_Long(
+                aniTypefaceObj,
+                OHOS::Rosen::Drawing::AniGlobalField::GetInstance().typefaceNativeObj,
+                reinterpret_cast<ani_long>(aniTypeface));
+            if (status != ANI_OK) {
+                delete aniTypeface;
+                TEXT_LOGW("Failed to set AniTypeface native object, ret %{public}d", status);
+                return aniTypefaceObj;
+            }
+            return aniTypefaceObj;
+        });
+    return arrayObj;
+}
+
+void AniTextStyleConverter::ParseFontTypefacesToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
+{
+    std::vector<std::string> array;
+    AniTextUtils::ReadOptionalArrayField<std::shared_ptr<Drawing::Typeface>>(
+        env, obj, AniGlobalMethod::GetInstance().textStyleFontTypefaces, textStyle.fontTypefaces,
+        [](ani_env* env, ani_ref ref) -> std::shared_ptr<Drawing::Typeface> {
+            ani_object typefaceObj = reinterpret_cast<ani_object>(ref);
+            // Use GetNativeFromObj to extract the native Typeface pointer
+            auto* aniTypeface = Drawing::GetNativeFromObj<OHOS::Rosen::Drawing::AniTypeface>(
+                env, typefaceObj, OHOS::Rosen::Drawing::AniGlobalField::GetInstance().typefaceNativeObj);
+            if (aniTypeface == nullptr) {
+                TEXT_LOGW("Failed to get AniTypeface from object");
+                return nullptr;
+            }
+            return aniTypeface->GetTypeface();
+        });
 }
 } // namespace OHOS::Text::ANI

@@ -34,6 +34,21 @@ const double ARC_FONT_SIZE = 28;
 const double DEFAULT_FONT_SIZE = 40;
 const size_t DEFAULT_MAXLINES = 2;
 const double DEFAULT_MAX_WIDTHS = 100;
+
+// Helper function to convert Typography to Skia ParagraphImpl
+static skia::textlayout::ParagraphImpl* GetSkiaParagraph(Typography* typography)
+{
+    if (typography == nullptr) {
+        return nullptr;
+    }
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    if (paragraphImpl == nullptr) {
+        return nullptr;
+    }
+    return static_cast<skia::textlayout::ParagraphImpl*>(paragraphImpl->paragraph_.get());
+}
+
 class OH_Drawing_TypographyTest : public testing::Test {
 };
 
@@ -1008,6 +1023,313 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level
     EXPECT_TRUE(typography->HasSkipTextBlobDrawing());
     typography->SetTextEffectAssociation(true);
     EXPECT_TRUE(typography->GetTextEffectAssociation());
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesSetSingleTypefaceTest
+ * @tc.desc: Test setting a single fontTypeface
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesSetSingleTypefaceTest, TestSize.Level0)
+{
+    TextStyle textStyle;
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface, nullptr);
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    textStyle.SetFontTypefaces(typefaces);
+    auto result = textStyle.GetFontTypefaces();
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_NE(result[0], nullptr);
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesSetMultipleTypefacesTest
+ * @tc.desc: Test setting multiple fontTypefaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesSetMultipleTypefacesTest, TestSize.Level0)
+{
+    TextStyle textStyle;
+    auto typeface1 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface1, nullptr);
+    auto typeface2 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSansCJK-Regular.ttc");
+    ASSERT_NE(typeface2, nullptr);
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface1);
+    typefaces.push_back(typeface2);
+
+    textStyle.SetFontTypefaces(typefaces);
+
+    auto result = textStyle.GetFontTypefaces();
+    EXPECT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0], typeface1);
+    EXPECT_EQ(result[1], typeface2);
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesCppSetEmptyArrayTest
+ * @tc.desc: Test setting empty array to clear priority setting
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesCppSetEmptyArrayTest, TestSize.Level0)
+{
+    TextStyle textStyle;
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface, nullptr);
+
+    // First set a typeface
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    textStyle.SetFontTypefaces(typefaces);
+
+    auto result1 = textStyle.GetFontTypefaces();
+    EXPECT_EQ(result1.size(), 1);
+
+    // Then clear with empty array
+    std::vector<std::shared_ptr<Drawing::Typeface>> emptyTypefaces;
+    textStyle.SetFontTypefaces(emptyTypefaces);
+
+    auto result2 = textStyle.GetFontTypefaces();
+    EXPECT_EQ(result2.size(), 0);
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutAllSupportedTest
+ * @tc.desc: Test layout with all characters supported by priority font
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutAllSupportedTest, TestSize.Level0)
+{
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface, nullptr);
+
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    textStyle.SetFontTypefaces(typefaces);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"Hello World");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 1);
+    for (const auto& run : skParagraph->fRuns) {
+        EXPECT_EQ(run.font().GetTypeface()->GetFamilyName(), "Noto Sans");
+    }
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutFirstFallbackTest
+ * @tc.desc: Test layout with first typeface failing, using second
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutFirstFallbackTest, TestSize.Level0)
+{
+    auto typeface1 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface1, nullptr);
+    auto typeface2 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSansCJK-Regular.ttc");
+    ASSERT_NE(typeface2, nullptr);
+
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface1);
+    typefaces.push_back(typeface2);
+    textStyle.SetFontTypefaces(typefaces);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"Hello世界");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 2);
+    EXPECT_EQ(skParagraph->fRuns[0].font().GetTypeface()->GetFamilyName(), "Noto Sans");
+    EXPECT_EQ(skParagraph->fRuns[1].font().GetTypeface()->GetFamilyName(), "Noto Sans CJK JP");
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutFirstFallbackTest
+ * @tc.desc: Test layout with first typeface failing, using fallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutFirstAndFallbackTest, TestSize.Level0)
+{
+    auto typeface1 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface1, nullptr);
+
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface1);
+    textStyle.SetFontTypefaces(typefaces);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"Hello世界");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 2);
+    EXPECT_EQ(skParagraph->fRuns[0].font().GetTypeface()->GetFamilyName(), "Noto Sans");
+    EXPECT_EQ(skParagraph->fRuns[1].font().GetTypeface()->GetFamilyName(), "HarmonyOS Sans SC");
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutPriorityTest
+ * @tc.desc: Test layout with fontFamilies and typefaces, using typefaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutPriorityTest, TestSize.Level0)
+{
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSansCJK-Regular.ttc");
+    ASSERT_NE(typeface, nullptr);
+
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+    textStyle.fontFamilies.push_back("HarmonyOS Sans SC");
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    textStyle.SetFontTypefaces(typefaces);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"你好世界");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 1);
+    EXPECT_EQ(skParagraph->fRuns[0].font().GetTypeface()->GetFamilyName(), "Noto Sans CJK JP");
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutNoTypefacesTest
+ * @tc.desc: Test layout without fontTypefaces set, using default font matching
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutNoTypefacesTest, TestSize.Level0)
+{
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    // Don't set fontTypefaces, use default behavior
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"Hello World");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 1);
+    EXPECT_EQ(skParagraph->fRuns[0].font().GetTypeface()->GetFamilyName(), "HarmonyOS-Sans");
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutLineMetricsTest
+ * @tc.desc: Test for fontTypefaces from runMetrics's textStyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutLineMetricsTest, TestSize.Level0)
+{
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle style;
+    style.fontSize = 40;
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface, nullptr);
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    style.SetFontTypefaces(typefaces);
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(u"你好世界");
+    auto paragraph = typographyCreate->CreateTypography();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(200);
+    LineMetrics lineMetrics;
+    paragraph->GetLineMetricsAt(0, &lineMetrics);
+    for (const auto& metrics : lineMetrics.runMetrics) {
+        const auto& runMetricsStyle = metrics.second.textStyle;
+        auto typefaces = runMetricsStyle->GetFontTypefaces();
+        EXPECT_EQ(typefaces.size(), 1);
+        for (const auto& typeface : typefaces) {
+            EXPECT_EQ(typeface->GetFamilyName(), "Noto Sans");
+        }
+    }
 }
 
 /*
