@@ -1726,6 +1726,22 @@ bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit,
     return true;
 }
 
+int32_t GlyphSafeAdd(int32_t a, int32_t b)
+{
+    const int32_t MAX = std::numeric_limits<int32_t>::max();
+    const int32_t MIN = std::numeric_limits<int32_t>::min();
+    if (b > 0) {
+        if (a > MAX - b) {
+            return MAX;
+        }
+    } else if (b < 0) {
+        if (a < MIN - b) {
+            return MIN;
+        }
+    }
+    return a + b;
+}
+
 void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
                            ani_array glyphIdsObj, ani_int glyphIdOffset,
                            ani_array positionsObj, ani_int positionOffset,
@@ -1738,13 +1754,18 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
     }
     std::unique_ptr<uint16_t[]> glyphIds;
     std::unique_ptr<Drawing::Point[]> positions;
-    if (glyphIdOffset < 0 || positionOffset < 0) {
+    if (glyphCount <= 0) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
-                           "AniCanvas::DrawGlyphs array offset out of range.");
+                           "AniCanvas::DrawGlyphs glyphCount out of range.");
         return;
     }
-    if (!GetGlyphIds(env, glyphIdOffset + glyphCount, glyphIdsObj, glyphIds) ||
-        !GetGlyphPositions(env, positionOffset + glyphCount, positionsObj, positions)) {
+    if (glyphIdOffset < 0 || positionOffset < 0) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                           "AniCanvas::DrawGlyphs array offset is invalid.");
+        return;
+    }
+    if (!GetGlyphIds(env, GlyphSafeAdd(glyphIdOffset + glyphCount), glyphIdsObj, glyphIds) ||
+        !GetGlyphPositions(env, GlyphSafeAdd(positionOffset + glyphCount), positionsObj, positions)) {
         return;
     }
     auto aniFont = GetNativeFromObj<AniFont>(env, fontObj, AniGlobalField::GetInstance().fontNativeObj);
