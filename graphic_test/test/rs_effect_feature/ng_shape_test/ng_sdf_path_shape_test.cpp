@@ -52,7 +52,22 @@ const std::vector<Vector2f> scaleParams = {
     { 1.5f, 1.5f }, { 0.6f, 0.6f }
 };
 
+const Rosen::Vector2f defaultScale {1.0f, 1.0f};
+
+const Rosen::Vector2f defaultOffset {0.0f, 0.0f};
+
+const Rosen::Vector2f unifiedOffset {10.0f, 10.0f};
+
 const std::vector<Vector2f> offsetParams = {
+    { 100.0f, 100.0f }, { 200.5f, 200.0f },
+    { 20.25f, 40.0f }, { -0.5f, 200.0f },
+    { 55.5f, 100.5f }, { 200.0f, 200.0f }
+};
+
+const std::vector<Vector2f> offsetParams1 = {
+    { 100.0f, 100.0f }, { 200.5f, 200.0f },
+    { 20.0f, 40.0f }, { 100.5f, 200.0f },
+    { 55.5f, 100.5f }, { 200.0f, 200.0f },
     { 100.0f, 300.0f }, { 200.5f, 300.0f },
     { 200.25f, 400.0f }, { -0.5f, 400.0f },
     { 55.5f, 100.5f }, { 200.0f, 200.0f }
@@ -60,13 +75,19 @@ const std::vector<Vector2f> offsetParams = {
 
 const std::vector<std::string> strParams = { "0", "7", "23", "456", "478", "91" };
 
+const std::vector<std::string> strParams1 = { "0", "7", "2", "4", "3", "5", "9", "7", "8", "4", "3", "6" };
+
 } // namespace
 
 static void GetPathData(const char* str, Drawing::Path& path)
 {
     Drawing::Font font;
-    font.SetSize(300.0f);
+    font.SetSize(350.0f);
     auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    if (!textblob) {
+        path.AddCircle(100.0f, 100.0f, 100.0f); // default circular shape
+        return;
+    }
     std::vector<Drawing::Point> points;
     Drawing::TextBlob::GetDrawingPointsForTextBlob(textblob.get(), points);
     std::vector<uint16_t> glyphIds;
@@ -74,7 +95,8 @@ static void GetPathData(const char* str, Drawing::Path& path)
     for (size_t i = 0; i < glyphIds.size() && i < points.size(); i++) {
         auto tempPath = Drawing::TextBlob::GetDrawingPathforTextBlob(glyphIds[i], textblob.get());
         if (tempPath.IsValid()) {
-            tempPath.Offset(points[i].GetX(), points[i].GetY());
+            auto bounds = tempPath.GetBounds();
+            tempPath.Offset(points[i].GetX() - bounds.GetLeft(), points[i].GetY() - bounds.GetTop());
             path.AddPath(tempPath);
         }
     }
@@ -147,9 +169,8 @@ static void InitThickFrostedGlassFilter(std::shared_ptr<RSNGFrostedGlassFilter>&
 }
 
 static void SetSDFPathShapeNode(
-    const std::shared_ptr<RSCanvasNode>& node, const PathShapeParam& param, int sizeX, int sizeY)
+    const std::shared_ptr<RSCanvasNode>& node, const PathShapeParam& param, const Rosen::Vector4f& bounds)
 {
-    Rosen::Vector4f bounds { 0, 0, sizeX, sizeY };
     node->SetBounds(bounds);
     node->SetFrame(bounds);
 
@@ -175,7 +196,7 @@ private:
 
 GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Filter_Test_1)
 {
-    int rowCount = static_cast<int>(scaleParams.size());
+    int rowCount = static_cast<int>(strParams.size());
     auto sizeX = SCREEN_WIDTH / COLUMN_COUNT;
     auto sizeY = SCREEN_HEIGHT * COLUMN_COUNT / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -184,9 +205,12 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Filter_Test_1)
 
         Drawing::Path path;
         GetPathData(strParams[i].c_str(), path);
-        PathShapeParam param = { path, offsetParams[i], scaleParams[i] };
+        PathShapeParam param = { path, defaultOffset, scaleParams[i] };
         auto testNode = RSCanvasNode::Create();
-        SetSDFPathShapeNode(testNode, param, sizeX, sizeY);
+        auto pathBounds = path.GetBounds();
+        Rosen::Vector4f bounds = { unifiedOffset.x_, unifiedOffset.y_,
+            pathBounds.GetWidth(), pathBounds.GetHeight() };
+        SetSDFPathShapeNode(testNode, param, bounds);
 
         auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
         InitFrostedGlassFilter(frostedGlassFilter);
@@ -211,9 +235,12 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_ThickFilter_Test
 
         Drawing::Path path;
         GetPathData(strParams[i].c_str(), path);
-        PathShapeParam param = { path, offsetParams[i], scaleParams[i] };
+        PathShapeParam param = { path, defaultOffset, scaleParams[i] };
         auto testNode = RSCanvasNode::Create();
-        SetSDFPathShapeNode(testNode, param, sizeX, sizeY);
+        auto pathBounds = path.GetBounds();
+        Rosen::Vector4f bounds = { unifiedOffset.x_, unifiedOffset.y_,
+            pathBounds.GetWidth(), pathBounds.GetHeight() };
+        SetSDFPathShapeNode(testNode, param, bounds);
 
         auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
         InitThickFrostedGlassFilter(frostedGlassFilter);
@@ -240,20 +267,17 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Shadow_Test_1)
 
         Drawing::Path path;
         GetPathData(strParams[i].c_str(), path);
-        PathShapeParam param = { path, offsetParams[i], scaleParams[i] };
+        PathShapeParam param = { path, defaultOffset, scaleParams[i] };
         auto testNode = RSCanvasNode::Create();
-        SetSDFPathShapeNode(testNode, param, sizeX, sizeY);
-        Rosen::Vector4f bounds { x, y, sizeX, sizeY };
-        testNode->SetBounds(bounds);
-        testNode->SetFrame(bounds);
+        auto pathBounds = path.GetBounds();
+        Rosen::Vector4f bounds = { x + unifiedOffset.x_, y + unifiedOffset.y_,
+            pathBounds.GetWidth(), pathBounds.GetHeight() };
+        SetSDFPathShapeNode(testNode, param, bounds);
 
         auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
         InitFrostedGlassFilter(frostedGlassFilter);
         testNode->SetMaterialNGFilter(frostedGlassFilter);
 
-        testNode->SetBorderStyle(0, 0, 0, 0);
-        testNode->SetBorderWidth(5, 5, 5, 5);
-        testNode->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
         testNode->SetShadowRadius(25.0f);
         testNode->SetShadowColor(0xFF00FF00);
         testNode->SetBackgroundColor(0xFF888888);
@@ -274,9 +298,11 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_Test_1
 
         Drawing::Path path;
         GetPathData(strParams[0].c_str(), path);
-        PathShapeParam param = { path, offsetParams[0], scaleParams[0] };
+        PathShapeParam param = { path, defaultOffset, defaultScale };
         auto testNode = RSCanvasNode::Create();
-        Rosen::Vector4f bounds { 0, 0, sizeX, sizeY };
+        auto pathBounds = path.GetBounds();
+        Rosen::Vector4f bounds { offsetParams[i].x_, offsetParams[i].y_,
+            pathBounds.GetWidth(), pathBounds.GetHeight() };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
 
@@ -307,7 +333,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_Test_1
 
 GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_Test_2)
 {
-    int rowCount = static_cast<int>(matrix3fParams2.size());
+    int rowCount = static_cast<int>(matrix3fParams1.size());
     auto sizeX = SCREEN_WIDTH / COLUMN_COUNT;
     auto sizeY = SCREEN_HEIGHT * COLUMN_COUNT / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -316,9 +342,11 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_Test_2
 
         Drawing::Path path;
         GetPathData(strParams[1].c_str(), path);
-        PathShapeParam param = { path, offsetParams[1], scaleParams[1] };
+        PathShapeParam param = { path, defaultOffset, defaultScale };
         auto testNode = RSCanvasNode::Create();
-        Rosen::Vector4f bounds { 0, 0, sizeX, sizeY };
+        auto pathBounds = path.GetBounds();
+        Rosen::Vector4f bounds { offsetParams[i].x_, offsetParams[i].y_,
+            pathBounds.GetWidth(), pathBounds.GetHeight() };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
 
@@ -330,7 +358,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_Test_2
 
         auto transformShape = CreateShape(RSNGEffectType::SDF_TRANSFORM_SHAPE);
         auto sdfTransformShape = std::static_pointer_cast<RSNGSDFTransformShape>(transformShape);
-        sdfTransformShape->Setter<SDFTransformShapeMatrixTag>(matrix3fParams2[i].Inverse());
+        sdfTransformShape->Setter<SDFTransformShapeMatrixTag>(matrix3fParams1[i].Inverse());
         sdfTransformShape->Setter<SDFTransformShapeShapeTag>(pathShape);
 
         testNode->SetSDFShape(transformShape);
@@ -349,7 +377,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_Test_2
 
 GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_UnionOp_Test_1)
 {
-    int rowCount = static_cast<int>(scaleParams.size()) / 2;
+    int rowCount = static_cast<int>(strParams1.size()) / 2;
     auto sizeX = SCREEN_WIDTH / COLUMN_COUNT;
     auto sizeY = SCREEN_HEIGHT * COLUMN_COUNT / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -357,12 +385,18 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_UnionOp_Test_1)
         int y = (i / COLUMN_COUNT) * sizeY;
 
         Drawing::Path pathX;
-        GetPathData(strParams[i].c_str(), pathX);
+        GetPathData(strParams1[i].c_str(), pathX);
         Drawing::Path pathY;
-        GetPathData(strParams[i + 1].c_str(), pathY);
+        GetPathData(strParams1[i + 1].c_str(), pathY);
 
         auto testNode = RSCanvasNode::Create();
-        Rosen::Vector4f bounds { 0, 0, sizeX, sizeY };
+        auto pathXBounds = pathX.GetBounds();
+        float widthL = offsetParams1[i].x_ + pathXBounds.GetWidth();
+        float heightL = offsetParams1[i].y_ + pathXBounds.GetHeight();
+        auto pathYBounds = pathY.GetBounds();
+        float widthR = offsetParams1[i + 1].x_ + pathYBounds.GetWidth();
+        float heightR = offsetParams1[i + 1].y_ + pathYBounds.GetHeight();
+        Rosen::Vector4f bounds { 0, 0, std::max(widthL, widthR), std::max(heightL, heightR) };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
 
@@ -372,15 +406,15 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_UnionOp_Test_1)
         auto pathShapeX = CreateShape(RSNGEffectType::SDF_PATH_SHAPE);
         auto sdfPathShapeX = std::static_pointer_cast<RSNGSDFPathShape>(pathShapeX);
         sdfPathShapeX->Setter<SDFPathShapePathTag>(RSPath::CreateRSPath(pathX));
-        sdfPathShapeX->Setter<SDFPathShapeOffsetTag>(offsetParams[i]);
-        sdfPathShapeX->Setter<SDFPathShapeScaleTag>(scaleParams[i]);
+        sdfPathShapeX->Setter<SDFPathShapeOffsetTag>(offsetParams1[i]);
+        sdfPathShapeX->Setter<SDFPathShapeScaleTag>(defaultScale);
         unionOpShape->Setter<SDFUnionOpShapeShapeXTag>(pathShapeX);
 
         auto pathShapeY = CreateShape(RSNGEffectType::SDF_PATH_SHAPE);
         auto sdfPathShapeY = std::static_pointer_cast<RSNGSDFPathShape>(pathShapeY);
         sdfPathShapeY->Setter<SDFPathShapePathTag>(RSPath::CreateRSPath(pathY));
-        sdfPathShapeY->Setter<SDFPathShapeOffsetTag>(offsetParams[i + 1]);
-        sdfPathShapeY->Setter<SDFPathShapeScaleTag>(scaleParams[i + 1]);
+        sdfPathShapeY->Setter<SDFPathShapeOffsetTag>(offsetParams1[i + 1]);
+        sdfPathShapeY->Setter<SDFPathShapeScaleTag>(defaultScale);
         unionOpShape->Setter<SDFUnionOpShapeShapeYTag>(pathShapeY);
 
         testNode->SetSDFShape(unionShape);
@@ -421,7 +455,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_RRect_UnionOp_Te
         auto sdfPathShape = std::static_pointer_cast<RSNGSDFPathShape>(pathShape);
         sdfPathShape->Setter<SDFPathShapePathTag>(RSPath::CreateRSPath(path));
         sdfPathShape->Setter<SDFPathShapeOffsetTag>(offsetParams[i % offsetParams.size()]);
-        sdfPathShape->Setter<SDFPathShapeScaleTag>(scaleParams[i % scaleParams.size()]);
+        sdfPathShape->Setter<SDFPathShapeScaleTag>(defaultScale);
         unionOpShape->Setter<SDFUnionOpShapeShapeXTag>(pathShape);
 
         auto rRectShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
@@ -445,7 +479,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_RRect_UnionOp_Te
 
 GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_SmoothUnionOp_Test_1)
 {
-    int rowCount = static_cast<int>(scaleParams.size()) / 2;
+    int rowCount = static_cast<int>(strParams1.size()) / 2;
     auto sizeX = SCREEN_WIDTH / COLUMN_COUNT;
     auto sizeY = SCREEN_HEIGHT * COLUMN_COUNT / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -453,12 +487,18 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_SmoothUnionOp_Te
         int y = (i / COLUMN_COUNT) * sizeY;
 
         Drawing::Path pathX;
-        GetPathData(strParams[i].c_str(), pathX);
+        GetPathData(strParams1[i].c_str(), pathX);
         Drawing::Path pathY;
-        GetPathData(strParams[i + 1].c_str(), pathY);
+        GetPathData(strParams1[i + 1].c_str(), pathY);
 
         auto testNode = RSCanvasNode::Create();
-        Rosen::Vector4f bounds { 0, 0, sizeX, sizeY };
+        auto pathXBounds = pathX.GetBounds();
+        float widthL = offsetParams1[i].x_ + pathXBounds.GetWidth();
+        float heightL = offsetParams1[i].y_ + pathXBounds.GetHeight();
+        auto pathYBounds = pathY.GetBounds();
+        float widthR = offsetParams1[i + 1].x_ + pathYBounds.GetWidth();
+        float heightR = offsetParams1[i + 1].y_ + pathYBounds.GetHeight();
+        Rosen::Vector4f bounds { 0, 0, std::max(widthL, widthR), std::max(heightL, heightR) };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
 
@@ -468,15 +508,15 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_SmoothUnionOp_Te
         auto pathShapeX = CreateShape(RSNGEffectType::SDF_PATH_SHAPE);
         auto sdfPathShapeX = std::static_pointer_cast<RSNGSDFPathShape>(pathShapeX);
         sdfPathShapeX->Setter<SDFPathShapePathTag>(RSPath::CreateRSPath(pathX));
-        sdfPathShapeX->Setter<SDFPathShapeOffsetTag>(offsetParams[i]);
-        sdfPathShapeX->Setter<SDFPathShapeScaleTag>(scaleParams[i]);
+        sdfPathShapeX->Setter<SDFPathShapeOffsetTag>(offsetParams1[i]);
+        sdfPathShapeX->Setter<SDFPathShapeScaleTag>(defaultScale);
         sdfSmoothUnionShape->Setter<SDFSmoothUnionOpShapeShapeXTag>(pathShapeX);
 
         auto pathShapeY = CreateShape(RSNGEffectType::SDF_PATH_SHAPE);
         auto sdfPathShapeY = std::static_pointer_cast<RSNGSDFPathShape>(pathShapeY);
         sdfPathShapeY->Setter<SDFPathShapePathTag>(RSPath::CreateRSPath(pathY));
-        sdfPathShapeY->Setter<SDFPathShapeOffsetTag>(offsetParams[i + 1]);
-        sdfPathShapeY->Setter<SDFPathShapeScaleTag>(scaleParams[i + 1]);
+        sdfPathShapeY->Setter<SDFPathShapeOffsetTag>(offsetParams1[i + 1]);
+        sdfPathShapeY->Setter<SDFPathShapeScaleTag>(defaultScale);
         sdfSmoothUnionShape->Setter<SDFSmoothUnionOpShapeShapeYTag>(pathShapeY);
 
         sdfSmoothUnionShape->Setter<SDFSmoothUnionOpShapeSpacingTag>(
@@ -522,14 +562,14 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_UnionO
         auto sdfPathShapeX = std::static_pointer_cast<RSNGSDFPathShape>(pathShapeX);
         sdfPathShapeX->Setter<SDFPathShapePathTag>(RSPath::CreateRSPath(pathX));
         sdfPathShapeX->Setter<SDFPathShapeOffsetTag>(offsetParams[0]);
-        sdfPathShapeX->Setter<SDFPathShapeScaleTag>(scaleParams[0]);
+        sdfPathShapeX->Setter<SDFPathShapeScaleTag>(defaultScale);
         unionOpShape->Setter<SDFUnionOpShapeShapeXTag>(pathShapeX);
 
         auto pathShapeY = CreateShape(RSNGEffectType::SDF_PATH_SHAPE);
         auto sdfPathShapeY = std::static_pointer_cast<RSNGSDFPathShape>(pathShapeY);
         sdfPathShapeY->Setter<SDFPathShapePathTag>(RSPath::CreateRSPath(pathY));
         sdfPathShapeY->Setter<SDFPathShapeOffsetTag>(offsetParams[1]);
-        sdfPathShapeY->Setter<SDFPathShapeScaleTag>(scaleParams[1]);
+        sdfPathShapeY->Setter<SDFPathShapeScaleTag>(defaultScale);
         unionOpShape->Setter<SDFUnionOpShapeShapeYTag>(pathShapeY);
 
         auto transformShape = CreateShape(RSNGEffectType::SDF_TRANSFORM_SHAPE);
