@@ -44,12 +44,13 @@ struct DepthLightPara {
 };
 
 struct SpatialEffectPara {
-    using CornerPositions = std::array<Vector3f, 4>;
-
     static constexpr uint8_t LEFT_TOP_INDEX = 0;
     static constexpr uint8_t RIGHT_TOP_INDEX = 1;
     static constexpr uint8_t LEFT_BOTTOM_INDEX = 2;
     static constexpr uint8_t RIGHT_BOTTOM_INDEX = 3;
+    static constexpr uint8_t CORNER_NUMBER = 4;
+
+    using CornerPositions = std::array<Vector3f, CORNER_NUMBER>;
 
     union {
         struct {
