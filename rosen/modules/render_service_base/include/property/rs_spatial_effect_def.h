@@ -72,6 +72,7 @@ struct SpatialEffectVariantPara {
     std::variant<float, SpatialEffectPara::CornerPositions> position;
     float occlusionWeight = 0.0f;
 };
+
 } // namespace Rosen
 } // namespace OHOS
 
