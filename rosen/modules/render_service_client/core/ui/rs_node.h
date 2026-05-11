@@ -1971,7 +1971,7 @@ public:
      *
      * @param para spatial effect parameters
      */
-    void SetSpatialEffectPara(const std::shared_ptr<SpatialEffectPara>& para);
+    void SetSpatialEffectPara(const std::shared_ptr<SpatialEffectVariantPara>& para);
 
     /**
      * @brief Set whether the node is a depth background node
