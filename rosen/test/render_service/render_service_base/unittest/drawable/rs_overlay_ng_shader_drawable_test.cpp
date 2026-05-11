@@ -1493,6 +1493,30 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, DrawSDFBorderLightTest007, TestS
 }
 
 /**
+ * @tc.name: DrawSDFContentAndBorderLightTest001
+ * @tc.desc: DrawSDFContentAndBorderLight direct call with null lightShaderEffectContent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, DrawSDFContentAndBorderLightTest001, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> drawable =
+        std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto validShader = std::make_shared<Drawing::ShaderEffect>();
+    drawable->sdfShaderEffect_ = validShader;
+    drawable->contentRRect_.SetRect(Drawing::RectF(0.f, 0.f, 200.f, 200.f));
+    drawable->borderWidth_ = 5.f;
+    drawable->illuminatedType_ = IlluminatedType::BLEND_BORDER;
+
+    Drawing::Canvas canvasTest;
+    Drawing::Brush brush;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffectContent = nullptr;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect = nullptr;
+    drawable->DrawSDFContentAndBorderLight(canvasTest, lightShaderEffectContent, lightShaderEffect, brush);
+}
+
+/**
  * @tc.name: OnUpdateSDFShapeTest001
  * @tc.desc: OnUpdate test when GetResolvedSDFShape returns valid shape
  * @tc.type: FUNC

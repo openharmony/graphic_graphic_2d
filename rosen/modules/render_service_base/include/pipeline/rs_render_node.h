@@ -496,6 +496,10 @@ public:
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
     bool UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegionManager>& dirtyManager);
+    // Calculating bouding box of the render node
+    virtual RectF CalcBoundingBox() const {
+        return GetRenderProperties().GetBoundsRect();
+    }
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         std::optional<RectI> clipRect = std::nullopt);

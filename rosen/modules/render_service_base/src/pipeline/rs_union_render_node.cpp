@@ -86,6 +86,7 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
         root = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
     } else {
         std::queue<std::shared_ptr<RSNGRenderShapeBase>> shapeQueue;
+        boundingBox_ = RectI(0, 0, 0, 0);
         if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f) && unionMode_ == 1) {
             gravityCenter_ =  GetGravityCenter();
             root = GenerateSDFNonLeaf<RSNGEffectType::SDF_UNION_OP_SHAPE, RSNGRenderSDFUnionOpShape,
@@ -110,6 +111,19 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
         dirtyManager.MergeDirtyRect(GetAbsDrawRect());
         UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
     }
+}
+
+RectI RSUnionRenderNode::GenerateSDFDrawingRect(std::shared_ptr<RSRenderNode> &child)
+{
+    Drawing::Matrix relativeMatrix;
+    if (!GetChildRelativeMatrixToUnionNode(relativeMatrix, child)) {
+        return RectI(0, 0, 0, 0);
+    }
+    auto childRect = child->GetSelfDrawRect();
+    Drawing::RectF mappedRect;
+    relativeMatrix.MapRect(mappedRect,
+        Drawing::RectF(childRect.GetLeft(), childRect.GetTop(), childRect.GetWidth(), childRect.GetHeight()));
+    return RectI(mappedRect.GetLeft(), mappedRect.GetTop(), mappedRect.GetWidth(), mappedRect.GetHeight());
 }
 
 bool RSUnionRenderNode::GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relativeMatrix,
@@ -275,6 +289,18 @@ std::shared_ptr<RSUnionRenderNode> RSUnionRenderNode::FindClosestUnionAncestor(
         curNode = parent;
     }
     return nullptr;
+}
+
+RectF RSUnionRenderNode::CalcBoundingBox() const
+{
+    // need to change it to enum
+    static const int gravityPullUnionMode = 1;
+    auto extendZone = std::min(gravityHotZone_, gravityStrength_);
+    auto realBoundingBox = boundingBox_.MakeOutset(extendZone);
+    return GetRenderProperties().GetSDFUnionMode() == gravityPullUnionMode
+        ? RectF(realBoundingBox.GetLeft(), realBoundingBox.GetTop(),
+                realBoundingBox.GetWidth(), realBoundingBox.GetHeight())
+        : GetRenderProperties().GetBoundsRect();
 }
 } // namespace Rosen
 } // namespace OHOS

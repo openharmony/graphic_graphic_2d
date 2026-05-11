@@ -49,7 +49,8 @@ bool RSMaterialShaderDrawable::OnUpdate(const RSRenderNode& node)
     stagingNodeId_ = node.GetId();
 
     auto bounds = properties.GetBoundsRect();
-    stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(shader, bounds);
+    auto shapeRect = RSNGRenderShaderHelper::CalcRect(shader, bounds);
+    stagingDrawRect_ = (bounds == node.CalcBoundingBox() && !shapeRect.IsEmpty()) ? shapeRect : node.CalcBoundingBox();
 
     return true;
 }

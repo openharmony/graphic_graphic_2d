@@ -239,6 +239,32 @@ static constexpr char SDF_BORDER_LIGHT_SHADER_STRING[](R"(
         return lightColor * clamp((halfBorderWidth - abs(sdfColor + halfBorderWidth)), 0.0, 1.0);
     }
 )");
+
+static constexpr char SDF_CONTENT_AND_BORDER_LIGHT_SHADER_STRING[](R"(
+    uniform shader lightContent;
+    uniform shader light;
+    uniform shader sdf;
+    uniform float borderWidth;
+    mediump vec4 main(vec2 coord)
+    {
+        vec4 lightContentColor = lightContent.eval(coord);
+        vec4 lightColor = light.eval(coord);
+        float sdfColor = sdf.eval(coord).a;
+        float halfBorderWidth = borderWidth * 0.5;
+
+        // First effect: Content light with SDF mask
+        vec4 firstColor =
+            lightContentColor * mix(1.0, 0.0, step(0.0, sdfColor)) * mix(1.0, -sdfColor, step(-1.0, sdfColor));
+
+        // Calculate border region
+        float borderSdfColor = sdfColor;
+        borderSdfColor += min(halfBorderWidth, step(halfBorderWidth, -borderSdfColor));
+        vec4 secondColor = lightColor * clamp((halfBorderWidth - abs(borderSdfColor + halfBorderWidth)), 0.0, 1.0);
+
+        // Combine: blend second (border) over first (content)
+        return firstColor + secondColor * (1.0 - firstColor.a);
+    }
+)");
 constexpr float SDR_LUMINANCE = 1.0f;
 } // namespace
 
@@ -304,6 +330,7 @@ bool RSOverlayNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     stagingIlluminatedType_ = illuminatedPtr->GetIlluminatedType();
     stagingBorderWidth_ = std::max(0.0f, std::ceil(properties.GetIlluminatedBorderWidth()));
     stagingRRect_ = RRect(properties.GetRRect());
+    stagingSdfDrawRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(node.CalcBoundingBox());
     stagingNodeId_ = node.GetId();
     stagingScreenNodeId_ = node.GetScreenNodeId();
     auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
@@ -345,6 +372,7 @@ void RSOverlayNGShaderDrawable::OnSync()
     auto borderRRect = stagingRRect_.Inset(width);
     borderRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(borderRRect);
     contentRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(stagingRRect_);
+    sdfDrawRect_ = stagingSdfDrawRect_;
 
     if (enableEDREffect_) {
         displayHeadroom_ = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenNodeId_);
@@ -524,8 +552,7 @@ void RSOverlayNGShaderDrawable::DrawLightByIlluminatedType(Drawing::Canvas& canv
     if ((illuminatedType_ == IlluminatedType::BORDER_CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) ||
         (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT)) {
-        DrawContentLight(canvas, builder, brush, lightIntensityArray);
-        DrawBorderLight(canvas, builder, pen, lightIntensityArray);
+        DrawContentAndBorderLight(canvas, builder, brush, pen, lightIntensityArray);
     } else if ((illuminatedType_ == IlluminatedType::CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_CONTENT)) {
         DrawContentLight(canvas, builder, brush, lightIntensityArray);
@@ -665,6 +692,25 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetSDF
     return shaderBuilder;
 }
 
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetSDFContentAndBorderLightShaderBuilder()
+{
+    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
+    if (shaderBuilder) {
+        return shaderBuilder;
+    }
+
+    Drawing::RuntimeEffectOptions reo;
+    reo.useHighpLocalCoords = true;
+    std::shared_ptr<Drawing::RuntimeEffect> effect =
+        Drawing::RuntimeEffect::CreateForShader(std::string(SDF_CONTENT_AND_BORDER_LIGHT_SHADER_STRING), reo);
+    if (!effect) {
+        ROSEN_LOGE("RSOverlayNGShaderDrawable::GetSDFContentAndBorderLightShaderBuilder effect is null");
+        return nullptr;
+    }
+    shaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(std::move(effect));
+    return shaderBuilder;
+}
+
 bool RSOverlayNGShaderDrawable::DrawSDFContentLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect, Drawing::Brush& brush) const
 {
@@ -688,7 +734,7 @@ bool RSOverlayNGShaderDrawable::DrawSDFContentLight(Drawing::Canvas& canvas,
         canvas.Restore();
     } else {
         canvas.AttachBrush(brush);
-        canvas.DrawRect(contentRRect_.GetRect());
+        canvas.DrawRect(sdfDrawRect_);
         canvas.DetachBrush();
     }
     return true;
@@ -755,7 +801,7 @@ bool RSOverlayNGShaderDrawable::DrawSDFBorderLight(Drawing::Canvas& canvas,
         canvas.Restore();
     } else {
         canvas.AttachBrush(brush);
-        canvas.DrawRect(contentRRect_.GetRect());
+        canvas.DrawRect(sdfDrawRect_);
         canvas.DetachBrush();
     }
     return true;
@@ -793,6 +839,72 @@ void RSOverlayNGShaderDrawable::DrawBorderLight(Drawing::Canvas& canvas,
         canvas.AttachPen(pen);
         canvas.DrawRoundRect(borderRRect_);
         canvas.DetachPen();
+    }
+}
+
+void RSOverlayNGShaderDrawable::DrawContentAndBorderLight(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Drawing::Pen& pen,
+    const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
+{
+    if (sdfShaderEffect_) {
+        std::shared_ptr<Drawing::RuntimeShaderBuilder> lightBuilderContent =
+            std::make_shared<Drawing::RuntimeShaderBuilder>(*lightBuilder);
+        float contentIntensityCoefficient = illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT ? 0.5f : 0.3f;
+        float specularStrengthArr[MAX_LIGHT_SOURCES] = { 0 };
+
+        for (int i = 0; i < MAX_LIGHT_SOURCES; i++) {
+            specularStrengthArr[i] = lightIntensityArray[i] * contentIntensityCoefficient;
+        }
+        lightBuilderContent->SetUniform("specularStrength", specularStrengthArr, MAX_LIGHT_SOURCES);
+        std::shared_ptr<Drawing::ShaderEffect> shaderContent = lightBuilderContent->MakeShader(nullptr, false);
+
+        for (int i = 0; i < MAX_LIGHT_SOURCES; i++) {
+            specularStrengthArr[i] = lightIntensityArray[i];
+        }
+        lightBuilder->SetUniform("specularStrength", specularStrengthArr, MAX_LIGHT_SOURCES);
+        std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
+
+        DrawSDFContentAndBorderLight(canvas, shaderContent, shader, brush);
+    } else {
+        DrawContentLight(canvas, lightBuilder, brush, lightIntensityArray);
+        DrawBorderLight(canvas, lightBuilder, pen, lightIntensityArray);
+    }
+}
+
+void RSOverlayNGShaderDrawable::DrawSDFContentAndBorderLight(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffectContent,
+    std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect, Drawing::Brush& brush) const
+{
+    auto sdfLightBuilder = GetSDFContentAndBorderLightShaderBuilder();
+    bool isValidLightShader = sdfLightBuilder && lightShaderEffect && lightShaderEffectContent;
+    if (!isValidLightShader) {
+        return;
+    }
+    sdfLightBuilder->SetChild("lightContent", lightShaderEffectContent);
+    sdfLightBuilder->SetChild("light", lightShaderEffect);
+    sdfLightBuilder->SetChild("sdf", sdfShaderEffect_);
+    sdfLightBuilder->SetUniform("borderWidth", borderWidth_);
+
+    lightShaderEffect = sdfLightBuilder->MakeShader(nullptr, false);
+
+    brush.SetAntiAlias(true);
+    brush.SetShaderEffect(lightShaderEffect);
+
+    // For BLEND types, apply OVERLAY blend mode
+    if (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) {
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
+        Drawing::Brush maskPaint;
+        Drawing::SaveLayerOps slo(&contentRRect_.GetRect(), &maskPaint);
+        canvas.SaveLayer(slo);
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(contentRRect_.GetRect());
+        canvas.DetachBrush();
+        canvas.Restore();
+    } else {
+        // Non-BLEND types use standard rendering
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(sdfDrawRect_);
+        canvas.DetachBrush();
     }
 }
 } // namespace DrawableV2
