@@ -16,10 +16,6 @@
 #include "gtest/gtest.h"
 
 #include "common/rs_common_hook.h"
-#include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
-
 using namespace testing;
 using namespace testing::ext;
 
@@ -286,30 +282,5 @@ HWTEST_F(RsCommonHookTest, SetAndIsInLayerPartRenderWhiteListTest, TestSize.Leve
     // Test empty white list again - should allow all
     RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
     EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("any.bundle.name"));
-}
-
-/**
- * @tc.name: CheckLayerPartRenderWhiteListForNodeTest001
- * @tc.desc: test CheckLayerPartRenderWhiteListForNode with nullptr node
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RsCommonHookTest, CheckLayerPartRenderWhiteListForNodeTest001, TestSize.Level1)
-{
-    // Test with nullptr node
-    EXPECT_FALSE(RsCommonHook::Instance().CheckLayerPartRenderWhiteListForNode(nullptr));
-}
-
-/**
- * @tc.name: CheckLayerPartRenderWhiteListForNodeTest002
- * @tc.desc: test CheckLayerPartRenderWhiteListForNode with non-SurfaceNode type
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RsCommonHookTest, CheckLayerPartRenderWhiteListForNodeTest002, TestSize.Level1)
-{
-    // Test with CanvasNode (not SurfaceNode)
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
-    EXPECT_FALSE(RsCommonHook::Instance().CheckLayerPartRenderWhiteListForNode(canvasNode.get()));
 }
 } // namespace OHOS::Rosen

@@ -3795,9 +3795,16 @@ void RSRenderNode::MarkSuggestLayerPartRenderNode(bool isLayerPartRender)
     if (GetType() != RSRenderNodeType::SURFACE_NODE) {
         return;
     }
+    // Get bundleName from surface node for white list check
+    auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (surfaceNode == nullptr) {
+        return;
+    }
+    std::string bundleName = surfaceNode->GetBundleName();
     // Check white list
-    if (!RsCommonHook::Instance().CheckLayerPartRenderWhiteListForNode(this)) {
-        RS_LOGD("RSRenderNode::MarkSuggestLayerPartRenderNode not in white list, skip");
+    if (!RsCommonHook::Instance().IsInLayerPartRenderWhiteList(bundleName)) {
+        RS_LOGD("RSRenderNode::MarkSuggestLayerPartRenderNode bundleName:%{public}s not in white list, skip",
+            bundleName.c_str());
         return;
     }
     auto parent = GetParent().lock();

@@ -14,8 +14,6 @@
  */
 
 #include "common/rs_common_hook.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
 RsCommonHook& RsCommonHook::Instance()
@@ -235,17 +233,5 @@ bool RsCommonHook::IsInLayerPartRenderWhiteList(const std::string& bundleName) c
     std::lock_guard<std::mutex> setMutex(mutexLock_);
     return layerPartRenderWhiteList_.empty() ||
         layerPartRenderWhiteList_.find(bundleName) != layerPartRenderWhiteList_.end();
-}
-
-bool RsCommonHook::CheckLayerPartRenderWhiteListForNode(const RSRenderNode* node) const
-{
-    if (node == nullptr) {
-        return false;
-    }
-    auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (surfaceNode == nullptr) {
-        return false;
-    }
-    return IsInLayerPartRenderWhiteList(surfaceNode->GetBundleName());
 }
 } // namespace OHOS::Rosen

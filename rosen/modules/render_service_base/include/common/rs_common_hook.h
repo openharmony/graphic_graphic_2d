@@ -28,8 +28,6 @@
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_util.h"
 
 namespace OHOS::Rosen {
-
-class RSRenderNode;
 class RsCommonHook {
 public:
     static RsCommonHook& Instance();
@@ -87,7 +85,6 @@ public:
     // LayerPartRender white list
     void SetLayerPartRenderWhiteList(const std::unordered_set<std::string>& whiteList);
     bool IsInLayerPartRenderWhiteList(const std::string& bundleName) const;
-    bool CheckLayerPartRenderWhiteListForNode(const RSRenderNode* node) const;
 
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
