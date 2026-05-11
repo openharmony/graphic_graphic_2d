@@ -122,7 +122,7 @@ bool DoSetLayerPartRenderWhiteList(const uint8_t* data, size_t size)
     whiteList.insert("com.example.fuzz.app1");
     whiteList.insert("com.example.fuzz.app2");
     RsCommonHook::Instance().SetLayerPartRenderWhiteList(whiteList);
-    auto result = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
+    RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.fuzz.app1");
     return true;
 }
 

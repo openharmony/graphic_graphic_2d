@@ -253,36 +253,34 @@ HWTEST_F(RsCommonHookTest, IsImageEnhanceParamsValidTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAndGetLayerPartRenderWhiteListTest
- * @tc.desc: test results of SetLayerPartRenderWhiteList and GetLayerPartRenderWhiteList
+ * @tc.name: SetAndIsInLayerPartRenderWhiteListTest
+ * @tc.desc: test results of SetLayerPartRenderWhiteList and IsInLayerPartRenderWhiteList
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RsCommonHookTest, SetAndGetLayerPartRenderWhiteListTest, TestSize.Level1)
+HWTEST_F(RsCommonHookTest, SetAndIsInLayerPartRenderWhiteListTest, TestSize.Level1)
 {
-    std::unordered_set<std::string> testWhiteList = {};
-    RsCommonHook::Instance().SetLayerPartRenderWhiteList(testWhiteList);
-    auto result1 = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
-    EXPECT_EQ(result1.size(), 0u);
+    // Test empty white list - should allow all (empty string check)
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList(""));
 
-    testWhiteList.insert("com.example.app1");
+    // Test with one item
+    std::unordered_set<std::string> testWhiteList = { "com.example.app1" };
     RsCommonHook::Instance().SetLayerPartRenderWhiteList(testWhiteList);
-    auto result2 = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
-    EXPECT_EQ(result2.size(), 1u);
-    EXPECT_TRUE(result2.find("com.example.app1") != result2.end());
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app1"));
+    EXPECT_FALSE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app2"));
 
+    // Test with multiple items
     testWhiteList.insert("com.example.app2");
     testWhiteList.insert("com.example.app3");
     RsCommonHook::Instance().SetLayerPartRenderWhiteList(testWhiteList);
-    auto result3 = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
-    EXPECT_EQ(result3.size(), 3u);
-    EXPECT_TRUE(result3.find("com.example.app1") != result3.end());
-    EXPECT_TRUE(result3.find("com.example.app2") != result3.end());
-    EXPECT_TRUE(result3.find("com.example.app3") != result3.end());
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app1"));
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app2"));
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app3"));
+    EXPECT_FALSE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app4"));
 
-    testWhiteList.clear();
-    RsCommonHook::Instance().SetLayerPartRenderWhiteList(testWhiteList);
-    auto result4 = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
-    EXPECT_EQ(result4.size(), 0u);
+    // Test empty white list again - should allow all
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("any.bundle.name"));
 }
 } // namespace OHOS::Rosen

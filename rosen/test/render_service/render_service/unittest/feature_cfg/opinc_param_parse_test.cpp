@@ -172,8 +172,7 @@ HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest002, TestSize.Level1)
     auto res = opincParamParse.ParseFeatureMultiParam(node);
     EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 
-    auto whiteList = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
-    EXPECT_EQ(whiteList.size(), 0u);
+    EXPECT_FALSE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList(""));
 
     RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
 }
@@ -200,8 +199,7 @@ HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest003, TestSize.Level1)
     auto res = opincParamParse.ParseFeatureMultiParam(node);
     EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 
-    auto whiteList = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
-    EXPECT_EQ(whiteList.size(), 0u);
+    EXPECT_FALSE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList(longName));
 
     RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
 }
@@ -239,11 +237,9 @@ HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest004, TestSize.Level1)
     auto res = opincParamParse.ParseFeatureMultiParam(node);
     EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 
-    auto whiteList = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
-    EXPECT_EQ(whiteList.size(), 2u);
-    EXPECT_TRUE(whiteList.find("com.example.app1") != whiteList.end());
-    EXPECT_TRUE(whiteList.find("com.example.app2") != whiteList.end());
-    EXPECT_FALSE(whiteList.find("com.example.app3") != whiteList.end());
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app1"));
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app2"));
+    EXPECT_FALSE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app3"));
 
     RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
 }
@@ -267,8 +263,7 @@ HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest005, TestSize.Level1)
     auto res = opincParamParse.ParseFeatureMultiParam(node);
     EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 
-    auto whiteList = RsCommonHook::Instance().GetLayerPartRenderWhiteList();
-    EXPECT_EQ(whiteList.size(), 0u);
+    EXPECT_FALSE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList(""));
 
     RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
 }
