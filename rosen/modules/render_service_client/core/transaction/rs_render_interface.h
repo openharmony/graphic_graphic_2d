@@ -359,6 +359,14 @@ public:
         uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
+     * @brief Gets the alpha value for the node.
+     * @param id Indicates id of node.
+     *
+     * @return The alpha value (0.0f to 1.0f).
+     */
+    float GetAlphaValue(NodeId id);
+
+    /**
      * @brief Set watermark for surfaceNode.
      * @param pid pid of process.
      * @param name Watermark name.
@@ -420,7 +428,6 @@ private:
     RSInterfaceErrorCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
     void SetHardwareEnabled(NodeId id, bool isEnabled,
         SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT, bool dynamicHardwareEnable = true);
-    float GetAlphaValue(NodeId id);
     std::shared_ptr<RSRenderPipelineClient> GetRSRenderPipelineClient() const
     {
         return renderPipelineClient_;

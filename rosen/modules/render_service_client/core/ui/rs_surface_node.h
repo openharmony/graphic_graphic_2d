@@ -231,13 +231,6 @@ public:
         bool dynamicHardwareEnable = true);
 
     /**
-     * @brief Gets the alpha value for the node.
-     *
-     * @return The alpha value (0.0f to 1.0f).
-     */
-    float GetAlphaValue();
-
-    /**
      * @brief Enable Camera Rotation Unchanged
      *
      * @param flag If flag is set to true, the camera fix rotation is enabled.
