@@ -69,7 +69,7 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
     yDpi_ = configData->GetYDpi();
     for (const auto& item : data) {
         if (item.animType.empty() || item.animName.empty()) {
-            return;
+            continue;
         }
         animAttributes_[item.animType][item.animName] = {item.minSpeed, item.maxSpeed, item.preferredFps};
         ROSEN_LOGD("RSFrameRatePolicy: config item type = %{public}s, name = %{public}s, "
