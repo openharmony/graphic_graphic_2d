@@ -77,14 +77,13 @@ enum TextErrorCode : int32_t {
     ERROR_NO_MEMORY = 8800100, // no memory
 };
 
-#define GET_UNWRAP_PARAM(argc, value)                                                                                  \
-    do {                                                                                                               \
-        if ((napi_unwrap(env, argv[argc], reinterpret_cast<void**>(&value)) != napi_ok) || value == nullptr) {         \
-            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,                                          \
-                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
-        }                                                                                                              \
+#define GET_UNWRAP_PARAM(argc, value)                                                                                \
+    do {                                                                                                             \
+        if ((napi_unwrap(env, argv[(argc)], reinterpret_cast<void**>(&(value))) != napi_ok) || (value) == nullptr) { \
+            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,                                           \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");          \
+        }                                                                                                            \
     } while (0)
-
 
 #define NAPI_CHECK_AND_THROW_ERROR(ret, errorCode, errorMessage)   \
     do {                                                           \

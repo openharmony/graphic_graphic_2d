@@ -161,7 +161,7 @@ int CheckConfigFile(const char* fname, cJSON*& root)
         TEXT_LOGE("Config file is not found : %{public}s", fname);
         return ERROR_CONFIG_NOT_FOUND;
     }
-    root = cJSON_Parse(data.get());
+    root = cJSON_ParseWithLength(data.get(), size);
     if (root == nullptr) {
         const char* errorPtr = cJSON_GetErrorPtr();
         if (errorPtr != nullptr) {
