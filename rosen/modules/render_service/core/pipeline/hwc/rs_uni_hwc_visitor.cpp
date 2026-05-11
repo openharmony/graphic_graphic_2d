@@ -1014,10 +1014,11 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                     RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(hwcNode, filter->second) : true;
                 if (renderNode->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage)) {
                     RS_LOGD("UpdateHwcNodeByFilter: skip intersection for using cache");
+                    continue;
                 } else if (RSSystemProperties::GetHveFilterEnabled()) {
                     checkDrawAIBar = true;
+                    continue;
                 }
-                continue;
             }
             if (IsHveBlurFilterEnabled(*renderNode, filter->second, hwcNode)) {
                 continue;
