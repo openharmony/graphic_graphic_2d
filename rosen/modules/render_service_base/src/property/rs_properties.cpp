@@ -5561,7 +5561,7 @@ void RSProperties::UpdateFilter()
                      IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
                      GetNeedDrawBehindWindow() || GetColorFilter() != nullptr || localMagnificationCap_ ||
-                     GetPixelStretch().has_value() || GetMaterialFilter() != nullptr;
+                     GetPixelStretch().has_value() || GetMaterialFilter() != nullptr || IsSDFDistortShape();
 #ifdef SUBTREE_PARALLEL_ENABLE
     // needForceSubmit_ is used to determine whether the subtree needs to read/scale pixels
     needForceSubmit_ = IsFilterNeedForceSubmit(GetFilter()) ||
@@ -5865,6 +5865,12 @@ void RSProperties::SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape
 std::shared_ptr<RSNGRenderShapeBase> RSProperties::GetSDFShape() const
 {
     return renderSDFShape_;
+}
+
+bool RSProperties::IsSDFDistortShape() const
+{
+    auto sdfShape = GetSDFShape();
+    return sdfShape && sdfShape->GetType() == RSNGEffectType::SDF_DISTORT_OP_SHAPE;
 }
 
 void RSProperties::SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter)

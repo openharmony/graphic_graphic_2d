@@ -22,6 +22,7 @@
 #include "consumer_surface.h"
 #include "common/rs_common_def.h"
 #include "draw/color.h"
+#include "effect/rs_render_shape_base.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature_cfg/feature_param/performance_feature/hwc_param.h"
@@ -2229,6 +2230,26 @@ HWTEST_F(RSUniHwcVisitorTest, UpdatePrepareClip002, TestSize.Level1)
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     node->GetMutableRenderProperties().clipToBounds_ = false;
     node->GetMutableRenderProperties().clipToFrame_ = false;
+    rsUniHwcVisitor->UpdatePrepareClip(*node);
+}
+
+/**
+ * @tc.name: UpdatePrepareClip_003
+ * @tc.desc: Test UpdatePrepareClip003, clipToBounds_ & clipToframe_ = true, has sdfDistort;
+ * @tc.type: FUNC
+ * @tc.require: issueIAJSIS
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdatePrepareClip003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    node->GetMutableRenderProperties().clipToBounds_ = true;
+    node->GetMutableRenderProperties().clipToFrame_ = true;
+    node->GetMutableRenderProperties().renderSDFShape_ =
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
     rsUniHwcVisitor->UpdatePrepareClip(*node);
 }
 

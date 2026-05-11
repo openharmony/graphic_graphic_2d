@@ -216,12 +216,7 @@ protected:
     void CustomRestore(uint32_t saveCount);
     void DrawCustomFunc(Drawing::Canvas* canvas, DrawFunc drawFunc);
 
-    Drawing::CustomSaveLayerStack* getCustomSaveLayerStack() override {
-        return &customStack_;
-    }
-
     Drawing::Canvas* canvas_ = nullptr;
-    Drawing::CustomSaveLayerStack customStack_;
 };
 
 // This class is used to filter the paint before drawing. currently, it is used to filter the alpha and foreground

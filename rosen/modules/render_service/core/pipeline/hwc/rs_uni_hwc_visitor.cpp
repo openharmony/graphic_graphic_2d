@@ -1287,13 +1287,14 @@ void RSUniHwcVisitor::UpdatePrepareClip(RSRenderNode& node)
     const auto& property = node.GetRenderProperties();
     auto& geoPtr = property.GetBoundsGeometry();
     // Dirty Region use abstract coordinate, property of node use relative coordinate
+    // Disable parent node clip when node has sdf distort shape, it requires draw out of bounds.
     // BoundsRect(if exists) is mapped to absRect_ of RSObjAbsGeometry.
-    if (property.GetClipToBounds()) {
+    if (property.GetClipToBounds() && !property.isSDFDistortShape()) {
         uniRenderVisitor_.prepareClipRect_ =
             uniRenderVisitor_.prepareClipRect_.IntersectRect(geoPtr->GetAbsRect());
     }
     // FrameRect(if exists) is mapped to rect using abstract coordinate explicitly by calling MapAbsRect.
-    if (property.GetClipToFrame()) {
+    if (property.GetClipToFrame() && !property.isSDFDistortShape()) {
         // MapAbsRect do not handle the translation of OffsetX and OffsetY
         RectF frameRect{
             property.GetFrameOffsetX() * geoPtr->GetAbsMatrix().Get(Drawing::Matrix::SCALE_X),
