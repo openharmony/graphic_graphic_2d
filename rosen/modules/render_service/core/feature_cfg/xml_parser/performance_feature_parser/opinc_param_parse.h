@@ -30,6 +30,7 @@ public:
 
 private:
     int32_t ParseOPIncInternal(xmlNode &node);
+    int32_t ParseFeatureMultiParam(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // OPINC_PARAM_PARSE_H

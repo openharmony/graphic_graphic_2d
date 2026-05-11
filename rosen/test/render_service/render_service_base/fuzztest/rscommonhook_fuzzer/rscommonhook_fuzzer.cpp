@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <hilog/log.h>
 #include <securec.h>
+#include <unordered_set>
 #include <unistd.h>
 
 #include "pixel_map.h"
@@ -111,6 +112,20 @@ bool DoSetAdaptiveColorGamutEnable(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetLayerPartRenderWhiteList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    std::unordered_set<std::string> whiteList;
+    whiteList.insert("com.example.fuzz.app1");
+    whiteList.insert("com.example.fuzz.app2");
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList(whiteList);
+    RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.fuzz.app1");
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -126,5 +141,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetVideoSurfaceFlag(data, size);
     OHOS::Rosen::DoSetHardwareEnabledByHwcnodeBelowSelfInAppFlag(data, size);
     OHOS::Rosen::DoSetHardwareEnabledByBackgroundAlphaFlag(data, size);
+    OHOS::Rosen::DoSetLayerPartRenderWhiteList(data, size);
     return 0;
 }

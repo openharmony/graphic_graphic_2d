@@ -523,14 +523,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool needGetBundleName = (type == static_cast<uint8_t>(RSSurfaceNodeType::SELF_DRAWING_NODE));
             RSSurfaceRenderNodeConfig config = { .id = nodeId,
                 .name = surfaceName,
                 .nodeType = static_cast<RSSurfaceNodeType>(type),
                 .isTextureExportNode = isTextureExportNode,
                 .isSync = isSync,
                 .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType),
-                .bundleName = needGetBundleName ? GetBundleName(ExtractPid(nodeId)) : "" };
+                .bundleName = GetBundleName(ExtractPid(nodeId)) };
             sptr<Surface> surface = nullptr;
             ErrCode err = CreateNodeAndSurface(config, surface, unobscured);
             if ((err != ERR_OK) || (surface == nullptr)) {
