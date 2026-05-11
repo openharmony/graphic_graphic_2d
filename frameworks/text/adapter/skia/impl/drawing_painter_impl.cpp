@@ -136,10 +136,12 @@ void RSCanvasParagraphPainter::drawTextBlob(const std::shared_ptr<RSTextBlob>& b
     SkASSERT(!std::holds_alternative<SkPaint>(paint));
     const PaintRecord& pr = paints_[std::get<PaintID>(paint)];
 
-    blob->SetSpeedOverQualityPreferred(forceReuseRasterResult_);
-    TEXT_TRACE_LEVEL(TextTraceLevel::TEXT_TRACE_LEVEL_LOW, "forceReuseRasterResult:" +
-        std::to_string(forceReuseRasterResult_) + " IsSpeedOverQualityPreferred:" +
-        std::to_string(blob->IsSpeedOverQualityPreferred()));
+    if (blob != nullptr) {
+        blob->SetSpeedOverQualityPreferred(forceReuseRasterResult_);
+        TEXT_TRACE_LEVEL(TextTraceLevel::TEXT_TRACE_LEVEL_LOW, "forceReuseRasterResult:" +
+            std::to_string(forceReuseRasterResult_) + " IsSpeedOverQualityPreferred:" +
+            std::to_string(blob->IsSpeedOverQualityPreferred()));
+    }
 
     if (pr.isSymbolGlyph && G_IS_HM_SYMBOL_TXT_ENABLE) {
         std::vector<RSPoint> points;
