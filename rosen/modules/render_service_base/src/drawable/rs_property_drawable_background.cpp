@@ -392,6 +392,7 @@ void RSBackgroundNGShaderDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing
     }
     auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
     if (effectData != nullptr) {
+        RSTagTracker tag(canvas->GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FROSTEDGLASS_EFFECT);
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
             RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, paintFilterCanvas->GetDarkColorMode(),
