@@ -1336,6 +1336,14 @@ public:
      */
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    // Make this node(nodeIdStr) should do DSS composition. otherwise do GPU composition.
+    /**
+     * @brief Set selfdrawing component of stylus engine force use DSS.
+     * @param nodeIdStr surfaceNode name.
+     * @param isHdrForceHwcEnabled is function switch.
+     */
+    void SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled);
+
     // Make this node(nodeIdStr) should do DSS composition and set the surface force refresh.
     /**
      * @brief Set selfdrawing component of stylus engine force refresh.

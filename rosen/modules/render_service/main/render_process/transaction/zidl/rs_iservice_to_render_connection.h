@@ -130,6 +130,7 @@ public:
     virtual ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) = 0;
     virtual ErrCode RepaintEverything() = 0;
     virtual ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) = 0;
+    virtual ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled) = 0;
     virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect& srcRect,
         std::shared_ptr<Media::PixelMap>& pixelMap, bool transformEnabled = false) = 0;
     virtual void SetVmaCacheStatus(bool flag) = 0;

@@ -1375,6 +1375,33 @@ ErrCode RSRenderPipelineAgent::SetLayerTop(const std::string &nodeIdStr, bool is
     return ERR_OK;
 }
 
+ErrCode RSRenderPipelineAgent::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::SetHdrForceHwcEnabled, rsRenderPipeline_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [this, nodeIdStr, isHdrForceHwcEnabled]() -> void {
+        if (rsRenderPipeline_->GetMainThread() == nullptr) {
+            return;
+        }
+        auto& context = rsRenderPipeline_->GetMainThread()->GetContext();
+        context.GetNodeMap().TraverseSurfaceNodes(
+            [&nodeIdStr, &isHdrForceHwcEnabled](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+                if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
+                    (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
+                    surfaceNode->SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
+                    return;
+                }
+            });
+        // It can be displayed immediately after layer-top changed.
+        rsRenderPipeline_->GetMainThread()->SetDirtyFlag();
+        rsRenderPipeline_->GetMainThread()->RequestNextVSync();
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
 ErrCode RSRenderPipelineAgent::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     if (rsRenderPipeline_ != nullptr) {

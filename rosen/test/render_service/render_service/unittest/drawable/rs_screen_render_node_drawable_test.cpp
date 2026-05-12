@@ -1869,4 +1869,28 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, UpdateSurfaceDrawRegionTest, TestSize.L
     screenDrawable_->UpdateSurfaceDrawRegion(canvas, params);
 }
 #endif
+
+/**
+ * @tc.name: OnDrawTest_hasForceHwcHdrSurface
+ * @tc.desc: Test OnDraw when screen hasForceHwcHdrSurface is/not true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_hasForceHwcHdrSurface, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->mirrorSourceDrawable_.reset();
+    EXPECT_EQ(params->GetMirrorSourceDrawable().lock(), nullptr);
+    params->SetHDRPresent(true);
+    // when hasForceHwcHdrSurface is true
+    params->SetHasForceHwcHdrSurface(true);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_TRUE(params->GetHasForceHwcHdrSurface());
+    // when hasForceHwcHdrSurface is false
+    params->SetHasForceHwcHdrSurface(false);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_FALSE(params->GetHasForceHwcHdrSurface());
+}
 } // namespace OHOS::Rosen

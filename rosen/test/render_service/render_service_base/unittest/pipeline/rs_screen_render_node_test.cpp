@@ -1249,4 +1249,160 @@ HWTEST_F(RSScreenRenderNodeTest, SetLogicalCameraRotationCorrectionTest, TestSiz
     node->stagingRenderParams_ = nullptr;
     node->SetLogicalCameraRotationCorrection(ScreenRotation::ROTATION_90);
 }
+
+/**
+ * @tc.name: HasForceHwcHdrSurfaceTest
+ * @tc.desc: test results of SetHasForceHwcHdrSurface, GetHasForceHwcHdrSurface
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, HasForceHwcHdrSurfaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->SetHasForceHwcHdrSurface(false);
+    EXPECT_EQ(node->GetHasForceHwcHdrSurface(), false);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    node->SetHasForceHwcHdrSurface(true);
+    EXPECT_EQ(node->GetHasForceHwcHdrSurface(), true);
+    node->stagingRenderParams_->SetNeedSync(false);
+    node->SetHasForceHwcHdrSurface(false);
+    node->stagingRenderParams_->SetNeedSync(true);
+    node->SetHasForceHwcHdrSurface(true);
+    EXPECT_EQ(node->GetHasForceHwcHdrSurface(), true);
+}
+
+/**
+ * @tc.name: CollectHdrStatus_NullScreenParams
+ * @tc.desc: Test CollectHdrStatus when screenParams is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, CollectHdrStatus_NullScreenParams, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+
+    screenNode->CollectHdrStatus(id, HdrStatus::HDR_PHOTO);
+    EXPECT_EQ(screenNode->GetDisplayHdrStatus(), HdrStatus::NO_HDR);
+}
+
+/**
+ * @tc.name: CollectHdrStatus_WithNeedSync
+ * @tc.desc: Test CollectHdrStatus when NeedSync is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, CollectHdrStatus_WithNeedSync, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+
+    screenNode->stagingRenderParams_->needSync_ = false;
+    screenNode->CollectHdrStatus(id, HdrStatus::HDR_PHOTO);
+    EXPECT_TRUE(screenNode->stagingRenderParams_->NeedSync());
+}
+
+/**
+ * @tc.name: CollectHdrStatus_WithoutNeedSync
+ * @tc.desc: Test CollectHdrStatus when NeedSync is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, CollectHdrStatus_WithoutNeedSync, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+
+    screenNode->CollectHdrStatus(id, HdrStatus::HDR_VIDEO);
+    const auto& map = screenNode->GetDisplayHdrStatusMap();
+    EXPECT_FALSE(map.empty());
+    ASSERT_TRUE(map.find(id) != map.end());
+    EXPECT_EQ(map.at(id), HdrStatus::HDR_VIDEO);
+}
+
+/**
+ * @tc.name: GetDisplayHdrStatusMap_NullScreenParams
+ * @tc.desc: Test GetDisplayHdrStatusMap when screenParams is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, GetDisplayHdrStatusMap_NullScreenParams, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+
+    const auto& map = screenNode->GetDisplayHdrStatusMap();
+    EXPECT_TRUE(map.empty());
+}
+
+/**
+ * @tc.name: GetDisplayHdrStatusMap_NonNullScreenParams
+ * @tc.desc: Test GetDisplayHdrStatusMap when screenParams is valid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, GetDisplayHdrStatusMap_NonNullScreenParams, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+
+    screenNode->CollectHdrStatus(id, HdrStatus::HDR_PHOTO);
+    const auto& map = screenNode->GetDisplayHdrStatusMap();
+    EXPECT_FALSE(map.empty());
+}
+
+/**
+ * @tc.name: SetHasForceHwcHdrSurface_SameValue
+ * @tc.desc: Test SetHasForceHwcHdrSurface with same value - should not trigger sync
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetHasForceHwcHdrSurface_SameValue, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+
+    screenNode->SetHasForceHwcHdrSurface(true);
+    bool firstNeedSync = screenNode->stagingRenderParams_->NeedSync();
+
+    screenNode->SetHasForceHwcHdrSurface(true);
+    bool secondNeedSync = screenNode->stagingRenderParams_->NeedSync();
+
+    EXPECT_EQ(firstNeedSync, secondNeedSync);
+}
+
+/**
+ * @tc.name: SetHasForceHwcHdrSurface_DifferentValue
+ * @tc.desc: Test SetHasForceHwcHdrSurface with different value
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetHasForceHwcHdrSurface_DifferentValue, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+
+    screenNode->SetHasForceHwcHdrSurface(true);
+    EXPECT_TRUE(screenNode->GetHasForceHwcHdrSurface());
+
+    screenNode->SetHasForceHwcHdrSurface(false);
+    EXPECT_FALSE(screenNode->GetHasForceHwcHdrSurface());
+
+    screenNode->stagingRenderParams_->SetNeedSync(false);
+    screenNode->SetHasForceHwcHdrSurface(true);
+    EXPECT_TRUE(screenNode->GetHasForceHwcHdrSurface());
+}
+
+/**
+ * @tc.name: SetHasForceHwcHdrSurface_NullScreenParams
+ * @tc.desc: Test SetHasForceHwcHdrSurface when screenParams is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetHasForceHwcHdrSurface_NullScreenParams, TestSize.Level1)
+{
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+
+    screenNode->SetHasForceHwcHdrSurface(true);
+    EXPECT_FALSE(screenNode->GetHasForceHwcHdrSurface());
+}
 } // namespace OHOS::Rosen

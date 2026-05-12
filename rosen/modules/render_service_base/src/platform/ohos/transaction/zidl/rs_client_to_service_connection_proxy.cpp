@@ -4757,6 +4757,33 @@ ErrCode RSClientToServiceConnectionProxy::SetLayerTop(const std::string &nodeIdS
     return ERR_OK;
 }
 
+ErrCode RSClientToServiceConnectionProxy::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHdrForceHwcEnabled: write token err.");
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteString(nodeIdStr)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHdrForceHwcEnabled: WriteString failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteBool(isHdrForceHwcEnabled)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHdrForceHwcEnabled: WriteBool failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetHdrForceHwcEnabled: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
 ErrCode RSClientToServiceConnectionProxy::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
 {
     MessageParcel data;

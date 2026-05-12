@@ -1533,6 +1533,40 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHdrForceHwcEnabled_Normal_Success
+ * @tc.desc: Test SetHdrForceHwcEnabled when normal case
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_Normal_Success, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    std::string nodeIdStr = "test_node";
+    bool isHdrForceHwcEnabled = true;
+    ErrCode ret = mockProxy->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_SendRequestFail
+ * @tc.desc: Test SetHdrForceHwcEnabled when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_SendRequestFail, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+    std::string nodeIdStr = "test_node";
+    bool isHdrForceHwcEnabled = true;
+    ErrCode ret = mockProxy->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
  * @tc.name: SetForceRefresh Test
  * @tc.desc: SetForceRefresh Test
  * @tc.type:FUNC

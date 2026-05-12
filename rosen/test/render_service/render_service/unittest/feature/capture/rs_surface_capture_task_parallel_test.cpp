@@ -474,7 +474,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources005, TestSize.Level2)
     ASSERT_EQ(false, task2.CreateResources());
 
     RSSurfaceCaptureTaskParallel task3(nodeId, captureConfig);
-    screenNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
+    screenNode->CollectHdrStatus(node->GetId(), HdrStatus::HDR_VIDEO);
     ASSERT_EQ(false, task3.CreateResources());
 }
 
@@ -1255,7 +1255,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture001, TestSize.Level0)
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     ASSERT_NE(screenNode, nullptr);
-    screenNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
+    screenNode->CollectHdrStatus(node->GetId(), HdrStatus::HDR_VIDEO);
     node->parent_ = screenNode;
     // set screen
     auto virtualScreenId = screenManager_->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
@@ -1353,7 +1353,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture003, TestSize.Level0)
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     ASSERT_NE(screenNode, nullptr);
     node->parent_ = screenNode;
-    screenNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
+    screenNode->CollectHdrStatus(node->GetId(), HdrStatus::HDR_VIDEO);
 
     RSSurfaceCaptureParam captureParam;
     captureParam.id = nodeId;
@@ -1388,7 +1388,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     ASSERT_NE(screenNode, nullptr);
-    screenNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
+    screenNode->CollectHdrStatus(node->GetId(), HdrStatus::HDR_VIDEO);
     node->parent_ = screenNode;
     // set screen
     auto virtualScreenId = screenManager_->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);

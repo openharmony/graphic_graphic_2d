@@ -367,6 +367,8 @@ private:
 
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
+    ErrCode SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled) override;
+
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;

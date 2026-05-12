@@ -22,6 +22,7 @@
 #include "consumer_surface.h"
 #include "common/rs_common_def.h"
 #include "draw/color.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature_cfg/feature_param/performance_feature/hwc_param.h"
@@ -30,6 +31,7 @@
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "engine/rs_uni_render_engine.h"
+#include "parameters.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
@@ -4291,5 +4293,63 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_003, TestSize.Level2)
 
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, false);
     EXPECT_TRUE(rsSurfaceRenderNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: CollectHdrForceHwcNodes_Test
+ * @tc.desc: Test CollectHdrForceHwcNodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, CollectHdrForceHwcNodes_Test, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    NodeId screenNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
+    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNodePtr, nullptr);
+    hwcNodePtr->SetHardwareForcedDisabledState(false);
+    hwcNodePtr->SetIsOnTheTree(true);
+    ASSERT_TRUE(hwcNodePtr->IsOnTheTree());
+    surfaceNode->AddChildHardwareEnabledNode(hwcNodePtr);
+    displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+
+    bool debugSwitch = system::GetBoolParameter("persist.sys.graphic.rgba_1010108.enabled", true);
+    system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", "false");
+    EXPECT_FALSE(RSBaseHdrUtil::GetRGBA1010108Enabled());
+    hwcNodePtr->SetHdrForceHwcEnabled(false);
+    EXPECT_FALSE(hwcNodePtr->IsHdrForceHwcEnabled());
+
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+
+    hwcNodePtr->SetHdrForceHwcEnabled(true);
+    EXPECT_TRUE(hwcNodePtr->IsHdrForceHwcEnabled());
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+
+    bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
+    system::SetParameter("const.graphics.rgba_1010108_supported", "true");
+    system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", "true");
+    EXPECT_TRUE(RSBaseHdrUtil::GetRGBA1010108Enabled());
+
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+
+    hwcNodePtr->SetHdrForceHwcEnabled(false);
+    EXPECT_FALSE(hwcNodePtr->IsHdrForceHwcEnabled());
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+    system::SetParameter("const.graphics.rgba_1010108_supported", rgba1010108 ? "true" : "false");
+    system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", debugSwitch ? "true" : "false");
 }
 } // namespace OHOS::Rosen

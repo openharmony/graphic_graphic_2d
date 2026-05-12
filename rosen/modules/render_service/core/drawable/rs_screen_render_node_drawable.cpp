@@ -872,8 +872,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
     if (isHdrOn) {
+        auto nonRGBA1010108Fmt = !RSBaseHdrUtil::GetRGBA1010108Enabled() && params->GetHasForceHwcHdrSurface() ?
+            GRAPHIC_PIXEL_FMT_RGBA_8888 : GRAPHIC_PIXEL_FMT_RGBA_1010102;
         params->SetNewPixelFormat(RSBaseHdrUtil::GetRGBA1010108Enabled() && params->GetExistHWCNode() ?
-            GRAPHIC_PIXEL_FMT_RGBA_1010108 : GRAPHIC_PIXEL_FMT_RGBA_1010102);
+            GRAPHIC_PIXEL_FMT_RGBA_1010108 : nonRGBA1010108Fmt);
     }
     // hpae_offline: post offline task
     CheckAndPostAsyncProcessOfflineTask();

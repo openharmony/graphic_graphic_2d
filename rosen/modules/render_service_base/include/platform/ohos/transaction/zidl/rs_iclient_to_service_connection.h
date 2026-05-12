@@ -405,6 +405,8 @@ public:
 
     virtual ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) = 0;
 
+    virtual ErrCode SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled) = 0;
+
     virtual ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) = 0;
 
     virtual void SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) = 0;

@@ -1150,6 +1150,22 @@ HWTEST_F(RSServiceClientTest, SetLayerTop001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHdrForceHwcEnabled001 Test
+ * @tc.desc: SetHdrForceHwcEnabled001, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSServiceClientTest, SetHdrForceHwcEnabled001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    const std::string nodeIdStr = "123456";
+    RSRenderServiceConnectHub::Destroy();
+    rsClient->SetHdrForceHwcEnabled(nodeIdStr, true);
+    RSRenderServiceConnectHub::Init();
+    rsClient->SetHdrForceHwcEnabled(nodeIdStr, false);
+}
+
+/**
  * @tc.name: SetForceRefresh001 Test
  * @tc.desc: SetForceRefresh001, input true
  * @tc.type:FUNC

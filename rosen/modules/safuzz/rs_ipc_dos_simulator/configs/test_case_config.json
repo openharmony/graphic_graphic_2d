@@ -2898,6 +2898,14 @@
     "connectionType": 1
   },
   {
+    "testCaseDesc": "SET_HDR_FORCE_HWC_ENABLED_TEST_001",
+    "interfaceName": "SET_HDR_FORCE_HWC_ENABLED",
+    "inputParams": "WriteString;WriteBool",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC",
+    "connectionType": 0
+  },
+  {
     "testCaseDesc": "SET_FORCE_REFRESH_TEST_001",
     "interfaceName": "SET_FORCE_REFRESH",
     "inputParams": "WriteString;WriteBool",

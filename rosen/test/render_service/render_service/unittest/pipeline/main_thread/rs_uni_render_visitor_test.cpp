@@ -8123,7 +8123,7 @@ HWTEST_F(RSUniRenderVisitorTest, DisableHardwareHdrTest001, TestSize.Level1)
     auto screenId = CreateVirtualScreen();
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
     rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
-    rsScreenRenderNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+    rsScreenRenderNode->CollectHdrStatus(rsScreenRenderNode->GetId(), HdrStatus::HDR_PHOTO);
     mockInterface.isHardwareHdrDisabled_ = true;
     rsScreenRenderNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -8136,18 +8136,18 @@ HWTEST_F(RSUniRenderVisitorTest, DisableHardwareHdrTest001, TestSize.Level1)
     rsUniRenderVisitor->drmNodes_.emplace_back(drmNode);
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsScreenRenderNode);
     ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::NO_HDR);
-    rsScreenRenderNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+    rsScreenRenderNode->CollectHdrStatus(rsScreenRenderNode->GetId(), HdrStatus::HDR_PHOTO);
     rsScreenRenderNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsScreenRenderNode);
     ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::NO_HDR);
     if (!rsUniRenderVisitor->drmNodes_.empty()) {
         rsUniRenderVisitor->drmNodes_.pop_back();
     }
-    rsScreenRenderNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+    rsScreenRenderNode->CollectHdrStatus(rsScreenRenderNode->GetId(), HdrStatus::HDR_PHOTO);
     rsUniRenderVisitor->HandlePixelFormat(*rsScreenRenderNode);
     ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::HDR_PHOTO);
     mockInterface.isHardwareHdrDisabled_ = false;
-    rsScreenRenderNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+    rsScreenRenderNode->CollectHdrStatus(rsScreenRenderNode->GetId(), HdrStatus::HDR_PHOTO);
     rsUniRenderVisitor->HandlePixelFormat(*rsScreenRenderNode);
     ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::HDR_PHOTO);
     RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
@@ -8254,6 +8254,9 @@ HWTEST_F(RSUniRenderVisitorTest, DisableHardwareHdrTest003, TestSize.Level1)
     ASSERT_TRUE(childNode1->isHardwareForcedDisabled_);
     displayNode->SetHasUniRenderHdrSurface(true);
     ASSERT_TRUE(childNode1->isHardwareForcedDisabled_);
+    displayNode->SetHasForceHwcHdrSurface(true);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    ASSERT_FALSE(childNode1->isHardwareForcedDisabled_);
     RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
 }
 
@@ -10070,6 +10073,114 @@ HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest004, TestSize.Level1)
     // IsSourceNodeDirty should return true when child has non-empty dirty region
     bool result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
     EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: UpdateScreenHdrForceHwcState_001
+ * @tc.desc: Test UpdateScreenHdrForceHwcState when curScreenNode is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateScreenHdrForceHwcState_001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = nullptr;
+    std::unordered_set<pid_t> hdrForceHwcNodes;
+    hdrForceHwcNodes.emplace(123456);
+    rsUniRenderVisitor->UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
+    ASSERT_EQ(rsUniRenderVisitor->curScreenNode_, nullptr);
+}
+
+/**
+ * @tc.name: UpdateScreenHdrForceHwcState_002
+ * @tc.desc: Test UpdateScreenHdrForceHwcState when hdrForceHwcNodes is empty
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateScreenHdrForceHwcState_002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    rsUniRenderVisitor->curScreenNode_->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+    std::unordered_set<pid_t> hdrForceHwcNodes;
+    rsUniRenderVisitor->UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
+    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+}
+
+/**
+ * @tc.name: UpdateScreenHdrForceHwcState_003
+ * @tc.desc: Test UpdateScreenHdrForceHwcState when hdrForceHwcNodes is not empty
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateScreenHdrForceHwcState_003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    rsUniRenderVisitor->curScreenNode_->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+
+    std::unordered_set<pid_t> hdrForceHwcNodes;
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    hdrForceHwcNodes.emplace(ExtractPid(hwcNode->GetId()));
+
+    rsUniRenderVisitor->curScreenNode_->CollectHdrStatus(234567, HdrStatus::NO_HDR);
+    rsUniRenderVisitor->UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
+    EXPECT_TRUE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+
+    rsUniRenderVisitor->curScreenNode_->CollectHdrStatus(hwcNode->GetId(), HdrStatus::NO_HDR);
+    rsUniRenderVisitor->UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
+    EXPECT_TRUE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+
+    rsUniRenderVisitor->curScreenNode_->CollectHdrStatus(hwcNode->GetId(), HdrStatus::HDR_PHOTO);
+    rsUniRenderVisitor->UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
+    EXPECT_TRUE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+
+    rsUniRenderVisitor->curScreenNode_->CollectHdrStatus(123456, HdrStatus::HDR_PHOTO);
+    rsUniRenderVisitor->UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
+    EXPECT_TRUE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+}
+ 
+/*
+ * @tc.name: CheckPixelFormat_CollectHdrStatus
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckPixelFormat
+ * @tc.type: FUNC
+ * @tc.require: issuesIBSNHZ
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckPixelFormat_CollectHdrStatus, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->hasFingerprint_ = false;
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    rsUniRenderVisitor->curScreenNode_->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    rsSurfaceRenderNode->hasFingerprint_ = false;
+
+    bool debugSwitch = system::GetBoolParameter("persist.sys.graphic.hdrimage.enabled", true);
+    system::SetParameter("persist.sys.graphic.hdrimage.enabled", "true");
+    ASSERT_TRUE(RSSystemProperties::GetHdrImageEnabled());
+ 
+    rsSurfaceRenderNode->hdrPhotoNum_ = 1;
+    rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);
+    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetDisplayHdrStatusMap().empty());
+    system::SetParameter("persist.sys.graphic.hdrimage.enabled", debugSwitch ? "true" : "false");
 }
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

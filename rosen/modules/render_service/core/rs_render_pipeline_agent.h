@@ -140,6 +140,7 @@ public:
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop);
+    ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled);
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics);
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode);

@@ -24,6 +24,7 @@
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 #include "limit_number.h"
+#include "mock/mock_accesstoken_kit.h"
 #include "mock_hdi_device.h"
 #include "sandbox_utils.h"
 #include "common/rs_special_layer_manager.h"
@@ -565,6 +566,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS)), ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP)), ERR_INVALID_STATE);
+    EXPECT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(
+            RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED)), ERR_INVALID_STATE);
     EXPECT_EQ(OnRemoteRequestTest(
                   static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST)),
         ERR_INVALID_DATA);
@@ -5036,6 +5040,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;
     ASSERT_NE(connection->renderProcessManagerAgent_, nullptr);
     connection->SetLayerTop(pkgName, false);
+    connection->SetHdrForceHwcEnabled(pkgName, false);
     connection->SetForceRefresh(pkgName, false);
     connection->renderProcessManagerAgent_ = nullptr;
     // test SetFreeMultiWindowStatus and SetColorFollow
@@ -5402,5 +5407,74 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackDirect
     RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
     int32_t result = connection->RegisterExposedEventCallback(type, callback);
     EXPECT_EQ(result, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabledStubTest001
+ * @tc.desc: Test SetHdrForceHwcEnabled stub with enabled = true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetHdrForceHwcEnabledStubTest001, TestSize.Level1)
+{
+    MockAccessTokenKit::MockAccessTokenKitRet(0);
+    MockAccessTokenKit::MockTokenType(true);
+    MockAccessTokenKit::MockProcessName("stylus_service");
+    setuid(7555);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteString("nodeIdStr");
+    data.WriteBool(true);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+    setuid(0);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabledStubTest002
+ * @tc.desc: Test SetHdrForceHwcEnabled stub with ReadString fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetHdrForceHwcEnabledStubTest002, TestSize.Level1)
+{
+    MockAccessTokenKit::MockAccessTokenKitRet(0);
+    MockAccessTokenKit::MockTokenType(true);
+    MockAccessTokenKit::MockProcessName("stylus_service");
+    setuid(7555);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+    setuid(0);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabledStubTest003
+ * @tc.desc: Test SetHdrForceHwcEnabled stub when ReadBool fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetHdrForceHwcEnabledStubTest003, TestSize.Level1)
+{
+    MockAccessTokenKit::MockAccessTokenKitRet(0);
+    MockAccessTokenKit::MockTokenType(true);
+    MockAccessTokenKit::MockProcessName("stylus_service");
+    setuid(7555);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteString("nodeIdStr");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+    setuid(0);
 }
 } // namespace OHOS::Rosen

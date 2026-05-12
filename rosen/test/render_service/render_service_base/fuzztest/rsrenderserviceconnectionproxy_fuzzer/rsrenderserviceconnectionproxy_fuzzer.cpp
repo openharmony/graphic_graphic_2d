@@ -306,6 +306,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         rsIFrameRateLinkerExpectedFpsUpdateCallback);
     rsFrameRateLinkerExpectedFpsUpdateCallbackProxy.OnFrameRateLinkerExpectedFpsUpdate(pid, XCOMPONENT_ID, expectedFps);
     rsClientToServiceConnectionProxy.GetRefreshInfoByPidAndUniqueId(pid, uniqueId, getRefreshInfoEnable);
+    rsClientToServiceConnectionProxy.SetHdrForceHwcEnabled(name, true);
     return true;
 }
 
