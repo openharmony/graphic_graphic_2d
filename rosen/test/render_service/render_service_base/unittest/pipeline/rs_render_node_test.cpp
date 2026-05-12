@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include "animation/rs_render_curve_animation.h"
+#include "command/rs_animation_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"

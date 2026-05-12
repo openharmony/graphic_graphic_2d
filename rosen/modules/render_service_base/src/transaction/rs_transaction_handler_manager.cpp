@@ -15,6 +15,8 @@
 
 #include "transaction/rs_transaction_handler_manager.h"
 
+#include "platform/common/rs_log.h"
+
 namespace OHOS {
 namespace Rosen {
 RSTransactionHandlerManager& RSTransactionHandlerManager::Instance()
@@ -49,6 +51,7 @@ std::shared_ptr<RSTransactionHandler> RSTransactionHandlerManager::GetAny()
     if (handlers_.empty()) {
         return nullptr;
     }
+    RS_LOGW("RSTransactionHandlerManager::GetAny: using fallback handler, size=%{public}zu", handlers_.size());
     return handlers_.begin()->second;
 }
 

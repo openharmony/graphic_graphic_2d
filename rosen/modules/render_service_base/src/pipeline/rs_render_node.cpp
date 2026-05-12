@@ -1694,6 +1694,10 @@ void RSRenderNode::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId
     }
     if (transactionHandler != nullptr) {
         transactionHandler->AddCommandFromRT(command, nodeId);
+    } else {
+        ROSEN_LOGW("RSRenderNode::SendCommandFromRT: no handler found, nodeId=%{public}" PRIu64
+                   ", token=%{public}" PRIu64,
+            nodeId, uiContextToken);
     }
 }
 
