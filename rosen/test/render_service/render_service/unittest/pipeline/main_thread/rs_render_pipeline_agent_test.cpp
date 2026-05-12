@@ -545,6 +545,7 @@ HWTEST_F(RSRenderPipelineAgentTest, CleanTest_ForRefreshTrue, TestSize.Level1)
     EXPECT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: SubmitCanvasPreAllocatedBufferTest
  * @tc.desc: SubmitCanvasPreAllocatedBuffer Test
@@ -564,4 +565,5 @@ HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBufferTest, TestSize
     ret = agent->SubmitCanvasPreAllocatedBuffer(1, 1, nullptr, 1);
     EXPECT_NE(ret, 0);
 }
+#endif
 } // namespace OHOS::Rosen
