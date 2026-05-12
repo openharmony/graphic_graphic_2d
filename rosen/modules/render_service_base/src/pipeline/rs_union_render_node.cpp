@@ -295,7 +295,7 @@ RectF RSUnionRenderNode::CalcBoundingBox() const
 {
     // need to change it to enum
     static const int gravityPullUnionMode = 1;
-    auto extendZone = std::min(gravityHotZone_, gravityStrength_);
+    auto extendZone = std::min(std::abs(gravityHotZone_), std::abs(gravityStrength_));
     auto realBoundingBox = boundingBox_.MakeOutset(extendZone);
     return GetRenderProperties().GetSDFUnionMode() == gravityPullUnionMode
         ? RectF(realBoundingBox.GetLeft(), realBoundingBox.GetTop(),
