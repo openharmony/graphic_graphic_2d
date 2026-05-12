@@ -62,8 +62,13 @@
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #else
 #include "rs_vulkan_context.h"
-#include "vulkan/rs_surface_android_vulkan.h"
 #endif
+#endif
+
+#ifdef ROSEN_ANDROID
+#include "vulkan/rs_surface_android_vulkan.h"
+#elif defined(ROSEN_IOS)
+#include "vulkan/rs_surface_ios_vulkan.h"
 #endif
 
 namespace OHOS {
