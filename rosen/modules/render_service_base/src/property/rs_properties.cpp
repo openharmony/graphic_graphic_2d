@@ -2483,6 +2483,7 @@ void RSProperties::ResetDirty()
 {
     isDirty_ = false;
     geoDirty_ = false;
+    parentGeoDirty_ = false;
     contentDirty_ = false;
     subTreeAllDirty_ = false;
 }
@@ -2511,6 +2512,16 @@ bool RSProperties::IsDirty() const
 bool RSProperties::IsGeoDirty() const
 {
     return geoDirty_;
+}
+
+bool RSProperties::IsParentGeoDirty() const
+{
+    return parentGeoDirty_;
+}
+
+void RSProperties::SetParentGeoDirty(bool parentGeoDirty)
+{
+    parentGeoDirty_ = parentGeoDirty;
 }
 
 bool RSProperties::IsCurGeoDirty() const

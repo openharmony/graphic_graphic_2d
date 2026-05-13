@@ -5653,5 +5653,16 @@ void RSRenderNode::ReSortChildrenByZIndex()
 {
     isFullChildrenListValid_ = false;
 }
+
+void RSRenderNode::AccumulateParentGeoDirty()
+{
+    if (auto parentPtr = GetParent().lock()) {
+        bool parentGeoDirty = parentPtr->GetRenderProperties().IsParentGeoDirty() ||
+            parentPtr->GetRenderProperties().IsGeoDirty();
+        RS_LOGI("RSRenderNode::AccumulateParentGeoDirty nodeID [%{public}" PRIu64 "] parentID [%{public}" PRIu64 "] %{public}d",
+            GetId(), parentPtr->GetId(), parentGeoDirty);
+        GetMutableRenderProperties().SetParentGeoDirty(parentGeoDirty);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

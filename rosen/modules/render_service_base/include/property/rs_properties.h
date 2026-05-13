@@ -680,6 +680,8 @@ public:
     NodeId GetRenderNodeId() const;
 
     bool IsGeoDirty() const;
+    bool IsParentGeoDirty() const;
+    void SetParentGeoDirty(bool parentGeoDirty);
     bool IsCurGeoDirty() const;
     bool IsContentDirty() const;
     bool IsSubTreeAllDirty() const;
@@ -1048,6 +1050,7 @@ private:
 
     bool isDirty_ = false;
     bool geoDirty_ = false;
+    bool parentGeoDirty_ = false;
     bool contentDirty_ = false;
     bool subTreeAllDirty_ = false;
     bool curIsDirty_ = false;
