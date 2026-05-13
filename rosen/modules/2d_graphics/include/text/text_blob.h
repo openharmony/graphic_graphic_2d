@@ -176,6 +176,14 @@ private:
     bool isEmoji = false;
     TextBlobRenderOption options_ = TextBlobRenderOption();
 };
+
+struct DrawTextArgs {
+    int count = 0;
+    const uint16_t* glyphs = nullptr;
+    const Point* pts = nullptr;
+    Point origin = {0, 0};
+    const Font* font = nullptr;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
