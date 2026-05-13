@@ -33,7 +33,6 @@
 #ifdef RS_ENABLE_VK
 #include "effect_vulkan_context.h"
 #endif
-#endif
 
 namespace OHOS::Rosen {
 Drawing::ColorType ImageUtil::PixelFormatToDrawingColorType(const Media::PixelFormat& pixelFormat)
