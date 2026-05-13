@@ -927,11 +927,11 @@ private:
 };
 
 struct DrawTextArgs {
-    int count = 0,
-    const uint16_t* glyphs = nullptr,
-    const Point* pts = nullptr,
-    Point origin = {0, 0},
-    const Font* font = nullptr
+    int count = 0;
+    const uint16_t* glyphs = nullptr;
+    const Point* pts = nullptr;
+    Point origin = {0, 0};
+    const Font* font = nullptr;
 };
 
 class DrawGlyphsOpItem : public DrawWithPaintOpItem {
