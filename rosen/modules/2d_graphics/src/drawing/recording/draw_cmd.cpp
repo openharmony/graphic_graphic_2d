@@ -1776,7 +1776,7 @@ bool DrawGlyphsOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cmdL
     if (!font_) {
         return false;
     }
-    auto bounds = GenerateGlyphsBounds(glyphs_.data(), glyphs.size(), font_.get());
+    auto bounds = GenerateGlyphsBounds(glyphs_.data(), glyphs_.size(), font_.get());
     if (!bounds.IsValid()) {
         return false;
     }

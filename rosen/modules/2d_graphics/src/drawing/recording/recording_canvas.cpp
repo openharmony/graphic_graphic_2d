@@ -920,7 +920,8 @@ void RecordingCanvas::GenerateCachedOpForGlyphs(const DrawTextArgs& args, Paint&
     if (!addDrawOpImmediate_) {
         std::vector<uint16_t> glyphIDs(args.glyphs, args.glyphs + args.count);
         std::vector<Point> positions(args.pts, args.pts + args.count);
-        std::shared_ptr<DrawGlyphsOpItem> op = std::make_shared<DrawGlyphsOpItem>(glyphIDs, positions, origin, font);
+        std::shared_ptr<DrawGlyphsOpItem> op = std::make_shared<DrawGlyphsOpItem>(glyphIDs, positions, args.origin,
+                                                                                  args.font, paint);
         cmdList_->AddDrawOp(op->GenerateCachedOpItem(nullptr));
     } else {
         DrawGlyphsOpItem::ConstructorHandle::GenerateCachedOpItem(*cmdList_, args, paint);
