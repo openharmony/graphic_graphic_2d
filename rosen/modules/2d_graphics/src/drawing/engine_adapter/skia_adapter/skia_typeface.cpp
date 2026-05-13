@@ -190,7 +190,7 @@ void SkiaTypeface::SetIsCustomTypeface(bool isCustom)
 {
     if (!skTypeface_) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return false;
+        return;
     }
     skTypeface_->setIsCustomTypeface(isCustom);
 }
@@ -208,7 +208,7 @@ void SkiaTypeface::SetIsThemeTypeface(bool isTheme)
 {
     if (!skTypeface_) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
-        return false;
+        return;
     }
     skTypeface_->setIsThemeTypeface(isTheme);
 }
