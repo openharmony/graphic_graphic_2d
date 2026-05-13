@@ -48,6 +48,12 @@ void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textS
     textStyle.fontEdging = skStyle.getFontEdging();
     textStyle.isFakeBoldEnabled = skStyle.isFakeBoldEnabled();
     textStyle.fontTypefaces = skStyle.getFontTypefaces();
+    const auto& fontArgs = skStyle.getFontArguments();
+    if (fontArgs.has_value()) {
+        for (const auto& coord : fontArgs->getCoordinates()) {
+            textStyle.fontVariations.SetAxisValue(SkFourByteTagToString(coord.axis), coord.value);
+        }
+    }
 }
 
 TextStyle SkStyleToSPTextStyle(const skia::textlayout::TextStyle& skStyle,
