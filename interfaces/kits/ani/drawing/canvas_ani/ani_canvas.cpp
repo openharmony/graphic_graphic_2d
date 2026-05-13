@@ -1653,7 +1653,7 @@ void AniCanvas::DrawPoints(ani_env* env, ani_object obj, ani_array pointsObj, an
 bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit, ani_size aniLength,
                             ani_array& glyphIdsObj, std::unique_ptr<uint16_t[]>& glyphIds)
 {
-    if (aniLength < glyphsIDCountLimit) {
+    if (static_cast<ani_int>(aniLength) < glyphsIDCountLimit) {
         ROSEN_LOGE("AniCanvas::DrawGlyphs glyphs input is out of range");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
                            "AniCanvas::DrawGlyphs glyphs input out of range.");
@@ -1692,7 +1692,7 @@ bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit, ani_size a
 bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit, ani_size aniLength,
                                   ani_array& positionsObj, std::unique_ptr<Drawing::Point[]>& positions)
 {
-    if (aniLength < positionCountLimit) {
+    if (static_cast<ani_int>(aniLength) < positionCountLimit) {
         ROSEN_LOGE("AniCanvas::DrawGlyphs positions input is out of range");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
                            "AniCanvas::DrawGlyphs position input out of range.");
