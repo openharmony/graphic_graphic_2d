@@ -75,6 +75,8 @@ private:
         void OnScreenBacklightChanged(ScreenId id, uint32_t level) override;
         void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
 
+        void OnProcessDisconnected(ScreenId id) override {}
+
     private:
         RSRenderService& renderService_;
     };

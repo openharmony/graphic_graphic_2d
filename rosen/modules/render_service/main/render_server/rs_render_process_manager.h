@@ -48,7 +48,7 @@ public:
     void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
         const sptr<RSScreenProperty>& property) override {}
     void OnHwcDead(ScreenId id) override {}
-    void OnProcessDisconnected(ScreenId id) override {};
+    void OnProcessDisconnected(ScreenId id) override {}
 
     virtual sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const = 0;
     virtual std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const = 0;

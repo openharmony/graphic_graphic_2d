@@ -469,6 +469,7 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyVirtualScreenProcessDisconnectedTest
 {
     ScreenId screenId = 400;
     callbackMgr_->coreListener_ = nullptr;
+    ASSERT_EQ(callbackMgr_->GetCoreListener(), nullptr);
     callbackMgr_->NotifyVirtualScreenProcessDisconnected(screenId);
 }
 

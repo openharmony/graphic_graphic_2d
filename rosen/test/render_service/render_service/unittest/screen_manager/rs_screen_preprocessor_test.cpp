@@ -409,7 +409,6 @@ HWTEST_F(RSScreenPreprocessorTest, OnPhysicalScreenProcessDisconnectedTest002, T
     uint32_t screenId = 1000;
     auto output = std::make_shared<HdiOutput>(screenId);
     preprocessor_->OnPhysicalScreenProcessDisconnected(output);
-    usleep(50000);
 }
 
 /*
@@ -423,7 +422,6 @@ HWTEST_F(RSScreenPreprocessorTest, OnVirtualScreenProcessDisconnectedTest001, Te
     ASSERT_NE(preprocessor_, nullptr);
     ScreenId screenId = 1000;
     preprocessor_->OnVirtualScreenProcessDisconnected(screenId);
-    usleep(50000);
 }
 
 /*
@@ -451,6 +449,5 @@ HWTEST_F(RSScreenPreprocessorTest, ReconnectProcessTest002, TestSize.Level1)
     uint32_t screenId = 1000;
     auto output = std::make_shared<HdiOutput>(screenId);
     preprocessor_->ReconnectProcess(output);
-    usleep(50000);
 }
 } // namespace OHOS::Rosen
