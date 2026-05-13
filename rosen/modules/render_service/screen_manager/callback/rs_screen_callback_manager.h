@@ -44,6 +44,8 @@ public:
     void NotifyScreenConnectedToAgentListener(ScreenId id, ScreenChangeReason reason,
                                               sptr<RSIScreenManagerAgentListener> agentListener);
     void NotifyScreenDisconnected(ScreenId id);
+    void NotifyPhysicalScreenProcessDisconnected(ScreenId screenId);
+    void NotifyVirtualScreenProcessDisconnected(ScreenId screenId);
     void NotifyScreenPropertyUpdated(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void NotifyScreenRefresh(ScreenId id);
     void NotifyHwcRestored(const ScreenPresenceEvent& event);

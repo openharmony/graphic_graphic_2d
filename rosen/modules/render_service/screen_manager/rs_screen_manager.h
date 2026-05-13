@@ -188,6 +188,8 @@ public:
     uint64_t GetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId);
     bool GetIsFoldScreenFlag();
 
+    void OnProcessDisconnected(const std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>& screens);
+
 private:
     void OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens);
 

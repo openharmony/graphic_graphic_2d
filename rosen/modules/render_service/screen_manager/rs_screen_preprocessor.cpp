@@ -298,5 +298,42 @@ void RSScreenPreprocessor::ScheduleTask(std::function<void()> task)
         mainHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
+
+void RSScreenPreprocessor::OnPhysicalScreenProcessDisconnected(std::shared_ptr<HdiOutput> output)
+{
+    if (output == nullptr) {
+        RS_LOGE("%{public}s: output is nullptr", __func__);
+        return;
+    }
+    ScreenId screenId = ToScreenId(output->GetScreenId());
+    RS_LOGI("%{public}s: screen %{public}" PRIu64 " is disconnected due to process disconnected.", __func__, screenId);
+    ScheduleTask([this, screenId]() {
+        callbackMgr_.NotifyPhysicalScreenProcessDisconnected(screenId);
+    });
+}
+
+void RSScreenPreprocessor::OnVirtualScreenProcessDisconnected(ScreenId screenId)
+{
+    RS_LOGI("%{public}s: virtualscreen %{public}" PRIu64 " is disconnected due to process disconnected.",
+        __func__, screenId);
+    ScheduleTask([this, screenId]() {
+        callbackMgr_.NotifyVirtualScreenProcessDisconnected(screenId);
+    });
+}
+
+void RSScreenPreprocessor::ReconnectProcess(std::shared_ptr<HdiOutput> output)
+{
+    if (output == nullptr) {
+        RS_LOGE("%{public}s: output is nullptr", __func__);
+        return;
+    }
+    ScreenId screenId = ToScreenId(output->GetScreenId());
+    RS_LOGI("%{public}s: screen %{public}" PRIu64 " is reconnected due to process reconnected.", __func__, screenId);
+    ScreenPresenceEvent event = {
+        .id = screenId, .output = output, .property = screenManager_.QueryScreenProperty(screenId) };
+    ScheduleTask([this, event]() {
+        callbackMgr_.NotifyScreenConnected(event);
+    });
+}
 } // namespace OHOS
 } // namespace Rosen

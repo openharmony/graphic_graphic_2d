@@ -1538,5 +1538,39 @@ void RSScreenManager::OnScreenBacklightChanged(ScreenId id, uint32_t level)
 {
     callbackMgr_->NotifyScreenBacklightChanged(id, level);
 }
+
+void RSScreenManager::OnProcessDisconnected(const std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>& screens)
+{
+    RS_TRACE_FUNC();
+    std::vector<ScreenId> virtualScreenIds;
+    std::vector<std::shared_ptr<HdiOutput>> physicalOutputs;
+    {
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
+        for (const auto& [id, output] : screens) {
+            auto iter = screens_.find(id);
+            if (iter == screens_.end() || iter->second == nullptr) {
+                RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+                continue;
+            }
+            if (!iter->second->IsVirtual()) {
+                if (output == nullptr) {
+                    RS_LOGW("%{public}s: output is null physical screen id %{public}" PRIu64, __func__, id);
+                    continue;
+                }
+                physicalOutputs.push_back(output);
+            } else {
+                virtualScreenIds.push_back(id);
+            }
+        }
+    }
+    for (const auto& output : physicalOutputs) {
+        preprocessor_->OnPhysicalScreenProcessDisconnected(output);
+        preprocessor_->ReconnectProcess(output);
+    }
+    for (const auto& id : virtualScreenIds) {
+        preprocessor_->OnVirtualScreenProcessDisconnected(id);
+        RemoveVirtualScreen(id);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
