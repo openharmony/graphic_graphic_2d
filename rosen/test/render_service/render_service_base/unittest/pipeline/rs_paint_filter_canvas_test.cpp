@@ -79,7 +79,8 @@ class SDFShapeBaseTest : public Drawing::SDFShapeBase {
 public:
     const std::string& Getshader() const override
     {
-        return std::nullptr_t();
+        static std::string empty;
+        return empty;
     };
     float GetSize() const override
     {
@@ -2021,7 +2022,7 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawOptimizationClipRRectTest, TestSize.Level1
     auto innerPaintFilterCanvas = std::make_unique<RSPaintFilterCanvas>(innerCanvas.get());
     RSPaintFilterCanvas paintFilterCanvas(innerPaintFilterCanvas.get());
     paintFilterCanvas.SaveClipRRect(nullptr);
-    auto* stack = innerPaintFilterCanvas.getCustomSaveLayerStack();
+    auto* stack = innerPaintFilterCanvas->getCustomSaveLayerStack();
     ASSERT_NE(stack, nullptr);
     ASSERT_FALSE(stack->empty());
     auto data = stack->top();
@@ -2096,11 +2097,11 @@ HWTEST_F(RSPaintFilterCanvasTest, GetCustomSaveLayerStackTest, TestSize.Level1)
  */
 HWTEST_F(RSPaintFilterCanvasTest, CustomSaveLayerNullCanvasTest, TestSize.Level1)
 {
-    auto innerCcanvas = std::make_unique<Drawing::Canvas>();
+    auto innerCanvas = std::make_unique<Drawing::Canvas>();
     auto innerPaintFilterCanvas = std::make_unique<RSPaintFilterCanvas>(innerCanvas.get());
     RSPaintFilterCanvas paintFilterCanvas(innerPaintFilterCanvas.get());
     
-    auto* stack = innerPaintFilterCanvas.getCustomSaveLayerStack();
+    auto* stack = innerPaintFilterCanvas->getCustomSaveLayerStack();
     EXPECT_NE(stack, nullptr);
 
     RSPaintFilterCanvasBase::DrawFunc drawFunc = [](Drawing::Canvas& c) {};
@@ -2149,11 +2150,11 @@ HWTEST_F(RSPaintFilterCanvasTest, GetCustomSaveLayerStackTypeTest, TestSize.Leve
 HWTEST_F(RSPaintFilterCanvasTest, CustomSaveLayerWithCanvasTest, TestSize.Level1)
 {
     auto innerCanvas = std::make_unique<Drawing::Canvas>();
-    RSPaintFilterCanvas paintFilkterCanvas(innerCanvas.get());
+    RSPaintFilterCanvas paintFilterCanvas(innerCanvas.get());
     paintFilterCanvas.canvas_ = nullptr;
 
     RSPaintFilterCanvasBase::DrawFunc drawFunc = [](Drawing::Canvas& c) {};
-    auto result = paintFilterCanvas.CustomSaveLayer(drawFunc);
+    auto result = paintFilterCanvas->CustomSaveLayer(drawFunc);
     EXPECT_GE(result, 0);
 }
 
@@ -2191,7 +2192,7 @@ HWTEST_F(RSPaintFilterCanvasTest, CustomRestoreWithEmptyStackTest, TestSize.Leve
 {
     auto canvas = std::make_unique<Drawing::Canvas>();
     RSPaintFilterCanvas paintFilterCanvas(canvas.get());
-    auto* stack = paintFilterCanvas->getCustomSaveLayerStack();
+    auto* stack = paintFilterCanvas.getCustomSaveLayerStack();
     ASSERT_NE(stack, nullptr);
     EXPECT_EQ(stack->size(), 0);
     paintFilterCanvas.CustomRestore(1);
@@ -2241,7 +2242,7 @@ HWTEST_F(RSPaintFilterCanvasTest, CustomSaveLayerMultipleTimesTest, TestSize.Lev
     ASSERT_NE(stack, nullptr);
 
     RSPaintFilterCanvasBase::DrawFunc drawFunc1 = [](Drawing::Canvas& c) {};
-    RSPaintFilterCanvasBase::DrawFunc drawFunc2 = [](Drawing::Canvas& c) { c.DrawRect(DrawRect(0, 0, 100, 100)); };
+    RSPaintFilterCanvasBase::DrawFunc drawFunc2 = [](Drawing::Canvas& c) { c.DrawRect(Drawing::Rect(0, 0, 100, 100)); };
 
     auto result1 = paintFilterCanvas.CustomSaveLayer(drawFunc1);
     EXPECT_EQ(result1, 1);
