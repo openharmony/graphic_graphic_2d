@@ -411,7 +411,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
         RS_LOGD("%{public}s HDRCast isHDREnabledVirtualScreen true", __func__);
         curCanvas_->SetHDREnabledVirtualScreen(true);
         curCanvas_->SetHdrOn(true);
-        PrepareOffscreenRender(*this, false, false);
+        PrepareOffscreenRender(*this, false, false, screenParam->GetFixVirtualBuffer10Bit());
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
         FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE),
             screenProperty.GetIsSamplingOn());
@@ -1180,7 +1180,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     RSSpecialLayerUtils::SetWhiteListRectToMetaData(
         *curCanvas_, uniParam, curScreenParams->GetScreenProperty(), *mirroredParams);
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
-    PrepareOffscreenRender(*mirroredDrawable, false, false);
+    PrepareOffscreenRender(*mirroredDrawable, false, false, curScreenParams->GetFixVirtualBuffer10Bit());
     // Add this flag to disable color picking operations during mirror screen redrawing
     curCanvas_->SetIsDrawingOffscreenMirror(true);
 #ifdef RS_PROFILER_ENABLED
@@ -1379,7 +1379,7 @@ void RSLogicalDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
 }
 
 void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
-    const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize, bool useCanvasSize)
+    const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize, bool useCanvasSize, bool fixFormat)
 {
     const auto& params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable.GetRenderParams().get());
     if (UNLIKELY(!params)) {
@@ -1467,6 +1467,15 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
                     RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(screenParams->GetNewColorSpace());
             }
             RS_LOGD("RS_EDR canvasReplacable:%{public}d, colorType:%{public}d", canvasReplacable, colorType);
+            Drawing::ImageInfo info = {
+                offscreenWidth, offscreenHeight, colorType, Drawing::ALPHATYPE_PREMUL, colorSpace };
+            offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(info);
+        } else if (fixFormat) {
+            // Use for SDR scenario in HDR cast. The alpha bits will lose if offscreen canvas follows
+            // virtual screen canvas to use 1010102. Fix 8888 bit for offscreen canvas
+            auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
+            auto colorSpace =
+                RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(screenParams->GetNewColorSpace());
             Drawing::ImageInfo info = {
                 offscreenWidth, offscreenHeight, colorType, Drawing::ALPHATYPE_PREMUL, colorSpace };
             offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(info);
