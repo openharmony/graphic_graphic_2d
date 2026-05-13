@@ -23,6 +23,7 @@
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "feature/opinc/rs_layer_part_draw_cache.h"
 #include "feature/opinc/rs_opinc_draw_cache.h"
 #include "feature/render_group/rs_render_group_cache_drawable.h"
 #include "image/gpu_context.h"
@@ -109,7 +110,28 @@ public:
 
     RSOpincDrawCache& GetOpincDrawCache()
     {
-        return opincDrawCache_;
+        if (opincDrawCache_ == nullptr) {
+            opincDrawCache_ = std::make_unique<RSOpincDrawCache>();
+        }
+        return *opincDrawCache_;
+    }
+
+    RSOpincDrawCache* TryGetOpincDrawCachePtr()
+    {
+        return opincDrawCache_.get();
+    }
+
+    RSLayerPartDrawCache& GetLayerPartDrawCache()
+    {
+        if (layerPartDrawCache_ == nullptr) {
+            layerPartDrawCache_ = std::make_unique<RSLayerPartDrawCache>();
+        }
+        return *layerPartDrawCache_;
+    }
+
+    RSLayerPartDrawCache* TryGetLayerPartDrawCachePtr()
+    {
+        return layerPartDrawCache_.get();
     }
 
     RSRenderNodeDrawableType GetDrawableType() const override
@@ -229,7 +251,8 @@ private:
     void ClearDrawingCacheContiUpdateTimeMap();
     friend class RsSubThreadCache;
     friend class OHOS::Rosen::RSLayerCacheManager;
-    RSOpincDrawCache opincDrawCache_;
+    std::unique_ptr<RSOpincDrawCache> opincDrawCache_ = nullptr;
+    std::unique_ptr<RSLayerPartDrawCache> layerPartDrawCache_ = nullptr;
     std::unique_ptr<RSRenderGroupCacheDrawable> renderGroupCache_ = nullptr;
 };
 } // namespace DrawableV2

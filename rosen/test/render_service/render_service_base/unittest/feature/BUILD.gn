@@ -94,6 +94,36 @@ ohos_unittest("RSOpincCacheTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSOpincRootCacheTest  ##################################
+ohos_unittest("RSOpincRootCacheTest") {
+  module_out_path = module_output_path
+
+  sources = [ "opinc/rs_opinc_root_cache_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
+  subsystem_name = "graphic"
+}
+
 ##############################  RSFrameControlToolTest  ##################################
 ohos_unittest("RSFrameControlToolTest") {
   module_out_path = module_output_path
@@ -529,6 +559,7 @@ group("unittest") {
     ":RSColorPickerTest",
     ":RSImageDetailEnhancerThreadTest",
     ":RSOpincCacheTest",
+    ":RSOpincRootCacheTest",
     ":RSOpincManagerTest",
     ":RSOpincManagerLayerPartTest",
     ":RSUiCaptureHelperTest",

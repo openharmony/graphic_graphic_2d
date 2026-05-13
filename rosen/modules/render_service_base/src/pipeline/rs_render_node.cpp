@@ -1246,6 +1246,10 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (drawableVecStatus_ != 0) {
         out += ", drawableVecStatus: " + std::to_string(drawableVecStatus_);
     }
+    out += ", opincRootCacheNull: " +
+        std::string(TryGetOpincRootCachePtr() == nullptr ? "true" : "false");
+    out += ", layerPartCacheNull: " +
+        std::string(TryGetLayerPartRenderCachePtr() == nullptr ? "true" : "false");
 #ifdef SUBTREE_PARALLEL_ENABLE
     if (isRepaintBoundary_) {
         out += ", RB: true";
@@ -2104,7 +2108,7 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
 bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty,
     const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix)
 {
-    opincCache_.SetLayerPartRenderDirtyFlag(IsDirty() || IsContentDirty());
+    GetOpincCache().SetLayerPartRenderDirtyFlag(IsDirty() || IsContentDirty());
     auto& properties = GetMutableRenderProperties();
 #ifdef RS_ENABLE_PREFETCH
     // The 2 is the cache level.
@@ -3837,11 +3841,16 @@ bool RSRenderNode::GetNodeIsSingleFrameComposer() const
 void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 {
     RS_TRACE_NAME_FMT("mark opinc %" PRIu64 ", isopinc:%d. isCal:%d", GetId(), isOpincNode, isNeedCalculate);
-    opincCache_.MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
+    if (!isOpincNode && TryGetOpincRootCachePtr() == nullptr) {
+        return;
+    }
+    // create opinc root cache here
+    auto& opincRootCache = GetOpincRootCache();
+    opincRootCache.MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
     if (stagingRenderParams_) {
-        stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), GetLastFrameSync());
-        stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
-        stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());
+        stagingRenderParams_->OpincSetCacheChangeFlag(opincRootCache.GetCacheChangeFlag(), GetLastFrameSync());
+        stagingRenderParams_->OpincUpdateRootFlag(opincRootCache.OpincGetRootFlag());
+        stagingRenderParams_->OpincSetIsSuggest(opincRootCache.IsSuggestOpincNode());
     }
     SetDirty();
 }
@@ -3868,13 +3877,14 @@ void RSRenderNode::MarkSuggestLayerPartRenderNode(bool isLayerPartRender)
     }
     auto parent = GetParent().lock();
     if (parent != nullptr && parent->GetType() == RSRenderNodeType::SURFACE_NODE) {
-        auto groundParent = parent->GetParent().lock();
-        if (groundParent != nullptr && groundParent->GetType() == RSRenderNodeType::CANVAS_NODE) {
-            groundParent->opincCache_.MarkSuggestLayerPartRenderNode(isLayerPartRender);
-            groundParent->opincCache_.SetLayerPartRenderNodeStrategyType(
+        auto grandparent = parent->GetParent().lock();
+        if (grandparent != nullptr && grandparent->GetType() == RSRenderNodeType::CANVAS_NODE) {
+            auto& layerPartRenderCache = grandparent->GetLayerPartRenderCache();
+            layerPartRenderCache.MarkSuggestLayerPartRenderNode(isLayerPartRender);
+            layerPartRenderCache.SetLayerPartRenderNodeStrategyType(
                 isLayerPartRender ? NodeStrategyType::NODE_GROUP : NodeStrategyType::CACHE_DISABLE);
             RS_TRACE_NAME_FMT("MarkSuggestLayerPartRender id:%" PRIu64 ", isLayerPartRender:%d",
-                groundParent->GetId(), isLayerPartRender);
+                grandparent->GetId(), isLayerPartRender);
         }
     }
 }
@@ -3884,10 +3894,11 @@ bool RSRenderNode::UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegio
     if (!RSSystemProperties::GetLayerPartRenderEnabled()) {
         return false;
     }
+    auto& mutableOpincCache = GetOpincCache();
     if (GetRenderProperties().GetMaterialFilter() != nullptr) {
-        opincCache_.MarkMaterialNode(true);
+        mutableOpincCache.MarkMaterialNode(true);
     }
-    if (opincCache_.IsMaterialNode()) {
+    if (mutableOpincCache.IsMaterialNode()) {
         auto parent = GetParent().lock();
         if (parent != nullptr) {
             parent->GetOpincCache().MarkMaterialNode(true);
@@ -3896,8 +3907,8 @@ bool RSRenderNode::UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegio
     if (dirtyManager == nullptr) {
         return false;
     }
-    if (opincCache_.GetLayerPartRenderDirtyFlag()) {
-        const auto& oldAbsDrawRect = opincCache_.GetLayerPartRenderOldAbsDrawRect();
+    if (mutableOpincCache.GetLayerPartRenderDirtyFlag()) {
+        const auto& oldAbsDrawRect = mutableOpincCache.GetLayerPartRenderOldAbsDrawRect();
         RS_OPTIONAL_TRACE_FMT("UpdateLayerPartRenderDirtyRegion id:%" PRIu64 ", absDrawRect:[%d,%d,%d,%d],"
             " oldAbsDrawRect:[%d,%d,%d,%d]", GetId(), absDrawRect_.GetLeft(), absDrawRect_.GetTop(),
             absDrawRect_.GetWidth(), absDrawRect_.GetHeight(), oldAbsDrawRect.GetLeft(), oldAbsDrawRect.GetTop(),
@@ -3905,7 +3916,7 @@ bool RSRenderNode::UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegio
         dirtyManager->MergeDirtyRect(absDrawRect_);
         dirtyManager->MergeDirtyRect(oldAbsDrawRect);
     }
-    opincCache_.SetLayerPartRenderOldAbsDrawRect(absDrawRect_);
+    mutableOpincCache.SetLayerPartRenderOldAbsDrawRect(absDrawRect_);
     return true;
 }
 
@@ -4790,8 +4801,9 @@ void RSRenderNode::OnSkipSync()
 bool RSRenderNode::ShouldClearSurface()
 {
 #ifdef RS_ENABLE_GPU
+    auto* opincRootCache = TryGetOpincRootCachePtr();
     bool renderGroupFlag = GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE ||
-        opincCache_.OpincGetRootFlag();
+        (opincRootCache != nullptr && opincRootCache->OpincGetRootFlag());
     bool freezeFlag = stagingRenderParams_->GetRSFreezeFlag();
     return (renderGroupFlag || freezeFlag || nodeGroupType_ == static_cast<uint8_t>(NodeGroupType::NONE)) &&
         needClearSurface_;
