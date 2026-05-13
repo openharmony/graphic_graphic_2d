@@ -1703,6 +1703,165 @@ void DrawGlyphsOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawGlyphs(glyphs_.size(), glyphs_.data(), positions_.data(), origin_, font_.get());
 }
 
+Rect GenerateGlyphsBounds(const uint16_t glyphs[], int count, const Font* font)
+{
+    Rect bounds[count];
+    scalar widths[count];
+    if (!font) {
+        return {};
+    }
+    font->GetWidths(glyphs, count, widths, bounds);
+    Rect result = {0, 0, 0, 0};
+    result.Join(bounds[0]);
+    results.Join(bounds[count-1]);
+    return bounds;
+}
+
+bool DrawGlyphsOpItem::ConstructorHandle::GenerateCachedOpItem(const DrawTextArgs& args, Paint& p)
+{
+    if (!args.glyphs || !args.pts || !args.font) {
+        return false;
+    }
+    auto bounds = GenerateGlyphsBounds(args.glyphs, args.count, args.font);
+    if (!bounds || !bounds->IsValid()) {
+        return false;
+    }
+    bounds->Offset(args.origin.GetX(), args.origin.GetY());
+    bounds->MakeOutset(TEXT_BLOB_CACHE_MARGIN, TEXT_BLOB_CACHE_MARGIN);
+    Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
+    std::shared_ptr<Surface> offscreenSurface = Surface::MakeRaster(offscreenInfo);
+    if (offscreenSurface == nullptr) {
+        return false;
+    }
+    auto offscreenCanvas = offscreenSurface->GetCanvas();
+    if (offscreenCanvas == nullptr) {
+        return false;
+    }
+    if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
+    }
+    bool isForeground = false;
+    if (p.GetColor() == Drawing::Color::COLOR_FOREGROUND) {
+        isForeground = true;
+        p.SetColor(Drawing::Color::COLOR_BLACK);
+    }
+    offscreenCanvas->AttachPaint(p);
+    offscreenCanvas->DrawGlyphs(args.count, args.glyphs, args.positions,
+                                args.origin, args.font.get());
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    if (image == nullptr) {
+        return false;
+    }
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
+        bounds->GetLeft() + image->GetWidth(), bounds->GetTop() + image->GetHeight());
+    SamplingOptions sampling(FilterMode::LINEAR, MipmapMode::LINEAR);
+    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image);
+    PaintHandle fakePaintHandle;
+    fakePaintHandle.isAntiAlias = true;
+    fakePaintHandle.style = Paint::PaintStyle::PAINT_FILL;
+    cmdList.AddOp<DrawImageRectOpItem::ConstructorHandle>(
+        imageHandle, src, dst, sampling, SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, fakePaintHandle, isForeground);
+    return true;
+}
+
+bool DrawGlyphsOpItem::ConstructorHandle::GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas)
+{
+    glyphs_ = CmdListHelper::GetVectorFromCmdList<uint16_t>(cmdList, handle->glyphs);
+    positions_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->positions);
+    origin_ = handle->origin;
+    font_ = CmdListHelper::GetFontFromCmdList(cmdList, handle->font, handle->globalUniqueId);
+    if (!glyphs_ || !positions_ || !font_) {
+        return false;
+    }
+    auto bounds = GenerateGlyphsBounds(glyphs_.data(), glyphs.size(), font_.get());
+    if (!bounds || !bounds->IsValid()) {
+        return false;
+    }
+    bounds->Offset(origin_.GetX(), origin_.GetY());
+    std::shared_ptr<Surface> offscreenSurface = nullptr;
+    if (auto surface = canvas != nullptr ? canvas->GetSurface() : nullptr) {
+        offscreenSurface = surface->MakeSurface(bounds->GetWidth(), bounds->GetHeight());
+    } else {
+        Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
+        offscreenSurface = Surface::MakeRaster(offscreenInfo);
+    }
+    if (offscreenSurface == nullptr) {
+        return false;
+    }
+    Canvas* offscreenCanvas = offscreenSurface->GetCanvas().get();
+    if (!offscreenCanvas) {
+        return false;
+    }
+    if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
+    }
+    Paint p;
+    GeneratePaintFromHandle(paintHandle, cmdList, p);
+    offscreenCanvas->AttachPaint(p);
+    offscreenCanvas->DrawGlyphs(glyphs_.size(), glyphs_.data(), positions_.data(), origin_, font_.get());
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    if (image == nullptr) {
+        return false;
+    }
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(),
+        bounds->GetLeft() + image->GetWidth(), bounds->GetTop() + image->GetHeight());
+    SamplingOptions sampling;
+    auto imageHandle = CmdListHelper::AddImageToCmdList(cmdList, image);
+    PaintHandle fakePaintHandle;
+    fakePaintHandle.isAntiAlias = true;
+    fakePaintHandle.style = Paint::PaintStyle::PAINT_FILL;
+    cmdList.AddOp<DrawImageRectOpItem::ConstructorHandle>(imageHandle, src, dst, sampling,
+        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, fakePaintHandle);
+    return true;
+}
+
+std::shared_ptr<DrawImageRectOpItem> DrawGlyphsOpItem::GenerateCachedOpItem(Canvas* canvas)
+{
+    if (!glyphs_ || !positions_ || !font_) {
+        return nullptr;
+    }
+    auto bounds = GenerateGlyphsBounds(glyphs_.data(), glyphs.size(), font_.get());
+    if (!bounds || !bounds->IsValid()) {
+        return nullptr;
+    }
+    bounds->Offset(origin_.GetX(), origin_.GetY());
+    std::shared_ptr<Surface> offscreenSurface = nullptr;
+    if (auto surface = canvas != nullptr ? canvas->GetSurface() : nullptr) {
+        offscreenSurface = surface->MakeSurface(bounds->GetWidth(), bounds->GetHeight());
+    } else {
+        Drawing::ImageInfo offscreenInfo { bounds->GetWidth(), bounds->GetHeight(),
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, nullptr};
+        offscreenSurface = Surface::MakeRaster(offscreenInfo);
+    }
+    if (offscreenSurface == nullptr) {
+        return nullptr;
+    }
+    Canvas* offscreenCanvas = offscreenSurface->GetCanvas().get();
+    if (!offscreenCanvas) {
+        return nullptr;
+    }
+    if (bounds->GetLeft() != 0 || bounds->GetTop() != 0) {
+        offscreenCanvas->Translate(-bounds->GetLeft(), -bounds->GetTop());
+    }
+    Playback(offscreenCanvas, nullptr);
+    std::shared_ptr<Image> image = offscreenSurface->GetImageSnapshot();
+    if (image == nullptr) {
+        return nullptr;
+    }
+    Drawing::Rect src(0, 0, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dst(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom());
+    Paint fakePaint;
+    fakePaint.SetStyle(Paint::PaintStyle::PAINT_FILL);
+    fakePaint.SetAntiAlias(true);
+    return std::make_shared<DrawImageRectOpItem>(*image, src, dst, SamplingOptions(),
+        SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, fakePaint);
+}
+
+
 /* DrawTextBlobOpItem */
 UNMARSHALLING_REGISTER(DrawTextBlob, DrawOpItem::TEXT_BLOB_OPITEM,
     DrawTextBlobOpItem::Unmarshalling, sizeof(DrawTextBlobOpItem::ConstructorHandle));

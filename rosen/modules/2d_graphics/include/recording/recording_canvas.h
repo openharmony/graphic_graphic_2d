@@ -157,6 +157,8 @@ private:
 
     enum SaveOpState { LazySaveOp, RealSaveOp };
     void CheckForLazySave();
+    void GenerateCachedOpForGlyphs(const DrawTextArgs& args);
+    void GenerateCachedOpForGlyphs(const DrawTextArgs& args, Paint& paint);
     void GenerateCachedOpForTextblob(const TextBlob* blob, const scalar x, const scalar y);
     void GenerateCachedOpForTextblob(const TextBlob* blob, const scalar x, const scalar y, Paint& paint);
     bool isCustomTextType_ = false;

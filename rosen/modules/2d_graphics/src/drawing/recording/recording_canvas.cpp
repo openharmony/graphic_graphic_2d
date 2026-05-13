@@ -439,6 +439,13 @@ void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point
     }
     std::vector<uint16_t> glyphIDs(glyphs, glyphs + count);
     std::vector<Point> positions(pts, pts + count);
+#ifdef ROSEN_OHOS
+    if (IsCustomTextType()) {
+        LOGD("RecordingCanvas::DrawGlyphs replace drawOpItem with cached one");
+        GenerateCachedOpForGlyphs({count, glyphs, pts, origin, font});
+        return;
+    }
+#endif
     if (!addDrawOpImmediate_) {
         AddDrawOpDeferred<DrawGlyphsOpItem>(glyphIDs, positions, origin, font);
         return;
@@ -864,6 +871,28 @@ void RecordingCanvas::AddDrawOpDeferred(Args&&... args)
     }
 }
 
+void RecordingCanvas::GenerateCachedOpForGlyphs(const DrawTextArgs& args)
+{
+    bool brushValid = paintBrush_.IsValid();
+    bool penValid = paintPen_.IsValid();
+    if (!brushValid && !penValid) {
+        GenerateCachedOpForGlyphs(args, defaultPaint_);
+        return;
+    }
+    if (brushValid && penValid && Paint::CanCombinePaint(paintBrush_, paintPen_)) {
+        paintPen_.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+        GenerateCachedOpForGlyphs(args, defaultPaint_);
+        paintPen_.SetStyle(Paint::PaintStyle::PAINT_STROKE);
+        return;
+    }
+    if (brushValid) {
+        GenerateCachedOpForGlyphs(args, defaultPaint_);
+    }
+    if (penValid) {
+        GenerateCachedOpForGlyphs(args, defaultPaint_);
+    }
+}
+
 void RecordingCanvas::GenerateCachedOpForTextblob(const TextBlob* blob, const scalar x, const scalar y)
 {
     bool brushValid = paintBrush_.IsValid();
@@ -883,6 +912,16 @@ void RecordingCanvas::GenerateCachedOpForTextblob(const TextBlob* blob, const sc
     }
     if (penValid) {
         GenerateCachedOpForTextblob(blob, x, y, paintPen_);
+    }
+}
+
+void RecordingCanvas::GenerateCachedOpForGlyphs(const DrawTextArgs& args, Paint& paint)
+{
+    if (!addDrawOpImmediate_) {
+        std::shared_ptr<DrawGlyphsOpItem> op = std::make_shared<DrawGlyphsOpItem>(count, glyphs, pts, origin, font, paint);
+        cmdList_->AddDrawOp(op->GenerateCachedOpItem(nullptr));
+    } else {
+        DrawGlyphsOpItem::ConstructorHandle::GenerateCachedOpItem(*cmdList_, args, paint);
     }
 }
 
