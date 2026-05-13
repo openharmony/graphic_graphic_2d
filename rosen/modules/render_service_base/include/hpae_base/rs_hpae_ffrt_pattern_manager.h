@@ -26,7 +26,11 @@
 #include <vector>
 #include "common/rs_macros.h"
 #ifdef RS_ENABLE_VK
+#ifdef ROSEN_IOS
+#include "include/third_party/vulkan/vulkan/vulkan_core.h"
+#else
 #include "vulkan/vulkan_core.h"
+#endif
 #endif
 
 namespace OHOS::Rosen {

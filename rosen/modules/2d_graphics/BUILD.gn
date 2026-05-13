@@ -229,7 +229,10 @@ template("graphics2d_source_set") {
       external_deps += [ "init:libbegetutil" ]
       sources += [ "$drawing_core_src_dir/utils/system_properties.cpp" ]
       sources += [ "$drawing_core_src_dir/utils/system_graphic_properties.cpp" ]
-    } else if (platform == "android") {
+    } else if (platform == "android" || platform == "ios") {
+      if (platform == "ios") {
+        defines += [ "ROSEN_IOS" ]
+      }
       sources += [ "$drawing_core_src_dir/utils/system_properties.cpp" ]
     }
     if (is_emulator) {
