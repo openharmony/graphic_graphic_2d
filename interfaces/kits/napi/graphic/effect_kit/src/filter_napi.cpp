@@ -26,7 +26,6 @@
 #include "pixel_map.h"
 #include "effect_kit_napi_utils.h"
 #include "napi/native_node_api.h"
-#include "histogram_plugin_macros.h"
 
 namespace {
     constexpr uint32_t NUM_0 = 0;
