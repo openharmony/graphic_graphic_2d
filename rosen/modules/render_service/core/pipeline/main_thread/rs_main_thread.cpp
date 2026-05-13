@@ -1758,12 +1758,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     }
     RSDrmUtil::ClearDrmNodes();
     RSUniRenderThread::Instance().ClearScreenHasProtectedLayerSet();
-#ifdef HETERO_HDR_ENABLE
-    RSHeteroHDRManager::Instance().ClearPendingPostNodes();
-#endif
     const auto& nodeMap = GetContext().GetNodeMap();
-    isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
-    isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
     if (UNLIKELY(consumeAndUpdateNode_ == nullptr)) {
         consumeAndUpdateNode_ = [this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (UNLIKELY(surfaceNode == nullptr)) {
@@ -1773,12 +1768,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             // Reset BasicGeoTrans info at the beginning of cmd process
             if (surfaceNode->IsLeashOrMainWindow()) {
                 surfaceNode->ResetIsOnlyBasicGeoTransform();
-            }
-            if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos ||
-                (isHdrSwitchChanged_ && surfaceNode->GetHDRPresent())) {
-                RS_LOGD("ConsumeAndUpdateAllNodes set %{public}s content dirty",
-                    surfaceNode->GetName().c_str());
-                surfaceNode->SetContentDirty(); // screen recording capsule and hdr switch change force mark dirty
             }
             if (surfaceNode->IsForceRefresh()) {
                 isForceRefresh_ = true;
@@ -1881,19 +1870,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     requestNextVsyncTime_ = nextVsyncTime;
                 }
             }
-            auto videoHdrStatus = RSHdrUtil::CheckIsHdrSurface(*surfaceNode);
-            surfaceNode->ClearHDRVideoStatus();
-            surfaceNode->UpdateHDRStatus(videoHdrStatus, true);
-            surfaceNode->SetVideoHdrStatus(videoHdrStatus);
-            if (isColorTemperatureOn_ && surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
-                surfaceNode->SetSdrHasMetadata(RSHdrUtil::CheckIsSurfaceWithMetadata(*surfaceNode));
-            }
-            if (!surfaceNode->GetSdrHasMetadata() && RSHdrUtil::CheckHasSurfaceWithAiHdrMetadata(*surfaceNode)) {
-                surfaceNode->SetSdrHasMetadata(true);
-            }
-#ifdef HETERO_HDR_ENABLE
-            RSHeteroHDRManager::Instance().UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
-#endif
         };
     }
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
@@ -1903,7 +1879,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     lppVideoHandler_.JudgeRequestVsyncForLpp(vsyncId_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(timestamp_);
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();
-    prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
     if (requestNextVsyncTime_ != -1) {
         RequestNextVSync("unknown", 0, requestNextVsyncTime_);
     }
@@ -1939,11 +1914,22 @@ void RSMainThread::CollectInfoForHardwareComposer()
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by uiCapture");
         doDirectComposition_ = false;
     }
+#ifdef HETERO_HDR_ENABLE
+    RSHeteroHDRManager::Instance().ClearPendingPostNodes();
+#endif
+    isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
+    isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
         [this, &nodeMap](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
+            }
+            if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos ||
+                (isHdrSwitchChanged_ && surfaceNode->GetHDRPresent())) {
+                RS_LOGD("CollectInfoForHardwareComposer set %{public}s content dirty",
+                    surfaceNode->GetName().c_str());
+                surfaceNode->SetContentDirty(); // screen recording capsule and hdr switch change force mark dirty
             }
             if (surfaceNode->IsCloneCrossNode()) {
                 RSDrmUtil::AddDrmCloneCrossNode(surfaceNode, hardwareEnabledDrwawables_);
@@ -1972,6 +1958,19 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 }
                 return;
             }
+            auto videoHdrStatus = RSHdrUtil::CheckIsHdrSurface(*surfaceNode);
+            surfaceNode->ClearHDRVideoStatus();
+            surfaceNode->UpdateHDRStatus(videoHdrStatus, true);
+            surfaceNode->SetVideoHdrStatus(videoHdrStatus);
+            if (isColorTemperatureOn_ && surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
+                surfaceNode->SetSdrHasMetadata(RSHdrUtil::CheckIsSurfaceWithMetadata(*surfaceNode));
+            }
+            if (!surfaceNode->GetSdrHasMetadata() && RSHdrUtil::CheckHasSurfaceWithAiHdrMetadata(*surfaceNode)) {
+                surfaceNode->SetSdrHasMetadata(true);
+            }
+#ifdef HETERO_HDR_ENABLE
+            RSHeteroHDRManager::Instance().UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
+#endif
 
             // If hardware HDR is disabled, disable direct composition
             if (RSLuminanceControl::Get().IsHardwareHdrDisabled() &&
@@ -2047,6 +2046,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 isHardwareEnabledBufferUpdated_ = true;
             }
         });
+    prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
 #endif
 }
 
