@@ -341,6 +341,7 @@ static const std::array g_methods = {
     ani_native_function { "resetClip", nullptr, reinterpret_cast<void*>(AniCanvas::ResetClip) },
     ani_native_function { "quickRejectPath", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectPath) },
     ani_native_function { "quickRejectRect", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectRect) },
+    ani_native_function { "isOpaque", nullptr, reinterpret_cast<void*>(AniCanvas::IsOpaque) },
     ani_native_function { "drawSingleCharacterWithFeatures", nullptr,
         reinterpret_cast<void*>(AniCanvas::DrawSingleCharacterWithFeatures) },
     ani_native_function { "drawGlyphs", nullptr, reinterpret_cast<void*>(AniCanvas::DrawGlyphs) },
