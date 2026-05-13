@@ -506,6 +506,8 @@ inline napi_value CreateStringJsValue(napi_env env, const std::u16string& u16Str
 
 napi_value CreateFontFeatureArrayJsValue(napi_env env, const FontFeatures& fontFeatures);
 
+napi_value CreateFontVariationArrayJsValue(napi_env env, const FontVariations& fontVariations);
+
 napi_value CreateRectStyleJsValue(napi_env env, RectStyle& rectStyle);
 
 napi_value CreatePointJsValue(napi_env env, const OHOS::Rosen::Drawing::PointF& point);

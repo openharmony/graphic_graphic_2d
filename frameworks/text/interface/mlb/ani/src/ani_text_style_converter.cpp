@@ -349,6 +349,7 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
                 return AniTextStyleConverter::ParseTextShadowToAni(env, item);
             }),
         AniTextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect),
+         ParseFontVariationsToAni(env, textStyle.fontVariations),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textBadgeType,
             aniGetEnumIndex(AniTextEnum::textBadgeType, static_cast<uint32_t>(textStyle.badgeType))),
         textStyle.maxLineHeight, textStyle.minLineHeight,
@@ -433,9 +434,17 @@ ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const Fon
 
 ani_object AniTextStyleConverter::ParseFontVariationsToAni(ani_env* env, const FontVariations& fontVariations)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(
-        env, AniGlobalClass::GetInstance().fontVariation, AniGlobalMethod::GetInstance().fontVariationCtor);
-    return aniObj;
+    const std::map<std::string, std::pair<float, bool>>& variationSet = fontVariations.GetAxisValues();
+    ani_object arrayObj = AniTextUtils::CreateAniArrayAndInitData(
+        env, variationSet, variationSet.size(),
+        [](ani_env* env, const std::pair<const std::string, std::pair<float, bool>>& variation) {
+            return AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontVariation,
+                AniGlobalMethod::GetInstance().fontVariationCtor,
+                AniTextUtils::CreateAniStringObj(env, variation.first),
+                ani_double(variation.second.first),
+                AniTextUtils::CreateAniBooleanObj(env, variation.second.second));
+        });
+    return arrayObj;
 }
 
 ani_object AniTextStyleConverter::ParseFontTypefacesToAni(ani_env* env, const TextStyle& textStyle)

@@ -146,7 +146,9 @@ ani_status ParseFontVariationToAni(ani_env* env,
     aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontVariation,
         AniGlobalMethod::GetInstance().fontVariationCtor,
         AniTextUtils::CreateAniStringObj(env, variation.axis),
-        ani_double(variation.value));
+        ani_double(variation.value),
+        AniTextUtils::CreateAniUndefined(env)
+    );
 
     return (aniObj != nullptr) ? ANI_OK : ANI_ERROR;
 }
