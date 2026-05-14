@@ -84,10 +84,9 @@ if (current_os != "ohos") {
       "src/EGL/egl_wrapper_surface.cpp",
       "src/thread_private_data_ctl.cpp",
       "src/EGL/egl_wrapper_hook.cpp",
+      "src/EGL/egl_wrapper_custom.cpp"
     ]
-    if (graphic_2d_feature_enable_opengl_to_vulkan) {
-      sources += [ "src/EGL/egl_wrapper_custom.cpp" ]
-    }
+
     if (graphic_2d_feature_product == "wearable") {
       defines += [ "PRELOAD_BLOB_CACHE" ]
     }
