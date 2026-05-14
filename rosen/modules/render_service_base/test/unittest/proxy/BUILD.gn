@@ -11,174 +11,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import(
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
-import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 
-config("export_config") {
-  include_dirs = [
-    "../include",
-    "${graphic_2d_root}/utils/log",
-    "$graphic_2d_root/rosen/modules/2d_graphics/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-    "$graphic_2d_root/interfaces/inner_api/composer",
-    "$graphic_2d_root/rosen/modules/composer/vsync/include",
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_base"
+
+ohos_unittest("RSProxyTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_client_to_service_connect_hub_test.cpp",
+   "rs_render_service_client_proxy_test.cpp"]
+
+  defines = [ "ENABLE_RS_PROXY" ]
+
+  configs = [ ":rs_proxy_test_config" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base/proxy:render_service_proxy_src",
   ]
 
-  cflags_cc = [ "-std=c++17" ]
+  external_deps = [
+    "graphic_surface:surface_headers",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
 
-  defines = rs_common_define
-  defines += gpu_defines
-  if (graphic_2d_feature_enable_rs_proxy) {
-    defines += [ "ENABLE_RS_PROXY" ]
-  }
+  subsystem_name = "graphic"
 }
 
-ohos_source_set("render_service_proxy_src") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-  defines = []
-  defines += gpu_defines
-  defines += [ "MODULE_RSB" ]
-
-  sources = [
-    "../src/platform/ohos/rs_render_service_client.cpp",
-    "../src/platform/ohos/rs_client_to_service_connect_hub.cpp",
-    "../src/ipc_callbacks/active_screen_id_changed_callback_stub.cpp",
-    "../src/ipc_callbacks/brightness_info_change_callback_stub.cpp",
-    "../src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_exposed_event_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_first_frame_commit_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_transaction_data_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_uiextension_callback_stub.cpp",
-    "../src/ipc_callbacks/screen_change_callback_stub.cpp",
-    "../src/ipc_callbacks/screen_supported_hdr_formats_callback_stub.cpp",
-    "../src/ipc_callbacks/screen_switching_notify_callback_stub.cpp",
-    "../src/common/rs_xcollie.cpp",
-    "../src/common/rs_common_hook.cpp",
-    "../src/common/rs_event_def.cpp",
-    "../src/render/rs_typeface_cache.cpp",
-    "../src/memory/rs_memory_graphic.cpp",
-    "../src/memory/rs_memory_snapshot.cpp",
-    "../src/pipeline/rs_uni_render_judgement.cpp",
-    "../src/platform/ohos/rs_log.cpp",
-    "../src/transaction/rs_hgm_config_data.cpp",
-    "../src/transaction/rs_self_drawing_node_rect_data.cpp",
-    "../src/transaction/rs_uiextension_data.cpp",
-    "../src/transaction/rs_occlusion_data.cpp",
-    "../src/screen_manager/rs_screen_capability.cpp",
-    "../src/screen_manager/rs_screen_data.cpp",
-    "../src/screen_manager/rs_screen_hdr_capability.cpp",
-    "../src/screen_manager/rs_screen_mode_info.cpp",
-    "../src/screen_manager/rs_screen_props.cpp",
-    "../src/screen_manager/rs_virtual_screen_resolution.cpp",
+config("rs_proxy_test_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "$graphic_2d_root/utils/log",
   ]
 
   cflags = [
     "-Wall",
-    "-Wno-pointer-arith",
-    "-Wno-non-virtual-dtor",
-    "-Wno-missing-field-initializers",
-    "-Wno-c++11-narrowing",
-    "-fvisibility=hidden",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
-
-  cflags_cc = [
-    "-std=c++17",
-    "-fvisibility-inlines-hidden",
-  ]
-
-  public_configs = [ ":export_config" ]
-
-  if (enable_export_macro) {
-    defines += [ "ENABLE_EXPORT_MACRO" ]
-  }
-
-  if (rs_enable_gpu) {
-    defines += [
-      "RS_ENABLE_GPU",
-      "GL_GLEXT_PROTOTYPES",
-      "EGL_EGLEXT_PROTOTYPES",
-    ]
-  }
-
-  if (current_os == "ohos") {
-    defines += [ "IS_OHOS" ]
-  }
-
-  include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/utils/log",
-    "$graphic_2d_root/prebuilts/librarys/gpu/include",
-    "$graphic_2d_root/rosen/modules/render_service_profiler",
-  ]
-
-  if (graphic_2d_feature_mhc_enable) {
-    include_dirs += graphic_2d_mhc_configs.librender_service_mhc_include
-  }
-
-  if (tp_feature_enable) {
-    defines += tp_defines
-  }
-
-  deps = [
-    "$graphic_2d_root/utils/sandbox:sandbox_utils",
-    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-  ]
-
-  external_deps = [
-    "hilog:libhilog",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-    "hicollie:libhicollie",
-    "hitrace:hitrace_meter",
-    "graphic_surface:surface",
-    "graphic_surface:surface_headers",
-    "graphic_surface:sync_fence",
-    "graphics_effect:graphics_effect_core",
-    "init:libbegetutil",
-    "eventhandler:libeventhandler",
-    "image_framework:image_native",
-    "c_utils:utils",
-  ]
-
-  if (graphic_2d_feature_enable_vulkan) {
-    external_deps += [ "vulkan-loader:vulkan_loader" ]
-  }
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
 }
 
-ohos_shared_library("librender_service_proxy") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  public_configs = [ ":export_config" ]
-
-  deps = [
-    ":render_service_proxy_src",
-  ]
-
-  external_deps = [
-    "hilog:libhilog",
-  ]
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
+group("unittest") {
+  testonly = true
+  deps = [ ":RSProxyTest" ]
 }
