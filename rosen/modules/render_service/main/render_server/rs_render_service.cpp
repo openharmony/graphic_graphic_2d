@@ -177,7 +177,9 @@ void RSRenderService::HgmInit()
         std::bind(&RSScreenManager::SetScreenConstraint,
             screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
         std::bind(&RSScreenManager::SetScreenActiveMode,
-            screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2)
+            screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2),
+        std::bind(&RSScreenManager::GetScreenActiveRefreshRate,
+            screenManager_.GetRefPtr(), std::placeholders::_1)
     );
     HgmCore::Instance().SetScreenManager(screenManager_.GetRefPtr());
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {

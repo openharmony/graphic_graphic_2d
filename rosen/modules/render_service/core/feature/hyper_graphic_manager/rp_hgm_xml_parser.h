@@ -46,7 +46,6 @@ public:
     {
         return hgmAbilityEnabled_;
     }
-
 private:
     int32_t Parse();
     int32_t ParseNode(xmlNode& node, std::vector<std::string>& data);

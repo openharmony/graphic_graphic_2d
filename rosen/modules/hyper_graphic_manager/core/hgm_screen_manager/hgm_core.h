@@ -45,6 +45,7 @@ public:
     using GetScreenSupportedModesCallback = std::function<std::vector<RSScreenModeInfo>(ScreenId)>;
     using SetScreenConstraintCallback = std::function<int32_t(ScreenId, uint64_t, ScreenConstraintType)>;
     using SetScreenActiveModeCallback = std::function<uint32_t(ScreenId, uint32_t)>;
+    using GetScreenActiveRefreshRateCallback = std::function<uint32_t(ScreenId)>;
 
     static void SysModeChangeProcess(const char* key, const char* value, void* context);
     static HgmCore& Instance();
@@ -149,7 +150,8 @@ public:
         const GetScreenPowerStatusCallback& getScreenPowerStatusCb,
         const GetScreenSupportedModesCallback& getScreenSupportedModesCb,
         const SetScreenConstraintCallback& setScreenConstraintCb,
-        const SetScreenActiveModeCallback& setScreenActiveModeCb);
+        const SetScreenActiveModeCallback& setScreenActiveModeCb,
+        const GetScreenActiveRefreshRateCallback& getScreenActiveRefreshRateCb);
     ScreenId GetDefaultScreenId() const;
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const;
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) const;
@@ -158,6 +160,7 @@ public:
     RSScreenManager* GetScreenManager() { return screenManager_; }
     void SetScreenManager(RSScreenManager* screenManager) { screenManager_ = screenManager; }
     bool HgmAbilityEnabled() const { return hgmAbilityEnabled_; }
+    uint32_t GetScreenActiveRefreshRate(ScreenId id) const;
 private:
     HgmCore();
     ~HgmCore() noexcept = default;
@@ -232,6 +235,7 @@ private:
     GetScreenSupportedModesCallback getScreenSupportedModesCb_ = nullptr;
     SetScreenConstraintCallback setScreenConstraintCb_ = nullptr;
     SetScreenActiveModeCallback setScreenActiveModeCb_ = nullptr;
+    GetScreenActiveRefreshRateCallback getScreenActiveRefreshRateCb_ = nullptr;
     RSScreenManager* screenManager_;
 };
 } // namespace OHOS::Rosen

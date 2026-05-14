@@ -603,13 +603,15 @@ void HgmCore::RegisterScreenManagerCallbacks(
     const GetScreenPowerStatusCallback& getScreenPowerStatusCb,
     const GetScreenSupportedModesCallback& getScreenSupportedModesCb,
     const SetScreenConstraintCallback& setScreenConstraintCb,
-    const SetScreenActiveModeCallback& setScreenActiveModeCb)
+    const SetScreenActiveModeCallback& setScreenActiveModeCb,
+    const GetScreenActiveRefreshRateCallback& getScreenActiveRefreshRateCb)
 {
     getDefaultScreenIdCb_ = getDefaultScreenIdCb;
     getScreenPowerStatusCb_ = getScreenPowerStatusCb;
     getScreenSupportedModesCb_ = getScreenSupportedModesCb;
     setScreenConstraintCb_ = setScreenConstraintCb;
     setScreenActiveModeCb_ = setScreenActiveModeCb;
+    getScreenActiveRefreshRateCb_ = getScreenActiveRefreshRateCb;
 }
 
 ScreenId HgmCore::GetDefaultScreenId() const
@@ -655,5 +657,14 @@ uint32_t HgmCore::SetScreenActiveMode(ScreenId id, uint32_t modeId)
     }
     HGM_LOGE("setScreenActiveModeCb is null");
     return StatusCode::SCREEN_NOT_FOUND;
+}
+
+uint32_t HgmCore::GetScreenActiveRefreshRate(ScreenId id) const
+{
+    if (LIKELY(getScreenActiveRefreshRateCb_ != nullptr)) {
+        return getScreenActiveRefreshRateCb_(id);
+    }
+    HGM_LOGE("getScreenActiveRefreshRateCb_ is null");
+    return static_cast<uint32_t>(EXEC_SUCCESS);
 }
 } // namespace OHOS::Rosen
