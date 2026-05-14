@@ -43,10 +43,10 @@ public:
     void ChangeProtectedState(bool isProtected) override;
     bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
     #ifdef ROSEN_ARKUI_X
-    void AddSurface() override {}
-    void DeleteSurface() override {}
-    void SetCleanUpHelper(std::function<void()> func) override {}
-    void DestroySharedSource() override {}
+    void AddSurface() override;
+    void DeleteSurface() override;
+    void SetCleanUpHelper(std::function<void()> func) override;
+    void DestroySharedSource() override;
     #endif
     
 private:
