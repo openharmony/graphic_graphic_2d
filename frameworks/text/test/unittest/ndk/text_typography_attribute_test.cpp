@@ -640,23 +640,23 @@ HWTEST_F(NdkTypographyTest, TypographyStyleAttributeDoubleArrayTest001, TestSize
     // nullptr style
     OH_Drawing_ErrorCode errorCodeOne = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
         nullptr, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, values, 1);
-    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     // nullptr arrayValue
     OH_Drawing_ErrorCode errorCodeTwo = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, nullptr, 1);
-    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     // zero arrayLength
     OH_Drawing_ErrorCode errorCodeThree = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, values, 0);
-    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     double nagetiveValues[] = { -10.0 };
     // negative arrayValue
     errorCodeThree = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, nagetiveValues, 1);
-    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     errorCodeThree = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, nagetiveValues, 1);
-    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     // mismatched attribute id (using double id for array setter)
     OH_Drawing_ErrorCode errorCodeFour = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, values, 1);
@@ -678,15 +678,15 @@ HWTEST_F(NdkTypographyTest, TypographyStyleAttributeDoubleArrayTest002, TestSize
     // nullptr style
     OH_Drawing_ErrorCode errorCodeOne = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
         nullptr, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, &outArray, &outLen);
-    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     // nullptr arrayValue output
     OH_Drawing_ErrorCode errorCodeTwo = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, nullptr, &outLen);
-    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     // nullptr arrayLength output
     OH_Drawing_ErrorCode errorCodeThree = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, &outArray, nullptr);
-    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     // mismatched attribute id (using double id for array getter)
     OH_Drawing_ErrorCode errorCodeFour = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &outArray, &outLen);

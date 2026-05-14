@@ -892,7 +892,8 @@ OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeBool(OH_Drawing_Typog
  * @param arrayLength Indicates the array length.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
- *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if the style is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the parameter style or arrayValue is a null pointer
+ *         or arrayLength is 0.
  *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
  * @since 26.0.0
  */
@@ -908,7 +909,8 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeDoubleArray(OH_Drawin
  * @param arrayLength Output parameter to receive the length of the array.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
- *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if the style is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the parameter style or arrayValue is a null pointer
+ *         or arrayLength is a null pointer.
  *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
  * @since 26.0.0
  */
