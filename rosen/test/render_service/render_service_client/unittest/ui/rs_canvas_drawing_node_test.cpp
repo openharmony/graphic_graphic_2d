@@ -199,10 +199,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
 {
-    auto director = CreateRSUIDirector();
-    ASSERT_NE(director, nullptr);
-    auto rsUIContext = director->GetRSUIContext();
-    auto node = std::make_shared<RSCanvasDrawingNode>(true, false, rsUIContext);
+    auto node = std::make_shared<RSCanvasDrawingNode>(true);
     auto nodeId = node->GetId();
     std::weak_ptr<RSCanvasDrawingNode> weakNode = node;
     node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, 1);
@@ -213,6 +210,8 @@ HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
     node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, node->resetSurfaceIndex_);
     if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
         ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
+    } else {
+        ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
     }
     node->resetSurfaceIndex_ = 10;
     node->canvasSurfaceBuffer_ = nullptr;
@@ -221,9 +220,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
     node->resetSurfaceIndex_ = 0;
     node->canvasSurfaceBuffer_ = nullptr;
     node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);
-    if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
-        ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
-    }
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
     node->resetSurfaceIndex_ = 0;
     node->canvasSurfaceBuffer_ = nullptr;
     node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);
