@@ -98,7 +98,7 @@ std::shared_ptr<ColorSpace> GetColorSpaceByJSObject(napi_env env, napi_value obj
         return nullptr;
     }
     JsColorSpace* jsColorSpace = nullptr;
-    NAPI_CALL_DEFAULT(napi_unwrap(env, object, (void **)&jsColorSpace));
+    NAPI_CALL_DEFAULT(napi_unwrap(env, object, reinterpret_cast<void**>(&jsColorSpace)));
     if (jsColorSpace == nullptr) {
         CMLOGE("[NAPI]GetColorSpaceByJSObject::jsColorSpace is nullptr");
         return nullptr;
