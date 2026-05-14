@@ -208,11 +208,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
     node->PreAllocateDMABuffer(weakNode, nodeId, 0, 0, 1);
     ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
     node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, node->resetSurfaceIndex_);
-    if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
-        ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
-    } else {
-        ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
-    }
+    ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
     node->resetSurfaceIndex_ = 10;
     node->canvasSurfaceBuffer_ = nullptr;
     node->PreAllocateDMABuffer(node, nodeId, 0, 0, 10);
