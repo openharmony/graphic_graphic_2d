@@ -294,7 +294,10 @@ template("graphics2d_source_set") {
 
     if (is_arkui_x) {
       configs = [ "//third_party/jsoncpp:jsoncpp_public_config" ]
-      defines += [ "ROSEN_ARKUI_X" ]
+      defines += [
+        "ROSEN_ARKUI_X",
+        "ROSEN_CROSS_PLATFORM",
+      ]
     } else {
       external_deps += [ "jsoncpp:jsoncpp" ]
     }
