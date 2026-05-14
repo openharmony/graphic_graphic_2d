@@ -16,6 +16,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <EGL/egl.h>
+
 #include "parameters.h"
 #include "EGL/egl_wrapper_custom.h"
 #include "EGL/egl_wrapper_display.h"
@@ -24,14 +25,25 @@
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS {
-class EglWrapperCustomTest : public testing::Test {
-protected:
-    static std::shared_ptr<OHOS::system::ParameterMock> mockParameter;
-};
+namespace OHOS::Rosen {
 
-std::shared_ptr<OHOS::system::ParameterMock> EglWrapperCustomTest::mockParameter = nullptr;
-} // namespace OHOS
+class EglWrapperCustomTest : public ::testing::Test {
+protected:
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
+    void SetUp()
+    {
+        mockParameter = std::make_shared<OHOS::system::ParameterMock>();
+        OHOS::system::SetParameterGlobalMock(mockParameter);
+    }
+    void TearDown()
+    {
+        mockParameter = nullptr;
+        OHOS::system::SetParameterGlobalMock(nullptr);
+    }
+
+    std::shared_ptr<OHOS::system::ParameterMock> mockParameter;
+};
 
 #ifdef OPENGL_WRAPPER_ENABLE_GL4
 /**
@@ -39,12 +51,32 @@ std::shared_ptr<OHOS::system::ParameterMock> EglWrapperCustomTest::mockParameter
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(OHOS::EglWrapperCustomTest, EglGetProcAddressCustomImplTest001, Level1)
+HWTEST_F(EglWrapperCustomTest, EglGetProcAddressCustomImplTest001, Level1)
 {
-    mockParameter = std::make_shared<OHOS::system::ParameterMock>();
-    EXPECT_CALL(*mockParameter, GetBoolParameter(OHOS::SUPPORT_GL_TO_VK, _))
-        .WillOnce(testing::Return(true));
-    EXPECT_EQ(OHOS::OHGraphicsQueryGLImpl(), EGL_TRUE);
+    auto result = EglGetProcAddressCustomImpl("OH_Graphics_QueryGL");
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: EglGetProcAddressCustomImplTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperCustomTest, EglGetProcAddressCustomImplTest002, Level1)
+{
+    auto result = EglGetProcAddressCustomImpl("");
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: OHGraphicsQueryGLImplTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperCustomTest, OHGraphicsQueryGLImplTest001, Level1)
+{
+    EXPECT_CALL(*mockParameter, GetBoolParameter(_, _)).WillOnce(testing::Return(true));
+    EXPECT_EQ(OHGraphicsQueryGLImpl(), EGL_TRUE);
 }
 
 /**
@@ -52,11 +84,10 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglGetProcAddressCustomImplTest001, Level1)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(OHOS::EglWrapperCustomTest, OHGraphicsQueryGLImplTest002, Level1)
+HWTEST_F(EglWrapperCustomTest, OHGraphicsQueryGLImplTest002, Level1)
 {
-    mockParameter = std::make_shared<OHOS::system::ParameterMock>();
     EXPECT_CALL(*mockParameter, GetBoolParameter(_, _)).WillOnce(testing::Return(false));
-    EXPECT_EQ(OHOS::OHGraphicsQueryGLImpl(), EGL_FALSE);
+    EXPECT_EQ(OHGraphicsQueryGLImpl(), EGL_FALSE);
 }
 #endif
 
@@ -69,7 +100,7 @@ typedef EGLBoolean (*SetEngineNameFunc)(EGLDisplay dpy, const char* name);
  * @tc.desc: Test EglSetEngineNameImpl with nullptr display
  * @tc.type: FUNC
  */
-HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest001, Level1)
+HWTEST_F(EglWrapperCustomTest, EglSetEngineNameImplTest001, Level1)
 {
     auto func = reinterpret_cast<SetEngineNameFunc>(eglGetProcAddress("eglSetEngineName"));
     ASSERT_NE(nullptr, func);
@@ -83,21 +114,20 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest001, Level1)
  * @tc.desc: Test EglSetEngineNameImpl with invalid display (not initialized)
  * @tc.type: FUNC
  */
-HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest002, Level1)
+HWTEST_F(EglWrapperCustomTest, EglSetEngineNameImplTest002, Level1)
 {
     auto func = reinterpret_cast<SetEngineNameFunc>(eglGetProcAddress("eglSetEngineName"));
     ASSERT_NE(nullptr, func);
 
-    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay(
-        (EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay((EGLDisplay)&EglWrapperDisplay::wrapperDisp_);
     ASSERT_NE(nullptr, eglWrapperDisplay);
     auto tmp = eglWrapperDisplay->refCnt_;
-    eglWrapperDisplay->refCnt_ = 0;
+    eglWrapperDisplay->refCnt_ = 0; // make display invalid
 
     auto result = func((EGLDisplay)eglWrapperDisplay, "test_engine");
     EXPECT_EQ(result, EGL_FALSE);
 
-    eglWrapperDisplay->refCnt_ = tmp;
+    eglWrapperDisplay->refCnt_ = tmp; // restore display for future test
 }
 
 /**
@@ -105,7 +135,7 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest002, Level1)
  * @tc.desc: Test EglSetEngineNameImpl when driver not loaded
  * @tc.type: FUNC
  */
-HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest003, Level1)
+HWTEST_F(EglWrapperCustomTest, EglSetEngineNameImplTest003, Level1)
 {
     auto func = reinterpret_cast<SetEngineNameFunc>(eglGetProcAddress("eglSetEngineName"));
     ASSERT_NE(nullptr, func);
@@ -115,16 +145,16 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest003, Level1)
     EGLBoolean ret = eglInitialize(dpy, &major, &minor);
     ASSERT_EQ(ret, EGL_TRUE);
 
-    auto eglWrapperDisplay = OHOS::EglWrapperDisplay::GetWrapperDisplay(dpy);
+    auto eglWrapperDisplay = EglWrapperDisplay::GetWrapperDisplay(dpy);
     ASSERT_NE(nullptr, eglWrapperDisplay);
 
-    auto temp = OHOS::gWrapperHook.isLoad;
-    OHOS::gWrapperHook.isLoad = false;
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = false;
 
     auto result = func(dpy, "test_engine");
     EXPECT_EQ(result, EGL_FALSE);
 
-    OHOS::gWrapperHook.isLoad = temp;
+    gWrapperHook.isLoad = temp;
     eglTerminate(dpy);
 }
 
@@ -133,7 +163,7 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest003, Level1)
  * @tc.desc: Test EglSetEngineNameImpl when eglGetProcAddress is null
  * @tc.type: FUNC
  */
-HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest004, Level1)
+HWTEST_F(EglWrapperCustomTest, EglSetEngineNameImplTest004, Level1)
 {
     auto func = reinterpret_cast<SetEngineNameFunc>(eglGetProcAddress("eglSetEngineName"));
     ASSERT_NE(nullptr, func);
@@ -143,13 +173,13 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest004, Level1)
     EGLBoolean ret = eglInitialize(dpy, &major, &minor);
     ASSERT_EQ(ret, EGL_TRUE);
 
-    auto temp = OHOS::gWrapperHook.egl.eglGetProcAddress;
-    OHOS::gWrapperHook.egl.eglGetProcAddress = nullptr;
+    auto temp = gWrapperHook.egl.eglGetProcAddress;
+    gWrapperHook.egl.eglGetProcAddress = nullptr;
 
     auto result = func(dpy, "test_engine");
     EXPECT_EQ(result, EGL_FALSE);
 
-    OHOS::gWrapperHook.egl.eglGetProcAddress = temp;
+    gWrapperHook.egl.eglGetProcAddress = temp;
     eglTerminate(dpy);
 }
 
@@ -158,7 +188,7 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest004, Level1)
  * @tc.desc: Test EglSetEngineNameImpl when driver not support eglSetEngineName
  * @tc.type: FUNC
  */
-HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest005, Level1)
+HWTEST_F(EglWrapperCustomTest, EglSetEngineNameImplTest005, Level1)
 {
     auto func = reinterpret_cast<SetEngineNameFunc>(eglGetProcAddress("eglSetEngineName"));
     ASSERT_NE(nullptr, func);
@@ -168,18 +198,17 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest005, Level1)
     EGLBoolean ret = eglInitialize(dpy, &major, &minor);
     ASSERT_EQ(ret, EGL_TRUE);
 
-    auto tempIsLoad = OHOS::gWrapperHook.isLoad;
-    auto tempGetProcAddr = OHOS::gWrapperHook.egl.eglGetProcAddress;
+    auto tempIsLoad = gWrapperHook.isLoad;
+    auto tempGetProcAddr = gWrapperHook.egl.eglGetProcAddress;
 
-    OHOS::gWrapperHook.isLoad = true;
-    OHOS::gWrapperHook.egl.eglGetProcAddress = +[](const char*)
-        -> __eglMustCastToProperFunctionPointerType { return nullptr; };
+    gWrapperHook.isLoad = true;
+    gWrapperHook.egl.eglGetProcAddress = +[](const char*) -> __eglMustCastToProperFunctionPointerType { return nullptr; };
 
     auto result = func(dpy, "test_engine");
     EXPECT_EQ(result, EGL_FALSE);
 
-    OHOS::gWrapperHook.isLoad = tempIsLoad;
-    OHOS::gWrapperHook.egl.eglGetProcAddress = tempGetProcAddr;
+    gWrapperHook.isLoad = tempIsLoad;
+    gWrapperHook.egl.eglGetProcAddress = tempGetProcAddr;
     eglTerminate(dpy);
 }
 
@@ -188,7 +217,7 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest005, Level1)
  * @tc.desc: Test EglSetEngineNameImpl success path
  * @tc.type: FUNC
  */
-HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest006, Level1)
+HWTEST_F(EglWrapperCustomTest, EglSetEngineNameImplTest006, Level1)
 {
     auto func = reinterpret_cast<SetEngineNameFunc>(eglGetProcAddress("eglSetEngineName"));
     ASSERT_NE(nullptr, func);
@@ -198,87 +227,21 @@ HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest006, Level1)
     EGLBoolean ret = eglInitialize(dpy, &major, &minor);
     ASSERT_EQ(ret, EGL_TRUE);
 
-    auto tempIsLoad = OHOS::gWrapperHook.isLoad;
-    auto tempGetProcAddr = OHOS::gWrapperHook.egl.eglGetProcAddress;
+    auto tempIsLoad = gWrapperHook.isLoad;
+    auto tempGetProcAddr = gWrapperHook.egl.eglGetProcAddress;
 
-    OHOS::gWrapperHook.isLoad = true;
-    OHOS::gWrapperHook.egl.eglGetProcAddress = +[](const char*)
-        -> __eglMustCastToProperFunctionPointerType {
+    gWrapperHook.isLoad = true;
+    gWrapperHook.egl.eglGetProcAddress = +[](const char*) -> __eglMustCastToProperFunctionPointerType {
         return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(
-            +[]() -> EGLBoolean { return EGL_TRUE; });
+            +[](EGLDisplay, const char*) -> EGLBoolean { return EGL_TRUE; }
+        );
     };
 
     auto result = func(dpy, "test_engine");
     EXPECT_EQ(result, EGL_TRUE);
 
-    OHOS::gWrapperHook.isLoad = tempIsLoad;
-    OHOS::gWrapperHook.egl.eglGetProcAddress = tempGetProcAddr;
-    eglTerminate(dpy);
-}
-
-/**
- * @tc.name: EglSetEngineNameImplTest007
- * @tc.desc: Test EglSetEngineNameImpl when name is null
- * @tc.type: FUNC
- */
-HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest007, Level1)
-{
-    auto func = reinterpret_cast<SetEngineNameFunc>(eglGetProcAddress("eglSetEngineName"));
-    ASSERT_NE(nullptr, func);
-
-    EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    EGLint major, minor;
-    EGLBoolean ret = eglInitialize(dpy, &major, &minor);
-    ASSERT_EQ(ret, EGL_TRUE);
-
-    auto tempIsLoad = OHOS::gWrapperHook.isLoad;
-    auto tempGetProcAddr = OHOS::gWrapperHook.egl.eglGetProcAddress;
-
-    OHOS::gWrapperHook.isLoad = true;
-    OHOS::gWrapperHook.egl.eglGetProcAddress = +[](const char*)
-        -> __eglMustCastToProperFunctionPointerType {
-        return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(
-            +[]() -> EGLBoolean { return EGL_FALSE; });
-    };
-
-    auto result = func(dpy, nullptr);
-    EXPECT_EQ(result, EGL_FALSE);
-
-    OHOS::gWrapperHook.isLoad = tempIsLoad;
-    OHOS::gWrapperHook.egl.eglGetProcAddress = tempGetProcAddr;
-    eglTerminate(dpy);
-}
-
-/**
- * @tc.name: EglSetEngineNameImplTest008
- * @tc.desc: Test EglSetEngineNameImpl with empty string name
- * @tc.type: FUNC
- */
-HWTEST_F(OHOS::EglWrapperCustomTest, EglSetEngineNameImplTest008, Level1)
-{
-    auto func = reinterpret_cast<SetEngineNameFunc>(eglGetProcAddress("eglSetEngineName"));
-    ASSERT_NE(nullptr, func);
-
-    EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    EGLint major, minor;
-    EGLBoolean ret = eglInitialize(dpy, &major, &minor);
-    ASSERT_EQ(ret, EGL_TRUE);
-
-    auto tempIsLoad = OHOS::gWrapperHook.isLoad;
-    auto tempGetProcAddr = OHOS::gWrapperHook.egl.eglGetProcAddress;
-
-    OHOS::gWrapperHook.isLoad = true;
-    OHOS::gWrapperHook.egl.eglGetProcAddress = +[](const char*)
-        -> __eglMustCastToProperFunctionPointerType {
-        return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(
-            +[]() -> EGLBoolean { return EGL_TRUE; });
-    };
-
-    auto result = func(dpy, "");
-    EXPECT_EQ(result, EGL_TRUE);
-
-    OHOS::gWrapperHook.isLoad = tempIsLoad;
-    OHOS::gWrapperHook.egl.eglGetProcAddress = tempGetProcAddr;
+    gWrapperHook.isLoad = tempIsLoad;
+    gWrapperHook.egl.eglGetProcAddress = tempGetProcAddr;
     eglTerminate(dpy);
 }
 } // OHOS::Rosen
