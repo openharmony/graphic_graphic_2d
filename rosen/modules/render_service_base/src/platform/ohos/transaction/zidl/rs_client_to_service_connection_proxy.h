@@ -16,7 +16,6 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H
 
-#include "command/rs_node_showing_command.h"
 #include <iremote_proxy.h>
 #include <memory>
 #include <platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h>

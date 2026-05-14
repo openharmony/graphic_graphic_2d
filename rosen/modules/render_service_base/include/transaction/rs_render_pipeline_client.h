@@ -69,7 +69,6 @@ namespace Rosen {
 class RSIClientToRenderConnection;
 // normal callback functor for client users.
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason, sptr<IRemoteObject>)>;
-using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
 using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;

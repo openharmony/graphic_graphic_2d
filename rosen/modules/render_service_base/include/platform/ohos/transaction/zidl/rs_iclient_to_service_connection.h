@@ -29,10 +29,7 @@
 #include "vsync_iconnection_token.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 
-#include "command/rs_command.h"
-#include "command/rs_node_showing_command.h"
 #include "common/rs_event_def.h"
-#include "feature/capture/rs_ui_capture.h"
 #include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "ipc_callbacks/buffer_available_callback.h"
@@ -44,7 +41,6 @@
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
-#include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "memory/rs_memory_graphic.h"

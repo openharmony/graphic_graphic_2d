@@ -28,21 +28,24 @@
 #include <utility>
 #endif
 
+#include "animation/rs_frame_rate_range.h"
 #include "common/rs_event_def.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
+#include "ipc_callbacks/brightness_info_change_callback.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
-#include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
 #include "rs_render_service_client_info.h"
 #include "rs_hrp_service.h"
+#ifndef ENABLE_RS_PROXY
 #include "rs_irender_client.h"
+#endif
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
@@ -82,7 +85,11 @@ using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData
 using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSSelfDrawingNodeRectData>)>;
 using FirstFrameCommitCallback = std::function<void(uint64_t, int64_t)>;
 
-class RSB_EXPORT RSRenderServiceClient : public RSIRenderClient {
+class RSB_EXPORT RSRenderServiceClient
+#ifndef ENABLE_RS_PROXY
+ : public RSIRenderClient
+#endif
+{
 public:
     RSRenderServiceClient() = default;
     virtual ~RSRenderServiceClient() = default;
@@ -90,8 +97,12 @@ public:
     RSRenderServiceClient(const RSRenderServiceClient&) = delete;
     void operator=(const RSRenderServiceClient&) = delete;
 
+#ifndef ENABLE_RS_PROXY
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
+#else
+    static std::shared_ptr<RSRenderServiceClient> CreateRenderServiceClient();
+#endif
 
     bool GetUniRenderEnabled();
 
@@ -115,7 +126,9 @@ public:
     std::vector<ScreenId> GetAllScreenIds();
 
 #ifndef ROSEN_CROSS_PLATFORM
+#ifndef ENABLE_RS_PROXY
     std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
+#endif
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
 
@@ -446,13 +459,9 @@ private:
     };
 
     std::mutex mutex_;
-    std::mutex surfaceCaptureCbDirectorMutex_;
-    std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
-    std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
     sptr<RSIScreenChangeCallback> screenChangeCb_ = nullptr;
     sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCb_ = nullptr;
-    sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_ = nullptr;
     sptr<RSISurfaceBufferCallback> surfaceBufferCbDirector_;
     std::map<uint64_t, std::shared_ptr<SurfaceBufferCallback>> surfaceBufferCallbacks_;
     mutable std::shared_mutex surfaceBufferCallbackMutex_;

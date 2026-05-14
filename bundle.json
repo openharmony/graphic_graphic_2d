@@ -66,7 +66,8 @@
         "graphic_2d_feature_enable_memory_downtree",
         "graphic_2d_feature_enable_drm",
         "graphic_2d_feature_enable_mediacommon",
-        "graphic_2d_feature_enable_image_detail_enhancer"
+        "graphic_2d_feature_enable_image_detail_enhancer",
+        "graphic_2d_feature_enable_rs_proxy"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -165,6 +166,7 @@
           ],
           "fwk_group": [
             "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/proxy:librender_service_proxy",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client"
           ],
           "service_group": [
@@ -337,6 +339,16 @@
                 "render/rs_image_base.h",
                 "screen_manager/screen_types.h",
                 "modifier/rs_animatable_arithmetic.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/proxy:librender_service_proxy",
+            "header": {
+              "header_files": [
+                "transaction/rs_render_service_client.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include"
             }
