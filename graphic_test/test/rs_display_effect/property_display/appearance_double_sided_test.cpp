@@ -264,5 +264,4 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene9_ParentTru
     RegisterNode(parentNode);
     RegisterNode(parentNode);
 }
-
 } // namespace OHOS::Rosen
