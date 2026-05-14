@@ -774,8 +774,8 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest020, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle textStyle;
-    textStyle.fontVariations.SetAxisValue("wght", 400.0f);
-    textStyle.fontVariations.SetAxisValue("wdth", 75.0f);
+    textStyle.fontVariations.SetAxisValue("wght", 400.0f, true);
+    textStyle.fontVariations.SetAxisValue("wdth", 75.0f, false);
 
     typographyCreate_->PushStyle(textStyle);
 
@@ -796,5 +796,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest020, TestSize.Level0)
     EXPECT_EQ(axisValues.size(), 2);
     EXPECT_FLOAT_EQ(axisValues.at("wght").first, 400.0f);
     EXPECT_FLOAT_EQ(axisValues.at("wdth").first, 75.0f);
+    EXPECT_TRUE(axisValues.at("wght").second);
+    EXPECT_FALSE(axisValues.at("wdth").second);
 }
 } // namespace
