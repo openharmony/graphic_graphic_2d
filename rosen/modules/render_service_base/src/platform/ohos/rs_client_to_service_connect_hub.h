@@ -16,8 +16,9 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECT_HUB_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECT_HUB_H
 
-#include <mutex>
 #include <iremote_object.h>
+#include <mutex>
+
 #include "platform/ohos/transaction/rs_irender_service_ipc_interface_code.h"
 
 namespace OHOS {
@@ -43,11 +44,11 @@ private:
 
     class RenderServiceDeathRecipient final : public IRemoteObject::DeathRecipient {
     public:
-        explicit RenderServiceDeathRecipient(wptr<RSClientToServiceConnectHub> hub)
-            : hub_(hub) {}
+        explicit RenderServiceDeathRecipient(wptr<RSClientToServiceConnectHub> hub) : hub_(hub) {}
         ~RenderServiceDeathRecipient() noexcept final = default;
         DISALLOW_COPY_AND_MOVE(RenderServiceDeathRecipient);
         void OnRemoteDied(const wptr<IRemoteObject>& remote) final override;
+
     private:
         wptr<RSClientToServiceConnectHub> hub_;
     };
