@@ -269,6 +269,11 @@ std::shared_ptr<ColorFilter> ColorFilter::Unmarshalling(Parcel& parcel, bool& is
     }
     return colorFilter;
 }
+
+sk_sp<SkColorFilter> ColorFilter::GetSkColorFilter() const
+{
+    return impl_->GetSkColorFilter();
+}
 #endif
 
 } // namespace Drawing

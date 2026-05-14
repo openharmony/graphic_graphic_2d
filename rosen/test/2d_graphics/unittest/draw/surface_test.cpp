@@ -389,6 +389,20 @@ HWTEST_F(SurfaceTest, MakeImageWithCanvas003, TestSize.Level1)
     auto image = builder.MakeImage(*canvas, &localMatrix, imageInfo, false);
     EXPECT_TRUE(image == nullptr);
 }
+
+/**
+ * @tc.name: SurfaceGetSkSurface001
+ * @tc.desc: Test Surface::GetSkSurface
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SurfaceTest, SurfaceGetSkSurface001, TestSize.Level1)
+{
+    Drawing::ImageInfo imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto surface = Surface::MakeRaster(imageInfo);
+    auto skSurface = surface->GetSkSurface();
+    ASSERT_NE(surface, nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

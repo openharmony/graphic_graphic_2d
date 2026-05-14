@@ -35,6 +35,7 @@
 #include "vulkan/vulkan.h"
 #endif
 #endif
+#include "include/core/SkSurface.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -80,6 +81,7 @@ public:
     virtual float GetHeadroom() const = 0;
     virtual int Width() const = 0;
     virtual int Height() const = 0;
+    virtual sk_sp<SkSurface> GetSkSurface() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
