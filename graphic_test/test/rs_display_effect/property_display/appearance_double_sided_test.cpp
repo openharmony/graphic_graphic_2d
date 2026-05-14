@@ -40,17 +40,17 @@ public:
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene1_ParentY180_Child0_False)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationY(180.0f);
     parentNode->SetBackgroundColor(0xFFFF8800);
     parentNode->SetDoubleSidedEnabled(true);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(0.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
@@ -63,17 +63,17 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene1_ParentY18
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene2_ParentY180_ChildY180_False)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationY(180.0f);
     parentNode->SetBackgroundColor(0xFFFF8800);
     parentNode->SetDoubleSidedEnabled(true);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(180.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
@@ -86,17 +86,17 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene2_ParentY18
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene3_ParentY180_Child0_True)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationY(180.0f);
     parentNode->SetBackgroundColor(0xFFFF8800);
     parentNode->SetDoubleSidedEnabled(true);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(0.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(true);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
@@ -109,17 +109,17 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene3_ParentY18
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene4_Parent0_ChildY180_False)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationY(0.0f);
     parentNode->SetBackgroundColor(0xFFFF8800);
     parentNode->SetDoubleSidedEnabled(true);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(180.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
@@ -132,17 +132,17 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene4_Parent0_C
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene5_ParentX180_Child0_False)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationX(180.0f);
     parentNode->SetBackgroundColor(0xFFFF8800);
     parentNode->SetDoubleSidedEnabled(true);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(0.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
@@ -155,7 +155,7 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene5_ParentX18
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene6_Parent0_Child0)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationX(0.0f);
     parentNode->SetRotationY(0.0f);
@@ -163,10 +163,10 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene6_Parent0_C
     parentNode->SetDoubleSidedEnabled(true);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(0.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
@@ -179,17 +179,17 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene6_Parent0_C
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene7_Parent0_ChildY100_False)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationY(0.0f);
     parentNode->SetBackgroundColor(0xFFFF8800);
     parentNode->SetDoubleSidedEnabled(true);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(100.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
@@ -202,17 +202,17 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene7_Parent0_C
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene8_ParentFalse_ParentY180_Child0)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationY(180.0f);
     parentNode->SetBackgroundColor(0xFFFF8800);
     parentNode->SetDoubleSidedEnabled(false);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(0.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(true);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
@@ -225,17 +225,17 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene8_ParentFal
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene9_ParentTrue_Parent0_ChildY180_False)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationY(0.0f);
     parentNode->SetBackgroundColor(0xFFFF8800);
     parentNode->SetDoubleSidedEnabled(true);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(180.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
@@ -248,17 +248,17 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene9_ParentTru
  */
 GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene9_ParentTrue_Parent0_ChildY180_True)
 {
-    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto parentNode = RSCanvasNode::Create();
     parentNode->SetBounds({ 200, 200, 800, 800 });
     parentNode->SetRotationY(100.0f);
     parentNode->SetBackgroundColor(0xFFFF8800);
     parentNode->SetDoubleSidedEnabled(false);
     GetRootNode()->AddChild(parentNode);
 
-    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto childNode = RSCanvasNode::Create();
     childNode->SetBounds({ 100, 100, 600, 600 });
     childNode->SetRotationY(0.0f);
-    childNode->SetBackgroundColor(0XFF007DFF);
+    childNode->SetBackgroundColor(0xFF007DFF);
     childNode->SetDoubleSidedEnabled(true);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
