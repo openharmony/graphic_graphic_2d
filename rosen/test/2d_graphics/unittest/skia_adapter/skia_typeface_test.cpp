@@ -215,7 +215,7 @@ HWTEST_F(SkiaTypefaceTest, IsCustomTypeface001, TestSize.Level1)
     ASSERT_TRUE(!typeface1->IsCustomTypeface());
     ASSERT_TRUE(!typeface1->IsThemeTypeface());
     typeface1->SetIsCustomTypeface(false);
-    typeface->SetIsThemeTypeface(false);
+    typeface1->SetIsThemeTypeface(false);
     auto typeface2 = SkiaTypeface(nullptr);
     ASSERT_TRUE(!typeface2.IsCustomTypeface());
     ASSERT_TRUE(!typeface2.IsThemeTypeface());
