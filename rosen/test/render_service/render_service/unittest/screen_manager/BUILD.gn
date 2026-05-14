@@ -581,10 +581,39 @@ config("screen_test") {
   include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
 }
 
+##############################  DemoGetScreenCapabilityTest  ##################################
+ohos_unittest("DemoGetScreenCapabilityTest") {
+  module_out_path = module_output_path
+
+  sources = [ "demo_get_screen_capability.cpp" ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_client/core/transaction",
+    "$graphic_2d_root/rosen/modules/render_service_base/include/screen_manager",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
 group("unittest") {
   testonly = true
 
   deps = [
+    ":DemoGetScreenCapabilityTest",
     ":RSFoldScreenManagerTest",
     ":RSScreenCallbackManagerTest",
     ":RSScreenManagerAgentTest",

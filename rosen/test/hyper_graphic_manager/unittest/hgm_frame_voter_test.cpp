@@ -197,7 +197,7 @@ HWTEST_F(HgmFrameVoterTest, TestDeliverVote, Function | SmallTest | Level0)
     hgmFrameVoter.DeliverVote({ "VOTER_LTPO", OLED_60_HZ, OLED_90_HZ, 3 }, true);
     EXPECT_EQ(hgmFrameVoter.voteRecord_["VOTER_LTPO"].first.back().max, OLED_90_HZ);
 
-    std::string voterName = "";
+    std::string voterName;
     hgmFrameVoter.SetChangeRangeCallback([&](const std::string& voter) {
         voterName = voter;
     });
@@ -239,7 +239,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     hgmFrameVoter.multiAppStrategy_.pkgs_.push_back("testPkg");
     auto result = hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
     EXPECT_EQ(result, true);
-    
+
     HgmCore::Instance().mPolicyConfigData_->videoFrameRateList_["testPkg"] = "1";
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
     range = { 0, 0 };
@@ -352,7 +352,7 @@ HWTEST_F(HgmFrameVoterTest, TestProcessVoteIter, Function | SmallTest | Level0)
     hgmFrameVoter.DeliverVote({ "VOTER_SCENE", OLED_60_HZ, OLED_120_HZ, 7 }, true);
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
     EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
-    
+
     voteRange0 = { OLED_90_HZ, OLED_90_HZ };
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
     EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
@@ -361,7 +361,7 @@ HWTEST_F(HgmFrameVoterTest, TestProcessVoteIter, Function | SmallTest | Level0)
     hgmFrameVoter.multiAppStrategy_.backgroundPid_.Put(1);
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_ANCO");
     EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, range, voterGamesEffective), false);
-    
+
     voteRange0 = { OLED_60_HZ, OLED_120_HZ };
     hgmFrameVoter.DeliverVote({ "VOTER_ANCO", OLED_60_HZ, OLED_120_HZ, 2 }, true);
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_ANCO");

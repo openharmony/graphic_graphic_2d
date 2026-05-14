@@ -25,11 +25,7 @@ config("egl_config") {
   defines = []
 
   # defines += [ "EGL_WRAPPER_DEBUG_ENABLE" ]
-  if (graphic_2d_feature_use_igraphics_extend_hooks) {
-    defines += [ "USE_IGRAPHICS_EXTENDS_HOOKS=1" ]
-  } else {
-    defines += [ "USE_IGRAPHICS_EXTENDS_HOOKS=0" ]
-  }
+  defines += [ "USE_IGRAPHICS_EXTENDS_HOOKS=1" ]
   if (egl_use_gameservice_plugin) {
     defines += [ "USE_IGAMESERVICE_PLUGIN" ]
   }
@@ -54,9 +50,6 @@ config("egl_public_config") {
     "include",
     "src/EGL/include/private/EGL",
   ]
-  if (graphic_2d_feature_use_igraphics_extend_hooks) {
-    include_dirs += egl_igraphics_extend_hooks_include_dirs
-  }
   if (egl_use_gameservice_plugin) {
     include_dirs += [ "../gameservice_plugin/include" ]
   }
@@ -90,10 +83,8 @@ if (current_os != "ohos") {
       "src/EGL/egl_wrapper_object.cpp",
       "src/EGL/egl_wrapper_surface.cpp",
       "src/thread_private_data_ctl.cpp",
+      "src/EGL/egl_wrapper_hook.cpp",
     ]
-    if (graphic_2d_feature_use_igraphics_extend_hooks) {
-      sources += egl_igraphics_extend_hooks_sources
-    }
     if (graphic_2d_feature_enable_opengl_to_vulkan) {
       sources += [ "src/EGL/egl_wrapper_custom.cpp" ]
     }

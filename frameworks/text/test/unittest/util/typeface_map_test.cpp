@@ -20,8 +20,7 @@
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS {
-namespace Rosen {
+namespace OHOS::Rosen {
 class TypefaceMapTest : public testing::Test {};
 
 /**
@@ -31,7 +30,7 @@ class TypefaceMapTest : public testing::Test {};
  */
 HWTEST_F(TypefaceMapTest, TypefaceMapTest001, TestSize.Level0)
 {
-    TypefaceMap& instance = TypefaceMap::GetInstance();
+    Drawing::TypefaceMap& instance = Drawing::TypefaceMap::GetInstance();
     auto typeface = Drawing::Typeface::MakeDefault();
     ASSERT_NE(typeface, nullptr);
     uint32_t uniqueId = typeface->GetUniqueID();
@@ -54,7 +53,7 @@ HWTEST_F(TypefaceMapTest, TypefaceMapTest001, TestSize.Level0)
  */
 HWTEST_F(TypefaceMapTest, TypefaceMapTest002, TestSize.Level0)
 {
-    TypefaceMap& instance = TypefaceMap::GetInstance();
+    Drawing::TypefaceMap& instance = Drawing::TypefaceMap::GetInstance();
     auto typeface = Drawing::Typeface::MakeDefault();
     ASSERT_NE(typeface, nullptr);
     uint32_t hash = typeface->GetHash();
@@ -77,7 +76,7 @@ HWTEST_F(TypefaceMapTest, TypefaceMapTest002, TestSize.Level0)
  */
 HWTEST_F(TypefaceMapTest, TypefaceMapTest003, TestSize.Level0)
 {
-    TypefaceMap& instance = TypefaceMap::GetInstance();
+    Drawing::TypefaceMap& instance = Drawing::TypefaceMap::GetInstance();
     auto typeface = Drawing::Typeface::MakeDefault();
     ASSERT_NE(typeface, nullptr);
     uint32_t hash = typeface->GetHash();
@@ -93,5 +92,4 @@ HWTEST_F(TypefaceMapTest, TypefaceMapTest003, TestSize.Level0)
     EXPECT_TRUE(instance.typefaceMap_.empty());
 }
 
-} // namespace Rosen
-} // namespace OHOS
+} // namespace OHOS::Rosen

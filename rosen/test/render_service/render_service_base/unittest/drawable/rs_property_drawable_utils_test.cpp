@@ -2085,4 +2085,159 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToMagnifier_WidthSmallerHeigh
     TestApplySDFShapeToMagnifier(params);
 }
 
+/**
+ * @tc.name: ApplySDFShapeToEffect011
+ * @tc.desc: test ApplySDFShapeToEffect with SDF_EDGE_LIGHT_EFFECT and valid sdfShape
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect011, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    NodeId nodeId = 1;
+    auto rrectShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    properties.SetSDFShape(rrectShape);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    ASSERT_NE(shader, nullptr);
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    auto resultShape = effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_;
+    EXPECT_NE(resultShape, nullptr);
+    EXPECT_EQ(resultShape->GetType(), RSNGEffectType::SDF_RRECT_SHAPE);
+}
+
+/**
+ * @tc.name: GetResolvedSDFShape001
+ * @tc.desc: Test GetResolvedSDFShape when sdfShape is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape001, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(RSPropertyDrawableUtils::GetResolvedSDFShape(properties), nullptr);
+}
+
+/**
+ * @tc.name: GetResolvedSDFShape002
+ * @tc.desc: Test GetResolvedSDFShape when sdfShape type is not SDF_DISTORT_OP_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape002, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto rrectShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    properties.SetSDFShape(rrectShape);
+    auto result = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_RRECT_SHAPE);
+}
+
+/**
+ * @tc.name: GetResolvedSDFShape003
+ * @tc.desc: Test GetResolvedSDFShape when foregroundFilter is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape003, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto distortShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    properties.SetSDFShape(distortShape);
+    auto result = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+}
+
+/**
+ * @tc.name: GetResolvedSDFShape004
+ * @tc.desc: Test GetResolvedSDFShape when foregroundFilter is not DrawingFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape004, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto foregroundFilter = std::make_shared<RSFilter>();
+    properties.SetForegroundFilter(foregroundFilter);
+    auto distortShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    properties.SetSDFShape(distortShape);
+    auto result = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+}
+
+/**
+ * @tc.name: GetResolvedSDFShape005
+ * @tc.desc: Test GetResolvedSDFShape when renderFilter is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape005, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    properties.SetForegroundFilter(drawingFilter);
+    auto distortShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    properties.SetSDFShape(distortShape);
+    auto result = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+}
+
+/**
+ * @tc.name: GetResolvedSDFShape006
+ * @tc.desc: Test GetResolvedSDFShape when renderFilter type is not DISTORTION_COLLAPSE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape006, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto blurFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(blurFilter);
+    properties.SetForegroundFilter(drawingFilter);
+    auto distortShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    properties.SetSDFShape(distortShape);
+    auto result = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+}
+
+/**
+ * @tc.name: GetResolvedSDFShape007
+ * @tc.desc: Test GetResolvedSDFShape when innerShape exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape007, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto collapseFilter = RSNGRenderFilterBase::Create(RSNGEffectType::DISTORTION_COLLAPSE);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(collapseFilter);
+    properties.SetForegroundFilter(drawingFilter);
+    auto distortShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    auto innerShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(distortShape);
+    distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(innerShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    properties.SetSDFShape(distortShape);
+    auto result = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_RRECT_SHAPE);
+    EXPECT_EQ(result.get(), innerShape.get());
+}
+
+/**
+ * @tc.name: GetResolvedSDFShape008
+ * @tc.desc: Test GetResolvedSDFShape when innerShape does not exist
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GetResolvedSDFShape008, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto collapseFilter = RSNGRenderFilterBase::Create(RSNGEffectType::DISTORTION_COLLAPSE);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(collapseFilter);
+    properties.SetForegroundFilter(drawingFilter);
+    auto distortShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    properties.SetSDFShape(distortShape);
+    auto result = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    EXPECT_NE(result, nullptr);
+    EXPECT_EQ(result->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+}
 } // namespace OHOS::Rosen

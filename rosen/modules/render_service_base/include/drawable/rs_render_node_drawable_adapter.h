@@ -246,6 +246,12 @@ public:
         return lastDrawnFilterNodeId_;
     }
 
+    virtual void SetShouldClipHole(bool value) {}
+    virtual bool ShouldClipHole() const
+    {
+        return false;
+    }
+
     virtual void SetUIExtensionNeedToDraw(bool needToDraw) {}
 
     virtual bool UIExtensionNeedToDraw() const

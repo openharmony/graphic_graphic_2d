@@ -938,4 +938,29 @@ HWTEST_F(RSUniDirtyComputeUtilTest, HasMirrorDisplay001, TestSize.Level1)
     EXPECT_TRUE(RSUniDirtyComputeUtil::HasMirrorDisplay());
     nodeMap.logicalDisplayNodeMap_.clear();
 }
+
+/**
+ * @tc.name: ClipRegionTest001
+ * @tc.desc: test ClipRegion
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, ClipRegionTest001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Region region;
+    EXPECT_TRUE(region.IsEmpty());
+    RSUniDirtyComputeUtil::ClipRegion(canvas, region, false);
+
+    region.SetRect({0, 0, 100, 100});
+    EXPECT_FALSE(region.IsEmpty());
+    RSUniDirtyComputeUtil::ClipRegion(canvas, region, true);
+
+    EXPECT_TRUE(region.IsRect());
+    RSUniDirtyComputeUtil::ClipRegion(canvas, region);
+
+    region.SetRect({0, 0, -100, 100});
+    EXPECT_FALSE(region.IsRect());
+    RSUniDirtyComputeUtil::ClipRegion(canvas, region);
+}
 } // namespace OHOS::Rosen

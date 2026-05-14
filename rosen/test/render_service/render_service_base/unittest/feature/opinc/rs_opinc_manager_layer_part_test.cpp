@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_common_hook.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -884,5 +885,32 @@ HWTEST_F(RSOpincManagerLayerPartTest, SubTreeSkipPrepareWithLayerPartDirtyManage
     node->SubTreeSkipPrepare(dirtyManager, true, true, DEFAULT_ABS_RECT, layerPartDirtyManager);
 
     ASSERT_FALSE(layerPartDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: MarkSuggestLayerPartRenderNodeEmptyWhiteList
+ * @tc.desc: Verify MarkSuggestLayerPartRenderNode returns early when white list is empty
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNodeEmptyWhiteList, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config = {
+        .id = DEFAULT_NODE_ID,
+        .bundleName = "com.example.test.app"
+    };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->InitRenderParams();
+
+    // Set empty white list
+    std::unordered_set<std::string> emptyWhiteList = {};
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList(emptyWhiteList);
+
+    // Empty white list, should return early
+    surfaceNode->MarkSuggestLayerPartRenderNode(true);
+
+    // Verify that opincCache is not marked
+    ASSERT_FALSE(surfaceNode->GetOpincCache().IsLayerPartRender());
 }
 } // namespace OHOS::Rosen

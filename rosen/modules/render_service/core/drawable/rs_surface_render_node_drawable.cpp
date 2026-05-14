@@ -1160,9 +1160,19 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if ((surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
         surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) &&
         isHiddenScene && surfaceParams->GetHidePrivacyContent()) {
+        RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_ = true;
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfacenode nodeId:[%{public}" PRIu64
                 "] is not allowed to be captured", nodeId_);
         return;
+    }
+
+    if ((surfaceParams->HasPrivacyContentLayer() &&
+        RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
+        !RSUniRenderThread::GetCaptureParam().isSystemCalling_) ||
+        surfaceParams->GetSpecialLayerMgr().Find(HAS_GENERAL_SPECIAL)) {
+        RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_ = true;
+        RS_LOGW("RSSurfaceRenderNodeDrawable::OnCapture surfaceNode marked as privacy or special layer, "
+            "nodeId:[%{public}" PRIu64 "].", nodeId_);
     }
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
@@ -1509,7 +1519,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
                                                        surfaceParams.GetBufferOwnerCount());
 
             // Use to adapt to AIBar DSS solution
-            Color solidLayerColor = RgbPalette::Black();
+            Color solidLayerColor = RgbPalette::Transparent();
             if (surfaceParams.GetIsHwcEnabledBySolidLayer()) {
                 solidLayerColor = surfaceParams.GetSolidLayerColor();
                 RS_TRACE_NAME_FMT("solidLayer enabled, color:%08x", solidLayerColor.AsArgbInt());
@@ -1533,11 +1543,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
 
     RSAutoCanvasRestore arc(&canvas);
     auto params = RSUniRenderUtil::DealWithBufferDrawParam(canvas, surfaceParams, *this);
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    if (IsHardwareEnabledTopSurface() && RSUniRenderThread::Instance().GetRSRenderThreadParams()->HasMirrorDisplay()) {
-        RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(canvas.GetSurface()->GetImageSnapshot());
-    }
-#endif
 
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
 }

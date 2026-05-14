@@ -414,6 +414,11 @@ bool RSScreenProperty::UnmarshallingData(Parcel& data)
         RS_LOGE("%{public}s read size failed", __func__);
         return false;
     }
+    if (size > static_cast<uint32_t>(ScreenPropertyType::SCREEN_PROPERTY_TYPE_SIZE)) {
+        RS_LOGE("%{public}s invalid size: %{public}u", __func__, size);
+        return false;
+    }
+
     for (uint32_t i = 0; i < size; i++) {
         ScreenPropertyType type = static_cast<ScreenPropertyType>(data.ReadUint32());
         sptr<ScreenPropertyBase> prop = nullptr;

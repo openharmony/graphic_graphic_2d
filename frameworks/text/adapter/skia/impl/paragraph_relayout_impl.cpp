@@ -335,6 +335,11 @@ namespace {
                 paragraph.getParagraphStyle().setTailIndents(style.tailIndents);
                 state = std::min(skt::InternalState::kShaped, state);
             }
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            paragraph.getParagraphStyle().setPunctuationOverflow(style.punctuationOverflow);
+            state = std::min(skt::InternalState::kShaped, state);
         }
     };
 

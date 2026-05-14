@@ -31,8 +31,8 @@ CustomSymbolConfig* CustomSymbolConfig::GetInstance()
     return &singleton;
 }
 
-LoadSymbolErrorCode CustomSymbolConfig::ParseConfig(const std::string &familyName,
-    const uint8_t *data, size_t datalen)
+LoadSymbolErrorCode CustomSymbolConfig::ParseConfig(const std::string& familyName,
+    const uint8_t* data, size_t datalen)
 {
     TEXT_TRACE_FUNC();
     if (data == nullptr) {
@@ -44,8 +44,7 @@ LoadSymbolErrorCode CustomSymbolConfig::ParseConfig(const std::string &familyNam
         return LoadSymbolErrorCode::SUCCESS;
     }
 
-    std::string srcString(data, data + datalen);
-    cJSON* root = cJSON_Parse(srcString.c_str());
+    cJSON* root = cJSON_ParseWithLength(reinterpret_cast<const char*>(data), datalen);
     if (root == nullptr) {
         return LoadSymbolErrorCode::JSON_ERROR;
     }
@@ -63,7 +62,7 @@ LoadSymbolErrorCode CustomSymbolConfig::ParseConfig(const std::string &familyNam
     return result;
 }
 
-std::optional<RSSymbolLayersGroups> CustomSymbolConfig::GetSymbolLayersGroups(const std::string &familyName,
+std::optional<RSSymbolLayersGroups> CustomSymbolConfig::GetSymbolLayersGroups(const std::string& familyName,
     uint16_t glyphId)
 {
     std::shared_lock<std::shared_mutex> lock(mutex_);

@@ -221,7 +221,7 @@ bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
     auto buffer = surfaceHandler->GetBuffer();
     info.id = node->GetId();
     info.srcRect = {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
-    info.dstRect = {0, 0, screenProperty.GetPhyWidth(), screenProperty.GetPhyHeight()};
+    info.dstRect = {0, 0, screenProperty.GetWidth(), screenProperty.GetHeight()};
     info.zOrder = zorder;
     info.bufferUsage = buffer->GetUsage();
     info.layerUsage = info.layerUsage | USAGE_UNI_LAYER;

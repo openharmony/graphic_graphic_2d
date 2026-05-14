@@ -24,11 +24,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include "refbase.h"
-#include "screen_manager/screen_types.h"
-#include "screen_manager/rs_screen_mode_info.h"
-
 #include "hgm_command.h"
+#include "refbase.h"
+#include "screen_manager/rs_screen_mode_info.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS::Rosen {
 constexpr float INCH_2_MM = 25.4f;

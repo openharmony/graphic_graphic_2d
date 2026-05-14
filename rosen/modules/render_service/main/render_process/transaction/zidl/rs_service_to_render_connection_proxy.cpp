@@ -260,6 +260,33 @@ ErrCode RSServiceToRenderConnectionProxy::SetLayerTop(const std::string& nodeIdS
     return ERR_OK;
 }
 
+ErrCode RSServiceToRenderConnectionProxy::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetHdrForceHwcEnabled: write token err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteString(nodeIdStr)) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetHdrForceHwcEnabled: WriteString failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteBool(isHdrForceHwcEnabled)) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetHdrForceHwcEnabled: WriteBool failed.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetHdrForceHwcEnabled: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
 ErrCode RSServiceToRenderConnectionProxy::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     MessageParcel data;

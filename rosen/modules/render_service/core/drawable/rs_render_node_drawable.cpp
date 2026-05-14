@@ -292,7 +292,6 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     SetCacheType(DrawableCacheType::NONE);
     RS_TRACE_NAME_FMT("DrawBlurForCache id:%" PRIu64 "", nodeId_);
 
-    DrawBackground(canvas, params.GetBounds());
     auto matrix = canvas.GetTotalMatrix();
     Drawing::Region filterRegion;
     for (auto& item : filterInfoVec_) {
@@ -335,6 +334,21 @@ bool RSRenderNodeDrawable::IsCurRenderGroupCacheRootExcludedStateChanged(const R
         return false;
     }
     return renderGroupCache_->IsLastFrameCacheRootHasExcludedChild() != params.HasChildExcludedFromNodeGroup();
+}
+
+void RSRenderNodeDrawable::SetShouldClipHole(bool value)
+{
+    if (renderGroupCache_) {
+        renderGroupCache_->SetShouldClipHole(value);
+    }
+}
+
+bool RSRenderNodeDrawable::ShouldClipHole() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->ShouldClipHole();
+    }
+    return false;
 }
 
 bool RSRenderNodeDrawable::SkipDrawByWhiteList(Drawing::Canvas& canvas)
@@ -386,11 +400,6 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     // can not draw cache because special node in capture process, such as security layers...
     if (GetCacheType() != DrawableCacheType::NONE && params.NodeGroupHasChildInBlacklist() && isInCapture) {
         SetCacheType(DrawableCacheType::NONE);
-    }
-    if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE &&
-        params.GetForegroundFilterCache() == nullptr && GetCacheType() != DrawableCacheType::NONE) {
-        // traverse children to draw filter/shadow/effect
-        TraverseSubTreeAndDrawFilterWithClip(canvas, params);
     }
     // if children don't have any filter or effect, stop traversing, unless node and its subtree was excluded on cache
     if (params.GetForegroundFilterCache() == nullptr && IsDrawingBlurForCache() && curDrawingCacheRoot_ &&
@@ -464,6 +473,8 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     }
     if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
         DrawBackground(canvas, params.GetBounds());
+        // traverse children to draw filter/shadow/effect
+        TraverseSubTreeAndDrawFilterWithClip(canvas, params);
         DrawCachedImage(*curCanvas, params);
         DrawForeground(canvas, params.GetBounds());
     } else if (params.GetForegroundFilterCache() != nullptr) {
@@ -890,9 +901,7 @@ void RSRenderNodeDrawable::DrawCachedImage(
         GetOpincDrawCache().DrawAutoCacheDfx(canvas, autoCacheRenderNodeInfos_);
         return;
     }
-    bool hasFilter =
-        params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
-    if (hasFilter) {
+    if (ShouldClipHole()) {
         auto matrix = canvas.GetTotalMatrix();
         matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
         matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
@@ -1036,6 +1045,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 {
     if (curDrawingCacheRoot_) {
         curDrawingCacheRoot_->ClearUnifiedFilterRegion();
+        curDrawingCacheRoot_->SetShouldClipHole(false);
     }
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);

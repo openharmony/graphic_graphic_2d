@@ -78,6 +78,8 @@
 #include "vma_block_param.h"
 #include "spirv_cache_param_parse.h"
 #include "spirv_cache_param.h"
+#include "behind_window_filter_param_parse.h"
+#include "behind_window_filter_param.h"
 #include "buffer_reclaim_param_parse.h"
 #include "buffer_reclaim_param.h"
 

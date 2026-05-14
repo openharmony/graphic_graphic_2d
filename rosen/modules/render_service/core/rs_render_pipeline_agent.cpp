@@ -449,7 +449,7 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
         auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("TakeSurfaceCapture failed, node is nullptr");
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_NODE);
             return;
         }
         auto displayCaptureHasPermission = screenCapturePermission && isSystemCalling;
@@ -459,7 +459,7 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
             RS_LOGE("TakeSurfaceCapture failed, node type: %{public}u, "
                 "screenCapturePermission: %{public}u, isSystemCalling: %{public}u, selfCapture: %{public}u",
                 node->GetType(), screenCapturePermission, isSystemCalling, selfCapture);
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
             return;
         }
         
@@ -1370,6 +1370,33 @@ ErrCode RSRenderPipelineAgent::SetLayerTop(const std::string &nodeIdStr, bool is
         // It can be displayed immediately after layer-top changed.
         renderPipeline->GetMainThread()->SetDirtyFlag();
         renderPipeline->GetMainThread()->RequestNextVSync();
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
+ErrCode RSRenderPipelineAgent::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::SetHdrForceHwcEnabled, rsRenderPipeline_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [this, nodeIdStr, isHdrForceHwcEnabled]() -> void {
+        if (rsRenderPipeline_->GetMainThread() == nullptr) {
+            return;
+        }
+        auto& context = rsRenderPipeline_->GetMainThread()->GetContext();
+        context.GetNodeMap().TraverseSurfaceNodes(
+            [&nodeIdStr, &isHdrForceHwcEnabled](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+                if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
+                    (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
+                    surfaceNode->SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
+                    return;
+                }
+            });
+        // It can be displayed immediately after layer-top changed.
+        rsRenderPipeline_->GetMainThread()->SetDirtyFlag();
+        rsRenderPipeline_->GetMainThread()->RequestNextVSync();
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;

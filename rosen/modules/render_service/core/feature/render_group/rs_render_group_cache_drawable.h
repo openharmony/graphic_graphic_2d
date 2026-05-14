@@ -43,10 +43,21 @@ public:
         return isLastFrameCacheRootHasExcludedChild_;
     }
 
+    void SetShouldClipHole(bool value)
+    {
+        shouldClipHole_ = value;
+    }
+
+    bool ShouldClipHole() const
+    {
+        return shouldClipHole_;
+    }
+
 private:
     static thread_local bool drawBlurForCache_;
     static thread_local bool drawExcludedSubTreeForCache_;
     bool isLastFrameCacheRootHasExcludedChild_ = false;
+    bool shouldClipHole_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

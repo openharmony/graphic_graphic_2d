@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef TEXT_TYPEFACE_MAP_H
-#define TEXT_TYPEFACE_MAP_H
+#ifndef TYPEFACE_MAP_H
+#define TYPEFACE_MAP_H
 
 #include <memory>
 #include <shared_mutex>
@@ -22,38 +22,23 @@
 
 #include "text/typeface.h"
 
-#ifndef TEXTING_API
-#ifdef _WIN32
-#define TEXTING_EXPORT __attribute__((dllexport))
-#define TEXTING_IMPORT __attribute__((dllimport))
-#else
-#define TEXTING_EXPORT __attribute__((visibility("default")))
-#define TEXTING_IMPORT __attribute__((visibility("default")))
-#endif
-#ifdef MODULE_TEXTING
-#define TEXTING_API TEXTING_EXPORT
-#else
-#define TEXTING_API TEXTING_IMPORT
-#endif
-#endif
-
-namespace OHOS::Rosen {
-class TEXTING_API TypefaceMap {
+namespace OHOS::Rosen::Drawing {
+class DRAWING_API TypefaceMap {
 public:
     static TypefaceMap& GetInstance();
-    static std::shared_ptr<Drawing::Typeface> GetTypefaceByHash(uint32_t hash);
-    static std::shared_ptr<Drawing::Typeface> GetTypefaceByUniqueId(uint32_t id);
-    static void InsertTypeface(uint32_t hash, const std::shared_ptr<Drawing::Typeface>& typeface);
+    static std::shared_ptr<Typeface> GetTypefaceByHash(uint32_t hash);
+    static std::shared_ptr<Typeface> GetTypefaceByUniqueId(uint32_t id);
+    static void InsertTypeface(uint32_t hash, const std::shared_ptr<Typeface>& typeface);
 
 private:
     TypefaceMap() = default;
     TypefaceMap(const TypefaceMap&) = delete;
     const TypefaceMap& operator=(const TypefaceMap&) = delete;
-    static std::shared_ptr<Drawing::Typeface> GetTypefaceByHashInner(uint32_t hash);
+    static std::shared_ptr<Typeface> GetTypefaceByHashInner(uint32_t hash);
 
     std::unordered_map<uint32_t, uint32_t> uniqueToHash_;
-    std::unordered_map<uint32_t, std::weak_ptr<Drawing::Typeface>> typefaceMap_;
+    std::unordered_map<uint32_t, std::weak_ptr<Typeface>> typefaceMap_;
     std::shared_mutex mutex_;
 };
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen::Drawing
 #endif

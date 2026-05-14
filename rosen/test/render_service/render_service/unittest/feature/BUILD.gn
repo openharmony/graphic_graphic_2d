@@ -24,6 +24,7 @@ group("unittest") {
     ":RSDrmUtilTest",
     ":RSHdrUtilTest",
     ":RSLayerCacheManagerTest",
+    ":RSMultiScreenUtilTest",
     ":RSOcclusionHandlerTest",
     ":RSOcclusionNodeTest",
     ":RSOpincDrawCacheTest",
@@ -1289,6 +1290,24 @@ ohos_unittest("RSRDOTest") {
 ohos_unittest("RSSpecialLayerUtilsTest") {
   module_out_path = module_output_path
   sources = [ "special_layer/rs_special_layer_utils_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSMultiScreenUtilTest
+ohos_unittest("RSMultiScreenUtilTest") {
+  module_out_path = module_output_path
+  sources = [ "multi_screen/rs_multi_screen_util_test.cpp" ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",

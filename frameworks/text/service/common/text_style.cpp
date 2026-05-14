@@ -143,7 +143,8 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         fontFeatures == rhs.fontFeatures &&
         fontVariations == rhs.fontVariations &&
         badgeType == rhs.badgeType &&
-        fontEdging == rhs.fontEdging;
+        fontEdging == rhs.fontEdging &&
+        fontTypefaces == rhs.fontTypefaces;
 }
 
 bool TextStyle::EqualByFonts(const TextStyle &rhs) const
@@ -159,7 +160,8 @@ bool TextStyle::EqualByFonts(const TextStyle &rhs) const
         Drawing::IsScalarAlmostEqual(heightScale, rhs.heightScale) &&
         Drawing::IsScalarAlmostEqual(baseLineShift, rhs.baseLineShift) &&
         Drawing::IsScalarAlmostEqual(fontSize, rhs.fontSize) &&
-        locale == rhs.locale;
+        locale == rhs.locale &&
+        fontTypefaces == rhs.fontTypefaces;
 }
 
 bool TextStyle::MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const
@@ -202,6 +204,16 @@ bool TextStyle::MatchOneAttribute(StyleType styleType, const TextStyle &rhs) con
         default:
             return false;
     }
+}
+
+void TextStyle::SetFontTypefaces(const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces)
+{
+    fontTypefaces = typefaces;
+}
+
+const std::vector<std::shared_ptr<Drawing::Typeface>>& TextStyle::GetFontTypefaces() const
+{
+    return fontTypefaces;
 }
 } // namespace Rosen
 } // namespace OHOS

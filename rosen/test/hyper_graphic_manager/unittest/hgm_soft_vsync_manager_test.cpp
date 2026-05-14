@@ -333,7 +333,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_DisableFrameSplit
 {
     HgmSoftVSyncManager softVSyncManager;
     softVSyncManager.disableAppFrameVsyncNames_.clear();
- 
+
     std::unordered_map<VsyncName, EventInfo> voters;
     EventInfo eventInfo = {
         .eventName = "VOTER_HIGH",
@@ -343,12 +343,12 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_DisableFrameSplit
         .description = "FORCE_USE_APP_VSYNC",
     };
     voters["NWeb_12345"] = eventInfo;
- 
+
     softVSyncManager.SetWindowExpectedRefreshRate(12345, voters);
- 
+
     ASSERT_EQ(softVSyncManager.disableAppFrameVsyncNames_.size(), 0);
 }
- 
+
 /**
  * @tc.name: SetWindowExpectedRefreshRate_DisableFrameSplit002
  * @tc.desc: Test SetWindowExpectedRefreshRate, insert disableAppFrameVsyncNames_ when eventStatus is true.
@@ -359,7 +359,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_DisableFrameSplit
 {
     HgmSoftVSyncManager softVSyncManager;
     softVSyncManager.disableAppFrameVsyncNames_.clear();
- 
+
     std::unordered_map<VsyncName, EventInfo> voters;
     EventInfo eventInfo = {
         .eventName = "VOTER_HIGH",
@@ -369,14 +369,14 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_DisableFrameSplit
         .description = "DISABLE_FRAME_SPLIT",
     };
     voters["NWeb_12345"] = eventInfo;
- 
+
     softVSyncManager.SetWindowExpectedRefreshRate(12345, voters);
- 
+
     ASSERT_EQ(softVSyncManager.disableAppFrameVsyncNames_.size(), 1);
     ASSERT_NE(softVSyncManager.disableAppFrameVsyncNames_.find("NWeb_12345"),
         softVSyncManager.disableAppFrameVsyncNames_.end());
 }
- 
+
 /**
  * @tc.name: SetWindowExpectedRefreshRate_DisableFrameSplit003
  * @tc.desc: Test SetWindowExpectedRefreshRate, erase disableAppFrameVsyncNames_ when eventStatus is false.
@@ -388,7 +388,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_DisableFrameSplit
     HgmSoftVSyncManager softVSyncManager;
     softVSyncManager.disableAppFrameVsyncNames_.clear();
     softVSyncManager.disableAppFrameVsyncNames_.insert("NWeb_12345");
- 
+
     std::unordered_map<VsyncName, EventInfo> voters;
     EventInfo eventInfo = {
         .eventName = "VOTER_HIGH",
@@ -398,9 +398,9 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_DisableFrameSplit
         .description = "DISABLE_FRAME_SPLIT",
     };
     voters["NWeb_12345"] = eventInfo;
- 
+
     softVSyncManager.SetWindowExpectedRefreshRate(12345, voters);
- 
+
     ASSERT_EQ(softVSyncManager.disableAppFrameVsyncNames_.size(), 0);
     ASSERT_EQ(softVSyncManager.disableAppFrameVsyncNames_.find("NWeb_12345"),
         softVSyncManager.disableAppFrameVsyncNames_.end());
@@ -474,7 +474,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange01, Function | SmallTest | L
     EXPECT_EQ(finalRange.min_, OLED_60_HZ);
     EXPECT_EQ(finalRange.max_, OLED_120_HZ);
     EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
-    
+
     linkerId = 2;
     mgr.CollectVRateChange(linkerId, finalRange);
     EXPECT_EQ(finalRange.min_, OLED_60_HZ);

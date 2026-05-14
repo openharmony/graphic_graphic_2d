@@ -3383,7 +3383,7 @@ void RSNode::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId
     AddCommand(command, IsRenderServiceNode());
 }
 
-void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectPara>& para) {}
+void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectVariantPara>& para) {}
 
 void RSNode::SetIsDepthBackground(bool isDepthBackground) {}
 

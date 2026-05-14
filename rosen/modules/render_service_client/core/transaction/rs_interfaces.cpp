@@ -457,7 +457,7 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
             result = renderServiceClient_->RegisterTypeface(tf, tf->GetIndex());
         }
         if (result != INVALID_FD) {
-            TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+            Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
         } else {
             RS_LOGE("RSInterfaces: Failed to register typeface, name: %{public}s hash: %{public}u",
                 tf->GetFamilyName().c_str(), tf->GetHash());
@@ -467,7 +467,7 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
         tf->GetFamilyName().c_str(), tf->GetUniqueID());
-    TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+    Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
     return tf->GetFd();
 }
 
@@ -1105,6 +1105,11 @@ void RSInterfaces::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
+
+void RSInterfaces::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    renderServiceClient_->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
 }
 
 void RSInterfaces::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)

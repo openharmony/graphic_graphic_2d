@@ -48,6 +48,7 @@ ohos_fuzztest("NdkDrawingCanvasUtilsFuzzTest") {
   ]
 
   external_deps = [
+    "skia:skia_canvaskit",
     "image_framework:image_native",
     "image_framework:pixelmap",
     "image_framework:pixelmap_ndk",

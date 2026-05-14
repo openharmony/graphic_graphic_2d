@@ -143,6 +143,7 @@ public:
         const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId);
     static void ApplySDFShapeToEffect(const RSProperties& properties,
         const std::shared_ptr<RSNGRenderShaderBase>& shader, NodeId nodeId);
+    static std::shared_ptr<RSNGRenderShapeBase> GetResolvedSDFShape(const RSProperties& properties);
     static std::shared_ptr<RSNGRenderShapeBase> CreateDefaultRRectShape(const RRect& sdfRRect, NodeId nodeId);
     static void ApplySDFShapeToMagnifier(const RSProperties& properties,
         const std::shared_ptr<RSNGRenderFilterBase>& shader, NodeId nodeId);

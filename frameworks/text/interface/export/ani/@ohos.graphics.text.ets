@@ -382,6 +382,7 @@ export default namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    punctuationOverflow?: boolean;
     lineSpacing?: double;
     firstLineHeadIndent?: double;
     tailIndents?: Array<double>;
@@ -405,6 +406,7 @@ export default namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    punctuationOverflow?: boolean;
     lineSpacing?: double;
     firstLineHeadIndent?: double;
     tailIndents?: Array<double>;
@@ -426,6 +428,7 @@ export default namespace text {
       autoSpace?: boolean,
       verticalAlign?: TextVerticalAlign,
       compressHeadPunctuation?: boolean,
+      punctuationOverflow?: boolean,
       lineSpacing?: double,
       firstLineHeadIndent?: double,
       tailIndents?: Array<double>,
@@ -447,6 +450,7 @@ export default namespace text {
       this.autoSpace = autoSpace;
       this.verticalAlign = verticalAlign;
       this.compressHeadPunctuation = compressHeadPunctuation;
+      this.punctuationOverflow = punctuationOverflow;
       this.lineSpacing = lineSpacing;
       this.firstLineHeadIndent = firstLineHeadIndent;
       this.tailIndents = tailIndents;
@@ -502,6 +506,7 @@ export default namespace text {
     lineHeightStyle?: LineHeightStyle;
     fontWidth?: FontWidth;
     fontEdging?: drawing.FontEdging;
+    fontTypefaces?: Array<drawing.Typeface>;
   }
 
   class TextStyleInternal implements TextStyle {
@@ -531,6 +536,7 @@ export default namespace text {
     lineHeightStyle?: LineHeightStyle;
     fontWidth?: FontWidth;
     fontEdging?: drawing.FontEdging;
+    fontTypefaces?: Array<drawing.Typeface>;
     constructor(
       decoration: Decoration,
       color: common2D.Color,
@@ -556,7 +562,8 @@ export default namespace text {
       lineHeightMinimum: double,
       lineHeightStyle: LineHeightStyle,
       fontWidth: FontWidth,
-      fontEdging: drawing.FontEdging
+      fontEdging: drawing.FontEdging,
+      fontTypefaces: Array<drawing.Typeface>
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -583,6 +590,7 @@ export default namespace text {
       this.lineHeightStyle = lineHeightStyle;
       this.fontWidth = fontWidth;
       this.fontEdging = fontEdging;
+      this.fontTypefaces = fontTypefaces;
     }
   }
 
@@ -1156,6 +1164,8 @@ export default namespace text {
     index?: int;
     variationAxisRecords?: Array<FontVariationAxis>;
     variationInstanceRecords?: Array<FontVariationInstance>;
+    languages?: Array<string>;
+    fontFeatures?: Array<string>;
   }
 
   class FontDescriptorInternal implements FontDescriptor {
@@ -1181,6 +1191,8 @@ export default namespace text {
     index?: int;
     variationAxisRecords?: Array<FontVariationAxis>;
     variationInstanceRecords?: Array<FontVariationInstance>;
+    languages?: Array<string>;
+    fontFeatures?: Array<string>;
     constructor(
       path: string,
       postScriptName: string,
@@ -1204,6 +1216,8 @@ export default namespace text {
       index: int,
       variationAxisRecords?: Array<FontVariationAxis>,
       variationInstanceRecords?: Array<FontVariationInstance>,
+      languages?: Array<string>,
+      fontFeatures?: Array<string>,
     ) {
       this.path = path;
       this.postScriptName = postScriptName;
@@ -1227,6 +1241,8 @@ export default namespace text {
       this.index = index;
       this.variationAxisRecords = variationAxisRecords;
       this.variationInstanceRecords = variationInstanceRecords;
+      this.languages = languages;
+      this.fontFeatures = fontFeatures;
     }
   }
 

@@ -419,8 +419,8 @@ int FontConfigJson::ParseInstallFont(const cJSON* root, FullNameToPath& fontPath
         }
         std::vector<std::string> fullNameList;
         ParseFullName(item, fullNameList);
-        for (size_t i = 0; i < fullNameList.size(); i += 1) {
-            fontPathList.emplace(fullNameList[i], std::make_pair(i, fullPath->valuestring));
+        for (size_t j = 0; j < fullNameList.size(); j += 1) {
+            fontPathList.emplace(fullNameList[j], std::make_pair(j, fullPath->valuestring));
         }
     }
     return SUCCESSED;

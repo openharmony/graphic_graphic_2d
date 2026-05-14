@@ -42,6 +42,7 @@ public:
     int32_t GetPulseNum() const { return pulseNum_; }
     static bool CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate);
     bool IsNeedAdaptiveAfterUpdateMode();
+
 private:
     sptr<VSyncController> rsController_;
     sptr<VSyncController> appController_;

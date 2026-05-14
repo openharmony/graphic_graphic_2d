@@ -169,6 +169,8 @@ protected:
     bool UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params);
     bool IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const;
     bool SkipDrawByWhiteList(Drawing::Canvas& canvas);
+    void SetShouldClipHole(bool value) override;
+    bool ShouldClipHole() const override;
     // !used for render group cache
 
     static int GetProcessedNodeCount();

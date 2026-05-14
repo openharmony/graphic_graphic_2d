@@ -39,6 +39,7 @@ ohos_unittest("opengl_wrapper_unit_test") {
     "egl_wrapper_layer_test.cpp",
     "egl_wrapper_loader_test.cpp",
     "thread_private_data_ctl_test.cpp",
+    "egl_wrapper_hook_test.cpp",
   ]
 
   deps = [
@@ -63,6 +64,8 @@ config("opengl_wrapper_public_config") {
     "$graphic_2d_root/frameworks/opengl_wrapper/src",
     "$graphic_2d_root/frameworks/opengl_wrapper/src/EGL",
   ]
+
+  defines = [ "USE_IGRAPHICS_EXTENDS_HOOKS=1" ]
 
   cflags = [
     "-Wall",

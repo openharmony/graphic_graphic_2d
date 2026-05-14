@@ -30,6 +30,8 @@
 namespace OHOS::Rosen {
 class RSScreenRenderParams;
 namespace DrawableV2 {
+class RSMultiScreenUtil;
+
 class RSLogicalDisplayRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSLogicalDisplayRenderNodeDrawable() override;
@@ -163,6 +165,8 @@ private:
 
     // mirror display drawing path dfx
     std::optional<bool> mirrorRedraw_;
+
+    friend class RSMultiScreenUtil;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

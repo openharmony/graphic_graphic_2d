@@ -1,0 +1,470 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <sstream>
+#include "accesstoken_kit.h"
+#include "dm/display_manager.h"
+#include "draw/canvas.h"
+#include "draw/color.h"
+#include "graphic_common.h"
+#include "image/bitmap.h"
+#include "image_source.h"
+#include "include/core/SkColor.h"
+#include "nativetoken_kit.h"
+#include "pixel_map.h"
+#include "png.h"
+#include "render_context/render_context.h"
+#include "surface_type.h"
+#include "token_setproc.h"
+#include "transaction/rs_interfaces.h"
+#include "transaction/rs_transaction.h"
+#include "ui/rs_canvas_drawing_node.h"
+#include "ui/rs_canvas_node.h"
+#include "ui/rs_display_node.h"
+#include "ui/rs_effect_node.h"
+#include "ui/rs_root_node.h"
+#include "ui/rs_surface_extractor.h"
+#include "ui/rs_surface_node.h"
+#include "ui/rs_texture_export.h"
+#include "ui/rs_ui_context.h"
+#include "ui/rs_ui_director.h"
+#include "window.h"
+
+using namespace OHOS;
+using namespace OHOS::Rosen;
+using namespace OHOS::Rosen::Drawing;
+using namespace std;
+uint64_t screenId = 0;
+
+using WriteToPngParam = struct {
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
+    uint32_t bitDepth;
+    const uint8_t *data;
+};
+    
+constexpr int BITMAP_DEPTH = 8;
+
+shared_ptr<RSNode> rootNode;
+shared_ptr<RSCanvasNode> canvasNode;
+shared_ptr<RSCanvasNode> canvasNode2;
+shared_ptr<RSSurfaceNode> surfaceNode1;
+shared_ptr<RSSurfaceNode> surfaceNode2;
+shared_ptr<RSEffectNode> effectNode;
+shared_ptr<RSCanvasNode> canvasNode3;
+shared_ptr<RSCanvasNode> canvasNode4;
+shared_ptr<RSNode> myLittleRootNode;
+
+#ifdef RS_ENABLE_GPU
+    std::shared_ptr<RenderContext> rc_ = nullptr;
+#endif
+
+bool WriteToPng(const string &fileName, const WriteToPngParam &param)
+{
+    png_structp pngStruct = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    if (pngStruct == nullptr) {
+        cout << "png_create_write_struct error, nullptr!" << endl;
+        return false;
+    }
+    png_infop pngInfo = png_create_info_struct(pngStruct);
+    if (pngInfo == nullptr) {
+        cout << "png_create_info_struct error, nullptr!" <<endl;
+        png_destroy_write_struct(&pngStruct, nullptr);
+        return false;
+    }
+    FILE *fp = fopen(fileName.c_str(), "wb");
+    if (fp == nullptr) {
+        cout << "open file error, nullptr!" << endl;
+        png_destroy_write_struct(&pngStruct, &pngInfo);
+        return false;
+    }
+    png_init_io(pngStruct, fp);
+
+    // set png header
+    png_set_IHDR(pngStruct, pngInfo,
+        param.width, param.height,
+        param.bitDepth,
+        PNG_COLOR_TYPE_RGBA,
+        PNG_INTERLACE_NONE,
+        PNG_COMPRESSION_TYPE_BASE,
+        PNG_FILTER_TYPE_BASE);
+    png_set_packing(pngStruct); // set packing info
+    png_write_info(pngStruct, pngInfo); // write to header
+
+    for (uint32_t i = 0; i < param.height; i++) {
+        png_write_row(pngStruct, param.data + (i * param.stride));
+    }
+
+    png_write_end(pngStruct, pngInfo);
+
+    // free
+    png_destroy_write_struct(&pngStruct, &pngInfo);
+    int ret = fclose(fp);
+    if (ret != 0) {
+        cout << "close fp failed" << endl;
+    }
+    return true;
+}
+
+void RenderContextInit()
+{
+#ifdef RS_ENABLE_GPU
+    cout << "RS_ENABLE_GPU is true" << endl;
+    cout << "Init RenderContext start" << endl;
+    rc_ = RenderContext::Create();
+    if (rc_) {
+        cout << "Init RenderContext success" << endl;
+        rc_->Init();
+    } else {
+        cout << "Init RenderContext failed, RenderContext is nullptr" << endl;
+    }
+#endif
+}
+
+void DrawSurfaceNode(shared_ptr<RSSurfaceNode> surfaceNode)
+{
+    int surfaceX = 100;
+    int surfaceY = 50;
+    int surfaceWidth = 300;
+    int surfaceHeight = 600;
+    SkRect surfaceGeometry = SkRect::MakeXYWH(surfaceX, surfaceY, surfaceWidth, surfaceHeight);
+    auto x = surfaceGeometry.x();
+    auto y = surfaceGeometry.y();
+    auto width = surfaceGeometry.width();
+    auto height = surfaceGeometry.height();
+    surfaceNode->SetBounds(x, y, width, height);
+    shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
+    if (rsSurface == nullptr) {
+        cout << "surface is nullptr" << endl;
+        return;
+    }
+#ifdef RS_ENABLE_GPU
+    if (rc_) {
+        rsSurface->SetRenderContext(rc_);
+    } else {
+        cout << "DrawSurface: RenderContext is nullptr" << endl;
+    }
+#endif
+    auto framePtr = rsSurface->RequestFrame(width, height);
+    if (!framePtr) {
+        cout << "framePtr is nullptr" << endl;
+        return;
+    }
+    auto canvas = framePtr->GetCanvas();
+    if (!canvas) {
+        cout << "canvas is nullptr" << endl;
+        return;
+    }
+    canvas->Clear(SK_ColorWHITE);
+
+    Brush brush;
+    brush.SetColor(SK_ColorGREEN);
+    brush.SetAntiAlias(true);
+
+    Font font = Font();
+    font.SetSize(16); // text size 16
+    std::shared_ptr<TextBlob> scaleInfoTextBlob = TextBlob::MakeFromString("Hello World",
+        font, TextEncoding::UTF8);
+    canvas->AttachBrush(brush);
+    int startpointX = 20;
+    int startpointY = 50;
+    canvas->DrawTextBlob(scaleInfoTextBlob.get(), startpointX, startpointY); // start point is (20, 50)
+    canvas->DetachBrush();
+    framePtr->SetDamageRegion(0, 0, width, height);
+    rsSurface->FlushFrame(framePtr);
+    return;
+}
+
+bool WriteToPngWithPixelMap(const string &fileName, Media::PixelMap &pixelMap)
+{
+    WriteToPngParam param;
+    param.width = static_cast<uint32_t>(pixelMap.GetWidth());
+    param.height = static_cast<uint32_t>(pixelMap.GetHeight());
+    param.data = pixelMap.GetPixels();
+    param.stride = static_cast<uint32_t>(pixelMap.GetRowBytes());
+    param.bitDepth = BITMAP_DEPTH;
+    return WriteToPng(fileName, param);
+}
+
+shared_ptr<Media::PixelMap> DecodePixelMap(const string& pathName, const Media::AllocatorType& allocatorType)
+{
+    cout << "decode start: ------------ " << pathName << endl;
+    cout << "decode 1: CreateImageSource" << endl;
+    uint32_t errCode = 0;
+    std::unique_ptr<Media::ImageSource> imageSource =
+        Media::ImageSource::CreateImageSource(pathName, Media::SourceOptions(), errCode);
+    if (imageSource == nullptr || errCode != 0) {
+        cout << "imageSource : " << (imageSource != nullptr) << ", err:" << errCode << std::endl;
+        return nullptr;
+    }
+
+    cout << "decode 2: CreatePixelMap" << endl;
+    Media::DecodeOptions decodeOpt;
+    decodeOpt.allocatorType = allocatorType;
+    shared_ptr<Media::PixelMap> pixelmap = imageSource->CreatePixelMap(decodeOpt, errCode);
+    if (pixelmap == nullptr || errCode != 0) {
+        cout << "pixelmap == nullptr, err:" << errCode << endl;
+        return nullptr;
+    }
+
+    cout << "w x h: " << pixelmap->GetWidth() << "x" << pixelmap->GetHeight() << endl;
+    cout << "AllocatorType: " << (int)pixelmap->GetAllocatorType() << endl;
+    cout << "fd: " << (!pixelmap->GetFd() ? "null" : to_string(*(int*)pixelmap->GetFd())) << endl;
+    cout << "decode success: ------------ " << endl;
+    return pixelmap;
+}
+
+const char* CaptureErrorToString(CaptureError error)
+{
+    switch (error) {
+        case CaptureError::CAPTURE_OK: return "CAPTURE_OK";
+        case CaptureError::CAPTURE_NO_PERMISSION: return "CAPTURE_NO_PERMISSION";
+        case CaptureError::CAPTURE_NO_NODE: return "CAPTURE_NO_NODE";
+        case CaptureError::CAPTURE_CONFIG_WRONG: return "CAPTURE_CONFIG_WRONG";
+        case CaptureError::CAPTURE_PIXELMAP_NULL: return "CAPTURE_PIXELMAP_NULL";
+        case CaptureError::CAPTURE_PIXELMAP_COPY_ERROR: return "CAPTURE_PIXELMAP_COPY_ERROR";
+        case CaptureError::CAPTURE_NULL_FAIL: return "CAPTURE_NULL_FAIL";
+        case CaptureError::HDR_SET_FAIL: return "HDR_SET_FAIL";
+        case CaptureError::CAPTURE_RENDER_FAIL: return "CAPTURE_RENDER_FAIL";
+        case CaptureError::AUTO_NOT_SUPPORT: return "AUTO_NOT_SUPPORT";
+        case CaptureError::COLOR_SPACE_NOT_SUPPORT: return "COLOR_SPACE_NOT_SUPPORT";
+        case CaptureError::DYNAMIC_RANGE_NOT_SUPPORT: return "DYNAMIC_RANGE_NOT_SUPPORT";
+        case CaptureError::CAPTURE_NO_SECURE_PERMISSION: return "CAPTURE_NO_SECURE_PERMISSION";
+        case CaptureError::CAPTURE_FAIL_SPECIAL_LAYER: return "CAPTURE_FAIL_SPECIAL_LAYER";
+        default: return "UNKNOWN";
+    }
+}
+
+class MySurfaceCaptureCallback : public SurfaceCaptureCallback {
+public:
+    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+    {
+        static int32_t count = 0;
+        if (pixelmap == nullptr) {
+            cout << "RSUIDirector::LocalCapture failed to get pixelmap, return nullptr!" << endl;
+            return;
+        }
+        cout << "rs local surface demo drawPNG" << endl;
+        string filename = "/data/local/test_" + to_string(count++) + ".jpg";
+        int ret = WriteToPngWithPixelMap(filename, *pixelmap);
+        if (!ret) {
+            cout << "pixelmap write to png failed" << endl;
+        }
+        cout << "pixelmap write to png sucess" << endl;
+    }
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+    void OnSurfaceCaptureWithErrorCode(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelmapHDR, CaptureError captureErrorCode) override
+    {
+        static int32_t count = 0;
+        if (pixelmap == nullptr) {
+            cout << "RSUIDirector::LocalCapture failed to get pixelmap, return nullptr!" << endl;
+        }
+        cout << "OnSurfaceCaptureWithErrorCode rs local surface demo drawPNG" << endl;
+        if (pixelmap) {
+            string filename = "/data/local/test_" + to_string(count++) + ".jpg";
+            int ret = WriteToPngWithPixelMap(filename, *pixelmap);
+            if (!ret) {
+                cout << "pixelmap write to png failed" << endl;
+            }
+        }
+        cout << "get error code successfully, errCode is: " << CaptureErrorToString(captureErrorCode) << endl << endl;
+    }
+};
+
+void InitNativeTokenInfo()
+{
+    uint64_t tokenId;
+    const char *perms[1];
+    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "rs_uni_render_pixelmap_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
+void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
+{
+    cout << "rs local capture errCode demo Init Rosen Backend!" << endl;
+
+    auto rsUIContext = rsUiDirector->GetRSUIContext();
+    rootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
+    rootNode->SetBounds(0, 0, width, height);
+    rootNode->SetFrame(0, 0, width, height);
+    rootNode->SetBackgroundColor(SK_ColorRED);
+
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    RSSurfaceNodeConfig config;
+    surfaceNode1 = RSSurfaceNode::Create(config, false, rsUIContext);
+    surfaceNode1->SetBackgroundColor(SK_ColorYELLOW);
+    RenderContextInit();
+    DrawSurfaceNode(surfaceNode1);
+    rootNode->AddChild(surfaceNode1, -1);
+
+    surfaceNode2 = RSSurfaceNode::Create(config, true, rsUIContext);
+    surfaceNode2->SetBackgroundColor(SK_ColorYELLOW);
+    surfaceNode2->SetHidePrivacyContent(true);
+    surfaceNode2->SetSecurityLayer(true);
+    RSTransaction::FlushImplicitTransaction();
+    RenderContextInit();
+    DrawSurfaceNode(surfaceNode2);
+    rootNode->AddChild(surfaceNode2, -1);
+
+    canvasNode3 = RSCanvasNode::Create(false, false, rsUIContext);
+    canvasNode3->SetBounds(5, 5, 400, 800);
+    canvasNode3->SetFrame(5, 5, 400, 800);
+    canvasNode3->SetBackgroundColor(SK_ColorBLUE);
+    surfaceNode2->AddChild(canvasNode3, -1);
+
+    canvasNode2 = RSCanvasNode::Create(false, false, rsUIContext);
+    canvasNode2->SetBounds(5, 5, 400, 800);
+    canvasNode2->SetFrame(5, 5, 400, 800);
+    canvasNode2->SetBackgroundColor(SK_ColorBLUE);
+    surfaceNode1->AddChild(canvasNode2, -1);
+
+    canvasNode = RSCanvasNode::Create(false, false, rsUIContext);
+    canvasNode->SetBounds(10, 10, 600, 1000);
+    canvasNode->SetFrame(10, 10, 600, 1000);
+    canvasNode->SetBackgroundColor(SK_ColorYELLOW);
+    canvasNode2->AddChild(canvasNode, -1);
+
+    effectNode = RSEffectNode::Create(false, false, rsUIContext);
+    effectNode->SetBounds(5, 5, 250, 550);
+    effectNode->SetFrame(5, 5, 250, 550);
+    effectNode->SetBackgroundColor(SK_ColorRED);
+    canvasNode->AddChild(effectNode, -1);
+
+    myLittleRootNode = RSRootNode::Create(false, false, rsUIContext)->ReinterpretCastTo<RSRootNode>();
+    myLittleRootNode->SetBounds(5, 5, 200, 500);
+    myLittleRootNode->SetFrame(5, 5, 200, 500);
+    myLittleRootNode->SetBackgroundColor(SK_ColorYELLOW);
+    surfaceNode1->AddChild(myLittleRootNode, -1);
+
+    canvasNode4 = RSCanvasNode::Create(false, false, rsUIContext);
+    canvasNode4->SetBounds(5, 5, 100, 300);
+    canvasNode4->SetFrame(5, 5, 100, 300);
+    canvasNode4->SetBackgroundColor(SK_ColorGREEN);
+    myLittleRootNode->AddChild(canvasNode4, -1);
+}
+
+class MyOffscreenRenderCallback : public SurfaceCaptureCallback {
+public:
+    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+    {
+        if (pixelmap == nullptr) {
+            cout << "RSUIDirector::LocalCapture failed to get pixelmap, return nullptr!" << endl;
+            return;
+        }
+        cout << "rs local surface demo drawPNG" << endl;
+        int ret = WriteToPngWithPixelMap("/data/local/test.jpg", *pixelmap);
+        if (!ret) {
+            cout << "pixelmap write to png failed" << endl;
+        }
+        cout << "pixelmap write to png success" << endl;
+    }
+    void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+};
+
+int main()
+{
+    InitNativeTokenInfo();
+
+    cout << "rs local capture errCode demo" << endl;
+    DisplayId displayId = DisplayManager::GetInstance().GetDefaultDisplayId();
+    RSSurfaceNodeConfig surfaceNodeConfig;
+    surfaceNodeConfig.SurfaceNodeName = "capture_err_code_demo";
+    RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    cout << "RSSurfaceNode:: Create" << endl;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
+    if (!surfaceNode) {
+        return -1;
+    }
+    surfaceNode->SetBounds(0, 0, 1260, 2720);
+    surfaceNode->SetFrame(0, 0, 1260, 2720);
+    surfaceNode->SetPositionZ(RSSurfaceNode::POINTER_WINDOW_POSITION_Z);
+    surfaceNode->SetBackgroundColor(SK_ColorYELLOW);
+    cout << "GetDisplayId: " << endl;
+    screenId = DisplayManager::GetInstance().GetDisplayById(displayId)->GetId();
+    cout << "ScreenId: " << screenId << endl;
+    surfaceNode->AttachToDisplay(screenId);
+
+    auto connectToRender =
+        OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(displayId);
+    auto rsUiDirector = RSUIDirector::Create(connectToRender);
+    rsUiDirector->SendMessages();
+    cout << "rs local capture errCode demo init" << endl;
+    rsUiDirector->SetRSSurfaceNode(surfaceNode);
+
+    Init(rsUiDirector, 1260, 2720);
+    rsUiDirector->SendMessages();
+    sleep(4);
+
+    cout << "rs local capture errCode demo createPixelmap" << endl;
+    std::shared_ptr<MySurfaceCaptureCallback> mySurfaceCaptureCallback =
+        std::make_shared<MySurfaceCaptureCallback>();
+    cout << "rootNode id is " << rootNode->GetId() << endl << endl;
+
+    RSSurfaceCaptureConfig myConfig = {
+        .scaleX = 1.f,
+        .scaleY = 1.f,
+        .useDma = true,
+        .needErrorCode = true,
+        .windowSync = true,
+    };
+
+    // 1. normal window capture -> CAPTURE_OK
+    rsUiDirector->GetRSUIContext()->GetRSRenderInterface()->TakeSurfaceCapture(
+        surfaceNode1, mySurfaceCaptureCallback, myConfig);
+    cout << "1. normal window capture -> CAPTURE_OK" << endl;
+    sleep(1);
+
+    // 2. invalid scale -> CAPTURE_CONFIG_WRONG
+    myConfig.scaleX = 0.f;
+    rsUiDirector->GetRSUIContext()->GetRSRenderInterface()->TakeSurfaceCapture(
+        surfaceNode1, mySurfaceCaptureCallback, myConfig);
+    cout << "2. invalid scale -> CAPTURE_CONFIG_WRONG" << endl;
+    sleep(1);
+
+    // 3. special layer -> CAPTURE_FAIL_SPECIAL_LAYER
+    myConfig.scaleX = 1.f;
+    rsUiDirector->GetRSUIContext()->GetRSRenderInterface()->TakeSurfaceCapture(
+        surfaceNode2, mySurfaceCaptureCallback, myConfig);
+    cout << "3. special layer -> CAPTURE_FAIL_SPECIAL_LAYER" << endl;
+    sleep(1);
+
+    // 4. node is nullptr -> CAPTURE_NO_NODE
+    rsUiDirector->GetRSUIContext()->GetRSRenderInterface()->TakeSurfaceCapture(
+        -1, mySurfaceCaptureCallback, myConfig);
+    cout << "4. node is nullptr -> CAPTURE_NO_NODE" << endl;
+    sleep(2);
+
+    return 0;
+}

@@ -17,6 +17,7 @@
 #include "feature/opinc/rs_opinc_draw_cache.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "params/rs_render_params.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -30,6 +31,7 @@ constexpr int32_t LAYER_PART_RENDER_DIRTY_SIZE = 100;
 constexpr int32_t LAYER_PART_RENDER_NODE_COUNT = 5;
 constexpr int32_t LAYER_PART_RENDER_CACHE_SIZE = 200;
 constexpr int32_t ROOT_FIND_CACHE_SIZE_THRESHOLD = 50;
+constexpr float IS_TRANSLATE_SCALE_DELTA_FACTOR = 2.0f;
 
 class RSOpincDrawCacheTest : public testing::Test {
 public:
@@ -85,22 +87,22 @@ HWTEST_F(RSOpincDrawCacheTest, OpincCalculateBefore, TestSize.Level1)
     DrawableV2::RSOpincDrawCache::SetOpincBlockNodeSkip(true);
     RSOpincManager::Instance().SetOPIncSwitch(true);
     opincDrawCache.OpincCalculateBefore(canvas, params);
-    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 
     RSOpincManager::Instance().SetOPIncSwitch(false);
     opincDrawCache.OpincCalculateBefore(canvas, params);
-    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 
     opincDrawCache.rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
     opincDrawCache.recordState_ = NodeRecordState::RECORD_CALCULATE;
 
     RSOpincManager::Instance().SetOPIncSwitch(true);
     opincDrawCache.OpincCalculateBefore(canvas, params);
-    ASSERT_TRUE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_TRUE(opincDrawCache.isOpincCalculateStart_);
 
     RSOpincManager::Instance().SetOPIncSwitch(false);
     opincDrawCache.OpincCalculateBefore(canvas, params);
-    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 }
  
 /**
@@ -115,11 +117,11 @@ HWTEST_F(RSOpincDrawCacheTest, OpincCalculateAfter, TestSize.Level1)
     Drawing::Canvas canvas;
     DrawableV2::RSOpincDrawCache::SetOpincBlockNodeSkip(true);
     opincDrawCache.OpincCalculateAfter(canvas);
-    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 
-    opincDrawCache.isOpincCaculateStart_ = true;
+    opincDrawCache.isOpincCalculateStart_ = true;
     opincDrawCache.OpincCalculateAfter(canvas);
-    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 }
  
 /**
@@ -220,12 +222,12 @@ HWTEST_F(RSOpincDrawCacheTest, IsOpListDrawAreaEnable, TestSize.Level1)
 }
  
 /**
- * @tc.name: IsTranslate
+ * @tc.name: IsTranslate001
  * @tc.desc: Test whether matrix is translate matrix
  * @tc.type: FUNC
  * @tc.require: issueI9SPVO
  */
-HWTEST_F(RSOpincDrawCacheTest, IsTranslate, TestSize.Level1)
+HWTEST_F(RSOpincDrawCacheTest, IsTranslate001, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Matrix matrix;
@@ -235,9 +237,65 @@ HWTEST_F(RSOpincDrawCacheTest, IsTranslate, TestSize.Level1)
     ASSERT_TRUE(opincDrawCache.IsTranslate(matrix));
 
     matrix.SetScale(2, 2);
-    ASSERT_FALSE(opincDrawCache.IsTranslate(matrix));
+    ASSERT_TRUE(opincDrawCache.IsTranslate(matrix));
 }
- 
+
+/**
+ * @tc.name: IsTranslate002
+ * @tc.desc: Test whether matrix is translate matrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9SPVO
+ */
+HWTEST_F(RSOpincDrawCacheTest, IsTranslate002, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Matrix matrix;
+    matrix.SetScale(1.0f + ColorManager::COLOR_EPSILON * IS_TRANSLATE_SCALE_DELTA_FACTOR, 1.0f);
+    EXPECT_FALSE(opincDrawCache.IsTranslate(matrix));
+}
+
+/**
+ * @tc.name: IsTranslate003
+ * @tc.desc: Test whether matrix is translate matrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9SPVO
+ */
+HWTEST_F(RSOpincDrawCacheTest, IsTranslate003, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Matrix matrix;
+    matrix.SetScale(1.0f, 1.0f + ColorManager::COLOR_EPSILON * IS_TRANSLATE_SCALE_DELTA_FACTOR);
+    EXPECT_FALSE(opincDrawCache.IsTranslate(matrix));
+}
+
+/**
+ * @tc.name: IsTranslate004
+ * @tc.desc: Test whether matrix is translate matrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9SPVO
+ */
+HWTEST_F(RSOpincDrawCacheTest, IsTranslate004, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Matrix matrix;
+    matrix.SetSkew(1.0f + ColorManager::COLOR_EPSILON, 1.0f);
+    EXPECT_EQ(opincDrawCache.IsTranslate(matrix), false);
+}
+
+/**
+ * @tc.name: IsTranslate005
+ * @tc.desc: Test whether matrix is translate matrix
+ * @tc.type: FUNC
+ * @tc.require: issueI9SPVO
+ */
+HWTEST_F(RSOpincDrawCacheTest, IsTranslate005, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Matrix matrix;
+    matrix.SetSkew(1.0f, 1.0f + ColorManager::COLOR_EPSILON);
+    EXPECT_EQ(opincDrawCache.IsTranslate(matrix), false);
+}
+
 /**
  * @tc.name: NodeCacheStateDisable
  * @tc.desc: Test drawable state after disable cache state
@@ -337,32 +395,32 @@ HWTEST_F(RSOpincDrawCacheTest, BeforeDrawCache, TestSize.Level1)
     opincDrawCache.recordState_ = NodeRecordState::RECORD_CACHED;
     opincDrawCache.nodeCacheType_ = NodeStrategyType::DDGR_OPINC_DYNAMIC;
     opincDrawCache.BeforeDrawCache(canvas, params);
-    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 
     opincDrawCache.rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
     opincDrawCache.nodeCacheType_ =  NodeStrategyType::OPINC_AUTOCACHE;
     opincDrawCache.recordState_ = NodeRecordState::RECORD_CALCULATE;
     opincDrawCache.BeforeDrawCache(canvas, params);
-    ASSERT_TRUE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_TRUE(opincDrawCache.isOpincCalculateStart_);
 
     RSOpincManager::Instance().SetOPIncSwitch(false);
-    opincDrawCache.isOpincCaculateStart_ = false;
+    opincDrawCache.isOpincCalculateStart_ = false;
     opincDrawCache.recordState_ = NodeRecordState::RECORD_CACHED;
     opincDrawCache.nodeCacheType_ = NodeStrategyType::DDGR_OPINC_DYNAMIC;
     opincDrawCache.BeforeDrawCache(canvas, params);
-    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 
     opincDrawCache.nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     opincDrawCache.recordState_ = NodeRecordState::RECORD_NONE;
     opincDrawCache.BeforeDrawCache(canvas, params);
-    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 
     RSOpincManager::Instance().SetOPIncSwitch(true);
     opincDrawCache.nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     params.isOpincRootFlag_ = true;
     opincDrawCache.recordState_ = NodeRecordState::RECORD_NONE;
     opincDrawCache.BeforeDrawCache(canvas, params);
-    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
+    ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 }
 
 /**
@@ -473,7 +531,7 @@ HWTEST_F(RSOpincDrawCacheTest, AfterDrawCache, TestSize.Level1)
     opincDrawCache.AfterDrawCache(*canvasAlpha.get(), params);
     ASSERT_TRUE(opincDrawCache.recordState_ == NodeRecordState::RECORD_CACHING);
 
-    opincDrawCache.isOpincCaculateStart_ = false;
+    opincDrawCache.isOpincCalculateStart_ = false;
     DrawableV2::RSOpincDrawCache::SetScreenRectInfo({0, 0, 100, 200});
     absRect = {50, 50, 100, 100};
     params.SetAbsDrawRect(absRect);

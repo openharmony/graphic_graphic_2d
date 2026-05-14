@@ -991,6 +991,23 @@ HWTEST_F(PropertiesTest, GenerateForegroundFilterTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GenerateForegroundFilterTest002
+ * @tc.desc: test GenerateForegroundFilter with and without compositingNGFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateForegroundFilterTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateForegroundFilter();
+    EXPECT_EQ(properties.GetFilter(), nullptr);
+
+    auto blurFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.SetCompositingNGFilter(blurFilter);
+    properties.GenerateForegroundFilter();
+    EXPECT_NE(properties.GetFilter(), nullptr);
+}
+
+/**
  * @tc.name: GetColorAdaptiveTest
  * @tc.desc: verify default color adaptive state
  * @tc.type: FUNC
@@ -2039,6 +2056,7 @@ HWTEST_F(PropertiesTest, SetLastEquivalentDarkMode001, TestSize.Level1)
     ASSERT_NE(colorPicker, nullptr);
     EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::INVALID);
 }
+
 /**
  * @tc.name: SetParticleNoiseFieldsWithAnimation001
  * @tc.desc: Verify SetParticleNoiseFields with non-null animationManager and particle animation

@@ -4103,6 +4103,10 @@ void RSProperties::GenerateForegroundFilter()
         filter_ = nullptr;
     }
 
+    if (GetCompositingNGFilter()) {
+        ComposeNGRenderFilter(filter_, GetCompositingNGFilter());
+    }
+
     if (GetFilter() == nullptr) {
         ROSEN_LOGD("RSProperties::GenerateForegroundFilter failed");
     }
@@ -5392,6 +5396,23 @@ std::string RSProperties::Dump() const
     auto sdfShape = GetSDFShape();
     if (sdfShape) {
         dumpInfo.append(", SDFShape[" + sdfShape->Dump() + "]");
+    }
+    // node slimming dump
+    dumpInfo.append(", hasDecoration: " + std::to_string(decoration_.has_value()));
+    dumpInfo.append(", hasClipRRect: " + std::to_string(clipRRect_.has_value()));
+    dumpInfo.append(", hasGeoTrans: " + std::to_string(frameGeo_.GetPivotX() != 0.5f ||
+        frameGeo_.GetPivotY() != 0.5f || frameGeo_.GetScaleX() != 1.f || frameGeo_.GetScaleY() != 1.f ||
+        frameGeo_.GetRotation() != 0.f || frameGeo_.GetTranslateX() != 0.f || frameGeo_.GetTranslateY() != 0.f));
+    auto rrect = GetRRect();
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for rrect, ret=" + std::to_string(ret);
+    }
+    if (sprintf_s(buffer, UINT8_MAX,
+        ", rrect[%.1f %.1f %.1f %.1f rx:%.1f ry:%.1f]",
+        rrect.rect_.left_, rrect.rect_.top_, rrect.rect_.width_, rrect.rect_.height_,
+        rrect.radius_[0].x_, rrect.radius_[0].y_) != -1) {
+        dumpInfo.append(buffer);
     }
     return dumpInfo;
 }

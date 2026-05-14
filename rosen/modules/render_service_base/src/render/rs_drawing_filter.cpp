@@ -23,6 +23,7 @@
 #include "common/rs_optional_trace.h"
 #include "draw/blend_mode.h"
 #include "effect/rs_render_filter_base.h"
+#include "memory/rs_tag_tracker.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"

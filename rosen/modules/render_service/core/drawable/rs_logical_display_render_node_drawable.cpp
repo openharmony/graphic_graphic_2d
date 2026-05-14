@@ -21,6 +21,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/multi_screen/rs_multi_screen_util.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "params/rs_logical_display_render_params.h"
@@ -166,50 +167,12 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto mirroredDrawable = params->GetMirrorSourceDrawable().lock();
     ScreenId paramScreenId = params->GetScreenId();
     auto mirroredRenderParams = mirroredDrawable ? mirroredDrawable->GetRenderParams().get() : nullptr;
-    if (mirroredRenderParams ||
-        params->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
-        if (!processor->UpdateMirrorInfo(*this)) {
-            SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
-            HILOG_COMM_ERROR("RSLogicalDisplayRenderNodeDrawable::OnDraw processor init failed!");
-            return;
-        }
-        uniParam->SetSecurityDisplay(params->IsSecurityDisplay());
-        currentBlackList_ = RSSpecialLayerUtils::GetMergeBlackList(screenProperty);
-        RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
-        if (mirroredRenderParams) {
-            curVisibleRect_ = RSUniRenderThread::Instance().GetVisibleRect();
-            enableVisibleRect_ = RSUniRenderThread::Instance().GetEnableVisibleRect();
-            if (params->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE) {
-                WiredScreenProjection(*params, processor);
-                lastBlackList_ = currentBlackList_;
-                lastEnableVisibleRect_ = enableVisibleRect_;
-                lastVisibleRect_ = curVisibleRect_;
-                uniParam->SetSecurityDisplay(false);
-                return;
-            }
-            currentTypeBlackList_ = screenProperty.GetTypeBlackList();
-            RSUniRenderThread::Instance().SetTypeBlackList(currentTypeBlackList_);
-            RSUniRenderThread::Instance().SetWhiteList(screenProperty.GetWhiteList());
-            curSecExemption_ = params->GetSecurityExemption();
-            uniParam->SetSecExemption(curSecExemption_);
-            DrawMirrorScreen(*params, processor);
-            lastEnableVisibleRect_ = enableVisibleRect_;
-            lastVisibleRect_ = curVisibleRect_;
-            lastTypeBlackList_ = currentTypeBlackList_;
-            lastSecExemption_ = curSecExemption_;
-        } else {
-            RSUniRenderThread::Instance().SetWhiteList(screenProperty.GetWhiteList());
-            curSecExemption_ = params->GetSecurityExemption();
-            uniParam->SetSecExemption(curSecExemption_);
-            DrawExpandDisplay(*params, processor);
-            lastSecExemption_ = curSecExemption_;
-        }
-        uniParam->SetSecurityDisplay(false);
-        lastBlackList_ = currentBlackList_;
-        RSUniRenderThread::Instance().SetBlackList({});
-        RSUniRenderThread::Instance().SetTypeBlackList({});
-        RSUniRenderThread::Instance().SetWhiteList({});
-        uniParam->SetSecExemption(false);
+    if (mirroredRenderParams) {
+        RSMultiScreenUtil::HandleMirrorDisplay(*this, *params, processor);
+        return;
+    }
+    if (params->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
+        RSMultiScreenUtil::HandleVirtualExtendDisplay(*this, *params, processor);
         return;
     }
 
@@ -1040,10 +1003,15 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     virtualProcesser->CanvasClipRegionForUniscaleMode();
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
 
+    auto mirrorSourceScreenInfo = mirroredScreenParams->GetScreenInfo();
+    float mirrorSourceSamplingScale = mirrorSourceScreenInfo.isSamplingOn ? mirrorSourceScreenInfo.samplingScale : 1.0f;
+
     curCanvas_->Save();
     if (slrManager) {
-        auto scaleNum = slrManager->GetScaleNum();
+        auto scaleNum = slrManager->GetScaleNum() * mirrorSourceSamplingScale;
         curCanvas_->Scale(scaleNum, scaleNum);
+    } else if (mirrorSourceScreenInfo.isSamplingOn) {
+        curCanvas_->Scale(mirrorSourceSamplingScale, mirrorSourceSamplingScale);
     }
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hwcNodes;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hwcTopNodes;
@@ -1065,11 +1033,10 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     }
     curCanvas_->Save();
     if (slrManager) {
-        auto scaleNum = slrManager->GetScaleNum();
+        auto scaleNum = slrManager->GetScaleNum() * mirrorSourceSamplingScale;
         curCanvas_->Scale(scaleNum, scaleNum);
-    } else if (mirroredScreenParams && mirroredScreenParams->GetScreenInfo().isSamplingOn) {
-        auto scaleNum = mirroredScreenParams->GetScreenInfo().samplingScale;
-        curCanvas_->Scale(scaleNum, scaleNum);
+    } else if (mirrorSourceScreenInfo.isSamplingOn) {
+        curCanvas_->Scale(mirrorSourceSamplingScale, mirrorSourceSamplingScale);
     }
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, *curCanvas_, *mirroredScreenParams);
     curCanvas_->Restore();

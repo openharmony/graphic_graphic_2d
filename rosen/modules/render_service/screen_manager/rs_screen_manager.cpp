@@ -36,7 +36,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t WAIT_FOR_STATUS_TASK_TIMEOUT = 1000; // 1000ms
 constexpr uint32_t MAX_VIRTUAL_SCREEN_NUM = 64;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;

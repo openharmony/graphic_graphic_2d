@@ -60,6 +60,7 @@ const uint8_t DO_SET_FORCE_REFRESH = 10;
 const uint8_t DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK = 11;
 const uint8_t DO_GET_BRIGHTNESS_INFO = 12;
 const uint8_t TARGET_SIZE = 13;
+const uint8_t DO_SET_HDR_FORCE_HWC_ENABLED = 14;
 } // namespace
 RSMainThread* g_mainThread = OHOS::Rosen::RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> g_toServiceConnectionStub = nullptr;
@@ -260,6 +261,28 @@ void DoSetLayerTop(FuzzedDataProvider& fdp)
     }).wait();
 }
 
+/* Fuzzer test SetHdrForceHwcEnabled */
+void DoSetHdrForceHwcEnabled(FuzzedDataProvider& fdp)
+{
+    RSSurfaceRenderNodeConfig config = { .id = 1, .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE };
+    auto mainThread = g_mainThread;
+    mainThread->ScheduleTask([=]() {
+        auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config.id);
+        surfaceNode->nodeType_ = config.nodeType;
+        surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(config.id);
+        auto& context = mainThread->GetContext();
+        context.GetMutableNodeMap().surfaceNodeMap_.emplace(config.id, surfaceNode);
+    }).wait();
+
+    bool isHdrForceHwcEnabled = fdp.ConsumeBool();
+    g_toServiceConnectionStub->SetHdrForceHwcEnabled(config.name, isHdrForceHwcEnabled);
+
+    mainThread->ScheduleTask([=]() {
+        auto& context = mainThread->GetContext();
+        context.GetMutableNodeMap().surfaceNodeMap_.erase(config.id);
+    }).wait();
+}
+
 /* Fuzzer test SetBrightnessInfoChangeCallback */
 void DoSetBrightnessInfoChangeCallback(FuzzedDataProvider& fdp)
 {
@@ -404,6 +427,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::DoGetBrightnessInfo(fdp);
     } else if (tarPos == OHOS::Rosen::DO_SET_LAYER_TOP) {
         OHOS::Rosen::DoSetLayerTop(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_HDR_FORCE_HWC_ENABLED) {
+        OHOS::Rosen::DoSetHdrForceHwcEnabled(fdp);
     } else if (tarPos == OHOS::Rosen::DO_SET_FORCE_REFRESH) {
         OHOS::Rosen::DoSetForceRefresh(fdp);
     } else {

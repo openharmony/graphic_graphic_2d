@@ -54,6 +54,19 @@ namespace {
     constexpr float TEST_SHARP_CURVE_CTLY2 = 1.0f;
 }
 
+class MockBootCompileProgress : public BootCompileProgress {
+public:
+    bool IsBmsBundleReady() override
+    {
+        return false;
+    }
+    
+    std::string GetFirmwareUpdateState() override
+    {
+        return "end";
+    }
+};
+
 class BootCompileProgressTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -307,6 +320,42 @@ HWTEST_F(BootCompileProgressTest, UpdateCompileProgress_TimeSet_ExecuteSuccessfu
     progress->timeLimitSec_ = TEST_TIME_LIMIT_SEC;
     progress->UpdateCompileProgress();
     EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateCompileProgress_FirstHalf_ExecuteSuccessfully
+ * @tc.desc: Verify the UpdateCompileProgress function in first half time period.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, UpdateCompileProgress_FirstHalf_ExecuteSuccessfully, TestSize.Level1)
+{
+    std::shared_ptr<MockBootCompileProgress> progress = std::make_shared<MockBootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    int64_t currentTime = GetSystemCurrentTime();
+    progress->startTimeMs_ = currentTime - 10 * 1000;
+    progress->endTimePredictMs_ = currentTime + TEST_TIME_LIMIT_SEC * 1000;
+    progress->timeLimitSec_ = TEST_TIME_LIMIT_SEC;
+    progress->UpdateCompileProgress();
+    EXPECT_GE(progress->progress_, 0);
+    EXPECT_LE(progress->progress_, TEST_PROGRESS_100);
+}
+
+/**
+ * @tc.name: UpdateCompileProgress_SecondHalf_ExecuteSuccessfully
+ * @tc.desc: Verify the UpdateCompileProgress function in second half time period.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, UpdateCompileProgress_SecondHalf_ExecuteSuccessfully, TestSize.Level1)
+{
+    std::shared_ptr<MockBootCompileProgress> progress = std::make_shared<MockBootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    int64_t currentTime = GetSystemCurrentTime();
+    progress->startTimeMs_ = currentTime - 80 * 1000;
+    progress->endTimePredictMs_ = currentTime + TEST_TIME_LIMIT_SEC * 1000;
+    progress->timeLimitSec_ = TEST_TIME_LIMIT_SEC;
+    progress->UpdateCompileProgress();
+    EXPECT_GE(progress->progress_, 0);
+    EXPECT_LE(progress->progress_, TEST_PROGRESS_100);
 }
 
 /**

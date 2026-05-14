@@ -217,6 +217,18 @@ bool JsFontDescriptor::CreateAndSetProperties(napi_env env, napi_value fontDescr
         TEXT_CHECK(SetProperty(env, fontDescriptor, "variationInstanceRecords", instanceArray), return false);
     }
 
+    if (!item->languages.empty()) {
+        napi_value languageArray = CreateArrayStringJsValue(env, item->languages);
+        TEXT_CHECK(languageArray != nullptr, return false);
+        TEXT_CHECK(SetProperty(env, fontDescriptor, "languages", languageArray), return false);
+    }
+
+    if (!item->fontFeatures.empty()) {
+        napi_value fontFeaturesArray = CreateArrayStringJsValue(env, item->fontFeatures);
+        TEXT_CHECK(fontFeaturesArray != nullptr, return false);
+        TEXT_CHECK(SetProperty(env, fontDescriptor, "fontFeatures", fontFeaturesArray), return false);
+    }
+
     return true;
 }
 

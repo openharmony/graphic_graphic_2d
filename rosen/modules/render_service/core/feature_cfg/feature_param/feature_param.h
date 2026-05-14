@@ -53,6 +53,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "VMABlockConfig",
     "SpirvCacheConfig",
     "BufferReclaimConfig",
+    "BehindWindowFilterConfig",
 };
 
 enum FeatureModule {
@@ -85,6 +86,7 @@ enum FeatureModule {
     VMA_BLOCK,
     SPIRV_CACHE,
     BUFFER_RECLAIM,
+    BEHIND_WINDOW_FILTER,
     // Do not change it.
     ENUM_LENGTH,
 };

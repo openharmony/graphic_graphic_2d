@@ -16,11 +16,10 @@
 #ifndef HGM_VOTER_H
 #define HGM_VOTER_H
 
-#include "securec.h"
-
 #include "animation/rs_frame_rate_range.h"
 #include "hgm_command.h"
 #include "hgm_log.h"
+#include "securec.h"
 
 namespace OHOS::Rosen {
 using VoteRange = std::pair<uint32_t, uint32_t>;

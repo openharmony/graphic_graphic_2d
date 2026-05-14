@@ -84,6 +84,7 @@ enum class RSIServiceToRenderConnectionInterfaceCode : CodeUnderlyingType {
     SET_BACKLIGHT_LEVEL = 0x00F011,
     ON_GLOBAL_BLACKLIST_CHANGED = 0x00F012,
     SET_CACHE_ENABLED_FOR_ROTATION = 0x00F013,
+    SET_HDR_FORCE_HWC_ENABLED = 0X00F014,
 };
 
 } // namespace Rosen

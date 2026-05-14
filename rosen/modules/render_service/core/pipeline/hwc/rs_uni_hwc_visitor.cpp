@@ -516,13 +516,24 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurface
     }
 }
 
+void RSUniHwcVisitor::CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+    std::unordered_set<pid_t>& hdrForceHwcNodes)
+{
+    // Collect HDR_VIDEO status first
+    uniRenderVisitor_.curScreenNode_->CollectHdrStatus(hwcNode->GetId(), hwcNode->GetVideoHdrStatus());
+    if (!RSBaseHdrUtil::GetRGBA1010108Enabled() && hwcNode->IsHdrForceHwcEnabled()) {
+        hdrForceHwcNodes.emplace(ExtractPid(hwcNode->GetId()));
+    }
+}
+
 void RSUniHwcVisitor::UpdateHwcNodeEnable()
 {
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
+    std::unordered_set<pid_t> hdrForceHwcNodes;
     int inputHwclayers = 3;
     auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
-        [this, &inputHwclayers, &ancoNodes](RSBaseRenderNode::SharedPtr& nodePtr) {
+        [this, &inputHwclayers, &ancoNodes, &hdrForceHwcNodes](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (!surfaceNode) {
             return;
@@ -565,6 +576,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
             if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
                 ancoNodes.push_back(hwcNodePtr);
             }
+            CollectHdrForceHwcNodes(hwcNodePtr, hdrForceHwcNodes);
         }
     });
     PrintHiperfCounterLog("counter1", static_cast<uint64_t>(inputHwclayers));
@@ -575,6 +587,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
     uniRenderVisitor_.PrevalidateHwcNode();
     UpdateHwcNodeEnableByNodeBelow();
     uniRenderVisitor_.UpdateAncoNodeHWCDisabledState(ancoNodes);
+    uniRenderVisitor_.UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeEnableByNodeBelow()
@@ -1009,6 +1022,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 auto screenId = uniRenderVisitor_.curScreenNode_->GetScreenId();
                 RSMainThread::Instance()->GetMutableAIBarNodes()[screenId].insert(renderNode);
                 intersectedWithAIBar = true;
+                HveFilter::GetHveFilter().PushHveFilterSurfaceNodeMapping(filter->first, hwcNode.GetId());
                 bool intersectHwcDamage = RSSystemProperties::GetAIBarOptEnabled() ?
                     RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(hwcNode, filter->second) : true;
                 if (renderNode->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage)) {

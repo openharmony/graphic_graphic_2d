@@ -518,6 +518,40 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest010, TestSize.Level1)
 #endif
 
 /**
+ * @tc.name: OnDrawTest011
+ * @tc.desc: Test OnDraw When mirroredRenderParams is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest011, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(renderParams, nullptr);
+
+    renderParams->shouldPaint_ = true;
+    EXPECT_TRUE(displayDrawable_->ShouldPaint());
+
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+
+    auto [_, screenParams] = displayDrawable_->GetScreenParams(*renderParams);
+    EXPECT_NE(screenParams, nullptr);
+
+    auto mirrorSourceDrawable = renderParams->GetMirrorSourceDrawable().lock();
+    ASSERT_NE(mirrorSourceDrawable, nullptr);
+
+    auto mirrorSourceParams = mirrorSourceDrawable->GetRenderParams().get();
+    EXPECT_NE(mirrorSourceParams, nullptr);
+    
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintCanvas(&canvas);
+    displayDrawable_->OnDraw(paintCanvas);
+    EXPECT_NE(displayDrawable_->curCanvas_, nullptr);
+}
+
+/**
  * @tc.name: OnCaptureTest001
  * @tc.desc: Test OnCapture When ShouldPaint is false
  * @tc.type: FUNC
