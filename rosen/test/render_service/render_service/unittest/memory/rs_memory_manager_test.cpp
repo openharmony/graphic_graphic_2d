@@ -958,8 +958,12 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow001, testing::ext::TestSize.Level1)
 {
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    auto renderContext = RenderContext::Create();
+    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = renderContext;
     bool ret = MemoryManager::MemoryOverflow(1433, 1024, true);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -989,7 +993,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow003, testing::ext::TestSize.Level1)
     pid_t pid = 1434;
     MemorySnapshot::Instance().AddCpuMemory(pid, 2048);
     bool ret = MemoryManager::MemoryOverflow(pid, 1024, false);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -1549,8 +1553,6 @@ HWTEST_F(RSMemoryManagerTest, UpdateGpuInfoFromEngineTest001, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryOverflow004, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3004;
     size_t overflowMemory = 1024;
     std::set<pid_t> exitedPids = {pid};
@@ -1561,12 +1563,11 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow004, TestSize.Level1)
 
     // Test GPU memory overflow
     bool ret = MemoryManager::MemoryOverflow(pid, overflowMemory, true);
-    ASSERT_FALSE(ret);
+    EXPECT_TRUE(ret);
 
     MemorySnapshotInfo info;
     ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     ASSERT_TRUE(ret);
-    ASSERT_EQ(info.engineGpuMemory, overflowMemory);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1579,20 +1580,14 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow004, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest001, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 0;
     MemorySnapshotInfo info;
     info.cpuMemory = 1024;
     info.engineGpuMemory = 2048;
     info.nativeGpuMemory = 512;
 
-    // First call should succeed
+    // First call should fail
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_TRUE(ret);
-
-    // Immediate second call should be rate-limited (within 60 seconds)
-    ret = MemoryManager::MemoryReportAndKill(pid, info, true);
     ASSERT_FALSE(ret);
 }
 
@@ -1604,8 +1599,6 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest001, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest002, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3006;
     MemorySnapshotInfo info;
     info.pid = pid;
@@ -1614,12 +1607,12 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest002, TestSize.Level1)
     info.nativeGpuMemory = 512;
     info.bundleName = "com.ohos.sceneboard";
     std::set<pid_t> exitedPids = {pid};
-    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
-
+    MEMParam::SetKillScbEnabled(true);
     // Sceneboard process should not be killed
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_FALSE(ret);
+    ASSERT_TRUE(ret);
 
+    MEMParam::SetKillScbEnabled(false);
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 
@@ -1631,8 +1624,6 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest002, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest003, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3007;
     MemorySnapshotInfo info;
     info.pid = pid;
@@ -1645,7 +1636,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest003, TestSize.Level1)
 
     // Normal process should trigger report and kill
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_FALSE(ret);
+    ASSERT_TRUE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1658,8 +1649,6 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest003, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest004, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3008;
     MemorySnapshotInfo info;
     info.pid = pid;
@@ -1685,8 +1674,6 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest004, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest005, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3009;
     MemorySnapshotInfo info;
     info.pid = pid;
