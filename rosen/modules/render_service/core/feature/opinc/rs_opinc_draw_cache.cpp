@@ -66,7 +66,6 @@ void RSOpincDrawCache::OpincCalculateBefore(Drawing::Canvas& canvas, const RSRen
 #ifdef RS_ENABLE_GPU
     opincBlockNodeSkipTemp_ = opincBlockNodeSkip_;
     isOpincCalculateStart_ = false;
-    isOpincCalculateStart_ = false;
     if (IsAutoCacheEnable() && IsOpListDrawAreaEnable()) {
         isOpincCalculateStart_ = canvas.OpCalculateBefore(params.GetMatrix());
         opincBlockNodeSkip_ = false;
