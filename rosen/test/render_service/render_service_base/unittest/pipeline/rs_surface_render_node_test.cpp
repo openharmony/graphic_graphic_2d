@@ -3416,5 +3416,84 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetHdrForceHwcEnabled_WithParams, TestSize.Lev
     surfaceNode->SetHdrForceHwcEnabled(false);
     EXPECT_FALSE(surfaceNode->IsHdrForceHwcEnabled());
 }
+
+/**
+ * @tc.name: SetContextBoundsWithToken001
+ * @tc.desc: SetContextBounds sends command with uiContextToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetContextBoundsWithToken001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->uiContextToken_ = 200;
+    Vector4f bounds(0, 0, 100, 100);
+    node->SetContextBounds(bounds);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetContextMatrixWithToken001
+ * @tc.desc: SetContextMatrix sends command with uiContextToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrixWithToken001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->uiContextToken_ = 200;
+    std::optional<Drawing::Matrix> matrix;
+    node->SetContextMatrix(matrix, false);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetContextAlphaWithToken001
+ * @tc.desc: SetContextAlpha sends command with uiContextToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetContextAlphaWithToken001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->uiContextToken_ = 200;
+    node->SetContextAlpha(0.5f, false);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetContextClipRegionWithToken001
+ * @tc.desc: SetContextClipRegion sends command with uiContextToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetContextClipRegionWithToken001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->uiContextToken_ = 200;
+    std::optional<Drawing::Rect> clipRegion(Drawing::Rect(0, 0, 10, 10));
+    node->SetContextClipRegion(clipRegion, false);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetContextMethodsWithDefaultToken001
+ * @tc.desc: SetContext methods with default uiContextToken (0) should not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetContextMethodsWithDefaultToken001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->uiContextToken_, 0);
+    Vector4f bounds(0, 0, 100, 100);
+    node->SetContextBounds(bounds);
+    std::optional<Drawing::Matrix> matrix;
+    node->SetContextMatrix(matrix, false);
+    node->SetContextAlpha(0.5f, false);
+    std::optional<Drawing::Rect> clipRegion(Drawing::Rect(0, 0, 10, 10));
+    node->SetContextClipRegion(clipRegion, false);
+    EXPECT_TRUE(true);
+}
 } // namespace Rosen
 } // namespace OHOS

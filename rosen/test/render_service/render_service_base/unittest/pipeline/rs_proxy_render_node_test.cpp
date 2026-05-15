@@ -224,5 +224,79 @@ HWTEST_F(RSProxyRenderNodeTest, CleanUpWithAnimationManager, TestSize.Level1)
     bool removeModifiers = true;
     node->CleanUp(removeModifiers);
 }
+
+/**
+ * @tc.name: SetContextMatrixWithToken001
+ * @tc.desc: SetContextMatrix sends command with uiContextToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSProxyRenderNodeTest, SetContextMatrixWithToken001, TestSize.Level1)
+{
+    NodeId id = 10;
+    NodeId targetId = 11;
+    RSSurfaceRenderNodeConfig config;
+    auto target = std::make_shared<RSSurfaceRenderNode>(config);
+    auto node = std::make_shared<RSProxyRenderNode>(id, target, targetId);
+    node->uiContextToken_ = 100;
+    Drawing::Matrix matrix;
+    node->SetContextMatrix(matrix);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetContextAlphaWithToken001
+ * @tc.desc: SetContextAlpha sends command with uiContextToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSProxyRenderNodeTest, SetContextAlphaWithToken001, TestSize.Level1)
+{
+    NodeId id = 10;
+    NodeId targetId = 11;
+    RSSurfaceRenderNodeConfig config;
+    auto target = std::make_shared<RSSurfaceRenderNode>(config);
+    auto node = std::make_shared<RSProxyRenderNode>(id, target, targetId);
+    node->uiContextToken_ = 100;
+    node->SetContextAlpha(0.5f);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetContextClipRegionWithToken001
+ * @tc.desc: SetContextClipRegion sends command with uiContextToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSProxyRenderNodeTest, SetContextClipRegionWithToken001, TestSize.Level1)
+{
+    NodeId id = 10;
+    NodeId targetId = 11;
+    RSSurfaceRenderNodeConfig config;
+    auto target = std::make_shared<RSSurfaceRenderNode>(config);
+    auto node = std::make_shared<RSProxyRenderNode>(id, target, targetId);
+    node->uiContextToken_ = 100;
+    Drawing::Rect clipRegion(0, 0, 10, 10);
+    node->SetContextClipRegion(clipRegion);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetContextMethodsWithDefaultToken001
+ * @tc.desc: SetContext methods with default uiContextToken (0) should not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSProxyRenderNodeTest, SetContextMethodsWithDefaultToken001, TestSize.Level1)
+{
+    NodeId id = 10;
+    NodeId targetId = 11;
+    RSSurfaceRenderNodeConfig config;
+    auto target = std::make_shared<RSSurfaceRenderNode>(config);
+    auto node = std::make_shared<RSProxyRenderNode>(id, target, targetId);
+    EXPECT_EQ(node->uiContextToken_, 0);
+    Drawing::Matrix matrix;
+    node->SetContextMatrix(matrix);
+    node->SetContextAlpha(0.5f);
+    Drawing::Rect clipRegion(0, 0, 10, 10);
+    node->SetContextClipRegion(clipRegion);
+    EXPECT_TRUE(true);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -20,6 +20,7 @@
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_transaction_handler_manager.h"
 #include "ui/rs_ui_context_manager.h"
 
 namespace OHOS {
@@ -32,11 +33,16 @@ RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRem
         std::make_shared<RSTransactionHandler>(token, rsRenderInterface_->GetRSRenderPipelineClient());
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
     rsSyncTransactionHandler_->SetTransactionHandler(rsTransactionHandler_);
+
+    // Register RSTransactionHandler to manager for RSRenderNode access
+    RSTransactionHandlerManager::Instance().Register(token_, rsTransactionHandler_);
 }
 
 RSUIContext::~RSUIContext()
 {
     RS_LOGI("~RSUIContext: Token:%{public}" PRIu64, token_);
+    // Unregister RSTransactionHandler from manager
+    RSTransactionHandlerManager::Instance().Unregister(token_);
 }
 
 const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()

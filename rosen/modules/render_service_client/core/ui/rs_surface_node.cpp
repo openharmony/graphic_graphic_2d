@@ -235,7 +235,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 #ifdef ROSEN_OHOS
     if (rsUIContext != nullptr) {
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
-            node->GetId(), rsUIContext->GetConnectToRender());
+            node->GetId(), rsUIContext ? rsUIContext->GetConnectToRender() : nullptr);
         node->AddCommand(command, isWindow);
     } else {
         ROSEN_LOGE("RSSurfaceNode::Create,"

@@ -78,7 +78,7 @@ void RSProxyRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>& m
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextMatrix>(targetId_, matrix);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 
 void RSProxyRenderNode::SetContextAlpha(float alpha)
@@ -93,7 +93,7 @@ void RSProxyRenderNode::SetContextAlpha(float alpha)
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextAlpha>(targetId_, alpha);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 
 void RSProxyRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion)
@@ -108,7 +108,7 @@ void RSProxyRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect>&
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextClipRegion>(targetId_, clipRegion);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 
 void RSProxyRenderNode::ResetContextVariableCache()

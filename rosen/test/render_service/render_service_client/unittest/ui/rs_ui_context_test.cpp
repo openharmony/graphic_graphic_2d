@@ -18,6 +18,7 @@
 #include "command/rs_animation_command.h"
 #include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "transaction/rs_transaction.h"
+#include "transaction/rs_transaction_handler_manager.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
@@ -549,5 +550,45 @@ HWTEST_F(RSUIContextTest, UiPiplineNum006, TestSize.Level1)
 
     newContext->DetachFromUI();
     ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
+}
+
+/**
+ * @tc.name: RegisterHandlerOnConstruction001
+ * @tc.desc: RSUIContext constructor registers handler to RSTransactionHandlerManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, RegisterHandlerOnConstruction001, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uint64_t token = uiContext->GetToken();
+
+    auto handler = RSTransactionHandlerManager::Instance().Get(token);
+    EXPECT_NE(handler, nullptr);
+
+    RSUIContextManager::MutableInstance().DestroyContext(token);
+    handler = RSTransactionHandlerManager::Instance().Get(token);
+    EXPECT_EQ(handler, nullptr);
+}
+
+/**
+ * @tc.name: UnregisterHandlerOnDestruction001
+ * @tc.desc: RSUIContext destructor unregisters handler from RSTransactionHandlerManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, UnregisterHandlerOnDestruction001, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uint64_t token = uiContext->GetToken();
+
+    auto handler = RSTransactionHandlerManager::Instance().Get(token);
+    EXPECT_NE(handler, nullptr);
+
+    RSUIContextManager::MutableInstance().DestroyContext(token);
+    handler = RSTransactionHandlerManager::Instance().Get(token);
+    EXPECT_EQ(handler, nullptr);
 }
 } // namespace OHOS::Rosen
