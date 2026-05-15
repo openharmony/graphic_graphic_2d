@@ -102,7 +102,7 @@ void SkiaImageFilter::InitWithColor(const ColorFilter& colorFilter,
 #endif
     auto skColorFilterImpl = colorFilter.GetImpl<SkiaColorFilter>();
     if (skColorFilterImpl != nullptr) {
-        filter_ = SkImageFilters::ColorFilter(skColorFilterImpl->GetColorFilter(), input, skCropRect);
+        filter_ = SkImageFilters::ColorFilter(skColorFilterImpl->GetSkColorFilter(), input, skCropRect);
     }
 }
 
@@ -139,7 +139,7 @@ void SkiaImageFilter::InitWithColorBlur(const ColorFilter& colorFilter, scalar s
     SkRect skiaRect = {cropRect.left_, cropRect.top_, cropRect.right_, cropRect.bottom_};
     SkImageFilters::CropRect skCropRect(skiaRect);
 #endif
-    filter_ = SkImageFilters::ColorFilter(skColorFilterImpl ? skColorFilterImpl->GetColorFilter() : nullptr,
+    filter_ = SkImageFilters::ColorFilter(skColorFilterImpl ? skColorFilterImpl->GetSkColorFilter() : nullptr,
         SkImageFilters::Blur(sigmaX, sigmaY, SkTileMode::kClamp, nullptr), skCropRect);
 }
 
