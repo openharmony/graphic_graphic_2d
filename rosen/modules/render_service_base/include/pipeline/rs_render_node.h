@@ -28,7 +28,9 @@
 #include <vector>
 
 #include "display_engine/rs_luminance_control.h"
+#include "feature/opinc/rs_layer_part_render_cache.h"
 #include "feature/opinc/rs_opinc_cache.h"
+#include "feature/opinc/rs_opinc_root_cache.h"
 #include "feature/single_frame_composer/rs_single_frame_composer.h"
 #include "hwc/rs_hwc_recorder.h"
 
@@ -753,6 +755,37 @@ public:
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
     void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
 
+    RSOpincRootCache& GetOpincRootCache()
+    {
+        if (opincRootCache_ == nullptr) {
+            opincRootCache_ = std::make_unique<RSOpincRootCache>();
+        }
+        return *opincRootCache_;
+    }
+
+    const RSOpincRootCache* TryGetOpincRootCachePtr() const
+    {
+        return opincRootCache_.get();
+    }
+
+    RSOpincCache& GetOpincCache()
+    {
+        return opincCache_;
+    }
+
+    RSLayerPartRenderCache& GetLayerPartRenderCache()
+    {
+        if (layerPartRenderCache_ == nullptr) {
+            layerPartRenderCache_ = std::make_unique<RSLayerPartRenderCache>();
+        }
+        return *layerPartRenderCache_;
+    }
+
+    const RSLayerPartRenderCache* TryGetLayerPartRenderCachePtr() const
+    {
+        return layerPartRenderCache_.get();
+    }
+
     /////////////////////////////////////////////
 
     void SetSharedTransitionParam(const std::shared_ptr<SharedTransitionParam>& sharedTransitionParam);
@@ -1003,11 +1036,6 @@ public:
     // Enable HWCompose
     RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
     const RSHwcRecorder& GetConstHwcRecorder() const { return hwcRecorder_; }
-
-    RSOpincCache& GetOpincCache()
-    {
-        return opincCache_;
-    }
     void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
 
     void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
@@ -1311,6 +1339,8 @@ private:
     bool released_ = false;
     std::shared_ptr<RSAnimationManager> animationManager_;
     RSOpincCache opincCache_;
+    std::unique_ptr<RSOpincRootCache> opincRootCache_ = nullptr;
+    std::unique_ptr<RSLayerPartRenderCache> layerPartRenderCache_ = nullptr;
     std::unordered_set<NodeId> subtreeParallelNodes_;
     bool isAllChildRepaintBoundary_ = false;
     uint32_t repaintBoundaryWeight_ = 0;

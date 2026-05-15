@@ -17,6 +17,7 @@
 
 #include <sstream>
 #include "common/rs_optional_trace.h"
+#include "feature/opinc/rs_opinc_manager.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -117,7 +118,7 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
 {
     if (node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE ||
         node.GetIsTextureExportNode() || node.GetSharedTransitionParam() != nullptr ||
-        const_cast<RSRenderNode&>(node).GetOpincCache().IsSuggestOpincNode()) {
+        RSOpincManager::IsSuggestOpincNode(const_cast<RSRenderNode&>(node))) {
         return true;
     }
 

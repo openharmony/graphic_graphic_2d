@@ -607,7 +607,10 @@ ohos_unittest("RSOpincDrawCacheTest") {
 ## Build RSOpincDrawCacheLayerPartTest
 ohos_unittest("RSOpincDrawCacheLayerPartTest") {
   module_out_path = module_output_path
-  sources = [ "opinc/rs_opinc_draw_cache_layer_part_test.cpp" ]
+  sources = [
+    "opinc/rs_opinc_draw_cache_layer_part_test.cpp",
+    "opinc/rs_layer_part_draw_cache_helper_test.cpp",
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
