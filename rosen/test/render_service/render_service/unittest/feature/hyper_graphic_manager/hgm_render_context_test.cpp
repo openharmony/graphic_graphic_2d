@@ -37,6 +37,17 @@ constexpr uint32_t delay_110Ms = 110;
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 std::string g_testStr = HGM_CONFIG_PATH;
 std::string g_customTestXmlPath;
+
+// Helper lambda to create test XML file
+auto CreateTestXml = [](const std::string &path, const char *content) -> bool {
+    FILE *fp = fopen(path.c_str(), "w");
+    if (fp == nullptr) {
+        return false;
+    }
+    fprintf(fp, "%s", content);
+    fclose(fp);
+    return true;
+};
 }
 
 std::string GetHgmXmlPath()
@@ -397,25 +408,14 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
     std::unordered_map<std::string, std::string> sourceTuningConfig;
     std::unordered_map<std::string, std::string> solidLayerConfig;
     std::vector<std::string> appBufferList;
- 
-    // Helper lambda to create test XML file
-    auto createTestXml = [](const std::string &path, const char *content) -> bool {
-        FILE *fp = fopen(path.c_str(), "w");
-        if (fp == nullptr) {
-            return false;
-        }
-        fprintf(fp, "%s", content);
-        fclose(fp);
-        return true;
-    };
- 
+
     // Test Case 1: ability_enable value="1" -> hgmAbilityEnabled_ should be true
     const char *xmlContentEnabled = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                                     "<root>\n"
                                     "    <param name=\"ability_enable\" value=\"1\"/>\n"
                                     "</root>\n";
     std::string testXmlPath1 = "/data/test/hgm_test_enabled.xml";
-    ASSERT_TRUE(createTestXml(testXmlPath1, xmlContentEnabled)) << "Failed to create test XML file: "
+    ASSERT_TRUE(CreateTestXml(testXmlPath1, xmlContentEnabled)) << "Failed to create test XML file: "
         << testXmlPath1;
  
     g_customTestXmlPath = testXmlPath1;
@@ -432,7 +432,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
                                      "    <param name=\"ability_enable\" value=\"0\"/>\n"
                                      "</root>\n";
     std::string testXmlPath2 = "/data/test/hgm_test_disabled.xml";
-    ASSERT_TRUE(createTestXml(testXmlPath2, xmlContentDisabled)) << "Failed to create test XML file: "
+    ASSERT_TRUE(CreateTestXml(testXmlPath2, xmlContentDisabled)) << "Failed to create test XML file: "
         << testXmlPath2;
  
     g_customTestXmlPath = testXmlPath2;
@@ -448,7 +448,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
                                    "<root>\n"
                                    "</root>\n";
     std::string testXmlPath3 = "/data/test/hgm_test_default.xml";
-    ASSERT_TRUE(createTestXml(testXmlPath3, xmlContentNoNode)) << "Failed to create test XML file: " << testXmlPath3;
+    ASSERT_TRUE(CreateTestXml(testXmlPath3, xmlContentNoNode)) << "Failed to create test XML file: " << testXmlPath3;
  
     g_customTestXmlPath = testXmlPath3;
     HgmRenderContext hgmRenderContext3(renderToServiceConnection);

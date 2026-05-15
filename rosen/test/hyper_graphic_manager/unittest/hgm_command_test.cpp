@@ -163,13 +163,6 @@ HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level0)
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     ASSERT_NE(frameRateMgr, nullptr);
 
-    // test init when mPolicyConfigData_ is null
-    auto oriData = std::move(hgmCore.mPolicyConfigData_);
-    hgmCore.mPolicyConfigData_ = nullptr;
-    hgmCore.Init();
-    hgmCore.mPolicyConfigData_ = std::move(oriData);
-    hgmCore.Init();
-
     // bk
     auto configData = hgmCore.mPolicyConfigData_;
     ASSERT_NE(configData, nullptr);
@@ -614,6 +607,26 @@ HWTEST_F(HgmCommandTest, GetScreenActiveRefreshRateTest, Function | SmallTest | 
     EXPECT_EQ(hgmCore.GetScreenActiveRefreshRate(testId), 0);
  
     hgmCore.getScreenActiveRefreshRateCb_ = oriCb;
+}
+
+/**
+ * @tc.name: HgmCoreInit001
+ * @tc.desc: Verify the result of HgmCore.Init
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, HgmCoreInit001, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+
+    // test init when mPolicyConfigData_ is null
+    auto oriData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = nullptr;
+    hgmCore.Init();
+    hgmCore.mPolicyConfigData_ = std::move(oriData);
+    EXPECT_NE(hgmCore.mPolicyConfigData_, nullptr);
+    hgmCore.Init();
 }
 } // namespace Rosen
 } // namespace OHOS
