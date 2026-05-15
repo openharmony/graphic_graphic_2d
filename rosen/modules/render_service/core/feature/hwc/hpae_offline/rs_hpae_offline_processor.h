@@ -58,6 +58,7 @@ using ProcessOfflineFunc = int32_t (*)(const OfflineProcessInputInfo &);
 using GetOfflineConfigFunc = int32_t (*)(OfflineProcessOutputInfo &);
 using InitOfflineResourceFunc = int32_t (*)();
 using DeInitOfflineResourceFunc = void (*)();
+using GetFenceFunc = int32_t (*)(int32_t &);
 
 class RSHpaeOfflineProcessor : public std::enable_shared_from_this<RSHpaeOfflineProcessor> {
 public:
@@ -96,6 +97,8 @@ private:
     GetOfflineConfigFunc getConfigFunc_ = nullptr;
     InitOfflineResourceFunc initOfflineFunc_ = nullptr;
     DeInitOfflineResourceFunc deInitOfflineFunc_ = nullptr;
+    GetFenceFunc getFenceFunc_ = nullptr;
+
     RSHpaeOfflineProcessSyncer offlineResultSync_;
     RSHpaeOfflineThreadManager offlineThreadManager_;
 
