@@ -39,7 +39,8 @@ std::string g_testStr = HGM_CONFIG_PATH;
 std::string g_customTestXmlPath;
 
 // Helper lambda to create test XML file
-auto CreateTestXml = [](const std::string &path, const char *content) -> bool {
+bool CreateTestXml(const std::string &path, const char *content)
+{
     FILE *fp = fopen(path.c_str(), "w");
     if (fp == nullptr) {
         return false;
@@ -47,7 +48,7 @@ auto CreateTestXml = [](const std::string &path, const char *content) -> bool {
     fprintf(fp, "%s", content);
     fclose(fp);
     return true;
-};
+}
 }
 
 std::string GetHgmXmlPath()
