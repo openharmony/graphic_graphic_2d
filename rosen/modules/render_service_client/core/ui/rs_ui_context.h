@@ -237,7 +237,7 @@ private:
     std::shared_ptr<RSRenderInterface> rsRenderInterface_;
     std::shared_ptr<RSSyncTransactionHandler> rsSyncTransactionHandler_;
     std::unordered_map<pid_t, std::shared_ptr<RSImplicitAnimator>> rsImplicitAnimators_;
-    std::unordered_map<pid_t, RSModifierManager> rsModifierManagerMap_;
+    std::unordered_map<pid_t, std::shared_ptr<RSModifierManager>> rsModifierManagerMap_;
     std::shared_ptr<RSModifierManager> rsModifierManager_;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
