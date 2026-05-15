@@ -4720,7 +4720,8 @@ void RSRenderNode::OnSync()
     }
 
     if (nodeGroupType_ == NodeGroupType::GROUPED_BY_LAYER) {
-        if (GetRenderProperties().GetBgBrightnessPaRams().has_value()) {
+        // when node has BgBrightness disable layer cache
+        if (GetRenderProperties().GetBgBrightnessParams().has_value()) {
             stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         } else {
             RSLayerCacheManagerBase::layerDrawables_.emplace_back(renderDrawable_);

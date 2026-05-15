@@ -1211,7 +1211,7 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
     node->GetOpincRootCache().isOpincRootFlag_ = true;
     node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_LAYER;
     Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
-    node->GetRenderProperties().SetBgBrightnessRates(value);
+    node->renderProperties_.SetBgBrightnessRates(value);
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);
