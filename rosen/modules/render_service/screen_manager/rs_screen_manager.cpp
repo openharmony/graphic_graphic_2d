@@ -1544,15 +1544,22 @@ void RSScreenManager::OnProcessDisconnected(const std::vector<std::pair<ScreenId
     RS_TRACE_FUNC();
     std::vector<ScreenId> virtualScreenIds;
     std::vector<std::shared_ptr<HdiOutput>> physicalOutputs;
+    virtualScreenIds.reserve(screens.size());
+    physicalOutputs.reserve(screens.size());
     {
         std::lock_guard<std::mutex> lock(screenMapMutex_);
         for (const auto& [id, output] : screens) {
             auto iter = screens_.find(id);
-            if (iter == screens_.end() || iter->second == nullptr) {
+            if (iter == screens_.end()) {
                 RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
                 continue;
             }
-            if (!iter->second->IsVirtual()) {
+            auto& screen = iter->second;
+            if (screen == nullptr) {
+                RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+                continue;
+            }
+            if (!screen->IsVirtual()) {
                 if (output == nullptr) {
                     RS_LOGW("%{public}s: output is null physical screen id %{public}" PRIu64, __func__, id);
                     continue;
@@ -1564,7 +1571,7 @@ void RSScreenManager::OnProcessDisconnected(const std::vector<std::pair<ScreenId
         }
     }
     for (const auto& output : physicalOutputs) {
-        preprocessor_->OnPhysicalScreenProcessDisconnected(output);
+        preprocessor_->OnPhysicalScreenProcessDisconnected(ToScreenId(output->GetScreenId()));
         preprocessor_->ReconnectProcess(output);
     }
     for (const auto& id : virtualScreenIds) {

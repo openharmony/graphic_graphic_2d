@@ -299,13 +299,8 @@ void RSScreenPreprocessor::ScheduleTask(std::function<void()> task)
     }
 }
 
-void RSScreenPreprocessor::OnPhysicalScreenProcessDisconnected(std::shared_ptr<HdiOutput> output)
+void RSScreenPreprocessor::OnPhysicalScreenProcessDisconnected(ScreenId screenId)
 {
-    if (output == nullptr) {
-        RS_LOGE("%{public}s: output is nullptr", __func__);
-        return;
-    }
-    ScreenId screenId = ToScreenId(output->GetScreenId());
     RS_LOGW("%{public}s: screen %{public}" PRIu64 " is disconnected due to process disconnected.", __func__, screenId);
     ScheduleTask([this, screenId]() {
         callbackMgr_.NotifyPhysicalScreenProcessDisconnected(screenId);

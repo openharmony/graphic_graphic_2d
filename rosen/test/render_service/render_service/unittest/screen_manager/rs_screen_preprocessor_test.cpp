@@ -386,29 +386,15 @@ HWTEST_F(RSScreenPreprocessorTest, ScheduleTaskTest001, TestSize.Level1)
 
 /*
  * @tc.name: OnPhysicalScreenProcessDisconnectedTest001
- * @tc.desc: Test OnPhysicalScreenProcessDisconnected with null output
+ * @tc.desc: Test OnPhysicalScreenProcessDisconnected with screenId
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSScreenPreprocessorTest, OnPhysicalScreenProcessDisconnectedTest001, TestSize.Level1)
 {
     ASSERT_NE(preprocessor_, nullptr);
-    std::shared_ptr<HdiOutput> output = nullptr;
-    preprocessor_->OnPhysicalScreenProcessDisconnected(output);
-}
-
-/*
- * @tc.name: OnPhysicalScreenProcessDisconnectedTest002
- * @tc.desc: Test OnPhysicalScreenProcessDisconnected with valid output
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSScreenPreprocessorTest, OnPhysicalScreenProcessDisconnectedTest002, TestSize.Level1)
-{
-    ASSERT_NE(preprocessor_, nullptr);
-    uint32_t screenId = 1000;
-    auto output = std::make_shared<HdiOutput>(screenId);
-    preprocessor_->OnPhysicalScreenProcessDisconnected(output);
+    ScreenId screenId = 1000;
+    preprocessor_->OnPhysicalScreenProcessDisconnected(screenId);
 }
 
 /*

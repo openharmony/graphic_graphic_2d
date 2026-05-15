@@ -48,7 +48,7 @@ public:
     void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
     void NotifyScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
 
-    void OnPhysicalScreenProcessDisconnected(std::shared_ptr<HdiOutput> output);
+    void OnPhysicalScreenProcessDisconnected(ScreenId screenId);
     void OnVirtualScreenProcessDisconnected(ScreenId screenId);
     void ReconnectProcess(std::shared_ptr<HdiOutput> output);
 
