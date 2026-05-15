@@ -75,7 +75,7 @@ const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
         auto it = rsModifierManagerMap_.find(gettid());
         if (it != rsModifierManagerMap_.end()) {
             return it->second;
-        } 
+        }
 
         if (!rsModifierManagerMap_.empty()) {
             RS_LOGI_LIMIT("Too many threads are using the same ModifierManagerMap");
