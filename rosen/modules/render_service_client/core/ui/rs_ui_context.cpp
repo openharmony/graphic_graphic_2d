@@ -58,10 +58,27 @@ const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
 
 const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
 {
-    if (rsModifierManager_ == nullptr) {
-        rsModifierManager_ = std::make_shared<RSModifierManager>();
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+    if (isUniRender) {
+        if (rsModifierManager_ == nullptr) {
+            rsModifierManager_ = std::make_shared<RSModifierManager>();
+        }
+        return rsModifierManager_;
+    } else {
+        std::lock_guard<std::mutex> lock(rsModifierManagerMutex_);
+        auto it = rsModifierManagerMap_.find(gettid());
+        if (it != rsModifierManagerMap_.end()) {
+            return it->second;
+        } 
+
+        if (!rsModifierManagerMap_.empty()) {
+            RS_LOGI_LIMIT("Too many threads are using the same ModifierManagerMap");
+        }
+
+        auto rsModifierManager = std::make_shared<RSModifierManager>();
+        rsModifierManagerMap_.emplace(gettid(), rsModifierManager);
+        return rsModifierManager;
     }
-    return rsModifierManager_;
 }
 
 bool RSUIContext::AnimationCallback(AnimationId animationId, AnimationCallbackEvent event)
