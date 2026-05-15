@@ -23,12 +23,14 @@
 #include <atomic>
 
 #include "rs_composer_client_manager.h"
+#include "rs_render_to_composer_connection_stub.h"
 #include "layer_backend/hdi_output.h"
 #include "rs_composer_client.h"
 #include "rs_composer_context.h"
 #include "rs_surface_layer.h"
 #include "rs_layer_transaction_data.h"
 #include "params/rs_render_params.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -40,8 +42,61 @@ class RSComposerClientManagerTest : public Test {};
 static std::shared_ptr<RSComposerClient> MakeClient()
 {
     sptr<IRSRenderToComposerConnection> conn = nullptr; // keep nullptr to avoid remote interactions
-    return std::make_shared<RSComposerClient>(conn);
+    return RSComposerClient::Create(conn, nullptr);
 }
+
+namespace {
+class RecordingRenderToComposerConnection final : public RSRenderToComposerConnectionStub {
+public:
+    bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override
+    {
+        return false;
+    }
+
+    void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override {}
+
+    int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence) override
+    {
+        commitTunnelCalled = true;
+        lastSurfaceId = surfaceId;
+        lastTunnelLayerId = tunnelLayerId;
+        lastBufferSeqNum = buffer == nullptr ? 0 : buffer->GetSeqNum();
+        releaseFence = SyncFence::InvalidFence();
+        return returnValue;
+    }
+
+    void ClearFrameBuffers() override {}
+    void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) override {}
+    void SetScreenBacklight(uint32_t level) override {}
+    void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
+    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
+
+    bool commitTunnelCalled = false;
+    uint64_t lastSurfaceId = 0;
+    uint64_t lastTunnelLayerId = 0;
+    uint32_t lastBufferSeqNum = 0;
+    int32_t returnValue = GRAPHIC_DISPLAY_SUCCESS;
+};
+
+sptr<SurfaceBuffer> CreateTunnelTestBuffer()
+{
+    BufferRequestConfig requestConfig = {
+        .width = 4,
+        .height = 4,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    if (buffer != nullptr && buffer->Alloc(requestConfig) != GSERROR_OK) {
+        return nullptr;
+    }
+    return buffer;
+}
+} // namespace
 
 /**
  * Function: AddGet_And_NoOverride
@@ -699,5 +754,71 @@ HWTEST_F(RSComposerClientManagerTest, PreAllocProtectedFrameBuffers_MultiThreadC
     EXPECT_EQ(successCount.load(), threadCount * loopCount);
 }
 
-} // namespace OHOS::Rosen
 
+/**
+ * Function: CommitTunnelLayerBySurfaceId_NoClient_ReturnsFailure
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. do not add composer client
+ *                  2. call CommitTunnelLayerBySurfaceId
+ *                  3. expect GRAPHIC_DISPLAY_FAILURE
+ */
+HWTEST_F(RSComposerClientManagerTest, CommitTunnelLayerBySurfaceId_NoClient_ReturnsFailure, TestSize.Level1)
+{
+    RSComposerClientManager mgr;
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    TunnelLayerCommitInfo commitInfo;
+    commitInfo.surfaceId = 11u;
+    commitInfo.nodeId = 22u;
+    commitInfo.tunnelLayerId = 33u;
+    EXPECT_EQ(mgr.CommitTunnelLayerBySurfaceId(commitInfo, releaseFence), GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: CommitTunnelLayerBySurfaceId_ForwardToMatchedClient
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add client with matching rs layer
+ *                  2. call CommitTunnelLayerBySurfaceId
+ *                  3. verify parameters are forwarded to the matched client connection
+ */
+HWTEST_F(RSComposerClientManagerTest, CommitTunnelLayerBySurfaceId_ForwardToMatchedClient, TestSize.Level1)
+{
+    auto conn = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    ASSERT_NE(conn, nullptr);
+    auto client = RSComposerClient::Create(conn, nullptr);
+    ASSERT_NE(client, nullptr);
+
+    RSComposerClientManager mgr;
+    constexpr ScreenId screenId = 9001;
+    constexpr RSLayerId nodeId = 9101;
+    constexpr uint64_t surfaceId = 9201;
+    constexpr uint64_t tunnelLayerId = 9301;
+    mgr.AddComposerClient(screenId, client);
+
+    auto ctx = client->GetComposerContext();
+    ASSERT_NE(ctx, nullptr);
+    auto layer = RSSurfaceLayer::Create(nodeId, ctx);
+    ASSERT_NE(layer, nullptr);
+    layer->SetNodeId(nodeId);
+
+    auto buffer = CreateTunnelTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    TunnelLayerCommitInfo commitInfo;
+    commitInfo.surfaceId = surfaceId;
+    commitInfo.nodeId = nodeId;
+    commitInfo.tunnelLayerId = tunnelLayerId;
+    commitInfo.buffer = buffer;
+    commitInfo.acquireFence = nullptr;
+    EXPECT_EQ(mgr.CommitTunnelLayerBySurfaceId(commitInfo, releaseFence), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_TRUE(conn->commitTunnelCalled);
+    EXPECT_EQ(conn->lastSurfaceId, surfaceId);
+    EXPECT_EQ(conn->lastTunnelLayerId, tunnelLayerId);
+    EXPECT_EQ(conn->lastBufferSeqNum, buffer->GetSeqNum());
+}
+
+} // namespace OHOS::Rosen

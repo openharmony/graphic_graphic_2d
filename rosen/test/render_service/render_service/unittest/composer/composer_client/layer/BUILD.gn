@@ -89,6 +89,7 @@ ohos_unittest("RSSurfaceLayerTest") {
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "init:libbegetutil",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
     "safwk:system_ability_fwk",

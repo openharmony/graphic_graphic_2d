@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include <inttypes.h>
+#include <cinttypes>
 
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_context.h"
@@ -166,6 +166,12 @@ public:
     GSError SetScalingMode(ScalingMode scalingMode) override
     {
         (void)scalingMode;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    GSError SetTunnelLayerInfo(const TunnelLayerInfo& info) override
+    {
+        (void)info;
         return GSERROR_NOT_SUPPORT;
     }
 
@@ -645,5 +651,6 @@ HWTEST_F(RSSurfaceHandlerTest, TryReclaimLastBuffer002, TestSize.Level1)
         }
     }
 }
+
 #endif
 } // namespace OHOS::Rosen

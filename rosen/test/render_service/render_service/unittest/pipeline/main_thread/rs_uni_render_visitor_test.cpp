@@ -7575,7 +7575,10 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId001, TestSize.Level2)
     ASSERT_NE(surfaceNode, nullptr);
  
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
-    EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+    uint64_t actualTunnelLayerId = 0;
+    uint32_t actualProperty = TUNNEL_PROP_INVALID;
+    surfaceNode->GetTunnelLayerInfo(actualTunnelLayerId, actualProperty);
+    EXPECT_EQ(actualTunnelLayerId, 0u);
 }
 
 /*
@@ -7653,14 +7656,48 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId002, TestSize.Level2)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
     ASSERT_NE(surfaceNode, nullptr);
  
-    surfaceNode->SetTunnelLayerId(1);
+    surfaceNode->SetTunnelLayerInfo(1, TUNNEL_PROP_INVALID);
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+    uint64_t actualTunnelLayerId = 0;
+    uint32_t actualProperty = TUNNEL_PROP_INVALID;
+    surfaceNode->GetTunnelLayerInfo(actualTunnelLayerId, actualProperty);
     if (nodeParams != nullptr) {
-        EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 1);
+        EXPECT_EQ(actualTunnelLayerId, 1u);
     } else {
-        EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+        EXPECT_EQ(actualTunnelLayerId, 0u);
     }
+}
+
+/*
+ * @tc.name: HandleTunnelLayerId003
+ * @tc.desc: Test HandleTunnelLayerId with invalid property still syncing tunnelLayerId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId003, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig, rsContext->weak_from_this());
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId());
+    ASSERT_NE(surfaceNode->GetStagingRenderParams(), nullptr);
+
+    constexpr uint64_t tunnelLayerId = 3002;
+    surfaceNode->SetTunnelLayerInfo(tunnelLayerId, TUNNEL_PROP_INVALID);
+
+    rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
+
+    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(nodeParams, nullptr);
+    EXPECT_EQ(nodeParams->GetTunnelLayerId(), tunnelLayerId);
+    EXPECT_EQ(nodeParams->GetTunnelLayerProperty(), TUNNEL_PROP_INVALID);
 }
 
 /*
@@ -9898,7 +9935,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode004, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     EXPECT_NE(surfaceNode, nullptr);
-    surfaceNode->SetTunnelLayerId(0); // Set TunnelLayerId to 0 for the new branch
+    surfaceNode->SetTunnelLayerInfo(0, TUNNEL_PROP_INVALID); // Set TunnelLayerId to 0 for the new branch
 
     NodeId id = 1;
     auto rsContext = std::make_shared<RSContext>();

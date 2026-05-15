@@ -43,6 +43,7 @@ lb_include_dirs = [
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend/engine",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
@@ -51,6 +52,7 @@ lb_include_dirs = [
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service",
   "$graphic_2d_root/rosen/modules/render_service/core",
   "$graphic_2d_root/rosen/modules/render_service_base/include",
   "$graphic_2d_root/rosen/modules/render_service_base/src",
@@ -116,7 +118,8 @@ ohos_static_library("layer_backend_test_impl") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_output.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_transaction_data.cpp",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_transaction_handler.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/" +
+        "transaction/rs_layer_transaction_handler.cpp",
   ]
 
   include_dirs = lb_include_dirs

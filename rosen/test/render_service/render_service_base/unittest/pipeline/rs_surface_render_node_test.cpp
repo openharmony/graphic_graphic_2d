@@ -2532,21 +2532,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetAncoFlags, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTunnelLayerId
- * @tc.desc: test results of SetTunnelLayerId
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetTunnelLayerId, TestSize.Level1)
-{
-    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(testNode, nullptr);
-    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
-    testNode->SetTunnelLayerId(1);
-    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
-}
- 
-/**
  * @tc.name: IsHardwareForcedDisabled001
  * @tc.desc: test results of IsHardwareForcedDisabled001
  * @tc.type: FUNC
@@ -2556,10 +2541,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsHardwareForcedDisabled001, TestSize.Level1)
 {
     auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
-    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
- 
-    testNode->SetTunnelLayerId(1);
-    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
     ASSERT_EQ(testNode->IsHardwareForcedDisabled(), false);
 }
 
