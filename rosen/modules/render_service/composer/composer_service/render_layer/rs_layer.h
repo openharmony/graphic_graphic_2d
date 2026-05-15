@@ -96,6 +96,8 @@ public:
     virtual uint64_t GetTunnelLayerId() const = 0;
     virtual void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) = 0;
     virtual uint32_t GetTunnelLayerProperty() const = 0;
+    virtual void SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration) = 0;
+    virtual uint64_t GetTunnelLayerGeneration() const = 0;
     virtual void SetIsSupportedPresentTimestamp(bool isSupported) = 0;
     virtual bool GetIsSupportedPresentTimestamp() const = 0;
     virtual void SetPresentTimestamp(const GraphicPresentTimestamp& timestamp) = 0;

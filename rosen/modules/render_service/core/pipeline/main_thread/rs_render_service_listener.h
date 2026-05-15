@@ -38,6 +38,8 @@ private:
     void SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
         const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer,
         bool doFastCompose = false);
+    void NotifyBufferAvailableOnce(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    bool CheckFastCompose(const sptr<IConsumerSurface>& consumer);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
     void CleanLayerBufferCache();
     bool ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node);

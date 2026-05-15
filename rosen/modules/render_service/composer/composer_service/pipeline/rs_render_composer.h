@@ -63,7 +63,7 @@ private:
 class RSRenderComposer {
 public:
     RSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
-    ~RSRenderComposer() = default;
+    ~RSRenderComposer();
     void SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback& setHardwareTaskNumCb,
         const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
         const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb);
@@ -80,6 +80,8 @@ protected:
     void OnHwcRestored(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void OnHwcDead();
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+    int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence);
     void SurfaceDump(std::string& dumpString);
     void FpsDump(std::string& dumpString, const std::string& layerName);
     void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
@@ -92,6 +94,12 @@ protected:
     int64_t GetDelayTime() const;
 
 private:
+    struct LayerCreatedCallbackContext {
+        std::mutex mutex;
+        sptr<IRSComposerToRenderConnection> composerToRenderConnection = nullptr;
+        bool isActive = true;
+    };
+
     void CreateAndInitComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static GraphicColorGamut ComputeTargetColorGamut(const std::vector<std::shared_ptr<RSLayer>>& layers);
@@ -147,6 +155,9 @@ private:
     void AddSolidColorLayer(std::vector<std::shared_ptr<RSLayer>>& layers);
     void SetScreenBacklight(uint32_t level);
     void ReInit(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
+    void RegisterLayerCreatedCallbackToOutput();
+    void ClearLayerCreatedCallbackFromOutput() const;
+    void HandleTunnelCommitFailure(uint64_t surfaceId);
     bool GetDisplayClientTargetProperty(GraphicPixelFormat& pixelFormat,
         GraphicColorGamut& colorGamut, const std::vector<std::shared_ptr<RSLayer>>& layers);
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -171,6 +182,8 @@ private:
     int exceptionCnt_ = 0;
     ExceptionCheck exceptionCheck_;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_;
+    std::shared_ptr<LayerCreatedCallbackContext> layerCreatedCallbackContext =
+        std::make_shared<LayerCreatedCallbackContext>();
     ComposerScreenInfo composerScreenInfo_;
     SetHardwareTaskNumCallback setHardwareTaskNumCb_;
     SetTaskEndWithTimeCallback setTaskEndWithTimeCb_;

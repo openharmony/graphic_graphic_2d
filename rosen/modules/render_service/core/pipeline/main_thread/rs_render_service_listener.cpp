@@ -16,10 +16,10 @@
 #include "pipeline/main_thread/rs_render_service_listener.h"
 
 #include "common/rs_optional_trace.h"
+#include "common/rs_tunnel_layer_utils.h"
 #include "platform/common/rs_log.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "rs_render_composer_manager.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
 #include "sync_fence.h"
 namespace OHOS {
 namespace Rosen {
@@ -40,8 +40,35 @@ void RSRenderServiceListener::OnBufferAvailable()
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
     auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    if (surfaceHandler == nullptr) {
+        RS_LOGD("RSRenderServiceListener::OnBufferAvailable surfaceHandler is nullptr");
+        return;
+    }
     surfaceHandler->IncreaseAvailableBuffer();
     auto consumer = surfaceHandler->GetConsumer();
+    NotifyBufferAvailableOnce(node);
+    if (ForceRefresh(node)) {
+        return;
+    }
+    bool isNewTunnelEnabled = Rosen::IsNewTunnelEnabled();
+    auto doFastCompose = CheckFastCompose(consumer);
+    if (isNewTunnelEnabled) {
+        auto handleResult = RSTunnelLayerHelper::HandleListenerBuffer(node, surfaceHandler, composerClientManager_);
+        if (handleResult.needRequestVsync) {
+            RSMainThread::Instance()->RequestNextVSync("tunnel-pending-param");
+        }
+        if (handleResult.committed) {
+            return;
+        }
+    }
+    SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer(), doFastCompose);
+}
+
+void RSRenderServiceListener::NotifyBufferAvailableOnce(const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    if (node == nullptr) {
+        return;
+    }
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
         RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable id = %{public}" PRIu64 " Notify"
@@ -53,24 +80,26 @@ void RSRenderServiceListener::OnBufferAvailable()
             " RT buffer available", node->GetId());
         node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
     }
-    if (ForceRefresh(node)) {
-        return;
+}
+
+bool RSRenderServiceListener::CheckFastCompose(const sptr<IConsumerSurface>& consumer)
+{
+    if (consumer == nullptr) {
+        return false;
     }
     auto doFastCompose = false;
-    if (consumer) {
-        bool supportFastCompose = false;
-        GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);
-        if (ret == GSERROR_OK && supportFastCompose) {
-            int64_t lastFlushedDesiredPresentTimeStamp = 0;
-            ret = consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedDesiredPresentTimeStamp);
-            if (ret == GSERROR_OK) {
-                RS_TRACE_NAME_FMT("RSRenderServiceListener::OnBufferAvailable SupportFastCompose : %d, " \
+    bool supportFastCompose = false;
+    GSError ret = consumer->GetBufferSupportFastCompose(supportFastCompose);
+    if (ret == GSERROR_OK && supportFastCompose) {
+        int64_t lastFlushedDesiredPresentTimeStamp = 0;
+        ret = consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedDesiredPresentTimeStamp);
+        if (ret == GSERROR_OK) {
+            RS_TRACE_NAME_FMT("RSRenderServiceListener::OnBufferAvailable SupportFastCompose : %d, "
                 "bufferTimeStamp : %" PRId64, supportFastCompose, lastFlushedDesiredPresentTimeStamp);
-                doFastCompose = RSMainThread::Instance()->CheckFastCompose(lastFlushedDesiredPresentTimeStamp);
-            }
+            doFastCompose = RSMainThread::Instance()->CheckFastCompose(lastFlushedDesiredPresentTimeStamp);
         }
     }
-    SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer(), doFastCompose);
+    return doFastCompose;
 }
 
 void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
@@ -104,14 +133,14 @@ void RSRenderServiceListener::OnTunnelHandleChange()
 {
     auto node = surfaceRenderNode_.lock();
     if (node == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnTunnelHandleChange node is nullptr");
+        RS_LOGE("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelHandleChange node is nullptr");
         return;
     }
     node->SetTunnelHandleChange(true);
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
-        RS_LOGD("RsDebug RSRenderServiceListener::OnTunnelHandleChange id = %{public}" PRIu64 " Notify"
-            " UI buffer available", node->GetId());
+        RS_LOGD("TUNNEL_DEBUG RsDebug RSRenderServiceListener::OnTunnelHandleChange id = %{public}" PRIu64
+            " Notify UI buffer available", node->GetId());
         node->NotifyUIBufferAvailable();
     }
     RSMainThread::Instance()->RequestNextVSync();

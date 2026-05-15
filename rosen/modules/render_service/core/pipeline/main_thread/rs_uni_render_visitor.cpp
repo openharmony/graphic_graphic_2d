@@ -23,6 +23,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "common/rs_tunnel_layer_utils.h"
 #include "engine/rs_base_render_util.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
@@ -2587,12 +2588,15 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             node->SetArsrTag(false);
             continue;
         }
+        uint64_t nodeTunnelLayerId = 0;
+        uint32_t nodeTunnelProperty = TUNNEL_PROP_INVALID;
+        node->GetTunnelLayerInfo(nodeTunnelLayerId, nodeTunnelProperty);
         if (it.second == RequestCompositionType::OFFLINE_DEVICE &&
 #ifdef HETERO_HDR_ENABLE
             !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
 #endif
             RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady() &&
-            node->GetTunnelLayerId() == 0) {
+            nodeTunnelLayerId == 0) {
             node->SetDeviceOfflineEnable(true);
             continue;
         }
@@ -4186,18 +4190,22 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
 
 void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
 {
-    auto tunnelLayerId = node.GetTunnelLayerId();
-    if (!tunnelLayerId) {
-        return;
-    }
+    uint64_t tunnelLayerId = 0;
+    uint32_t property = TUNNEL_PROP_INVALID;
+    node.GetTunnelLayerInfo(tunnelLayerId, property);
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     if (nodeParams == nullptr) {
         return;
     }
-    nodeParams->SetTunnelLayerId(tunnelLayerId);
-    RS_LOGI("%{public}s lpp surfaceid:%{public}" PRIu64 ", nodeid:%{public}" PRIu64,
-        __func__, tunnelLayerId, node.GetId());
-    RS_TRACE_NAME_FMT("%s lpp surfaceid:%" PRIu64 ", nodeid:%" PRIu64, __func__, tunnelLayerId, node.GetId());
+    nodeParams->SetTunnelLayerInfo(tunnelLayerId, property);
+    nodeParams->SetTunnelLayerGeneration(node.GetTunnelRuntimeState().GetTunnelLayerGeneration());
+    if (tunnelLayerId == 0) {
+        return;
+    }
+    RS_LOGI("%{public}s tunnel surfaceid:%{public}" PRIu64 ", property:%{public}u, nodeid:%{public}" PRIu64,
+        __func__, tunnelLayerId, property, node.GetId());
+    RS_TRACE_NAME_FMT("%s tunnel surfaceid:%" PRIu64 ", property:%u, nodeid:%" PRIu64,
+        __func__, tunnelLayerId, property, node.GetId());
 }
 
 void RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node)

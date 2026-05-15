@@ -37,6 +37,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "pipeline/rs_tunnel_runtime_state.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_surface_ext.h"
 #include "platform/common/rs_system_properties.h"
@@ -1467,16 +1468,6 @@ public:
         return surfaceId_;
     }
 
-    void SetTunnelLayerId(SurfaceId tunnelLayerId)
-    {
-        tunnelLayerId_ = tunnelLayerId;
-    }
-
-    SurfaceId GetTunnelLayerId() const
-    {
-        return tunnelLayerId_;
-    }
-
     bool GetIsForeground() const
     {
         return isForeground_;
@@ -1897,6 +1888,28 @@ public:
     void SetHDRType(uint32_t hdrType);
     uint32_t GetHDRType() const;
 
+    void GetTunnelLayerInfo(uint64_t& tunnelLayerId, uint32_t& property)
+    {
+        tunnelRuntimeState_->GetLayerInfo(tunnelLayerId, property);
+    }
+
+    void SetTunnelLayerInfo(uint64_t tunnelLayerId, uint32_t property)
+    {
+        if (tunnelLayerId == 0) {
+            property = TUNNEL_PROP_INVALID;
+        }
+        tunnelRuntimeState_->SetLayerInfo(tunnelLayerId, property);
+    }
+
+    RSTunnelRuntimeState& GetTunnelRuntimeState()
+    {
+        return *tunnelRuntimeState_;
+    }
+
+    const RSTunnelRuntimeState& GetTunnelRuntimeState() const
+    {
+        return *tunnelRuntimeState_;
+    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -2097,7 +2110,6 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     SurfaceId surfaceId_ = 0;
-    SurfaceId tunnelLayerId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     struct GamutCollector
     {
@@ -2160,6 +2172,7 @@ private:
 
     std::string name_;
     std::string bundleName_;
+    std::unique_ptr<RSTunnelRuntimeState> tunnelRuntimeState_ = nullptr;
     std::vector<NodeId> childSurfaceNodeIds_;
     std::shared_ptr<RSRenderPipelineClient> rsRenderPipelineClient_;
     friend class RSRenderThreadVisitor;

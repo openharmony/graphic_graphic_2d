@@ -95,6 +95,11 @@ void RSComposerClient::RegisterOnReleaseLayerBuffersCB(OnReleaseLayerBuffersCB c
     rsComposerContext_->RegisterOnReleaseLayerBuffersCB(cb);
 }
 
+void RSComposerClient::RegisterLayerStateChangedCB(OnLayerStateChangedCB cb)
+{
+    rsComposerContext_->RegisterLayerStateChangedCB(std::move(cb));
+}
+
 void RSComposerClient::ReleaseLayerBuffers(uint64_t screenId,
     std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
     std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec)
@@ -115,6 +120,14 @@ std::shared_ptr<RSComposerContext> RSComposerClient::GetComposerContext()
 void RSComposerClient::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
     rsComposerContext_->CleanLayerBufferBySurfaceId(surfaceId);
+}
+
+int32_t RSComposerClient::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
+{
+    std::lock_guard<std::mutex> lock(clientMutex_);
+    return rsComposerContext_->CommitTunnelLayerBySurfaceId(surfaceId, tunnelLayerId,
+        buffer, acquireFence, releaseFence);
 }
 
 void RSComposerClient::ClearFrameBuffers()

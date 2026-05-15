@@ -448,6 +448,7 @@ private:
     bool cleanDone_ = false;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
+    const std::string VIDEO_TUNNEL = "VIDEO_TUNNEL";
     static const std::string GPU_FREQ_PREF;
     sptr<RSVsyncManagerAgent> vsyncManagerAgent_ = nullptr;
     bool needRefresh_ = false;

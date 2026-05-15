@@ -257,6 +257,32 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
     }
 }
 
+void RSBufferManager::ReplacePendingReleaseBufferFence(sptr<IConsumerSurface> consumer,
+    sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
+{
+    if (buffer == nullptr || fence == nullptr) {
+        return;
+    }
+    auto bufferId = buffer->GetBufferId();
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReplacePendingReleaseBufferFence bufferId %" PRIu64
+        " seq %u fence %d", bufferId, uint32_t(buffer->GetSeqNum()), fence->Get());
+    std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
+    auto iter = pendingReleaseBuffers_.find(bufferId);
+    if (iter == pendingReleaseBuffers_.end()) {
+        pendingReleaseBuffers_[bufferId] = { consumer, buffer, { fence }, bufferOwnerCount };
+        return;
+    }
+    iter->second.mergedFences_ = { fence };
+    iter->second.buffer_ = buffer;
+    if (consumer != nullptr) {
+        iter->second.consumer_ = consumer;
+    }
+    if (bufferOwnerCount != nullptr) {
+        iter->second.bufferOwnerCount_ = bufferOwnerCount;
+    }
+}
+
 void RSBufferManager::AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence> fence,
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
 {

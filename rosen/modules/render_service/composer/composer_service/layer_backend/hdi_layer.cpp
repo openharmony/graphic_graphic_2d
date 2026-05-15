@@ -18,6 +18,7 @@
 #include <cstring>
 #include <securec.h>
 #include "common/rs_optional_trace.h"
+#include "common/rs_tunnel_layer_utils.h"
 #include "hdi_log.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
@@ -154,6 +155,7 @@ int32_t HdiLayer::CreateLayer(const std::shared_ptr<RSLayer>& rsLayer)
     ResetBufferCache();
     bufferCache_.reserve(bufferCacheCountMax_);
     layerId_ = layerId;
+    layerType_ = rsLayer->GetType();
 
     HLOGD("Create hwc layer succeed, layerId is %{public}u", layerId_);
 
@@ -180,6 +182,8 @@ void HdiLayer::CloseLayer()
     }
 
     HLOGD("Close hwc layer succeed, layerId is %{public}u", layerId_);
+    layerId_ = INT_MAX;
+    layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
 }
 
 int32_t HdiLayer::SetLayerAlpha()
@@ -285,6 +289,7 @@ int32_t HdiLayer::SetLayerBuffer()
         return GRAPHIC_DISPLAY_SUCCESS;
     }
     sptr<SyncFence> currAcquireFence = rsLayer_->GetAcquireFence();
+
     if (doLayerInfoCompare_) {
         sptr<SurfaceBuffer> prevBuffer = prevRSLayer_->GetBuffer();
         sptr<SyncFence> prevAcquireFence = prevRSLayer_->GetAcquireFence();
@@ -323,6 +328,7 @@ int32_t HdiLayer::SetLayerBuffer()
     bufferCleared_ = false;
     return device_->SetLayerBuffer(screenId_, layerId_, layerBuffer);
 }
+
 
 int32_t HdiLayer::SetLayerCompositionType()
 {
@@ -505,7 +511,7 @@ int32_t HdiLayer::SetTunnelLayerId()
             return GRAPHIC_DISPLAY_SUCCESS;
         }
     }
- 
+
     int32_t ret = device_->SetTunnelLayerId(screenId_, layerId_, rsLayer_->GetTunnelLayerId());
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         return ret;
@@ -629,6 +635,11 @@ std::shared_ptr<RSLayer> HdiLayer::GetRSLayer()
     return rsLayer_;
 }
 
+GraphicLayerType HdiLayer::GetCreatedLayerType() const
+{
+    return layerType_;
+}
+
 void HdiLayer::SetLayerStatus(bool inUsing)
 {
     isInUsing_ = inUsing;
@@ -652,9 +663,24 @@ void HdiLayer::UpdateRSLayer(const std::shared_ptr<RSLayer>& rsLayer)
     isInUsing_ = true;
     rsLayer_ = rsLayer;
     rsLayer_->SetHdiCompositionType(rsLayer->GetCompositionType());
-
     prevSbuffer_ = currBufferInfo_->sbuffer_;
     currBufferInfo_->sbuffer_ = rsLayer_->GetBuffer();
+}
+
+void HdiLayer::MarkPendingTunnelLayerCreated(uint64_t tunnelLayerGeneration)
+{
+    pendingTunnelLayerCreatedGeneration_.store(tunnelLayerGeneration, std::memory_order_release);
+}
+
+bool HdiLayer::HasPendingTunnelLayerCreated() const
+{
+    return pendingTunnelLayerCreatedGeneration_.load(std::memory_order_acquire) != 0;
+}
+
+bool HdiLayer::TakePendingTunnelLayerCreated(uint64_t& tunnelLayerGeneration)
+{
+    tunnelLayerGeneration = pendingTunnelLayerCreatedGeneration_.exchange(0, std::memory_order_acq_rel);
+    return tunnelLayerGeneration != 0;
 }
 
 void HdiLayer::SetReleaseFence(const sptr<SyncFence>& layerReleaseFence)
@@ -937,20 +963,24 @@ void HdiLayer::ClearBufferCache()
 
 int32_t HdiLayer::SetTunnelLayerParameters()
 {
-    if (rsLayer_->GetTunnelLayerId() && rsLayer_->GetTunnelLayerProperty()) {
-        int32_t tunnelLayerIdRet = SetTunnelLayerId();
-        if (tunnelLayerIdRet != GRAPHIC_DISPLAY_SUCCESS) {
-            CheckRet(tunnelLayerIdRet, "SetTunnelLayerId");
-            return tunnelLayerIdRet;
-        }
-        int32_t tunnelLayerPropertyRet = SetTunnelLayerProperty();
-        if (tunnelLayerPropertyRet != GRAPHIC_DISPLAY_SUCCESS) {
-            CheckRet(tunnelLayerPropertyRet, "SetTunnelLayerProperty");
-            return tunnelLayerPropertyRet;
-        }
+    if (rsLayer_ == nullptr) {
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+    if (prevRSLayer_ == nullptr && rsLayer_->GetTunnelLayerId() == 0 &&
+        rsLayer_->GetTunnelLayerProperty() == TUNNEL_PROP_INVALID) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
-    return GRAPHIC_DISPLAY_FAILURE;
+    int32_t tunnelLayerIdRet = SetTunnelLayerId();
+    if (tunnelLayerIdRet != GRAPHIC_DISPLAY_SUCCESS) {
+        CheckRet(tunnelLayerIdRet, "SetTunnelLayerId");
+        return tunnelLayerIdRet;
+    }
+    int32_t tunnelLayerPropertyRet = SetTunnelLayerProperty();
+    if (tunnelLayerPropertyRet != GRAPHIC_DISPLAY_SUCCESS) {
+        CheckRet(tunnelLayerPropertyRet, "SetTunnelLayerProperty");
+        return tunnelLayerPropertyRet;
+    }
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 void HdiLayer::ResetBufferCache()

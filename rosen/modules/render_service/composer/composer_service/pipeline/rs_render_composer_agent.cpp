@@ -180,6 +180,16 @@ void RSRenderComposerAgent::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     );
 }
 
+int32_t RSRenderComposerAgent::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
+{
+    if (rsRenderComposer_ == nullptr || surfaceId == 0 || tunnelLayerId == 0 || buffer == nullptr) {
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+    return rsRenderComposer_->CommitTunnelLayerBySurfaceId(surfaceId, tunnelLayerId, buffer,
+        acquireFence, releaseFence);
+}
+
 void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
     if (rsRenderComposer_ == nullptr) {

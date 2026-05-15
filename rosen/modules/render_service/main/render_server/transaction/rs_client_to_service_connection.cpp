@@ -93,6 +93,7 @@
 #define LOG_TAG "RSClientToServiceConnection"
 
 #include "app_mgr_client.h"
+#include "surface_utils.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 
 namespace OHOS {
@@ -1694,6 +1695,11 @@ void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventI
         return;
     }
     hgmContext_->NotifyRefreshRateEvent(remotePid_, eventInfo);
+    if (VIDEO_TUNNEL == eventInfo.eventName) {
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s add config=%s", __func__, eventInfo.description.c_str());
+        SurfaceUtils::GetInstance()->AddTunnelLayerConfig(eventInfo.description);
+        RS_LOGD("TUNNEL_DEBUG %s add config:%{public}s", __func__, eventInfo.description.c_str());
+    }
 }
 
 

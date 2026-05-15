@@ -24,6 +24,7 @@
 
 #include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_tunnel_layer_utils.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -134,6 +135,7 @@ void RSUniRenderProcessor::PostProcess()
         }
     }
     uniComposerAdapter_->CommitLayers();
+    RSUniRenderThread::Instance().NotifyCommitDone(screenInfo_.id);
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers_.size());
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
@@ -156,6 +158,11 @@ static void SetDeviceOfflineOriginalInfo(RSLayerPtr& layer, RSSurfaceRenderParam
 void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
     const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
+    uint64_t tunnelLayerId = 0;
+    uint32_t tunnelLayerProperty = TUNNEL_PROP_INVALID;
+    node.GetTunnelLayerInfo(tunnelLayerId, tunnelLayerProperty);
+    params.SetTunnelLayerInfo(tunnelLayerId, tunnelLayerProperty);
+    params.SetTunnelLayerGeneration(node.GetTunnelRuntimeState().GetTunnelLayerGeneration());
     auto surfaceHandler = node.GetRSSurfaceHandler();
     auto buffer = offlineResult ? offlineResult->buffer : surfaceHandler->GetBuffer();
     auto consumer = offlineResult ? offlineResult->consumer : surfaceHandler->GetConsumer();
@@ -168,6 +175,7 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
     const Rect& dirtyRect = offlineResult ? offlineResult->damageRect : params.GetBufferDamage();
     auto preBuffer = offlineResult ? offlineResult->preBuffer : params.GetPreBuffer();
     auto acquireFence = offlineResult ? offlineResult->acquireFence : params.GetAcquireFence();
+    auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : params.GetBufferOwnerCount();
     RSLayerPtr layer = GetLayerInfo(
         params, buffer, preBuffer, consumer, acquireFence, offlineResult);
     if (layer == nullptr) {
@@ -179,7 +187,6 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
     layer->SetLayerLinearMatrix(params.GetLayerLinearMatrix());
-    auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : params.GetBufferOwnerCount();
     if (bufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayer SetBufferOwnerCount bufferId %" PRIu64
             " layerId %" PRIu64, bufferOwnerCount->bufferId_, layer->GetRSLayerId());
@@ -234,6 +241,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
             surfaceDrawable.GetName().c_str(), surfaceDrawable.GetId());
         return;
     }
+    auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : params.GetBufferOwnerCount();
     RSLayerPtr layer = GetLayerInfo(static_cast<RSSurfaceRenderParams&>(params), buffer, preBuffer,
         consumer, acquireFence, offlineResult);
     if (layer == nullptr) {
@@ -247,7 +255,6 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
-    auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : renderParams.GetBufferOwnerCount();
     if (bufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayerForRenderThread SetBufferOwnerCount "
             "bufferId %" PRIu64 " layerId %" PRIu64, bufferOwnerCount->bufferId_, layer->GetRSLayerId());
@@ -607,12 +614,16 @@ void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
 
 void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer)
 {
-    if (!layer || !params.GetTunnelLayerId()) {
+    if (layer->GetType() != GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL) {
+        layer->SetTunnelLayerId(0);
+        layer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
+        layer->SetTunnelLayerGeneration(0);
         return;
     }
     layer->SetTunnelLayerId(params.GetTunnelLayerId());
-    layer->SetTunnelLayerProperty(TunnelLayerProperty::TUNNEL_PROP_BUFFER_ADDR |
-        TunnelLayerProperty::TUNNEL_PROP_DEVICE_COMMIT);
+    uint32_t tunnelProperty = params.GetTunnelLayerProperty();
+    layer->SetTunnelLayerProperty(tunnelProperty);
+    layer->SetTunnelLayerGeneration(params.GetTunnelLayerGeneration());
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR

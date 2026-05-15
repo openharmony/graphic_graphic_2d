@@ -36,6 +36,7 @@ struct ReleaseLayerBuffersInfo {
 };
 using ReleaseLayerBuffersCB = std::function<void(ReleaseLayerBuffersInfo& releaseLayerInfo)>;
 using JudgeLppLayerCB = std::function<void(uint64_t, const std::unordered_set<uint64_t>&)>;
+using LayerStateChangedCB = std::function<void(uint64_t, LayerStateChange, uint64_t)>;
 
 class IRSComposerToRenderConnection : public IRemoteBroker {
 public:
@@ -51,10 +52,15 @@ public:
     virtual int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) = 0;
     virtual void RegisterJudgeLppLayerCB(JudgeLppLayerCB callback) = 0;
 
+    virtual int32_t NotifyLayerStateChangedToRender(
+        uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration) = 0;
+    virtual void RegisterLayerStateChangedCB(LayerStateChangedCB callback) = 0;
+
 protected:
     enum {
         ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS = 0,
         NOTIFY_LPP_LAYER_TO_RENDER = 1,
+        NOTIFY_LAYER_STATE_CHANGED_TO_RENDER = 2,
     };
 };
 } // namespace Rosen

@@ -790,5 +790,18 @@ int32_t HdiDeviceImpl::GetDisplayClientTargetProperty(uint32_t screenId, int32_t
     return g_composer->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace);
 }
 
+int32_t HdiDeviceImpl::SetTunnelLayerBuffer(uint32_t screenId, uint64_t tunnleId, const BufferHandle* inHandle,
+    const int32_t acquireFence)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetTunnelLayerBuffer(screenId, tunnleId, inHandle, acquireFence);
+}
+
+int32_t HdiDeviceImpl::CommitTunnelLayer(uint32_t screenId, uint64_t tunnleId, int32_t& releaseFence)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->CommitTunnelLayer(screenId, tunnleId, releaseFence);
+}
+
 } // namespace Rosen
 } // namespace OHOS

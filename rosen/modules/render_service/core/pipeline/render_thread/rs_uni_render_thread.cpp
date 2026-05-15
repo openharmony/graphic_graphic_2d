@@ -1235,5 +1235,17 @@ void RSUniRenderThread::DumpCurrentFrameLayers()
         composerClientManager_->DumpCurrentFrameLayers();
     });
 }
+
+void RSUniRenderThread::SetCommitDoneCallback(CommitDoneCallback callback)
+{
+    commitDoneCallback_ = std::move(callback);
+}
+
+void RSUniRenderThread::NotifyCommitDone(ScreenId screenId)
+{
+    if (commitDoneCallback_ != nullptr) {
+        commitDoneCallback_(screenId);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -18,6 +18,7 @@
 #include "command/rs_command_verify_helper.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
+#include "surface_utils.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "platform/common/rs_log.h"
@@ -84,6 +85,29 @@ constexpr uint32_t PIDLIST_SIZE_MAX = 128;
 constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
+
+void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface)
+{
+    auto utils = SurfaceUtils::GetInstance();
+    if (utils == nullptr || !utils->NeedForceTunnelLayer(config.name, config.bundleName)) {
+        return;
+    }
+    TunnelLayerInfo info;
+    info.tunnelTypeMask = TUNNEL_TYPE_VIDEO;
+    if (surface->SetTunnelLayerInfo(info) != GSERROR_OK) {
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s set tunnel layer failed, nodeId=%" PRIu64 ", name=%s",
+            __func__, config.id, config.name.c_str());
+        RS_LOGW("RSRenderPipeline::CreateNodeAndSurface set tunnel layer info failed, name:%{public}s",
+            config.name.c_str());
+        return;
+    }
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s force tunnel layer, nodeId=%" PRIu64 ", name=%s, bundle=%s",
+        __func__, config.id, config.name.c_str(), config.bundleName.c_str());
+    RS_LOGD("TUNNEL_DEBUG %s force tunnel layer, nodeId:%{public}" PRIu64
+        ", name:%{public}s, bundle:%{public}s", __func__, config.id, config.name.c_str(),
+        config.bundleName.c_str());
+}
+
 }
 
 bool ValidateTargetId(const RSRenderNodeMap& nodeMap, uint64_t id)
@@ -1198,6 +1222,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     RS_LOGI("RsDebug RSRenderPipeline::CreateNodeAndSurface node"
             "id:%{public}" PRIu64 " name:%{public}s surface id:%{public}" PRIu64 " name:%{public}s",
         node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
+    ConfigureForceTunnelLayer(config, surface);
     auto defaultUsage = surface->GetDefaultUsage();
     auto nodeId = node->GetId();
     bool isUseSelfDrawBufferUsage = RSSystemProperties::GetSelfDrawingDirtyRegionEnabled() &&

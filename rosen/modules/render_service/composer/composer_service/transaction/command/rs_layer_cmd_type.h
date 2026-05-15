@@ -95,6 +95,7 @@ enum class RSLayerCmdType : uint16_t {
     ANCO_SRC_RECT,
     DELETE_LAYER,
     HPAE_ORIGINAL_INFO,
+    TUNNEL_LAYER_GENERATION,
 
     LAYER_CMD = 254,
     MAX_RS_LAYER_CMD_TYPE = 255,
