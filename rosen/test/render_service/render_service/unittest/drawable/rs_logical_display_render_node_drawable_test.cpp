@@ -3912,6 +3912,71 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MirrorRedrawDFXTest001, TestSiz
 }
 
 /**
+ * @tc.name: PrepareOffscreenRenderWithFixFormatTest
+ * @tc.desc: Test PrepareOffscreenRender with fixFormat parameter
+ * @tc.type: FUNC
+ * @tc.require: issue26248
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderWithFixFormatTest, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+
+    auto surface = std::make_shared<Drawing::Surface>();
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+    displayParams->frameRect_ = {0, 0, 100, 100};
+
+    auto screenDrawable = screenNode_->GetRenderDrawable();
+    auto screenParam = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    screenParam->SetHDRPresent(true);
+
+    displayParams->SetAncestorScreenDrawable(screenDrawable);
+    displayParams->needOffscreen_ = false;
+    displayDrawable_->useFixedOffscreenSurfaceSize_ = true;
+    displayDrawable_->offscreenSurface_ = std::make_shared<Drawing::Surface>();
+    screenParam->screenHDRStatus_ = HdrStatus::HDR_EFFECT;
+
+    // Test with fixFormat = true (covers the new else if branch)
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false, true);
+
+    // Verify offscreen surface was created
+    // The fixFormat branch creates surface with COLORTYPE_RGBA_8888
+    EXPECT_NE(displayParams->GetAncestorScreenDrawable().lock(), nullptr);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderWithFixFormatFalseTest
+ * @tc.desc: Test PrepareOffscreenRender with fixFormat = false
+ * @tc.type: FUNC
+ * @tc.require: issue26248
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderWithFixFormatFalseTest, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+
+    auto surface = std::make_shared<Drawing::Surface>();
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+    displayParams->frameRect_ = {0, 0, 100, 100};
+
+    auto screenDrawable = screenNode_->GetRenderDrawable();
+    auto screenParam = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    screenParam->SetHDRPresent(true);
+
+    displayParams->SetAncestorScreenDrawable(screenDrawable);
+    displayParams->needOffscreen_ = false;
+    displayDrawable_->useFixedOffscreenSurfaceSize_ = true;
+    displayDrawable_->offscreenSurface_ = std::make_shared<Drawing::Surface>();
+    screenParam->screenHDRStatus_ = HdrStatus::HDR_EFFECT;
+
+    // Test with fixFormat = false (should use default branch)
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false, false);
+
+    // Verify offscreen surface was created
+    EXPECT_NE(displayParams->GetAncestorScreenDrawable().lock(), nullptr);
+}
+
+/**
  * @tc.name: DrawHardwareEnabledNodesTest001
  * @tc.desc: Test DrawHardwareEnabledNodes
  * @tc.type: FUNC
