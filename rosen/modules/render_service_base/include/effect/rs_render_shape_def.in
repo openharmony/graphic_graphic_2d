@@ -46,6 +46,12 @@ DECLARE_SHAPE(SDFTriangleShape, SDF_TRIANGLE_SHAPE,
     ADD_PROPERTY_TAG(SDFTriangleShape, Radius)
 );
 
+DECLARE_SHAPE(SDFEllipseShape, SDF_ELLIPSE_SHAPE,
+    ADD_PROPERTY_TAG(SDFEllipseShape, Center),
+    ADD_PROPERTY_TAG(SDFEllipseShape, Width),
+    ADD_PROPERTY_TAG(SDFEllipseShape, Height)
+);
+
 DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
     ADD_PROPERTY_TAG(SDFTransformShape, Matrix),
     ADD_PROPERTY_TAG(SDFTransformShape, Shape),

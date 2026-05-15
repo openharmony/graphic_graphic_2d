@@ -205,6 +205,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_shape_test/ng_sdf_shape_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_distort_op_shape_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_path_shape_test.cpp",
+  "rs_effect_feature/ng_shape_test/ng_sdf_ellipse_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_rrect_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_triangle_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_test_utils.cpp",
