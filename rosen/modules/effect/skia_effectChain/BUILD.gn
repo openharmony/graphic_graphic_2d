@@ -73,6 +73,11 @@ config("effect_SKeffectChian_public_config") {
       "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
       "//foundation/appframework/graphic_2d/${current_os}",
     ]
+    if (target_os == "ios") {
+      include_dirs += [ "//foundation/appframework/graphic_2d/ios" ]
+      } else if (target_os == "android") {
+        include_dirs += [ "//foundation/appframework/graphic_2d/android" ]
+        }
   }
 }
 if (is_arkui_x) {
@@ -100,7 +105,8 @@ if (is_arkui_x) {
     } else if (target_os == "ios") {
       defines = [
         "IOS_PLATFORM",
-        "ROSEN_IOS"
+        "ROSEN_IOS",
+        "ROSEN_ARKUI_X",
       ]
     }
 
