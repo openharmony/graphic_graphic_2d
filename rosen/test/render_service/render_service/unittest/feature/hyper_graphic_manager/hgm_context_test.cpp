@@ -1324,7 +1324,7 @@ HWTEST_F(HgmContextTest, RegisterScreenManagerCallbacksAndInvokeAllMethods, Test
     constexpr ScreenId defaultScreenId = 0;
 
     // Register all screen manager callbacks
-    hgmCore.RegisterScreenManagerCallbacks(
+    hgmCore.RegisterScreenManagerCallbacks({
         // GetDefaultScreenIdCallback
         [&getDefaultScreenIdCalled]() -> ScreenId {
             getDefaultScreenIdCalled.store(true);
@@ -1375,7 +1375,7 @@ HWTEST_F(HgmContextTest, RegisterScreenManagerCallbacksAndInvokeAllMethods, Test
             }
             return 0u;
         }
-    );
+    });
 
     // Test 1: Call GetDefaultScreenId
     ScreenId retrievedDefaultScreenId = hgmCore.GetDefaultScreenId();

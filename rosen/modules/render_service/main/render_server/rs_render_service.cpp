@@ -170,7 +170,7 @@ bool RSRenderService::CoreComponentsInit()
 void RSRenderService::HgmInit()
 {
     RS_LOGI("%{public}s", __func__);
-    HgmCore::Instance().RegisterScreenManagerCallbacks(
+    HgmCore::Instance().RegisterScreenManagerCallbacks({
         std::bind(&RSScreenManager::GetDefaultScreenId, screenManager_.GetRefPtr()),
         std::bind(&RSScreenManager::GetScreenPowerStatus, screenManager_.GetRefPtr(), std::placeholders::_1),
         std::bind(&RSScreenManager::GetScreenSupportedModes, screenManager_.GetRefPtr(), std::placeholders::_1),
@@ -180,7 +180,7 @@ void RSRenderService::HgmInit()
             screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2),
         std::bind(&RSScreenManager::GetScreenActiveRefreshRate,
             screenManager_.GetRefPtr(), std::placeholders::_1)
-    );
+    });
     HgmCore::Instance().SetScreenManager(screenManager_.GetRefPtr());
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
         auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) {

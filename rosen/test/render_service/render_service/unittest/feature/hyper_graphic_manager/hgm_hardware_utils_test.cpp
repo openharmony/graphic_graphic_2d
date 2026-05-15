@@ -153,7 +153,7 @@ HWTEST_F(HgmHardwareUtilsTest, PerformSetActiveModeTest, TestSize.Level1)
     ASSERT_NE(screenManager, nullptr);
     auto& hgmCore = hgmHardwareUtils->hgmCore_;
     EXPECT_CALL(*hdiDeviceMock_, SetScreenMode).WillRepeatedly(testing::Return(-1));
-    hgmCore.RegisterScreenManagerCallbacks(
+    hgmCore.RegisterScreenManagerCallbacks({
         std::bind(&RSScreenManager::GetDefaultScreenId, screenManager.GetRefPtr()),
         std::bind(&RSScreenManager::GetScreenPowerStatus, screenManager.GetRefPtr(), std::placeholders::_1),
         std::bind(&RSScreenManager::GetScreenSupportedModes, screenManager.GetRefPtr(), std::placeholders::_1),
@@ -162,7 +162,7 @@ HWTEST_F(HgmHardwareUtilsTest, PerformSetActiveModeTest, TestSize.Level1)
         std::bind(&RSScreenManager::SetScreenActiveMode,
             screenManager.GetRefPtr(), std::placeholders::_1, std::placeholders::_2),
         std::bind(&RSScreenManager::GetScreenActiveRefreshRate, screenManager.GetRefPtr(), std::placeholders::_1)
-    );
+    });
 
     auto rsScreen = std::make_shared<RSScreen>(SCREEN_ID);
     rsScreen->hdiScreen_ = HdiScreen::CreateHdiScreen(SCREEN_ID);
@@ -219,7 +219,7 @@ HWTEST_F(HgmHardwareUtilsTest, SwitchRefreshRateTest, TestSize.Level1)
     ASSERT_NE(screenManager, nullptr);
     auto& hgmCore = hgmHardwareUtils->hgmCore_;
     RSScreenManager* orgScmFromHgm = hgmCore.GetScreenManager();
-    hgmCore.RegisterScreenManagerCallbacks(
+    hgmCore.RegisterScreenManagerCallbacks({
         std::bind(&RSScreenManager::GetDefaultScreenId, screenManager.GetRefPtr()),
         std::bind(&RSScreenManager::GetScreenPowerStatus, screenManager.GetRefPtr(), std::placeholders::_1),
         std::bind(&RSScreenManager::GetScreenSupportedModes, screenManager.GetRefPtr(), std::placeholders::_1),
@@ -228,7 +228,7 @@ HWTEST_F(HgmHardwareUtilsTest, SwitchRefreshRateTest, TestSize.Level1)
         std::bind(&RSScreenManager::SetScreenActiveMode,
             screenManager.GetRefPtr(), std::placeholders::_1, std::placeholders::_2),
         std::bind(&RSScreenManager::GetScreenActiveRefreshRate, screenManager.GetRefPtr(), std::placeholders::_1)
-    );
+    });
 
     PipelineParam pipelineParam =
         { .pendingScreenRefreshRate = 0, .frameTimestamp = 0, .pendingConstraintRelativeTime = 0, };

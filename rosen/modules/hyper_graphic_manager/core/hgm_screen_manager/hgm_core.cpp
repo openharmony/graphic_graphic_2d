@@ -598,20 +598,14 @@ int64_t HgmCore::GetIdealPeriod(uint32_t rate)
     return 0;
 }
 
-void HgmCore::RegisterScreenManagerCallbacks(
-    const GetDefaultScreenIdCallback& getDefaultScreenIdCb,
-    const GetScreenPowerStatusCallback& getScreenPowerStatusCb,
-    const GetScreenSupportedModesCallback& getScreenSupportedModesCb,
-    const SetScreenConstraintCallback& setScreenConstraintCb,
-    const SetScreenActiveModeCallback& setScreenActiveModeCb,
-    const GetScreenActiveRefreshRateCallback& getScreenActiveRefreshRateCb)
+void HgmCore::RegisterScreenManagerCallbacks(const ScreenManagerCallbacks& callbacks)
 {
-    getDefaultScreenIdCb_ = getDefaultScreenIdCb;
-    getScreenPowerStatusCb_ = getScreenPowerStatusCb;
-    getScreenSupportedModesCb_ = getScreenSupportedModesCb;
-    setScreenConstraintCb_ = setScreenConstraintCb;
-    setScreenActiveModeCb_ = setScreenActiveModeCb;
-    getScreenActiveRefreshRateCb_ = getScreenActiveRefreshRateCb;
+    getDefaultScreenIdCb_ = callbacks.getDefaultScreenIdCb;
+    getScreenPowerStatusCb_ = callbacks.getScreenPowerStatusCb;
+    getScreenSupportedModesCb_ = callbacks.getScreenSupportedModesCb;
+    setScreenConstraintCb_ = callbacks.setScreenConstraintCb;
+    setScreenActiveModeCb_ = callbacks.setScreenActiveModeCb;
+    getScreenActiveRefreshRateCb_ = callbacks.getScreenActiveRefreshRateCb;
 }
 
 ScreenId HgmCore::GetDefaultScreenId() const

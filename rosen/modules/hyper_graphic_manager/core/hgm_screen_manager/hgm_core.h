@@ -46,7 +46,14 @@ public:
     using SetScreenConstraintCallback = std::function<int32_t(ScreenId, uint64_t, ScreenConstraintType)>;
     using SetScreenActiveModeCallback = std::function<uint32_t(ScreenId, uint32_t)>;
     using GetScreenActiveRefreshRateCallback = std::function<uint32_t(ScreenId)>;
-
+    struct ScreenManagerCallbacks{
+        const GetDefaultScreenIdCallback getDefaultScreenIdCb;
+        const GetScreenPowerStatusCallback getScreenPowerStatusCb;
+        const GetScreenSupportedModesCallback getScreenSupportedModesCb;
+        const SetScreenConstraintCallback setScreenConstraintCb;
+        const SetScreenActiveModeCallback setScreenActiveModeCb;
+        const GetScreenActiveRefreshRateCallback getScreenActiveRefreshRateCb;
+    };
     static void SysModeChangeProcess(const char* key, const char* value, void* context);
     static HgmCore& Instance();
 
@@ -145,13 +152,7 @@ public:
     void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable);
 
     // Screen Manager
-    void RegisterScreenManagerCallbacks(
-        const GetDefaultScreenIdCallback& getDefaultScreenIdCb,
-        const GetScreenPowerStatusCallback& getScreenPowerStatusCb,
-        const GetScreenSupportedModesCallback& getScreenSupportedModesCb,
-        const SetScreenConstraintCallback& setScreenConstraintCb,
-        const SetScreenActiveModeCallback& setScreenActiveModeCb,
-        const GetScreenActiveRefreshRateCallback& getScreenActiveRefreshRateCb);
+    void RegisterScreenManagerCallbacks(const ScreenManagerCallbacks& callbacks);
     ScreenId GetDefaultScreenId() const;
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const;
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) const;
