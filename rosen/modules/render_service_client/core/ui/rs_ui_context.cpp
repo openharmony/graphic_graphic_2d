@@ -68,6 +68,7 @@ const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
     if (isUniRender) {
         if (rsModifierManager_ == nullptr) {
             rsModifierManager_ = std::make_shared<RSModifierManager>();
+            rsModifierManager_->SetRSUIContext(weak_from_this());
         }
         return rsModifierManager_;
     } else {
@@ -82,6 +83,7 @@ const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
         }
 
         auto rsModifierManager = std::make_shared<RSModifierManager>();
+        rsModifierManager->SetRSUIContext(weak_from_this());
         rsModifierManagerMap_.emplace(gettid(), rsModifierManager);
         return rsModifierManager;
     }

@@ -342,5 +342,86 @@ HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot008, TestSize.Leve
     GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot008 end";
 }
 
+/**
+ * @tc.name: FallbackAnimationsToRoot_FinishInfiniteAnimation
+ * @tc.desc: Test FallbackAnimationsToRoot with infinite repeat animation (repeatCount = -1).
+ *           This is a new branch added in commit 974b560f: finish infinite animations instead of moving to root.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot_FinishInfiniteAnimation, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot_FinishInfiniteAnimation start";
+
+    auto context = std::make_shared<RSContext>();
+    auto rootNode = std::make_shared<RSRootRenderNode>(0);
+    context->GetMutableNodeMap().RegisterRenderNode(rootNode);
+
+    RSRenderNode node(1, context);
+
+    auto animation = std::make_shared<RSRenderAnimationMock>();
+    animation->SetRepeatCount(-1);
+    animation->Start();
+    node.AddAnimation(animation);
+
+    EXPECT_TRUE(animation->IsRunning());
+    EXPECT_EQ(animation->GetRepeatCount(), -1);
+
+    auto& nodeMap = context->GetMutableNodeMap();
+    auto& fallbackNode = nodeMap.renderNodeMap_[0][0];
+    auto animationManager = fallbackNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    size_t beforeCount = animationManager->GetAnimations().size();
+
+    node.FallbackAnimationsToRoot();
+
+    EXPECT_FALSE(animation->IsRunning());
+    EXPECT_TRUE(animation->IsFinished());
+    
+    size_t afterCount = animationManager->GetAnimations().size();
+    EXPECT_EQ(afterCount, beforeCount);
+
+    GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot_FinishInfiniteAnimation end";
+}
+
+/**
+ * @tc.name: FallbackAnimationsToRoot_MoveFiniteAnimation
+ * @tc.desc: Test FallbackAnimationsToRoot with finite repeat animation.
+ *           Test that finite animations are moved to root (existing behavior, for contrast).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderAnimationOthersTest, FallbackAnimationsToRoot_MoveFiniteAnimation, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot_MoveFiniteAnimation start";
+
+    auto context = std::make_shared<RSContext>();
+    auto rootNode = std::make_shared<RSRootRenderNode>(0);
+    context->GetMutableNodeMap().RegisterRenderNode(rootNode);
+
+    RSRenderNode node(1, context);
+
+    auto animation = std::make_shared<RSRenderAnimationMock>();
+    animation->SetRepeatCount(1);
+    animation->Start();
+    node.AddAnimation(animation);
+
+    EXPECT_TRUE(animation->IsRunning());
+    EXPECT_EQ(animation->GetRepeatCount(), 1);
+
+    auto& nodeMap = context->GetMutableNodeMap();
+    auto& fallbackNode = nodeMap.renderNodeMap_[0][0];
+    auto animationManager = fallbackNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    size_t beforeCount = animationManager->GetAnimations().size();
+
+    node.FallbackAnimationsToRoot();
+
+    size_t afterCount = animationManager->GetAnimations().size();
+    EXPECT_EQ(afterCount, beforeCount + 1);
+
+    GTEST_LOG_(INFO) << "RSRenderAnimationOthersTest FallbackAnimationsToRoot_MoveFiniteAnimation end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

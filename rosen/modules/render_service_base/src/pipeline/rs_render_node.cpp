@@ -25,6 +25,7 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_trace.h"
 
+#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
@@ -1760,11 +1761,15 @@ void RSRenderNode::FallbackAnimationsToRoot()
         }
 
         animation->Detach(true);
-        // avoid infinite loop for fallback animation
-        animation->SetRepeatCount(1);
         if (animation->IsGroupAnimationChild()) {
             animation->Attach(target.get());
             animation->RemoveFromGroupAnimator();
+        }
+        if (animation->GetRepeatCount() == -1) {
+            RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace("Node destructor: finish infinite animations",
+                animation->GetTargetId(), animation->GetAnimationId(), false);
+            animation->Finish();
+            continue;
         }
         target->AddAnimation(std::move(animation));
     }

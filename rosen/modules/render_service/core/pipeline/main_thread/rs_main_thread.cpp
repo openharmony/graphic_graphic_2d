@@ -3713,6 +3713,9 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
 
+    // minLeftDelayTime is in milliseconds
+    // For nodes on tree: delayTime only (immediate refresh after delay)
+    // For nodes not on tree: delayTime + remainingTime (complete delay consideration)
     int64_t minLeftDelayTime = RSSystemProperties::GetAnimationDelayOptimizeEnabled() ? INT64_MAX : 0;
     bool hasRunningGroupAnimators = context_->UpdateGroupAnimators(timestamp, minLeftDelayTime);
     if (hasRunningGroupAnimators) {
@@ -3806,26 +3809,7 @@ void RSMainThread::Animate(uint64_t timestamp)
 
     if (needRequestNextVsync) {
         hgmRenderContext_->GetHgmRPEnergy()->StatisticAnimationTime(timestamp / NS_PER_MS);
-        // greater than one frame time (16.6 ms)
-        constexpr int64_t oneFrameTimeInFPS60 = 17;
-        // maximum delay time 60000 milliseconds, which is equivalent to 60 seconds.
-        constexpr int64_t delayTimeMax = 60000;
-        if (minLeftDelayTime > oneFrameTimeInFPS60) {
-            minLeftDelayTime = std::min(minLeftDelayTime, delayTimeMax);
-            auto RequestNextVSyncTask = [this]() {
-                RS_TRACE_NAME("Animate with delay RequestNextVSync");
-                RequestNextVSync("animate", timestamp_);
-            };
-            RS_TRACE_NAME_FMT("Animate minLeftDelayTime: %ld", minLeftDelayTime);
-            PostTask(RequestNextVSyncTask, "animate_request_next_vsync", minLeftDelayTime - oneFrameTimeInFPS60,
-                AppExecFwk::EventQueue::Priority::IMMEDIATE);
-        } else {
-            // Advance by 0.5 ms to prevent VSync jitter from causing this frame to be missed.
-            constexpr int64_t requestNextFrameAdvanceNs = 500000;
-            int64_t requestNextFrameTime = (nextFrameTime == INT64_MAX) ? 0 : nextFrameTime;
-            requestNextFrameTime -= requestNextFrameAdvanceNs;
-            RequestNextVSync("animate", timestamp_, requestNextFrameTime);
-        }
+        RequestDelayedVSyncForAnimation(minLeftDelayTime, timestamp, nextFrameTime);
     } else if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         isImplicitAnimationEnd_ = true;
@@ -3836,6 +3820,33 @@ void RSMainThread::Animate(uint64_t timestamp)
 
     PerfAfterAnim(needRequestNextVsync);
     UpdateDirectCompositionByAnimate(needRequestNextVsync);
+}
+
+void RSMainThread::RequestDelayedVSyncForAnimation(int64_t minLeftDelayTime, uint64_t timestamp, int64_t nextFrameTime)
+{
+    // greater than one frame time (16.6 ms)
+    constexpr int64_t oneFrameTimeInFPS60 = 17;
+    // maximum delay time 60000 milliseconds, which is equivalent to 60 seconds.
+    constexpr int64_t delayTimeMax = 60000;
+    int64_t delayTimeMs = std::min(minLeftDelayTime, delayTimeMax);
+    delayTimeMs = std::min(delayTimeMs, delayTimeMax);
+    if (delayTimeMs > oneFrameTimeInFPS60) {
+        constexpr int64_t nsPerMs = 1000000;
+        int64_t delayTimeNs = (delayTimeMs - oneFrameTimeInFPS60) * nsPerMs;
+        int64_t maxDelayFromTimestamp = INT64_MAX - static_cast<int64_t>(timestamp);
+        if (delayTimeNs > maxDelayFromTimestamp) {
+            delayTimeNs = maxDelayFromTimestamp;
+        }
+        int64_t requestVsyncTime = static_cast<int64_t>(timestamp) + delayTimeNs;
+        RS_TRACE_NAME_FMT("Animate delayTimeMs: %ld, minLeftDelayTime: %ld", delayTimeMs, minLeftDelayTime);
+        RequestNextVSync("animate_delay", static_cast<int64_t>(timestamp), requestVsyncTime);
+    } else {
+        // Advance by 0.5 ms to prevent VSync jitter from causing this frame to be missed.
+        constexpr int64_t requestNextFrameAdvanceNs = 500000;
+        int64_t requestNextFrameTime = (nextFrameTime == INT64_MAX) ? 0 : nextFrameTime;
+        requestNextFrameTime -= requestNextFrameAdvanceNs;
+        RequestNextVSync("animate", timestamp_, requestNextFrameTime);
+    }
 }
 
 void RSMainThread::UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync)
