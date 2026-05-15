@@ -2016,4 +2016,111 @@ HWTEST_F(RSBaseRenderUtilTest, GetHdrPqColorSpace_002, TestSize.Level2)
     bool result = RSBaseRenderUtil::ConvertBufferToBitmap(buffer, newBuffer, dstGamut, bitmap, metaDatas);
     ASSERT_EQ(result, true);
 }
+
+/**
+ * @tc.name: GetColorTypeFromBufferFormat_RGBA_1010108Test001
+ * @tc.desc: Test GetColorTypeFromBufferFormat with GRAPHIC_PIXEL_FMT_RGBA_1010108
+ *           Covers branch: GRAPHIC_PIXEL_FMT_RGBA_1010108 -> COLORTYPE_RGBA_1010108
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_RGBA_1010108Test001, TestSize.Level2)
+{
+    auto colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_RGBA_1010108);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_1010108);
+}
+
+/**
+ * @tc.name: GetColorTypeFromBufferFormat_RGBA16_FLOATTest001
+ * @tc.desc: Test GetColorTypeFromBufferFormat with GRAPHIC_PIXEL_FMT_RGBA16_FLOAT
+ *           Covers branch: GRAPHIC_PIXEL_FMT_RGBA16_FLOAT -> COLORTYPE_RGBA_F16
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_RGBA16_FLOATTest001, TestSize.Level2)
+{
+    auto colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_RGBA16_FLOAT);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_F16);
+}
+
+/**
+ * @tc.name: GetColorTypeFromBufferFormat_YCBCR_P010Test001
+ * @tc.desc: Test GetColorTypeFromBufferFormat with GRAPHIC_PIXEL_FMT_YCBCR_P010
+ *           Covers branch: GRAPHIC_PIXEL_FMT_YCBCR_P010 -> COLORTYPE_RGBA_1010102
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_YCBCR_P010Test001, TestSize.Level2)
+{
+    auto colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_YCBCR_P010);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
+}
+
+/**
+ * @tc.name: GetColorTypeFromBufferFormat_YCRCB_P010Test001
+ * @tc.desc: Test GetColorTypeFromBufferFormat with GRAPHIC_PIXEL_FMT_YCRCB_P010
+ *           Covers branch: GRAPHIC_PIXEL_FMT_YCRCB_P010 -> COLORTYPE_RGBA_1010102
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_YCRCB_P010Test001, TestSize.Level2)
+{
+    auto colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_YCRCB_P010);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
+}
+
+/**
+ * @tc.name: GetColorTypeFromBufferFormat_DefaultTest001
+ * @tc.desc: Test GetColorTypeFromBufferFormat with unknown pixel format (default branch)
+ *           Covers branch: default -> COLORTYPE_RGBA_8888
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_DefaultTest001, TestSize.Level2)
+{
+    constexpr int32_t UNKNOWN_PIXEL_FMT = 9999;
+    auto colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(UNKNOWN_PIXEL_FMT);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
+}
+
+/**
+ * @tc.name: GetColorTypeFromBufferFormat_AllBranchesCoveredTest001
+ * @tc.desc: Test GetColorTypeFromBufferFormat with all valid pixel formats
+ *           Covers all branches in the switch statement
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_AllBranchesCoveredTest001, TestSize.Level2)
+{
+    auto colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_RGBA_8888);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
+
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_RGBX_8888);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGB_888X);
+
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_BGRA_8888);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_BGRA_8888);
+
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_RGB_565);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGB_565);
+
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_YCBCR_P010);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
+
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_YCRCB_P010);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
+
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
+
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_RGBA_1010108);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_1010108);
+
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(GRAPHIC_PIXEL_FMT_RGBA16_FLOAT);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_F16);
+
+    constexpr int32_t INVALID_PIXEL_FMT = -1;
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(INVALID_PIXEL_FMT);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
+}
 } // namespace OHOS::Rosen
