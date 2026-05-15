@@ -46,7 +46,9 @@ bool CreateTestXml(const std::string &path, const char *content)
         return false;
     }
     fprintf(fp, "%s", content);
-    fclose(fp);
+    if (fclose(fp) != 0) {
+        return false;
+    }
     return true;
 }
 }
