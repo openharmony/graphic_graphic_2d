@@ -237,6 +237,7 @@ private:
     std::shared_ptr<RSRenderInterface> rsRenderInterface_;
     std::shared_ptr<RSSyncTransactionHandler> rsSyncTransactionHandler_;
     std::unordered_map<pid_t, std::shared_ptr<RSImplicitAnimator>> rsImplicitAnimators_;
+    std::unordered_map<pid_t, std::shared_ptr<RSModifierManager>> rsModifierManagerMap_;
     std::shared_ptr<RSModifierManager> rsModifierManager_;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
@@ -245,6 +246,7 @@ private:
     std::unordered_map<InteractiveImplictAnimatorId, std::shared_ptr<RSInteractiveImplictAnimator>>
         interactiveImplictAnimators_;
     std::mutex interactiveImplictAnimatorMutex_;
+    std::mutex rsModifierManagerMutex_;
 
     TaskRunner taskRunner_ = TaskRunner();
     sptr<IRemoteObject> connectToRenderRemote_;
