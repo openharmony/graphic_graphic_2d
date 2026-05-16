@@ -131,7 +131,7 @@ if (is_arkui_x) {
     ]
     
     if (defined(arkgraphic2d_api_metrics) && arkgraphic2d_api_metrics) { 
-      external_deps = [ "api_metrics:histogrammanager" ] 
+      external_deps += [ "api_metrics:histogrammanager" ] 
       defines += [ "HISTOGRAM_MANAGEMENT_ENABLE=1" ] 
     }
 
