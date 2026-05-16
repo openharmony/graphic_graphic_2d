@@ -1173,6 +1173,52 @@ HWTEST_F(RSRenderNodeTest, UpdateSrcOrClipedAbsDrawRectChangeStateTest, TestSize
 }
 
 /**
+ * @tc.name: OnSyncTest
+ * @tc.desc: OnSync Test
+ * @tc.type: FUNC
+ * @tc.require: issueIA5Y41
+ */
+HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(node, nullptr);
+    node->renderDrawable_ = nullptr;
+    node->OnSync();
+
+    std::shared_ptr<RSRenderNode> child = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(child, nullptr);
+
+    node->renderDrawable_ = std::make_shared<RSRenderNodeDrawableAdapterBoy>(child);
+    EXPECT_NE(node->renderDrawable_, nullptr);
+
+    node->drawCmdListNeedSync_ = true;
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(node->stagingRenderParams_, nullptr);
+
+    node->stagingRenderParams_->needSync_ = true;
+    node->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(node->renderDrawable_->renderParams_, nullptr);
+
+    node->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
+    auto drawableFilter = std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
+    EXPECT_NE(drawableFilter, nullptr);
+
+    node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawableFilter;
+    node->drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
+    node->stagingRenderParams_->SetRSFreezeFlag(true);
+    node->needClearSurface_ = true;
+    std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
+    node->GetOpincRootCache().isOpincRootFlag_ = true;
+    node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_LAYER;
+    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
+    node->renderProperties_.SetBgBrightnessRates(value);
+    node->OnSync();
+    EXPECT_TRUE(node->dirtySlots_.empty());
+    EXPECT_FALSE(node->drawCmdListNeedSync_);
+    EXPECT_FALSE(node->needClearSurface_);
+}
+
+/**
  * @tc.name: OnSyncTest1
  * @tc.desc: OnSync Test1
  * @tc.type: FUNC
