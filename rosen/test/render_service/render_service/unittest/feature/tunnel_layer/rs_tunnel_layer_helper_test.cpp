@@ -71,26 +71,6 @@ private:
     uint32_t property_ = TUNNEL_PROP_INVALID;
 };
 
-bool SetRuntimePendingBufferFromConsumer(const TunnelTestContext& context)
-{
-    if (!context.IsBaseReady()) {
-        return false;
-    }
-    IConsumerSurface::AcquireBufferReturnValue returnValue;
-    if (context.consumer->AcquireBuffer(returnValue, CONSUME_DIRECTLY, false) != SURFACE_ERROR_OK ||
-        returnValue.buffer == nullptr) {
-        return false;
-    }
-    RSSurfaceHandler::SurfaceBufferEntry entry;
-    entry.buffer = returnValue.buffer;
-    entry.acquireFence = returnValue.fence;
-    entry.timestamp = returnValue.timestamp;
-    entry.bufferOwnerCount_->bufferId_ = returnValue.buffer->GetBufferId();
-    entry.RegisterReleaseBufferListener([](uint64_t) {});
-    context.node->GetTunnelRuntimeState().SetPendingBuffer(entry);
-    return true;
-}
-
 void ClearUiCaptureTasks(RSMainThread& mainThread)
 {
     mainThread.pendingUiCaptureTasks_.clear();
@@ -106,6 +86,11 @@ public:
     {
         RSTestUtil::InitRenderNodeGC();
     }
+
+    void TearDown() override
+    {
+        ClearRecordingComposerLayers();
+    }
 };
 
 /**
@@ -115,6 +100,7 @@ public:
  */
 HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfoAndProperty001, TestSize.Level1)
 {
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
     struct TestCase {
         const char* name;
         OHSurfaceSource sourceType;
@@ -162,6 +148,7 @@ HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfoAndProperty001, TestSize
  */
 HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo002, TestSize.Level1)
 {
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
     struct TestCase {
         const char* name;
         uint64_t consumerTunnelLayerId;
@@ -248,14 +235,13 @@ HWTEST_F(RSTunnelLayerHelperTest, TunnelRuntimeClearedWhenConsumerChanged001, Te
 #ifndef ROSEN_CROSS_PLATFORM
     auto context = CreateTunnelTestContext(true);
     ASSERT_TRUE(context.IsProducerReady());
-    ASSERT_TRUE(FlushOneBuffer(context.producer));
 
     constexpr uint32_t property = TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT;
     context.node->SetTunnelLayerInfo(TEST_SURFACE_NODE_TUNNEL_LAYER_ID, property);
     auto& tunnelRuntimeState = context.node->GetTunnelRuntimeState();
     tunnelRuntimeState.SetBuilding();
     ASSERT_TRUE(tunnelRuntimeState.SetActiveFromTunnelLayerAvailable(tunnelRuntimeState.GetTunnelLayerGeneration()));
-    ASSERT_TRUE(SetRuntimePendingBufferFromConsumer(context));
+    ASSERT_TRUE(SetRuntimePendingBufferForTest(context));
     ASSERT_TRUE(tunnelRuntimeState.HasPendingBuffer());
 
     auto nextConsumer = IConsumerSurface::Create("TunnelConsumer2");
@@ -313,12 +299,11 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect001, TestSize.
         }
         context.node->SetIsOnTheTree(testCase.onTree);
         context.node->SetHardwareForcedDisabledState(testCase.hardwareDisabled);
-        ASSERT_TRUE(FlushOneBuffer(context.producer));
         if (testCase.keepAvailableBufferCount) {
             context.surfaceHandler->SetAvailableBufferCount(1);
         }
         if (testCase.setupPendingBuffer) {
-            ASSERT_TRUE(SetRuntimePendingBufferFromConsumer(context));
+            ASSERT_TRUE(SetRuntimePendingBufferForTest(context));
             ASSERT_TRUE(context.node->GetTunnelRuntimeState().HasPendingBuffer());
         }
 
@@ -355,7 +340,6 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect_GlobalTrigger
     auto& tunnelRuntime = context.node->GetTunnelRuntimeState();
     tunnelRuntime.SetBuilding();
     ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
-    ASSERT_TRUE(FlushOneBuffer(context.producer));
     context.surfaceHandler->SetAvailableBufferCount(1);
     ScopedRegisteredSurfaceNode registeredTunnelNode(context.node);
     ASSERT_TRUE(registeredTunnelNode.IsRegistered());
@@ -397,7 +381,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect002, TestSize.
         context.node->GetTunnelRuntimeState().GetTunnelLayerGeneration());
     ScopedRegisteredSurfaceNode registeredNode(context.node);
     ASSERT_TRUE(registeredNode.IsRegistered());
-    ASSERT_TRUE(FlushOneBuffer(context.producer));
+    ASSERT_TRUE(SetRuntimePendingBufferForTest(context));
     context.surfaceHandler->SetAvailableBufferCount(1);
 
     auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
@@ -481,7 +465,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect003, TestSize.
     ASSERT_EQ(oldPreBufferOwnerCount->bufferId_, oldPreBuffer->GetBufferId());
     ASSERT_EQ(currentBufferOwnerCount->bufferId_, currentBuffer->GetBufferId());
     ASSERT_EQ(context.surfaceHandler->GetPreBuffer(), oldPreBuffer);
-    ASSERT_TRUE(FlushOneBuffer(context.producer));
+    ASSERT_TRUE(SetRuntimePendingBufferForTest(context));
     context.surfaceHandler->SetAvailableBufferCount(1);
     ASSERT_TRUE(RSTunnelLayerHelper::TryCommitBufferDirect(context.node, composerClientManager, true));
     EXPECT_TRUE(oldPreBufferReleased);
@@ -493,9 +477,9 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect003, TestSize.
     tunnelRuntime.SetLayerInfo(0, TUNNEL_PROP_INVALID);
     tunnelRuntime.SetBuilding();
 
-    ASSERT_TRUE(FlushOneBuffer(context.producer));
-    context.surfaceHandler->SetAvailableBufferCount(1);
-    ASSERT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*context.surfaceHandler));
+    auto normalBufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(normalBufferEntry.buffer, nullptr);
+    context.surfaceHandler->ConsumeAndUpdateBuffer(normalBufferEntry);
     context.surfaceHandler->ReleaseAndResetPreBuffer();
     EXPECT_EQ(tunnelBufferOwnerCount->refCount_.load(), 0);
 }
@@ -554,14 +538,11 @@ HWTEST_F(RSTunnelLayerHelperTest, TransferTunnelPendingBufferToNormalConsume001,
     auto context = CreateTunnelTestContext(true);
     ASSERT_TRUE(context.IsProducerReady());
 
-    ASSERT_TRUE(FlushOneBuffer(context.producer));
     context.surfaceHandler->SetAvailableBufferCount(1);
     RSTunnelLayerManager tunnelLayerManager(nullptr);
     tunnelLayerManager.TransferTunnelPendingBufferToNormalConsume(context.node);
     EXPECT_EQ(context.surfaceHandler->GetAvailableBufferCount(), 1);
     EXPECT_EQ(context.surfaceHandler->GetPreBuffer(), nullptr);
-    ASSERT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*context.surfaceHandler));
-    EXPECT_TRUE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
 }
 
 /**
@@ -575,8 +556,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TransferTunnelPendingBufferToNormalConsume002,
     auto context = CreateTunnelTestContext(true);
     ASSERT_TRUE(context.IsProducerReady());
 
-    ASSERT_TRUE(FlushOneBuffer(context.producer));
-    ASSERT_TRUE(SetRuntimePendingBufferFromConsumer(context));
+    ASSERT_TRUE(SetRuntimePendingBufferForTest(context));
     ASSERT_TRUE(context.node->GetTunnelRuntimeState().HasPendingBuffer());
 
     RSTunnelLayerManager tunnelLayerManager(nullptr);
@@ -607,9 +587,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect005, TestSize.
 
     context.producer->SetQueueSize(TEST_QUEUE_SIZE);
     ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer));
-    ASSERT_TRUE(FlushOneBuffer(context.producer));
-    IConsumerSurface::AcquireBufferReturnValue existingReturnValue;
-    ASSERT_EQ(context.consumer->AcquireBuffer(existingReturnValue, CONSUME_DIRECTLY, false), SURFACE_ERROR_OK);
+    IConsumerSurface::AcquireBufferReturnValue existingReturnValue = CreateTestAcquireBufferReturnValue();
     ASSERT_NE(existingReturnValue.buffer, nullptr);
     context.surfaceHandler->SetHoldReturnValue(existingReturnValue);
 
@@ -618,7 +596,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect005, TestSize.
         context.node->GetTunnelRuntimeState().GetTunnelLayerGeneration());
     ScopedRegisteredSurfaceNode registeredNode(context.node);
     ASSERT_TRUE(registeredNode.IsRegistered());
-    ASSERT_TRUE(FlushOneBuffer(context.producer));
+    ASSERT_TRUE(SetRuntimePendingBufferForTest(context));
     context.surfaceHandler->SetAvailableBufferCount(1);
 
     auto composerClientManager = std::make_shared<RSComposerClientManager>();

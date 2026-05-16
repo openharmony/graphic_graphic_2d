@@ -19,6 +19,7 @@
 #include <memory>
 #include <parameters.h>
 #include <unordered_set>
+#include <vector>
 
 #include "common/rs_tunnel_layer_utils.h"
 #include "consumer_surface.h"
@@ -27,6 +28,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
 #include "rs_composer_client.h"
+#include "rs_render_to_composer_connection_proxy.h"
 #include "rs_render_to_composer_connection_stub.h"
 #include "rs_surface_layer.h"
 
@@ -34,6 +36,17 @@ namespace OHOS::Rosen::TunnelTest {
 inline constexpr uint32_t TEST_BUFFER_SIZE = 0x100;
 inline constexpr uint32_t TEST_STRIDE_ALIGNMENT = 0x8;
 inline constexpr uint32_t TEST_TUNNEL_LAYER_PROPERTY = TUNNEL_PROP_BUFFER_ADDR;
+
+inline std::vector<std::shared_ptr<RSLayer>>& GetRecordingComposerLayers()
+{
+    static std::vector<std::shared_ptr<RSLayer>> layers;
+    return layers;
+}
+
+inline void ClearRecordingComposerLayers()
+{
+    GetRecordingComposerLayers().clear();
+}
 
 inline TunnelLayerInfo MakeTunnelLayerInfo(TunnelTypeMask tunnelType = TUNNEL_TYPE_STYLUS)
 {
@@ -56,6 +69,47 @@ inline bool SetTunnelInfoForConsumer(const sptr<IConsumerSurface>& consumer,
 {
     TunnelLayerState state;
     return SetTunnelInfoForConsumer(consumer, state, tunnelType);
+}
+
+inline sptr<SurfaceBuffer> CreateTestSurfaceBuffer()
+{
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    if (buffer == nullptr) {
+        return nullptr;
+    }
+    BufferRequestConfig requestConfig = {
+        .width = TEST_BUFFER_SIZE,
+        .height = TEST_BUFFER_SIZE,
+        .strideAlignment = TEST_STRIDE_ALIGNMENT,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    return buffer->Alloc(requestConfig) == GSERROR_OK ? buffer : nullptr;
+}
+
+inline RSSurfaceHandler::SurfaceBufferEntry CreateTestBufferEntry()
+{
+    RSSurfaceHandler::SurfaceBufferEntry entry;
+    entry.buffer = CreateTestSurfaceBuffer();
+    entry.acquireFence = SyncFence::InvalidFence();
+    entry.timestamp = 0;
+    entry.damageRect = { .x = 0, .y = 0, .w = TEST_BUFFER_SIZE, .h = TEST_BUFFER_SIZE };
+    if (entry.buffer != nullptr) {
+        entry.bufferOwnerCount_->bufferId_ = entry.buffer->GetBufferId();
+    }
+    entry.RegisterReleaseBufferListener([](uint64_t) {});
+    return entry;
+}
+
+inline IConsumerSurface::AcquireBufferReturnValue CreateTestAcquireBufferReturnValue()
+{
+    IConsumerSurface::AcquireBufferReturnValue returnValue;
+    returnValue.buffer = CreateTestSurfaceBuffer();
+    returnValue.fence = SyncFence::InvalidFence();
+    returnValue.timestamp = 0;
+    returnValue.damages = { { .x = 0, .y = 0, .w = TEST_BUFFER_SIZE, .h = TEST_BUFFER_SIZE } };
+    return returnValue;
 }
 
 class ScopedNewTunnelSwitch {
@@ -133,7 +187,8 @@ inline std::shared_ptr<RSComposerClientManager> CreateRecordingComposerManager(
     if (connection == nullptr) {
         return nullptr;
     }
-    auto client = RSComposerClient::Create(connection, nullptr);
+    sptr<IRSRenderToComposerConnection> proxy = new RSRenderToComposerConnectionProxy(connection->AsObject());
+    auto client = RSComposerClient::Create(proxy, nullptr);
     if (client == nullptr) {
         return nullptr;
     }
@@ -146,34 +201,10 @@ inline std::shared_ptr<RSComposerClientManager> CreateRecordingComposerManager(
         return nullptr;
     }
     layer->SetNodeId(nodeId);
+    GetRecordingComposerLayers().emplace_back(layer);
     auto manager = std::make_shared<RSComposerClientManager>();
     manager->AddComposerClient(0, client);
     return manager;
-}
-
-inline bool FlushOneBuffer(const sptr<Surface>& producerSurface)
-{
-    if (producerSurface == nullptr) {
-        return false;
-    }
-    BufferRequestConfig requestConfig = {
-        .width = TEST_BUFFER_SIZE,
-        .height = TEST_BUFFER_SIZE,
-        .strideAlignment = TEST_STRIDE_ALIGNMENT,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-    };
-    BufferFlushConfig flushConfig = {
-        .damage = { .w = TEST_BUFFER_SIZE, .h = TEST_BUFFER_SIZE, },
-    };
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> requestFence = SyncFence::InvalidFence();
-    if (producerSurface->RequestBuffer(buffer, requestFence, requestConfig) != GSERROR_OK || buffer == nullptr) {
-        return false;
-    }
-    sptr<SyncFence> flushFence = SyncFence::InvalidFence();
-    return producerSurface->FlushBuffer(buffer, flushFence, flushConfig) == GSERROR_OK;
 }
 
 struct TunnelTestContext {
@@ -212,6 +243,19 @@ inline TunnelTestContext CreateTunnelTestContext(bool withProducer)
     sptr<IBufferProducer> producerToken = context.consumer->GetProducer();
     context.producer = Surface::CreateSurfaceAsProducer(producerToken);
     return context;
+}
+
+inline bool SetRuntimePendingBufferForTest(const TunnelTestContext& context)
+{
+    if (!context.IsBaseReady()) {
+        return false;
+    }
+    auto entry = CreateTestBufferEntry();
+    if (entry.buffer == nullptr) {
+        return false;
+    }
+    context.node->GetTunnelRuntimeState().SetPendingBuffer(entry);
+    return true;
 }
 
 class ScopedRegisteredSurfaceNode {
