@@ -71,8 +71,9 @@ if (is_arkui_x) {
       "//foundation/graphic/graphics_effect/include/util",
     ]
 
+    defines = ["CROSS_PLATFORM"]
     if(target_os == "ios") {
-      defines = ["ROSEN_IOS"]
+      defines += ["ROSEN_IOS"]
     }
 
     sources = [
@@ -126,11 +127,6 @@ if (is_arkui_x) {
       "image_framework:image_native",
       "napi:ace_napi",
     ]
-
-    if (defined(arkgraphic2d_api_metrics) && arkgraphic2d_api_metrics) {
-      external_deps += [ "api_metrics:histogrammanager" ]
-      defines = [ "HISTOGRAM_MANAGEMENT_ENABLE=1" ]
-    }
 
     cflags_cc = [ "-std=c++17" ]
 
