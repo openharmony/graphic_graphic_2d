@@ -146,6 +146,7 @@ public:
     {
         (void)acquireFence;
         commitTunnelCalled = true;
+        ++commitTunnelCallCount;
         lastSurfaceId = surfaceId;
         lastTunnelLayerId = tunnelLayerId;
         lastBufferId = buffer == nullptr ? 0 : buffer->GetBufferId();
@@ -175,6 +176,7 @@ public:
     }
 
     bool commitTunnelCalled = false;
+    uint32_t commitTunnelCallCount = 0;
     int32_t commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;
     uint64_t lastSurfaceId = 0;
     uint64_t lastTunnelLayerId = 0;

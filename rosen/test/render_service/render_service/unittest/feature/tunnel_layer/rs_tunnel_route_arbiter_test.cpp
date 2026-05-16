@@ -179,10 +179,11 @@ ApplyMutationResult ApplyNonLayerRouteMutation(RouteMutationType type, const Tun
             return ApplyMutationResult::APPLIED;
         }
         case RouteMutationType::BUFFER_FORMAT: {
-            auto buffer = CreateRouteBuffer(TEST_ROUTE_BUFFER_SIZE, GRAPHIC_PIXEL_FMT_RGB_565);
-            if (buffer == nullptr) {
+            auto buffer = CreateRouteBuffer();
+            if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
                 return ApplyMutationResult::FAILED;
             }
+            buffer->GetBufferHandle()->format = GRAPHIC_PIXEL_FMT_RGB_565;
             params.SetBuffer(buffer, nullptr, Rect());
             return ApplyMutationResult::APPLIED;
         }

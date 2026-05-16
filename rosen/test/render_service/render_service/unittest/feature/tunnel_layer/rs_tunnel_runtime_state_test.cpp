@@ -15,13 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#ifndef ROSEN_CROSS_PLATFORM
-#include <iconsumer_surface.h>
-#include <surface.h>
-#endif
-
 #include "pipeline/rs_tunnel_runtime_state.h"
-#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,7 +28,6 @@ constexpr int64_t FIRST_TIMESTAMP = 100;
 constexpr int64_t SECOND_TIMESTAMP = 200;
 constexpr uint64_t TEST_TUNNEL_LAYER_ID = 1001;
 constexpr uint32_t TEST_TUNNEL_PROPERTY = TUNNEL_PROP_BUFFER_ADDR;
-constexpr int64_t CONSUME_TIMESTAMP = 0;
 constexpr uint64_t FIRST_BUFFER_ID = 11;
 constexpr uint64_t SECOND_BUFFER_ID = 12;
 } // namespace
@@ -46,19 +39,14 @@ public:
         sptr<SyncFence> fence = SyncFence::InvalidFence();
     };
 
-    BufferEntry RequestAndFlushBuffer();
+    BufferEntry CreateBufferEntry();
 #ifndef ROSEN_CROSS_PLATFORM
     RSSurfaceHandler::SurfaceBufferEntry AcquirePendingEntry(int64_t timestamp);
 #endif
-
-    void SetUp() override;
     void TearDown() override {}
 
 private:
 #ifndef ROSEN_CROSS_PLATFORM
-    sptr<IConsumerSurface> consumerSurface_;
-    sptr<IBufferProducer> bufferProducer_;
-    sptr<Surface> surface_;
     static inline BufferRequestConfig requestConfig_ = {
         .width = TEST_BUFFER_SIZE,
         .height = TEST_BUFFER_SIZE,
@@ -67,43 +55,24 @@ private:
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
     };
-    static inline BufferFlushConfig flushConfig_ = {
-        .damage = { .w = TEST_BUFFER_SIZE, .h = TEST_BUFFER_SIZE, },
-    };
 #endif
 };
 
-void RSTunnelRuntimeStateTest::SetUp()
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    consumerSurface_ = IConsumerSurface::Create();
-    ASSERT_NE(consumerSurface_, nullptr);
-    bufferProducer_ = consumerSurface_->GetProducer();
-    ASSERT_NE(bufferProducer_, nullptr);
-    surface_ = Surface::CreateSurfaceAsProducer(bufferProducer_);
-    ASSERT_NE(surface_, nullptr);
-#endif
-}
-
-RSTunnelRuntimeStateTest::BufferEntry RSTunnelRuntimeStateTest::RequestAndFlushBuffer()
+RSTunnelRuntimeStateTest::BufferEntry RSTunnelRuntimeStateTest::CreateBufferEntry()
 {
     BufferEntry entry;
 #ifndef ROSEN_CROSS_PLATFORM
-    if (surface_ == nullptr) {
+    entry.buffer = SurfaceBuffer::Create();
+    if (entry.buffer == nullptr) {
         return entry;
     }
 
-    sptr<SyncFence> requestFence = SyncFence::InvalidFence();
-    auto ret = surface_->RequestBuffer(entry.buffer, requestFence, requestConfig_);
+    auto ret = entry.buffer->Alloc(requestConfig_);
     EXPECT_EQ(ret, GSERROR_OK);
-    if (ret != GSERROR_OK || entry.buffer == nullptr) {
+    if (ret != GSERROR_OK) {
         entry.buffer = nullptr;
         return entry;
     }
-    sptr<SyncFence> flushFence = SyncFence::InvalidFence();
-    ret = surface_->FlushBuffer(entry.buffer, flushFence, flushConfig_);
-    EXPECT_EQ(ret, GSERROR_OK);
-    entry.fence = flushFence;
 #endif
     return entry;
 }
@@ -112,24 +81,16 @@ RSTunnelRuntimeStateTest::BufferEntry RSTunnelRuntimeStateTest::RequestAndFlushB
 RSSurfaceHandler::SurfaceBufferEntry RSTunnelRuntimeStateTest::AcquirePendingEntry(int64_t timestamp)
 {
     RSSurfaceHandler::SurfaceBufferEntry entry;
-    RequestAndFlushBuffer();
-    IConsumerSurface::AcquireBufferReturnValue returnValue;
-    if (consumerSurface_->AcquireBuffer(returnValue, CONSUME_TIMESTAMP, false) != SURFACE_ERROR_OK ||
-        returnValue.buffer == nullptr) {
+    auto requestedEntry = CreateBufferEntry();
+    if (requestedEntry.buffer == nullptr) {
         return entry;
     }
-    entry.buffer = returnValue.buffer;
-    entry.acquireFence = returnValue.fence;
+    entry.buffer = requestedEntry.buffer;
+    entry.acquireFence = requestedEntry.fence;
     entry.timestamp = timestamp;
     entry.damageRect = { 0, 0, TEST_BUFFER_SIZE, TEST_BUFFER_SIZE };
     entry.bufferOwnerCount_->bufferId_ = entry.buffer->GetBufferId();
-    entry.RegisterReleaseBufferListener([consumer = consumerSurface_, buffer = entry.buffer,
-        fence = entry.acquireFence](uint64_t) {
-        if (consumer != nullptr) {
-            auto releaseBuffer = buffer;
-            consumer->ReleaseBuffer(releaseBuffer, fence);
-        }
-    });
+    entry.RegisterReleaseBufferListener([](uint64_t) {});
     return entry;
 }
 

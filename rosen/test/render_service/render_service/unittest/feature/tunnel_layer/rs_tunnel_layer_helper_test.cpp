@@ -18,11 +18,13 @@
 #include <vector>
 
 #include "consumer_surface.h"
+#include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "gtest/gtest.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/render_thread/rs_base_surface_util.h"
 #include "pipeline/rs_test_util.h"
 #include "rs_tunnel_test_utils.h"
@@ -455,11 +457,10 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect003, TestSize.
     ASSERT_EQ(currentBuffer->Alloc(requestConfig), GSERROR_OK);
     auto oldPreBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     auto currentBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    bool oldPreBufferReleased = false;
-    oldPreBufferOwnerCount->bufferReleaseCb_ = [&oldPreBufferReleased](uint64_t) {
-        oldPreBufferReleased = true;
+    bool currentBufferReleased = false;
+    currentBufferOwnerCount->bufferReleaseCb_ = [&currentBufferReleased](uint64_t) {
+        currentBufferReleased = true;
     };
-    currentBufferOwnerCount->bufferReleaseCb_ = [](uint64_t) {};
     context.surfaceHandler->SetBuffer(oldPreBuffer, SyncFence::InvalidFence(), Rect(), 0, oldPreBufferOwnerCount);
     context.surfaceHandler->SetBuffer(currentBuffer, SyncFence::InvalidFence(), Rect(), 0, currentBufferOwnerCount);
     ASSERT_EQ(oldPreBufferOwnerCount->bufferId_, oldPreBuffer->GetBufferId());
@@ -468,8 +469,8 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect003, TestSize.
     ASSERT_TRUE(SetRuntimePendingBufferForTest(context));
     context.surfaceHandler->SetAvailableBufferCount(1);
     ASSERT_TRUE(RSTunnelLayerHelper::TryCommitBufferDirect(context.node, composerClientManager, true));
-    EXPECT_TRUE(oldPreBufferReleased);
-    EXPECT_EQ(oldPreBufferOwnerCount->refCount_.load(), 0);
+    EXPECT_TRUE(currentBufferReleased);
+    EXPECT_EQ(currentBufferOwnerCount->refCount_.load(), 0);
     auto tunnelBufferOwnerCount = context.surfaceHandler->GetBufferOwnerCount();
     ASSERT_NE(tunnelBufferOwnerCount, nullptr);
 
@@ -611,5 +612,217 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitTunnelLayerBufferDirect005, TestSize.
     ASSERT_NE(context.surfaceHandler->GetBuffer(), nullptr);
     EXPECT_EQ(context.surfaceHandler->GetBuffer()->GetBufferId(), existingReturnValue.buffer->GetBufferId());
     EXPECT_EQ(context.surfaceHandler->GetHoldReturnValue(), nullptr);
+}
+
+/**
+ * @tc.name: OnBufferAvailable001
+ * @tc.desc: Test tunnel callback-thread path lets normal consume handle buffer when composer is unavailable.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable001, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(true);
+    ASSERT_TRUE(context.IsProducerReady());
+
+    ASSERT_EQ(context.consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT), GSERROR_OK);
+    auto normalBufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(normalBufferEntry.buffer, nullptr);
+    context.surfaceHandler->ConsumeAndUpdateBuffer(normalBufferEntry);
+    auto normalBuffer = context.surfaceHandler->GetBuffer();
+    ASSERT_NE(normalBuffer, nullptr);
+    auto normalBufferOwnerCount = context.surfaceHandler->GetBufferOwnerCount();
+    ASSERT_NE(normalBufferOwnerCount, nullptr);
+    EXPECT_EQ(normalBufferOwnerCount->refCount_.load(), 1);
+
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+    context.node->SetTunnelLayerInfo(state.tunnelLayerId, state.property);
+    context.node->GetTunnelRuntimeState().SetBuilding();
+    context.node->GetTunnelRuntimeState().SetActiveFromTunnelLayerAvailable(
+        context.node->GetTunnelRuntimeState().GetTunnelLayerGeneration());
+    RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
+    context.surfaceHandler->SetAvailableBufferCount(0);
+
+    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, nullptr);
+    rsListener->OnBufferAvailable();
+
+    EXPECT_EQ(context.surfaceHandler->GetBuffer(), normalBuffer);
+    EXPECT_EQ(context.surfaceHandler->GetBufferOwnerCount(), normalBufferOwnerCount);
+    EXPECT_EQ(context.surfaceHandler->GetHoldReturnValue(), nullptr);
+    EXPECT_EQ(context.surfaceHandler->GetAvailableBufferCount(), 1);
+    EXPECT_FALSE(context.node->GetTunnelRuntimeState().HasPendingBuffer());
+}
+
+/**
+ * @tc.name: OnBufferAvailable002
+ * @tc.desc: Test ACTIVE tunnel callback-thread path acquires and commits a buffer directly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable002, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(true);
+    ASSERT_TRUE(context.IsProducerReady());
+
+    ASSERT_EQ(context.consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT), GSERROR_OK);
+    auto normalBufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(normalBufferEntry.buffer, nullptr);
+    context.surfaceHandler->ConsumeAndUpdateBuffer(normalBufferEntry);
+    auto normalBufferOwnerCount = context.surfaceHandler->GetBufferOwnerCount();
+    ASSERT_NE(normalBufferOwnerCount, nullptr);
+    EXPECT_EQ(normalBufferOwnerCount->refCount_.load(), 1);
+
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+    context.node->SetTunnelLayerInfo(state.tunnelLayerId, state.property);
+    context.node->GetTunnelRuntimeState().SetBuilding();
+    context.node->GetTunnelRuntimeState().SetActiveFromTunnelLayerAvailable(
+        context.node->GetTunnelRuntimeState().GetTunnelLayerGeneration());
+    auto& tunnelRuntime = context.node->GetTunnelRuntimeState();
+    ASSERT_EQ(tunnelRuntime.TryClaimByMain(true), RSTunnelRuntimeState::ClaimResult::GO_NORMAL);
+    tunnelRuntime.OnRenderCommitDone();
+    ASSERT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::NORMAL_COMMITTED);
+    ScopedRegisteredSurfaceNode registeredNode(context.node);
+    ASSERT_TRUE(registeredNode.IsRegistered());
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    auto composerManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerManager, nullptr);
+    auto firstTunnelBufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(firstTunnelBufferEntry.buffer, nullptr);
+    auto firstBufferId = firstTunnelBufferEntry.buffer->GetBufferId();
+    context.node->GetTunnelRuntimeState().SetPendingBuffer(firstTunnelBufferEntry);
+    context.surfaceHandler->SetAvailableBufferCount(0);
+
+    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, composerManager);
+    rsListener->OnBufferAvailable();
+
+    EXPECT_TRUE(connection->commitTunnelCalled);
+    EXPECT_EQ(connection->commitTunnelCallCount, 1u);
+    EXPECT_EQ(connection->lastSurfaceId, context.consumer->GetUniqueId());
+    EXPECT_EQ(connection->lastTunnelLayerId, state.tunnelLayerId);
+    EXPECT_NE(connection->lastBufferId, 0u);
+    EXPECT_FALSE(context.node->GetTunnelRuntimeState().HasPendingBuffer());
+    ASSERT_NE(context.surfaceHandler->GetBuffer(), nullptr);
+    EXPECT_EQ(context.surfaceHandler->GetBuffer()->GetBufferId(), firstBufferId);
+    EXPECT_TRUE(context.node->GetTunnelRuntimeState().IsCommittedTunnelBuffer(firstBufferId));
+    EXPECT_EQ(normalBufferOwnerCount->refCount_.load(), 0);
+    auto firstTunnelBufferOwnerCount = context.surfaceHandler->GetBufferOwnerCount();
+    ASSERT_NE(firstTunnelBufferOwnerCount, nullptr);
+    EXPECT_EQ(firstTunnelBufferOwnerCount->refCount_.load(), 1);
+    EXPECT_TRUE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
+    EXPECT_EQ(context.surfaceHandler->GetPreBuffer(), nullptr);
+    EXPECT_EQ(context.node->GetTunnelRuntimeState().GetTunnelState(),
+        RSTunnelRuntimeState::TunnelState::ACTIVE);
+
+    constexpr uint32_t COMMIT_COUNT_AFTER_SECOND_BUFFER = 2;
+    auto secondTunnelBufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(secondTunnelBufferEntry.buffer, nullptr);
+    auto secondBufferId = secondTunnelBufferEntry.buffer->GetBufferId();
+    context.node->GetTunnelRuntimeState().SetPendingBuffer(secondTunnelBufferEntry);
+    rsListener->OnBufferAvailable();
+    EXPECT_TRUE(connection->commitTunnelCalled);
+    EXPECT_EQ(connection->commitTunnelCallCount, COMMIT_COUNT_AFTER_SECOND_BUFFER);
+    EXPECT_NE(connection->lastBufferId, 0u);
+    ASSERT_NE(context.surfaceHandler->GetBuffer(), nullptr);
+    EXPECT_EQ(context.surfaceHandler->GetBuffer()->GetBufferId(), secondBufferId);
+    EXPECT_TRUE(context.node->GetTunnelRuntimeState().IsCommittedTunnelBuffer(secondBufferId));
+    EXPECT_TRUE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
+    EXPECT_EQ(normalBufferOwnerCount->refCount_.load(), 0);
+    EXPECT_EQ(firstTunnelBufferOwnerCount->refCount_.load(), 0);
+    EXPECT_EQ(context.surfaceHandler->GetPreBuffer(), nullptr);
+}
+
+/**
+ * @tc.name: OnBufferAvailable003
+ * @tc.desc: Test BUILDING tunnel callback-thread path does not acquire or activate tunnel direct.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable003, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(true);
+    ASSERT_TRUE(context.IsProducerReady());
+
+    ASSERT_EQ(context.consumer->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT), GSERROR_OK);
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
+    context.node->SetTunnelLayerInfo(state.tunnelLayerId, state.property);
+    context.node->GetTunnelRuntimeState().SetBuilding();
+    auto connection = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    auto composerManager = CreateRecordingComposerManager(context.node->GetId(), connection);
+    ASSERT_NE(composerManager, nullptr);
+    context.surfaceHandler->SetAvailableBufferCount(0);
+
+    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, composerManager);
+    rsListener->OnBufferAvailable();
+
+    EXPECT_FALSE(connection->commitTunnelCalled);
+    EXPECT_FALSE(context.node->GetTunnelRuntimeState().HasPendingBuffer());
+    EXPECT_EQ(context.node->GetTunnelRuntimeState().GetTunnelState(),
+        RSTunnelRuntimeState::TunnelState::BUILDING);
+    EXPECT_EQ(context.surfaceHandler->GetAvailableBufferCount(), 1);
+}
+
+/**
+ * @tc.name: OnBufferAvailable004
+ * @tc.desc: Test listener keeps tunnel buffer for normal consume fallback when direct IPC commit fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable004, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch newTunnelSwitch(true);
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    RSTestUtil::UnregisterConsumerListener();
+
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto consumer = surfaceHandler->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    sptr<IBufferProducer> producerToken = consumer->GetProducer();
+    auto producer = Surface::CreateSurfaceAsProducer(producerToken);
+    ASSERT_NE(producer, nullptr);
+
+    std::vector<LayerStateChange> results;
+    ASSERT_EQ(producer->RegisterLayerStateChangedListener(
+                  [&results](LayerStateChange state) { results.emplace_back(state); }),
+        GSERROR_OK);
+    TunnelLayerState state;
+    ASSERT_TRUE(SetTunnelInfoForConsumer(consumer, state));
+    node->SetTunnelLayerInfo(state.tunnelLayerId, state.property);
+    node->GetTunnelRuntimeState().SetBuilding();
+    node->GetTunnelRuntimeState().SetActiveFromTunnelLayerAvailable(
+        node->GetTunnelRuntimeState().GetTunnelLayerGeneration());
+    ScopedRegisteredSurfaceNode registeredNode(node);
+    ASSERT_TRUE(registeredNode.IsRegistered());
+
+    auto listener = std::make_shared<RSRenderServiceListener>(node, std::make_shared<RSComposerClientManager>());
+    auto pendingBufferEntry = CreateTestBufferEntry();
+    ASSERT_NE(pendingBufferEntry.buffer, nullptr);
+    node->GetTunnelRuntimeState().SetPendingBuffer(pendingBufferEntry);
+    surfaceHandler->SetAvailableBufferCount(0);
+    listener->OnBufferAvailable();
+
+    EXPECT_TRUE(results.empty());
+    uint64_t actualTunnelLayerId = 0;
+    uint32_t actualProperty = TUNNEL_PROP_INVALID;
+    node->GetTunnelLayerInfo(actualTunnelLayerId, actualProperty);
+    EXPECT_EQ(actualTunnelLayerId, 0u);
+    EXPECT_EQ(actualProperty, TUNNEL_PROP_INVALID);
+    EXPECT_EQ(node->GetTunnelRuntimeState().GetTunnelState(),
+        RSTunnelRuntimeState::TunnelState::BUILDING);
+    EXPECT_TRUE(node->GetTunnelRuntimeState().HasPendingBuffer());
+    EXPECT_EQ(surfaceHandler->GetHoldReturnValue(), nullptr);
+    EXPECT_EQ(surfaceHandler->GetAvailableBufferCount(), 1);
+
+    ASSERT_TRUE(MoveRuntimePendingToNormalHold(node, surfaceHandler, consumer));
+    EXPECT_TRUE(RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler));
+    ASSERT_NE(surfaceHandler->GetBuffer(), nullptr);
+    EXPECT_TRUE(surfaceHandler->IsCurrentFrameBufferConsumed());
+    EXPECT_EQ(surfaceHandler->GetHoldReturnValue(), nullptr);
+    RSTestUtil::UnregisterConsumerListener();
 }
 } // namespace OHOS::Rosen
