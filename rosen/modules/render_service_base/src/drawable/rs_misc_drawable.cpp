@@ -200,6 +200,7 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
             if (drawCmdList == nullptr || drawCmdList->IsEmpty()) {
                 continue;
             }
+            drawCmdList->UpdateNodeIdToPicture(node.GetId());
             if (drawCmdList->GetWidth() > 0 && drawCmdList->GetHeight() > 0) {
                 stagingDrawCmdListVec_.push_back(drawCmdList);
             }

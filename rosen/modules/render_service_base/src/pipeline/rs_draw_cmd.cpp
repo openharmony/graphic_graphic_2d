@@ -361,6 +361,11 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
         !colorSpace->Equals(imageCache->GetImageInfo().GetColorSpace()));
     if (!needMakeFromTexture) {
         this->image_ = imageCache;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE) {
+            RSImageCache::Instance().ReserveImageInfo(rsImage_, nodeId_, weak_from_this());
+        }
+#endif
     } else {
         bool ret = MakeFromTextureForVK(
             canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), sampling, colorSpace);

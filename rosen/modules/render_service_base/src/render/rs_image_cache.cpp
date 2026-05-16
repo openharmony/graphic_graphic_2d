@@ -346,6 +346,15 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
             return;
         }
         NodeId surfaceNodeId = drawableAdapter->GetRenderParams()->GetFirstLevelNodeId();
+        for (const auto& [existingImg, existingCmd] : rsImageInfoMap[surfaceNodeId]) {
+            auto existingImgShared = existingImg.lock();
+            auto existingCmdShared = existingCmd.lock();
+            if (existingImgShared && existingCmdShared &&
+                rsImage.get() == existingImgShared.get() &&
+                drawCmd.lock() && drawCmd.lock().get() == existingCmdShared.get()) {
+                return;
+            }
+        }
         std::weak_ptr<RSImage> rsImage_weak = rsImage;
         rsImageInfoMap[surfaceNodeId].push_back(std::make_pair(rsImage_weak, drawCmd));
     }
