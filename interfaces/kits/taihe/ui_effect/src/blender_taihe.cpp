@@ -55,7 +55,8 @@ BrightnessBlenderImpl::BrightnessBlenderImpl()
 }
 
 BrightnessBlenderImpl::BrightnessBlenderImpl(std::shared_ptr<OHOS::Rosen::BrightnessBlender> blender)
-    : BlenderImpl(std::static_pointer_cast<OHOS::Rosen::Blender>(std::move(blender)))
+    : BlenderImpl(blender ? std::static_pointer_cast<OHOS::Rosen::Blender>(std::move(blender))
+                          : std::make_shared<OHOS::Rosen::BrightnessBlender>())
 {
 }
 
@@ -332,7 +333,8 @@ HdrDarkenBlenderImpl::HdrDarkenBlenderImpl()
 }
 
 HdrDarkenBlenderImpl::HdrDarkenBlenderImpl(std::shared_ptr<OHOS::Rosen::HdrDarkenBlender> blender)
-    : BlenderImpl(std::static_pointer_cast<OHOS::Rosen::Blender>(std::move(blender)))
+    : BlenderImpl(blender ? std::static_pointer_cast<OHOS::Rosen::Blender>(std::move(blender))
+                          : std::make_shared<OHOS::Rosen::HdrDarkenBlender>())
 {
 }
 
@@ -411,6 +413,8 @@ HdrDarkenBlender CreateHdrDarkenBlender(double ratio, taihe::optional<Tuple3F> f
             static_cast<float>(factor.y),
             static_cast<float>(factor.z));
         blender->SetGrayscaleFactor(vector3f);
+    } else {
+        blender->SetGrayscaleFactor({0.299f, 0.587f, 0.114f}); // default grayscale factor
     }
     
     return make_holder<HdrDarkenBlenderImpl, HdrDarkenBlender>(std::move(blender));

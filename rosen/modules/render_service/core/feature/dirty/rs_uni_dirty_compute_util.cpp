@@ -611,5 +611,60 @@ bool RSUniDirtyComputeUtil::HasMirrorDisplay()
     });
     return hasMirrorDisplay;
 }
+
+Drawing::Region RSUniDirtyComputeUtil::GetFlippedRegion(const std::vector<RectI>& rects, ScreenInfo& screenInfo)
+{
+    Drawing::Region region;
+
+    for (const auto& r : rects) {
+        int32_t topAfterFilp = 0;
+#ifdef RS_ENABLE_VK
+        topAfterFilp = (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                           RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)
+                           ? r.top_
+                           : static_cast<int32_t>(screenInfo.GetRotatedHeight()) - r.GetBottom();
+#else
+        topAfterFilp = static_cast<int32_t>(screenInfo.GetRotatedHeight()) - r.GetBottom();
+#endif
+        Drawing::Region tmpRegion;
+        tmpRegion.SetRect(Drawing::RectI(r.left_, topAfterFilp, r.left_ + r.width_, topAfterFilp + r.height_));
+        RS_OPTIONAL_TRACE_NAME_FMT("GetFlippedRegion orig ltrb[%d %d %d %d] to fliped rect ltrb[%d %d %d %d]",
+            r.left_, r.top_, r.left_ + r.width_, r.top_ + r.height_, r.left_, topAfterFilp, r.left_ + r.width_,
+            topAfterFilp + r.height_);
+        region.Op(tmpRegion, Drawing::RegionOp::UNION);
+    }
+    return region;
+}
+
+void RSUniDirtyComputeUtil::ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region, bool clear)
+{
+    if (region.IsEmpty()) {
+        // [planning] Remove this after frame buffer can cancel
+        canvas.ClipRect(Drawing::Rect());
+    } else if (region.IsRect()) {
+        canvas.ClipRegion(region);
+    } else {
+        RS_TRACE_NAME("RSScreenRenderNodeDrawable: clipPath");
+#ifdef RS_ENABLE_VK
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            canvas.ClipRegion(region);
+        } else {
+            Drawing::Path dirtyPath;
+            region.GetBoundaryPath(&dirtyPath);
+            canvas.ClipPath(dirtyPath, Drawing::ClipOp::INTERSECT, true);
+        }
+#else
+        Drawing::Path dirtyPath;
+        region.GetBoundaryPath(&dirtyPath);
+        canvas.ClipPath(dirtyPath, Drawing::ClipOp::INTERSECT, true);
+#endif
+    }
+
+    // clear canvas after clip region if need
+    if (clear && !region.IsEmpty()) {
+        canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -1588,6 +1588,48 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetLayerTop_SendRequestFail, Test
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
+// ==================== SetHdrForceHwcEnabled Tests ====================
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_Normal_Success
+ * @tc.desc: Test SetHdrForceHwcEnabled with normal case
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetHdrForceHwcEnabled_Normal_Success, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
+
+    std::string nodeIdStr = "test_node";
+    bool isHdrForceHwcEnabled = true;
+    ErrCode ret = mockProxy->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_SendRequestFail
+ * @tc.desc: Test SetHdrForceHwcEnabled when SendRequest fails
+ * @tc.type: FUNC
+ *
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionProxyTest, SetHdrForceHwcEnabled_SendRequestFail, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
+
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+
+    std::string nodeIdStr = "test_node";
+    bool isHdrForceHwcEnabled = true;
+    ErrCode ret = mockProxy->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
 // ==================== ForceRefreshOneFrameWithNextVSync Tests ====================
 
 /**
@@ -2320,7 +2362,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, RegisterTypeface_ReadResultFail, 
     auto typeface = Drawing::Typeface::MakeDefault();
 
     bool ret = mockProxy->RegisterTypeface(globalUniqueId, typeface);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 // ==================== ReportJankStats Tests ====================
@@ -2948,7 +2990,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, OnScreenBacklightChanged_Normal_S
 
     ScreenId screenId = 1;
     uint32_t level = 100;
-    mockProxy->OnScreenBacklightChanged(screenId, level);
+    mockProxy->OnScreenBacklightChanged(RsScreenBrightnessData(screenId, level));
 }
 
 /**
@@ -2967,7 +3009,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, OnScreenBacklightChanged_SendRequ
 
     ScreenId screenId = 1;
     uint32_t level = 100;
-    mockProxy->OnScreenBacklightChanged(screenId, level);
+    mockProxy->OnScreenBacklightChanged(RsScreenBrightnessData(screenId, level));
 }
 
 /**
@@ -2986,7 +3028,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, OnScreenBacklightChanged_ZeroLeve
 
     ScreenId screenId = 1;
     uint32_t level = 0;
-    mockProxy->OnScreenBacklightChanged(screenId, level);
+    mockProxy->OnScreenBacklightChanged(RsScreenBrightnessData(screenId, level));
 }
 
 /**
@@ -3005,7 +3047,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, OnScreenBacklightChanged_MaxLevel
 
     ScreenId screenId = 1;
     uint32_t level = std::numeric_limits<uint32_t>::max();
-    mockProxy->OnScreenBacklightChanged(screenId, level);
+    mockProxy->OnScreenBacklightChanged(RsScreenBrightnessData(screenId, level));
 }
 
 // ==================== Additional Read Fail Tests ====================

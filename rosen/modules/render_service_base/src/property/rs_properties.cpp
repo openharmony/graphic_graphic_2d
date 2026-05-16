@@ -1009,6 +1009,16 @@ void RSProperties::SetBorderDashGap(const Vector4f& dashGap)
     contentDirty_ = true;
 }
 
+void RSProperties::SetBorderSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
+{
+    if (!border_) {
+        border_ = std::make_shared<RSBorder>();
+    }
+    border_->SetSDFShader(renderShader);
+    SetDirty();
+    contentDirty_ = true;
+}
+
 Vector4<Color> RSProperties::GetBorderColor() const
 {
     return border_ ? border_->GetColorFour() : Vector4<Color>(RgbPalette::Transparent());
@@ -1032,6 +1042,11 @@ Vector4f RSProperties::GetBorderDashWidth() const
 Vector4f RSProperties::GetBorderDashGap() const
 {
     return border_ ? border_->GetDashGapFour() : Vector4f(0.f);
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetBorderSDFShader() const
+{
+    return border_ ? border_->GetSDFShader() : nullptr;
 }
 
 const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
@@ -1106,6 +1121,16 @@ void RSProperties::SetOutlineRadius(Vector4f radius)
     contentDirty_ = true;
 }
 
+void RSProperties::SetOutlineSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
+{
+    if (!outline_) {
+        outline_ = std::make_shared<RSBorder>(true);
+    }
+    outline_->SetSDFShader(renderShader);
+    SetDirty();
+    contentDirty_ = true;
+}
+
 Vector4<Color> RSProperties::GetOutlineColor() const
 {
     return outline_ ? outline_->GetColorFour() : Vector4<Color>(RgbPalette::Transparent());
@@ -1134,6 +1159,11 @@ Vector4f RSProperties::GetOutlineDashGap() const
 Vector4f RSProperties::GetOutlineRadius() const
 {
     return outline_ ? outline_->GetRadiusFour() : Vector4fZero;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetOutlineSDFShader() const
+{
+    return outline_ ? outline_->GetSDFShader() : nullptr;
 }
 
 void RSProperties::SetForegroundEffectRadius(const float foregroundEffectRadius)
@@ -1200,7 +1230,11 @@ void RSProperties::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUp
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }
@@ -1223,7 +1257,11 @@ void RSProperties::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFie
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }
@@ -1246,7 +1284,11 @@ void RSProperties::SetParticleRippleFields(const std::shared_ptr<ParticleRippleF
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }
@@ -1269,7 +1311,11 @@ void RSProperties::SetParticleVelocityFields(const std::shared_ptr<ParticleVeloc
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }
@@ -1292,7 +1338,11 @@ void RSProperties::SetParticleFields(const std::shared_ptr<ParticleFieldCollecti
         if (renderNode == nullptr) {
             return;
         }
-        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        auto animationManager = renderNode->GetAnimationManager();
+        if (!animationManager) {
+            return;
+        }
+        auto animation = animationManager->GetParticleAnimation();
         if (animation == nullptr) {
             return;
         }
@@ -2724,6 +2774,24 @@ void RSProperties::CreateFlyOutShaderFilter()
     foregroundFilter_ = flyOutShaderFilter;
 }
 
+const std::optional<float>& RSProperties::GetDistortionK() const
+{
+    static const std::optional<float> defaultValue = std::nullopt;
+    if (effect_) {
+        return effect_->distortionK_;
+    }
+    return defaultValue;
+}
+
+const std::shared_ptr<RSFilter>& RSProperties::GetMaterialFilter() const
+{
+    static const std::shared_ptr<RSFilter> defaultValue = nullptr;
+    if (effect_) {
+        return effect_->materialFilter_;
+    }
+    return defaultValue;
+}
+
 void RSProperties::CreateSphereEffectFilter()
 {
     auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(GetSpherize());
@@ -4035,6 +4103,10 @@ void RSProperties::GenerateForegroundFilter()
         filter_ = nullptr;
     }
 
+    if (GetCompositingNGFilter()) {
+        ComposeNGRenderFilter(filter_, GetCompositingNGFilter());
+    }
+
     if (GetFilter() == nullptr) {
         ROSEN_LOGD("RSProperties::GenerateForegroundFilter failed");
     }
@@ -4231,6 +4303,15 @@ void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
     }
 }
 
+const std::optional<Vector4f>& RSProperties::GetPixelStretch() const
+{
+    static const std::optional<Vector4f> defaultValue = std::nullopt;
+    if (effect_) {
+        return effect_->pixelStretch_;
+    }
+    return defaultValue;
+}
+
 RectI RSProperties::GetPixelStretchDirtyRect() const
 {
     auto dirtyRect = GetDirtyRect();
@@ -4282,6 +4363,15 @@ void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
     colorFilterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetGrayScale() const
+{
+    const RS_HIDDEN std::optional<float> defaultValue = std::nullopt;
+    if (effect_) {
+        return effect_->grayScale_;
+    }
+    return defaultValue;
 }
 
 void RSProperties::SetLightIntensity(float lightIntensity)
@@ -5307,6 +5397,23 @@ std::string RSProperties::Dump() const
     if (sdfShape) {
         dumpInfo.append(", SDFShape[" + sdfShape->Dump() + "]");
     }
+    // node slimming dump
+    dumpInfo.append(", hasDecoration: " + std::to_string(decoration_.has_value()));
+    dumpInfo.append(", hasClipRRect: " + std::to_string(clipRRect_.has_value()));
+    dumpInfo.append(", hasGeoTrans: " + std::to_string(frameGeo_.GetPivotX() != 0.5f ||
+        frameGeo_.GetPivotY() != 0.5f || frameGeo_.GetScaleX() != 1.f || frameGeo_.GetScaleY() != 1.f ||
+        frameGeo_.GetRotation() != 0.f || frameGeo_.GetTranslateX() != 0.f || frameGeo_.GetTranslateY() != 0.f));
+    auto rrect = GetRRect();
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for rrect, ret=" + std::to_string(ret);
+    }
+    if (sprintf_s(buffer, UINT8_MAX,
+        ", rrect[%.1f %.1f %.1f %.1f rx:%.1f ry:%.1f]",
+        rrect.rect_.left_, rrect.rect_.top_, rrect.rect_.width_, rrect.rect_.height_,
+        rrect.radius_[0].x_, rrect.radius_[0].y_) != -1) {
+        dumpInfo.append(buffer);
+    }
     return dumpInfo;
 }
 
@@ -5454,7 +5561,7 @@ void RSProperties::UpdateFilter()
                      IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
                      GetNeedDrawBehindWindow() || GetColorFilter() != nullptr || localMagnificationCap_ ||
-                     GetPixelStretch().has_value() || GetMaterialFilter() != nullptr;
+                     GetPixelStretch().has_value() || GetMaterialFilter() != nullptr || IsSDFDistortShape();
 #ifdef SUBTREE_PARALLEL_ENABLE
     // needForceSubmit_ is used to determine whether the subtree needs to read/scale pixels
     needForceSubmit_ = IsFilterNeedForceSubmit(GetFilter()) ||
@@ -5760,6 +5867,12 @@ std::shared_ptr<RSNGRenderShapeBase> RSProperties::GetSDFShape() const
     return renderSDFShape_;
 }
 
+bool RSProperties::IsSDFDistortShape() const
+{
+    auto sdfShape = GetSDFShape();
+    return sdfShape && sdfShape->GetType() == RSNGEffectType::SDF_DISTORT_OP_SHAPE;
+}
+
 void RSProperties::SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter)
 {
     GetEffect().mtNGRenderFilter_ = renderFilter;
@@ -5812,6 +5925,15 @@ bool RSProperties::GetColorAdaptive() const
         return effect_->colorAdaptive_;
     }
     return false;
+}
+
+const std::shared_ptr<Drawing::ColorFilter>& RSProperties::GetColorFilter() const
+{
+    static const std::shared_ptr<Drawing::ColorFilter> defaultValue = nullptr;
+    if (effect_) {
+        return effect_->colorFilter_;
+    }
+    return defaultValue;
 }
 
 void RSProperties::SetAdaptive(bool value)

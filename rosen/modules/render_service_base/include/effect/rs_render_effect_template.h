@@ -96,6 +96,8 @@ public:
             case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: return "SDFSmoothUnionOpShape";
             case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
             case RSNGEffectType::SDF_TRIANGLE_SHAPE: return "SDFTriangleShape";
+            case RSNGEffectType::SDF_ELLIPSE_SHAPE: return "SDFEllipseShape";
+            case RSNGEffectType::SDF_PATH_SHAPE: return "SDFPathShape";
             case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
             case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
             case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
@@ -119,6 +121,7 @@ public:
             case RSNGEffectType::SDF_EDGE_LIGHT_EFFECT: return "SDFEdgeLightEffect";
             case RSNGEffectType::MAGNIFIER: return "Magnifier";
             case RSNGEffectType::DISTORTION_COLLAPSE: return "DistortionCollapse";
+            case RSNGEffectType::BORDER_SDF_SHADER: return "BorderSDFShader";
             case RSNGEffectType::SPATIAL_POINT_LIGHT: return "SpatialPointLight";
             case RSNGEffectType::SPATIAL_GLASS_EFFECT: return "SpatialGlassEffect";
             case RSNGEffectType::MOTION_BLUR: return "MotionBlur";
@@ -178,6 +181,9 @@ private:
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, const RSColor& value);
+    
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, std::shared_ptr<RSPath> value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, int value);
 
@@ -210,6 +216,8 @@ private:
     static void CalculatePropTagHashImpl(uint32_t& hash, const RRect& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, const RSColor& value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSPath> value);
 
 #ifdef USE_M133_SKIA
     static constexpr auto hashFunc_ = SkChecksum::Hash32;

@@ -15,9 +15,7 @@
 
 #include "rsproxynode_fuzzer.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <securec.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_canvas_node.h"
@@ -25,56 +23,23 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-const uint8_t* g_data = nullptr;
-size_t g_size = 0;
-size_t g_pos;
-} // namespace
 
-/*
- * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
- * tips: only support basic type
- */
-template<class T>
-T GetData()
+void DoRSProxyNode(FuzzedDataProvider& fdp)
 {
-    T object {};
-    size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
-    if (ret != EOK) {
-        return {};
-    }
-    g_pos += objectSize;
-    return object;
-}
-
-bool DoRSProxyNode(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    NodeId targetNodeId = GetData<NodeId>();
+    NodeId targetNodeId = fdp.ConsumeIntegral<NodeId>();
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     RSProxyNode proxyNode(targetNodeId, "ProxyNode");
     RSCanvasNode::SharedPtr child1 = RSCanvasNode::Create();
-    int index = GetData<int>();
-    Vector4f bounds = {GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()};
-    float positionX = GetData<float>();
-    float positionY = GetData<float>();
-    float width = GetData<float>();
-    float height = GetData<float>();
-    Vector4f frame = {GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()};
+    int index = fdp.ConsumeIntegral<int>();
+    Vector4f bounds = {fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
+        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()};
+    float positionX = fdp.ConsumeFloatingPoint<float>();
+    float positionY = fdp.ConsumeFloatingPoint<float>();
+    float width = fdp.ConsumeFloatingPoint<float>();
+    float height = fdp.ConsumeFloatingPoint<float>();
+    Vector4f frame = {fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
+        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()};
     RSProxyNode::Create(targetNodeId);
     proxyNode.GetType();
     proxyNode.GetName();
@@ -92,16 +57,18 @@ bool DoRSProxyNode(const uint8_t* data, size_t size)
     proxyNode.SetFramePositionY(positionY);
     proxyNode.GetHierarchyCommandNodeId();
     RSTransactionProxy::instance_ = new RSTransactionProxy();
-    return true;
 }
+
 } // namespace Rosen
 } // namespace OHOS
 
-/* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    /* Run your code on data */
-    OHOS::Rosen::DoRSProxyNode(data, size);
+    if (data == nullptr) {
+        return -1;
+    }
+
+    FuzzedDataProvider fdp(data, size);
+    OHOS::Rosen::DoRSProxyNode(fdp);
     return 0;
 }
-

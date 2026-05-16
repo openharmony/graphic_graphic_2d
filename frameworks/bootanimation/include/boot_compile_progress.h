@@ -37,7 +37,7 @@ class BootCompileProgress {
 public:
     void Init(const std::string& configPath, const BootAnimationConfig& config,
         sptr<IRemoteObject> connectToRender);
-    ~BootCompileProgress();
+    virtual ~BootCompileProgress();
 
 private:
     class DeathRecipientInner : public IRemoteObject::DeathRecipient {
@@ -55,13 +55,13 @@ private:
     bool CreateCanvasNode();
     bool RegisterVsyncCallback();
     Rosen::Drawing::Brush DrawProgressPoint(int32_t idx, int32_t frameNum);
-    bool IsBmsBundleReady();
+    virtual bool IsBmsBundleReady();
     void DrawMarginBrush(Rosen::Drawing::RecordingCanvas* canvas);
     void RecordDeviceType();
     void SetFrame();
     void SetSpecialProgressFrame(int32_t maxLength, int32_t screenId);
     void RegisterDeathRecipientInner();
-    std::string GetFirmwareUpdateState();
+    virtual std::string GetFirmwareUpdateState();
     void UpdateText();
     void DrawCircle(Rosen::Drawing::RecordingCanvas* canvas);
 

@@ -28,7 +28,7 @@ class Canvas;
 class DRAWING_API RuntimeShaderBuilder {
 public:
     RuntimeShaderBuilder(std::shared_ptr<RuntimeEffect> runtimeEffect) noexcept;
-    virtual ~RuntimeShaderBuilder() = default;
+    virtual ~RuntimeShaderBuilder();
 
     std::shared_ptr<ShaderEffect> MakeShader(const Matrix* localMatrix, bool isOpaque);
     std::shared_ptr<Image> MakeImage(GPUContext* gpuContext,

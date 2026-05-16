@@ -48,6 +48,8 @@ public:
     static void ClearVirtualExpandScreenAccumulatedDirtyRegions(
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params);
     static bool HasMirrorDisplay();
+    static Drawing::Region GetFlippedRegion(const std::vector<RectI>& rects, ScreenInfo& screenInfo);
+    static void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region, bool clear = true);
 };
 
 class DirtyStatusAutoUpdate {

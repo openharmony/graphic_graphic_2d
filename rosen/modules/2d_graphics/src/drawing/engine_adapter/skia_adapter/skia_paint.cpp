@@ -254,7 +254,7 @@ void SkiaPaint::ApplyFilter(SkPaint& paint, const Filter& filter)
 {
     if (const ColorFilter* cs = filter.GetColorFilterPtr()) {
         if (SkiaColorFilter* skColorFilterImpl = cs->GetImpl<SkiaColorFilter>()) {
-            paint.setColorFilter(skColorFilterImpl->GetColorFilter());
+            paint.setColorFilter(skColorFilterImpl->GetSkColorFilter());
         }
     }
 

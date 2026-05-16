@@ -1161,13 +1161,13 @@ ErrCode RSClientToServiceConnection::GetScreenBacklight(uint64_t screenId, int32
     return ERR_OK;
 }
 
-void RSClientToServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSClientToServiceConnection::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
     if (!screenManagerAgent_) {
         RS_LOGE("%{public}s screenManagerAgent_ is nullptr.", __func__);
         return;
     }
-    screenManagerAgent_->SetScreenBacklight(id, level);
+    screenManagerAgent_->SetScreenBacklight(brightnessData);
 }
 
 ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, PanelPowerStatus& status)
@@ -2162,6 +2162,25 @@ ErrCode RSClientToServiceConnection::SetLayerTop(const std::string& nodeIdStr, b
     ErrCode ret = ERR_OK;
     for (auto conn : serviceToRenderConns) {
         ErrCode retTmp = conn->SetLayerTop(nodeIdStr, isTop);
+        ret = (ret != ERR_OK) ? ret : retTmp;
+    }
+    return ret;
+}
+
+ErrCode RSClientToServiceConnection::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.empty()) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    ErrCode ret = ERR_OK;
+    for (auto conn : serviceToRenderConns) {
+        ErrCode retTmp = conn->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
         ret = (ret != ERR_OK) ? ret : retTmp;
     }
     return ret;

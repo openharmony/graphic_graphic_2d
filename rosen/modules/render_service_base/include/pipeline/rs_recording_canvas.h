@@ -20,6 +20,7 @@
 #include <mutex>
 #include <queue>
 #include "pipeline/rs_draw_cmd.h"
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Media {
@@ -56,8 +57,8 @@ private:
     template<typename T, typename... Args>
     void AddDrawOpDeferred(Args&&... args);
     static constexpr int MAX_CANVAS_SIZE = 5;
-    static inline std::mutex canvasMutex_;
-    static inline std::queue<std::unique_ptr<ExtendRecordingCanvas>> canvasPool_;
+    static inline RS_HIDDEN std::mutex canvasMutex_;
+    static inline RS_HIDDEN std::queue<std::unique_ptr<ExtendRecordingCanvas>> canvasPool_;
 };
 } // namespace Rosen
 } // namespace OHOS

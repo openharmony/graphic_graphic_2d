@@ -223,8 +223,10 @@ if (!is_arkui_x) {
     }
     public_configs = [ ":export_config" ]
     external_deps = [ "hilog:libhilog" ]
+    external_deps += [
+      "skia:skia_canvaskit",
+    ]
     deps = [ "$drawing_root/drawing_ndk:drawing_ndk_source_$platform" ]
-    public_external_deps = [ "skia:skia_canvaskit" ]
 
     if (platform == "ohos") {
       version_script = "$drawing_root/2d_graphics.versionscript"

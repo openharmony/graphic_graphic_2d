@@ -172,17 +172,21 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/recording/record_cmd.cpp",
       "$drawing_core_src_dir/recording/recording_canvas.cpp",
       "$drawing_core_src_dir/text/font.cpp",
+      "$drawing_core_src_dir/text/font_event_callback.cpp",
       "$drawing_core_src_dir/text/font_filetype.cpp",
       "$drawing_core_src_dir/text/font_harfbuzz.cpp",
       "$drawing_core_src_dir/text/font_metadata.cpp",
       "$drawing_core_src_dir/text/font_mgr.cpp",
       "$drawing_core_src_dir/text/font_unicode_query.cpp",
+      "$drawing_core_src_dir/text/font_language_query.cpp",
+      "$drawing_core_src_dir/text/font_feature_query.cpp",
       "$drawing_core_src_dir/text/font_style_set.cpp",
       "$drawing_core_src_dir/text/font_variation_info.cpp",
       "$drawing_core_src_dir/text/hm_symbol.cpp",
       "$drawing_core_src_dir/text/text.cpp",
       "$drawing_core_src_dir/text/text_blob.cpp",
       "$drawing_core_src_dir/text/text_blob_builder.cpp",
+      "$drawing_core_src_dir/text/font_properties_query.cpp",
       "$drawing_core_src_dir/text/typeface.cpp",
       "$drawing_core_src_dir/text/glyph_cache.cpp",
       "$drawing_core_src_dir/utils/camera3d.cpp",
@@ -207,6 +211,8 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/utils/canvas_utils.cpp",
       "$drawing_core_src_dir/utils/object_helper.cpp",
       "$drawing_core_src_dir/utils/typeface_hash_map.cpp",
+      "$drawing_core_src_dir/utils/typeface_map.cpp",
+      "$drawing_core_src_dir/utils/text_utils.cpp",
     ]
 
     if (platform == "ohos" || platform == "ohos_ng") {
@@ -222,13 +228,7 @@ template("graphics2d_source_set") {
       }
       external_deps += [ "init:libbegetutil" ]
       sources += [ "$drawing_core_src_dir/utils/system_properties.cpp" ]
-      if (defined(
-          graphic_2d_platform_configs.system_graphic_properties_sources)) {
-        sources += graphic_2d_platform_configs.system_graphic_properties_sources
-      } else {
-        sources +=
-            [ "$drawing_core_src_dir/utils/system_graphic_properties.cpp" ]
-      }
+      sources += [ "$drawing_core_src_dir/utils/system_graphic_properties.cpp" ]
     } else if (platform == "android") {
       sources += [ "$drawing_core_src_dir/utils/system_properties.cpp" ]
     }
@@ -294,7 +294,10 @@ template("graphics2d_source_set") {
 
     if (is_arkui_x) {
       configs = [ "//third_party/jsoncpp:jsoncpp_public_config" ]
-      defines += [ "ROSEN_ARKUI_X" ]
+      defines += [
+        "ROSEN_ARKUI_X",
+        "ROSEN_CROSS_PLATFORM",
+      ]
     } else {
       external_deps += [ "jsoncpp:jsoncpp" ]
     }
@@ -325,7 +328,9 @@ template("graphics2d_source_set") {
         "-Wno-profile-instr-out-of-date",
         "-Wno-profile-instr-unprofiled",
       ]
-      external_deps += [ "freetype:freetype_static" ]
+      if (!(is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path))) {
+        external_deps += [ "freetype:freetype_static" ]
+      }
     }
 
     if (enable_text_gine) {

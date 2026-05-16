@@ -32,7 +32,7 @@ constexpr uint64_t FFRT_QOS_INHERIT = 4;
 constexpr uint64_t DANMU_MAX_INTERVAL_TIME = 50;
 constexpr int32_t VIDEO_VOTE_DELAYS_TIME = 1000 * 1000;
 }
-std::atomic<bool> RSFrameRateVote::isVideoApp_ = {false};
+std::atomic<bool> RSFrameRateVote::isVideoApp_{false};
 
 RSFrameRateVote::RSFrameRateVote()
 {
@@ -95,7 +95,7 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
         return;
     }
     // transactionFlags_ format is [pid, eventId]
-    std::string transactionFlags = "";
+    std::string transactionFlags;
     std::string strLastVotedPid;
     {
         std::lock_guard<std::mutex> lock(mutex_);

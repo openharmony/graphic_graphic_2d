@@ -33,6 +33,8 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSNGRenderShaderBase;
+
 enum class BorderStyle : uint32_t {
     SOLID = 0,
     DASHED,
@@ -72,11 +74,13 @@ public:
     void SetStyle(BorderStyle style);
     void SetDashWidth(float dashWidth);
     void SetDashGap(float dashGap);
+    void SetSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& shader);
     Color GetColor(int idx = RSBorder::LEFT) const;
     float GetWidth(int idx = RSBorder::LEFT) const;
     BorderStyle GetStyle(int idx = RSBorder::LEFT) const;
     float GetDashWidth(int idx = RSBorder::LEFT) const;
     float GetDashGap(int idx = RSBorder::LEFT) const;
+    std::shared_ptr<RSNGRenderShaderBase> GetSDFShader() const;
 
     void SetColorFour(const Vector4<Color>& color);
     void SetWidthFour(const Vector4f& width);
@@ -131,6 +135,8 @@ private:
     // Dash params dashWidth and dashGap
     std::vector<float> dashWidth_;
     std::vector<float> dashGap_;
+    // Shader for SDFShape border
+    std::shared_ptr<RSNGRenderShaderBase> sdfShader_;
 
     // only be used by outline, innerBorder(border_) uses corner radius.
     Vector4f radius_;

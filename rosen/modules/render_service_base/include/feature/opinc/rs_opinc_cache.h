@@ -16,110 +16,59 @@
 #ifndef RS_OPINC_CACHE_H
 #define RS_OPINC_CACHE_H
 
-#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
-#include "pipeline/rs_dirty_region_manager.h"
+#include "common/rs_rect.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSOpincCache {
 public:
-    RSOpincCache() = default;
-    RSOpincCache(const RSOpincCache&) = delete;
-    RSOpincCache(const RSOpincCache&&) = delete;
-    RSOpincCache& operator=(const RSOpincCache&) = delete;
-    RSOpincCache& operator=(const RSOpincCache&&) = delete;
+    RSOpincCache();
+    ~RSOpincCache();
 
-    ~RSOpincCache() = default;
+    bool GetSubTreeSupportFlag() const;
 
-    // mark stable node
-    void OpincSetInAppStateStart(bool& unchangeMarkInApp);
-    void OpincSetInAppStateEnd(bool& unchangeMarkInApp);
-    void OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool isSelfDirty);
-    bool IsOpincUnchangeState();
+    void SetSubTreeSupportFlag(bool supportFlag);
 
-    bool IsMarkedRenderGroup(bool groupTypeNotNone);
-    bool OpincForcePrepareSubTree(bool autoCacheEnable, bool isDirty, bool supportFlag);
-
-    // sync to drawable
-    void OpincUpdateRootFlag(bool& unchangeMarkEnable, bool isOpincNodeSupportFlag);
-    bool OpincGetRootFlag() const;
-
-    // arkui mark
-    void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
-    bool IsSuggestOpincNode() const;
-
-    bool GetCacheChangeFlag() const;
-    NodeCacheState GetNodeCacheState() const
-    {
-        return nodeCacheState_;
-    }
-
-    int GetUnchangeCount() const
-    {
-        return unchangeCount_;
-    }
-
-    bool GetSubTreeSupportFlag() const { return subTreeSupportFlag_; }
     void UpdateSubTreeSupportFlag(bool childSupportFlag, bool childRootFlag, bool groupTypeIsNone);
 
-    bool GetCurNodeTreeSupportFlag() const { return curNodeTreeSupportFlag_; }
-    void SetCurNodeTreeSupportFlag(bool curNodeTreeSupportFlag) { curNodeTreeSupportFlag_ = curNodeTreeSupportFlag; }
+    bool GetCurNodeTreeSupportFlag() const;
+
+    void SetCurNodeTreeSupportFlag(bool curNodeTreeSupportFlag);
 
     bool HasUnstableOpincNode() const;
+
     void SetHasUnstableOpincNode(bool hasUnstableOpincNode);
-    void UpdateSubTreeHasUnstableOpincNode(RSOpincCache& childOpincCache);
 
-    void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
-    bool IsSuggestLayerPartRenderNode() const;
+    void UpdateSubTreeHasUnstableOpincNode(RSOpincCache& childOpincCache,
+        bool childRootHasUnstableOpincNode);
+
+    void OpincSetInAppStateStart(bool& unchangeMarkInApp);
+
+    void OpincSetInAppStateEnd(bool& unchangeMarkInApp);
+
     void MarkMaterialNode(bool isMaterialNode);
-    bool IsMaterialNode() const;
-    void SetLayerPartRender(bool isLayerPartRender);
-    bool IsLayerPartRender() const;
-    void SetLayerPartRenderNodeStrategyType(NodeStrategyType type);
-    NodeStrategyType GetLayerPartRenderNodeStrategyType() const;
-    bool IsLayerPartRenderUnchangeState();
-    void ResetLayerPartRenderUnchangeState();
-    void SetLayerPartRenderDirtyFlag(bool dirtyFlag);
-    bool GetLayerPartRenderDirtyFlag() const;
-    void SetLayerPartRenderOldAbsDrawRect(RectI& oldAbsDrawRect);
-    const RectI& GetLayerPartRenderOldAbsDrawRect() const;
-    std::shared_ptr<RSDirtyRegionManager>& GetLayerPartRenderDirtyManager();
 
+    bool IsMaterialNode() const;
+
+    void SetLayerPartRenderDirtyFlag(bool dirtyFlag);
+
+    bool GetLayerPartRenderDirtyFlag() const;
+
+    void SetLayerPartRenderOldAbsDrawRect(const RectI& oldAbsDrawRect);
+
+    const RectI& GetLayerPartRenderOldAbsDrawRect() const;
 private:
     // opinc state
-    NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
-    bool isSuggestOpincNode_ = false;
-    bool isMaterialNode_ = false;
     bool subTreeSupportFlag_ = true;
     bool curNodeTreeSupportFlag_ = false;
-    bool isOpincRootFlag_ = false;
-    bool isUnchangeMarkEnable_ = false;
-    bool isNeedCalculate_ = false;
-    bool isUnchangeMarkInApp_ = false;
-
-    int tryCacheTimes_ = 0;
-    int unchangeCount_ = 0;
-    int unchangeCountUpper_ = 3; // 3 time is the default to cache
-    bool cacheChangeFlag_ = false;
-    int waitCount_ = 0;
     bool hasUnstableOpincNode_ = false;
 
     // layer part render
-    bool isSuggestLayerPartRenderNode_ = false;
-    bool isLayerPartRender_ = false;
-    NodeStrategyType layerPartRenderNodeStrategyType_ = NodeStrategyType::CACHE_NONE;
-    int layerPartRenderUnchangeCount_ = 0;
+    bool isUnchangeMarkInApp_ = false;
+    bool isMaterialNode_ = false;
     bool layerPartRenderDirtyFlag_ = false;
     RectI oldAbsDrawRect_;
-    std::shared_ptr<RSDirtyRegionManager> layerPartRenderDirtyManager_ = nullptr;
-
-    // opinc state func
-    void NodeCacheStateChange(NodeChangeType type);
-    void SetCacheStateByRetrytime();
-    void NodeCacheStateReset(NodeCacheState nodeCacheState);
-
-    friend class RSOpincManager;
 };
 } // namespace Rosen
 } // namespace OHOS

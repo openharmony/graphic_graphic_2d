@@ -449,7 +449,7 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
         auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("TakeSurfaceCapture failed, node is nullptr");
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_NODE);
             return;
         }
         auto displayCaptureHasPermission = screenCapturePermission && isSystemCalling;
@@ -459,7 +459,7 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
             RS_LOGE("TakeSurfaceCapture failed, node type: %{public}u, "
                 "screenCapturePermission: %{public}u, isSystemCalling: %{public}u, selfCapture: %{public}u",
                 node->GetType(), screenCapturePermission, isSystemCalling, selfCapture);
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
             return;
         }
         
@@ -916,6 +916,9 @@ void RSRenderPipelineAgent::RegisterCanvasCallback(pid_t remotePid, sptr<RSICanv
 int32_t RSRenderPipelineAgent::SubmitCanvasPreAllocatedBuffer(
     pid_t remotePid, NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
+    if (!NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled()) {
+        return FEATURE_DISABLED;
+    }
     if (rsRenderPipeline_ == nullptr) {
         return INVALID_ARGUMENTS;
     }
@@ -1370,6 +1373,33 @@ ErrCode RSRenderPipelineAgent::SetLayerTop(const std::string &nodeIdStr, bool is
         // It can be displayed immediately after layer-top changed.
         renderPipeline->GetMainThread()->SetDirtyFlag();
         renderPipeline->GetMainThread()->RequestNextVSync();
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
+ErrCode RSRenderPipelineAgent::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::SetHdrForceHwcEnabled, rsRenderPipeline_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [this, nodeIdStr, isHdrForceHwcEnabled]() -> void {
+        if (rsRenderPipeline_->GetMainThread() == nullptr) {
+            return;
+        }
+        auto& context = rsRenderPipeline_->GetMainThread()->GetContext();
+        context.GetNodeMap().TraverseSurfaceNodes(
+            [&nodeIdStr, &isHdrForceHwcEnabled](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+                if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
+                    (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
+                    surfaceNode->SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
+                    return;
+                }
+            });
+        // It can be displayed immediately after layer-top changed.
+        rsRenderPipeline_->GetMainThread()->SetDirtyFlag();
+        rsRenderPipeline_->GetMainThread()->RequestNextVSync();
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;
@@ -2025,29 +2055,30 @@ ErrCode RSRenderPipelineAgent::SetOptimizeCanvasDirtyPidList(const std::vector<i
     return ERR_OK;
 }
 
-void RSRenderPipelineAgent::OnScreenBacklightChanged(ScreenId screenId, uint32_t level)
+void RSRenderPipelineAgent::OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
     if (rsRenderPipeline_ == nullptr) {
         return;
     }
-    RSLuminanceControl::Get().SetSdrLuminance(screenId, level);
-    if (RSLuminanceControl::Get().IsHdrOn(screenId) && level > 0) {
-        rsRenderPipeline_->PostMainThreadTask([renderPipeline = rsRenderPipeline_, screenId]() {
+    RSLuminanceControl::Get().SetSdrLuminance(brightnessData);
+    if (RSLuminanceControl::Get().IsHdrOn(brightnessData.screenId) && brightnessData.level > 0) {
+        auto task = [renderPipeline = rsRenderPipeline_, screenId = brightnessData.screenId]() {
             renderPipeline->GetMainThread()->SetForceUpdateUniRenderFlag(true);
             renderPipeline->GetMainThread()->SetLuminanceChangingStatus(screenId, true);
             renderPipeline->GetMainThread()->SetDirtyFlag();
             renderPipeline->GetMainThread()->RequestNextVSync();
-        });
+        };
+        rsRenderPipeline_->PostMainThreadTask(task);
         return;
     }
     if (RSUniRenderJudgement::IsUniRender()) {
-        rsRenderPipeline_->GetComposerClientManager()->SetScreenBacklight(screenId, level);
+        rsRenderPipeline_->GetComposerClientManager()->SetScreenBacklight(brightnessData);
     } else {
-        auto composerClient = rsRenderPipeline_->GetComposerClientManager()->GetComposerClient(screenId);
+        auto composerClient = rsRenderPipeline_->GetComposerClientManager()->GetComposerClient(brightnessData.screenId);
         if (composerClient) {
             auto output = composerClient->GetOutput();
             if (output) {
-                output->SetScreenBacklight(level);
+                output->SetScreenBacklight(brightnessData.level);
             }
         }
     }

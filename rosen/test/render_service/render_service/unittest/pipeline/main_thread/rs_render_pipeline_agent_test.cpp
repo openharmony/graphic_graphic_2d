@@ -15,6 +15,10 @@
 
 #include "gtest/gtest.h"
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "node_mem_release_param.h"
+#endif
+
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "ipc_callbacks/rs_frame_stability_callback_stub.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -542,4 +546,80 @@ HWTEST_F(RSRenderPipelineAgentTest, CleanTest_ForRefreshTrue, TestSize.Level1)
     EXPECT_NE(agent->rsRenderPipeline_, nullptr);
     EXPECT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
 }
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_NullPipeline
+ * @tc.desc: Test SetHdrForceHwcEnabled when rsRenderPipeline_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetHdrForceHwcEnabled_NullPipeline, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::string nodeIdStr = "test_node";
+    ErrCode ret = agent->SetHdrForceHwcEnabled(nodeIdStr, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_NullMainThread
+ * @tc.desc: Test SetHdrForceHwcEnabled when GetMainThread() returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetHdrForceHwcEnabled_NullMainThread, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::string nodeIdStr = "test_node";
+    ErrCode ret = agent->SetHdrForceHwcEnabled(nodeIdStr, true);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_NormalCase
+ * @tc.desc: Test SetHdrForceHwcEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetHdrForceHwcEnabled_NormalCase, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    auto mainThread = RSMainThread::Instance();
+    renderPipeline->mainThread_ = mainThread;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::string nodeIdStr = "test_node";
+    ErrCode ret = agent->SetHdrForceHwcEnabled(nodeIdStr, true);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: SubmitCanvasPreAllocatedBufferTest
+ * @tc.desc: SubmitCanvasPreAllocatedBuffer Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SubmitCanvasPreAllocatedBufferTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(mainThread_, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(false);
+    auto ret = agent->SubmitCanvasPreAllocatedBuffer(1, 1, nullptr, 1);
+    EXPECT_NE(ret, 0);
+    NodeMemReleaseParam::SetCanvasDrawingNodeDMAMemEnabled(true);
+    ret = agent->SubmitCanvasPreAllocatedBuffer(1, 1, nullptr, 1);
+    EXPECT_NE(ret, 0);
+}
+#endif
 } // namespace OHOS::Rosen

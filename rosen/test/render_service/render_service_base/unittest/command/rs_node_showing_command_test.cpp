@@ -267,10 +267,13 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process003, TestSize.
 
     std::shared_ptr<RSBaseRenderNode> renderNode = std::make_shared<RSBaseRenderNode>(0);
     EXPECT_NE(renderNode, nullptr);
-    renderNode->animationManager_.animations_.clear();
+    renderNode->animationManager_ = std::make_shared<RSAnimationManager>();
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->animations_.clear();
     std::shared_ptr<RSRenderAnimation> animationTest = std::make_shared<RSRenderAnimation>(0);
     EXPECT_NE(animationTest, nullptr);
-    renderNode->animationManager_.animations_.emplace(0, animationTest);
+    animationManager->animations_.emplace(0, animationTest);
     context.nodeMap.renderNodeMap_[0][0] = renderNode;
     animation.Process(context);
 

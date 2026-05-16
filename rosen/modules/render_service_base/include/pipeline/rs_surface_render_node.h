@@ -205,6 +205,13 @@ public:
         return isLayerTop_;
     }
 
+    void SetHdrForceHwcEnabled(bool isHdrForceHwcEnabled);
+
+    bool IsHdrForceHwcEnabled() const
+    {
+        return isHdrForceHwcEnabled_;
+    }
+
     bool IsTopLayerForceRefresh() const
     {
         return isTopLayerForceRefresh_;
@@ -1953,6 +1960,7 @@ private:
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     uint32_t topLayerZOrder_ = 0;
     bool isLayerTop_ = false;
+    bool isHdrForceHwcEnabled_ = false;
     bool isTopLayerForceRefresh_ = false;
     bool isForceRefresh_ = false; // the self-drawing node need force refresh
     // Specifying hardware enable is only a 'hint' to RS that
@@ -2278,7 +2286,7 @@ private:
     std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;
 
     // UIExtension record, <UIExtension, hostAPP>
-    inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
+    inline static RS_HIDDEN std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
     friend class SurfaceNodeCommandHelper;
     friend class RSUifirstManager;
     friend class RSUniRenderVisitor;

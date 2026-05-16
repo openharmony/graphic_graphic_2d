@@ -41,7 +41,7 @@ public:
     ~RSRenderProcessManager() noexcept override = default;
 
     void OnVBlankIdle(ScreenId id, uint64_t ns) override {}
-    void OnScreenBacklightChanged(ScreenId id, uint32_t level) override;
+    void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData) override;
     void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
     void OnActiveScreenIdChanged(ScreenId activeScreenId) override {}
     void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;

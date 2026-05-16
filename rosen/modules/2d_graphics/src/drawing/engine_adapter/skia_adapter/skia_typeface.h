@@ -48,11 +48,15 @@ public:
     size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const override;
     bool GetBold() const override;
     bool GetItalic() const override;
+    bool GetMonospace() const override;
+    bool IsColored() const override;
     uint32_t GetUniqueID() const override;
     int32_t GetUnitsPerEm() const override;
     std::shared_ptr<Typeface> MakeClone(const FontArguments& args) const override;
     bool IsCustomTypeface() const override;
+    void SetIsCustomTypeface(bool isCustom) override;
     bool IsThemeTypeface() const override;
+    void SetIsThemeTypeface(bool isTheme) override;
     sk_sp<SkTypeface> GetSkTypeface();
 
     static std::shared_ptr<Typeface> MakeDefault();

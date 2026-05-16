@@ -136,7 +136,9 @@ public:
             return;
         }
         if (type == UPDATE_TYPE_FORCE_OVERWRITE) {
-            node->GetAnimationManager().CancelAnimationByPropertyId(id);
+            if (auto animationManager = node->GetAnimationManager()) {
+                animationManager->CancelAnimationByPropertyId(id);
+            }
         }
         if (auto property = node->GetProperty(id)) {
             std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);

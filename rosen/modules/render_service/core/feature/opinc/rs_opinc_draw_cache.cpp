@@ -33,9 +33,7 @@ constexpr float PERCENT = 100.f;
 constexpr int32_t BORDER_WIDTH = 6;
 constexpr int32_t MARGIN = 20;
 constexpr float RECT_PEN_ALPHA = 0.2f;
-constexpr float LAYER_RECT_PEN_ALPHA = 0.5f;
 constexpr float DFX_FONT_SIZE = 30.f;
-constexpr int32_t MIN_UNCHANGE_COUNT = 3;
 }
 
 RectI RSOpincDrawCache::screenRectInfo_ = {0, 0, 0, 0};
@@ -67,9 +65,9 @@ void RSOpincDrawCache::OpincCalculateBefore(Drawing::Canvas& canvas, const RSRen
 {
 #ifdef RS_ENABLE_GPU
     opincBlockNodeSkipTemp_ = opincBlockNodeSkip_;
-    isOpincCaculateStart_ = false;
+    isOpincCalculateStart_ = false;
     if (IsAutoCacheEnable() && IsOpListDrawAreaEnable()) {
-        isOpincCaculateStart_ = canvas.OpCalculateBefore(params.GetMatrix());
+        isOpincCalculateStart_ = canvas.OpCalculateBefore(params.GetMatrix());
         opincBlockNodeSkip_ = false;
     }
 #endif
@@ -77,8 +75,8 @@ void RSOpincDrawCache::OpincCalculateBefore(Drawing::Canvas& canvas, const RSRen
 
 void RSOpincDrawCache::OpincCalculateAfter(Drawing::Canvas& canvas)
 {
-    if (isOpincCaculateStart_) {
-        isOpincCaculateStart_ = false;
+    if (isOpincCalculateStart_) {
+        isOpincCalculateStart_ = false;
         auto localBound = Drawing::Rect(0.f, 0.f, static_cast<float>(GetOpincCacheMaxWidth()),
             static_cast<float>(GetOpincCacheMaxHeight()));
         auto drawAreaTemp = canvas.OpCalculateAfter(localBound);
@@ -91,6 +89,8 @@ void RSOpincDrawCache::OpincCalculateAfter(Drawing::Canvas& canvas)
             opListDrawAreas_ = std::move(*drawAreaTemp);
             isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
         }
+        RS_OPTIONAL_TRACE_NAME_FMT("canvas OpCalculateAfter isDrawAreaEnable:%d, opCanCache:%d",
+            isDrawAreaEnable_, opCanCache_);
     }
     opincBlockNodeSkip_ = opincBlockNodeSkipTemp_;
 }
@@ -146,8 +146,9 @@ bool RSOpincDrawCache::IsOpListDrawAreaEnable()
 
 bool RSOpincDrawCache::IsTranslate(Drawing::Matrix& mat)
 {
-    return (mat.Get(Drawing::Matrix::SCALE_X) == 1.0f) && (mat.Get(Drawing::Matrix::SCALE_Y) == 1.0f) &&
-        (mat.Get(Drawing::Matrix::SKEW_X) == 0.0f) && (mat.Get(Drawing::Matrix::SKEW_Y) == 0.0f);
+    return ColorManager::FloatEqual(mat.Get(Drawing::Matrix::SCALE_X), mat.Get(Drawing::Matrix::SCALE_Y)) &&
+        ColorManager::FloatEqual(mat.Get(Drawing::Matrix::SKEW_X), 0.0f) &&
+        ColorManager::FloatEqual(mat.Get(Drawing::Matrix::SKEW_Y), 0.0f);
 }
 
 void RSOpincDrawCache::NodeCacheStateDisable()
@@ -300,6 +301,7 @@ void RSOpincDrawCache::AfterDrawCache(Drawing::Canvas& canvas, RSRenderParams& p
         if (IsTranslate(totalMatrix) && (ROSEN_EQ(rootAlpha, 0.0f) || ROSEN_EQ(rootAlpha, 1.0f))) {
             isOnlyTranslate = true;
         }
+        RS_OPTIONAL_TRACE_NAME_FMT("isDrawAreaEnable:%d, isOnlyTranslate:%d", isDrawAreaEnable_, isOnlyTranslate);
         if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_ENABLE && isOnlyTranslate) {
             recordState_ = NodeRecordState::RECORD_CACHING;
         } else if (isDrawAreaEnable_ == DrawAreaEnableState::DRAW_AREA_DISABLE) {
@@ -414,105 +416,4 @@ void RSOpincDrawCache::DrawOpincDisabledDfx(Drawing::Canvas& canvas, RSRenderPar
     canvas.DetachBrush();
 }
 
-void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& params, RSPaintFilterCanvas& curCanvas,
-    RSPaintFilterCanvas& cacheCanvas, int nodeCount)
-{
-    if (!params.GetLayerPartRenderEnabled()) {
-        return;
-    }
-
-    Drawing::RectF absDrawRect = Drawing::RectF(params.GetAbsDrawRect().GetLeft(), params.GetAbsDrawRect().GetTop(),
-        params.GetAbsDrawRect().GetRight(), params.GetAbsDrawRect().GetBottom());
-    Drawing::Matrix inverseMatrix;
-    if (!curCanvas.GetTotalMatrix().Invert(inverseMatrix)) {
-        return;
-    }
-    Drawing::RectF absDrawRectTemp = Drawing::RectF(0, 0, 0, 0);
-    std::swap(absDrawRectTemp, absDrawRect);
-    if (!inverseMatrix.MapRect(absDrawRect, absDrawRectTemp)) {
-        return;
-    }
-
-    if (absDrawRect.IsEmpty()) {
-        return;
-    }
-
-    RectI currentFrameDirty;
-    if (layerPartRenderUnchangeCount_ <= MIN_UNCHANGE_COUNT) {
-        layerPartRenderUnchangeCount_++;
-        currentFrameDirty = { absDrawRect.GetLeft(), absDrawRect.GetTop(),
-            absDrawRect.GetRight(), absDrawRect.GetBottom() };
-    } else {
-        currentFrameDirty = params.GetLayerPartRenderCurrentFrameDirtyRegion();
-    }
-
-    float boundsWidth = params.GetCacheSize().x_;
-    float boundsHeight = params.GetCacheSize().y_;
-    float widthScale = boundsWidth / absDrawRect.GetWidth();
-    float heightScale = boundsHeight / absDrawRect.GetHeight();
-    float left = (currentFrameDirty.GetLeft() - absDrawRect.GetLeft()) * widthScale;
-    float top = (currentFrameDirty.GetTop() - absDrawRect.GetTop()) * heightScale;
-    float width = currentFrameDirty.GetWidth() * widthScale;
-    float height = currentFrameDirty.GetHeight() * heightScale;
-    Drawing::RectF tempRect = Drawing::RectF(left, top, left + width, top + height);
-    auto CurrentFrameDirtyResult = tempRect.RoundOut();
-
-    layerPartRenderDirtyRegion_.SetRect(CurrentFrameDirtyResult);
-    auto bounds = layerPartRenderDirtyRegion_.GetBounds();
-    RS_OPTIONAL_TRACE_NAME_FMT("id:%" PRIu64 ", nodeCount:%d, layerPartRenderDirtyRegion:[%d %d %d %d],"
-        "absDrawRect:[%.1f, %.1f, %.1f, %.1f], cacheSize:[%.1f, %.1f]",
-        params.GetId(), nodeCount,
-        bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight(),
-        absDrawRect.GetLeft(), absDrawRect.GetTop(), absDrawRect.GetWidth(), absDrawRect.GetHeight(),
-        boundsWidth, boundsHeight);
-    cacheCanvas.PushLayerPartRenderDirtyRegion(layerPartRenderDirtyRegion_);
-}
-
-void RSOpincDrawCache::LayerPartRenderClipDirtyRegion(const RSRenderParams& params,
-    RSPaintFilterCanvas& canvas)
-{
-    if (!params.GetLayerPartRenderEnabled()) {
-        return;
-    }
-    if (!layerPartRenderDirtyRegion_.IsEmpty()) {
-        canvas.ClipRect(layerPartRenderDirtyRegion_.GetBounds());
-    }
-}
-
-void RSOpincDrawCache::PopLayerPartRenderDirtyRegion(const RSRenderParams& params,
-    RSPaintFilterCanvas& canvas)
-{
-    if (!params.GetLayerPartRenderEnabled()) {
-        return;
-    }
-    if (canvas.IsLayerPartRenderDirtyRegionStackEmpty()) {
-        return;
-    }
-    Drawing::RectI tempRect = layerPartRenderDirtyRegion_.GetBounds();
-    LayerDirtyRegionDfx(canvas, tempRect);
-    canvas.PopLayerPartRenderDirtyRegion();
-}
-
-void RSOpincDrawCache::LayerDirtyRegionDfx(RSPaintFilterCanvas& canvas, const Drawing::RectI& dirtyRect)
-{
-    if (!RSSystemProperties::GetLayerPartRenderDebugEnabled()) {
-        return;
-    }
-    Drawing::Brush brush;
-    brush.SetColor(Drawing::Color(0x8090EE90));
-    brush.SetAntiAlias(true);
-    brush.SetAlphaF(LAYER_RECT_PEN_ALPHA);
-    std::shared_ptr<Drawing::Typeface> typeFace = nullptr;
-    std::string position = "pos:[" + dirtyRect.ToString() + "]";
-    // font size 24
-    std::shared_ptr<Drawing::TextBlob> textBlob =
-        Drawing::TextBlob::MakeFromString(position.c_str(), Drawing::Font(typeFace, 24.0f, 0.6f, 0.0f));
-    canvas.AttachBrush(brush);
-    canvas.DrawRect(dirtyRect);
-    canvas.DetachBrush();
-    canvas.AttachBrush(Drawing::Brush());
-    canvas.DrawTextBlob(textBlob.get(), dirtyRect.GetLeft() + BORDER_WIDTH,
-        dirtyRect.GetTop() + MARGIN);
-    canvas.DetachBrush();
-}
 } // namespace OHOS::Rosen::DrawableV2

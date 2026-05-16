@@ -30,6 +30,7 @@
 #include "effect/shader_effect.h"
 #include "utils/log.h"
 #include "sandbox_utils.h"
+#include "text/text_blob_builder.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -433,25 +434,19 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
 void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point pts[],
                                  Point origin, const Font* font)
 {
-    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32;
-    if (count <= 0) {
+    if (!font) {
         return;
     }
-    std::vector<uint16_t> glyphIDs(glyphs, glyphs + count);
-    std::vector<Point> positions(pts, pts + count);
-    if (!addDrawOpImmediate_) {
-        AddDrawOpDeferred<DrawGlyphsOpItem>(glyphIDs, positions, origin, font);
-        return;
+    auto builder = TextBlobBuilder();
+    auto buffer = builder.AllocRunPos(*font, count);
+    int pointSize = 2; // x, y occupies 2 unit
+    for (int i = 0; i < count; i++) {
+        buffer.glyphs[i] = glyphs[i];
+        buffer.pos[i * pointSize] = pts[i].GetX();
+        buffer.pos[i * pointSize + 1] = pts[i].GetY();
     }
-    auto fontHandle = CmdListHelper::AddFontToCmdList(*cmdList_, font);
-    auto glyphIDsData = CmdListHelper::AddVectorToCmdList<uint16_t>(*cmdList_, glyphIDs);
-    auto positionsData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, positions);
-    uint64_t globalUniqueId = 0;
-    if (font && font->GetTypeface() != nullptr) {
-        globalUniqueId = (shiftedPid | font->GetTypeface()->GetUniqueID());
-    }
-    AddDrawOpImmediate<DrawGlyphsOpItem::ConstructorHandle>(glyphIDsData, positionsData, origin, fontHandle,
-                                                            globalUniqueId);
+    std::shared_ptr<TextBlob> textBlob = builder.Make();
+    DrawTextBlob(textBlob.get(), origin.GetX(), origin.GetY());
 }
 
 void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)

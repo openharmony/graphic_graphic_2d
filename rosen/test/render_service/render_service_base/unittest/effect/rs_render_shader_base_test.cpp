@@ -17,6 +17,7 @@
 #include "parcel.h" // Assumed definition of Parcel
 #include "ge_visual_effect_container.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS::Rosen {
@@ -424,5 +425,480 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRect006, TestSize.Level1)
     RectF bound(0.0f, 0.0f, 100.0f, 100.0f);
     RectF result = RSNGRenderShaderHelper::CalcRect(shader, bound);
     EXPECT_TRUE(result == bound);
+}
+
+/**
+ * @tc.name: CalcRect007
+ * @tc.desc: test CalcRect with sdfShape, transformDrawRect differs from bound
+ * @tc.type: FUNC
+ * @tc.require: issue23101
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, CalcRect007, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    ASSERT_NE(shader, nullptr);
+    auto sdfEdgeLightEffect = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    constexpr float maxBorderWidth = 8.0f;
+    constexpr float outerBorderBloomWidth = 12.0f;
+    sdfEdgeLightEffect->Setter<SDFEdgeLightEffectMaxBorderWidthRenderTag>(maxBorderWidth,
+        PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    sdfEdgeLightEffect->Setter<SDFEdgeLightEffectOuterBorderBloomWidthRenderTag>(outerBorderBloomWidth,
+        PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    EXPECT_TRUE(sdfShape->GetTransformDrawRect().IsEmpty());
+    sdfEdgeLightEffect->Setter<SDFEdgeLightEffectSDFShapeRenderTag>(sdfShape,
+        PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    RectF bound(0.0f, 0.0f, 100.0f, 100.0f);
+    RSNGRenderShaderHelper::CalcRect(shader, bound);
+
+    sdfShape->transformDrawRect_ = RectF(10.0f, 10.0f, 80.0f, 80.0f);
+    EXPECT_FALSE(sdfShape->GetTransformDrawRect().IsEmpty());
+    constexpr float shapeLeft = 10.0f;
+    constexpr float shapeTop = 15.0f;
+    constexpr float shapeWidth = 80.0f;
+    constexpr float shapeHeight = 70.0f;
+    RectF shapeBound(shapeLeft, shapeTop, shapeWidth, shapeHeight);
+    RSNGRenderShapeHelper::CalcRect(sdfShape, shapeBound);
+    RectF result = RSNGRenderShaderHelper::CalcRect(shader, bound);
+    RectF expected(-outerBorderBloomWidth + shapeLeft, -outerBorderBloomWidth + shapeTop,
+        shapeWidth + outerBorderBloomWidth * 2.0f, shapeHeight + outerBorderBloomWidth * 2.0f);
+    EXPECT_TRUE(result == expected);
+}
+
+/**
+ * @tc.name: CreateBorderSDFShader001
+ * @tc.desc: Verify that Create returns a non-null instance for BORDER_SDF_SHADER type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, CreateBorderSDFShader001, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    EXPECT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::BORDER_SDF_SHADER);
+}
+
+/**
+* @tc.name: DistortChromaShaderCreate
+ * @tc.desc: Test creating DistortChroma shader and verify type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, DistortChromaShaderCreate, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::DISTORT_CHROMA);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::DISTORT_CHROMA);
+}
+
+/**
+ * @tc.name: DistortChromaShaderSetterGetter
+ * @tc.desc: Test DistortChroma shader Setter and Getter for properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, DistortChromaShaderSetterGetter, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderDistortChroma>();
+
+    float progress = 0.5f;
+    shader->Setter<DistortChromaProgressRenderTag>(progress);
+    auto progressVal = shader->Getter<DistortChromaProgressRenderTag>();
+    ASSERT_NE(progressVal, nullptr);
+    EXPECT_FLOAT_EQ(progressVal->Get(), progress);
+
+    Vector2f granularity { 1.0f, 1.0f };
+    shader->Setter<DistortChromaGranularityRenderTag>(granularity);
+    auto granularityVal = shader->Getter<DistortChromaGranularityRenderTag>();
+    ASSERT_NE(granularityVal, nullptr);
+    EXPECT_FLOAT_EQ(granularityVal->Get().x_, granularity.x_);
+
+    float frequency = 2.0f;
+    shader->Setter<DistortChromaFrequencyRenderTag>(frequency);
+    auto frequencyVal = shader->Getter<DistortChromaFrequencyRenderTag>();
+    ASSERT_NE(frequencyVal, nullptr);
+    EXPECT_FLOAT_EQ(frequencyVal->Get(), frequency);
+
+    float brightness = 1.5f;
+    shader->Setter<DistortChromaBrightnessRenderTag>(brightness);
+    auto brightnessVal = shader->Getter<DistortChromaBrightnessRenderTag>();
+    ASSERT_NE(brightnessVal, nullptr);
+    EXPECT_FLOAT_EQ(brightnessVal->Get(), brightness);
+}
+
+/**
+ * @tc.name: DistortChromaShaderContains
+ * @tc.desc: Test DistortChroma shader Contains template interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, DistortChromaShaderContains, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderDistortChroma>();
+    EXPECT_TRUE(shader->Contains<DistortChromaProgressRenderTag>());
+    EXPECT_TRUE(shader->Contains<DistortChromaGranularityRenderTag>());
+    EXPECT_TRUE(shader->Contains<DistortChromaFrequencyRenderTag>());
+    EXPECT_TRUE(shader->Contains<DistortChromaBrightnessRenderTag>());
+}
+
+/**
+ * @tc.name: LightCaveShaderSetterGetter
+ * @tc.desc: Test LightCave shader Setter and Getter for properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, LightCaveShaderSetterGetter, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderLightCave>();
+
+    Vector4f colorA { 1.0f, 1.0f, 1.0f, 1.0f };
+    shader->Setter<LightCaveColorARenderTag>(colorA);
+    auto colorAVal = shader->Getter<LightCaveColorARenderTag>();
+    ASSERT_NE(colorAVal, nullptr);
+    EXPECT_FLOAT_EQ(colorAVal->Get().x_, colorA.x_);
+
+    Vector4f colorB { 0.8f, 0.8f, 1.0f, 1.0f };
+    shader->Setter<LightCaveColorBRenderTag>(colorB);
+    auto colorBVal = shader->Getter<LightCaveColorBRenderTag>();
+    ASSERT_NE(colorBVal, nullptr);
+    EXPECT_FLOAT_EQ(colorBVal->Get().x_, colorB.x_);
+
+    Vector4f colorC { 0.6f, 0.6f, 1.0f, 1.0f };
+    shader->Setter<LightCaveColorCRenderTag>(colorC);
+    auto colorCVal = shader->Getter<LightCaveColorCRenderTag>();
+    ASSERT_NE(colorCVal, nullptr);
+    EXPECT_FLOAT_EQ(colorCVal->Get().x_, colorC.x_);
+
+    Vector2f position { 0.5f, 0.5f };
+    shader->Setter<LightCavePositionRenderTag>(position);
+    auto positionVal = shader->Getter<LightCavePositionRenderTag>();
+    ASSERT_NE(positionVal, nullptr);
+    EXPECT_FLOAT_EQ(positionVal->Get().x_, position.x_);
+
+    Vector2f radiusXY { 50.0f, 50.0f };
+    shader->Setter<LightCaveRadiusXYRenderTag>(radiusXY);
+    auto radiusXYVal = shader->Getter<LightCaveRadiusXYRenderTag>();
+    ASSERT_NE(radiusXYVal, nullptr);
+    EXPECT_FLOAT_EQ(radiusXYVal->Get().x_, radiusXY.x_);
+
+    float progress = 0.5f;
+    shader->Setter<LightCaveProgressRenderTag>(progress);
+    auto progressVal = shader->Getter<LightCaveProgressRenderTag>();
+    ASSERT_NE(progressVal, nullptr);
+    EXPECT_FLOAT_EQ(progressVal->Get(), progress);
+}
+
+/**
+ * @tc.name: LightCaveShaderContains
+ * @tc.desc: Test LightCave shader Contains template interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, LightCaveShaderContains, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderLightCave>();
+    EXPECT_TRUE(shader->Contains<LightCaveColorARenderTag>());
+    EXPECT_TRUE(shader->Contains<LightCaveColorBRenderTag>());
+    EXPECT_TRUE(shader->Contains<LightCaveColorCRenderTag>());
+    EXPECT_TRUE(shader->Contains<LightCavePositionRenderTag>());
+    EXPECT_TRUE(shader->Contains<LightCaveRadiusXYRenderTag>());
+    EXPECT_TRUE(shader->Contains<LightCaveProgressRenderTag>());
+}
+
+/**
+ * @tc.name: AIBarGlowShaderCreate
+ * @tc.desc: Test creating AIBarGlow shader and verify type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, AIBarGlowShaderCreate, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AIBAR_GLOW);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::AIBAR_GLOW);
+}
+
+/**
+ * @tc.name: AIBarGlowShaderSetterGetter
+ * @tc.desc: Test AIBarGlow shader Setter and Getter for properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, AIBarGlowShaderSetterGetter, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderAIBarGlow>();
+
+    Vector4f ltwh { 0.0f, 0.0f, 100.0f, 100.0f };
+    shader->Setter<AIBarGlowLTWHRenderTag>(ltwh);
+    auto ltwhVal = shader->Getter<AIBarGlowLTWHRenderTag>();
+    ASSERT_NE(ltwhVal, nullptr);
+    EXPECT_FLOAT_EQ(ltwhVal->Get().z_, ltwh.z_);
+
+    float stretchFactor = 1.0f;
+    shader->Setter<AIBarGlowStretchFactorRenderTag>(stretchFactor);
+    auto stretchFactorVal = shader->Getter<AIBarGlowStretchFactorRenderTag>();
+    ASSERT_NE(stretchFactorVal, nullptr);
+    EXPECT_FLOAT_EQ(stretchFactorVal->Get(), stretchFactor);
+
+    Vector4f color0 { 1.0f, 1.0f, 1.0f, 1.0f };
+    shader->Setter<AIBarGlowColor0RenderTag>(color0);
+    auto color0Val = shader->Getter<AIBarGlowColor0RenderTag>();
+    ASSERT_NE(color0Val, nullptr);
+    EXPECT_FLOAT_EQ(color0Val->Get().x_, color0.x_);
+
+    float progress = 0.5f;
+    shader->Setter<AIBarGlowProgressRenderTag>(progress);
+    auto progressVal = shader->Getter<AIBarGlowProgressRenderTag>();
+    ASSERT_NE(progressVal, nullptr);
+    EXPECT_FLOAT_EQ(progressVal->Get(), progress);
+
+    float strength = 1.0f;
+    shader->Setter<AIBarGlowStrengthRenderTag>(strength);
+    auto strengthVal = shader->Getter<AIBarGlowStrengthRenderTag>();
+    ASSERT_NE(strengthVal, nullptr);
+}
+
+/**
+ * @tc.name: AIBarGlowShaderContains
+ * @tc.desc: Test AIBarGlow shader Contains template interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, AIBarGlowShaderContains, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderAIBarGlow>();
+    EXPECT_TRUE(shader->Contains<AIBarGlowLTWHRenderTag>());
+    EXPECT_TRUE(shader->Contains<AIBarGlowStretchFactorRenderTag>());
+    EXPECT_TRUE(shader->Contains<AIBarGlowColor0RenderTag>());
+    EXPECT_TRUE(shader->Contains<AIBarGlowProgressRenderTag>());
+    EXPECT_TRUE(shader->Contains<AIBarGlowStrengthRenderTag>());
+}
+
+/**
+ * @tc.name: RoundedRectFlowlightShaderCreate
+ * @tc.desc: Test creating RoundedRectFlowlight shader and verify type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, RoundedRectFlowlightShaderCreate, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::ROUNDED_RECT_FLOWLIGHT);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::ROUNDED_RECT_FLOWLIGHT);
+}
+
+/**
+ * @tc.name: RoundedRectFlowlightShaderSetterGetter
+ * @tc.desc: Test RoundedRectFlowlight shader Setter and Getter for properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, RoundedRectFlowlightShaderSetterGetter, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderRoundedRectFlowlight>();
+
+    Vector2f startEndPosition { 0.0f, 1.0f };
+    shader->Setter<RoundedRectFlowlightStartEndPositionRenderTag>(startEndPosition);
+    auto startEndPositionVal = shader->Getter<RoundedRectFlowlightStartEndPositionRenderTag>();
+    ASSERT_NE(startEndPositionVal, nullptr);
+    EXPECT_FLOAT_EQ(startEndPositionVal->Get().x_, startEndPosition.x_);
+
+    float waveLength = 0.2f;
+    shader->Setter<RoundedRectFlowlightWaveLengthRenderTag>(waveLength);
+    auto waveLengthVal = shader->Getter<RoundedRectFlowlightWaveLengthRenderTag>();
+    ASSERT_NE(waveLengthVal, nullptr);
+    EXPECT_FLOAT_EQ(waveLengthVal->Get(), waveLength);
+
+    float cornerRadius = 10.0f;
+    shader->Setter<RoundedRectFlowlightCornerRadiusRenderTag>(cornerRadius);
+    auto cornerRadiusVal = shader->Getter<RoundedRectFlowlightCornerRadiusRenderTag>();
+    ASSERT_NE(cornerRadiusVal, nullptr);
+    EXPECT_FLOAT_EQ(cornerRadiusVal->Get(), cornerRadius);
+
+    float brightness = 1.0f;
+    shader->Setter<RoundedRectFlowlightBrightnessRenderTag>(brightness);
+    auto brightnessVal = shader->Getter<RoundedRectFlowlightBrightnessRenderTag>();
+    ASSERT_NE(brightnessVal, nullptr);
+    EXPECT_FLOAT_EQ(brightnessVal->Get(), brightness);
+
+    float progress = 0.5f;
+    shader->Setter<RoundedRectFlowlightProgressRenderTag>(progress);
+    auto progressVal = shader->Getter<RoundedRectFlowlightProgressRenderTag>();
+    ASSERT_NE(progressVal, nullptr);
+    EXPECT_FLOAT_EQ(progressVal->Get(), progress);
+}
+
+/**
+ * @tc.name: RoundedRectFlowlightShaderContains
+ * @tc.desc: Test RoundedRectFlowlight shader Contains template interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, RoundedRectFlowlightShaderContains, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderRoundedRectFlowlight>();
+    EXPECT_TRUE(shader->Contains<RoundedRectFlowlightStartEndPositionRenderTag>());
+    EXPECT_TRUE(shader->Contains<RoundedRectFlowlightWaveLengthRenderTag>());
+    EXPECT_TRUE(shader->Contains<RoundedRectFlowlightCornerRadiusRenderTag>());
+    EXPECT_TRUE(shader->Contains<RoundedRectFlowlightBrightnessRenderTag>());
+    EXPECT_TRUE(shader->Contains<RoundedRectFlowlightProgressRenderTag>());
+}
+
+/**
+ * @tc.name: GradientFlowColorsShaderCreate
+ * @tc.desc: Test creating GradientFlowColors shader and verify type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, GradientFlowColorsShaderCreate, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::GRADIENT_FLOW_COLORS);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::GRADIENT_FLOW_COLORS);
+}
+
+/**
+ * @tc.name: GradientFlowColorsShaderSetterGetter
+ * @tc.desc: Test GradientFlowColors shader Setter and Getter for properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, GradientFlowColorsShaderSetterGetter, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderGradientFlowColors>();
+
+    Vector4f color0 { 1.0f, 1.0f, 1.0f, 1.0f };
+    shader->Setter<GradientFlowColorsColor0RenderTag>(color0);
+    auto color0Val = shader->Getter<GradientFlowColorsColor0RenderTag>();
+    ASSERT_NE(color0Val, nullptr);
+    EXPECT_FLOAT_EQ(color0Val->Get().x_, color0.x_);
+
+    Vector4f color1 { 0.8f, 0.8f, 1.0f, 1.0f };
+    shader->Setter<GradientFlowColorsColor1RenderTag>(color1);
+    auto color1Val = shader->Getter<GradientFlowColorsColor1RenderTag>();
+    ASSERT_NE(color1Val, nullptr);
+    EXPECT_FLOAT_EQ(color1Val->Get().x_, color1.x_);
+
+    float gradientBegin = 0.0f;
+    shader->Setter<GradientFlowColorsGradientBeginRenderTag>(gradientBegin);
+    auto gradientBeginVal = shader->Getter<GradientFlowColorsGradientBeginRenderTag>();
+    ASSERT_NE(gradientBeginVal, nullptr);
+    EXPECT_FLOAT_EQ(gradientBeginVal->Get(), gradientBegin);
+
+    float gradientEnd = 1.0f;
+    shader->Setter<GradientFlowColorsGradientEndRenderTag>(gradientEnd);
+    auto gradientEndVal = shader->Getter<GradientFlowColorsGradientEndRenderTag>();
+    ASSERT_NE(gradientEndVal, nullptr);
+    EXPECT_FLOAT_EQ(gradientEndVal->Get(), gradientEnd);
+
+    float effectAlpha = 1.0f;
+    shader->Setter<GradientFlowColorsEffectAlphaRenderTag>(effectAlpha);
+    auto effectAlphaVal = shader->Getter<GradientFlowColorsEffectAlphaRenderTag>();
+    ASSERT_NE(effectAlphaVal, nullptr);
+    EXPECT_FLOAT_EQ(effectAlphaVal->Get(), effectAlpha);
+
+    float progress = 0.5f;
+    shader->Setter<GradientFlowColorsProgressRenderTag>(progress);
+    auto progressVal = shader->Getter<GradientFlowColorsProgressRenderTag>();
+    ASSERT_NE(progressVal, nullptr);
+    EXPECT_FLOAT_EQ(progressVal->Get(), progress);
+}
+
+/**
+ * @tc.name: GradientFlowColorsShaderContains
+ * @tc.desc: Test GradientFlowColors shader Contains template interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, GradientFlowColorsShaderContains, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderGradientFlowColors>();
+    EXPECT_TRUE(shader->Contains<GradientFlowColorsColor0RenderTag>());
+    EXPECT_TRUE(shader->Contains<GradientFlowColorsColor1RenderTag>());
+    EXPECT_TRUE(shader->Contains<GradientFlowColorsGradientBeginRenderTag>());
+    EXPECT_TRUE(shader->Contains<GradientFlowColorsGradientEndRenderTag>());
+    EXPECT_TRUE(shader->Contains<GradientFlowColorsEffectAlphaRenderTag>());
+    EXPECT_TRUE(shader->Contains<GradientFlowColorsProgressRenderTag>());
+}
+
+/**
+ * @tc.name: CircleFlowlightShaderCreate
+ * @tc.desc: Test creating CircleFlowlight shader and verify type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, CircleFlowlightShaderCreate, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CIRCLE_FLOWLIGHT);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::CIRCLE_FLOWLIGHT);
+}
+
+/**
+ * @tc.name: CircleFlowlightShaderSetterGetter
+ * @tc.desc: Test CircleFlowlight shader Setter and Getter for properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, CircleFlowlightShaderSetterGetter, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderCircleFlowlight>();
+
+    Vector4f color0 { 1.0f, 1.0f, 1.0f, 1.0f };
+    shader->Setter<CircleFlowlightColor0RenderTag>(color0);
+    auto color0Val = shader->Getter<CircleFlowlightColor0RenderTag>();
+    ASSERT_NE(color0Val, nullptr);
+    EXPECT_FLOAT_EQ(color0Val->Get().x_, color0.x_);
+
+    Vector4f color1 { 0.8f, 0.8f, 1.0f, 1.0f };
+    shader->Setter<CircleFlowlightColor1RenderTag>(color1);
+    auto color1Val = shader->Getter<CircleFlowlightColor1RenderTag>();
+    ASSERT_NE(color1Val, nullptr);
+    EXPECT_FLOAT_EQ(color1Val->Get().x_, color1.x_);
+
+    Vector4f rotationFrequency { 1.0f, 1.0f, 1.0f, 1.0f };
+    shader->Setter<CircleFlowlightRotationFrequencyRenderTag>(rotationFrequency);
+    auto rotationFrequencyVal = shader->Getter<CircleFlowlightRotationFrequencyRenderTag>();
+    ASSERT_NE(rotationFrequencyVal, nullptr);
+    EXPECT_FLOAT_EQ(rotationFrequencyVal->Get().x_, rotationFrequency.x_);
+
+    float progress = 0.5f;
+    shader->Setter<CircleFlowlightProgressRenderTag>(progress);
+    auto progressVal = shader->Getter<CircleFlowlightProgressRenderTag>();
+    ASSERT_NE(progressVal, nullptr);
+    EXPECT_FLOAT_EQ(progressVal->Get(), progress);
+
+    float strength = 1.0f;
+    shader->Setter<CircleFlowlightStrengthRenderTag>(strength);
+    auto strengthVal = shader->Getter<CircleFlowlightStrengthRenderTag>();
+    ASSERT_NE(strengthVal, nullptr);
+}
+
+/**
+ * @tc.name: CircleFlowlightShaderContains
+ * @tc.desc: Test CircleFlowlight shader Contains template interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, CircleFlowlightShaderContains, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderCircleFlowlight>();
+    EXPECT_TRUE(shader->Contains<CircleFlowlightColor0RenderTag>());
+    EXPECT_TRUE(shader->Contains<CircleFlowlightColor1RenderTag>());
+    EXPECT_TRUE(shader->Contains<CircleFlowlightRotationFrequencyRenderTag>());
+    EXPECT_TRUE(shader->Contains<CircleFlowlightProgressRenderTag>());
+    EXPECT_TRUE(shader->Contains<CircleFlowlightStrengthRenderTag>());
+}
+
+/**
+ * @tc.name: ColorGradientEffectShaderCreate
+ * @tc.desc: Test creating ColorGradientEffect shader and verify type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, ColorGradientEffectShaderCreate, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::COLOR_GRADIENT_EFFECT);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::COLOR_GRADIENT_EFFECT);
+}
+
+/**
+ * @tc.name: ColorGradientEffectShaderContains
+ * @tc.desc: Test ColorGradientEffect shader Contains template interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, ColorGradientEffectShaderContains, TestSize.Level1)
+{
+    auto shader = std::make_shared<RSNGRenderColorGradientEffect>();
+    EXPECT_TRUE(shader->Contains<ColorGradientEffectColor0RenderTag>());
+    EXPECT_TRUE(shader->Contains<ColorGradientEffectColor1RenderTag>());
+    EXPECT_TRUE(shader->Contains<ColorGradientEffectPosition0RenderTag>());
+    EXPECT_TRUE(shader->Contains<ColorGradientEffectPosition1RenderTag>());
+    EXPECT_TRUE(shader->Contains<ColorGradientEffectColorNumberRenderTag>());
+    EXPECT_TRUE(shader->Contains<ColorGradientEffectBrightnessRenderTag>());
 }
 } // namespace OHOS::Rosen

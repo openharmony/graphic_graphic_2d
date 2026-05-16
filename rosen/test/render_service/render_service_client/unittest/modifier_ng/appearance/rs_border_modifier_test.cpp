@@ -24,6 +24,7 @@
 
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_border_modifier.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -70,5 +71,21 @@ HWTEST_F(RSBorderModifierNGTypeTest, RSBorderModifierTest, TestSize.Level1)
     Vector4f dashGap = { 1.0f, 2.0f, 3.0f, 4.0f };
     modifier->SetBorderDashGap(dashGap);
     EXPECT_EQ(modifier->GetBorderDashGap(), dashGap);
+}
+
+/**
+ * @tc.name: RSBorderModifierSetGetBorderSDFShader
+ * @tc.desc: Test SetBorderSDFShader and GetBorderSDFShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBorderModifierNGTypeTest, RSBorderModifierSetGetBorderSDFShader, TestSize.Level1)
+{
+    std::shared_ptr<ModifierNG::RSBorderModifier> modifier = std::make_shared<ModifierNG::RSBorderModifier>();
+    EXPECT_EQ(modifier->GetBorderSDFShader(), nullptr);
+
+    auto shader = RSNGShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    modifier->SetBorderSDFShader(shader);
+    EXPECT_EQ(modifier->GetBorderSDFShader(), shader);
 }
 } // namespace OHOS::Rosen

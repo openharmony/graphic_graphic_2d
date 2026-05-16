@@ -22,8 +22,8 @@
 #include "hgm_command.h"
 #include "js_native_api.h"
 #include "js_native_api_types.h"
-#include "napi/native_common.h"
 #include "napi/native_api.h"
+#include "napi/native_common.h"
 #include "screen_types.h"
 #include "transaction/rs_interfaces.h"
 

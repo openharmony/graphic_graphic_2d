@@ -138,6 +138,18 @@ public:
     bool GetItalic() const;
 
     /**
+     * @brief   Get fontStyle is monospace.
+     * @return  If fontStyle is monospace, return true.
+     */
+    bool GetMonospace() const;
+
+    /**
+     * @brief   Get fontStyle is IsColored.
+     * @return  If fontStyle is IsColored, return false.
+     */
+    bool IsColored() const;
+
+    /**
      * @brief   Get a 32bit value for this typeface, unique for the underlying font data.
      * @return  UniqueID.
      */
@@ -148,7 +160,9 @@ public:
     std::shared_ptr<Typeface> MakeClone(const FontArguments&) const;
 
     bool IsCustomTypeface() const;
+    void SetIsCustomTypeface(bool isCustom);
     bool IsThemeTypeface() const;
+    void SetIsThemeTypeface(bool isTheme);
 
     std::shared_ptr<Data> Serialize() const;
     static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);

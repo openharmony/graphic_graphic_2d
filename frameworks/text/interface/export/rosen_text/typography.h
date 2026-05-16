@@ -239,6 +239,8 @@ public:
 #endif
     virtual TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) = 0;
     virtual std::vector<TextRange> GetVisibleTextRanges() const = 0;
+    virtual void SetForceReuseRasterResult(bool flag) = 0;
+    virtual bool GetForceReuseRasterResult() const = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

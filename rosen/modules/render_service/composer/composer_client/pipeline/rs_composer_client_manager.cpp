@@ -114,10 +114,10 @@ void RSComposerClientManager::CleanLayerBufferBySurfaceId(uint64_t surfaceId, No
     }
 }
 
-void RSComposerClientManager::SetScreenBacklight(ScreenId screenId, uint32_t level)
+void RSComposerClientManager::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
-    if (auto client = GetComposerClient(screenId)) {
-        client->SetScreenBacklight(level);
+    if (auto client = GetComposerClient(brightnessData.screenId)) {
+        client->SetScreenBacklight(brightnessData.level);
     }
 }
 

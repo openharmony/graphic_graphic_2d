@@ -847,7 +847,7 @@ HWTEST_F(RSBaseRenderNodeUnitTest, SendCommandFromRT, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     std::unique_ptr<RSCommand> command;
     NodeId nodeId = 0;
-    node->SendCommandFromRT(command, nodeId);
+    node->SendCommandFromRT(command, nodeId, 0);
     ASSERT_TRUE(true);
 }
 
@@ -1035,11 +1035,10 @@ HWTEST_F(RSBaseRenderNodeUnitTest, UpdateRenderStatus, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     RectI dirtyRegion(1, 1, 1, 1);
     bool isPartialRenderEnabled = false;
-    node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
+    ASSERT_FALSE(node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled));
 
     isPartialRenderEnabled = true;
-    node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
-    ASSERT_TRUE(node->isRenderUpdateIgnored_);
+    ASSERT_TRUE(node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled));
 }
 
 /**

@@ -71,7 +71,9 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, AddAnimations001, TestSize.Leve
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    renderNode->GetAnimationManager().AddAnimation(renderCurveAnimation);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->AddAnimation(renderCurveAnimation);
     std::vector<std::pair<NodeId, AnimationId>> animations3;
     animations3.emplace_back(NODE_ID, ANIMATION_ID);
     animator->AddAnimations(animations3);
@@ -1539,7 +1541,7 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_FinishA
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
     renderCurveAnimation->targetId_ = NODE_ID;
-    renderNode->GetAnimationManager().AddAnimation(renderCurveAnimation);
+    renderNode->AddAnimation(renderCurveAnimation);
 
     animator->cachedAnimations_.emplace_back(renderCurveAnimation);
 
@@ -1632,6 +1634,71 @@ HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_UpdateF
     animator->UpdateFraction(200000000, minLeftDelayTime);
 
     GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_UpdateFraction003 end";
+}
+
+/**
+ * @tc.name: AddAnimations004
+ * @tc.desc: Cover branch: animationManager non-null in AddAnimations
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, AddAnimations004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest AddAnimations004 start";
+    auto context = std::make_shared<RSContext>();
+    ASSERT_TRUE(context != nullptr);
+    auto animator = std::make_shared<RSRenderInteractiveImplictAnimator>(ANIMATOR_ID, context);
+    ASSERT_TRUE(animator != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    ASSERT_TRUE(renderNode != nullptr);
+    context->GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    // Make animationManager_ non-null
+    renderNode->AddAnimation(renderCurveAnimation);
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+
+    std::vector<std::pair<NodeId, AnimationId>> animations;
+    animations.emplace_back(NODE_ID, ANIMATION_ID);
+    animator->AddAnimations(animations);
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest AddAnimations004 end";
+}
+
+/**
+ * @tc.name: TimeDrivenGroupAnimator_FinishAnimator005
+ * @tc.desc: Cover branch: animationManager non-null in FinishAnimator
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInteractiveImplictAnimatorTest, TimeDrivenGroupAnimator_FinishAnimator005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_FinishAnimator005 start";
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+
+    auto animator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(ANIMATOR_ID, context, timingProtocol);
+    ASSERT_TRUE(animator != nullptr);
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(NODE_ID);
+    context->GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderCurveAnimation->targetId_ = NODE_ID;
+    // Make animationManager_ non-null via AddAnimation
+    renderNode->AddAnimation(renderCurveAnimation);
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+
+    animator->cachedAnimations_.emplace_back(renderCurveAnimation);
+    animator->FinishAnimator(RSInteractiveAnimationPosition::END);
+
+    GTEST_LOG_(INFO) << "RSRenderInteractiveImplictAnimatorTest TimeDrivenGroupAnimator_FinishAnimator005 end";
 }
 
 } // namespace Rosen

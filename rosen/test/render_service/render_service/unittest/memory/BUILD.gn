@@ -46,7 +46,6 @@ ohos_unittest("RenderServiceMemoryTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",
-    "graphic_2d:librender_service_base",
     "hilog:libhilog",
     "image_framework:image_native",
     "image_framework:image_utils",

@@ -375,6 +375,7 @@ void OHDrawingTypographyTest(const uint8_t* data, size_t size)
     OH_Drawing_PathArcTo(path, 0, 0, 1, 1, 0, 0);
     OH_Drawing_TypographyPaintOnPath(
         typography, canvas, nullptr, fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>());
+    OH_Drawing_SetTypographyAttributeBool(typography, TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT, fdp.ConsumeBool());
     OH_Drawing_TypographyPaint(typography, canvas, position[0], position[1]);
     OH_Drawing_FontDescriptor* fontDescriptor = OH_Drawing_CreateFontDescriptor();
     OH_Drawing_DestroyFontDescriptor(fontDescriptor);

@@ -734,7 +734,7 @@ HWTEST_F(RSInterfacesTest, SetScreenBacklight001, Function | SmallTest | Level2)
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
-    rsInterfaces->SetScreenBacklight(screenId, 50);
+    rsInterfaces->SetScreenBacklight(RsScreenBrightnessData(screenId, 50));
     auto backLight = rsInterfaces->GetScreenBacklight(screenId);
     EXPECT_EQ(backLight, 50);
 }
@@ -752,7 +752,7 @@ HWTEST_F(RSInterfacesTest, SetScreenBacklight002, Function | SmallTest | Level2)
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
-    rsInterfaces->SetScreenBacklight(screenId, 100);
+    rsInterfaces->SetScreenBacklight(RsScreenBrightnessData(screenId, 100));
     auto backLight = rsInterfaces->GetScreenBacklight(screenId);
     EXPECT_EQ(backLight, 100);
 }
@@ -770,7 +770,7 @@ HWTEST_F(RSInterfacesTest, GetScreenBacklight001, Function | SmallTest | Level2)
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
-    rsInterfaces->SetScreenBacklight(screenId, 50);
+    rsInterfaces->SetScreenBacklight(RsScreenBrightnessData(screenId, 50));
     auto backLight = rsInterfaces->GetScreenBacklight(screenId);
     EXPECT_EQ(backLight, 50);
 }
@@ -2315,7 +2315,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenTypeBlackList_Test, Function | SmallT
 
     std::vector<NodeType> typeBlackList = {1, 2, 3};
     int32_t ret = rsInterfaces->SetVirtualScreenTypeBlackList(virtualScreenId, typeBlackList);
-    ASSERT_EQ(ret, READ_PARCEL_ERR);
+    ASSERT_EQ(ret, 0);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
@@ -2342,7 +2342,7 @@ HWTEST_F(RSInterfacesTest, AddVirtualScreenBlackList_Test, Function | SmallTest 
 
     std::vector<NodeId> blackList = {1, 2, 3};
     int32_t ret = rsInterfaces->AddVirtualScreenBlackList(virtualScreenId, blackList);
-    ASSERT_EQ(ret, READ_PARCEL_ERR);
+    ASSERT_EQ(ret, 0);
 }
 
 /*
@@ -2362,7 +2362,7 @@ HWTEST_F(RSInterfacesTest, RemoveVirtualScreenBlackList_Test, Function | SmallTe
 
     std::vector<NodeId> blackList = {1, 2, 3};
     int32_t ret = rsInterfaces->RemoveVirtualScreenBlackList(virtualScreenId, blackList);
-    ASSERT_EQ(ret, READ_PARCEL_ERR);
+    ASSERT_EQ(ret, 0);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
@@ -2701,6 +2701,19 @@ HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
     ASSERT_NE(rsInterfaces, nullptr);
     std::string nodeIdStr = "123456";
     rsInterfaces->SetLayerTop(nodeIdStr, true);
+}
+
+/*
+ * @tc.name: SetHdrForceHwcEnabledTest
+ * @tc.desc: Test SetHdrForceHwcEnabled interface.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetHdrForceHwcEnabledTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetHdrForceHwcEnabled(nodeIdStr, true);
 }
 
 /*
@@ -3169,8 +3182,8 @@ HWTEST_F(RSInterfacesTest, ModifyVirtualScreenWhiteList001, Function | SmallTest
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     NodeId nodeId = 1;
-    ASSERT_EQ(rsInterfaces->AddVirtualScreenWhiteList(virtualScreenId, {nodeId}), READ_PARCEL_ERR);
-    ASSERT_EQ(rsInterfaces->RemoveVirtualScreenWhiteList(virtualScreenId, {nodeId}), READ_PARCEL_ERR);
+    ASSERT_EQ(rsInterfaces->AddVirtualScreenWhiteList(virtualScreenId, {nodeId}), SUCCESS);
+    ASSERT_EQ(rsInterfaces->RemoveVirtualScreenWhiteList(virtualScreenId, {nodeId}), SUCCESS);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 

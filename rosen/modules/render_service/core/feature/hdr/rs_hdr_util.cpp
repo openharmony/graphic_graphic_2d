@@ -311,7 +311,7 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
         return;
     }
     auto screenId = screenNode.GetScreenId();
-    screenNode.CollectHdrStatus(surfaceNode.GetVideoHdrStatus());
+    screenNode.CollectHdrStatus(surfaceNode.GetId(), surfaceNode.GetVideoHdrStatus());
     bool isHWCDisabled = surfaceNode.IsHardwareForcedDisabled();
     bool isHDRNode = surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR;
     bool isSdrNitsChanged = ROSEN_NE(screenNode.GetSdrNits(), screenNode.GetLastSdrNits());
@@ -356,14 +356,14 @@ void RSHdrUtil::CheckPixelFormatForHdrEffect(RSSurfaceRenderNode& surfaceNode,
         RS_LOGD("CheckPixelFormatForHdrEffect IsHdrEffectColorGamut: %{public}d, id: %{public}" PRIu64 "",
             surfaceNode.IsHdrEffectColorGamut(), surfaceNode.GetId());
         screenNode->SetHasUniRenderHdrSurface(true);
-        screenNode->CollectHdrStatus(HdrStatus::HDR_EFFECT);
+        screenNode->CollectHdrStatus(surfaceNode.GetId(), HdrStatus::HDR_EFFECT);
         SetHDRParam(*screenNode, surfaceNode, true);
     }
     if (surfaceNode.HDRColorHeadroomEnabled()) {
         RS_LOGD("CheckPixelFormatForHdrEffect HDRColorHeadroomEnabled: %{public}d, id: %{public}" PRIu64 "",
             static_cast<int>(surfaceNode.HDRColorHeadroomEnabled()), surfaceNode.GetId());
         screenNode->SetHasUniRenderHdrSurface(true);
-        screenNode->CollectHdrStatus(HdrStatus::HDR_COLOR);
+        screenNode->CollectHdrStatus(surfaceNode.GetId(), HdrStatus::HDR_COLOR);
         SetHDRParam(*screenNode, surfaceNode, false);
     }
 }

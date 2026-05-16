@@ -483,9 +483,9 @@ void RSRenderService::ScreenManagerListener::OnActiveScreenIdChanged(ScreenId ac
     HgmCore::Instance().SetActiveScreenId(activeScreenId);
 }
 
-void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(ScreenId id, uint32_t level)
+void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
-    renderService_.renderProcessManager_->OnScreenBacklightChanged(id, level);
+    renderService_.renderProcessManager_->OnScreenBacklightChanged(brightnessData);
 }
 
 void RSRenderService::ScreenManagerListener::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)

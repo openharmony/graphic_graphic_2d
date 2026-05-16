@@ -29,6 +29,7 @@ public:
     HgmUserDefine();
     ~HgmUserDefine() = default;
     void Init();
+
 private:
     std::shared_ptr<HgmUserDefineImpl> impl_;
 };

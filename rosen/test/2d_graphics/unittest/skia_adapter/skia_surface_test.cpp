@@ -452,6 +452,19 @@ HWTEST_F(SkiaSurfaceTest, SetSkSurface001, TestSize.Level1)
     skiaSurface.SetSkSurface(skSurface);
     ASSERT_TRUE(skSurface == skiaSurface.GetSkSurface());
 }
+
+/**
+ * @tc.name: SkiaSurfaceGetSkSurface001
+ * @tc.desc: Test SkiaSurface::GetSkSurface with raster surface
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaSurfaceTest, SkiaSurfaceGetSkSurface001, TestSize.Level1)
+{
+    SkiaSurface skiaSurface;
+    auto skSurface = skiaSurface.GetSkSurface();
+    EXPECT_EQ(skSurface, nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

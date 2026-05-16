@@ -1366,7 +1366,7 @@ HWTEST_F(RSScreenTest, SetScreenBacklight_001, testing::ext::TestSize.Level1)
 {
     VirtualScreenConfigs config;
     auto virtualScreen = std::make_shared<RSScreen>(config);
-    virtualScreen->SetScreenBacklight(static_cast<uint32_t>(1000));
+    virtualScreen->SetScreenBacklight(RsScreenBrightnessData(0, 1000));
     ASSERT_EQ(virtualScreen->GetScreenBacklight(), INVALID_BACKLIGHT_VALUE);
 }
 
@@ -1384,7 +1384,7 @@ HWTEST_F(RSScreenTest, SetScreenBacklight_002, testing::ext::TestSize.Level1)
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).Times(1).WillOnce(testing::Return(-1));
 
-    rsScreen->SetScreenBacklight(1);
+    rsScreen->SetScreenBacklight(RsScreenBrightnessData(0, 1));
 }
 
 /*
@@ -1398,7 +1398,7 @@ HWTEST_F(RSScreenTest, SetScreenBacklight_003, testing::ext::TestSize.Level1)
     auto rsScreen = std::make_shared<RSScreen>(0);
     ASSERT_NE(nullptr, rsScreen);
     rsScreen->property_.SetIsVirtual(true);
-    rsScreen->SetScreenBacklight(1);
+    rsScreen->SetScreenBacklight(RsScreenBrightnessData(0, 1));
 }
 
 /*
@@ -1414,7 +1414,7 @@ HWTEST_F(RSScreenTest, SetScreenBacklight_004, testing::ext::TestSize.Level1)
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).Times(2).WillRepeatedly(testing::Return(1));
     rsScreen->hasLogBackLightAfterPowerStatusChanged_ = false;
-    rsScreen->SetScreenBacklight(1);
+    rsScreen->SetScreenBacklight(RsScreenBrightnessData(0, 1));
     EXPECT_EQ(true, rsScreen->hasLogBackLightAfterPowerStatusChanged_);
 }
 
@@ -1430,8 +1430,8 @@ HWTEST_F(RSScreenTest, SetScreenBacklight_005, testing::ext::TestSize.Level1)
     ASSERT_NE(nullptr, rsScreen);
 
     rsScreen->hasLogBackLightAfterPowerStatusChanged_ = true;
-    rsScreen->onBackLightChange_ = [](ScreenId screenId, uint32_t num){};
-    rsScreen->SetScreenBacklight(1);
+    rsScreen->onBackLightChange_ = [](const RsScreenBrightnessData &){};
+    rsScreen->SetScreenBacklight(RsScreenBrightnessData(0, 1));
     ASSERT_TRUE(rsScreen->hasLogBackLightAfterPowerStatusChanged_);
 }
 

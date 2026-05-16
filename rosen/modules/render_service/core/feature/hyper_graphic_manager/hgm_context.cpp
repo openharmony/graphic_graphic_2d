@@ -18,8 +18,8 @@
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
-#include "rs_frame_report.h"
 #include "rs_frame_blur_predict.h"
+#include "rs_frame_report.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
@@ -165,7 +165,7 @@ void HgmContext::ProcessHgmFrameRate(
     }
     rsCurrRange_.IsValid() ?
         frameRateManager_->GetRsFrameRateTimer().Start() : frameRateManager_->GetRsFrameRateTimer().Stop();
-    
+
     bool needRefresh = frameRateManager_->UpdateUIFrameworkDirtyNodes(
         processToServiceInfo->uiFrameworkDirtyNodeNameMap, timestamp);
     bool setHgmTaskFlag = hgmCore_.SetHgmTaskFlag(false);

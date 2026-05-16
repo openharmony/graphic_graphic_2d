@@ -55,7 +55,7 @@ void DoSetScreenBackLight(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
     uint32_t level = fdp.ConsumeIntegral<uint32_t>();
-    g_rsInterfaces->SetScreenBacklight(id, level);
+    g_rsInterfaces->SetScreenBacklight(RsScreenBrightnessData(id, level));
 }
 
 void DoSetScreenActiveRect(FuzzedDataProvider& fdp)

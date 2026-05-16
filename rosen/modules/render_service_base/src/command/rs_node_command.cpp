@@ -192,9 +192,12 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
     auto& nodeMap = context.GetNodeMap();
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
     auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
-    // Sanity check, if any check failed, RSUniRenderVisitor will auto unregister the pair, we do nothing here.
-    if (inNode && outNode && inNode->GetSharedTransitionParam() == outNode->GetSharedTransitionParam()) {
+    if (auto param = inNode ? inNode->GetSharedTransitionParam() : nullptr;
+        param && param->outNodeId_ == outNodeId) {
         inNode->SetSharedTransitionParam(nullptr);
+    }
+    if (auto param = outNode ? outNode->GetSharedTransitionParam() : nullptr;
+        param && param->inNodeId_ == inNodeId) {
         outNode->SetSharedTransitionParam(nullptr);
     }
 }

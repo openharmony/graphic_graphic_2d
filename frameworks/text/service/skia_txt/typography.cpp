@@ -687,6 +687,24 @@ TextLayoutResult Typography::LayoutWithConstraints(const TextRectSize &constrain
 {
     return paragraph_->LayoutWithConstraints(constraint);
 }
+
+void Typography::SetForceReuseRasterResult(bool flag)
+{
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->SetForceReuseRasterResult(flag);
+}
+
+bool Typography::GetForceReuseRasterResult() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return false;
+    }
+    return paragraph_->GetForceReuseRasterResult();
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

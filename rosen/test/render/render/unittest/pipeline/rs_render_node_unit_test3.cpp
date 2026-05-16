@@ -982,7 +982,7 @@ HWTEST_F(RSRenderNodeUnitTest3, SendCommandFromRT, TestSize.Level1)
     RSRenderNode node(id, context);
     std::unique_ptr<RSCommand> command;
     NodeId nodeId = 0;
-    node.SendCommandFromRT(command, nodeId);
+    node.SendCommandFromRT(command, nodeId, 0);
     ASSERT_TRUE(true);
 }
 
@@ -1023,7 +1023,8 @@ HWTEST_F(RSRenderNodeUnitTest3, FallbackAnimationsToRoot, TestSize.Level1)
     RSRenderNode node(id, context);
     node.FallbackAnimationsToRoot();
     node.FallbackAnimationsToRoot();
-    node.animationManager_.animations_.clear();
+    nod.animationManager_ = std::make_shared<RSAnimationManager>();
+    node.animationManager_->animations_.clear();
     node.FallbackAnimationsToRoot();
     ASSERT_TRUE(true);
 }

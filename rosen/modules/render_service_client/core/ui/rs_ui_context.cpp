@@ -20,6 +20,7 @@
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_transaction_handler_manager.h"
 #include "ui/rs_ui_context_manager.h"
 
 namespace OHOS {
@@ -32,11 +33,16 @@ RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRem
         std::make_shared<RSTransactionHandler>(token, rsRenderInterface_->GetRSRenderPipelineClient());
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
     rsSyncTransactionHandler_->SetTransactionHandler(rsTransactionHandler_);
+
+    // Register RSTransactionHandler to manager for RSRenderNode access
+    RSTransactionHandlerManager::Instance().Register(token_, rsTransactionHandler_);
 }
 
 RSUIContext::~RSUIContext()
 {
     RS_LOGI("~RSUIContext: Token:%{public}" PRIu64, token_);
+    // Unregister RSTransactionHandler from manager
+    RSTransactionHandlerManager::Instance().Unregister(token_);
 }
 
 const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
@@ -58,10 +64,27 @@ const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
 
 const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
 {
-    if (rsModifierManager_ == nullptr) {
-        rsModifierManager_ = std::make_shared<RSModifierManager>();
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+    if (isUniRender) {
+        if (rsModifierManager_ == nullptr) {
+            rsModifierManager_ = std::make_shared<RSModifierManager>();
+        }
+        return rsModifierManager_;
+    } else {
+        std::lock_guard<std::mutex> lock(rsModifierManagerMutex_);
+        auto it = rsModifierManagerMap_.find(gettid());
+        if (it != rsModifierManagerMap_.end()) {
+            return it->second;
+        }
+
+        if (!rsModifierManagerMap_.empty()) {
+            RS_LOGI_LIMIT("Too many threads are using the same ModifierManagerMap");
+        }
+
+        auto rsModifierManager = std::make_shared<RSModifierManager>();
+        rsModifierManagerMap_.emplace(gettid(), rsModifierManager);
+        return rsModifierManager;
     }
-    return rsModifierManager_;
 }
 
 bool RSUIContext::AnimationCallback(AnimationId animationId, AnimationCallbackEvent event)

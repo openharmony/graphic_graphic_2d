@@ -25,6 +25,16 @@ namespace OHOS {
 namespace Rosen {
 constexpr int32_t LAYER_PART_RENDER_DIRTY_MANAGER_BUFFER_AGE = 4;
 
+namespace {
+void DisableLayerPartRender(RSRenderNode& node, RSRenderParams& stagingRenderParams)
+{
+    node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
+    node.CheckDrawingCacheType();
+    stagingRenderParams.SetDrawingCacheType(node.GetDrawingCacheType());
+    stagingRenderParams.SetLayerPartRenderEnabled(false);
+}
+} // namespace
+
 RSOpincManager& RSOpincManager::Instance()
 {
     static RSOpincManager instance;
@@ -72,7 +82,9 @@ bool RSOpincManager::OpincGetNodeSupportFlag(RSRenderNode& node)
     if (nodeType == RSRenderNodeType::CANVAS_NODE) {
         supportFlag = OpincGetCanvasNodeSupportFlag(node);
     } else if (nodeType == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-        supportFlag = !node.GetOpincCache().IsSuggestOpincNode() && OpincGetCanvasNodeSupportFlag(node);
+        auto* opincRootCache = node.TryGetOpincRootCachePtr();
+        supportFlag =
+            (opincRootCache == nullptr || !opincRootCache->IsSuggestOpincNode()) && OpincGetCanvasNodeSupportFlag(node);
     }
 
     node.GetOpincCache().SetCurNodeTreeSupportFlag(supportFlag);
@@ -82,10 +94,7 @@ bool RSOpincManager::OpincGetNodeSupportFlag(RSRenderNode& node)
 bool RSOpincManager::OpincGetCanvasNodeSupportFlag(RSRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
-    auto canvasNode = node.ReinterpretCastTo<RSCanvasRenderNode>();
-    bool isHDRNode = canvasNode != nullptr && canvasNode->GetHDRPresent();
-    if (isHDRNode ||
-        node.GetSharedTransitionParam() ||
+    if (node.GetSharedTransitionParam() ||
         property.IsSpherizeValid() ||
         property.IsAttractionValid() ||
         property.NeedFilter() ||
@@ -101,7 +110,12 @@ bool RSOpincManager::OpincGetCanvasNodeSupportFlag(RSRenderNode& node)
 
 bool RSOpincManager::IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable)
 {
-    auto subTreeDirty = node.GetOpincCache().OpincForcePrepareSubTree(opincEnable,
+    const auto* opincRootCache = node.TryGetOpincRootCachePtr();
+    if (opincRootCache == nullptr) {
+        return false;
+    }
+    auto& mutableOpincRootCache = node.GetOpincRootCache();
+    auto subTreeDirty = mutableOpincRootCache.OpincForcePrepareSubTree(opincEnable,
         node.IsSubTreeDirty() || node.IsContentDirty(), OpincGetNodeSupportFlag(node));
     return subTreeDirty;
 }
@@ -109,7 +123,7 @@ bool RSOpincManager::IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable)
 void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
     bool isAccessibilityConfigChanged)
 {
-    auto& opincCache = node.GetOpincCache();
+    const auto* opincRootCache = node.TryGetOpincRootCachePtr();
     // The opinc state needs to be reset in the following cases:
     // 1. subtree is dirty
     // 2. content is dirty
@@ -117,22 +131,30 @@ void RSOpincManager::QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkI
     // 4. the node is marked as a root node of opinc and the high-contrast state change
     auto isSelfDirty = node.IsSubTreeDirty() || node.IsContentDirty() ||
         node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
-        (opincCache.OpincGetRootFlag() && isAccessibilityConfigChanged);
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, isSelfDirty);
+        (opincRootCache != nullptr && opincRootCache->OpincGetRootFlag() && isAccessibilityConfigChanged);
+    if (opincRootCache != nullptr) {
+        auto& mutableOpincRootCache = node.GetOpincRootCache();
+        mutableOpincRootCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, isSelfDirty);
+    }
     auto& stagingRenderParams = node.GetStagingRenderParams();
     if (unchangeMarkEnable && stagingRenderParams) {
-        stagingRenderParams->OpincSetCacheChangeFlag(opincCache.GetCacheChangeFlag(), node.GetLastFrameSync());
-        stagingRenderParams->OpincUpdateRootFlag(opincCache.OpincGetRootFlag());
-        stagingRenderParams->OpincUpdateSupportFlag(opincCache.GetCurNodeTreeSupportFlag());
+        stagingRenderParams->OpincSetCacheChangeFlag(
+            opincRootCache != nullptr && opincRootCache->GetCacheChangeFlag(), node.GetLastFrameSync());
+        stagingRenderParams->OpincUpdateRootFlag(opincRootCache != nullptr && opincRootCache->OpincGetRootFlag());
+        stagingRenderParams->OpincUpdateSupportFlag(node.GetOpincCache().GetCurNodeTreeSupportFlag());
     }
 }
 
 void RSOpincManager::UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable)
 {
-    auto& opincCache = node.GetOpincCache();
-    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, OpincGetNodeSupportFlag(node));
+    const auto* opincRootCache = node.TryGetOpincRootCachePtr();
+    if (opincRootCache == nullptr) {
+        return;
+    }
+    auto& mutableOpincRootCache = node.GetOpincRootCache();
+    mutableOpincRootCache.OpincUpdateRootFlag(unchangeMarkEnable, OpincGetNodeSupportFlag(node));
     auto& stagingRenderParams = node.GetStagingRenderParams();
-    if (opincCache.isOpincRootFlag_ && stagingRenderParams) {
+    if (opincRootCache->isOpincRootFlag_ && stagingRenderParams) {
         stagingRenderParams->OpincUpdateRootFlag(true);
     }
 }
@@ -140,6 +162,7 @@ void RSOpincManager::UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable
 void RSOpincManager::QuickCheckOpincStable(
     RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode)
 {
+    const auto* nodeOpincRootCache = node.TryGetOpincRootCachePtr();
     if (!GetOPIncSwitch() || !node.GetOpincCache().HasUnstableOpincNode()) {
         return;
     }
@@ -149,8 +172,10 @@ void RSOpincManager::QuickCheckOpincStable(
     for (const auto& child : *node.GetSortedChildren()) {
         bool childHasUnstableOpincNode = false;
         auto& opincCache = child->GetOpincCache();
+        const auto* childOpincRootCache = child->TryGetOpincRootCachePtr();
 
-        if (!opincCache.IsSuggestOpincNode() || opincCache.IsOpincUnchangeState()) {
+        if (childOpincRootCache == nullptr || !childOpincRootCache->IsSuggestOpincNode()
+            || childOpincRootCache->IsOpincUnchangeState()) {
             QuickCheckOpincStable(*child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode);
             opincCache.SetHasUnstableOpincNode(childHasUnstableOpincNode);
             allChildHasUnstableOpincNode |= childHasUnstableOpincNode;
@@ -163,12 +188,15 @@ void RSOpincManager::QuickCheckOpincStable(
         child->AddToPendingSyncList();
 
         opincCache.SetHasUnstableOpincNode(
-            childHasUnstableOpincNode || (opincCache.IsSuggestOpincNode() && !opincCache.IsOpincUnchangeState()));
+            childHasUnstableOpincNode ||
+            (childOpincRootCache != nullptr && childOpincRootCache->IsSuggestOpincNode() &&
+                !childOpincRootCache->IsOpincUnchangeState()));
         allChildHasUnstableOpincNode |= opincCache.HasUnstableOpincNode();
     }
     node.GetOpincCache().SetHasUnstableOpincNode(
         allChildHasUnstableOpincNode ||
-        (node.GetOpincCache().IsSuggestOpincNode() && !node.GetOpincCache().IsOpincUnchangeState()));
+        (nodeOpincRootCache != nullptr && nodeOpincRootCache->IsSuggestOpincNode() &&
+            !nodeOpincRootCache->IsOpincUnchangeState()));
     hasUnstableOpincNode = node.GetOpincCache().HasUnstableOpincNode();
 }
 
@@ -211,12 +239,47 @@ OpincUnsupportType RSOpincManager::GetUnsupportReason(RSRenderNode& node)
 std::string RSOpincManager::QuickGetNodeDebugInfo(RSRenderNode& node)
 {
     std::string ret("");
-    auto& opincCache = node.GetOpincCache();
-    AppendFormat(ret, "%" PRIu64 ", subD:%d conD:%d s:%d uc:%d suggest:%d support:%d rootF:%d not_sup_reason:%d",
-        node.GetId(), node.IsSubTreeDirty(), node.IsContentDirty(), opincCache.GetNodeCacheState(),
-        opincCache.GetUnchangeCount(), opincCache.IsSuggestOpincNode(), opincCache.GetCurNodeTreeSupportFlag(),
-        opincCache.OpincGetRootFlag(), GetUnsupportReason(node));
+    auto* opincRootCache = node.TryGetOpincRootCachePtr();
+    auto nodeState = opincRootCache == nullptr ? NodeCacheState::STATE_INIT : opincRootCache->GetNodeCacheState();
+    auto unchangeCount = opincRootCache == nullptr ? 0 : opincRootCache->GetUnchangeCount();
+    auto suggestFlag = opincRootCache == nullptr ? false : opincRootCache->IsSuggestOpincNode();
+    auto supportFlag = node.GetOpincCache().GetCurNodeTreeSupportFlag();
+    auto rootFlag = opincRootCache == nullptr ? false : opincRootCache->OpincGetRootFlag();
+    AppendFormat(ret,
+        "%" PRIu64 ", subD:%d conD:%d s:%d uc:%d suggest:%d support:%d rootF:%d not_sup_reason:%d",
+        node.GetId(), node.IsSubTreeDirty(), node.IsContentDirty(), nodeState, unchangeCount,
+        suggestFlag, supportFlag, rootFlag, GetUnsupportReason(node));
     return ret;
+}
+
+void RSOpincManager::OpincSetInAppStateEnd(RSRenderNode& node, bool& unchangeMarkInApp)
+{
+    auto& opincCache = node.GetOpincCache();
+    opincCache.OpincSetInAppStateEnd(unchangeMarkInApp);
+}
+
+void RSOpincManager::OpincSetInAppStateStart(RSRenderNode& node, bool& unchangeMarkInApp)
+{
+    auto& opincCache = node.GetOpincCache();
+    opincCache.OpincSetInAppStateStart(unchangeMarkInApp);
+}
+
+bool RSOpincManager::IsSuggestOpincNode(RSRenderNode& node)
+{
+    const auto* opincRootCache = node.TryGetOpincRootCachePtr();
+    return opincRootCache != nullptr && opincRootCache->IsSuggestOpincNode();
+}
+
+bool RSOpincManager::OpincGetRootFlag(RSRenderNode& node)
+{
+    const auto* opincRootCache = node.TryGetOpincRootCachePtr();
+    return opincRootCache != nullptr && opincRootCache->OpincGetRootFlag();
+}
+
+bool RSOpincManager::IsOpincUnchangeState(RSRenderNode& node)
+{
+    const auto* opincRootCache = node.TryGetOpincRootCachePtr();
+    return opincRootCache != nullptr && opincRootCache->IsOpincUnchangeState();
 }
 
 void RSOpincManager::InitLayerPartRenderNode(bool isCCMLayerPartRenderEnabled, RSRenderNode& node,
@@ -225,17 +288,21 @@ void RSOpincManager::InitLayerPartRenderNode(bool isCCMLayerPartRenderEnabled, R
     if (!isCCMLayerPartRenderEnabled) {
         return;
     }
-    auto& opincCache = node.GetOpincCache();
-    if (!opincCache.IsSuggestLayerPartRenderNode() &&
-        node.GetOpincCache().GetLayerPartRenderNodeStrategyType() != NodeStrategyType::CACHE_DISABLE) {
+    const auto* layerPartRenderCache = node.TryGetLayerPartRenderCachePtr();
+    if (layerPartRenderCache == nullptr) {
+        return;
+    }
+    if (!layerPartRenderCache->IsSuggestLayerPartRenderNode() &&
+        layerPartRenderCache->GetLayerPartRenderNodeStrategyType() != NodeStrategyType::CACHE_DISABLE) {
         return;
     }
 
-    layerPartRenderDirtyManager = opincCache.GetLayerPartRenderDirtyManager();
+    auto& mutableLayerPartRenderCache = node.GetLayerPartRenderCache();
+    layerPartRenderDirtyManager = mutableLayerPartRenderCache.GetLayerPartRenderDirtyManager();
     if (layerPartRenderDirtyManager != nullptr) {
         layerPartRenderDirtyManager->Clear();
     }
-    opincCache.SetLayerPartRender(true);
+    mutableLayerPartRenderCache.SetLayerPartRender(true);
 }
 
 bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
@@ -252,13 +319,13 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
         return false;
     }
 
-    auto& opincCache = node.GetOpincCache();
+    auto& layerPartRenderCache = node.GetLayerPartRenderCache();
     if (node.GetNodeGroupType() != RSRenderNode::NodeGroupType::GROUPED_BY_USER) {
-        opincCache.ResetLayerPartRenderUnchangeState();
+        layerPartRenderCache.ResetLayerPartRenderUnchangeState();
     }
 
     const RectI& nodeAbsRect = geoPtr->GetAbsRect();
-    if (!opincCache.IsLayerPartRenderUnchangeState()) {
+    if (!layerPartRenderCache.IsLayerPartRenderUnchangeState()) {
         layerCurDirty = nodeAbsRect;
         layerPartRenderDirtyManager->MergeDirtyRect(layerCurDirty);
         layerPartRenderDirtyManager->UpdateDirty();
@@ -326,34 +393,33 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     }
 
     // mark is cleared, cache need to be cleared.
-    if (node.GetOpincCache().GetLayerPartRenderNodeStrategyType() == NodeStrategyType::CACHE_DISABLE) {
+    const auto* layerPartRenderCache = node.TryGetLayerPartRenderCachePtr();
+    if (layerPartRenderCache == nullptr) {
+        return;
+    }
+    auto& mutableLayerPartRenderCache = node.GetLayerPartRenderCache();
+    if (layerPartRenderCache->GetLayerPartRenderNodeStrategyType() == NodeStrategyType::CACHE_DISABLE) {
         RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", LayerPartRender clean cache", node.GetId());
-        node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
-        node.CheckDrawingCacheType();
-        stagingRenderParams->SetDrawingCacheType(node.GetDrawingCacheType());
-        stagingRenderParams->SetLayerPartRenderEnabled(false);
-        node.GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_NONE);
+        DisableLayerPartRender(node, *stagingRenderParams);
+        mutableLayerPartRenderCache.SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_NONE);
         layerPartRenderDirtyManager = nullptr;
         return;
     }
-    if (!node.GetOpincCache().IsLayerPartRender()) {
+    if (!layerPartRenderCache->IsLayerPartRender()) {
         return;
     }
 
     if (node.GetOpincCache().IsMaterialNode()) {
         RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", has material node, suspend layer part render", node.GetId());
-        node.GetOpincCache().MarkSuggestLayerPartRenderNode(false);
-        node.GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_DISABLE);
+        mutableLayerPartRenderCache.MarkSuggestLayerPartRenderNode(false);
+        mutableLayerPartRenderCache.SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_DISABLE);
         return;
     }
 
     RectI layerCurDirty;
     if (!CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty) ||
         layerPartRenderDirtyManager->HasUifirstChild() || isDisableAnimation) {
-        node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
-        node.CheckDrawingCacheType();
-        stagingRenderParams->SetDrawingCacheType(node.GetDrawingCacheType());
-        stagingRenderParams->SetLayerPartRenderEnabled(false);
+        DisableLayerPartRender(node, *stagingRenderParams);
         RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", isDisableAnimation or Calculate error or has uifirst node, clear",
             node.GetId());
         return;

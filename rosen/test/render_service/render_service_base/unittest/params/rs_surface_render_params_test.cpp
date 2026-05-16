@@ -362,6 +362,29 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerTop_002, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetHdrForceHwcEnabledTest
+ * @tc.desc: Test function SetHdrForceHwcEnabled
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetHdrForceHwcEnabledTest, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(115);
+    params.needSync_ = false;
+    params.isHdrForceHwcEnabled_  = false;
+
+    bool isHdrForceHwcEnabled = params.isHdrForceHwcEnabled_;
+    params.SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
+    EXPECT_EQ(params.needSync_, false);
+    EXPECT_EQ(params.isHdrForceHwcEnabled_, isHdrForceHwcEnabled);
+
+    isHdrForceHwcEnabled = !params.isHdrForceHwcEnabled_;
+    params.SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_EQ(params.isHdrForceHwcEnabled_, isHdrForceHwcEnabled);
+}
+
+/**
  * @tc.name: SetForceRefresh_001
  * @tc.desc: Test function SetForceRefresh
  * @tc.type:FUNC

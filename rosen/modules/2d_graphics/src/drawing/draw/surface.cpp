@@ -218,6 +218,11 @@ int Surface::Height() const
     return impl_->Height();
 }
 
+sk_sp<SkSurface> Surface::GetSkSurface() const
+{
+    return impl_->GetSkSurface();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

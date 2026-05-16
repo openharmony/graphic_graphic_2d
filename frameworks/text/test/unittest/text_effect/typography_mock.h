@@ -88,6 +88,8 @@ public:
     MOCK_METHOD(bool, HasSkipTextBlobDrawing, (), (const, override));
     MOCK_METHOD(void, SetTextEffectAssociation, (bool association), (override));
     MOCK_METHOD(bool, GetTextEffectAssociation, (), (const, override));
+    MOCK_METHOD(void, SetForceReuseRasterResult, (bool flag), (override));
+    MOCK_METHOD(bool, GetForceReuseRasterResult, (), (const, override));
     MOCK_METHOD(std::vector<TextBlobRecordInfo>, GetTextBlobRecordInfo, (), (const, override));
     MOCK_METHOD(bool, CanPaintAllText, (), (const, override));
     MOCK_METHOD(std::string, GetDumpInfo, (), (const, override));

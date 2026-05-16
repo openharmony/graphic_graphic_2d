@@ -50,7 +50,7 @@ HWTEST_F(RSColorPickerThreadTest, PostTaskTest, TestSize.Level1)
         taskExecuted.store(true);
     };
 
-    RSColorPickerThread::Instance().PostTask(func);
+    RSColorPickerThread::Instance().PostTask(func, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     EXPECT_TRUE(taskExecuted.load());
@@ -71,7 +71,7 @@ HWTEST_F(RSColorPickerThreadTest, PostTaskWithoutRateLimitTest, TestSize.Level1)
 
     // Post with limited=false should bypass rate limiting
     for (int i = 0; i < 25; i++) {
-        RSColorPickerThread::Instance().PostTask(func, false);
+        RSColorPickerThread::Instance().PostTask(func, 0);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -121,89 +121,6 @@ HWTEST_F(RSColorPickerThreadTest, RegisterNodeDirtyCallbackNullTest, TestSize.Le
 
     // If we reach here without crash, test passes
     EXPECT_TRUE(true);
-}
-
-/**
- * @tc.name: PostTaskRateLimitTest
- * @tc.desc: Test rate limiting of PostTask - tasks should be dropped when exceeding limit
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSColorPickerThreadTest, PostTaskRateLimitTest, TestSize.Level1)
-{
-    constexpr uint32_t maxTasksPerSecond = 20;
-    std::atomic<uint32_t> executedTaskCount {0};
-
-    // Post more tasks than the limit
-    for (uint32_t i = 0; i < maxTasksPerSecond + 10; i++) {
-        RSColorPickerThread::Instance().PostTask([&executedTaskCount]() {
-            executedTaskCount.fetch_add(1, std::memory_order_relaxed);
-        });
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    // Verify that no more than MAX_TASKS_PER_SECOND tasks were posted
-    EXPECT_LE(executedTaskCount.load(), maxTasksPerSecond);
-}
-
-/**
- * @tc.name: PostTaskRateLimitResetTest
- * @tc.desc: Test that rate limit resets after 1 second
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSColorPickerThreadTest, PostTaskRateLimitResetTest, TestSize.Level1)
-{
-    constexpr uint32_t maxTasksPerSecond = 20;
-    std::atomic<uint32_t> executedTaskCount {0};
-
-    // Post tasks up to the limit
-    for (uint32_t i = 0; i < maxTasksPerSecond; i++) {
-        RSColorPickerThread::Instance().PostTask([&executedTaskCount]() {
-            executedTaskCount.fetch_add(1, std::memory_order_relaxed);
-        });
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1100));
-
-    uint32_t firstBatchCount = executedTaskCount.load();
-
-    // Post another batch of tasks
-    for (uint32_t i = 0; i < maxTasksPerSecond; i++) {
-        RSColorPickerThread::Instance().PostTask([&executedTaskCount]() {
-            executedTaskCount.fetch_add(1, std::memory_order_relaxed);
-        });
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    // Verify that the second batch was also accepted (rate limit was reset)
-    EXPECT_GT(executedTaskCount.load(), firstBatchCount);
-}
-
-/**
- * @tc.name: PostTaskWithinLimitTest
- * @tc.desc: Test that tasks within the rate limit are accepted
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSColorPickerThreadTest, PostTaskWithinLimitTest, TestSize.Level1)
-{
-    constexpr uint32_t taskToPost = 10;
-    std::atomic<uint32_t> executedTaskCount {0};
-
-    // Post tasks within the limit
-    for (uint32_t i = 0; i < taskToPost; i++) {
-        RSColorPickerThread::Instance().PostTask([&executedTaskCount]() {
-            executedTaskCount.fetch_add(1, std::memory_order_relaxed);
-        });
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    // postTask doesn't work in UT
-    EXPECT_EQ(executedTaskCount.load(), 0);
 }
 
 /**

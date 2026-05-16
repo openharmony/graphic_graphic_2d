@@ -732,7 +732,7 @@ public:
      * @param id Id of the screen to set its backlight value.
      * @param level The value of backlight.
      */
-    void SetScreenBacklight(ScreenId id, uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
@@ -1335,6 +1335,14 @@ public:
      * @param isTop is function switch.
      */
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
+
+    // Make this node(nodeIdStr) should do DSS composition. otherwise do GPU composition.
+    /**
+     * @brief Set selfdrawing component of stylus engine force use DSS.
+     * @param nodeIdStr surfaceNode name.
+     * @param isHdrForceHwcEnabled is function switch.
+     */
+    void SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled);
 
     // Make this node(nodeIdStr) should do DSS composition and set the surface force refresh.
     /**

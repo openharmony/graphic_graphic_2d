@@ -78,7 +78,7 @@ void RSProxyRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>& m
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextMatrix>(targetId_, matrix);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 
 void RSProxyRenderNode::SetContextAlpha(float alpha)
@@ -93,7 +93,7 @@ void RSProxyRenderNode::SetContextAlpha(float alpha)
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextAlpha>(targetId_, alpha);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 
 void RSProxyRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion)
@@ -108,7 +108,7 @@ void RSProxyRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect>&
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextClipRegion>(targetId_, clipRegion);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 
 void RSProxyRenderNode::ResetContextVariableCache()
@@ -149,7 +149,9 @@ void RSProxyRenderNode::CleanUp(bool removeModifiers)
     // remove all modifiers and animations added via proxy node
     const auto pid_of_this_node = ExtractPid(GetId());
     target->FilterModifiersByPid(pid_of_this_node);
-    target->GetAnimationManager().FilterAnimationByPid(pid_of_this_node);
+    if (auto animationManager = target->GetAnimationManager()) {
+        animationManager->FilterAnimationByPid(pid_of_this_node);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

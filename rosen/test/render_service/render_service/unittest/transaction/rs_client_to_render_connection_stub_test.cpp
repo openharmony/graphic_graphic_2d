@@ -4086,7 +4086,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest012, 
     // Should return without crash
 
     // Test OnScreenBacklightChanged
-    agent->OnScreenBacklightChanged(0, 100);
+    agent->OnScreenBacklightChanged(RsScreenBrightnessData(0, 100));
     // Should return without crash
 
     // Test OnGlobalBlacklistChanged
@@ -4121,6 +4121,10 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest013, 
 
     // Test SetLayerTop
     ErrCode ret = agent->SetLayerTop("123", true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    // Test SetHdrForceHwcEnabled
+    ret = agent->SetHdrForceHwcEnabled("123", true);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     // Test SetWatermark

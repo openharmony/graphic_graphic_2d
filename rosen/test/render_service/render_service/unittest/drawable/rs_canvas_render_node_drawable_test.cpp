@@ -19,6 +19,7 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "memory/rs_memory_snapshot.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -458,6 +459,108 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest005, TestSize.Level2)
     EXPECT_EQ(canvasDrawable->GetOpincDrawCache().GetNodeCacheType(), NodeStrategyType::CACHE_NONE);
 
     // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDrawTest006
+ * @tc.desc: Cover occlusion skip path and FinishOpincSubtree call in OnDraw
+ * @tc.type: FUNC
+ * @tc.require: issueTddCover120
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest006, TestSize.Level2)
+{
+    NodeId nodeId = 6;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+    ASSERT_TRUE(canvasDrawable->renderParams_->SetLocalDrawRect(RectF(1000.f, 1000.f, 100.f, 100.f)));
+    canvasDrawable->isOpDropped_ = true;
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetOpDropped(true);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    Drawing::Canvas drawingCanvas(1, 1);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Region dirtyRegion;
+    canvas.PushDirtyRegion(dirtyRegion);
+    canvas.SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
+    canvasDrawable->OnDraw(canvas);
+    ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::OCCLUSION_SKIP);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+#ifdef SUBTREE_PARALLEL_ENABLE
+/**
+ * @tc.name: OnDrawTest007
+ * @tc.desc: Cover quick draw branch and FinishOpincSubtree call in OnDraw
+ * @tc.type: FUNC
+ * @tc.require: issueTddCover130
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest007, TestSize.Level2)
+{
+    NodeId nodeId = 7;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+    canvasDrawable->isOpDropped_ = false;
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
+    canvasDrawable->OnDraw(canvas);
+    ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::NONE);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+#endif
+
+/**
+ * @tc.name: OnDrawTest008
+ * @tc.desc: Cover multi-access path and FinishOpincSubtree call in OnDraw
+ * @tc.type: FUNC
+ * @tc.require: issueTddCover141
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest008, TestSize.Level2)
+{
+    NodeId nodeId = 8;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+    canvasDrawable->isOpDropped_ = false;
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSRenderNodeSingleDrawableLocker lockGuard(canvasDrawable);
+    canvasDrawable->OnDraw(canvas);
+    if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+        ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::MULTI_ACCESS);
+    }
+
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 
@@ -1737,6 +1840,128 @@ HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest008, TestSize.Level2)
     canvasDrawable->OnDraw(canvas);
 
     ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnCaptureBackFaceSkipTest001
+ * @tc.desc: Test OnCapture skips with BACKFACE_SKIP when single sided + back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureBackFaceSkipTest001, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable =
+        static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(-1.0f, 1.0f);
+    canvasDrawable->renderParams_->SetMatrix(matrix);
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
+    ASSERT_FALSE(canvasDrawable->renderParams_->GetDoubleSidedEnabled());
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvasDrawable->OnCapture(canvas);
+
+    ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnCaptureBackFaceSkipTest002
+ * @tc.desc: Test OnCapture does NOT skip when double sided + back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureBackFaceSkipTest002, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable =
+        static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(-1.0f, 1.0f);
+    canvasDrawable->renderParams_->SetMatrix(matrix);
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(true);
+    ASSERT_TRUE(canvasDrawable->renderParams_->GetDoubleSidedEnabled());
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvasDrawable->OnCapture(canvas);
+
+    ASSERT_NE(canvasDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnCaptureBackFaceSkipTest003
+ * @tc.desc: Test OnCapture does NOT skip when single sided + front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureBackFaceSkipTest003, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable =
+        static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(1.0f, 1.0f);
+    canvasDrawable->renderParams_->SetMatrix(matrix);
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvasDrawable->OnCapture(canvas);
+
+    ASSERT_NE(canvasDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }

@@ -19,9 +19,11 @@
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/opinc/rs_opinc_draw_cache_helper.h"
 #include "feature/layer/rs_layer_cache_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/feature_param/performance_feature/opinc_param.h"
+#include "feature/opinc/rs_layer_part_draw_cache_helper.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "memory/rs_tag_tracker.h"
@@ -183,7 +185,8 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
 
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::GenerateCacheCondition drawingCacheType:%{public}d"
         " RSFreezeFlag:%{public}d OpincGetCachedMark:%{public}d", params.GetDrawingCacheType(),
-        params.GetRSFreezeFlag(), GetOpincDrawCache().OpincGetCachedMark());
+        params.GetRSFreezeFlag(),
+        RSOpincDrawCacheHelper::GetOpincCachedMark(*this));
     if (params.GetRSFreezeFlag()) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::GenerateCacheIfNeed id:%llu"
                                    " GetRSFreezeFlag:%d hasFilter:%d",
@@ -191,8 +194,9 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     }
 
     // check drawing cache type (disabled: clear cache)
+    bool opincCachedMark = RSOpincDrawCacheHelper::GetOpincCachedMark(*this);
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE &&
-        !GetOpincDrawCache().OpincGetCachedMark()) && !params.GetRSFreezeFlag()) {
+        !opincCachedMark) && !params.GetRSFreezeFlag()) {
         ClearCachedSurface();
         ClearDrawingCacheDataMap();
         ClearDrawingCacheContiUpdateTimeMap();
@@ -236,7 +240,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     params.SetDrawingCacheChanged(false, true);
     bool hasFilter = UpdateCurRenderGroupCacheRootFilterState(params);
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
-        && !GetOpincDrawCache().OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
+        && !opincCachedMark && !params.GetRSFreezeFlag()) {
         return;
     }
 
@@ -247,7 +251,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     // in case of no filter
     if (needUpdateCache && (!hasFilter || isForegroundFilterCache || params.GetRSFreezeFlag())) {
         RS_TRACE_NAME_FMT("UpdateCacheSurface id:%" PRIu64 ", isForegroundFilter:%d, isOpinc:%d, isFreeze:[%d, %d]",
-            nodeId_, isForegroundFilterCache, GetOpincDrawCache().OpincGetCachedMark(), params.GetRSFreezeFlag(),
+            nodeId_, isForegroundFilterCache, opincCachedMark, params.GetRSFreezeFlag(),
             params.IsFreezedByUser());
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
@@ -292,7 +296,6 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     SetCacheType(DrawableCacheType::NONE);
     RS_TRACE_NAME_FMT("DrawBlurForCache id:%" PRIu64 "", nodeId_);
 
-    DrawBackground(canvas, params.GetBounds());
     auto matrix = canvas.GetTotalMatrix();
     Drawing::Region filterRegion;
     for (auto& item : filterInfoVec_) {
@@ -335,6 +338,21 @@ bool RSRenderNodeDrawable::IsCurRenderGroupCacheRootExcludedStateChanged(const R
         return false;
     }
     return renderGroupCache_->IsLastFrameCacheRootHasExcludedChild() != params.HasChildExcludedFromNodeGroup();
+}
+
+void RSRenderNodeDrawable::SetShouldClipHole(bool value)
+{
+    if (renderGroupCache_) {
+        renderGroupCache_->SetShouldClipHole(value);
+    }
+}
+
+bool RSRenderNodeDrawable::ShouldClipHole() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->ShouldClipHole();
+    }
+    return false;
 }
 
 bool RSRenderNodeDrawable::SkipDrawByWhiteList(Drawing::Canvas& canvas)
@@ -386,11 +404,6 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     // can not draw cache because special node in capture process, such as security layers...
     if (GetCacheType() != DrawableCacheType::NONE && params.NodeGroupHasChildInBlacklist() && isInCapture) {
         SetCacheType(DrawableCacheType::NONE);
-    }
-    if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE &&
-        params.GetForegroundFilterCache() == nullptr && GetCacheType() != DrawableCacheType::NONE) {
-        // traverse children to draw filter/shadow/effect
-        TraverseSubTreeAndDrawFilterWithClip(canvas, params);
     }
     // if children don't have any filter or effect, stop traversing, unless node and its subtree was excluded on cache
     if (params.GetForegroundFilterCache() == nullptr && IsDrawingBlurForCache() && curDrawingCacheRoot_ &&
@@ -464,6 +477,8 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     }
     if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
         DrawBackground(canvas, params.GetBounds());
+        // traverse children to draw filter/shadow/effect
+        TraverseSubTreeAndDrawFilterWithClip(canvas, params);
         DrawCachedImage(*curCanvas, params);
         DrawForeground(canvas, params.GetBounds());
     } else if (params.GetForegroundFilterCache() != nullptr) {
@@ -691,8 +706,8 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
     cacheThreadId_ = threadId;
     int32_t width = 0;
     int32_t height = 0;
-    if (GetOpincDrawCache().IsComputeDrawAreaSucc()) {
-        auto& unionRect = GetOpincDrawCache().GetOpListUnionArea();
+    auto unionRect = RSOpincDrawCacheHelper::GetOpincUnionArea(*this);
+    if (!unionRect.IsEmpty()) {
         width = static_cast<int32_t>(unionRect.GetWidth());
         height = static_cast<int32_t>(unionRect.GetHeight());
     } else {
@@ -738,7 +753,7 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
     cachedSurface_ =
         Drawing::Surface::MakeRasterN32Premul(static_cast<int32_t>(cacheSize.x_), static_cast<int32_t>(cacheSize.y_));
 #endif
-    GetOpincDrawCache().AddOpincCacheMem(
+    RSOpincDrawCacheHelper::AddOpincCacheMem(*this,
         static_cast<int64_t>(width) * static_cast<int64_t>(height));
 }
 
@@ -746,8 +761,8 @@ bool RSRenderNodeDrawable::NeedInitCachedSurface(const Vector2f& newSize)
 {
     auto width = static_cast<int32_t>(newSize.x_);
     auto height = static_cast<int32_t>(newSize.y_);
-    if (GetOpincDrawCache().IsComputeDrawAreaSucc()) {
-        auto& unionRect = GetOpincDrawCache().GetOpListUnionArea();
+    auto unionRect = RSOpincDrawCacheHelper::GetOpincUnionArea(*this);
+    if (!unionRect.IsEmpty()) {
         width = static_cast<int32_t>(unionRect.GetWidth());
         height = static_cast<int32_t>(unionRect.GetHeight());
     }
@@ -871,28 +886,26 @@ void RSRenderNodeDrawable::DrawCachedImage(
     }
     float scaleX = params.GetCacheSize().x_ / static_cast<float>(cacheImage->GetWidth());
     float scaleY = params.GetCacheSize().y_ / static_cast<float>(cacheImage->GetHeight());
-    if (GetOpincDrawCache().IsComputeDrawAreaSucc()) {
-        auto& unionRect = GetOpincDrawCache().GetOpListUnionArea();
+    auto unionRect = RSOpincDrawCacheHelper::GetOpincUnionArea(*this);
+    if (!unionRect.IsEmpty()) {
         scaleX = unionRect.GetWidth() / static_cast<float>(cacheImage->GetWidth());
         scaleY = unionRect.GetHeight() / static_cast<float>(cacheImage->GetHeight());
     }
 
     Drawing::AutoCanvasRestore arc(canvas, true);
-    if (GetOpincDrawCache().OpincGetCachedMark() || params.GetRSFreezeFlag()) {
+    bool opincCachedMark = RSOpincDrawCacheHelper::GetOpincCachedMark(*this);
+    if (opincCachedMark || params.GetRSFreezeFlag()) {
         canvas.Scale(scaleX, scaleY);
     }
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    if (GetOpincDrawCache().IsComputeDrawAreaSucc() && GetOpincDrawCache().DrawAutoCache(canvas, *cacheImage,
-        samplingOptions, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT)) {
+    if (RSOpincDrawCacheHelper::TryDrawOpincAutoCache(*this, canvas, *cacheImage,
+        samplingOptions, autoCacheRenderNodeInfos_)) {
         canvas.DetachBrush();
-        GetOpincDrawCache().DrawAutoCacheDfx(canvas, autoCacheRenderNodeInfos_);
         return;
     }
-    bool hasFilter =
-        params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
-    if (hasFilter) {
+    if (ShouldClipHole()) {
         auto matrix = canvas.GetTotalMatrix();
         matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
         matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
@@ -919,8 +932,8 @@ void RSRenderNodeDrawable::ClearCachedSurface()
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("ClearCachedSurface id:%llu", GetId());
-    GetOpincDrawCache().ReduceOpincCacheMem(static_cast<int64_t>(cachedSurface_->Width()) *
-        static_cast<int64_t>(cachedSurface_->Height()));
+    RSOpincDrawCacheHelper::ReduceOpincCacheMem(*this,
+        static_cast<int64_t>(cachedSurface_->Width()) * static_cast<int64_t>(cachedSurface_->Height()));
 
     auto clearTask = [surface = cachedSurface_]() mutable { surface = nullptr; };
     cachedSurface_ = nullptr;
@@ -1036,6 +1049,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 {
     if (curDrawingCacheRoot_) {
         curDrawingCacheRoot_->ClearUnifiedFilterRegion();
+        curDrawingCacheRoot_->SetShouldClipHole(false);
     }
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
@@ -1062,7 +1076,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     if (BufferNeedUpdate(cacheSurface, isNeedFP16, windowGamut)) {
         // renderGroup memory tagTracer
         std::optional<RSTagTracker> tagTracer;
-        if (GetOpincDrawCache().OpincGetCachedMark()) {
+        if (RSOpincDrawCacheHelper::GetOpincCachedMark(*this)) {
             tagTracer.emplace(curCanvas->GetGPUContext(), RSTagTracker::TAGTYPE::TAG_OPINC);
         } else {
             tagTracer.emplace(curCanvas->GetGPUContext(), params.GetInstanceRootNodeId(),
@@ -1071,7 +1085,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f], isFP16:%d, HdrStatus:%d, isScRGBEnable:%d",
             params.GetCacheSize().x_, params.GetCacheSize().y_, isNeedFP16, params.GetHDRStatus(), isScRGBEnable);
         InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16, windowGamut);
-        GetOpincDrawCache().ResetUpdateLayerPartRenderCache();
+        RSLayerPartDrawCacheHelper::ResetUpdateLayerPartRenderCache(*this);
         cacheSurface = GetCachedSurface(threadId);
         if (cacheSurface == nullptr) {
             return;
@@ -1083,7 +1097,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         return;
     }
 
-    GetOpincDrawCache().PushLayerPartRenderDirtyRegion(params, *curCanvas, *cacheCanvas,
+    RSLayerPartDrawCacheHelper::PushLayerPartRenderDirtyRegion(*this, params, *curCanvas, *cacheCanvas,
         RSRenderNodeDrawable::GetTotalProcessedNodeCount());
     // copy current canvas properties into cacheCanvas
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
@@ -1100,10 +1114,10 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     bool isOpDropped = isOpDropped_;
     isOpDropped_ = false;
     Drawing::AutoCanvasRestore arc(*cacheCanvas, true);
-    GetOpincDrawCache().LayerPartRenderClipDirtyRegion(params, *cacheCanvas);
+    RSLayerPartDrawCacheHelper::LayerPartRenderClipDirtyRegion(*this, params, *cacheCanvas);
     cacheCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
-    GetOpincDrawCache().OpincCanvasUnionTranslate(*cacheCanvas);
+    RSOpincDrawCacheHelper::OpincCanvasUnionTranslate(*this, *cacheCanvas);
     if (params.GetRSFreezeFlag()) {
         cacheCanvas->SetDisableFilterCache(true);
     }
@@ -1118,11 +1132,11 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     } else {
         DrawCacheWithProperty(*cacheCanvas, bounds);
     }
-    GetOpincDrawCache().ResumeOpincCanvasTranslate(*cacheCanvas);
+    RSOpincDrawCacheHelper::ResumeOpincCanvasTranslate(*this, *cacheCanvas);
 
     isOpDropped_ = isOpDropped;
 
-    GetOpincDrawCache().PopLayerPartRenderDirtyRegion(params, *cacheCanvas);
+    RSLayerPartDrawCacheHelper::PopLayerPartRenderDirtyRegion(*this, params, *cacheCanvas);
 
     auto& layerCacheManager = OHOS::Rosen::RSLayerCacheManager::Instance();
     layerCacheManager.LayerCacheRegionDfx(shared_from_this(), *cacheCanvas);
@@ -1130,7 +1144,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     {
         std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
         std::optional<RSTagTracker> tagTracer;
-        if (GetOpincDrawCache().OpincGetCachedMark()) {
+        if (RSOpincDrawCacheHelper::GetOpincCachedMark(*this)) {
             tagTracer.emplace(curCanvas->GetGPUContext(), RSTagTracker::TAGTYPE::TAG_OPINC);
         } else {
             tagTracer.emplace(curCanvas->GetGPUContext(), params.GetInstanceRootNodeId(),
@@ -1231,12 +1245,16 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
     if (!params) {
         return ret;
     }
-    auto& unionRect = opincDrawCache_.GetOpListUnionArea();
+    auto* opincDrawCache = TryGetOpincDrawCachePtr();
+    if (opincDrawCache == nullptr) {
+        return ret;
+    }
+    auto& unionRect = opincDrawCache->GetOpListUnionArea();
     AppendFormat(ret, "%" PRIu64 ", rootF:%d record:%d rootS:%d opCan:%d isRD:%d, GetOpDropped:%d,"
         "isOpincDropNodeExt:%d", params->GetId(), params->OpincGetRootFlag(),
-        opincDrawCache_.GetRecordState(), opincDrawCache_.GetRootNodeStrategyType(), opincDrawCache_.IsOpCanCache(),
-        opincDrawCache_.GetDrawAreaEnableState(), GetOpDropped(), RSOpincDrawCache::GetOpincBlockNodeSkip());
-    auto& info = opincDrawCache_.GetOpListHandle().GetOpInfo();
+        opincDrawCache->GetRecordState(), opincDrawCache->GetRootNodeStrategyType(), opincDrawCache->IsOpCanCache(),
+        opincDrawCache->GetDrawAreaEnableState(), GetOpDropped(), RSOpincDrawCache::GetOpincBlockNodeSkip());
+    auto& info = opincDrawCache->GetOpListHandle().GetOpInfo();
     AppendFormat(ret, " opNum:%d opPercent:%d", info.num, info.percent);
     auto bounds = params->GetBounds();
     AppendFormat(ret, ", rr{%.1f %.1f %.1f %.1f}",

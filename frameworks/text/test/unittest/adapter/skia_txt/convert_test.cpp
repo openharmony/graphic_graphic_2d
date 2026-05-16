@@ -160,6 +160,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest007, TestSize.Level0)
     EXPECT_EQ(paragraphStyle.compressHeadPunctuation, typographyStyle.compressHeadPunctuation);
     EXPECT_EQ(paragraphStyle.enableAutoSpace, typographyStyle.enableAutoSpace);
     EXPECT_EQ(paragraphStyle.isTrailingSpaceOptimized, typographyStyle.isTrailingSpaceOptimized);
+    EXPECT_EQ(paragraphStyle.punctuationOverflow, typographyStyle.punctuationOverflow);
 }
 
 /*

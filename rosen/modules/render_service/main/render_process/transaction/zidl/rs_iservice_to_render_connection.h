@@ -51,7 +51,7 @@ public:
     // Screen Manager
     virtual int32_t NotifyScreenRefresh(ScreenId id) = 0;
     virtual void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) = 0;
-    virtual void OnScreenBacklightChanged(ScreenId screenId, uint32_t level) = 0;
+    virtual void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData) = 0;
     virtual void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) = 0;
 
     // Partial Render
@@ -130,6 +130,7 @@ public:
     virtual ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) = 0;
     virtual ErrCode RepaintEverything() = 0;
     virtual ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) = 0;
+    virtual ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled) = 0;
     virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect& srcRect,
         std::shared_ptr<Media::PixelMap>& pixelMap, bool transformEnabled = false) = 0;
     virtual void SetVmaCacheStatus(bool flag) = 0;

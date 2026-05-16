@@ -220,7 +220,7 @@ Drawing::Canvas* GLESRenderBackend::AcquireDrCanvas(std::unique_ptr<SurfaceFrame
     }
 
     LOGD("CreateCanvas successfully!!!");
-    pSkSurface_ = drSurface_->GetImpl<Drawing::SkiaSurface>()->GetSkSurface().get();
+    pSkSurface_ = drSurface_->GetSkSurface().get();
     return drSurface_->GetCanvas().get();
 }
 }

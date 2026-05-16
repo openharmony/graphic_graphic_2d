@@ -500,6 +500,7 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated002, TestSize.Level1)
     auto& instance = RSPointLightManager::Instance(0);
     auto lightSourceNode = std::make_shared<RSRenderNode>(0);
     auto illuminatedNode = std::make_shared<RSRenderNode>(0);
+    illuminatedNode->isOnTheTree_ = true;
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
@@ -527,6 +528,7 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
     auto& instance = RSPointLightManager::Instance(0);
     auto lightSourceNode = std::make_shared<RSRenderNode>(0);
     auto illuminatedNode = std::make_shared<RSRenderNode>(0);
+    illuminatedNode->isOnTheTree_ = true;
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     
     illuminatedNode->instanceRootNodeId_ = 1;
@@ -659,6 +661,25 @@ HWTEST_F(RSPointLightManagerTest, ProcessLostIlluminationNodeTest001, TestSize.L
     sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.clear();
     instance->ProcessLostIlluminationNode();
     EXPECT_TRUE(sharedRenderNode->IsDirty());
+}
+
+/**
+ * @tc.name: MarkIlluminatedNodeDirtyTest001
+ * @tc.desc: test only on-tree illuminated node is marked dirty
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, MarkIlluminatedNodeDirtyTest001, TestSize.Level1)
+{
+    auto& instance = RSPointLightManager::Instance(0);
+    auto illuminatedNode = std::make_shared<RSRenderNode>(1);
+
+    instance->MarkIlluminatedNodeDirty(illuminatedNode);
+    EXPECT_FALSE(illuminatedNode->IsDirty());
+
+    illuminatedNode->isOnTheTree_ = true;
+    instance->MarkIlluminatedNodeDirty(illuminatedNode);
+    EXPECT_TRUE(illuminatedNode->IsDirty());
 }
 
 /**

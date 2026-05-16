@@ -3769,7 +3769,7 @@ HWTEST_F(RSCanvasNodeTest, ResetSurface002, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetHybridRenderCanvas(true);
     auto ret = canvasNode->ResetSurface(0, 0);
-#ifdef RS_ENABLE_VK
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     EXPECT_EQ(ret, true);
 #else
     EXPECT_EQ(ret, false);

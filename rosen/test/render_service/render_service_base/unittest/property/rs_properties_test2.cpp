@@ -28,6 +28,11 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_drawing_filter.h"
+#include "animation/rs_render_particle_animation.h"
+#include "animation/rs_particle_noise_field.h"
+#include "animation/rs_particle_ripple_field.h"
+#include "animation/rs_particle_velocity_field.h"
+#include "animation/rs_particle_field_collection.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -983,6 +988,23 @@ HWTEST_F(PropertiesTest, GenerateForegroundFilterTest, TestSize.Level1)
     properties.GetEffect().linearGradientBlurPara_->blurRadius_ = 1.f;
     properties.GenerateForegroundFilter();
     EXPECT_TRUE(properties.GetEffect().linearGradientBlurPara_);
+}
+
+/**
+ * @tc.name: GenerateForegroundFilterTest002
+ * @tc.desc: test GenerateForegroundFilter with and without compositingNGFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateForegroundFilterTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateForegroundFilter();
+    EXPECT_EQ(properties.GetFilter(), nullptr);
+
+    auto blurFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.SetCompositingNGFilter(blurFilter);
+    properties.GenerateForegroundFilter();
+    EXPECT_NE(properties.GetFilter(), nullptr);
 }
 
 /**
@@ -2034,5 +2056,227 @@ HWTEST_F(PropertiesTest, SetLastEquivalentDarkMode001, TestSize.Level1)
     ASSERT_NE(colorPicker, nullptr);
     EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::INVALID);
 }
+
+/**
+ * @tc.name: SetParticleNoiseFieldsWithAnimation001
+ * @tc.desc: Verify SetParticleNoiseFields with non-null animationManager and particle animation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleNoiseFieldsWithAnimation001, TestSize.Level1)
+{
+    constexpr AnimationId animId = 1;
+    constexpr PropertyId propId = 1;
+    constexpr NodeId nodeId = 1;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    std::vector<std::shared_ptr<ParticleRenderParams>> params;
+    auto particleAnimation = std::make_shared<RSRenderParticleAnimation>(animId, propId, params);
+    renderNode->AddAnimation(particleAnimation);
+    particleAnimation->Attach(renderNode.get());
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+
+    renderNode->GetMutableRenderProperties().backref_ = renderNode;
+    auto noiseFields = std::make_shared<ParticleNoiseFields>();
+    renderNode->GetMutableRenderProperties().SetParticleNoiseFields(noiseFields);
+    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleNoiseFields(), noiseFields);
+}
+
+/**
+ * @tc.name: SetParticleRippleFieldsWithAnimation001
+ * @tc.desc: Verify SetParticleRippleFields with non-null animationManager and particle animation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleRippleFieldsWithAnimation001, TestSize.Level1)
+{
+    constexpr AnimationId animId = 2;
+    constexpr PropertyId propId = 2;
+    constexpr NodeId nodeId = 2;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    std::vector<std::shared_ptr<ParticleRenderParams>> params;
+    auto particleAnimation = std::make_shared<RSRenderParticleAnimation>(animId, propId, params);
+    renderNode->AddAnimation(particleAnimation);
+    particleAnimation->Attach(renderNode.get());
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+
+    renderNode->GetMutableRenderProperties().backref_ = renderNode;
+    auto rippleFields = std::make_shared<ParticleRippleFields>();
+    renderNode->GetMutableRenderProperties().SetParticleRippleFields(rippleFields);
+    EXPECT_EQ(renderNode->GetRenderProperties().particleRippleFields_, rippleFields);
+}
+
+/**
+ * @tc.name: SetParticleVelocityFieldsWithAnimation001
+ * @tc.desc: Verify SetParticleVelocityFields with non-null animationManager and particle animation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleVelocityFieldsWithAnimation001, TestSize.Level1)
+{
+    constexpr AnimationId animId = 3;
+    constexpr PropertyId propId = 3;
+    constexpr NodeId nodeId = 3;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    std::vector<std::shared_ptr<ParticleRenderParams>> params;
+    auto particleAnimation = std::make_shared<RSRenderParticleAnimation>(animId, propId, params);
+    renderNode->AddAnimation(particleAnimation);
+    particleAnimation->Attach(renderNode.get());
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+
+    renderNode->GetMutableRenderProperties().backref_ = renderNode;
+    auto velocityFields = std::make_shared<ParticleVelocityFields>();
+    renderNode->GetMutableRenderProperties().SetParticleVelocityFields(velocityFields);
+    EXPECT_EQ(renderNode->GetRenderProperties().particleVelocityFields_, velocityFields);
+}
+
+/**
+ * @tc.name: SetParticleFieldsWithAnimation001
+ * @tc.desc: Verify SetParticleFields with non-null animationManager and particle animation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleFieldsWithAnimation001, TestSize.Level1)
+{
+    constexpr AnimationId animId = 4;
+    constexpr PropertyId propId = 4;
+    constexpr NodeId nodeId = 4;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    std::vector<std::shared_ptr<ParticleRenderParams>> params;
+    auto particleAnimation = std::make_shared<RSRenderParticleAnimation>(animId, propId, params);
+    renderNode->AddAnimation(particleAnimation);
+    particleAnimation->Attach(renderNode.get());
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+
+    renderNode->GetMutableRenderProperties().backref_ = renderNode;
+    auto fields = std::make_shared<ParticleFieldCollection>();
+    renderNode->GetMutableRenderProperties().SetParticleFields(fields);
+    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleFields(), fields);
+}
+
+/**
+ * @tc.name: SetParticleNoiseFieldsWithoutAnimation001
+ * @tc.desc: Verify SetParticleNoiseFields without particle animation returns early
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleNoiseFieldsWithoutAnimation001, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 5;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    renderNode->GetMutableRenderProperties().backref_ = renderNode;
+
+    auto noiseFields = std::make_shared<ParticleNoiseFields>();
+    renderNode->GetMutableRenderProperties().SetParticleNoiseFields(noiseFields);
+    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleNoiseFields(), noiseFields);
+}
+
+/**
+ * @tc.name: SetParticleNoiseFieldsNullBackref001
+ * @tc.desc: Verify SetParticleNoiseFields with null backref returns early
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleNoiseFieldsNullBackref001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto noiseFields = std::make_shared<ParticleNoiseFields>();
+    properties.SetParticleNoiseFields(noiseFields);
+    EXPECT_EQ(properties.GetParticleNoiseFields(), noiseFields);
+}
+
+/**
+ * @tc.name: SetParticleRippleFieldsNullBackref001
+ * @tc.desc: Verify SetParticleRippleFields with null backref returns early
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleRippleFieldsNullBackref001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto rippleFields = std::make_shared<ParticleRippleFields>();
+    properties.SetParticleRippleFields(rippleFields);
+    EXPECT_EQ(properties.particleRippleFields_, rippleFields);
+}
+
+/**
+ * @tc.name: SetParticleVelocityFieldsNullBackref001
+ * @tc.desc: Verify SetParticleVelocityFields with null backref returns early
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleVelocityFieldsNullBackref001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto velocityFields = std::make_shared<ParticleVelocityFields>();
+    properties.SetParticleVelocityFields(velocityFields);
+    EXPECT_EQ(properties.particleVelocityFields_, velocityFields);
+}
+
+/**
+ * @tc.name: SetParticleFieldsNullBackref001
+ * @tc.desc: Verify SetParticleFields with null backref returns early
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleFieldsNullBackref001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto fields = std::make_shared<ParticleFieldCollection>();
+    properties.SetParticleFields(fields);
+    EXPECT_EQ(properties.GetParticleFields(), fields);
+}
+
+/**
+ * @tc.name: SetParticleNoiseFieldsNullPara001
+ * @tc.desc: Verify SetParticleNoiseFields with nullptr parameter
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleNoiseFieldsNullPara001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetParticleNoiseFields(nullptr);
+    EXPECT_EQ(properties.GetParticleNoiseFields(), nullptr);
+}
+
+/**
+ * @tc.name: SetParticleRippleFieldsNullPara001
+ * @tc.desc: Verify SetParticleRippleFields with nullptr parameter
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleRippleFieldsNullPara001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetParticleRippleFields(nullptr);
+    EXPECT_EQ(properties.particleRippleFields_, nullptr);
+}
+
+/**
+ * @tc.name: SetParticleVelocityFieldsNullPara001
+ * @tc.desc: Verify SetParticleVelocityFields with nullptr parameter
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleVelocityFieldsNullPara001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetParticleVelocityFields(nullptr);
+    EXPECT_EQ(properties.particleVelocityFields_, nullptr);
+}
+
+/**
+ * @tc.name: SetParticleFieldsNullPara001
+ * @tc.desc: Verify SetParticleFields with nullptr parameter
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleFieldsNullPara001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetParticleFields(nullptr);
+    EXPECT_EQ(properties.GetParticleFields(), nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

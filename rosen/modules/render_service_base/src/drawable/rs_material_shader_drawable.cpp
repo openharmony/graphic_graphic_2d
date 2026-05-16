@@ -49,7 +49,8 @@ bool RSMaterialShaderDrawable::OnUpdate(const RSRenderNode& node)
     stagingNodeId_ = node.GetId();
 
     auto bounds = properties.GetBoundsRect();
-    stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(shader, bounds);
+    auto shapeRect = RSNGRenderShaderHelper::CalcRect(shader, bounds);
+    stagingDrawRect_ = (bounds == node.CalcBoundingBox() && !shapeRect.IsEmpty()) ? shapeRect : node.CalcBoundingBox();
 
     return true;
 }
@@ -101,7 +102,9 @@ void RSMaterialShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
         visualEffectContainer_->UpdateCachedBlurImage(canvas, nullptr, 0, 0);
     }
     visualEffectContainer_->UpdateCornerRadius(cornerRadius_);
-
+    auto color = static_cast<RSPaintFilterCanvas*>(canvas)->GetColorPicked(ColorPlaceholder::SURFACE_CONTRAST);
+    constexpr float COLOR_MAX = 255.0f;
+    visualEffectContainer_->UpdateDarkScale(static_cast<float>(Drawing::Color::ColorQuadGetR(color)) / COLOR_MAX);
     geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, drawRect);
 }
 

@@ -59,7 +59,7 @@ void RSLuminanceControl::DimmingIncrease(ScreenId screenId)
     // Update HDR dimming index.
 }
 
-void RSLuminanceControl::SetSdrLuminance(ScreenId screenId, uint32_t level)
+void RSLuminanceControl::SetSdrLuminance(const RsScreenBrightnessData& brightnessData)
 {
     // Update SDR brightness.
 }

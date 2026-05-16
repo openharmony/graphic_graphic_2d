@@ -286,4 +286,92 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
     bool result = ret->ValidFile(longBuffer.data(), longBuffer.size());
     EXPECT_TRUE(result);
 }
+
+/**
+ * @tc.name: DeferSaveThreadTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, DeferSaveThreadTest001, Level1)
+{
+    BlobCache* cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+    cache->Terminate();
+    cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+    void* key = malloc(4);
+    void* value = malloc(4);
+    ASSERT_NE(key, nullptr);
+    ASSERT_NE(value, nullptr);
+    *(static_cast<int*>(key)) = 9999;
+    *(static_cast<int*>(value)) = 8888;
+    cache->SetBlob(key, 4, value, 4);
+    free(key);
+    free(value);
+    ASSERT_EQ(cache->GetMapSize(), 1);
+}
+
+/**
+ * @tc.name: DeferSaveThreadTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, DeferSaveThreadTest002, Level1)
+{
+    BlobCache* cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+    cache->Terminate();
+    cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+    for (int i = 0; i < 3; ++i) {
+        void* key = malloc(4);
+        void* value = malloc(4);
+        ASSERT_NE(key, nullptr);
+        ASSERT_NE(value, nullptr);
+        *(static_cast<int*>(key)) = i;
+        *(static_cast<int*>(value)) = i * 100;
+        cache->SetBlob(key, 4, value, 4);
+        free(key);
+        free(value);
+    }
+    ASSERT_EQ(cache->GetMapSize(), 3);
+}
+
+/**
+ * @tc.name: WriteToDiskNullptrTest
+ * @tc.desc: Test WriteToDisk when blobCache_ is nullptr
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, WriteToDiskNullptrTest, Level1)
+{
+    BlobCache* cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+    cache->Terminate();
+    ASSERT_EQ(BlobCache::blobCache_, nullptr);
+    cache->WriteToDisk();
+}
+
+/**
+ * @tc.name: BlobLockNullptrTest
+ * @tc.desc: Test SetBlobLock and GetBlobLock when blobCache_ is nullptr
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, BlobLockNullptrTest, Level1)
+{
+    BlobCache* cache = BlobCache::Get();
+    ASSERT_NE(cache, nullptr);
+    cache->Terminate();
+    ASSERT_EQ(BlobCache::blobCache_, nullptr);
+    void* key = malloc(4);
+    void* value = malloc(4);
+    ASSERT_NE(key, nullptr);
+    ASSERT_NE(value, nullptr);
+    *(static_cast<int*>(key)) = 1;
+    *(static_cast<int*>(value)) = 2;
+    cache->SetBlobLock(key, 4, value, 4);
+    auto ret = cache->GetBlobLock(key, 4, value, 4);
+    ASSERT_EQ(ret, 0);
+    free(key);
+    free(value);
+}
 } // OHOS::Rosen

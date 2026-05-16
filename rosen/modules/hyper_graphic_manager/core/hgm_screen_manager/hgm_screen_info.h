@@ -49,10 +49,11 @@ public:
 
     HgmScreenType GetScreenType(ScreenId screenId);
     bool IsLtpoType(HgmScreenType screenType);
+
 private:
     HgmScreenInfo() = default;
     virtual ~HgmScreenInfo();
-    
+
     void Init();
     int32_t GetPanelInfo(std::string& panelInfo);
     int32_t InitPanelTypeMap(std::string& panelInfo);

@@ -658,7 +658,10 @@ ErrCode RSClientToRenderConnectionProxy::SetHidePrivacyContent(NodeId id,
         resCode = static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
         return ERR_INVALID_VALUE;
     }
-    resCode = reply.ReadUint32();
+    if (!reply.ReadUint32(resCode)) {
+        ROSEN_LOGE("%{public}s: ReadUint32 result failed", __func__);
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -1108,7 +1111,8 @@ bool RSClientToRenderConnectionProxy::ReadBrightnessInfo(BrightnessInfo& brightn
 {
     if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
         !data.ReadFloat(brightnessInfo.maxHeadroom) ||
-        !data.ReadFloat(brightnessInfo.sdrNits)) {
+        !data.ReadFloat(brightnessInfo.sdrNits) ||
+        !data.ReadFloat(brightnessInfo.brightnessPosition)) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::ReadBrightnessInfo read parcel failed!");
         return false;
     }

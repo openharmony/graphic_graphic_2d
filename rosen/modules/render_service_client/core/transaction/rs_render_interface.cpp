@@ -43,6 +43,11 @@ constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
 constexpr uint32_t MAX_WATERMARK_GRID_COUNT = 255;
 #endif
 
+RSRenderInterface::RSRenderInterface()
+{
+    renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>();
+}
+
 RSRenderInterface::RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote)
 {
     renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
@@ -607,6 +612,31 @@ int32_t RSRenderInterface::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
 int32_t RSRenderInterface::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {
     return renderPipelineClient_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+}
+
+int32_t RSRenderInterface::RegisterFrameStabilityDetection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    const FrameStabilityCallback& callback)
+{
+    return renderPipelineClient_->RegisterFrameStabilityDetection(target, config, callback);
+}
+
+int32_t RSRenderInterface::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+{
+    return renderPipelineClient_->UnregisterFrameStabilityDetection(target);
+}
+
+int32_t RSRenderInterface::StartFrameStabilityCollection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    return renderPipelineClient_->StartFrameStabilityCollection(target, config);
+}
+
+int32_t RSRenderInterface::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+{
+    return renderPipelineClient_->GetFrameStabilityResult(target, result);
 }
 
 void RSRenderInterface::SetFreeMultiWindowStatus(bool enable)

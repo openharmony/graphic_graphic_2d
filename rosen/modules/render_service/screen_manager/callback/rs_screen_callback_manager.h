@@ -55,7 +55,7 @@ public:
     void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
     void NotifyActiveScreenIdChangedToAgentListener(ScreenId activeScreenId,
                                                     sptr<RSIScreenManagerAgentListener> agentListener);
-    void NotifyScreenBacklightChanged(ScreenId id, uint32_t level);
+    void NotifyScreenBacklightChanged(const RsScreenBrightnessData& brightnessData);
     void NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
     void NotifySwitchingCallback(bool status);
 

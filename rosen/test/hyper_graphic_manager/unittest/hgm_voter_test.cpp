@@ -12,17 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include <gtest/gtest.h>
 #include <limits>
 #include <test_header.h>
- 
+
 #include "hgm_test_base.h"
 #include "hgm_voter.h"
- 
+
 using namespace testing;
 using namespace testing::ext;
- 
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -39,7 +39,7 @@ public:
     void SetUp() {}
     void TearDown() {}
 };
- 
+
 /**
  * @tc.name  : DeliverVote
  * @tc.number: DeliverVoteTest_001
@@ -52,11 +52,11 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_001, Function | SmallTest | Level0) {
     voteInfo.pid = 123;
     voteInfo.min = 1;
     voteInfo.max = 100;
- 
+
     bool result = voter->DeliverVote(voteInfo, true);
     EXPECT_FALSE(result);
 }
- 
+
 /**
  * @tc.name  : DeliverVote
  * @tc.number: DeliverVoteTest_002
@@ -70,14 +70,14 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_002, Function | SmallTest | Level0) {
     voteInfo.pid = 0;
     voteInfo.min = 1;
     voteInfo.max = 100;
- 
+
     voter->voteRecord_["voter1"].first.push_back(voteInfo);
- 
+
     bool result = voter->DeliverVote(voteInfo, false);
     EXPECT_TRUE(result);
     EXPECT_TRUE(voter->voteRecord_["voter1"].first.empty());
 }
- 
+
 /**
  * @tc.name  : DeliverVote
  * @tc.number: DeliverVoteTest_003
@@ -91,14 +91,14 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_003, Function | SmallTest | Level0) {
     voteInfo.pid = 123;
     voteInfo.min = 1;
     voteInfo.max = 100;
- 
+
     voter->voteRecord_["voter1"].first.push_back(voteInfo);
- 
+
     bool result = voter->DeliverVote(voteInfo, false);
     EXPECT_TRUE(result);
     EXPECT_TRUE(voter->voteRecord_["voter1"].first.empty());
 }
- 
+
 /**
  * @tc.name  : DeliverVote
  * @tc.number: DeliverVoteTest_004
@@ -112,11 +112,11 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_004, Function | SmallTest | Level0) {
     voteInfo.pid = 123;
     voteInfo.min = 1;
     voteInfo.max = 100;
- 
+
     voter->voteRecord_["voter1"].first.push_back(voteInfo);
     bool result = voter->DeliverVote(voteInfo, true);
     EXPECT_FALSE(result);
- 
+
     voteInfo.min = 1;
     voteInfo.max = 120;
     result = voter->DeliverVote(voteInfo, true);
@@ -124,7 +124,7 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_004, Function | SmallTest | Level0) {
     EXPECT_EQ(voter->voteRecord_["voter1"].first.size(), 1);
     EXPECT_EQ(voter->voteRecord_["voter1"].first[0].min, 1);
     EXPECT_EQ(voter->voteRecord_["voter1"].first[0].max, 120);
- 
+
     voteInfo.min = 20;
     voteInfo.max = 100;
     result = voter->DeliverVote(voteInfo, true);
@@ -132,7 +132,7 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_004, Function | SmallTest | Level0) {
     EXPECT_EQ(voter->voteRecord_["voter1"].first.size(), 1);
     EXPECT_EQ(voter->voteRecord_["voter1"].first[0].min, 20);
     EXPECT_EQ(voter->voteRecord_["voter1"].first[0].max, 100);
- 
+
     voteInfo.min = 20;
     voteInfo.max = 120;
     result = voter->DeliverVote(voteInfo, true);
@@ -141,7 +141,7 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_004, Function | SmallTest | Level0) {
     EXPECT_EQ(voter->voteRecord_["voter1"].first[0].min, 20);
     EXPECT_EQ(voter->voteRecord_["voter1"].first[0].max, 120);
 }
- 
+
 /**
  * @tc.name  : DeliverVote
  * @tc.number: DeliverVoteTest_005
@@ -155,7 +155,7 @@ HWTEST_F(DeliverVoteTest, DeliverVoteTest_005, Function | SmallTest | Level0) {
     voteInfo.pid = 456;
     voteInfo.min = 1;
     voteInfo.max = 100;
- 
+
     bool result = voter->DeliverVote(voteInfo, true);
     EXPECT_TRUE(result);
     EXPECT_EQ(voter->voteRecord_["voter1"].first.size(), 1);

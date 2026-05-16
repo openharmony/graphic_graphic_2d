@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -131,17 +131,6 @@ public:
     void AddOpincCacheMem(int64_t cacheMem);
     void ReduceOpincCacheMem(int64_t cacheMem);
 
-    void PushLayerPartRenderDirtyRegion(const RSRenderParams& params, RSPaintFilterCanvas& curCanvas,
-        RSPaintFilterCanvas& cacheCanvas, int nodeCount);
-    void LayerPartRenderClipDirtyRegion(const RSRenderParams& params,
-        RSPaintFilterCanvas& canvas);
-    void PopLayerPartRenderDirtyRegion(const RSRenderParams& params,
-        RSPaintFilterCanvas& canvas);
-    void ResetUpdateLayerPartRenderCache()
-    {
-        layerPartRenderUnchangeCount_ = 0;
-    }
-
 protected:
     thread_local static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     static RectI screenRectInfo_;
@@ -152,7 +141,6 @@ private:
     void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params);
     bool IsOpincNodeInScreenRect(RSRenderParams& params);
     bool IsOpincCacheMemExceedThreshold();
-    void LayerDirtyRegionDfx(RSPaintFilterCanvas& canvas, const Drawing::RectI& dirtyRect);
 
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
@@ -163,13 +151,11 @@ private:
     int64_t reuseCount_ = 0;
     bool isOpincRootNode_ = false;
     bool opincBlockNodeSkipTemp_ = true;
-    bool isOpincCaculateStart_ = false;
+    bool isOpincCalculateStart_ = false;
     bool isOpincMarkCached_ = false;
     bool isAdd_ = false;
     static thread_local bool opincBlockNodeSkip_;
     static thread_local int opincRootNodeCount_;
-    Drawing::Region layerPartRenderDirtyRegion_;
-    int32_t layerPartRenderUnchangeCount_ = 0;
 }; // RSOpincDrawCache
 }
 }

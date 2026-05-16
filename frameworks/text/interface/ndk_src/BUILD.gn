@@ -53,6 +53,7 @@ ohos_source_set("text_ndk") {
     "drawing_typography/drawing_text_run.cpp",
     "drawing_typography/drawing_text_style_attributes.cpp",
     "drawing_typography/drawing_text_typography.cpp",
+    "drawing_typography/drawing_text_typography_attributes.cpp",
     "drawing_typography/drawing_text_typography_style_attributes.cpp",
   ]
 

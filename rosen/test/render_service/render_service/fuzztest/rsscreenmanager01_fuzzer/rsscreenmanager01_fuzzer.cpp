@@ -64,7 +64,7 @@ void DoSetScreenBacklight(FuzzedDataProvider& fdp)
 {
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     uint32_t level = fdp.ConsumeIntegralInRange<uint32_t>(0, 255);
-    g_screenManager->SetScreenBacklight(id, level);
+    g_screenManager->SetScreenBacklight(RsScreenBrightnessData(id, level));
 }
 
 void DoSetScreenColorGamut(FuzzedDataProvider& fdp)

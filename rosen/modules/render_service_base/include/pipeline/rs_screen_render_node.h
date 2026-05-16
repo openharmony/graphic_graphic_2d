@@ -462,7 +462,9 @@ public:
     }
     void HandleCurMainAndLeashSurfaceNodes();
 
-    void CollectHdrStatus(HdrStatus hdrStatus);
+    void CollectHdrStatus(NodeId id, HdrStatus hdrStatus);
+
+    const std::unordered_map<NodeId, HdrStatus>& GetDisplayHdrStatusMap() const;
 
     void ResetDisplayHdrStatus();
 
@@ -534,6 +536,8 @@ public:
     void ResetVideoHeadroomInfo();
     
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
+    void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
+    bool GetHasForceHwcHdrSurface() const;
 
 protected:
     void OnSync() override;
@@ -617,6 +621,8 @@ private:
 
     // Enable HWCompose
     RSHwcDisplayRecorder hwcDisplayRecorder_;
+
+    bool hasForceHwcHdrSurface_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

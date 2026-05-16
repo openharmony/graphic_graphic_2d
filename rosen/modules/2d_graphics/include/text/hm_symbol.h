@@ -17,7 +17,10 @@
 #define HM_SYMBOL_H
 
 #include <cstdint>
+#include <functional>
 #include <map>
+#include <memory>
+#include <shared_mutex>
 #include <string>
 #include <vector>
 
@@ -149,10 +152,21 @@ public:
 
 class DRAWING_API DrawingHMSymbol {
 public:
+    using GetGroupParametersCallback = std::function<std::vector<std::vector<DrawingPiecewiseParameter>>(
+        DrawingAnimationType, uint16_t, uint16_t, DrawingCommonSubType)>;
+
     static void PathOutlineDecompose(const Path& path, std::vector<Path>& paths);
 
     static void MultilayerPath(const std::vector<std::vector<size_t>>& multMap,
         const std::vector<Path>& paths, std::vector<Path>& multPaths);
+
+    static void SetGetGroupParametersCallback(GetGroupParametersCallback callback);
+    static void ClearGetGroupParametersCallback();
+    static std::shared_ptr<GetGroupParametersCallback> GetGetGroupParametersCallback();
+
+private:
+    static std::shared_ptr<GetGroupParametersCallback> groupParametersCallback_;
+    static std::shared_mutex fMutex;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -31,12 +31,12 @@ using namespace testing::ext;
 extern "C" {
 #endif
 #endif // __cplusplus
- 
+
 #define MAX_CFG_POLICY_DIRS_CNT 32
 #define MAX_PATH_LEN    256  // max length of a filepath
- 
+
 char* GetOneCfgFile(const char* pathSuffix, char* buf, unsigned int bufLength);
- 
+
 #ifdef __cplusplus
 #if __cplusplus
 }
@@ -49,7 +49,7 @@ namespace {
 constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 std::string g_mockStr = {CONFIG_FILE_PRODUCT};
 }
- 
+
 extern "C" char* GetOneCfgFile(const char* pathSuffix, char* buf, unsigned int bufLength)
 {
     if (g_mockStr.empty()) {
@@ -386,7 +386,7 @@ HWTEST_F(HgmCommandTest, GetScreenSetting, Function | SmallTest | Level0)
 {
     visitor_->screenConfigType_ = "unknown";
     EXPECT_TRUE(visitor_->GetScreenSetting().appList.empty());
-    
+
     visitor_->screenConfigType_ = "LTPO-DEFAULT";
     visitor_->xmlModeId_ = "5"; // id dont existed
     EXPECT_TRUE(visitor_->GetScreenSetting().appList.empty());

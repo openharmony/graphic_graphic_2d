@@ -28,7 +28,6 @@ class HdrDarkenBlender;
 }
 
 namespace ANI::UIEffect {
-using namespace taihe;
 using namespace ohos::graphics::uiEffect;
 using namespace ohos::graphics::uiEffect::uiEffect;
 

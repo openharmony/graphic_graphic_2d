@@ -31,6 +31,7 @@
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
 #include "feature/uifirst/rs_frame_control.h"
+#include "feature/behind_window_filter/rs_behind_window_filter_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "monitor/self_drawing_node_monitor.h"
@@ -759,7 +760,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
 void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetBounds>(GetId(), bounds);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 
 std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetCacheSurfaceDirtyManager() const
@@ -818,7 +819,7 @@ void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>&
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextMatrix>(GetId(), matrix);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 
 void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
@@ -834,7 +835,7 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextAlpha>(GetId(), alpha);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 
 void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion, bool sendMsg)
@@ -850,7 +851,7 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextClipRegion>(GetId(), clipRegion);
-    SendCommandFromRT(command, GetId());
+    SendCommandFromRT(command, GetId(), uiContextToken_);
 }
 void RSSurfaceRenderNode::SetBootAnimation(bool isBootAnimation)
 {
@@ -1411,6 +1412,18 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop, bool isTopLayerForceRefresh)
     surfaceParams->SetLayerTop(isTop);
     AddToPendingSyncList();
 #endif
+}
+
+void RSSurfaceRenderNode::SetHdrForceHwcEnabled(bool isHdrForceHwcEnabled)
+{
+    isHdrForceHwcEnabled_ = isHdrForceHwcEnabled;
+    SetContentDirty();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
+    AddToPendingSyncList();
 }
 
 void RSSurfaceRenderNode::SetForceRefresh(bool isForceRefresh)
@@ -3617,7 +3630,8 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
     return RSSystemProperties::GetBehindWindowFilterEnabled() && !GetRenderProperties().GetBackgroundFilter() &&
-        !childrenBlurBehindWindow_.empty() && GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER);
+        !childrenBlurBehindWindow_.empty() && GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER) &&
+        RSBehindWindowFilterManager::Instance().IsBehindWindowFilterEnabledByCCM();
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)

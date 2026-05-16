@@ -103,7 +103,7 @@ public:
     // used to skip render frame or render only one frame when screen power is off.
     void MarkPowerOffNeedProcessOneFrame();
 
-    void SetScreenBacklight(ScreenId id, uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
     int32_t GetScreenBacklight(ScreenId id) const;
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type);
 
@@ -208,7 +208,7 @@ private:
     using ScreenNode = decltype(screens_)::value_type;
     bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
 
-    void OnScreenBacklightChanged(ScreenId id, uint32_t level);
+    void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData);
 
     // global blacklist
     int32_t SetGlobalBlackList(const std::unordered_set<NodeId>& blackList);

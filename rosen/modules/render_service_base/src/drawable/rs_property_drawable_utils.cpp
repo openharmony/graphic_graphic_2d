@@ -1849,7 +1849,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToEffect(const RSProperties& properti
     if (!shader) {
         return;
     }
-    auto sdfShape = properties.GetSDFShape();
+    auto sdfShape = GetResolvedSDFShape(properties);
     if (shader->GetType() == RSNGEffectType::SDF_EDGE_LIGHT_EFFECT) {
         const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
         if (sdfShape) {
@@ -1867,6 +1867,26 @@ void RSPropertyDrawableUtils::ApplySDFShapeToEffect(const RSProperties& properti
             RSNGRenderShapeHelper::CalcRect(sdfRRectShape, properties.GetBoundsRect());
         }
     }
+}
+
+std::shared_ptr<RSNGRenderShapeBase> RSPropertyDrawableUtils::GetResolvedSDFShape(const RSProperties& properties)
+{
+    auto sdfShape = properties.GetSDFShape();
+    if (!sdfShape || sdfShape->GetType() != RSNGEffectType::SDF_DISTORT_OP_SHAPE) {
+        return sdfShape;
+    }
+    auto foregroundFilter = properties.GetForegroundFilter();
+    if (!foregroundFilter || !foregroundFilter->IsDrawingFilter()) {
+        return sdfShape;
+    }
+    auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter);
+    auto renderFilter = drawingFilter->GetNGRenderFilter();
+    if (!renderFilter || renderFilter->GetType() != RSNGEffectType::DISTORTION_COLLAPSE) {
+        return sdfShape;
+    }
+    auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
+    auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
+    return innerShape ? innerShape : sdfShape;
 }
 
 void RSPropertyDrawableUtils::ApplySDFShapeToMagnifier(

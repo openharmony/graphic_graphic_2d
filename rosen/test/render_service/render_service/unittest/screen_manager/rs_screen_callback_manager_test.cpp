@@ -46,7 +46,7 @@ private:
         void OnVirtualScreenDisconnected(ScreenId id) override {};
         void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override {};
         void OnActiveScreenIdChanged(ScreenId activeScreenId) override {};
-        void OnScreenBacklightChanged(ScreenId id, uint32_t level) override {};
+        void OnScreenBacklightChanged(const RsScreenBrightnessData&) override {};
         void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override {};
     };
 
@@ -336,10 +336,10 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyScreenBacklightChangedTest, TestSize
     ScreenId screenId = 100;
     uint32_t level = 100;
     ASSERT_EQ(callbackMgr_->coreListener_, nullptr);
-    callbackMgr_->NotifyScreenBacklightChanged(screenId, level);
+    callbackMgr_->NotifyScreenBacklightChanged(RsScreenBrightnessData(screenId, level));
     callbackMgr_->SetCoreListener(coreListener_);
     ASSERT_NE(callbackMgr_->coreListener_, nullptr);
-    callbackMgr_->NotifyScreenBacklightChanged(screenId, level);
+    callbackMgr_->NotifyScreenBacklightChanged(RsScreenBrightnessData(screenId, level));
     callbackMgr_->coreListener_ = nullptr;
 }
 

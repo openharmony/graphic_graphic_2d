@@ -32,6 +32,34 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+constexpr NodeId COLOR_PICKER_FILTER_NODE_ID = 100;
+constexpr NodeId COLOR_PICKER_SURFACE_NODE_ID = 1;
+constexpr NodeId COLOR_PICKER_BELOW_SURFACE_NODE_ID = 2;
+constexpr NodeId COLOR_PICKER_NULL_DIRTY_SURFACE_NODE_ID = 3;
+constexpr NodeId COLOR_PICKER_NON_SURFACE_NODE_ID = 4;
+constexpr int COLOR_PICKER_INTERVAL_MS = 1000;
+constexpr int COLOR_PICKER_STRATEGY_AVERAGE = static_cast<int>(ColorPickStrategyType::AVERAGE);
+const RectI COLOR_PICKER_ABS_RECT = { 100, 100, 100, 100 };
+const RectI COLOR_PICKER_INTERSECT_DIRTY_RECT = { 120, 120, 20, 20 };
+const RectI COLOR_PICKER_OUTSIDE_DIRTY_RECT = { 300, 300, 20, 20 };
+const RectI COLOR_PICKER_CUSTOM_DIRTY_RECT = { 310, 310, 10, 10 };
+const Vector4f COLOR_PICKER_CUSTOM_RECT = { 200.f, 200.f, 330.f, 330.f };
+
+std::shared_ptr<RSRenderNode> CreatePreparingColorPickerNode(NodeId nodeId, const RectI& absRect)
+{
+    auto filterNode = std::make_shared<RSRenderNode>(nodeId);
+    filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = absRect;
+    filterNode->GetMutableRenderProperties().SetColorPickerStrategy(COLOR_PICKER_STRATEGY_AVERAGE);
+    filterNode->GetMutableRenderProperties().SetColorPickerInterval(COLOR_PICKER_INTERVAL_MS);
+
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, nodeId);
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    colorPickerDrawable->OnUpdate(*filterNode);
+    filterNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+    return filterNode;
+}
+} // namespace
 
 class RSColorPickerUtilsTest : public testing::Test {
 public:
@@ -321,7 +349,7 @@ HWTEST_F(RSColorPickerUtilsTest, ShouldColorPickForNodeNoDrawable, TestSize.Leve
     auto filterNode = std::make_shared<RSRenderNode>(1);
     std::vector<std::shared_ptr<RSRenderNode>> surfaces;
 
-    bool result = RSColorPickerUtils::IsColorPickerDirty(*filterNode, surfaces);
+    bool result = RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces);
 
     EXPECT_FALSE(result);
 }
@@ -342,7 +370,7 @@ HWTEST_F(RSColorPickerUtilsTest, ShouldColorPickForNodeColorPickThisFrame, TestS
 
     std::vector<std::shared_ptr<RSRenderNode>> surfaces;
 
-    bool result = RSColorPickerUtils::IsColorPickerDirty(*filterNode, surfaces);
+    bool result = RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces);
 
     // COLOR_PICK_THIS_FRAME should return false and schedule transition to PREPARING
     EXPECT_FALSE(result);
@@ -364,7 +392,7 @@ HWTEST_F(RSColorPickerUtilsTest, ShouldColorPickForNodeScheduledState, TestSize.
 
     std::vector<std::shared_ptr<RSRenderNode>> surfaces;
 
-    bool result = RSColorPickerUtils::IsColorPickerDirty(*filterNode, surfaces);
+    bool result = RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces);
 
     // SCHEDULED state means waiting for delayed transition, should return false
     EXPECT_FALSE(result);
@@ -395,12 +423,12 @@ HWTEST_F(RSColorPickerUtilsTest, ShouldColorPickForNodeNoIntersection, TestSize.
     std::vector<std::shared_ptr<RSRenderNode>> surfaces;
     surfaces.push_back(surfaceNode);
 
-    bool result = RSColorPickerUtils::IsColorPickerDirty(*filterNode, surfaces);
+    bool result = RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces);
     // No intersection with dirty region
     EXPECT_FALSE(result);
 
     filterNode->GetMutableRenderProperties().SetColorPickerRect(Vector4f(200, 200, 300, 300));
-    result = RSColorPickerUtils::IsColorPickerDirty(*filterNode, surfaces);
+    result = RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces);
     EXPECT_TRUE(result);
 }
 
@@ -436,13 +464,93 @@ HWTEST_F(RSColorPickerUtilsTest, ShouldColorPickForNodeWithCustomRect, TestSize.
     filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = { 0, 0, 100, 100 };
 
     // First verify no intersection without custom rect
-    bool result = RSColorPickerUtils::IsColorPickerDirty(*filterNode, surfaces);
+    bool result = RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces);
     EXPECT_FALSE(result);
 
     // Set custom rect to (150, 150, 250, 250) - valid rect where right > left, bottom > top
     // This rect should intersect with dirty region (200, 200, 100, 100)
     filterNode->GetMutableRenderProperties().SetColorPickerRect(Vector4f(150, 150, 250, 250));
-    result = RSColorPickerUtils::IsColorPickerDirty(*filterNode, surfaces);
+    result = RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces);
     EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: DirtyInCurrentSurface
+ * @tc.desc: Test DirtyInCurrentSurface checks current surface dirty region and custom rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, DirtyInCurrentSurface, TestSize.Level1)
+{
+    auto filterNode = CreatePreparingColorPickerNode(COLOR_PICKER_FILTER_NODE_ID, COLOR_PICKER_ABS_RECT);
+
+    EXPECT_TRUE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_INTERSECT_DIRTY_RECT));
+    EXPECT_FALSE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_OUTSIDE_DIRTY_RECT));
+
+    filterNode->GetMutableRenderProperties().SetColorPickerRect(COLOR_PICKER_CUSTOM_RECT);
+    EXPECT_FALSE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_INTERSECT_DIRTY_RECT));
+    EXPECT_TRUE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_CUSTOM_DIRTY_RECT));
+}
+
+/**
+ * @tc.name: DirtyInCurrentSurfaceNotPreparing
+ * @tc.desc: Test DirtyInCurrentSurface returns false when the drawable is missing or not preparing
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, DirtyInCurrentSurfaceNotPreparing, TestSize.Level1)
+{
+    auto filterNode = std::make_shared<RSRenderNode>(COLOR_PICKER_FILTER_NODE_ID);
+    EXPECT_FALSE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_INTERSECT_DIRTY_RECT));
+
+    auto colorPickerDrawable =
+        std::make_shared<DrawableV2::RSColorPickerDrawable>(false, COLOR_PICKER_FILTER_NODE_ID);
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::SCHEDULED;
+    filterNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    EXPECT_FALSE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_INTERSECT_DIRTY_RECT));
+}
+
+/**
+ * @tc.name: DirtyInSurfacesBelowStopsAtCurrentSurface
+ * @tc.desc: Test DirtyInSurfacesBelow ignores dirty regions on the filter node's own surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, DirtyInSurfacesBelowStopsAtCurrentSurface, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto filterNode = CreatePreparingColorPickerNode(COLOR_PICKER_FILTER_NODE_ID, COLOR_PICKER_ABS_RECT);
+    auto currentSurface = std::make_shared<RSSurfaceRenderNode>(
+        COLOR_PICKER_SURFACE_NODE_ID, rsContext->weak_from_this());
+    currentSurface->GetDirtyManager()->MergeDirtyRect(COLOR_PICKER_INTERSECT_DIRTY_RECT);
+    filterNode->instanceRootNodeId_ = currentSurface->GetId();
+
+    std::vector<std::shared_ptr<RSRenderNode>> surfaces = { currentSurface };
+
+    EXPECT_FALSE(RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces));
+}
+
+/**
+ * @tc.name: DirtyInSurfacesBelowChecksLowerSurfaces
+ * @tc.desc: Test DirtyInSurfacesBelow skips non-surface entries and checks surfaces below current surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerUtilsTest, DirtyInSurfacesBelowChecksLowerSurfaces, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto filterNode = CreatePreparingColorPickerNode(COLOR_PICKER_FILTER_NODE_ID, COLOR_PICKER_ABS_RECT);
+    auto currentSurface = std::make_shared<RSSurfaceRenderNode>(
+        COLOR_PICKER_SURFACE_NODE_ID, rsContext->weak_from_this());
+    auto lowerSurface = std::make_shared<RSSurfaceRenderNode>(
+        COLOR_PICKER_BELOW_SURFACE_NODE_ID, rsContext->weak_from_this());
+    auto nullDirtySurface = std::make_shared<RSSurfaceRenderNode>(
+        COLOR_PICKER_NULL_DIRTY_SURFACE_NODE_ID, rsContext->weak_from_this());
+    auto nonSurface = std::make_shared<RSRenderNode>(COLOR_PICKER_NON_SURFACE_NODE_ID);
+    nullDirtySurface->dirtyManager_ = nullptr;
+    lowerSurface->GetDirtyManager()->MergeDirtyRect(COLOR_PICKER_INTERSECT_DIRTY_RECT);
+    filterNode->instanceRootNodeId_ = currentSurface->GetId();
+
+    std::vector<std::shared_ptr<RSRenderNode>> surfaces = {
+        currentSurface, lowerSurface, nullDirtySurface, nonSurface };
+
+    EXPECT_TRUE(RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces));
 }
 } // namespace OHOS::Rosen

@@ -16,14 +16,17 @@
 #include <string>
 
 #include "egl_defs.h"
+#include "egl_wrapper_display.h"
+#include "egl_wrapper_entry.h"
 #include "egl_wrapper_loader.h"
 #include "parameters.h"
 #include "wrapper_log.h"
+using namespace OHOS;
 #ifdef OPENGL_WRAPPER_ENABLE_GL4
 EGLBoolean OHGraphicsQueryGLImpl(void)
 {
-    EGLBoolean supportOpengl = OHOS::system::GetBoolParameter(OHOS::SUPPORT_GL_TO_VK, false) ? EGL_TRUE : EGL_FALSE;
-    return supportOpengl;
+    bool supportOpengl = OHOS::system::GetBoolParameter(OHOS::SUPPORT_GL_TO_VK, false);
+    return supportOpengl ? EGL_TRUE : EGL_FALSE;
 }
 
 __eglMustCastToProperFunctionPointerType EglGetProcAddressCustomImpl(const char *procname)
@@ -45,10 +48,45 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressCustomImpl(const char 
     return nullptr;
 }
 
-const std::map<std::string, EglWrapperFuncPointer> OHOS::gCustomMap = {
-    // OH_Graphics_QueryGL
-    { "OH_Graphics_QueryGL", (EglWrapperFuncPointer)&OHGraphicsQueryGLImpl },
-};
-
 PFNEGLGETPROCADDRESSPROC OHOS::gGetProcAddress = &EglGetProcAddressCustomImpl;
 #endif
+
+EGLBoolean EglSetEngineNameImpl(EGLDisplay dpy, const char* name)
+{
+    ThreadPrivateDataCtl::ClearError();
+    EglWrapperDisplay *display = EglWrapperDisplay::GetWrapperDisplay(dpy);
+    if (!display) {
+        WLOGE("display is bad");
+        ThreadPrivateDataCtl::SetError(EGL_BAD_DISPLAY);
+        return EGL_FALSE;
+    }
+
+    if (!display->IsReady()) {
+        WLOGE("display is not initialized.");
+        ThreadPrivateDataCtl::SetError(EGL_NOT_INITIALIZED);
+        return EGL_FALSE;
+    }
+ 
+    typedef EGLBoolean (*FunPtr)(EGLDisplay dpy, const char* name);
+    FunPtr func = nullptr;
+    if (gWrapperHook.isLoad && gWrapperHook.egl.eglGetProcAddress) {
+        func = reinterpret_cast<FunPtr>(
+            gWrapperHook.egl.eglGetProcAddress("eglSetEngineName"));
+    }
+
+    if (!func) {
+        WLOGE("eglSetEngineName not supported in current driver");
+        return EGL_FALSE;
+    }
+    
+    return func(display->GetEglDisplay(), name);
+}
+
+const std::map<std::string, EglWrapperFuncPointer> OHOS::gCustomMap = {
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+     // OH_Graphics_QueryGL
+     { "OH_Graphics_QueryGL", (EglWrapperFuncPointer)&OHGraphicsQueryGLImpl },
+#endif
+     // GPU DFX to add name tag for third party engine
+     { "eglSetEngineName", (EglWrapperFuncPointer)&EglSetEngineNameImpl },
+};

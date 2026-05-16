@@ -195,6 +195,19 @@ typedef struct {
     float value;
 } ScreenHDRMetaData;
 
+/*
+ * @brief Defines the screen brightness data. This structure must align with DmsScreenBrightnessData.
+ */
+struct RsScreenBrightnessData {
+    uint64_t screenId;
+    uint32_t level;
+    float brightnessPosition;
+
+    RsScreenBrightnessData() : screenId(0), level(0), brightnessPosition(-1.0f) {}
+    RsScreenBrightnessData(uint64_t sid, uint32_t lvl, float pos = -1.0f)
+        : screenId(sid), level(lvl), brightnessPosition(pos) {}
+};
+
 typedef enum : uint32_t {
     SUCCESS = 0,
     SCREEN_NOT_FOUND,

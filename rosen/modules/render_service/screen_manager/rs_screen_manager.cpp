@@ -36,7 +36,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t WAIT_FOR_STATUS_TASK_TIMEOUT = 1000; // 1000ms
 constexpr uint32_t MAX_VIRTUAL_SCREEN_NUM = 64;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
@@ -140,7 +139,7 @@ void RSScreenManager::ProcessPendingConnections()
             screen->SetScreenCorrection(rotation);
         }
         if (backLightLevel != INVALID_BACKLIGHT_VALUE) {
-            screen->SetScreenBacklight(backLightLevel);
+            screen->SetScreenBacklight(RsScreenBrightnessData(id, backLightLevel));
         }
     }
 }
@@ -152,7 +151,7 @@ void RSScreenManager::ProcessScreenConnected(ScreenId id)
         preprocessor_->NotifyScreenPropertyChanged(id, type, property);
     });
     screen->SetOnBacklightChangedCallback(
-        std::bind(&RSScreenManager::OnScreenBacklightChanged, this, std::placeholders::_1, std::placeholders::_2));
+        std::bind(&RSScreenManager::OnScreenBacklightChanged, this, std::placeholders::_1));
 
     std::unique_lock<std::mutex> lock(screenMapMutex_);
     screens_[id] = screen;
@@ -1058,21 +1057,23 @@ int32_t RSScreenManager::GetScreenBacklight(ScreenId id) const
     return screen->GetScreenBacklight();
 }
 
-void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSScreenManager::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
-    auto screen = GetScreen(id);
+    auto screen = GetScreen(brightnessData.screenId);
     if (screen == nullptr) {
-        RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, brightnessData.screenId);
         return;
     }
-    screen->SetScreenBacklight(level);
+    screen->SetScreenBacklight(brightnessData);
 
     std::lock_guard<std::shared_mutex> lock(backLightAndCorrectionMutex_);
-    if (screenBacklight_[id] == level) {
-        RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64 " newLevel: %u", __func__, id, level);
+    if (screenBacklight_[brightnessData.screenId] == brightnessData.level) {
+        RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64
+            ", newLevel: %{public}u, brightnessPosition: %{public}.4f",
+            __func__, brightnessData.screenId, brightnessData.level, brightnessData.brightnessPosition);
         return;
     }
-    screenBacklight_[id] = level;
+    screenBacklight_[brightnessData.screenId] = brightnessData.level;
 }
 
 PanelPowerStatus RSScreenManager::GetPanelPowerStatus(ScreenId id) const
@@ -1535,9 +1536,9 @@ sptr<RSScreenProperty> RSScreenManager::QueryScreenProperty(ScreenId id) const
     return screen->GetProperty();
 }
 
-void RSScreenManager::OnScreenBacklightChanged(ScreenId id, uint32_t level)
+void RSScreenManager::OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
-    callbackMgr_->NotifyScreenBacklightChanged(id, level);
+    callbackMgr_->NotifyScreenBacklightChanged(brightnessData);
 }
 } // namespace Rosen
 } // namespace OHOS

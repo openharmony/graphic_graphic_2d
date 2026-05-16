@@ -893,7 +893,7 @@ int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
     return backLightLevel;
 }
 
-void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSRenderServiceClient::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
@@ -901,7 +901,7 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
         return;
     }
 
-    clientToService->SetScreenBacklight(id, level);
+    clientToService->SetScreenBacklight(brightnessData);
 }
 
 PanelPowerStatus RSRenderServiceClient::GetPanelPowerStatus(ScreenId id)
@@ -1793,6 +1793,14 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
         clientToService->SetLayerTop(nodeIdStr, isTop);
+    }
+}
+
+void RSRenderServiceClient::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService != nullptr) {
+        clientToService->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
     }
 }
 

@@ -58,6 +58,7 @@ const std::string UPDATE_DECORATION_SIGN = "C{" + std::string(ANI_INTERFACE_DECO
 const std::string GET_PROCESS_STATE_SIGN = ":E{" + std::string(ANI_ENUM_TEXT_PROCESS_STATE) + "}";
 const std::string GET_TEXT_DISPLAY_STATE_SIGN = ":E{" + std::string(ANI_ENUM_TEXT_DISPLAY_STATE) + "}";
 const std::string GET_PARAGRAPH_STYLE_SIGN = ":C{" + std::string(ANI_INTERFACE_PARAGRAPH_STYLE) + "}";
+const std::string FORCE_REUSE_RASTER_RESULT_SIGN = "z:";
 const std::string GET_CHARACTER_RANGE_FOR_GLYPH_RANGE_SIGN = "C{" + std::string(ANI_INTERFACE_RANGE) + "}E{"
     + std::string(ANI_ENUM_TEXT_ENCODING) + "}:C{" + std::string(ANI_ARRAY) + "}";
 const std::string GET_GLYPH_RANGE_FOR_CHARACTER_RANGE_SIGN = "C{" + std::string(ANI_INTERFACE_RANGE) + "}E{"
@@ -207,6 +208,9 @@ std::vector<ani_native_function> AniParagraph::GetStyleAndStateMethods()
             "getTextDisplayState", GET_TEXT_DISPLAY_STATE_SIGN.c_str(), reinterpret_cast<void*>(GetTextDisplayState) },
         ani_native_function {
             "getParagraphStyle", GET_PARAGRAPH_STYLE_SIGN.c_str(), reinterpret_cast<void*>(GetParagraphStyle) },
+        ani_native_function {
+            "forceReuseRasterResult", FORCE_REUSE_RASTER_RESULT_SIGN.c_str(),
+            reinterpret_cast<void*>(ForceReuseRasterResult) },
     };
 }
 
@@ -777,6 +781,18 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_i
         return AniTextUtils::CreateAniUndefined(env);
     }
     return AniLineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
+}
+
+void AniParagraph::ForceReuseRasterResult(ani_env* env, ani_object object, ani_boolean isForce)
+{
+    AniParagraph* aniParagraph =
+        AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, AniGlobalMethod::GetInstance().paragraphGetNative);
+    if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
+        TEXT_LOGE("Paragraph is null");
+        return;
+    }
+
+    aniParagraph->typography_->SetForceReuseRasterResult(static_cast<bool>(isForce));
 }
 
 void AniParagraph::UpdateColor(ani_env* env, ani_object object, ani_object color)

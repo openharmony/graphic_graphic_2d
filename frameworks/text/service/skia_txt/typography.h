@@ -101,6 +101,8 @@ public:
     TextDisplayState GetTextDisplayState() const override;
     TypographyStyle GetParagraphStyle() const override;
     TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) override;
+    void SetForceReuseRasterResult(bool flag) override;
+    bool GetForceReuseRasterResult() const override;
 #ifdef ENABLE_OHOS_ENHANCE
     std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const override;

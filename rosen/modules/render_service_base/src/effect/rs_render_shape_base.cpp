@@ -45,6 +45,14 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSDFTriangleShape>();
         }
     },
+    {RSNGEffectType::SDF_ELLIPSE_SHAPE, [] {
+            return std::make_shared<RSNGRenderSDFEllipseShape>();
+        }
+    },
+    {RSNGEffectType::SDF_PATH_SHAPE, [] {
+            return std::make_shared<RSNGRenderSDFPathShape>();
+        }
+    },
     {RSNGEffectType::SDF_PIXELMAP_SHAPE, [] {
             return std::make_shared<RSNGRenderSDFPixelmapShape>();
         }
@@ -89,22 +97,22 @@ static std::unordered_map<RSNGEffectType, ShapeGetTransformRect> getTransformRec
             constexpr float tuneNum = 4.0f;
             constexpr float tuneDenomBase = 2.0f;
             if (distortion[0] > 0) {
-                left -= ceil(transformRect.GetWidth() *
-                    (halfUV - distortScale * (tuneNum + distortion[0]) / (tuneDenomBase + distortion[0])));
+                left -= rect.GetWidth() *
+                    (halfUV - distortScale * (tuneNum + distortion[0]) / (tuneDenomBase + distortion[0]));
             }
             if (distortion[1] > 0) {
-                right += ceil(transformRect.GetWidth() *
-                    (halfUV - distortScale * (tuneNum + distortion[1]) / (tuneDenomBase + distortion[1])));
+                right += rect.GetWidth() *
+                    (halfUV - distortScale * (tuneNum + distortion[1]) / (tuneDenomBase + distortion[1]));
             }
             if (distortion[2] > 0) {
-                top -= ceil(transformRect.GetHeight() *
-                    (halfUV - distortScale * (tuneNum + distortion[2]) / (tuneDenomBase + distortion[2])));
+                top -= rect.GetHeight() *
+                    (halfUV - distortScale * (tuneNum + distortion[2]) / (tuneDenomBase + distortion[2]));
             }
             if (distortion[3] > 0) {
-                bottom += ceil(transformRect.GetHeight() *
-                    (halfUV - distortScale * (tuneNum + distortion[3]) / (tuneDenomBase + distortion[3])));
+                bottom += rect.GetHeight() *
+                    (halfUV - distortScale * (tuneNum + distortion[3]) / (tuneDenomBase + distortion[3]));
             }
-            return RectF(left, top, right - left, bottom - top);
+            return RectF(floor(left), floor(top), ceil(right) - floor(left), ceil(bottom) - floor(top));
         },
     },
 };

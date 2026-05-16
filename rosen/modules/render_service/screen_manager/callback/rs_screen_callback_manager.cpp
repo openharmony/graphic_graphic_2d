@@ -184,13 +184,13 @@ void RSScreenCallbackManager::NotifyActiveScreenIdChangedToAgentListeners(Screen
     }
 }
 
-void RSScreenCallbackManager::NotifyScreenBacklightChanged(ScreenId id, uint32_t level)
+void RSScreenCallbackManager::NotifyScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
     if (!coreListener_) {
         RS_LOGE("%{public}s: coreListener is nullptr", __func__);
         return;
     }
-    coreListener_->OnScreenBacklightChanged(id, level);
+    coreListener_->OnScreenBacklightChanged(brightnessData);
 }
 
 void RSScreenCallbackManager::NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)

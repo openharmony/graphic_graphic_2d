@@ -1305,7 +1305,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleLowPowerSlideSceneEvent, Function | SmallTes
     if (frameRateMgr == nullptr) {
         return;
     }
-    
+
     frameRateMgr->controller_ = std::make_shared<HgmVSyncGeneratorController>(nullptr, nullptr, nullptr);
     frameRateMgr->currRefreshRate_ = OLED_60_HZ;
     EventInfo eventInfo1 = { .eventName = "VOTER_LOW_POWER_SLIDE", .eventStatus = true,
@@ -1320,7 +1320,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleLowPowerSlideSceneEvent, Function | SmallTes
     frameRateMgr->FrameRateReport();
     frameRateMgr->isNeedUpdateAppOffset_ = false;
     frameRateMgr->CheckNeedUpdateAppOffset(OLED_60_HZ, OLED_60_HZ);
-    
+
     frameRateMgr->currRefreshRate_ = OLED_30_HZ;
     EventInfo eventInfo3 = { .eventName = "VOTER_LOW_POWER_SLIDE", .eventStatus = true,
         .description = "LOW_POWER_SLIDE_MODE"};
@@ -1337,7 +1337,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleLowPowerSlideSceneEvent, Function | SmallTes
     EventInfo eventInfo5 = { .eventName = "VOTER_LOW_POWER_SLIDE", .eventStatus = false,
         .description = "HIGH_PERFORMANCE_SLIDE_MODE"};
     frameRateMgr->HandleRefreshRateEvent(0, eventInfo5);
-    
+
     EXPECT_EQ(frameRateMgr->currRefreshRate_, OLED_30_HZ);
 }
 
@@ -1354,7 +1354,7 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | L
     if (frameRateMgr == nullptr) {
         return;
     }
-    
+
     frameRateMgr->frameVoter_.isDragScene_ = false;
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
     ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
@@ -1393,10 +1393,10 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPageUrlVote, Function | SmallTest | Level0)
 {
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     pid_t pid = 0;
-    std::string strategy = "";
+    std::string strategy;
     bool isAddVote = true;
-    std::string packageName = "";
-    std::string pageName = "";
+    std::string packageName;
+    std::string pageName;
     bool isEnter = true;
     frameRateMgr->ProcessPageUrlVote(pid, strategy, isAddVote);
     frameRateMgr->CleanPageUrlVote(pid);

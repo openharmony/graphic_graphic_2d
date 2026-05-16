@@ -14,6 +14,9 @@
  */
 #include "render/rs_hdr_ui_brightness_filter.h"
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "algorithm_video.h"
+#endif
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
@@ -71,8 +74,17 @@ void RSHDRUIBrightnessFilter::DrawImageRect(Drawing::Canvas& canvas, const std::
     Drawing::ColorMatrix luminanceMatrix;
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
     float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(rscanvas.GetScreenId(), 0);
+    float hdrUIBrightnessRatio = GetHDRUIBrightness();
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    float vpeMaxHeadroom = 1.0f;
+    if (Media::VideoProcessingEngine::VpeVideo::GetMaxHeadroom(vpeMaxHeadroom) ==
+        Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
+        ROSEN_LOGD("vpeMaxHeadroom=%{public}.4f", vpeMaxHeadroom);
+        hdrUIBrightnessRatio = std::clamp(hdrUIBrightnessRatio, DEFAULT_HDR_UI_BRIGHTNESS, vpeMaxHeadroom);
+    }
+#endif
     float hdrUIBrightness = rscanvas.GetHdrOn() ? rscanvas.GetHDRBrightness() *
-        (GetHDRUIBrightness() - DEFAULT_HDR_UI_BRIGHTNESS) + DEFAULT_HDR_UI_BRIGHTNESS : DEFAULT_HDR_UI_BRIGHTNESS;
+        (hdrUIBrightnessRatio - DEFAULT_HDR_UI_BRIGHTNESS) + DEFAULT_HDR_UI_BRIGHTNESS : DEFAULT_HDR_UI_BRIGHTNESS;
     float headroom = 1.0f / std::pow(hdrBrightnessRatio, GAMMA2_2);
     // clamp ratio from 1.0 to current headroom and convert ratio from linear domain to nonlinear domain
     hdrUIBrightness = std::pow(std::clamp(hdrUIBrightness, DEFAULT_HDR_UI_BRIGHTNESS, headroom), 1.0f / GAMMA2_2);

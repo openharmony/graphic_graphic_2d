@@ -133,6 +133,11 @@ bool RSHpaeOfflineProcessor::LoadPreProcessHandle()
         CloseOfflineHandle("DeInitOfflineResource", dlerror());
         return false;
     }
+    getFenceFunc_ = reinterpret_cast<GetFenceFunc>(dlsym(preProcessHandle_, "GetOfflineOutputFence"));
+    if (getFenceFunc_ == nullptr) {
+        CloseOfflineHandle("GetOfflineOutputFence", dlerror());
+        return false;
+    }
     RS_OFFLINE_LOGI("[%{public}s]: load success", __func__);
     loadSuccess_ = true;
     return true;
@@ -348,11 +353,21 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
         return false;
     }
 
+    int32_t offlineFenceFd = -1;
+    if (getFenceFunc_) {
+        ret = getFenceFunc_(offlineFenceFd);
+        if (ret != 0) {
+            RS_OFFLINE_LOGW("Hpae get offline fence fail.");
+            FlushAndReleaseOfflineLayer(dstSurfaceBuffer);
+            return false;
+        }
+    }
+
     // flush and consume offline buffer
     flushConfig_.timestamp = 0;
     flushConfig_.damage = {.x = inputInfo.dstRect.x, .y = inputInfo.dstRect.y,
         .w = inputInfo.dstRect.w, .h = inputInfo.dstRect.h};
-    offlineLayer_.FlushSurfaceBuffer(dstSurfaceBuffer, -1, flushConfig_);
+    offlineLayer_.FlushSurfaceBuffer(dstSurfaceBuffer, offlineFenceFd, flushConfig_);
     auto offlineSurfaceHandler = offlineLayer_.GetMutableRSSurfaceHandler();
     if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
         RS_OFFLINE_LOGW("DeviceOfflineLayer consume buffer failed. %{public}d",
@@ -377,9 +392,10 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     processOfflineResult.buffer = offlineSurfaceHandler->GetBuffer();
     processOfflineResult.acquireFence = offlineSurfaceHandler->GetAcquireFence();
     processOfflineResult.bufferOwnerCount = offlineSurfaceHandler->GetBufferOwnerCount();
-    RS_OFFLINE_LOGD("Offline process done, bufferRect: [%{public}d %{public}d %{public}d %{public}d]",
+    RS_OFFLINE_LOGD("Offline process done, bufferRect: [%{public}d %{public}d %{public}d %{public}d], "
+        "fence: %{public}d",
         processOfflineResult.bufferRect.x, processOfflineResult.bufferRect.y,
-        processOfflineResult.bufferRect.w, processOfflineResult.bufferRect.h);
+        processOfflineResult.bufferRect.w, processOfflineResult.bufferRect.h, offlineFenceFd);
     return true;
 }
 

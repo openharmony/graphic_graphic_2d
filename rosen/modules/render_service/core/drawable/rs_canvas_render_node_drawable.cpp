@@ -18,6 +18,7 @@
 #include "rs_trace.h"
 
 #include "common/rs_optional_trace.h"
+#include "feature/opinc/rs_opinc_draw_cache_helper.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -119,7 +120,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto needOcclusionSkip = paintFilterCanvas->IsQuickDrawState() ?
-        true : GetOpincDrawCache().PreDrawableCacheState(*params);
+        true : RSOpincDrawCacheHelper::PrepareOpincSubtree(*this, *params);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     float hdrBrightness = paintFilterCanvas->GetHDRBrightness();
@@ -129,14 +130,17 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         !params->HasUnobscuredUEC() && !params->GetDrawingCacheChanged());
     if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect())) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
+        RSOpincDrawCacheHelper::FinishOpincSubtree(*params);
         return;
     }
     if (LIKELY(uniParam) && uniParam->IsSecurityDisplay() && RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
+        RSOpincDrawCacheHelper::FinishOpincSubtree(*params);
         return;
     }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
     if (QuickGetDrawState(*paintFilterCanvas)) {
+        RSOpincDrawCacheHelper::FinishOpincSubtree(*params);
         return;
     }
 #endif
@@ -147,6 +151,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         HILOG_COMM_ERROR("RSCanvasRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
         if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
             SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+            RSOpincDrawCacheHelper::FinishOpincSubtree(*params);
             return;
         }
     }
@@ -156,17 +161,17 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
-        GetOpincDrawCache().BeforeDrawCache(canvas, *params);
+        RSOpincDrawCacheHelper::ProcessBeforeDrawCache(*this, canvas, *params);
         if (!IsDrawingBlurForCache() || IsDrawingExcludedSubTreeForCache()) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params);
-        GetOpincDrawCache().AfterDrawCache(canvas, *params);
-        GetOpincDrawCache().DrawOpincDisabledDfx(canvas, *params);
+        RSOpincDrawCacheHelper::ProcessAfterDrawCache(*this, canvas, *params);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
     paintFilterCanvas->SetHDRBrightness(hdrBrightness);
+    RSOpincDrawCacheHelper::FinishOpincSubtree(*params);
     RSRenderNodeDrawable::ProcessedNodeCountInc();
 #endif
 }
@@ -194,6 +199,11 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
+    if (!params->GetDoubleSidedEnabled() && IsBackFace(paintFilterCanvas->GetTotalMatrix())) {
+        SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+        RS_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnCapture backface skip, id:%" PRIu64, nodeId_);
+        return;
+    }
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*params, false)) {
         SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
         RS_LOGE("RSCanvasRenderNodeDrawable::OnCapture CheckMatchAndWaitNotify failed");

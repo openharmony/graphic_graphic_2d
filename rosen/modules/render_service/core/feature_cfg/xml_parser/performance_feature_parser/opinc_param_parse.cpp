@@ -14,9 +14,13 @@
  */
 
 #include <sstream>
+#include <unordered_set>
 #include "opinc_param_parse.h"
+#include "common/rs_common_hook.h"
 
 namespace OHOS::Rosen {
+constexpr const int LIST_SIZE_LIMIT = 100;
+constexpr const int APP_WINDOW_NAME_LIMIT = 100;
 
 int32_t OPIncParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
 {
@@ -66,8 +70,40 @@ int32_t OPIncParamParse::ParseOPIncInternal(xmlNode &node)
                     OPIncParam::GetCacheWidthThresholdPercentValue());
             }
         }
+    } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
+        if (ParseFeatureMultiParam(*currNode) != PARSE_EXEC_SUCCESS) {
+            RS_LOGD("OPIncParamParse parse LayerPartRenderWhiteList fail");
+        }
     }
 
+    return PARSE_EXEC_SUCCESS;
+}
+
+int32_t OPIncParamParse::ParseFeatureMultiParam(xmlNode &node)
+{
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        RS_LOGE("OPIncParamParse stop parsing LayerPartRenderWhiteList, no children nodes");
+        return PARSE_GET_CHILD_FAIL;
+    }
+    std::unordered_set<std::string> whiteList;
+    currNode = currNode->xmlChildrenNode;
+    for (int i = 0; currNode && i < LIST_SIZE_LIMIT; currNode = currNode->next, ++i) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto bundleName = ExtractPropertyValue("name", *currNode);
+        if (bundleName.empty() || bundleName.size() > APP_WINDOW_NAME_LIMIT) {
+            continue;
+        }
+        auto val = ExtractPropertyValue("value", *currNode);
+        if (val == "1") {
+            whiteList.insert(bundleName);
+            RS_LOGI("OPIncParamParse add LayerPartRenderWhiteList %{public}s", bundleName.c_str());
+        }
+    }
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList(whiteList);
+    RS_LOGI("OPIncParamParse parse LayerPartRenderWhiteList size %{public}zu", whiteList.size());
     return PARSE_EXEC_SUCCESS;
 }
 } // namespace OHOS::Rosen
