@@ -26,9 +26,6 @@
 #include "pixel_map.h"
 #include "effect_kit_napi_utils.h"
 #include "napi/native_node_api.h"
-#ifndef CROSS_PLATFORM
-#include "histogram_macros.h"
-#endif
 
 namespace {
     constexpr uint32_t NUM_0 = 0;
