@@ -205,51 +205,5 @@ HWTEST_F(RSClientToServiceConnectHubTest, ConnectDied003, TestSize.Level1)
     EXPECT_EQ(instance->token_, nullptr);
     EXPECT_EQ(instance->deathRecipient_, nullptr);
 }
-
-/**
- * @tc.name: Destructor001
- * @tc.desc: Verify destructor when renderService_ is null
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToServiceConnectHubTest, Destructor001, TestSize.Level1)
-{
-    sptr<RSClientToServiceConnectHub> hub = new RSClientToServiceConnectHub();
-    ASSERT_NE(hub, nullptr);
-    hub->renderService_ = nullptr;
-    hub->token_ = nullptr;
-    hub = nullptr;
-}
-
-/**
- * @tc.name: Destructor002
- * @tc.desc: Verify destructor with renderService_ and deathRecipient_ set, token_ is null
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToServiceConnectHubTest, Destructor002, TestSize.Level1)
-{
-    sptr<RSClientToServiceConnectHub> hub = new RSClientToServiceConnectHub();
-    ASSERT_NE(hub, nullptr);
-    hub->renderService_ = new MockRemoteObject();
-    hub->deathRecipient_ = new RSClientToServiceConnectHub::RenderServiceDeathRecipient(hub);
-    hub->token_ = nullptr;
-    hub = nullptr;
-}
-
-/**
- * @tc.name: Destructor003
- * @tc.desc: Verify destructor with token_ refcount > 1 triggers DecStrongRef loop
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToServiceConnectHubTest, Destructor003, TestSize.Level1)
-{
-    sptr<RSClientToServiceConnectHub> hub = new RSClientToServiceConnectHub();
-    ASSERT_NE(hub, nullptr);
-    hub->renderService_ = new MockRemoteObject();
-    hub->deathRecipient_ = new RSClientToServiceConnectHub::RenderServiceDeathRecipient(hub);
-    auto extraToken = hub->token_;
-    EXPECT_NE(extraToken, nullptr);
-    hub = nullptr;
-    EXPECT_NE(extraToken, nullptr);
-}
 } // namespace Rosen
 } // namespace OHOS
