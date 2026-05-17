@@ -17,7 +17,10 @@
 #define RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_SERVICE_H
 
 #include <event_handler.h>
+#include <functional>
 #include <map>
+#include <unordered_set>
+#include <vector>
 
 #include "rs_game_frame_handler.h"
 #include "rs_render_mode_config.h"
@@ -75,7 +78,7 @@ private:
         void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData) override;
         void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
 
-        void OnProcessDisconnected(ScreenId id) override {}
+        void OnProcessDisconnected(ScreenId id) override;
 
     private:
         RSRenderService& renderService_;

@@ -526,5 +526,15 @@ const sptr<RsGameFrameHandler>& RSRenderService::GetGameFrameHandler() const
 {
     return rsGameFrameHandler_;
 }
+
+void RSRenderService::ScreenManagerListener::OnProcessDisconnected(ScreenId screenId)
+{
+    RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, screenId);
+    renderService_.rsRenderComposerManager_->OnScreenDisconnected(screenId);
+    if (const auto& hgmContext = renderService_.GetHgmContext()) {
+        hgmContext->RemoveScreenFromHgm(screenId);
+    }
+    renderService_.vsyncManager_->OnScreenDisconnected(screenId, renderService_.handler_);
+}
 } // namespace Rosen
 } // namespace OHOS

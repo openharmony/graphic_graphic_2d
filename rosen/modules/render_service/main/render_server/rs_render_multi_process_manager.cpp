@@ -15,8 +15,9 @@
 
 #include "rs_render_multi_process_manager.h"
 
-#include <future>
 #include <csignal>
+#include <fcntl.h>
+#include <future>
 #include <sys/prctl.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -32,16 +33,8 @@ namespace Rosen {
 namespace {
 constexpr int32_t MAX_RETRIES = 5;
 constexpr int32_t DEFAULT_MAX_FD = 1024;
-
-void sigchld_handler(int sig)
-{
-    int status;
-    pid_t pid = waitpid(-1, &status, WNOHANG);
-    if (pid > 0) {
-        RS_LOGE("%{public}s: kill render_service since render_process: %{public}u is dead", __func__, pid);
-        exit(-1);
-    }
-}
+constexpr int32_t SUBPROCESS_DEATH_THRESHOLD_COUNT = 2;
+constexpr int32_t SUBPROCESS_DEATH_TIME_WINDOW_SECS = 180;
 
 int32_t ForkAndExec(GroupId groupId)
 {
@@ -83,14 +76,12 @@ int32_t ForkAndExec(GroupId groupId)
 RSMultiRenderProcessManager::RSMultiRenderProcessManager(RSRenderService& renderService)
     : RSRenderProcessManager(renderService), ipcPersistenceManager_(std::make_shared<RSIpcPersistenceManager>())
 {
-    struct sigaction sa;
-    sa.sa_handler = sigchld_handler;
-    sa.sa_flags = SA_RESTART;
-    sigemptyset(&sa.sa_mask);
-    if (sigaction(SIGCHLD, &sa, nullptr) == -1) {
-        RS_LOGE("Error setting SIGCHLD handler, errorno:%{public}d, errormsg:%{public}s", errno, strerror(errno));
-        exit(-1);
-    }
+    renderProcessDeathCallback_ = [&screenManager = renderService_.screenManager_](
+        std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>& screenOutputs) {
+        if (screenManager != nullptr) {
+            screenManager->OnProcessDisconnected(screenOutputs);
+        }
+    };
 }
 
 void RSMultiRenderProcessManager::RecordComposerToRenderConnection(
@@ -118,32 +109,48 @@ std::optional<pid_t> RSMultiRenderProcessManager::GetRenderProcessPidByGroupIdLo
 
 sptr<RSScreenProperty> RSMultiRenderProcessManager::GetPendingScreenProperty(pid_t pid)
 {
-    {
-        std::unique_lock<std::mutex> lock(renderProcessReadyPromiseMutex_);
-        bool isFound = renderProcessReadyPromiseCv_.wait_for(lock, std::chrono::seconds(5),
-            [this, pid]() { return renderProcessReadyPromises_.find(pid) != renderProcessReadyPromises_.end(); });
-        if (!isFound) {
-            RS_LOGE("%{public}s: Cannot find renderProcessReadyPromises in 5s for pid: %{public}u", __func__, pid);
-            return nullptr;
-        }
+    std::unique_lock<std::mutex> lock(renderProcessReadyPromiseMutex_);
+    bool isFound = renderProcessReadyPromiseCv_.wait_for(lock, std::chrono::seconds(5),
+        [this, pid]() { return renderProcessReadyPromises_.find(pid) != renderProcessReadyPromises_.end(); });
+    if (!isFound) {
+        RS_LOGE("%{public}s: Cannot find renderProcessReadyPromises in 5s for pid: %{public}u", __func__, pid);
+        return nullptr;
     }
 
     const auto node = pendingScreenConnectInfos_.extract(pid);
+    if (!node) {
+        RS_LOGE("%{public}s: Cannot find pendingScreenConnectInfo for pid", __func__);
+        return nullptr;
+    }
     RS_LOGI("%{public}s: Found pendingScreenConnectInfo for pid: %{public}u", __func__, pid);
     return node.mapped().property;
 }
 
-void RSMultiRenderProcessManager::SetRenderProcessReadyPromise(pid_t pid,
+bool RSMultiRenderProcessManager::SetRenderProcessReadyPromise(pid_t pid,
     const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
     const sptr<RSIConnectToRenderProcess>& connectToRenderConnection)
 {
+    RS_LOGI("render_process %{public}u DeathRecipient registered", pid);
+    RegisterDeathRecipient(pid, serviceToRenderConnection->AsObject());
+
     {
         std::lock_guard<std::mutex> lock(mutex_);
         serviceToRenderConnections_.insert_or_assign(pid, serviceToRenderConnection);
         connectToRenderConnections_.insert_or_assign(pid, connectToRenderConnection);
     }
-    renderProcessReadyPromises_.at(pid).set_value(true);
-    renderProcessReadyPromises_.erase(pid);
+
+    {
+        std::lock_guard<std::mutex> lock(renderProcessReadyPromiseMutex_);
+        auto promiseIt = renderProcessReadyPromises_.find(pid);
+        if (promiseIt != renderProcessReadyPromises_.end()) {
+            promiseIt->second.set_value(true);
+            renderProcessReadyPromises_.erase(promiseIt);
+            return true;
+        } else {
+            RS_LOGE("%{public}s: promise not found for pid", __func__);
+            return false;
+        }
+    }
 }
 
 GroupId RSMultiRenderProcessManager::GetGroupIdByScreenId(ScreenId screenId) const
@@ -173,31 +180,45 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::OnScreenConnected(
     // Find the corresponding groupId for the screenId
     GroupId groupId = GetGroupIdByScreenId(screenId);
     auto optionalPid = GetRenderProcessPidByGroupId(groupId);
-    auto renderConnProxy = optionalPid.has_value() ? HandleExistingGroup(optionalPid.value(), screenId, property)
-                                                   : HandleNewGroup(groupId, screenId, property);
+    auto renderConnProxy = optionalPid.has_value() ?
+        HandleExistingGroup(optionalPid.value(), screenId, output, property) :
+        HandleNewGroup(groupId, screenId, output, property);
     return renderConnProxy;
 }
 
 sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(
-    pid_t pid, ScreenId screenId, const sptr<RSScreenProperty>& property)
+    pid_t pid, ScreenId screenId, const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     RS_LOGI("%{public}s: GroupId has connected already, screenId is %{public}" PRIu64, __func__, screenId);
-    auto renderToComposerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);
-    auto composerToRenderConn = GotComposerToRenderConnByPid(pid);
+    auto serviceToRenderConnection = GetServiceToRenderConnByPid(pid);
+    if (!serviceToRenderConnection) {
+        RS_LOGE("%{public}s: serviceToRenderConnection is nullptr", __func__);
+        return nullptr;
+    }
+    auto composerToRenderConn = GetComposerToRenderConnByPid(pid);
+    if (!composerToRenderConn) {
+        RS_LOGE("%{public}s: composerToRenderConn is nullptr", __func__);
+        return nullptr;
+    }
 
-    auto serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
+    AddScreenOutputToProcess(pid, screenId, output);
+    auto renderToComposerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);
     if (!serviceToRenderConnection->NotifyScreenConnectInfoToRender(property,
         renderToComposerConn, composerToRenderConn)) {
         RS_LOGE("%{public}s: NotifyScreenConnectInfoToRender failed, screenId=%{public}" PRIu64, __func__, screenId);
         return nullptr;
     }
 
-    auto connectToRender = GotConnectToRenderConnByPid(pid);
+    auto connectToRender = GetConnectToRenderConnByPid(pid);
+    if (!connectToRender) {
+        RS_LOGE("%{public}s: connectToRender is nullptr", __func__);
+        return nullptr;
+    }
     return connectToRender->AsObject();
 }
 
-sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(
-    GroupId groupId, ScreenId screenId, const sptr<RSScreenProperty>& property)
+sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(GroupId groupId, ScreenId screenId,
+    const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     RS_LOGI("%{public}s: GroupId first time connect, screenId is %{public}" PRIu64, __func__, screenId);
     std::promise<bool> renderProcessReadyPromise;
@@ -209,6 +230,7 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(
         pid = ForkAndExec(groupId);
         if (pid > 0) {
             UpdateGroupIdToRenderProcessPid(groupId, pid);
+            AddScreenOutputToProcess(pid, screenId, output);
             PendingScreenConnectInfo screenConnectInfo { .screenId = screenId, .property = property };
             {
                 std::lock_guard<std::mutex> lock(renderProcessReadyPromiseMutex_);
@@ -222,7 +244,7 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(
         sleep(1);
     }
     if (pid <= 0) {
-        RS_LOGE("%{public}s: Fork failed after 5 retries", __func__);
+        RS_LOGE("%{public}s: Fork failed after %{public}d retries", __func__, MAX_RETRIES);
         exit(-1);
     }
 
@@ -284,7 +306,6 @@ void RSMultiRenderProcessManager::OnVirtualScreenConnected(
             associatedScreenId);
         return;
     }
-
     ScreenId oldPhysicalScreenId = InsertVirtualToPhysicalScreenMap(screenId, associatedScreenId);
     if (oldPhysicalScreenId != INVALID_SCREEN_ID) {
         if (auto oldScreenServiceToRenderConn = GetServiceToRenderConn(oldPhysicalScreenId)) {
@@ -294,10 +315,20 @@ void RSMultiRenderProcessManager::OnVirtualScreenConnected(
             }
         }
     }
-
     if (!serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, nullptr, nullptr)) {
         RS_LOGE("%{public}s: NotifyScreenConnectInfoToRender failed, screenId=%{public}" PRIu64,
             __func__, screenId);
+    }
+    auto groupId = GetGroupIdByScreenId(associatedScreenId);
+    auto optionalPid = GetRenderProcessPidByGroupId(groupId);
+    if (optionalPid.has_value()) {
+        pid_t pid = optionalPid.value();
+        AddScreenOutputToProcess(pid, screenId, nullptr);
+        RS_LOGI("%{public}s: Added virtualScreenId %{public}" PRIu64 " to render_process %{public}u",
+            __func__, screenId, pid);
+    } else {
+        RS_LOGW("%{public}s: Cannot find pid for associatedScreenId %{public}" PRIu64,
+            __func__, associatedScreenId);
     }
 }
 
@@ -305,9 +336,13 @@ void RSMultiRenderProcessManager::OnVirtualScreenDisconnected(ScreenId screenId)
 {
     auto optionalConnScreenId = DeleteVirtualToPhysicalScreenMap(screenId);
     if (!optionalConnScreenId.has_value()) {
+        RS_LOGW("%{public}s: Cannot find physicalScreenId for virtualScreenId %{public}" PRIu64,
+            __func__, screenId);
         return;
     }
-    auto serviceToRenderConnection = GetServiceToRenderConn(optionalConnScreenId.value());
+
+    ScreenId associatedScreenId = optionalConnScreenId.value();
+    auto serviceToRenderConnection = GetServiceToRenderConn(associatedScreenId);
     if (!serviceToRenderConnection) {
         RS_LOGE("%{public}s: serviceToRenderConnection is nullptr", __func__);
         return;
@@ -315,6 +350,15 @@ void RSMultiRenderProcessManager::OnVirtualScreenDisconnected(ScreenId screenId)
     if (!serviceToRenderConnection->NotifyScreenDisconnectInfoToRender(screenId)) {
         RS_LOGE("%{public}s: NotifyScreenDisconnectInfoToRender failed, screenId=%{public}" PRIu64,
             __func__, screenId);
+    }
+
+    auto groupId = GetGroupIdByScreenId(associatedScreenId);
+    auto optionalPid = GetRenderProcessPidByGroupId(groupId);
+    if (optionalPid.has_value()) {
+        pid_t pid = optionalPid.value();
+        RemoveScreenOutputFromProcess(pid, screenId);
+        RS_LOGI("%{public}s: Removed virtualScreenId %{public}" PRIu64 " from render_process %{public}u",
+            __func__, screenId, pid);
     }
 }
 
@@ -406,6 +450,22 @@ sptr<IRSComposerToRenderConnection> RSMultiRenderProcessManager::GotComposerToRe
     return composerToRenderConnections_.at(pid);
 }
 
+sptr<IRSComposerToRenderConnection> RSMultiRenderProcessManager::GetComposerToRenderConnByPid(pid_t pid) const
+{
+    // lock version
+    std::lock_guard<std::mutex> lock(mutex_);
+    return GetComposerToRenderConnByPidLocked(pid);
+}
+
+sptr<IRSComposerToRenderConnection> RSMultiRenderProcessManager::GetComposerToRenderConnByPidLocked(pid_t pid) const
+{
+    // without lock version
+    if (auto iter = composerToRenderConnections_.find(pid); iter != composerToRenderConnections_.end()) {
+        return iter->second;
+    }
+    return nullptr;
+}
+
 ScreenId RSMultiRenderProcessManager::InsertVirtualToPhysicalScreenMap(ScreenId screenId, ScreenId associatedScreenId)
 {
     ScreenId oldPhysicalScreenId = INVALID_SCREEN_ID;
@@ -442,6 +502,148 @@ ScreenId RSMultiRenderProcessManager::FindVirtualToPhysicalScreenMap(ScreenId sc
 std::shared_ptr<RSIpcPersistenceManager> RSMultiRenderProcessManager::GetIpcPersistenceManager() const
 {
     return ipcPersistenceManager_;
+}
+
+void RSMultiRenderProcessManager::RenderProcessDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& token)
+{
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        RS_LOGW("%{public}s: can't promote remote object", __func__);
+        return;
+    }
+
+    auto managerSptr = manager_.promote();
+    if (managerSptr == nullptr) {
+        RS_LOGW("%{public}s: manager has been destroyed, skip death handling for pid %{public}u",
+            __func__, pid_);
+        return;
+    }
+    
+    RS_LOGE("%{public}s: render_process died, DeathRecipient triggered for pid %{public}u",
+        __func__, pid_);
+    managerSptr->HandleRenderProcessDeath(pid_);
+}
+
+void RSMultiRenderProcessManager::HandleRenderProcessDeath(pid_t pid)
+{
+    RS_LOGI("Handling render_process %{public}u death", pid);
+    CheckAndHandleSubprocessDeathOverflow();
+    std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>> affectedScreenOutputs;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        serviceToRenderConnections_.erase(pid);
+        connectToRenderConnections_.erase(pid);
+        composerToRenderConnections_.erase(pid);
+
+        auto node = pidToScreenOutputMap_.extract(pid);
+        if (node) {
+            affectedScreenOutputs = std::move(node.mapped());
+        }
+
+        auto groupIter = std::find_if(groupIdToRenderProcessPid_.begin(), groupIdToRenderProcessPid_.end(),
+            [pid](const auto& pair) { return pair.second == pid; });
+        if (groupIter != groupIdToRenderProcessPid_.end()) {
+            groupIdToRenderProcessPid_.erase(groupIter);
+        }
+    }
+    {
+        std::lock_guard<std::mutex> lock(renderProcessReadyPromiseMutex_);
+        pendingScreenConnectInfos_.erase(pid);
+        auto promiseIt = renderProcessReadyPromises_.find(pid);
+        if (promiseIt != renderProcessReadyPromises_.end()) {
+            promiseIt->second.set_value(false);
+            renderProcessReadyPromises_.erase(promiseIt);
+        }
+    }
+    RS_LOGI("%{public}s: ProcessManager executing screen disconnection for pid=%{public}u, screenIds count=%{public}zu",
+        __func__, pid, affectedScreenOutputs.size());
+    for (const auto& [screenId, output] : affectedScreenOutputs) {
+        RS_LOGI("%{public}s: ScreenId=%{public}" PRIu64 " disconnected due to process death", __func__, screenId);
+    }
+    if (renderProcessDeathCallback_ && !affectedScreenOutputs.empty()) {
+        renderProcessDeathCallback_(affectedScreenOutputs);
+    }
+    UnregisterDeathRecipient(pid);
+}
+
+void RSMultiRenderProcessManager::RegisterDeathRecipient(pid_t pid, const sptr<IRemoteObject>& binderObject)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    if (deathRecipients_.find(pid) != deathRecipients_.end()) {
+        RS_LOGW("%{public}s: DeathRecipient already registered for pid %{public}u, replacing.", __func__, pid);
+    }
+
+    auto deathRecipient = sptr<RenderProcessDeathRecipient>::MakeSptr(pid, wptr<RSMultiRenderProcessManager>(this));
+    if (!binderObject->AddDeathRecipient(deathRecipient)) {
+        RS_LOGE("%{public}s: Failed to add DeathRecipient for render_process %{public}u", __func__, pid);
+        return;
+    }
+
+    deathRecipients_[pid] = deathRecipient;
+    RS_LOGI("%{public}s: Registered DeathRecipient for render_process %{public}u", __func__, pid);
+}
+
+void RSMultiRenderProcessManager::UnregisterDeathRecipient(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto it = deathRecipients_.find(pid);
+    if (it != deathRecipients_.end()) {
+        deathRecipients_.erase(it);
+        RS_LOGI("%{public}s: Unregistered DeathRecipient for render_process %{public}u", __func__, pid);
+    }
+}
+
+void RSMultiRenderProcessManager::AddScreenOutputToProcess(pid_t pid, ScreenId screenId,
+    const std::shared_ptr<HdiOutput>& output)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    RS_LOGI("Added screenId %{public}" PRIu64 " to render_process %{public}u", screenId, pid);
+    pidToScreenOutputMap_[pid].emplace_back(screenId, output);
+}
+
+void RSMultiRenderProcessManager::RemoveScreenOutputFromProcess(pid_t pid, ScreenId screenId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = pidToScreenOutputMap_.find(pid);
+    if (it == pidToScreenOutputMap_.end()) {
+        RS_LOGW("%{public}s: Cannot find pid %{public}u in pidToScreenOutputMap", __func__, pid);
+        return;
+    }
+    
+    auto& screenOutputs = it->second;
+    auto outputIt = std::find_if(screenOutputs.begin(), screenOutputs.end(), [screenId](const auto& pair) {
+        return pair.first == screenId;
+    });
+    if (outputIt != screenOutputs.end()) {
+        screenOutputs.erase(outputIt);
+        RS_LOGI("Removed screenId %{public}" PRIu64 " from render_process %{public}u", screenId, pid);
+        if (screenOutputs.empty()) {
+            pidToScreenOutputMap_.erase(it);
+        }
+    } else {
+        RS_LOGW("%{public}s: Cannot find screenId %{public}" PRIu64 " in pid %{public}u",
+            __func__, screenId, pid);
+    }
+}
+
+void RSMultiRenderProcessManager::CheckAndHandleSubprocessDeathOverflow()
+{
+    std::lock_guard<std::mutex> lock(subprocessDeathTimesMutex_);
+    auto now = std::chrono::steady_clock::now();
+    auto windowStart = now - std::chrono::seconds(SUBPROCESS_DEATH_TIME_WINDOW_SECS);
+
+    while (!subprocessDeathTimes_.empty() && subprocessDeathTimes_.front() < windowStart) {
+        subprocessDeathTimes_.pop_front();
+    }
+    subprocessDeathTimes_.push_back(now);
+
+    if (static_cast<int32_t>(subprocessDeathTimes_.size()) > SUBPROCESS_DEATH_THRESHOLD_COUNT) {
+        RS_LOGE("%{public}s Subprocess died more than %{public}d times in %{public}d seconds,"
+            " waiting render_service", __func__, SUBPROCESS_DEATH_THRESHOLD_COUNT, SUBPROCESS_DEATH_TIME_WINDOW_SECS);
+        exit(-1);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
