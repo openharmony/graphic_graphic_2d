@@ -19,7 +19,8 @@ module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_base"
 ohos_unittest("RSProxyTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_client_to_service_connect_hub_test.cpp" ]
+  sources = [ "rs_client_to_service_connect_hub_test.cpp",
+   "rs_render_service_client_proxy_test.cpp"]
 
   defines = [ "ENABLE_RS_PROXY" ]
 
@@ -27,6 +28,8 @@ ohos_unittest("RSProxyTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base/proxy:render_service_proxy_src",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   external_deps = [
@@ -41,10 +44,19 @@ ohos_unittest("RSProxyTest") {
 config("rs_proxy_test_config") {
   visibility = [ ":*" ]
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service_base",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
   ]
 
   cflags = [

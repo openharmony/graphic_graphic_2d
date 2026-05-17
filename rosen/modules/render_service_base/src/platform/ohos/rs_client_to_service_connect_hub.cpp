@@ -22,16 +22,16 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "ipc_callbacks/rs_ipc_callbacks_check.h"
 #include "platform/common/rs_log.h"
-#include "transaction/zidl/rs_client_to_service_connection_proxy.h"
-#include "vsync_iconnection_token.h"
 #include "platform/ohos/transaction/rs_irender_connection_token.h"
-#include "rs_render_service_proxy.h"
+#include "transaction/zidl/rs_client_to_service_connection_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
 std::once_flag RSClientToServiceConnectHub::flag_;
 sptr<RSClientToServiceConnectHub> RSClientToServiceConnectHub::instance_ = nullptr;
+constexpr int32_t TOKEN_STRONG_REF_COUNT = 1;
 
 sptr<RSClientToServiceConnectHub> RSClientToServiceConnectHub::GetInstance()
 {
@@ -50,9 +50,7 @@ void RSClientToServiceConnectHub::Destroy()
     instance_ = nullptr;
 }
 
-RSClientToServiceConnectHub::RSClientToServiceConnectHub()
-{
-}
+RSClientToServiceConnectHub::RSClientToServiceConnectHub() {}
 
 RSClientToServiceConnectHub::~RSClientToServiceConnectHub() noexcept
 {
@@ -61,21 +59,47 @@ RSClientToServiceConnectHub::~RSClientToServiceConnectHub() noexcept
         return;
     }
     ROSEN_LOGI("~RSClientToServiceConnectHub");
-    if (renderService_->AsObject() && deathRecipient_) {
-        renderService_->AsObject()->RemoveDeathRecipient(deathRecipient_);
+    if (renderService_ && deathRecipient_) {
+        renderService_->RemoveDeathRecipient(deathRecipient_);
     }
     if (token_ == nullptr) {
         ROSEN_LOGI("token_ is deleted");
         return;
     }
-    renderService_ = nullptr;
-    conn_ = nullptr;
+    ROSEN_LOGI("RefCount: %{public}d", token_->GetSptrRefCount());
+    while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
+        token_->DecStrongRef(this);
+    }
+    // Remove connection
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    IPCObjectProxy* proxy = reinterpret_cast<IPCObjectProxy*>(renderService_.GetRefPtr());
+    std::u16string descriptor = proxy->GetInterfaceDescriptor();
+    if (!data.WriteInterfaceToken(descriptor)) {
+        ROSEN_LOGE("RemoveConnection(): WriteInterfaceToken failed.");
+        return;
+    }
+    if (!data.WriteRemoteObject(token_->AsObject())) {
+        ROSEN_LOGE("RemoveConnection(): WriteRemoteObject failed.");
+        return;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION);
+    int32_t err = SendRequestRemote::SendRequest(renderService_.GetRefPtr(), code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RemoveConnection(): SendRequest failed, err is %{public}d.", err);
+        return;
+    }
+
     token_ = nullptr;
+    conn_ = nullptr;
 }
 
 sptr<RSIClientToServiceConnection> RSClientToServiceConnectHub::GetClientToServiceConnection()
 {
-    auto hub = GetInstance();
+    auto hub = RSClientToServiceConnectHub::GetInstance();
     if (hub == nullptr) {
         return nullptr;
     }
@@ -84,7 +108,7 @@ sptr<RSIClientToServiceConnection> RSClientToServiceConnectHub::GetClientToServi
         return hub->conn_;
     }
     if (!hub->Connect()) {
-        ROSEN_LOGE("RSClientToServiceConnectHub::GetClientToServiceConnection connect fail");
+        ROSEN_LOGE("RSClientToServiceConnectHub connect fail");
         return nullptr;
     }
     return hub->conn_;
@@ -92,59 +116,82 @@ sptr<RSIClientToServiceConnection> RSClientToServiceConnectHub::GetClientToServi
 
 bool RSClientToServiceConnectHub::Connect()
 {
-    RS_LOGD("RSClientToServiceConnectHub::Connect");
-    int tryCnt = 0;
-    sptr<RSIRenderService> renderService = nullptr;
-    do {
+    ROSEN_LOGD("RSClientToServiceConnectHub::Connect");
+    sptr<IRemoteObject> remoteObject = nullptr;
+    for (int tryCnt = 0; tryCnt < 5; ++tryCnt) {
         usleep(1000 * tryCnt);
-        ++tryCnt;
-        if (tryCnt == 5) {
-            RS_LOGD("RSClientToServiceConnectHub::Connect failed, tried %{public}d times.", tryCnt);
-            break;
-        }
         auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (samgr == nullptr) {
             continue;
         }
-        auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+        remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
         if (remoteObject == nullptr || !remoteObject->IsProxyObject()) {
             continue;
         }
-        renderService = iface_cast<RSRenderServiceProxy>(remoteObject);
-        if (renderService != nullptr) {
-            break;
-        }
-    } while (true);
+        break;
+    }
 
-    if (renderService == nullptr) {
-        RS_LOGD("RSClientToServiceConnectHub::Connect, failed to get render service proxy.");
+    if (remoteObject == nullptr) {
+        ROSEN_LOGE("RSClientToServiceConnectHub::Connect, failed to get remoteObject.");
         return false;
     }
-    wptr<RSClientToServiceConnectHub> hub = this;
-    deathRecipient_ = new RenderServiceDeathRecipient(hub);
-    if (!renderService->AsObject()->AddDeathRecipient(deathRecipient_)) {
-        ROSEN_LOGW("RSClientToServiceConnectHub::Connect, failed to AddDeathRecipient.");
-    }
+
+    wptr<RSClientToServiceConnectHub> clientToServiceConnectHub = this;
+    deathRecipient_ = new RenderServiceDeathRecipient(clientToServiceConnectHub);
+    remoteObject->AddDeathRecipient(deathRecipient_);
 
     if (token_ == nullptr) {
         token_ = new IRemoteStub<RSIConnectionToken>();
     }
-    ROSEN_LOGI("RSClientToServiceConnectHub call CreateConnection");
-    auto [conn, renderConn] = renderService->CreateConnection(token_, false);
+    ROSEN_LOGI("RSClientToServiceConnectHub Create Connection");
 
-    if (conn == nullptr) {
-        RS_LOGD("RSClientToServiceConnectHub::Connect, failed to CreateConnection.");
+    // Create Connection
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    IPCObjectProxy* proxy = reinterpret_cast<IPCObjectProxy*>(remoteObject.GetRefPtr());
+    std::u16string descriptor = proxy->GetInterfaceDescriptor();
+    if (!data.WriteInterfaceToken(descriptor)) {
+        ROSEN_LOGE("CreateConnection(): WriteInterfaceToken failed.");
+        return false;
+    }
+    if (!data.WriteRemoteObject(token_->AsObject())) {
+        ROSEN_LOGE("CreateConnection(): WriteRemoteObject failed.");
+        return false;
+    }
+    if (!data.WriteBool(false)) {
+        ROSEN_LOGE("CreateConnection(): WriteBool failed.");
         return false;
     }
 
-    renderService_ = renderService;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
+    int32_t err = SendRequestRemote::SendRequest(remoteObject.GetRefPtr(), code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("CreateConnection(): SendRequest failed, err is %{public}d.", err);
+        return false;
+    }
+
+    auto remoteToService = reply.ReadRemoteObject();
+    if (remoteToService == nullptr || !remoteToService->IsProxyObject()) {
+        ROSEN_LOGE("RS CreateConnection(): Reply remoteToService is null.");
+        return false;
+    }
+
+    auto conn = sptr<RSClientToServiceConnectionProxy>::MakeSptr(remoteToService);
+    if (conn == nullptr) {
+        ROSEN_LOGE("RSClientToServiceConnectHub::Connect, failed to iface_cast.");
+        return false;
+    }
+
+    renderService_ = remoteObject;
     conn_ = conn;
     return true;
 }
 
 void RSClientToServiceConnectHub::ConnectDied()
 {
-    mutex_.lock();
+    std::lock_guard<std::mutex> lock(mutex_);
     renderService_ = nullptr;
     if (conn_) {
         conn_->RunOnRemoteDiedCallback();
@@ -152,11 +199,9 @@ void RSClientToServiceConnectHub::ConnectDied()
     conn_ = nullptr;
     deathRecipient_ = nullptr;
     token_ = nullptr;
-    mutex_.unlock();
 }
 
-void RSClientToServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(
-    const wptr<IRemoteObject>& remote)
+void RSClientToServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
     auto remoteSptr = remote.promote();
     if (remoteSptr == nullptr) {
@@ -170,6 +215,5 @@ void RSClientToServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(
     }
     hub->ConnectDied();
 }
-
 } // namespace Rosen
 } // namespace OHOS

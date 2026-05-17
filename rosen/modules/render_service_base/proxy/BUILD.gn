@@ -21,8 +21,9 @@ config("export_config") {
   include_dirs = [
     "../include",
     "${graphic_2d_root}/utils/log",
+    "$graphic_2d_root/interfaces/inner_api/composer",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
   ]
-  cflags_cc = [ "-std=c++17" ]
 
   defines = rs_common_define
   defines += gpu_defines
@@ -30,16 +31,35 @@ config("export_config") {
     defines += [ "ENABLE_RS_PROXY" ]
   }
 }
+config("inner_config") {
+  cflags = [
+    "-Wall",
+    "-Wno-pointer-arith",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+    "-fvisibility=hidden",
+  ]
 
-config("render_service_proxy_all_deps_config") {
-  include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "$graphic_2d_root/rosen/modules/utils",
-    "$graphic_2d_root/interfaces/inner_api/common",
-    "$graphic_2d_root/utils/log",
-    "$graphic_2d_root/rosen/modules/render_service",
-    "$graphic_2d_root/utils/color_manager/export",
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility-inlines-hidden",
+  ]
+
+  ldflags = [ "-Wl,--gc-sections" ]
+  cflags += [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-O2",
+  ]
+  cflags_cc += [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fomit-frame-pointer",
+    "-D_FORTIFY_SOURCE=2",
+    "-O2",
   ]
 }
 
@@ -49,100 +69,37 @@ ohos_source_set("render_service_proxy_src") {
     cfi = true
     cfi_cross_dso = true
     debug = false
-    blocklist = "../rs_base_blocklist.txt"
   }
-
   defines = []
   defines += gpu_defines
   defines += [ "MODULE_RSB" ]
 
   sources = [
-    "../src/platform/ohos/rs_client_to_service_connect_hub.cpp",
     "../src/platform/ohos/rs_render_service_client.cpp",
-
-    #ipc_callbacks
-    "../src/ipc_callbacks/active_screen_id_changed_callback_proxy.cpp",
-    "../src/ipc_callbacks/active_screen_id_changed_callback_stub.cpp",
-    "../src/ipc_callbacks/buffer_available_callback_proxy.cpp",
-    "../src/ipc_callbacks/buffer_available_callback_stub.cpp",
-    "../src/ipc_callbacks/buffer_clear_callback_proxy.cpp",
-    "../src/ipc_callbacks/buffer_clear_callback_stub.cpp",
-    "../src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
-    "../src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_application_agent_proxy.cpp",
-    "../src/ipc_callbacks/rs_application_agent_stub.cpp",
-    "../src/ipc_callbacks/rs_first_frame_commit_callback_proxy.cpp",
-    "../src/ipc_callbacks/rs_first_frame_commit_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_proxy.cpp",
-    "../src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_exposed_event_callback_proxy.cpp",
-    "../src/ipc_callbacks/rs_exposed_event_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
-    "../src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_rt_refresh_callback.cpp",
-    "../src/ipc_callbacks/rs_self_drawing_node_rect_change_callback_proxy.cpp",
-    "../src/ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_surface_buffer_callback.cpp",
-    "../src/ipc_callbacks/rs_surface_buffer_callback_proxy.cpp",
-    "../src/ipc_callbacks/rs_surface_buffer_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
-    "../src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_transaction_data_callback_proxy.cpp",
-    "../src/ipc_callbacks/rs_transaction_data_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_uiextension_callback_proxy.cpp",
-    "../src/ipc_callbacks/rs_uiextension_callback_stub.cpp",
-    "../src/ipc_callbacks/screen_change_callback_proxy.cpp",
-    "../src/ipc_callbacks/screen_change_callback_stub.cpp",
-    "../src/ipc_callbacks/screen_supported_hdr_formats_callback_proxy.cpp",
-    "../src/ipc_callbacks/screen_supported_hdr_formats_callback_stub.cpp",
-    "../src/ipc_callbacks/brightness_info_change_callback_proxy.cpp",
-    "../src/ipc_callbacks/brightness_info_change_callback_stub.cpp",
-    "../src/ipc_callbacks/screen_switching_notify_callback_proxy.cpp",
-    "../src/ipc_callbacks/screen_switching_notify_callback_stub.cpp",
-    "../src/ipc_callbacks/surface_capture_callback_proxy.cpp",
-    "../src/ipc_callbacks/surface_capture_callback_stub.cpp",
-    "../src/ipc_callbacks/dfx/rs_dump_callback_proxy.cpp",
-    "../src/ipc_callbacks/dfx/rs_dump_callback_stub.cpp",
-
-    #ipc_security
-    "../src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
-
-    #platform
-    "../src/platform/ohos/rs_render_service_proxy.cpp",
+    "../src/platform/ohos/rs_client_to_service_connect_hub.cpp",
     "../src/platform/ohos/transaction/zidl/rs_client_to_service_connection_proxy.cpp",
-
-    #transaction
-    "../src/transaction/rp_hgm_config_data.cpp",
-    "../src/transaction/rs_hgm_config_data.cpp",
-    "../src/transaction/rs_occlusion_data.cpp",
-    "../src/transaction/rs_self_drawing_node_rect_data.cpp",
-    "../src/transaction/rs_transaction_data.cpp",
-    "../src/transaction/rs_transaction_data_callback_manager.cpp",
-    "../src/transaction/rs_uiextension_data.cpp",
-
-    #common
-    "../src/common/rs_color.cpp",
-    "../src/common/rs_common_tools.cpp",
+    "../src/ipc_callbacks/active_screen_id_changed_callback_stub.cpp",
+    "../src/ipc_callbacks/brightness_info_change_callback_stub.cpp",
+    "../src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
+    "../src/ipc_callbacks/rs_exposed_event_callback_stub.cpp",
+    "../src/ipc_callbacks/rs_first_frame_commit_callback_stub.cpp",
+    "../src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.cpp",
+    "../src/ipc_callbacks/rs_transaction_data_callback_stub.cpp",
+    "../src/ipc_callbacks/screen_change_callback_stub.cpp",
+    "../src/ipc_callbacks/screen_supported_hdr_formats_callback_stub.cpp",
+    "../src/ipc_callbacks/screen_switching_notify_callback_stub.cpp",
+    "../src/common/rs_common_hook.cpp",
     "../src/common/rs_event_def.cpp",
-    "../src/common/rs_xcollie.cpp",
-
-    #screen_manager
+    "../src/memory/rs_memory_graphic.cpp",
+    "../src/pipeline/rs_uni_render_judgement.cpp",
+    "../src/platform/ohos/rs_log.cpp",
+    "../src/transaction/rs_hgm_config_data.cpp",
     "../src/screen_manager/rs_screen_capability.cpp",
     "../src/screen_manager/rs_screen_data.cpp",
     "../src/screen_manager/rs_screen_hdr_capability.cpp",
     "../src/screen_manager/rs_screen_mode_info.cpp",
+    "../src/screen_manager/rs_screen_props.cpp",
     "../src/screen_manager/rs_virtual_screen_resolution.cpp",
-
-    #memory
-    "../src/memory/rs_memory_graphic.cpp",
-
-    #render
-    "../src/render/rs_typeface_cache.cpp",
-
-    #info_collection
-    "../src/info_collection/rs_gpu_dirty_region_collection.cpp",
-    "../src/info_collection/rs_hardware_compose_disabled_reason_collection.cpp",
-    "../src/info_collection/rs_layer_compose_collection.cpp",
   ]
 
   cflags = [
@@ -161,66 +118,57 @@ ohos_source_set("render_service_proxy_src") {
 
   public_configs = [ ":export_config" ]
 
+  if (enable_export_macro) {
+    defines += [ "ENABLE_EXPORT_MACRO" ]
+  }
+
+  if (rs_enable_gpu) {
+    defines += [
+      "RS_ENABLE_GPU",
+      "GL_GLEXT_PROTOTYPES",
+      "EGL_EGLEXT_PROTOTYPES",
+    ]
+  }
+
+  if (current_os == "ohos") {
+    defines += [ "IS_OHOS" ]
+  }
+
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/utils",
-    "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/log",
-    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
   ]
+
+  if (graphic_2d_feature_mhc_enable) {
+    include_dirs += graphic_2d_mhc_configs.librender_service_mhc_include
+  }
+
+  if (tp_feature_enable) {
+    defines += tp_defines
+  }
 
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
-    "$rosen_root/modules/platform:hilog",
-    "$rosen_root/modules/platform:ipc_core",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
 
   external_deps = [
-    "graphic_surface:surface_headers",
     "hilog:libhilog",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "hicollie:libhicollie",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "eventhandler:libeventhandler",
+    "image_framework:image_native",
+    "c_utils:utils",
   ]
 
-  if (rosen_is_ohos) {
-    external_deps += [
-      "hicollie:libhicollie",
-      "hisysevent:libhisysevent",
-      "hitrace:hitrace_meter",
-    ]
-  }
-
-  if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
-    defines += [ "ENABLE_IPC_SECURITY" ]
-    external_deps += [
-      "access_token:libaccesstoken_sdk",
-      "ipc:ipc_core",
-    ]
-  }
-
-  if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&
-      enable_ipc_security_access_counter) {
-    defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
-  }
-
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-    deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
-  }
-
-  public_configs += [
-    "$rosen_root/modules/platform:eventhandler_config",
-    "$rosen_root/modules/platform:image_native_config",
-  ]
-  public_deps = [
-    "$rosen_root/modules/platform:eventhandler",
-    "$rosen_root/modules/platform:hilog",
-    "$rosen_root/modules/platform:image_native",
-    "$rosen_root/modules/platform:ipc_core",
-  ]
-
-  if (use_video_processing_engine) {
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
   }
 
   part_name = "graphic_2d"
@@ -235,7 +183,10 @@ ohos_shared_library("librender_service_proxy") {
     debug = false
   }
 
-  public_configs = [ ":render_service_proxy_all_deps_config" ]
+  version_script = "librender_service_proxy_map"
+
+  public_configs = [ ":export_config" ]
+  configs = [ ":inner_config" ]
 
   deps = [
     ":render_service_proxy_src",
