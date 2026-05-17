@@ -37,29 +37,3 @@ ohos_executable("render_service_client") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
-
-ohos_executable("rs_hgm_interface_stable_demo") {
-  sources = [ "rs_hgm_interface_stable_demo.cpp" ]
-
-  defines = [ "ENABLE_RS_PROXY" ]
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_base/proxy:librender_service_proxy",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-  ]
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  external_deps = [
-    "hilog:libhilog",
-    "ipc:ipc_core",
-    "graphic_surface:surface",
-  ]
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}

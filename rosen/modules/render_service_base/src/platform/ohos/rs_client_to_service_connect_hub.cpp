@@ -118,7 +118,9 @@ bool RSClientToServiceConnectHub::Connect()
 {
     ROSEN_LOGD("RSClientToServiceConnectHub::Connect");
     sptr<IRemoteObject> remoteObject = nullptr;
+    // try most 5 times to get render service.
     for (int tryCnt = 0; tryCnt < 5; ++tryCnt) {
+        // sleep move time (1000us * tryCnt) when tryCnt++
         usleep(1000 * tryCnt);
         auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         if (samgr == nullptr) {
