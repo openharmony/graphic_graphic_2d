@@ -42,16 +42,12 @@
 #include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
+#include "platform/drawing/rs_surface.h"
 #endif
 #include "rs_render_service_client_info.h"
 #ifndef ENABLE_RS_PROXY
 #include "rs_hrp_service.h"
 #include "rs_irender_client.h"
-#include "platform/drawing/rs_surface.h"
-#include "rs_self_drawing_node_rect_data.h"
-#include "rs_uiextension_data.h"
-#include "info_collection/rs_gpu_dirty_region_collection.h"
-#include "utils/scalar.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
@@ -63,8 +59,12 @@
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "rs_hgm_config_data.h"
 #include "rs_occlusion_data.h"
+#include "rs_self_drawing_node_rect_data.h"
+#include "rs_uiextension_data.h"
+#include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
+#include "utils/scalar.h"
 #include "rs_client_render_comm_def_info.h"
 #endif
 namespace OHOS {
@@ -119,20 +119,24 @@ public:
         NodeId windowNodeId = 0,
         bool fromXcomponent = false);
 
+    int32_t GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid);
+
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid,
+        const Rect &srcRect, bool transformEnabled = false);
+
     ScreenId GetDefaultScreenId();
     ScreenId GetActiveScreenId();
 
     std::vector<ScreenId> GetAllScreenIds();
 
 #ifndef ROSEN_CROSS_PLATFORM
-#ifndef ENABLE_RS_PROXY
+
     std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
 
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
-#endif
 
     // blacklist
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
@@ -283,27 +287,11 @@ public:
     int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace);
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
-#ifndef ENABLE_RS_PROXY
+
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     int32_t RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface, uint32_t index);
     bool UnRegisterTypeface(uint32_t uniqueId);
 
-    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
-
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(
-        const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback);
-
-    int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
-
-    int32_t GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid);
-
-    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid,
-        const Rect &srcRect, bool transformEnabled = false);
-
-    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
- 
-    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
-#endif
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData);
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
@@ -374,6 +362,10 @@ public:
 #endif
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 #ifndef ENABLE_RS_PROXY
+    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
+ 
+    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
+
     LayerComposeInfo GetLayerComposeInfo();
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
@@ -381,6 +373,8 @@ public:
     int64_t GetHdrOnDuration();
 
     void SetVmaCacheStatus(bool flag);
+
+    int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
@@ -404,6 +398,11 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
     void NotifyScreenSwitched();
+
+    int32_t RegisterSelfDrawingNodeRectChangeCallback(
+        const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback);
+
+    int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
     void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
 
