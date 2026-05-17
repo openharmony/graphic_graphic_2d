@@ -78,28 +78,8 @@ ohos_source_set("render_service_proxy_src") {
     "../src/platform/ohos/rs_render_service_client.cpp",
     "../src/platform/ohos/rs_client_to_service_connect_hub.cpp",
     "../src/platform/ohos/transaction/zidl/rs_client_to_service_connection_proxy.cpp",
-    "../src/ipc_callbacks/active_screen_id_changed_callback_stub.cpp",
-    "../src/ipc_callbacks/brightness_info_change_callback_stub.cpp",
-    "../src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_exposed_event_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_first_frame_commit_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_transaction_data_callback_stub.cpp",
-    "../src/ipc_callbacks/screen_change_callback_stub.cpp",
-    "../src/ipc_callbacks/screen_supported_hdr_formats_callback_stub.cpp",
-    "../src/ipc_callbacks/screen_switching_notify_callback_stub.cpp",
-    "../src/common/rs_common_hook.cpp",
-    "../src/common/rs_event_def.cpp",
-    "../src/memory/rs_memory_graphic.cpp",
-    "../src/pipeline/rs_uni_render_judgement.cpp",
     "../src/platform/ohos/rs_log.cpp",
-    "../src/transaction/rs_hgm_config_data.cpp",
-    "../src/screen_manager/rs_screen_capability.cpp",
-    "../src/screen_manager/rs_screen_data.cpp",
-    "../src/screen_manager/rs_screen_hdr_capability.cpp",
-    "../src/screen_manager/rs_screen_mode_info.cpp",
-    "../src/screen_manager/rs_screen_props.cpp",
-    "../src/screen_manager/rs_virtual_screen_resolution.cpp",
+    "../src/common/rs_common_hook.cpp",
   ]
 
   cflags = [
@@ -138,38 +118,15 @@ ohos_source_set("render_service_proxy_src") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/utils/log",
-    "$graphic_2d_root/prebuilts/librarys/gpu/include",
-    "$graphic_2d_root/rosen/modules/render_service_profiler",
-  ]
-
-  if (graphic_2d_feature_mhc_enable) {
-    include_dirs += graphic_2d_mhc_configs.librender_service_mhc_include
-  }
-
-  if (tp_feature_enable) {
-    defines += tp_defines
-  }
-
-  deps = [
-    "$graphic_2d_root/utils/sandbox:sandbox_utils",
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
 
   external_deps = [
     "hilog:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
-    "hicollie:libhicollie",
-    "hitrace:hitrace_meter",
-    "init:libbegetutil",
-    "eventhandler:libeventhandler",
-    "image_framework:image_native",
+    #"init:libbegetutil",
     "c_utils:utils",
   ]
-
-  if (graphic_2d_feature_enable_vulkan) {
-    external_deps += [ "vulkan-loader:vulkan_loader" ]
-  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
