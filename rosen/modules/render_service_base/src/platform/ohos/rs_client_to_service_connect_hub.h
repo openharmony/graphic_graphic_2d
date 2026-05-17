@@ -47,7 +47,7 @@ private:
         explicit RenderServiceDeathRecipient(wptr<RSClientToServiceConnectHub> hub) : hub_(hub) {}
         ~RenderServiceDeathRecipient() noexcept final = default;
         DISALLOW_COPY_AND_MOVE(RenderServiceDeathRecipient);
-        void OnRemoteDied(const wptr<IRemoteObject>& remote) final override;
+        void OnRemoteDied(const wptr<IRemoteObject>& remote) final;
 
     private:
         wptr<RSClientToServiceConnectHub> hub_;
