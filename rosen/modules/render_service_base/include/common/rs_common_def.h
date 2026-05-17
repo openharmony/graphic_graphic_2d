@@ -390,7 +390,7 @@ enum class DisplayIntent : uint32_t {
     LOCAL = 1, // current screen nits
     DISPLAY_INTENT_BUTT, // a boundary for DisplayIntent Security Check
 };
-
+#ifndef ENABLE_RS_PROXY
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -461,7 +461,7 @@ struct RSSurfaceCapturePermissions {
     bool isSystemCalling = false;
     bool selfCapture = false;
 };
-
+#endif
 #define CHECK_FALSE_RETURN(var)      \
     do {                             \
         if (!(var)) {                \
