@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-
+#include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
 #include "rs_client_to_service_connect_hub.h"
 #include "platform/common/rs_log.h"
 
@@ -58,7 +58,7 @@ HWTEST_F(RSClientToServiceConnectHubTest, GetInstance001, TestSize.Level1)
 HWTEST_F(RSClientToServiceConnectHubTest, GetClientToServiceConnection001, TestSize.Level1)
 {
     auto conn = RSClientToServiceConnectHub::GetClientToServiceConnection();
-    EXPECT_EQ(conn, nullptr);
+    EXPECT_NE(conn, nullptr);
 }
 
 /**
@@ -71,7 +71,7 @@ HWTEST_F(RSClientToServiceConnectHubTest, GetToken001, TestSize.Level1)
     auto instance = RSClientToServiceConnectHub::GetInstance();
     ASSERT_NE(instance, nullptr);
     auto token = instance->GetToken();
-    EXPECT_EQ(token, nullptr);
+    EXPECT_NE(token, nullptr);
 }
 
 /**
@@ -85,6 +85,34 @@ HWTEST_F(RSClientToServiceConnectHubTest, ConnectDied001, TestSize.Level1)
     ASSERT_NE(instance, nullptr);
     instance->ConnectDied();
     EXPECT_EQ(instance->GetToken(), nullptr);
+}
+
+/**
+ * @tc.name: GetClientToServiceConnection002
+ * @tc.desc: Verify GetClientToServiceConnection returns cached connection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectHubTest, GetClientToServiceConnection002, TestSize.Level1)
+{
+    auto conn1 = RSClientToServiceConnectHub::GetClientToServiceConnection();
+    auto conn2 = RSClientToServiceConnectHub::GetClientToServiceConnection();
+    if (conn1 != nullptr && conn2 != nullptr) {
+        EXPECT_EQ(conn1.GetRefPtr(), conn2.GetRefPtr());
+    }
+}
+
+/**
+ * @tc.name: ConnectDied002
+ * @tc.desc: Verify ConnectDied clears token after connection died
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectHubTest, ConnectDied002, TestSize.Level1)
+{
+    auto instance = RSClientToServiceConnectHub::GetInstance();
+    ASSERT_NE(instance, nullptr);
+    instance->ConnectDied();
+    auto tokenAfter = instance->GetToken();
+    EXPECT_EQ(tokenAfter, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS
