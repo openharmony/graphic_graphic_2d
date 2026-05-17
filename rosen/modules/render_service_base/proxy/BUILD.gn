@@ -21,20 +21,46 @@ config("export_config") {
   include_dirs = [
     "../include",
     "${graphic_2d_root}/utils/log",
-    "$graphic_2d_root/rosen/modules/2d_graphics/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/interfaces/inner_api/composer",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
   ]
-
-  cflags_cc = [ "-std=c++17" ]
 
   defines = rs_common_define
   defines += gpu_defines
   if (graphic_2d_feature_enable_rs_proxy) {
     defines += [ "ENABLE_RS_PROXY" ]
   }
+}
+config("inner_config") {
+  cflags = [
+    "-Wall",
+    "-Wno-pointer-arith",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+    "-fvisibility=hidden",
+  ]
+
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility-inlines-hidden",
+  ]
+
+  ldflags = [ "-Wl,--gc-sections" ]
+  cflags += [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-O2",
+  ]
+  cflags_cc += [
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-fomit-frame-pointer",
+    "-D_FORTIFY_SOURCE=2",
+    "-O2",
+  ]
 }
 
 ohos_source_set("render_service_proxy_src") {
@@ -51,30 +77,23 @@ ohos_source_set("render_service_proxy_src") {
   sources = [
     "../src/platform/ohos/rs_render_service_client.cpp",
     "../src/platform/ohos/rs_client_to_service_connect_hub.cpp",
+    "../src/platform/ohos/transaction/zidl/rs_client_to_service_connection_proxy.cpp",
     "../src/ipc_callbacks/active_screen_id_changed_callback_stub.cpp",
     "../src/ipc_callbacks/brightness_info_change_callback_stub.cpp",
     "../src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
     "../src/ipc_callbacks/rs_exposed_event_callback_stub.cpp",
     "../src/ipc_callbacks/rs_first_frame_commit_callback_stub.cpp",
     "../src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.cpp",
     "../src/ipc_callbacks/rs_transaction_data_callback_stub.cpp",
-    "../src/ipc_callbacks/rs_uiextension_callback_stub.cpp",
     "../src/ipc_callbacks/screen_change_callback_stub.cpp",
     "../src/ipc_callbacks/screen_supported_hdr_formats_callback_stub.cpp",
     "../src/ipc_callbacks/screen_switching_notify_callback_stub.cpp",
-    "../src/common/rs_xcollie.cpp",
     "../src/common/rs_common_hook.cpp",
     "../src/common/rs_event_def.cpp",
-    "../src/render/rs_typeface_cache.cpp",
     "../src/memory/rs_memory_graphic.cpp",
-    "../src/memory/rs_memory_snapshot.cpp",
     "../src/pipeline/rs_uni_render_judgement.cpp",
     "../src/platform/ohos/rs_log.cpp",
     "../src/transaction/rs_hgm_config_data.cpp",
-    "../src/transaction/rs_self_drawing_node_rect_data.cpp",
-    "../src/transaction/rs_uiextension_data.cpp",
-    "../src/transaction/rs_occlusion_data.cpp",
     "../src/screen_manager/rs_screen_capability.cpp",
     "../src/screen_manager/rs_screen_data.cpp",
     "../src/screen_manager/rs_screen_hdr_capability.cpp",
@@ -133,7 +152,6 @@ ohos_source_set("render_service_proxy_src") {
 
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
-    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
 
@@ -143,10 +161,6 @@ ohos_source_set("render_service_proxy_src") {
     "samgr:samgr_proxy",
     "hicollie:libhicollie",
     "hitrace:hitrace_meter",
-    "graphic_surface:surface",
-    "graphic_surface:surface_headers",
-    "graphic_surface:sync_fence",
-    "graphics_effect:graphics_effect_core",
     "init:libbegetutil",
     "eventhandler:libeventhandler",
     "image_framework:image_native",
@@ -169,7 +183,10 @@ ohos_shared_library("librender_service_proxy") {
     debug = false
   }
 
+  version_script = "librender_service_proxy_map"
+
   public_configs = [ ":export_config" ]
+  configs = [ ":inner_config" ]
 
   deps = [
     ":render_service_proxy_src",
