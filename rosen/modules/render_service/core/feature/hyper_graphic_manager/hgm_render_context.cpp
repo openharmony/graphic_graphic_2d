@@ -65,7 +65,7 @@ void HgmRenderContext::NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
     }
     if (!hgmAbilityEnabled_) {
-        HGM_LOGD("hgm is not enabled.");
+        HGM_LOGD("hgm is not enabled");
         return;
     }
     HandleAdaptiveVsyncCondition(rsContext);
