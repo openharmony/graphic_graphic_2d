@@ -27,7 +27,7 @@ namespace OHOS::Rosen {
 namespace {
 std::shared_ptr<Drawing::RuntimeEffect> g_greyShaderEffect_ = nullptr;
 constexpr int16_t HPAE_COLOR_MASK_SCALE = 4;
-constexpr uint16_t HPAE_COLOR_MASK_MAX = 1023;
+constexpr int16_t COLOR_MASK_MAX = 255;
 }
 
 void BuildShaderMatrix(Drawing::Matrix &shaderMatrix, const Drawing::Rect &src, const float &greyWScaleRatio,
@@ -120,6 +120,10 @@ std::shared_ptr<Drawing::ShaderEffect> MakeGreyShader(
     builder->SetUniform("coefficient2", greyHigh);
     return builder->MakeShader(nullptr, false);
 }
+uint16_t HpaeMaskColorCast(int16_t v)
+{
+    return static_cast<uint16_t>(std::clamp<int16_t>(v, 0, COLOR_MASK_MAX) * HPAE_COLOR_MASK_SCALE);
+}
 
 HaePixel RSHpaeFusionOperator::GetHaePixel(const std::shared_ptr<RSDrawingFilter> &filter)
 {
@@ -129,10 +133,10 @@ HaePixel RSHpaeFusionOperator::GetHaePixel(const std::shared_ptr<RSDrawingFilter
             filter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR));
         if (maskColorShaderFilter) {
             RSColor maskColors = maskColorShaderFilter->GetMaskColor();
-            haePixel.a = std::min<uint16_t>(abs(maskColors.GetAlpha()) * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);
-            haePixel.r = std::min<uint16_t>(maskColors.GetRed() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);
-            haePixel.g = std::min<uint16_t>(maskColors.GetGreen() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);
-            haePixel.b = std::min<uint16_t>(maskColors.GetBlue() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);
+            haePixel.a = HpaeMaskColorCast(maskColors.GetAlpha());
+            haePixel.r = HpaeMaskColorCast(maskColors.GetRed());
+            haePixel.g = HpaeMaskColorCast(maskColors.GetGreen());
+            haePixel.b = HpaeMaskColorCast(maskColors.GetBlue());
         }
     }
 
