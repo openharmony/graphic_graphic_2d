@@ -20,10 +20,8 @@
 
 #include "common/rs_rect.h"
 #include "rs_screen_info.h"
+#include "rs_surface_region_config.h"
 #include "property/rs_properties_def.h"
-#ifndef ROSEN_CROSS_PLATFORM
-#include "surface.h"
-#endif
 
 namespace OHOS::Rosen {
 enum class ScreenPropertyType : uint32_t {

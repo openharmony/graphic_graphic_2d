@@ -18,6 +18,7 @@
 
 #include <shared_mutex>
 #include <screen_manager/rs_screen_property.h>
+#include <screen_manager/rs_surface_region_config.h>
 
 namespace OHOS {
 namespace Rosen {

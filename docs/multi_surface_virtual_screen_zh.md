@@ -65,7 +65,7 @@ int32_t SetVirtualScreenSurfaces(ScreenId id, const std::vector<SurfaceRegionCon
 
 `SurfaceRegionConfig` 定义在：
 
-- `rosen/modules/render_service_base/include/screen_manager/rs_screen_info.h`
+- `rosen/modules/render_service_base/include/screen_manager/rs_surface_region_config.h`
 
 它描述一个虚拟屏输出目标：
 
@@ -315,7 +315,7 @@ std::map<uint64_t, std::shared_ptr<RSSurface>> virtualSurfaces_;
 - IPC interface：`rosen/modules/render_service_base/include/platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h`
 - IPC proxy：`rosen/modules/render_service_base/src/platform/ohos/transaction/zidl/rs_client_to_service_connection_proxy.cpp`
 - IPC stub：`rosen/modules/render_service/main/render_server/transaction/zidl/rs_client_to_service_connection_stub.cpp`
-- 数据结构：`rosen/modules/render_service_base/include/screen_manager/rs_screen_info.h`
+- 数据结构：`rosen/modules/render_service_base/include/screen_manager/rs_surface_region_config.h`
 - 屏幕属性：`rosen/modules/render_service_base/include/screen_manager/rs_screen_property.h`
 - Screen 管理：`rosen/modules/render_service/screen_manager/rs_screen_manager.cpp`
 - Screen 状态：`rosen/modules/render_service/screen_manager/rs_screen.cpp`

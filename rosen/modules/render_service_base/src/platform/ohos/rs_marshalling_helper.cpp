@@ -74,6 +74,7 @@
 
 #include "property/rs_properties_def.h"
 #include "screen_manager/rs_screen_info.h"
+#include "screen_manager/rs_surface_region_config.h"
 
 namespace OHOS {
 namespace Rosen {

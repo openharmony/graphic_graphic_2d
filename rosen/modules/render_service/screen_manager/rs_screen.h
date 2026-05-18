@@ -28,6 +28,7 @@
 
 #include <common/rs_rect.h>
 #include <screen_manager/screen_types.h>
+#include <screen_manager/rs_surface_region_config.h>
 #include "rs_screen_thread_safe_property.h"
 
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"

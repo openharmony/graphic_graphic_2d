@@ -49,6 +49,7 @@
 #include "screen_manager/rs_screen_info.h"
 #include "screen_manager/rs_screen_hdr_capability.h"
 #include "screen_manager/rs_screen_mode_info.h"
+#include "screen_manager/rs_surface_region_config.h"
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_virtual_screen_resolution.h"
 #include "vsync_receiver.h"

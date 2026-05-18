@@ -44,6 +44,7 @@
 #include <screen_manager/rs_virtual_screen_resolution.h>
 #include <screen_manager/rs_screen_info.h>
 #include <screen_manager/rs_screen_property.h>
+#include <screen_manager/rs_surface_region_config.h>
 #include "rs_screen_preprocessor.h"
 #include "product_feature/fold/rs_fold_screen_manager.h"
 

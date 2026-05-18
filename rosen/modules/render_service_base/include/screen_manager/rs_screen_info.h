@@ -18,31 +18,12 @@
 
 #include <string>
 #include <surface_type.h>
-#ifndef ROSEN_CROSS_PLATFORM
-#include <surface.h>
-#endif
 #include <unordered_set>
 #include "message_parcel.h"
 #include "common/rs_rect.h"
 #include "screen_types.h"
 
 namespace OHOS::Rosen {
-
-// Multi-surface virtual screen: surface with its render region
-#ifndef ROSEN_CROSS_PLATFORM
-struct SurfaceRegionConfig {
-    sptr<Surface> surface = nullptr;
-    RectI region;  // x, y, width, height
-
-    bool operator==(const SurfaceRegionConfig& config) const
-    {
-        if (surface == nullptr || config.surface == nullptr) {
-            return surface == config.surface && region == config.region;
-        }
-        return surface->GetUniqueId() == config.surface->GetUniqueId() && region == config.region;
-    }
-};
-#endif
 
 enum class ScreenState : uint8_t {
     HDI_OUTPUT_ENABLE,

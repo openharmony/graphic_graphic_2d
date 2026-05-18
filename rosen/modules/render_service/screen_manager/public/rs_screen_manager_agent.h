@@ -22,6 +22,7 @@
 #include "ipc_callbacks/rs_iexposed_event_callback.h"
 #include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_surface_region_config.h"
 
 namespace OHOS {
 namespace Rosen {

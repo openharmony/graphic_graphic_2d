@@ -26,6 +26,7 @@
 
 #include "common/rs_event_def.h"
 #include "memory/rs_memory_graphic.h"
+#include "screen_manager/rs_surface_region_config.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
