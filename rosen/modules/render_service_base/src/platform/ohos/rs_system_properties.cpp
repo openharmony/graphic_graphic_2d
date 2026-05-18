@@ -16,7 +16,6 @@
 #include "platform/common/rs_system_properties.h"
 
 #include <charconv>
-#include <cstring>
 #include <cstdlib>
 #include <parameter.h>
 #include <parameters.h>
@@ -1157,7 +1156,7 @@ bool RSSystemProperties::GetNewTunnelEnabled()
     int changed = 0;
     const char* enabled = CachedParameterGetChanged(handle, &changed);
     return enabled != nullptr &&
-        (std::strcmp(enabled, "1") == 0 || std::strcmp(enabled, "true") == 0);
+        (strcmp(enabled, "1") == 0 || strcmp(enabled, "true") == 0);
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
