@@ -32,104 +32,17 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_system_properties.h"
 #include "ui/rs_surface_node.h"
-#include "ui/rs_ui_context_manager.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_gl.h"
 #include "render_context/new_render_context/render_context_gl.h"
-#include "command/rs_base_node_command.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-
-class FakeRSSurfaceFrame : public RSSurfaceFrame {
-public:
-    int32_t GetBufferAge() const override
-    {
-        return 0;
-    }
-
-    Drawing::Canvas* GetCanvas() override
-    {
-        auto surface = GetSurface();
-        if (surface == nullptr) {
-            return nullptr;
-        }
-        auto canvas = surface->GetCanvas();
-        if (canvas && !gpuContext_) {
-            gpuContext_ = std::make_shared<Drawing::GPUContext>();
-            canvas->gpuContext_ = gpuContext_;
-        }
-        return canvas ? canvas.get() : nullptr;
-    }
-
-    std::shared_ptr<Drawing::Surface> GetSurface() override
-    {
-        if (!surface_) {
-            constexpr int32_t surfaceWidth = 10;
-            constexpr int32_t surfaceHeight = 10;
-            surface_ = Drawing::Surface::MakeRasterN32Premul(surfaceWidth, surfaceHeight);
-        }
-        return surface_;
-    }
-
-    void SetRenderContext(std::shared_ptr<RenderContext> context) override {}
-
-private:
-    std::shared_ptr<Drawing::Surface> surface_ = nullptr;
-    std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
-};
-
-class FakeRSSurface : public RSSurface {
-public:
-    bool IsValid() const override
-    {
-        return true;
-    }
-
-    void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp = 0) override {}
-
-    std::unique_ptr<RSSurfaceFrame> RequestFrame(
-        int32_t width, int32_t height, uint64_t uiTimestamp = 0, bool useAFBC = true, bool isProtected = false) override
-    {
-        return std::make_unique<FakeRSSurfaceFrame>();
-    }
-
-    bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp = 0) override
-    {
-        return true;
-    }
-
-    std::shared_ptr<RenderContext> GetRenderContext() override
-    {
-        return nullptr;
-    }
-
-    void SetRenderContext(std::shared_ptr<RenderContext> context) override {}
-
-    GraphicColorGamut GetColorSpace() const override
-    {
-        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    }
-
-    void SetColorSpace(GraphicColorGamut colorSpace) override {}
-
-    uint32_t GetQueueSize() const override
-    {
-        return 2;
-    }
-
-    void ClearBuffer() override {}
-
-    void ClearAllBuffer() override {}
-
-    void ResetBufferAge() override {}
-};
-
 class RSRenderThreadVisitorTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -882,102 +795,6 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessRootRenderNode009
- * @tc.desc: test results of ProcessRootRenderNode with context == nullptr
- * @tc.type: FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode009, TestSize.Level1)
-{
-    RSSurfaceNodeConfig surfaceNodeConfig;
-    auto surfacenode = std::make_shared<RSSurfaceNode>(surfaceNodeConfig, true);
-    ASSERT_TRUE(surfacenode != nullptr);
-    surfacenode->surface_ = std::make_shared<FakeRSSurface>();
-    constexpr NodeId surfaceNodeId1 = 100;
-    surfacenode->id_ = surfaceNodeId1;
-    RSNodeMap::MutableInstance().RegisterNode(surfacenode);
-
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSRootRenderNode node(nodeId);
-    node.AttachRSSurfaceNode(surfacenode->GetId());
-    node.UpdateSuggestedBufferSize(10, 10);
-    node.token_ = 111111111;
-
-    auto visitor = std::make_shared<RSRenderThreadVisitor>();
-    visitor->ProcessRootRenderNode(node);
-    EXPECT_TRUE(visitor != nullptr);
-}
-
-/**
- * @tc.name: ProcessRootRenderNode010
- * @tc.desc: test results of ProcessRootRenderNode with context != nullptr and transaction == nullptr
- * @tc.type: FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode010, TestSize.Level1)
-{
-    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    ASSERT_TRUE(uiContext != nullptr);
-
-    RSSurfaceNodeConfig surfaceNodeConfig;
-    auto surfacenode = std::make_shared<RSSurfaceNode>(surfaceNodeConfig, true);
-    ASSERT_TRUE(surfacenode != nullptr);
-    surfacenode->surface_ = std::make_shared<FakeRSSurface>();
-    constexpr NodeId surfaceNodeId2 = 101;
-    surfacenode->id_ = surfaceNodeId2;
-    uiContext->GetMutableNodeMap().RegisterNode(surfacenode);
-
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSRootRenderNode node(nodeId);
-    node.AttachRSSurfaceNode(surfacenode->GetId());
-    node.UpdateSuggestedBufferSize(10, 10);
-    node.SetUIContextToken(uiContext->GetToken());
-    uiContext->rsTransactionHandler_ = nullptr;
-
-    auto visitor = std::make_shared<RSRenderThreadVisitor>();
-    visitor->ProcessRootRenderNode(node);
-    EXPECT_TRUE(visitor != nullptr);
-
-    RSUIContextManager::MutableInstance().rsUIContextMap_.clear();
-}
-
-/**
- * @tc.name: ProcessRootRenderNode011
- * @tc.desc: test results of ProcessRootRenderNode with context != nullptr and transaction != nullptr
- * @tc.type: FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode011, TestSize.Level1)
-{
-    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    ASSERT_TRUE(uiContext != nullptr);
-
-    RSSurfaceNodeConfig surfaceNodeConfig;
-    auto surfacenode = std::make_shared<RSSurfaceNode>(surfaceNodeConfig, true);
-    ASSERT_TRUE(surfacenode != nullptr);
-    surfacenode->surface_ = std::make_shared<FakeRSSurface>();
-    constexpr NodeId surfaceNodeId3 = 102;
-    surfacenode->id_ = surfaceNodeId3;
-    uiContext->GetMutableNodeMap().RegisterNode(surfacenode);
-
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
-    RSRootRenderNode node(nodeId);
-    node.AttachRSSurfaceNode(surfacenode->GetId());
-    node.UpdateSuggestedBufferSize(10, 10);
-    node.SetUIContextToken(uiContext->GetToken());
-
-    auto visitor = std::make_shared<RSRenderThreadVisitor>();
-    visitor->ProcessRootRenderNode(node);
-    EXPECT_TRUE(visitor != nullptr);
-
-    RSUIContextManager::MutableInstance().rsUIContextMap_.clear();
-}
-
-/**
  * @tc.name: ProcessSurfaceRenderNode001
  * @tc.desc: test results of ProcessSurfaceRenderNode
  * @tc.type: FUNC
@@ -1476,67 +1293,16 @@ HWTEST_F(RSRenderThreadVisitorTest, ClipHoleForSurfaceNode001, TestSize.Level1)
 
 /**
  * @tc.name: SendCommandFromRT001
- * @tc.desc: test results of SendCommandFromRT with context == nullptr
+ * @tc.desc: test results of SendCommandFromRT
  * @tc.type: FUNC
  * @tc.require: issueI5HRIF
  */
 HWTEST_F(RSRenderThreadVisitorTest, SendCommandFromRT001, TestSize.Level1)
 {
     RSRenderThreadVisitor visitor;
-    RSRenderNode node(0);
-    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(0, 0, -1);
-    ASSERT_TRUE(command != nullptr);
-    visitor.SendCommandFromRT(node, command, 1, FollowType::NONE);
-    EXPECT_TRUE(command != nullptr);
-}
-
-/**
- * @tc.name: SendCommandFromRT002
- * @tc.desc: test results of SendCommandFromRT with context != nullptr and transaction == nullptr
- * @tc.type: FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadVisitorTest, SendCommandFromRT002, TestSize.Level1)
-{
-    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    ASSERT_TRUE(uiContext != nullptr);
-    RSRenderNode node(0);
-    node.SetUIContextToken(uiContext->GetToken());
-    uiContext->rsTransactionHandler_ = nullptr;
-
-    RSRenderThreadVisitor visitor;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(0, 0, -1);
-    ASSERT_TRUE(command != nullptr);
-    visitor.SendCommandFromRT(node, command, 1, FollowType::NONE);
-    EXPECT_TRUE(command != nullptr);
-
-    RSUIContextManager::MutableInstance().rsUIContextMap_.clear();
-}
-
-/**
- * @tc.name: SendCommandFromRT003
- * @tc.desc: test results of SendCommandFromRT with context != nullptr and transaction != nullptr
- * @tc.type: FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadVisitorTest, SendCommandFromRT003, TestSize.Level1)
-{
-    RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    ASSERT_TRUE(uiContext != nullptr);
-    RSRenderNode node(0);
-    node.SetUIContextToken(uiContext->GetToken());
-
-    RSRenderThreadVisitor visitor;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(0, 0, -1);
-    ASSERT_TRUE(command != nullptr);
-    visitor.SendCommandFromRT(node, command, 1, FollowType::NONE);
+    std::unique_ptr<RSCommand> command;
+    visitor.SendCommandFromRT(command, 1, FollowType::NONE);
     EXPECT_TRUE(command == nullptr);
-
-    RSUIContextManager::MutableInstance().rsUIContextMap_.clear();
 }
 
 /**

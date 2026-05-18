@@ -1107,7 +1107,7 @@ protected:
     void HandleNodeRemovedFromTree();
     void AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent);
 
-    static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, uint64_t uiContextToken);
+    static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
 
     virtual void InitRenderParams();
     virtual void OnSync();
@@ -1191,8 +1191,6 @@ protected:
     // Enable HWCompose
     RSHwcRecorder hwcRecorder_;
 
-    uint64_t uiContextToken_ = 0;
-
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
     // mark cross node in physical extended screen model
@@ -1266,6 +1264,7 @@ private:
     // collect subtree's surfaceNode including itself
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
     pid_t appPid_ = 0;
+    uint64_t uiContextToken_ = 0;
     std::vector<uint64_t> uiContextTokenList_;
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
