@@ -2903,6 +2903,12 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                         surfaceNode->AddToPendingSyncList();
                     }
                     refreshRects.emplace_back(surfaceNode->GetDstRect());
+                    // record surface current frame refresh area to frame stability manager
+                    std::vector<RectI> tempRefreshRects;
+                    tempRefreshRects.emplace_back(surfaceNode->GetDstRect());
+                    RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
+                        surfaceNode->GetInstanceRootNodeId(), tempRefreshRects,
+                        screenNode->GetScreenProperty().GetWidth() * screenNode->GetScreenProperty().GetHeight());
                 }
                 tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode);
                 if (!isCurrentFrameBufferConsumed && params->GetPreBuffer() != nullptr) {

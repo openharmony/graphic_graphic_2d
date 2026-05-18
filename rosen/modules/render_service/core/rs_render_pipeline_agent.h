@@ -220,6 +220,11 @@ public:
         const FrameStabilityTarget& target,
         const FrameStabilityConfig& config);
     int32_t GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result);
+    int32_t UpdateFrameStabilityDetection(
+        pid_t pid,
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    );
 private:
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;

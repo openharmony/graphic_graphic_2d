@@ -480,6 +480,44 @@ HWTEST_F(RSRenderPipelineAgentTest, GetFrameStabilityResult002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateFrameStabilityDetection001
+ * @tc.desc: Verify UpdateFrameStabilityDetection returns error when pipeline is null
+ * @tc.type: FUNC
+ * @tc.require: issue22896
+ */
+HWTEST_F(RSRenderPipelineAgentTest, UpdateFrameStabilityDetection001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
+    FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
+    int32_t ret = agent->UpdateFrameStabilityDetection(1000, oldTarget, newTarget);
+    EXPECT_EQ(ret, RENDER_SERVICE_NULL);
+}
+
+/**
+ * @tc.name: UpdateFrameStabilityDetection002
+ * @tc.desc: Verify UpdateFrameStabilityDetection returns error with invalid newTarget ID
+ * @tc.type: FUNC
+ * @tc.require: issue22896
+ */
+HWTEST_F(RSRenderPipelineAgentTest, UpdateFrameStabilityDetection002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    renderPipeline->mainThread_ = mainThread_;
+
+    FrameStabilityTarget oldTarget = VALID_TARGET;
+    FrameStabilityTarget newTarget = INVALID_TARGET;
+    int32_t ret = agent->UpdateFrameStabilityDetection(1000, oldTarget, newTarget);
+    EXPECT_EQ(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
+}
+
+/**
  * @tc.name: CleanTest_NullPipeline
  * @tc.desc: Verify Clean returns early when rsRenderPipeline_ is nullptr
  * @tc.type: FUNC

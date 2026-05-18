@@ -170,6 +170,11 @@ public:
 
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
 
+    int32_t UpdateFrameStabilityDetection(
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    ) override;
+
     void SetFreeMultiWindowStatus(bool enable) override;
 
     void RemoveToken() override {};

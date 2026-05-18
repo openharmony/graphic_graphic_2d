@@ -119,6 +119,12 @@ bool ValidateTargetId(const RSRenderNodeMap& nodeMap, uint64_t id)
             return;
         }
     });
+    nodeMap.TraverseSurfaceNodes([&exists, id](auto& node) {
+        if (node && node->GetId() == id) {
+            exists = true;
+            return;
+        }
+    });
     return exists;
 }
 
@@ -2289,6 +2295,28 @@ int32_t RSRenderPipelineAgent::GetFrameStabilityResult(pid_t pid, const FrameSta
     int32_t repCode = static_cast<int32_t>(FrameStabilityErrorCode::UNKNOWN);
     auto task = [pid, target, &result, &repCode]() -> void {
         repCode = RSFrameStabilityManager::GetInstance().GetFrameStabilityResult(pid, target, result);
+    };
+    rsRenderPipeline_->PostMainThreadSyncTask(task);
+    return repCode;
+}
+
+int32_t RSRenderPipelineAgent::UpdateFrameStabilityDetection(
+    pid_t pid,
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t repCode = static_cast<int32_t>(FrameStabilityErrorCode::UNKNOWN);
+    auto task = [renderPipeline = rsRenderPipeline_, pid, oldTarget, newTarget, &repCode]() -> void {
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetNodeMap();
+        if (ValidateTargetId(nodeMap, newTarget.id)) {
+            repCode = RSFrameStabilityManager::GetInstance().UpdateFrameStabilityDetection(pid, oldTarget, newTarget);
+        } else {
+            RS_LOGE("UpdateFrameStabilityDetection failed, invalid newId: %{public}" PRIu64, newTarget.id);
+            repCode = static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID);
+        }
     };
     rsRenderPipeline_->PostMainThreadSyncTask(task);
     return repCode;

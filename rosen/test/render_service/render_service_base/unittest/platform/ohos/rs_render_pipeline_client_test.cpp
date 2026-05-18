@@ -781,5 +781,40 @@ HWTEST_F(RSPipelineClientTest, SetLogicalCameraRotationCorrection, TestSize.Leve
     ret = rsClient->SetLogicalCameraRotationCorrection(screenId, ScreenRotation::ROTATION_90);
     ASSERT_EQ(ret, SUCCESS);
 }
+
+/**
+ * @tc.name: UpdateFrameStabilityDetection001
+ * @tc.desc: Test UpdateFrameStabilityDetection with valid parameters
+ * @tc.type: FUNC
+ * @tc.require: issue23671
+ */
+HWTEST_F(RSPipelineClientTest, UpdateFrameStabilityDetection001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
+    FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
+    int32_t ret = rsClient->UpdateFrameStabilityDetection(oldTarget, newTarget);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: UpdateFrameStabilityDetection002
+ * @tc.desc: Test UpdateFrameStabilityDetection with null connection
+ * @tc.type: FUNC
+ * @tc.require: issue23671
+ */
+HWTEST_F(RSPipelineClientTest, UpdateFrameStabilityDetection002, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+
+    FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
+    FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
+    int32_t ret = rsClient->UpdateFrameStabilityDetection(oldTarget, newTarget);
+    EXPECT_EQ(ret, 0);
+
+    RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
+}
 } // namespace Rosen
 } // namespace OHOS

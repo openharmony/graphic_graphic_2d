@@ -115,6 +115,11 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -1682,6 +1687,42 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("GET_FRAME_STABILITY_RESULT Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION): {
+            FrameStabilityTarget oldTarget;
+            if (!data.ReadUint64(oldTarget.id)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read oldId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t oldTypeValue;
+            if (!data.ReadUint32(oldTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            oldTarget.type = static_cast<FrameStabilityTargetType>(oldTypeValue);
+
+            FrameStabilityTarget newTarget;
+            if (!data.ReadUint64(newTarget.id)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read newId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t newTypeValue;
+            if (!data.ReadUint32(newTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            newTarget.type = static_cast<FrameStabilityTargetType>(newTypeValue);
+            int32_t repCode = UpdateFrameStabilityDetection(oldTarget, newTarget);
+            if (repCode != 0) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Write repCode failed!");
+                ret = ERR_INVALID_REPLY;
             }
             break;
         }

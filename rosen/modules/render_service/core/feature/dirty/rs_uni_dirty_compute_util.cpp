@@ -31,6 +31,7 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "feature/frame_stability/rs_frame_stability_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
@@ -84,6 +85,19 @@ std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
         auto& surfaceFilterCollector = surfaceDirtyManager->GetFilterCollector();
         damageRegions.OrSelf(surfaceFilterCollector.GetPureCleanFilterDirtyRegion());
         surfaceFilterCollector.ClearPureCleanFilterDirtyRegion();
+
+        // record surface current frame refresh area to frame stability manager
+        Occlusion::Region surfaceCurrentAdvancedDirtyRegion = Occlusion::Region();
+        for (const auto& rect : surfaceDirtyManager->GetCurrentFrameAdvancedDirtyRegion()) {
+            Occlusion::Region region = Occlusion::Region(Occlusion::Rect(rect));
+            surfaceCurrentAdvancedDirtyRegion.OrSelf(region);
+        }
+        Occlusion::Region surfaceVisibleDirtyRegion =
+            surfaceCurrentAdvancedDirtyRegion.And(visibleRegion);
+        std::vector<RectI> refreshRects = surfaceVisibleDirtyRegion.GetRegionRectIs();
+        refreshRects.emplace_back(surfaceDirtyManager->GetHwcDirtyRegion());
+        RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
+            surfaceNodeDrawable->GetId(), refreshRects, screenInfo.width * screenInfo.height);
     }
     auto screenDirtyManager = screenDrawable.GetSyncDirtyManager();
     if (screenDirtyManager == nullptr) {

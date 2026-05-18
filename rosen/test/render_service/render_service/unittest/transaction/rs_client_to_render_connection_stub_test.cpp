@@ -4776,4 +4776,36 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest003, Te
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
 }
+
+/**
+ * @tc.name: UpdateFrameStabilityDetectionTest001
+ * @tc.desc: Test UPDATE_FRAME_STABILITY_DETECTION with valid data
+ * @tc.type: FUNC
+ * @tc.require: issue23671
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, UpdateFrameStabilityDetectionTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION);
+
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    FrameStabilityTarget oldTarget;
+    oldTarget.id = 100;
+    oldTarget.type = FrameStabilityTargetType::SCREEN;
+    data.WriteUint64(oldTarget.id);
+    data.WriteUint32(static_cast<uint32_t>(oldTarget.type));
+
+    FrameStabilityTarget newTarget;
+    newTarget.id = 200;
+    newTarget.type = FrameStabilityTargetType::WINDOW;
+    data.WriteUint64(newTarget.id);
+    data.WriteUint32(static_cast<uint32_t>(newTarget.type));
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_REPLY);
+}
 } // namespace OHOS::Rosen

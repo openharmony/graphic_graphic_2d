@@ -232,6 +232,11 @@ check_math_tools_ext_file_args = [
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni"),
 ]
+check_frame_stability_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni"),
+]
 check_hgm_ext_file_args = [
   "--filename",
   rebase_path(
@@ -308,6 +313,15 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools
   graphic_2d_math_tools_configs = {
     import(
         "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni")
+  }
+}
+
+graphic_2d_frame_stability_configs = {
+}
+if (path_exists("//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni")) {
+  graphic_2d_frame_stability_configs = {
+    import(
+        "//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni")
   }
 }
 

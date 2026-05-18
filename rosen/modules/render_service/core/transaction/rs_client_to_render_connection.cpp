@@ -724,6 +724,16 @@ int32_t RSClientToRenderConnection::GetFrameStabilityResult(const FrameStability
     return renderPipelineAgent_->GetFrameStabilityResult(remotePid_, target, result);
 }
 
+int32_t RSClientToRenderConnection::UpdateFrameStabilityDetection(
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->UpdateFrameStabilityDetection(remotePid_, oldTarget, newTarget);
+}
+
 void RSClientToRenderConnection::SetFreeMultiWindowStatus(bool enable)
 {
     if (renderPipelineAgent_ == nullptr) {

@@ -291,6 +291,12 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
   ]
 
+  #frame_stability
+  if (defined(graphic_2d_frame_stability_configs.vendor_root)) {
+    sources += graphic_2d_frame_stability_configs.librender_service_ext_frame_stability_sources
+    sources -= graphic_2d_frame_stability_configs.librender_service_ext_frame_stability_sources_del
+  }
+
   #dfx
   sources += [
     "core/drawable/dfx/rs_refresh_rate_dfx.cpp",
@@ -398,6 +404,7 @@ ohos_shared_library("librender_service") {
 
   include_dirs = [
     "core",
+    "core/feature",
     "core/feature_cfg",
     "core/feature_cfg/feature_param",
     "core/feature_cfg/feature_param/extend_feature",

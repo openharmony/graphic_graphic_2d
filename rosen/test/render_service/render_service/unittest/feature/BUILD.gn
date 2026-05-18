@@ -1532,6 +1532,11 @@ ohos_unittest("RSUniDirtyOcclusionUtilTest") {
 ohos_unittest("RSFrameStabilityManagerTest") {
   module_out_path = module_output_path
   sources = [ "frame_stability/rs_frame_stability_manager_test.cpp" ]
+  #frame_stability
+  if (defined(graphic_2d_frame_stability_configs.vendor_root)) {
+    sources += graphic_2d_frame_stability_configs.librender_service_ext_frame_stability_test
+    sources -= graphic_2d_frame_stability_configs.librender_service_ext_frame_stability_test_del
+  }
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",

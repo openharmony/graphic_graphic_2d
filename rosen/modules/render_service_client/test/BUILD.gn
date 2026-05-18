@@ -708,6 +708,14 @@ ohos_executable("rs_interface_frame_stability_demo") {
     "hilog:libhilog",
   ]
 
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
