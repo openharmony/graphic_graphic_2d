@@ -982,7 +982,7 @@ HWTEST_F(RSRenderNodeUnitTest3, SendCommandFromRT, TestSize.Level1)
     RSRenderNode node(id, context);
     std::unique_ptr<RSCommand> command;
     NodeId nodeId = 0;
-    node.SendCommandFromRT(command, nodeId, 0);
+    node.SendCommandFromRT(command, nodeId);
     ASSERT_TRUE(true);
 }
 

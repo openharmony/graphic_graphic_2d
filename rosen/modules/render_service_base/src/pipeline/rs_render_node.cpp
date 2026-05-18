@@ -68,7 +68,6 @@
 #include "property/rs_property_trace.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "transaction/rs_transaction_handler_manager.h"
 #include "visitor/rs_node_visitor.h"
 #include "rs_profiler.h"
 
@@ -1689,19 +1688,11 @@ void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->ProcessChildren(*this);
 }
 
-void RSRenderNode::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, uint64_t uiContextToken)
+void RSRenderNode::SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId)
 {
-    auto& manager = RSTransactionHandlerManager::Instance();
-    auto transactionHandler = manager.Get(uiContextToken);
-    if (transactionHandler == nullptr) {
-        transactionHandler = manager.GetAny();
-    }
-    if (transactionHandler != nullptr) {
-        transactionHandler->AddCommandFromRT(command, nodeId);
-    } else {
-        ROSEN_LOGW("RSRenderNode::SendCommandFromRT: no handler found, nodeId=%{public}" PRIu64
-                   ", token=%{public}" PRIu64,
-            nodeId, uiContextToken);
+    auto transactionProxy = RSTransactionProxy::GetInstance(); // planing
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommandFromRT(command, nodeId);
     }
 }
 
