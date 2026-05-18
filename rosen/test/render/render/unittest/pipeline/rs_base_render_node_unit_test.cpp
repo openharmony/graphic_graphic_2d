@@ -847,7 +847,7 @@ HWTEST_F(RSBaseRenderNodeUnitTest, SendCommandFromRT, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     std::unique_ptr<RSCommand> command;
     NodeId nodeId = 0;
-    node->SendCommandFromRT(command, nodeId, 0);
+    node->SendCommandFromRT(command, nodeId);
     ASSERT_TRUE(true);
 }
 
