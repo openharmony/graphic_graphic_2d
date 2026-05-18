@@ -18,8 +18,7 @@
 
 #include <cstdint>
 
-#include <parameters.h>
-
+#include "platform/common/rs_system_properties.h"
 #include "surface_type.h"
 
 namespace OHOS {
@@ -28,7 +27,7 @@ inline constexpr const char* TUNNEL_DEBUG_PREFIX = "TUNNEL_DEBUG ";
 
 inline bool IsNewTunnelEnabled()
 {
-    return system::GetBoolParameter("rosen.debug.new_tunnel", false);
+    return RSSystemProperties::GetNewTunnelEnabled();
 }
 
 inline constexpr bool IsNewTunnelProperty(uint32_t property)
