@@ -111,10 +111,8 @@ private:
 
     std::map<NodeId, std::function<void(float, float, float, float)>> surfaceCallbacks_;
 
-    static void SendCommandFromRT(
-        RSRenderNode& node, std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
+    static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     static bool IsValidRootRenderNode(RSRootRenderNode& node);
-
 private:
     void ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode& node);
     void ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& node);
