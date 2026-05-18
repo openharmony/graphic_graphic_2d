@@ -258,7 +258,8 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
             parameter.currentDisplayNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
             break;
         case RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT:
-            parameter.tmoNits = parameter.currentDisplayNits;
+            parameter.tmoNits = dynamicRangeMode != DynamicRangeMode::STANDARD ?
+                parameter.currentDisplayNits : parameter.sdrNits;
             break;
         default:
             if (hdrProperties.isHDREnabledVirtualScreen) {
