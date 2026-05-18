@@ -179,7 +179,6 @@ void RSTunnelLayerManager::UpdateTunnelLayerState(const std::shared_ptr<RSSurfac
     }
 
     if (!Rosen::IsNewTunnelEnabled()) {
-        ResetTunnelLayerState(surfaceHandler, surfaceNode);
         return;
     }
     HandleNewTunnelLayerId(surfaceHandler, surfaceNode);

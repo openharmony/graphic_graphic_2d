@@ -16,6 +16,7 @@
 #include "platform/common/rs_system_properties.h"
 
 #include <charconv>
+#include <cstring>
 #include <cstdlib>
 #include <parameter.h>
 #include <parameters.h>
@@ -1148,6 +1149,15 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, defaultValue ? 1 : 0) != 0;
+}
+
+bool RSSystemProperties::GetNewTunnelEnabled()
+{
+    static CachedHandle handle = CachedParameterCreate("rosen.debug.new_tunnel", "false");
+    int changed = 0;
+    const char* enabled = CachedParameterGetChanged(handle, &changed);
+    return enabled != nullptr &&
+        (std::strcmp(enabled, "1") == 0 || std::strcmp(enabled, "true") == 0);
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
