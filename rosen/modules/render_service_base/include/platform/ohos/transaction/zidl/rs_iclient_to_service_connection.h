@@ -18,9 +18,9 @@
 
 #include <iremote_broker.h>
 #include <string>
-#include <surface.h>
 #include "transaction/rs_render_service_client_info.h"
 #ifndef ENABLE_RS_PROXY
+#include <surface.h>
 #include "feature/capture/rs_ui_capture.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
