@@ -42,7 +42,6 @@ constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
 constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
 
-#ifndef ROSEN_CROSS_PLATFORM
 bool ScreenContainsSurfaceId(const std::shared_ptr<RSScreen>& screen, uint64_t surfaceId)
 {
     if (screen == nullptr || !screen->IsVirtual()) {
@@ -56,7 +55,6 @@ bool ScreenContainsSurfaceId(const std::shared_ptr<RSScreen>& screen, uint64_t s
     }
     return false;
 }
-#endif
 } // namespace
 using namespace HiviewDFX;
 

@@ -332,7 +332,6 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetFrameGravity(
     return { ScreenPropertyType::SCREEN_FRAME_GRAVITY, prop };
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetMultiSurfaceConfigs(
     const std::vector<SurfaceRegionConfig>& configs)
 {
@@ -340,7 +339,6 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetMultiSurfaceC
     auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
     return { ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
 }
-#endif
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)
 {
     UniqueLock lock(propertyMutex_);
@@ -611,13 +609,11 @@ std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamut
     return property_->GetScreenSupportedColorGamuts();
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
 std::vector<SurfaceRegionConfig> RSScreenThreadSafeProperty::GetMultiSurfaceConfigs() const
 {
     SharedLock lock(propertyMutex_);
     return property_->GetMultiSurfaceConfigs();
 }
-#endif
 bool RSScreenThreadSafeProperty::IsMainScreen() const
 {
     SharedLock lock(propertyMutex_);

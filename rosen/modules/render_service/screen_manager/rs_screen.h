@@ -44,9 +44,7 @@ struct VirtualScreenConfigs {
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     int32_t flags = 0; // reserve flag.
     std::unordered_set<uint64_t> whiteList = {};
-#ifndef ROSEN_CROSS_PLATFORM
     std::vector<SurfaceRegionConfig> surfaceConfigs;
-#endif
 };
 
 class RSScreen : public std::enable_shared_from_this<RSScreen> {
@@ -131,14 +129,12 @@ public:
     // virtual screen
 
     // Multi-surface virtual screen (for mirror/extend mode with multiple surfaces)
-#ifndef ROSEN_CROSS_PLATFORM
     using MultiSurfaceConfigs = std::vector<SurfaceRegionConfig>;
     void SetMultiSurfaceConfigs(const MultiSurfaceConfigs& configs);
     MultiSurfaceConfigs GetMultiSurfaceConfigs() const;
     int32_t AddVirtualScreenSurface(const std::vector<SurfaceRegionConfig>& surfaceConfigs);
     int32_t RemoveVirtualScreenSurface(const std::vector<sptr<Surface>>& surfaces);
     int32_t UpdateVirtualScreenSurfaceRegion(sptr<Surface> surface, const RectI& region);
-#endif
 
     void ResizeVirtualScreen(uint32_t width, uint32_t height);
 

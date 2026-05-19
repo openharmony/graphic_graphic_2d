@@ -649,7 +649,6 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
 }
 
 // Multi-surface virtual screen - using vector<SurfaceRegionConfig> with copy-on-write
-#ifndef ROSEN_CROSS_PLATFORM
 namespace {
 uint64_t GetSurfaceId(const sptr<Surface>& surface)
 {
@@ -808,7 +807,6 @@ int32_t RSScreen::UpdateVirtualScreenSurfaceRegion(sptr<Surface> surface, const 
         __func__, region.left_, region.top_, region.width_, region.height_);
     return SUCCESS;
 }
-#endif
 
 void RSScreen::ModeInfoDump(std::string& dumpString)
 {

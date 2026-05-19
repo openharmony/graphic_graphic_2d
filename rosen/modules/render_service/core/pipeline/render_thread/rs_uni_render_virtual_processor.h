@@ -38,9 +38,7 @@ struct RoiRegions {
 
 // Multi-surface frame configuration for virtual mirror/extend modes
 struct SurfaceFrameConfig {
-#ifndef ROSEN_CROSS_PLATFORM
     sptr<Surface> surface;
-#endif
     std::unique_ptr<RSRenderFrame> frame;
     std::shared_ptr<RSPaintFilterCanvas> canvas;
     RectI region;  // x, y, width, height in virtual screen coordinates
@@ -132,6 +130,7 @@ private:
     bool EnableSlrScale();
     GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
     GSError SetColorSpaceVecForMetadata(const std::vector<uint8_t>& colorSpaceVec);
+    GSError SetMetadataForAllSurfaces(uint32_t key, const std::vector<uint8_t>& data);
 
     // Multi-surface private methods
     void RequestFramesForAllSurfaces(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
@@ -175,7 +174,6 @@ private:
     
     // Multi-surface support
     std::vector<SurfaceFrameConfig> surfaceFrames_;
-    size_t primarySurfaceIndex_ = 0;
     bool needsOffscreenRender_ = false; // true when at least one surface has a non-empty region
 };
 } // namespace Rosen

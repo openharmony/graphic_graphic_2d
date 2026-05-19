@@ -69,9 +69,7 @@ public:
     ResType SetDisablePowerOffRenderControl(bool disable);
     ResType SetScreenSwitchStatus(bool status);
     ResType SetFrameGravity(int32_t gravity);
-#ifndef ROSEN_CROSS_PLATFORM
     ResType SetMultiSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
-#endif
     ResType SetAsMainScreen(bool isMainScreen);
 
     ScreenId GetId() const;
@@ -119,10 +117,8 @@ public:
     int32_t GetVirtualSecLayerOption() const;
     bool GetIsHardCursorSupport() const;
     std::vector<ScreenColorGamut> GetSupportedColorGamuts() const;
-#ifndef ROSEN_CROSS_PLATFORM
     // Multi-surface: Get surface configs directly
     std::vector<SurfaceRegionConfig> GetMultiSurfaceConfigs() const;
-#endif
     bool IsMainScreen() const;
 
     ScreenInfo GetScreenInfo() const;

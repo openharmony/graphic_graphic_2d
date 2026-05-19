@@ -109,63 +109,16 @@ public:
             targetSurface_ = nullptr;
             surfaceFrame_ = nullptr;
         }
+        flushPhaseActive_ = false;
     }
 
     // 3-phase flush: allows splitting Flush into discrete steps for pipeline parallelism.
     // Must be called in order: FlushGpu -> SubmitGpu -> FlushBuffer.
     // Do not mix with Flush(). If you start a 3-phase sequence, complete it with FlushBuffer().
-    bool FlushGpu() noexcept
-    {
-        if (targetSurface_ == nullptr || surfaceFrame_ == nullptr) {
-            return false;
-        }
-        bool ret = targetSurface_->FlushGpu(surfaceFrame_);
-        flushPhaseActive_ = ret;
-        return ret;
-    }
-
-    bool SubmitGpu() noexcept
-    {
-        if (targetSurface_ == nullptr || surfaceFrame_ == nullptr) {
-            return false;
-        }
-        return targetSurface_->SubmitGpu(surfaceFrame_);
-    }
-
-    bool FlushBuffer() noexcept
-    {
-        if (targetSurface_ == nullptr || surfaceFrame_ == nullptr) {
-            return false;
-        }
-        bool ret = targetSurface_->FlushBuffer(surfaceFrame_);
-#if defined(RS_ENABLE_VK)
-        if (surfaceFrame_->GetType() == RSSurfaceFrameType::RS_SURFACE_FRAME_OHOS_VULKAN) {
-            auto frameOhosVulkan = static_cast<RSSurfaceFrameOhosVulkan*>(surfaceFrame_.get());
-            if (frameOhosVulkan) {
-                acquireFence_ = frameOhosVulkan->GetAcquireFence();
-            }
-        }
-#endif // RS_ENABLE_VK
-        targetSurface_ = nullptr;
-        surfaceFrame_ = nullptr;
-        flushPhaseActive_ = false;
-        return ret;
-    }
-
-    void CancelActiveFlush() noexcept
-    {
-#if defined(RS_ENABLE_VK)
-        if (targetSurface_ != nullptr && RSSystemProperties::IsUseVulkan()) {
-            auto surfaceVK = static_cast<RSSurfaceOhosVulkan*>(targetSurface_.get());
-            if (surfaceVK != nullptr) {
-                surfaceVK->CancelActiveFlush();
-            }
-        }
-#endif
-        targetSurface_ = nullptr;
-        surfaceFrame_ = nullptr;
-        flushPhaseActive_ = false;
-    }
+    bool FlushGpu() noexcept;
+    bool SubmitGpu() noexcept;
+    bool FlushBuffer() noexcept;
+    void CancelActiveFlush() noexcept;
 
     void CancelCurrentFrame()
     {
