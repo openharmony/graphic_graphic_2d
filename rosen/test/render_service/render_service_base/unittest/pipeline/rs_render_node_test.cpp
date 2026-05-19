@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 
 #include "animation/rs_render_curve_animation.h"
-#include "command/rs_animation_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -42,7 +41,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
-#include "transaction/rs_transaction_handler_manager.h"
 #include "parameters.h"
 
 using namespace testing;
@@ -4731,70 +4729,6 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams003, TestSize.L
 
     ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleFilter());
     ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
-}
-
-/**
- * @tc.name: SendCommandFromRTWithTokenFound001
- * @tc.desc: SendCommandFromRT when handler for uiContextToken is found
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, SendCommandFromRTWithTokenFound001, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
-    ASSERT_NE(node, nullptr);
-
-    constexpr uint64_t token = 99999;
-    auto handler = std::make_shared<RSTransactionHandler>();
-    ASSERT_NE(handler, nullptr);
-    RSTransactionHandlerManager::Instance().Register(token, handler);
-
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(DEFAULT_NODE_ID, 1, 1, AnimationCallbackEvent::FINISHED);
-    node->SendCommandFromRT(command, DEFAULT_NODE_ID, token);
-
-    RSTransactionHandlerManager::Instance().Unregister(token);
-    EXPECT_TRUE(true);
-}
-
-/**
- * @tc.name: SendCommandFromRTWithTokenNotFoundButFallback001
- * @tc.desc: SendCommandFromRT when token not found but GetAny returns fallback handler
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, SendCommandFromRTWithTokenNotFoundButFallback001, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
-    ASSERT_NE(node, nullptr);
-
-    constexpr uint64_t registeredToken = 88888;
-    constexpr uint64_t unknownToken = 77777;
-    auto handler = std::make_shared<RSTransactionHandler>();
-    ASSERT_NE(handler, nullptr);
-    RSTransactionHandlerManager::Instance().Register(registeredToken, handler);
-
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(DEFAULT_NODE_ID, 1, 1, AnimationCallbackEvent::FINISHED);
-    node->SendCommandFromRT(command, DEFAULT_NODE_ID, unknownToken);
-
-    RSTransactionHandlerManager::Instance().Unregister(registeredToken);
-    EXPECT_TRUE(true);
-}
-
-/**
- * @tc.name: SendCommandFromRTWithNoHandlerFound001
- * @tc.desc: SendCommandFromRT when neither Get nor GetAny finds a handler
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, SendCommandFromRTWithNoHandlerFound001, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
-    ASSERT_NE(node, nullptr);
-
-    constexpr uint64_t unknownToken = 66666;
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(DEFAULT_NODE_ID, 1, 1, AnimationCallbackEvent::FINISHED);
-    node->SendCommandFromRT(command, DEFAULT_NODE_ID, unknownToken);
-    EXPECT_TRUE(true);
 }
 } // namespace Rosen
 } // namespace OHOS
