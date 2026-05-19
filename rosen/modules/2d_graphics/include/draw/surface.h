@@ -31,6 +31,11 @@ class SkiaImage;
 class DDGRSurface;
 class DDGRImage;
 
+struct TileGranularity {
+    uint32_t width = 0;
+    uint32_t height = 0;
+};
+
 #ifdef RS_ENABLE_GPU
 struct FrameBuffer {
     int width;
@@ -222,6 +227,13 @@ public:
      * @param headroom  headroom value
      */
     void SetHeadroom(float headroom);
+
+    /**
+     * @brief         Get GPU Tile alignment granularity.
+     * @return        TileGranularity containing width and height alignment values.
+     * @note          Returns {0, 0} if query fails.
+     */
+    TileGranularity GetRenderAreaGranularity();
 
     /**
      * @brief         Get headroom for backendTexture of Surface.

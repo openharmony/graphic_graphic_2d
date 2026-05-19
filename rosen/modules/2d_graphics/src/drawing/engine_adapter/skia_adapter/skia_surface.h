@@ -79,6 +79,7 @@ public:
     sk_sp<SkSurface> GetSkSurface() const override;
     int Width() const override;
     int Height() const override;
+    TileGranularity GetRenderAreaGranularity() override;
 private:
     void PostSkSurfaceToTargetThread();
     sk_sp<SkSurface> skSurface_ = nullptr;
