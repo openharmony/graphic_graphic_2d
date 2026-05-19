@@ -196,7 +196,7 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     } else {
         for (const auto& modifier : customModifiers) {
             auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifierTypeNG_);
-            auto drawCmdList = modifier->Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
+            auto drawCmdList = modifier->Getter<SimpleDrawCmdListPtr>(propertyType, nullptr);
             if (drawCmdList == nullptr || drawCmdList->IsEmpty()) {
                 continue;
             }

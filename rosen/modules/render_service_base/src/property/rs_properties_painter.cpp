@@ -955,7 +955,7 @@ bool RSPropertiesPainter::GetBgAntiAlias()
 }
 
 void RSPropertiesPainter::DrawFrame(
-    const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::DrawCmdListPtr& cmds)
+    const RSProperties& properties, RSPaintFilterCanvas& canvas, SimpleDrawCmdListPtr& cmds)
 {
     if (cmds == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFrame cmds null");

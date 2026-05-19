@@ -1132,7 +1132,7 @@ static void SetupCanvasDrawingRenderNode(RSRenderNode& node)
     int32_t width = 0;
     int32_t height = 0;
     for (const auto& modifier : node.GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE)) {
-        const auto cmdList = modifier ? modifier->GetPropertyDrawCmdList() : nullptr;
+        const auto cmdList = modifier ? modifier->GetPropertySimpleDrawCmdList() : nullptr;
         if (cmdList) {
             width = std::max(width, cmdList->GetWidth());
             height = std::max(height, cmdList->GetHeight());
@@ -1166,6 +1166,7 @@ std::string RSProfiler::UnmarshalNodeModifiers(
             continue;
         }
         if (!disableModifiers) {
+            ptr->ConvertDrawCmdListToSimple();
             node.AddModifier(ptr);
         }
     }
@@ -1495,7 +1496,7 @@ void RSProfiler::SetDrawingCanvasNodeRedraw(bool enable)
     dcnRedraw_ = enable && IsEnabled();
 }
 
-void RSProfiler::DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList)
+void RSProfiler::DrawingNodeAddClearOp(const SimpleDrawCmdListPtr& drawCmdList)
 {
     if (dcnRedraw_ || !drawCmdList) {
         return;

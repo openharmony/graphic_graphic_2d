@@ -685,7 +685,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, AddToClearTest, TestSize.Level1)
     adapter->AddToClearDrawables(drawableVec);
     EXPECT_TRUE(adapter->drawCmdList_.empty());
     DrawableV2::RSRenderNodeDrawable::CmdListVec cmdListVec;
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(1, 1);
     cmdListVec.emplace_back(cmdList);
     adapter->AddToClearCmdList(cmdListVec);
     for (int i = 0; i < 5001; i++) {

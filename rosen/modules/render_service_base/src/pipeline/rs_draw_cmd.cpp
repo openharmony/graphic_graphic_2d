@@ -23,7 +23,6 @@
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_image_cache.h"
 #include "recording/cmd_list_helper.h"
-#include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"

@@ -209,8 +209,8 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest001, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, AddModifierTest002, TestSize.Level1)
 {
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    SimpleDrawCmdListPtr drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
@@ -4248,8 +4248,8 @@ HWTEST_F(RSRenderNodeTest, ResetAndApplyModifiers001, TestSize.Level1)
     auto node = std::make_shared<MockRSRenderNode>(1);
     EXPECT_CALL(*node, ResetAndApplyModifiers()).Times(1);
     node->needUseCmdlistDrawRegion_ = true;
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    SimpleDrawCmdListPtr drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
@@ -4332,8 +4332,8 @@ HWTEST_F(RSRenderNodeTest, RemoveModifier, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    SimpleDrawCmdListPtr drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
@@ -4356,8 +4356,8 @@ HWTEST_F(RSRenderNodeTest, GetHDRBrightness, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    SimpleDrawCmdListPtr drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(

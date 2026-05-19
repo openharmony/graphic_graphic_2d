@@ -94,10 +94,10 @@ void RSRenderModifierNGTest::TearDown() {}
  */
 HWTEST_F(RSRenderModifierNGTest, AttachPropertyTest, TestSize.Level1)
 {
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(1024);
-    drawCmdList->SetHeight(1090);
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
+    drawCmdList->width_ = 1024;
+    drawCmdList->height_ = 1090;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     NodeId nodeId = 1;
@@ -118,10 +118,10 @@ HWTEST_F(RSRenderModifierNGTest, DetachPropertyTest, TestSize.Level1)
     modifier->DetachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE);
     EXPECT_FALSE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(1024);
-    drawCmdList->SetHeight(1090);
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
+    drawCmdList->width_ = 1024;
+    drawCmdList->height_ = 1090;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     NodeId nodeId = 1;
     RSCanvasDrawingRenderNode node(nodeId);
@@ -415,10 +415,10 @@ HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyTest, TestSize.Level1)
  */
 HWTEST_F(RSRenderModifierNGTest, RSCustomRenderModifier_Apply_Test, TestSize.Level1)
 {
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(1024);
-    drawCmdList->SetHeight(1090);
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
+    drawCmdList->width_ = 1024;
+    drawCmdList->height_ = 1090;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(

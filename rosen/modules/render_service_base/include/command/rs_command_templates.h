@@ -83,8 +83,10 @@ public:
                 return std::get<1>(params_);
             } else if constexpr (std::is_same<std::shared_ptr<ModifierNG::RSRenderModifier>, ptrType>::value) {
                 auto& modifier = std::get<1>(params_);
-                if (modifier) {
-                    return modifier->GetPropertyDrawCmdList();
+                if (modifier && modifier->IsCustom()) {
+                    // At this time, SimpleDrawCmdList has not been created
+                    return modifier->template Getter<Drawing::DrawCmdListPtr>(
+                        ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType()), nullptr);
                 }
             }
         }

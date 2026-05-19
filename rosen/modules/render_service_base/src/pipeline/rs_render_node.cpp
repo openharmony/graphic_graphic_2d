@@ -5299,7 +5299,7 @@ bool RSRenderNode::HasValidDrawCmd() const
         type <= static_cast<uint16_t>(ModifierNG::RSModifierType::NODE_MODIFIER); type++) {
         const auto& modifierContainer = GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         for (const auto& modifier : modifierContainer) {
-            const auto& cmdList = modifier->GetPropertyDrawCmdList();
+            const auto& cmdList = modifier->GetPropertySimpleDrawCmdList();
             if (cmdList != nullptr && !cmdList->IsEmpty()) {
                 return true;
             }

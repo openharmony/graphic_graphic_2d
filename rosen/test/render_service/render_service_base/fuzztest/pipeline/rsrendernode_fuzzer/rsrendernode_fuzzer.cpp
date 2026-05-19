@@ -32,6 +32,7 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_draw_cmd.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/sk_resource_manager.h"
 
@@ -178,7 +179,8 @@ bool RSCanvasRenderNodeFuzzTest(const uint8_t* data, size_t size)
     RSCanvasRenderNode node(id);
 
     // test
-    node.UpdateRecordingNG(drawCmds, type);
+    auto simpleCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmds);
+    node.UpdateRecordingNG(simpleCmdList, type);
     node.ProcessRenderBeforeChildren(canvas);
     node.ProcessRenderContents(canvas);
     node.ProcessRenderAfterChildren(canvas);

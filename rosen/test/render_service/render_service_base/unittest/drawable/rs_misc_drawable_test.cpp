@@ -19,8 +19,6 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
-#include "skia_adapter/skia_surface.h"
-#include "skia_adapter/skia_canvas.h"
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
 
 using namespace testing;
@@ -171,8 +169,8 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
     ASSERT_EQ(
         DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE), nullptr);
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     auto modifier1 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     ASSERT_NE(modifier1, nullptr);
@@ -181,8 +179,8 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
     modifier1->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty;
     node.AddModifier(modifier1);
 
-    auto propertyTwo = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    propertyTwo->GetRef() = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto propertyTwo = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
+    propertyTwo->GetRef() = std::make_shared<RSSimpleDrawCmdList>(1, 1);
     auto modifier2 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     ASSERT_NE(modifier2, nullptr);
     modifier2->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = propertyTwo;
@@ -242,9 +240,10 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable003, TestSize.Level1)
     ASSERT_EQ(
         DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE), nullptr);
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
+
     auto modifier1 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     ASSERT_NE(modifier1, nullptr);
     modifier1->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = property;
@@ -252,15 +251,14 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable003, TestSize.Level1)
     modifier1->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty;
     node.AddModifier(modifier1);
 
-    auto propertyTwo = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    propertyTwo->GetRef() = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto propertyTwo = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
+    propertyTwo->GetRef() = std::make_shared<RSSimpleDrawCmdList>(1, 1);
     auto modifier2 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     ASSERT_NE(modifier2, nullptr);
     modifier2->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = propertyTwo;
     auto indexProperty2 = std::make_shared<RSRenderProperty<int16_t>>(1, 1);
     modifier2->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty2;
     node.AddModifier(modifier2);
-
     node.AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
     auto drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
         DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE));
@@ -499,8 +497,8 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorDrawable001, TestSize.Level1)
     NodeId id = 1;
     RSRenderNode node(id);
     ASSERT_EQ(DrawableV2::RSEnvFGColorDrawable::OnGenerate(node), nullptr);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     auto modifier = std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR, property);
@@ -542,8 +540,8 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorStrategyDrawable001, TestSize.Level
     NodeId id = 1;
     RSRenderNode node(id);
     ASSERT_EQ(DrawableV2::RSEnvFGColorStrategyDrawable::OnGenerate(node), nullptr);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     auto modifier = std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY, property);
@@ -567,9 +565,7 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorStrategyDrawable002, TestSize.Level
 {
     auto drawable = std::make_shared<DrawableV2::RSEnvFGColorStrategyDrawable>();
     auto surface = std::make_shared<Drawing::Surface>();
-    surface->impl_ = std::make_shared<Drawing::SkiaSurface>();
     auto canvas = std::make_shared<Drawing::Canvas>();
-    canvas->impl_ = std::make_shared<Drawing::SkiaCanvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     filterCanvas->surface_ = surface.get();
     auto rect = std::make_shared<Drawing::Rect>(0, 0, 10, 10);
