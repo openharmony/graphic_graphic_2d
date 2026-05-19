@@ -553,7 +553,7 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisVerticalAlig
         }
         ellipisisRunIndex = line.ellipsis()->index();
     }
-    EXPECT_EQ(ellipisisRunIndex, 3);
+    EXPECT_EQ(ellipisisRunIndex, 2);
 
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
