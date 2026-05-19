@@ -123,6 +123,7 @@
           "ffrt",
           "libxml2",
           "skia",
+          "vma",
           "lz4",
           "faultloggerd",
           "freetype",
