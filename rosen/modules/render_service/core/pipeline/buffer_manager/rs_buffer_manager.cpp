@@ -379,7 +379,7 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
 
             auto bufferOwnerCount = layer->PopBufferOwnerCountById(bufferId);
             if (bufferOwnerCount == nullptr) {
-                RS_LOGE("RSBufferManager::ReleaseUniOnDrawBuffers not buffer: %{public}" PRIu64
+                RS_LOGD("RSBufferManager::ReleaseUniOnDrawBuffers not buffer: %{public}" PRIu64
                     " in layer:%{public}" PRIu64, bufferId, layerId);
                 continue;
             }
@@ -409,7 +409,7 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     auto buffer = info.buffer_.promote();
     if (consumer == nullptr || buffer == nullptr) {
         pendingReleaseBuffers_.erase(iter);
-        RS_LOGE("RSBufferManager::ReleaseBufferById consumer or buffer is null");
+        RS_LOGD("RSBufferManager::ReleaseBufferById consumer or buffer is null");
         return;
     }
 
