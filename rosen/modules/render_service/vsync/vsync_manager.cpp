@@ -132,6 +132,24 @@ void RSVsyncManager::OnScreenPropertyChanged(ScreenId id, ScreenPropertyType typ
         if (vsyncSampler_ != nullptr) {
             vsyncSampler_->ProcessVSyncScreenIdWhilePowerStatusChanged(id, status, handler, isFoldScreen);
         }
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (rsVSyncDistributor_ == nullptr) {
+                return;
+            }
+            auto it = physicalScreens_.find(id);
+            if (status == ScreenPowerStatus::POWER_STATUS_ON) {
+                if (it == physicalScreens_.end()) {
+                    physicalScreens_.insert(id);
+                    rsVSyncDistributor_->SetPhysicalScreenNum(physicalScreens_.size());
+                }
+            } else if (status == ScreenPowerStatus::POWER_STATUS_OFF) {
+                if (it != physicalScreens_.end()) {
+                    physicalScreens_.erase(it);
+                    rsVSyncDistributor_->SetPhysicalScreenNum(physicalScreens_.size());
+                }
+            }
+        }
     }
 }
 

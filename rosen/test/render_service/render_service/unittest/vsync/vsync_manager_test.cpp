@@ -220,6 +220,133 @@ HWTEST_F(VSyncManagerTest, OnScreenPropertyChanged, Function | MediumTest| Level
 }
 
 /*
+* Function: OnScreenPropertyChanged
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test OnScreenPropertyChanged with rsVSyncDistributor_ nullptr
+*/
+HWTEST_F(VSyncManagerTest, OnScreenPropertyChanged_RsDistributorNull, Function | MediumTest| Level0)
+{
+    ScreenId testId = 12;
+    ScreenPropertyType type = ScreenPropertyType::POWER_STATUS;
+    bool isFoldScreen = false;
+    sptr<ScreenProperty<uint32_t>> propertyBase = sptr<ScreenProperty<uint32_t>>::MakeSptr();
+    propertyBase->Set(static_cast<uint32_t>(ScreenPowerStatus::POWER_STATUS_ON));
+
+    auto distributor = vsyncManager_->rsVSyncDistributor_;
+    vsyncManager_->rsVSyncDistributor_ = nullptr;
+    vsyncManager_->OnScreenPropertyChanged(testId, type, propertyBase, nullptr, isFoldScreen);
+    vsyncManager_->rsVSyncDistributor_ = distributor;
+    ASSERT_NE(vsyncManager_->rsVSyncDistributor_, nullptr);
+}
+
+/*
+* Function: OnScreenPropertyChanged
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test OnScreenPropertyChanged with POWER_STATUS_ON and id not in set
+*/
+HWTEST_F(VSyncManagerTest, OnScreenPropertyChanged_PowerStatusOn_Insert, Function | MediumTest| Level0)
+{
+    ScreenId testId = 13;
+    ScreenPropertyType type = ScreenPropertyType::POWER_STATUS;
+    bool isFoldScreen = false;
+    sptr<ScreenProperty<uint32_t>> propertyBase = sptr<ScreenProperty<uint32_t>>::MakeSptr();
+    propertyBase->Set(static_cast<uint32_t>(ScreenPowerStatus::POWER_STATUS_ON));
+
+    vsyncManager_->physicalScreens_.clear();
+    vsyncManager_->OnScreenPropertyChanged(testId, type, propertyBase, nullptr, isFoldScreen);
+    ASSERT_EQ(vsyncManager_->physicalScreens_.size(), 1);
+    ASSERT_TRUE(vsyncManager_->physicalScreens_.find(testId) != vsyncManager_->physicalScreens_.end());
+}
+
+/*
+* Function: OnScreenPropertyChanged
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test OnScreenPropertyChanged with POWER_STATUS_ON and id already in set
+*/
+HWTEST_F(VSyncManagerTest, OnScreenPropertyChanged_PowerStatusOn_AlreadyInSet, Function | MediumTest| Level0)
+{
+    ScreenId testId = 14;
+    ScreenPropertyType type = ScreenPropertyType::POWER_STATUS;
+    bool isFoldScreen = false;
+    sptr<ScreenProperty<uint32_t>> propertyBase = sptr<ScreenProperty<uint32_t>>::MakeSptr();
+    propertyBase->Set(static_cast<uint32_t>(ScreenPowerStatus::POWER_STATUS_ON));
+
+    vsyncManager_->physicalScreens_.clear();
+    vsyncManager_->physicalScreens_.insert(testId);
+    size_t prevSize = vsyncManager_->physicalScreens_.size();
+    vsyncManager_->OnScreenPropertyChanged(testId, type, propertyBase, nullptr, isFoldScreen);
+    ASSERT_EQ(vsyncManager_->physicalScreens_.size(), prevSize);
+}
+
+/*
+* Function: OnScreenPropertyChanged
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test OnScreenPropertyChanged with POWER_STATUS_OFF and id in set
+*/
+HWTEST_F(VSyncManagerTest, OnScreenPropertyChanged_PowerStatusOff_Remove, Function | MediumTest| Level0)
+{
+    ScreenId testId = 15;
+    ScreenPropertyType type = ScreenPropertyType::POWER_STATUS;
+    bool isFoldScreen = false;
+    sptr<ScreenProperty<uint32_t>> propertyBase = sptr<ScreenProperty<uint32_t>>::MakeSptr();
+    propertyBase->Set(static_cast<uint32_t>(ScreenPowerStatus::POWER_STATUS_OFF));
+
+    vsyncManager_->physicalScreens_.clear();
+    vsyncManager_->physicalScreens_.insert(testId);
+    vsyncManager_->OnScreenPropertyChanged(testId, type, propertyBase, nullptr, isFoldScreen);
+    ASSERT_TRUE(vsyncManager_->physicalScreens_.find(testId) == vsyncManager_->physicalScreens_.end());
+}
+
+/*
+* Function: OnScreenPropertyChanged
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test OnScreenPropertyChanged with POWER_STATUS_OFF and id not in set
+*/
+HWTEST_F(VSyncManagerTest, OnScreenPropertyChanged_PowerStatusOff_NotInSet, Function | MediumTest| Level0)
+{
+    ScreenId testId = 16;
+    ScreenPropertyType type = ScreenPropertyType::POWER_STATUS;
+    bool isFoldScreen = false;
+    sptr<ScreenProperty<uint32_t>> propertyBase = sptr<ScreenProperty<uint32_t>>::MakeSptr();
+    propertyBase->Set(static_cast<uint32_t>(ScreenPowerStatus::POWER_STATUS_OFF));
+
+    vsyncManager_->physicalScreens_.clear();
+    size_t prevSize = vsyncManager_->physicalScreens_.size();
+    vsyncManager_->OnScreenPropertyChanged(testId, type, propertyBase, nullptr, isFoldScreen);
+    ASSERT_EQ(vsyncManager_->physicalScreens_.size(), prevSize);
+}
+
+/*
+* Function: OnScreenPropertyChanged
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test OnScreenPropertyChanged with other power status
+*/
+HWTEST_F(VSyncManagerTest, OnScreenPropertyChanged_OtherPowerStatus, Function | MediumTest| Level0)
+{
+    ScreenId testId = 17;
+    ScreenPropertyType type = ScreenPropertyType::POWER_STATUS;
+    bool isFoldScreen = false;
+    sptr<ScreenProperty<uint32_t>> propertyBase = sptr<ScreenProperty<uint32_t>>::MakeSptr();
+    propertyBase->Set(static_cast<uint32_t>(ScreenPowerStatus::POWER_STATUS_SUSPEND));
+
+    vsyncManager_->physicalScreens_.clear();
+    vsyncManager_->OnScreenPropertyChanged(testId, type, propertyBase, nullptr, isFoldScreen);
+    ASSERT_EQ(vsyncManager_->physicalScreens_.size(), 0);
+}
+
+/*
 * Function: AddRSVsyncConnection
 * Type: Function
 * Rank: Important(2)
