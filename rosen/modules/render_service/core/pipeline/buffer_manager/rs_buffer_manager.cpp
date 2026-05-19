@@ -386,8 +386,9 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
 
             RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseUniOnDrawBuffers bufferId %" PRIu64
                 " in layer:%" PRIu64, bufferId, layerId);
-            AddPendingReleaseBuffer(bufferOwnerCount->bufferId_, uniFence, bufferOwnerCount);
-            if (!bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->bufferId_, screenId)) {
+            if (bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->bufferId_, screenId)) {
+                AddPendingReleaseBuffer(bufferOwnerCount->bufferId_, uniFence, bufferOwnerCount);
+            } else {
                 layer->SetBufferOwnerCount(bufferOwnerCount, false);
             }
             bufferOwnerCount->OnBufferReleased();
