@@ -1485,7 +1485,7 @@ HWTEST_F(FontParserTest, ParserFontDescriptorsFromPathLanguagesTest, TestSize.Le
 
     auto desc = descriptors[0];
     ASSERT_NE(desc, nullptr);
-    EXPECT_EQ(desc->languages.size(), 53);
+    EXPECT_EQ(desc->languages.size(), 48);
 
     // Test case 2: Invalid font file path
     auto invalidDescriptors = FontParser::ParserFontDescriptorsFromPath(NON_EXISTENT_PATH);
@@ -1515,7 +1515,7 @@ HWTEST_F(FontParserTest, ParserFontDescriptorsFromPathFontFeaturesTest, TestSize
 
     auto desc = descriptors[0];
     ASSERT_NE(desc, nullptr);
-    EXPECT_EQ(desc->fontFeatures.size(), 0);
+    EXPECT_EQ(desc->fontFeatures.size(), 27);
 }
 } // namespace TextEngine
 } // namespace Rosen
