@@ -768,7 +768,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyAfterChildren(RSPaintFilterCanva
 void RSSurfaceRenderNode::SetContextBounds(const Vector4f bounds)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetBounds>(GetId(), bounds);
-    SendCommandFromRT(command, GetId(), uiContextToken_);
+    SendCommandFromRT(command, GetId());
 }
 
 std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNode::GetCacheSurfaceDirtyManager() const
@@ -827,7 +827,7 @@ void RSSurfaceRenderNode::SetContextMatrix(const std::optional<Drawing::Matrix>&
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextMatrix>(GetId(), matrix);
-    SendCommandFromRT(command, GetId(), uiContextToken_);
+    SendCommandFromRT(command, GetId());
 }
 
 void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
@@ -843,7 +843,7 @@ void RSSurfaceRenderNode::SetContextAlpha(float alpha, bool sendMsg)
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextAlpha>(GetId(), alpha);
-    SendCommandFromRT(command, GetId(), uiContextToken_);
+    SendCommandFromRT(command, GetId());
 }
 
 void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect>& clipRegion, bool sendMsg)
@@ -859,7 +859,7 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
     }
     // send a Command
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextClipRegion>(GetId(), clipRegion);
-    SendCommandFromRT(command, GetId(), uiContextToken_);
+    SendCommandFromRT(command, GetId());
 }
 void RSSurfaceRenderNode::SetBootAnimation(bool isBootAnimation)
 {
