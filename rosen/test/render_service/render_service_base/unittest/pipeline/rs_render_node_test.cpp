@@ -4550,6 +4550,66 @@ HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsDirty001
+ * @tc.desc: test IsDirty returns true when dirtyStatus_ is DIRTY and properties are clean
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSRenderNodeTest, IsDirty001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->GetMutableRenderProperties().ResetDirty();
+    EXPECT_TRUE(node->IsDirty());
+}
+
+/**
+ * @tc.name: IsDirty002
+ * @tc.desc: test IsDirty returns true when dirtyStatus_ is CLEAN and properties are dirty
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSRenderNodeTest, IsDirty002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->GetMutableRenderProperties().SetDirty();
+    EXPECT_TRUE(node->IsDirty());
+}
+
+/**
+ * @tc.name: IsDirty003
+ * @tc.desc: test IsDirty returns false when both dirtyStatus_ and properties are clean
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSRenderNodeTest, IsDirty003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::CLEAN;
+    node->GetMutableRenderProperties().ResetDirty();
+    EXPECT_FALSE(node->IsDirty());
+}
+
+/**
+ * @tc.name: IsDirty004
+ * @tc.desc: test IsDirty returns true when both dirtyStatus_ and properties are dirty
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSRenderNodeTest, IsDirty004, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->GetMutableRenderProperties().SetDirty();
+    EXPECT_TRUE(node->IsDirty());
+}
+
+/**
  * @tc.name: GetNodeColorSpaceForceSRGBTest
  * @tc.desc: Verify GetNodeColorSpace returns SRGB when ForceSRGBOutput is enabled
  * @tc.type: FUNC

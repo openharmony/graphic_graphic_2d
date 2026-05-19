@@ -16,6 +16,7 @@
 #include <parameters.h>
 
 #include "feature/anco_manager/rs_anco_manager.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "gtest/gtest.h"
@@ -1912,5 +1913,129 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_hasForceHwcHdrSurface, TestS
     params->SetHasForceHwcHdrSurface(false);
     screenDrawable_->OnDraw(canvas);
     EXPECT_FALSE(params->GetHasForceHwcHdrSurface());
+}
+
+/**
+ * @tc.name: OnDrawTest_DirtyAlignWithGpuTile
+ * @tc.desc: Test OnDraw dirty align with GpuTile initialization and validation
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignWithGpuTile, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->childDisplayCount_ = 1;
+    params->mirrorSourceDrawable_.reset();
+    params->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    auto renderContext = RenderContext::Create();
+    renderEngine->renderContext_ = renderContext;
+    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
+    RSUniRenderThread::Instance().uniRenderEngine_->Init();
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->isDirtyAlignEnabled_ = true;
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(0, 0));
+    screenDrawable_->OnDraw(canvas);
+
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(64, 64));
+    screenDrawable_->OnDraw(canvas);
+
+    EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileInited());
+    EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: OnDrawTest_DirtyAlignGpuTileInvalid
+ * @tc.desc: Test OnDraw dirty align when GpuTile is invalid
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignGpuTileInvalid, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->childDisplayCount_ = 1;
+    params->mirrorSourceDrawable_.reset();
+    params->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    auto renderContext = RenderContext::Create();
+    renderEngine->renderContext_ = renderContext;
+    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
+    RSUniRenderThread::Instance().uniRenderEngine_->Init();
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->isDirtyAlignEnabled_ = true;
+    renderParams->isOpDropped_ = true;
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(-1, 64));
+    EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+    screenDrawable_->OnDraw(canvas);
+
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(64, -1));
+    EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+    screenDrawable_->OnDraw(canvas);
+
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(0, 64));
+    EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+    screenDrawable_->OnDraw(canvas);
+
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(64, 0));
+    EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+    screenDrawable_->OnDraw(canvas);
+
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: OnDrawTest_DirtyAlignSingleDirtyRegion
+ * @tc.desc: Test OnDraw dirty align with single dirty region size
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->childDisplayCount_ = 1;
+    params->mirrorSourceDrawable_.reset();
+    params->compositeType_ = CompositeType::UNI_RENDER_COMPOSITE;
+    params->screenProperty_.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    auto renderContext = RenderContext::Create();
+    renderEngine->renderContext_ = renderContext;
+    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
+    RSUniRenderThread::Instance().uniRenderEngine_->Init();
+
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->isDirtyAlignEnabled_ = true;
+    renderParams->isOpDropped_ = true;
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(64, 64));
+    EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+
+    EXPECT_EQ(RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD, 1);
+
+    screenDrawable_->OnDraw(canvas);
+
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 } // namespace OHOS::Rosen
