@@ -583,10 +583,12 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         syncDirtyManager->GetSurfaceRect() : syncDirtyManager->GetActiveSurfaceRect();
     uint32_t vsyncRefreshRate = RSMainThread::Instance()->GetVsyncRefreshRate();
     RS_TRACE_NAME_FMT("RSScreenRenderNodeDrawable::OnDraw[%" PRIu64 "][%" PRIu64"] zoomed(%d), "
-                      "currentFrameDirty(%d, %d, %d, %d), screen(%d, %d), active(%d, %d, %d, %d), vsyncRefreshRate(%u)",
+                      "currentFrameDirty(%d, %d, %d, %d), screen(%d, %d), active(%d, %d, %d, %d), "
+                      "vsyncRefreshRate(%u), gpuTile(%d, %d)",
         paramScreenId, GetId(), params->GetZoomed(), dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_,
         dirtyRegion.height_, screenProperty.GetWidth(), screenProperty.GetHeight(), activeSurfaceRect.left_,
-        activeSurfaceRect.top_, activeSurfaceRect.width_, activeSurfaceRect.height_, vsyncRefreshRate);
+        activeSurfaceRect.top_, activeSurfaceRect.width_, activeSurfaceRect.height_, vsyncRefreshRate,
+        RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first, RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
     RS_LOGD("RSScreenRenderNodeDrawable::OnDraw node: %{public}" PRIu64 "", GetId());
 
     // when set expectedRefreshRate, the vsyncRefreshRate maybe change from 60 to 120
@@ -719,12 +721,27 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #endif
     RSUniRenderThread::Instance().WaitUntilScreenNodeBufferReleased(*this);
     auto renderFrame = RequestFrame(*params, processor);
-    if (!renderFrame) {
+    if (renderFrame == nullptr || renderFrame->GetFrame() == nullptr) {
         SetDrawSkipType(DrawSkipType::REQUEST_FRAME_FAIL);
         RS_LOGE("RSScreenRenderNodeDrawable::OnDraw failed to request frame");
         return;
     }
+    auto drSurface = renderFrame->GetFrame()->GetSurface();
+    if (!drSurface) {
+        SetDrawSkipType(DrawSkipType::SURFACE_NULL);
+        RS_LOGE("RSScreenRenderNodeDrawable::OnDraw DrawingSurface is null");
+        return;
+    }
 
+    if (uniParam->IsDirtyAlignEnabled() && !RSUniDirtyComputeUtil::IsDamageRegionGpuTileInited()) {
+        auto renderAreaGranularity = drSurface->GetRenderAreaGranularity();
+        RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(
+            static_cast<int>(renderAreaGranularity.width),
+            static_cast<int>(renderAreaGranularity.height)));
+        RS_LOGI("gpu tile: (%d, %d)",
+            RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first,
+            RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
+    }
     UpdateSlrScale(screenInfo);
     RSDirtyRectsDfx rsDirtyRectsDfx(*this);
     std::vector<RectI> damageRegionrects;
@@ -750,13 +767,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     refreshRects.emplace_back(syncDirtyManager_->GetHwcDirtyRegion());
     RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
         paramScreenId, refreshRects, screenInfo.width * screenInfo.height);
-
-    auto drSurface = renderFrame->GetFrame()->GetSurface();
-    if (!drSurface) {
-        SetDrawSkipType(DrawSkipType::SURFACE_NULL);
-        RS_LOGE("RSScreenRenderNodeDrawable::OnDraw DrawingSurface is null");
-        return;
-    }
 
     curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
     if (!curCanvas_) {
@@ -795,11 +805,11 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             RSParallelManager::Singleton().Reset(curCanvas_, uniParam, params, vsyncRefreshRate);
 #endif
             if (uniParam->IsOpDropped()) {
-                if (uniParam->IsDirtyAlignEnabled()) {
-                    RS_TRACE_NAME_FMT("dirty align enabled and no clip operation");
+                if (uniParam->IsDirtyAlignEnabled() && RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid() &&
+                    damageRegionrects.size() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD) {
+                    RS_TRACE_NAME("dirty align enabled and no clip operation");
                     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
                 } else {
-                    uniParam->SetClipRegion(clipRegion);
                     RSUniDirtyComputeUtil::ClipRegion(*curCanvas_, clipRegion);
                 }
             } else {

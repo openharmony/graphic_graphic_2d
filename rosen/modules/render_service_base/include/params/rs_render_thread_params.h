@@ -434,16 +434,6 @@ public:
         return context_.lock();
     }
 
-    void SetClipRegion(const Drawing::Region& clipRegion)
-    {
-        clipRegion_.Clone(clipRegion);
-    }
-
-    const Drawing::Region& GetClipRegion() const
-    {
-        return clipRegion_;
-    }
-
     void SetForceMirrorScreenDirty(bool flag)
     {
         isMirrorScreenDirty_ = flag;
@@ -727,7 +717,6 @@ private:
     bool overlayDisplayEnable_{false};
 #endif
 
-    Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 

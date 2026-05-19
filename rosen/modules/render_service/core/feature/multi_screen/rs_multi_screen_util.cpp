@@ -281,11 +281,15 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
     if (uniParam->IsVirtualExpandScreenDirtyEnabled()) {
         drawable.UpdateSurfaceDrawRegion(curCanvas, &params);
         curCanvas->SetDrawnRegion(params.GetDrawnRegion());
-        Drawing::Region clipRegion = RSUniDirtyComputeUtil::GetFlippedRegion(damageRegionRects, screenInfo);
-        uniParam->SetClipRegion(clipRegion);
-        RSUniDirtyComputeUtil::ClipRegion(*curCanvas, clipRegion);
+        if (uniParam->IsDirtyAlignEnabled() && RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid() &&
+            damageRegionRects.size() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD) {
+            RS_TRACE_NAME("dirty align enabled and no clip operation");
+            curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+        } else {
+            Drawing::Region clipRegion = RSUniDirtyComputeUtil::GetFlippedRegion(damageRegionRects, screenInfo);
+            RSUniDirtyComputeUtil::ClipRegion(*curCanvas, clipRegion);
+        }
     }
-    curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(drawable, params);
     drawable.RSRenderNodeDrawable::OnDraw(*curCanvas);
     params.ResetVirtualExpandAccumulatedParams();

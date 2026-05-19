@@ -1487,6 +1487,8 @@ void RSRenderNode::ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManag
         if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
             auto absChildrenRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
             auto subTreeDirtyRegion = absChildrenRect.IntersectRect(oldClipRect_);
+            RS_OPTIONAL_TRACE_FMT("node[%" PRIu64 "] %s. MergeDirtyRect:%s",
+                GetId(), __func__, subTreeDirtyRegion.ToString().c_str());
             dirtyManager.MergeDirtyRect(subTreeDirtyRegion);
         }
     }
@@ -2420,11 +2422,6 @@ void RSRenderNode::UpdateDirtyRegion(
     SetClean();
 }
 
-
-bool RSRenderNode::IsDirty() const
-{
-    return dirtyStatus_ != NodeDirty::CLEAN || GetRenderProperties().IsDirty();
-}
 
 void RSRenderNode::SetParentSubTreeDirty()
 {
@@ -5375,8 +5372,10 @@ void RSRenderNode::SubTreeSkipPrepare(
         auto dirtyRect = geoPtr->MapAbsRect(childrenRect_.ConvertTo<float>());
         auto dirtyRectClip = dirtyRect.IntersectRect(clipRect);
         dirtyRectClip = dirtyRectClip.JoinRect(oldDirtyRectClip);
-        IsFirstLevelCrossNode() ?
-            dirtyManager.MergeDirtyRect(dirtyRect.JoinRect(oldDirtyRect)) : dirtyManager.MergeDirtyRect(dirtyRectClip);
+        auto dstDirtyRect = IsFirstLevelCrossNode() ? dirtyRect.JoinRect(oldDirtyRect) : dirtyRectClip;
+        RS_OPTIONAL_TRACE_FMT("node[%" PRIu64 "] %s. MergeDirtyRect:%s",
+            GetId(), __func__, dstDirtyRect.ToString().c_str());
+        dirtyManager.MergeDirtyRect(dstDirtyRect);
         if (layerPartRenderDirtyManager != nullptr) {
             layerPartRenderDirtyManager->MergeDirtyRect(dirtyRect.JoinRect(oldDirtyRect));
         }

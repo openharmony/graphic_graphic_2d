@@ -2725,54 +2725,6 @@ HWTEST_F(RSMainThreadTest, CheckSurfaceNeedProcess, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetRegionVisibleLevel001
- * @tc.desc: GetRegionVisibleLevel test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, GetRegionVisibleLevel001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    // empty region
-    Occlusion::Region occRegion;
-    mainThread->GetRegionVisibleLevel(occRegion, occRegion);
-}
-
-/**
- * @tc.name: GetRegionVisibleLevel002
- * @tc.desc: GetRegionVisibleLevel test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, GetRegionVisibleLevel002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    // equal region
-    Occlusion::Region occRegion;
-    occRegion.rects_.emplace_back(Occlusion::Rect(0, 1, 1, 0));
-    mainThread->GetRegionVisibleLevel(occRegion, occRegion);
-}
-
-/**
- * @tc.name: GetRegionVisibleLevel003
- * @tc.desc: GetRegionVisibleLevel test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, GetRegionVisibleLevel003, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    Occlusion::Region occRegion1;
-    occRegion1.rects_.emplace_back(Occlusion::Rect(0, 1, 1, 0));
-    Occlusion::Region occRegion2;
-    occRegion2.rects_.emplace_back(Occlusion::Rect(0, 2, 2, 0));
-    mainThread->GetRegionVisibleLevel(occRegion1, occRegion2);
-}
-
-/**
  * @tc.name: CalcOcclusionImplementation
  * @tc.desc: CalcOcclusionImplementation test
  * @tc.type: FUNC

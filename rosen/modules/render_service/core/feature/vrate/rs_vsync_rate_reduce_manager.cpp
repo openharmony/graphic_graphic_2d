@@ -248,7 +248,7 @@ void RSVsyncRateReduceManager::CalcRates()
     }
     for (const auto& [nodeId, vRateInfo]: surfaceVRateMap_) {
         double vVal = 0;
-        int visArea = vRateInfo.visibleRegion.Area();
+        int visArea = static_cast<int>(vRateInfo.visibleRegion.Area());
         const bool visibleRegionBehindWindowEmpty = vRateInfo.visibleRegionBehindWindow.IsEmpty();
         if (vRateInfo.visibleRegion.IsEmpty()) {
             vVal = V_VAL_MIN;
@@ -338,7 +338,7 @@ Occlusion::Rect RSVsyncRateReduceManager::CalcMaxVisibleRect(const Occlusion::Re
     for (const auto &rect: rects) {
         if (rect.Area() > maxRArea) {
             maxRect = rect;
-            maxRArea = maxRect.Area();
+            maxRArea = static_cast<int>(maxRect.Area());
         }
         xPositionSet.emplace(rect.left_);
         xPositionSet.emplace(rect.right_);
@@ -363,7 +363,7 @@ Occlusion::Rect RSVsyncRateReduceManager::CalcMaxVisibleRect(const Occlusion::Re
             Occlusion::Rect tmpRect = GetMaxVerticalRect(verticalRegion);
             if (tmpRect.Area() > maxRArea) {
                 maxRect = tmpRect;
-                maxRArea = tmpRect.Area();
+                maxRArea = static_cast<int>(tmpRect.Area());
             }
         }
     }

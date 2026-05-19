@@ -100,6 +100,12 @@ public:
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     using ModifierNGContainer = std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>;
     using ModifiersNGMap = std::map<ModifierNG::RSModifierType, ModifierNGContainer>;
+
+    enum class NodeDirty : int8_t {
+        CLEAN = 0,
+        DIRTY,
+    };
+
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
     virtual RSRenderNodeType GetType() const
     {
@@ -198,7 +204,16 @@ public:
     {
         return isAccumulatedClipFlagChanged_;
     }
-    bool IsDirty() const;
+
+    NodeDirty GetDirtyStatus() const noexcept
+    {
+        return dirtyStatus_;
+    }
+
+    bool IsDirty() const
+    {
+        return GetDirtyStatus() != NodeDirty::CLEAN || renderProperties_.IsDirty();
+    }
 
     bool IsSubTreeDirty() const
     {
@@ -1120,10 +1135,6 @@ protected:
 
     virtual void OnApplyModifiers() {}
 
-    enum class NodeDirty {
-        CLEAN = 0,
-        DIRTY,
-    };
     virtual void SetClean()
     {
         isContentDirty_ = false;

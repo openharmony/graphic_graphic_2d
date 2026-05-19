@@ -1727,6 +1727,8 @@ public:
         if (!containerDirty || !IsLeashOrMainWindow()) {
             return;
         }
+        RS_OPTIONAL_TRACE_FMT("%s: %s[%" PRIu64"] set dirty by container dirty",
+            __func__, GetName().c_str(), GetId());
         dirtyStatus_ = NodeDirty::DIRTY;
         containerDirty = false;
     }
