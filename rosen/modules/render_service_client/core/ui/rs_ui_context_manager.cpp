@@ -18,6 +18,7 @@
 #include <atomic>
 
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include "transaction/rs_transaction.h"
 
@@ -62,7 +63,7 @@ std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext(sptr<IRemoteO
     }
     std::unique_lock<std::mutex> lock(mutex_);
     // 针对分离渲染，每个进程只会生成一个rsUIContext
-    if (hasCreateRSUIContext_ && isDividedRender_) {
+    if (hasCreateRSUIContext_ && (isDividedRender_ || !RSSystemProperties::IsSceneBoardEnabled())) {
         for (const auto &[_, ctx] : rsUIContextMap_) {
             return ctx;
         }
@@ -76,7 +77,7 @@ std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext(sptr<IRemoteO
     }
     auto newContext = std::shared_ptr<RSUIContext>(new RSUIContext(token, connectToRenderRemote));
     rsUIContextMap_[token] = newContext;
-    if (isDividedRender_) {
+    if (isDividedRender_ || !RSSystemProperties::IsSceneBoardEnabled()) {
         hasCreateRSUIContext_ = true;
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (auto rsRenderInterface = newContext->GetRSRenderInterface()) {
@@ -101,7 +102,8 @@ const std::shared_ptr<RSUIContext> RSUIContextManager::GetRSUIContext(uint64_t t
 
 void RSUIContextManager::DestroyContext(uint64_t token)
 {
-    if (!isMultiInstanceOpen_ || !g_instanceValid.load() || isDividedRender_) {
+    if (!isMultiInstanceOpen_ || !g_instanceValid.load() || isDividedRender_
+        || !RSSystemProperties::IsSceneBoardEnabled()) {
         return;
     }
     std::unique_lock<std::mutex> lock(mutex_);
