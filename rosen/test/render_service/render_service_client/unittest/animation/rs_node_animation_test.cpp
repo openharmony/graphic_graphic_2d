@@ -245,8 +245,10 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot, TestSize.Level1)
 
     EXPECT_EQ(rsNode->motionPathOption_, nullptr);
 
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
     auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsNode->rsUIContext_ = rsUIContext;
+
     bool isRenderServiceNode = true;
     auto target = std::make_shared<RSNode>(isRenderServiceNode);
     AnimationId id = 1;
@@ -257,6 +259,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot, TestSize.Level1)
     animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(1);
     rsNode->animations_.insert({ id, animation });
+    rsNode->FallbackAnimationsToContext();
 
     // Animation should be moved to target node
     EXPECT_TRUE(rsNode->animations_.empty());
@@ -265,9 +268,12 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot, TestSize.Level1)
     animation->SetRepeatCount(-1);
     animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
     rsNode->animations_.insert({ id, animation });
+    rsNode->FallbackAnimationsToContext();
 
     // Infinite UI animation should be cleared (destroyed)
     EXPECT_TRUE(rsNode->animations_.empty());
+    
+    rsNode->rsUIContext_ = nullptr;
 }
 
 /**
@@ -277,11 +283,11 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot002, TestSize.Level1)
 {
-    auto rsNode = RSCanvasNode::Create();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
     bool isRenderServiceNode = true;
     auto target = std::make_shared<RSNode>(isRenderServiceNode);
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
 
     // Create multiple animations
     AnimationId id1 = 1;
@@ -300,6 +306,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot002, TestSize.Level1)
     rsNode->animations_.insert({ id1, animation1 });
     rsNode->animations_.insert({ id2, animation2 });
     rsNode->animations_.insert({ id3, animation3 });
+    rsNode->FallbackAnimationsToContext();
 
     // FallbackAnimationsToRoot should move non-infinite UI animations to target
     // Note: Due to std::move in loop and clear() at end, all animations are cleared
@@ -314,17 +321,18 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot002, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot003, TestSize.Level1)
 {
-    auto rsNode = RSCanvasNode::Create();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
     bool isRenderServiceNode = true;
     auto target = std::make_shared<RSNode>(isRenderServiceNode);
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
 
     AnimationId id = 1;
     auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(-1);
     // No uiAnimation_ set, so IsUiAnimation() returns false
     rsNode->animations_.insert({ id, animation });
+    rsNode->FallbackAnimationsToContext();
 
     // FallbackAnimationsToRoot should move animation to target
     // Condition: animation (true) && GetRepeatCount() == -1 (true) && IsUiAnimation() (false)
@@ -339,17 +347,18 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot003, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot004, TestSize.Level1)
 {
-    auto rsNode = RSCanvasNode::Create();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
     bool isRenderServiceNode = true;
     auto target = std::make_shared<RSNode>(isRenderServiceNode);
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
 
     AnimationId id = 1;
     auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(1);
     animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
     rsNode->animations_.insert({ id, animation });
+    rsNode->FallbackAnimationsToContext();
 
     // FallbackAnimationsToRoot should move animation to target
     // Condition: animation (true) && GetRepeatCount() == -1 (false) && IsUiAnimation() (true)
@@ -364,13 +373,16 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot004, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot005, TestSize.Level1)
 {
-    auto rsNode = RSCanvasNode::Create();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
     bool isRenderServiceNode = true;
     auto target = std::make_shared<RSNode>(isRenderServiceNode);
 
     AnimationId id = 1;
     std::shared_ptr<RSAnimation> animation = nullptr;
     rsNode->animations_.insert({ id, animation });
+    rsNode->FallbackAnimationsToContext();
 
     // FallbackAnimationsToRoot should skip null animation
     // Condition: animation (false) && ...
