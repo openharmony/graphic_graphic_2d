@@ -131,6 +131,7 @@ public:
     float GetHeadroom() const { return 0.0; };
     int Width() const override { return 0; };
     int Height() const override { return 0; };
+    Drawing::TileGranularity GetRenderAreaGranularity() override { return {0, 0}; };
     sk_sp<SkSurface> GetSkSurface() const override
     {
         return nullptr;
