@@ -356,6 +356,7 @@ template("graphics2d_source_set") {
         "hitrace:hitrace_meter",
         "icu:shared_icuuc",
         "skia:skia_canvaskit",
+        "vma:vma",
       ]
 
       deps = []
