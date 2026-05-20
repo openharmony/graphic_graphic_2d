@@ -543,7 +543,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // for regional projection, since buffer-copying is used, frame still need to be updated for mirror.
     isRenderSkipIfScreenOff_ = uniParam->GetPowerOffRenderController().GetScreenRenderSkipped(params->GetScreenId()) &&
         !(params->HasMirrorScreen() && MultiScreenParam::IsForceRenderForMirror());
-    if (isRenderSkipIfScreenOff_) {
+    if (isRenderSkipIfScreenOff_ && !params->IsActiveRectChanged()) {
         SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_OFF);
         return;
     }
@@ -554,7 +554,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     PostClearMemoryTask();
 
-    if (RSSystemProperties::IsFoldScreenFlag() && screenProperty.IsScreenSwitching()) {
+    if (RSSystemProperties::IsFoldScreenFlag() && screenProperty.IsScreenSwitching() && !isRenderSkipIfScreenOff_) {
         SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_SWITCHING);
         RS_LOGI("RSScreenRenderNodeDrawable::OnDraw FoldScreenNodeSwitching is true, do not drawframe");
         RS_TRACE_NAME_FMT("RSScreenRenderNodeDrawable FoldScreenNodeSwitching is true");

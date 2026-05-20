@@ -5598,6 +5598,7 @@ void RSMainThread::CreateScreenNode(const sptr<RSScreenProperty>& property)
 static bool NeedForceRefreshOneFrame(ScreenPropertyType type)
 {
     switch (type) {
+        case ScreenPropertyType::ACTIVE_RECT_OPTION:
         case ScreenPropertyType::GAMUT_MAP:
         case ScreenPropertyType::PRODUCER_SURFACE:
         case ScreenPropertyType::RENDER_RESOLUTION:
@@ -5624,6 +5625,9 @@ void RSMainThread::HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenProper
             node->SetScreenDirtyFlag(true);
             if (type == ScreenPropertyType::PRODUCER_SURFACE) {
                 node->SetVirtualSurfaceChanged(true);
+            }
+            if (type == ScreenPropertyType::ACTIVE_RECT_OPTION) {
+                node->SetActiveRectChanged(true);
             }
         });
 

@@ -697,6 +697,19 @@ void RSScreenRenderNode::SetVirtualSurfaceChanged(bool isChanged)
 }
 // LCOV_EXCL_STOP
 
+void RSScreenRenderNode::SetActiveRectChanged(bool isChanged)
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::%{public}s screenParams is null", __func__);
+        return;
+    }
+    screenParams->SetActiveRectChanged(isChanged);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
 void RSScreenRenderNode::SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection)
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
