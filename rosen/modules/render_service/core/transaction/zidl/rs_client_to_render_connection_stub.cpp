@@ -82,7 +82,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HARDWARE_ENABLED),
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_ALPHA_VALUE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::DROP_FRAME_BY_PID),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT),
@@ -733,29 +732,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             SetHardwareEnabled(id, isEnabled, static_cast<SelfDrawingNodeType>(selfDrawingType), dynamicHardwareEnable);
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_ALPHA_VALUE) : {
-            uint64_t id{0};
-            if (!data.ReadUint64(id)) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_ALPHA_VALUE Read id failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            float alpha = DEFAULT_ALPHA_VALUE;
-            auto errCode = GetAlphaValue(id, alpha);
-            if (!reply.WriteInt32(static_cast<int32_t>(errCode))) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_ALPHA_VALUE: write errCode failed: %{public}d", errCode);
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            if (!reply.WriteFloat(alpha)) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_ALPHA_VALUE: write alpha failed: %{public}f", alpha);
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            RS_LOGD("RSClientToRenderConnectionStub::GET_ALPHA_VALUE errCode=%{public}d, alpha=%{public}f",
-                errCode, alpha);
             break;
         }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT) : {

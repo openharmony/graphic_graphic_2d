@@ -629,39 +629,6 @@ ErrCode RSClientToRenderConnectionProxy::SetHardwareEnabled(NodeId id, bool isEn
     return ERR_OK;
 }
 
-ErrCode RSClientToRenderConnectionProxy::GetAlphaValue(NodeId id, float& alpha)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("GetAlphaValue: WriteInterfaceToken err.");
-        return ERR_INVALID_VALUE;
-    }
-    if (!data.WriteUint64(id)) {
-        ROSEN_LOGE("GetAlphaValue: WriteUint64 id err.");
-        return ERR_INVALID_VALUE;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_ALPHA_VALUE);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetAlphaValue: Send Request err=%{public}d", err);
-        return ERR_INVALID_VALUE;
-    }
-    int32_t errCode = 0;
-    if (!reply.ReadInt32(errCode)) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetAlphaValue: Read result failed");
-        return ERR_INVALID_VALUE;
-    }
-    if (!reply.ReadFloat(alpha)) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetAlphaValue: Read alpha failed");
-        return ERR_INVALID_VALUE;
-    }
-    ROSEN_LOGD("RSClientToRenderConnectionProxy::GetAlphaValue: errCode=%{public}d, alpha=%{public}f", errCode, alpha);
-    return static_cast<ErrCode>(errCode);
-}
-
 ErrCode RSClientToRenderConnectionProxy::SetHidePrivacyContent(NodeId id,
     bool needHidePrivacyContent, uint32_t& resCode)
 {

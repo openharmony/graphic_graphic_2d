@@ -375,14 +375,6 @@ public:
     void ClearSurfaceWatermark(pid_t pid, const std::string &name);
 
     /**
-     * @brief Gets the alpha value for the node.
-     * @param id Indicates id of node.
-     *
-     * @return The alpha value (0.0f to 1.0f).
-     */
-    float GetAlphaValue(NodeId id);
-
-    /**
      * @brief Register window occlusion change callback.
      * @param callback callback fuction.
      * @return 0 success, else failed.

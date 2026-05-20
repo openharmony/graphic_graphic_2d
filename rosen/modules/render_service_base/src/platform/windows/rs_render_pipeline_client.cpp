@@ -104,11 +104,6 @@ void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfD
 {
 }
 
-float RSRenderPipelineClient::GetAlphaValue(NodeId id)
-{
-    return DEFAULT_ALPHA_VALUE;
-}
-
 uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
 {
     return {};
