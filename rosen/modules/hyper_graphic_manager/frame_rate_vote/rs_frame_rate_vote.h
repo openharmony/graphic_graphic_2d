@@ -18,9 +18,9 @@
 
 #include <iconsumer_surface.h>
 
-#include "rs_video_frame_rate_vote.h"
 #include "ffrt.h"
 #include "hgm_frame_rate_manager.h"
+#include "rs_video_frame_rate_vote.h"
 #include "singleton.h"
 
 namespace OHOS {
@@ -56,7 +56,7 @@ private:
     bool isVoted_{ false };
     std::atomic<uint64_t> lastSurfaceNodeId_ { 0 };
     uint64_t currentUpdateTime_{ 0 };
-    std::string transactionFlags_ = "";
+    std::string transactionFlags_;
     std::unordered_map<uint64_t, std::shared_ptr<RSVideoFrameRateVote>> surfaceVideoFrameRateVote_{};
     std::unordered_map<uint64_t, uint32_t> surfaceVideoRate_{};
     std::mutex mutex_;

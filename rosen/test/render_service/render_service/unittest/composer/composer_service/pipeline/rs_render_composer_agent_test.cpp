@@ -1013,7 +1013,6 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_CallbacksExecute, T
     auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
     ASSERT_NE(agent->rsRenderComposer_, nullptr);
 
-    // Create callbacks that track execution
     std::atomic<bool> hardwareTaskNumCalled { false };
     std::atomic<bool> taskEndWithTimeCalled { false };
     std::atomic<bool> realTimeOffsetCalled { false };
@@ -1025,12 +1024,8 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_CallbacksExecute, T
         return 0;
     };
 
-    // Register callbacks
     agent->SetVsyncManagerCallbacks(setHardwareTaskNumCb, setTaskEndWithTimeCb, getRealTimeOffsetOfDvsyncCb);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-    // Verify function completed without crash
-    // Note: Callbacks may not be executed immediately as they are forwarded to composer
     EXPECT_NE(agent->rsRenderComposer_, nullptr);
 }
 
@@ -1077,18 +1072,13 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_NullCallbacks, Test
     auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
     ASSERT_NE(agent->rsRenderComposer_, nullptr);
 
-    // Create null callbacks
     SetHardwareTaskNumCallback nullSetHardwareTaskNumCb = nullptr;
     SetTaskEndWithTimeCallback nullSetTaskEndWithTimeCb = nullptr;
     GetRealTimeOffsetOfDvsyncCallback nullGetRealTimeOffsetOfDvsyncCb = nullptr;
 
-    // Call SetVsyncManagerCallbacks with null callbacks
-    // This should not crash as callbacks are optional
     agent->SetVsyncManagerCallbacks(
         nullSetHardwareTaskNumCb, nullSetTaskEndWithTimeCb, nullGetRealTimeOffsetOfDvsyncCb);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-    // Verify no crash and composer is still valid
     EXPECT_NE(agent->rsRenderComposer_, nullptr);
 }
 
@@ -1125,6 +1115,32 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_MixedNullCallbacks,
 
     // Verify no crash and composer is still valid
     EXPECT_NE(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: CommitTunnelLayerBySurfaceId_OutputNull_ReturnFailure
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. clear hdiOutput_
+ *                  3. call CommitTunnelLayerBySurfaceId
+ *                  4. verify failure is returned directly
+ */
+HWTEST_F(RsRenderComposerAgentTest, CommitTunnelLayerBySurfaceId_OutputNull_ReturnFailure, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    auto oldOutput = agent->rsRenderComposer_->hdiOutput_;
+    agent->rsRenderComposer_->hdiOutput_ = nullptr;
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    EXPECT_EQ(agent->CommitTunnelLayerBySurfaceId(1u, 1u, buffer, nullptr, releaseFence),
+        GRAPHIC_DISPLAY_FAILURE);
+
+    agent->rsRenderComposer_->hdiOutput_ = oldOutput;
 }
 } // namespace Rosen
 } // namespace OHOS

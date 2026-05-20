@@ -14,6 +14,8 @@
  */
 
 #include <gtest/gtest.h>
+#include <unordered_set>
+#include "common/rs_common_hook.h"
 #include "opinc_param_parse.h"
 
 using namespace testing;
@@ -115,5 +117,154 @@ HWTEST_F(OpincParamParseTest, ParseOPIncInternalTest, TestSize.Level1)
     node.name = reinterpret_cast<const xmlChar*>(name.c_str());
     res = opincParamParse.ParseOPIncInternal(node);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    name = "Feature";
+    node.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    res = opincParamParse.ParseOPIncInternal(node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    name = "FeatureMultiParam";
+    node.name = reinterpret_cast<const xmlChar*>(name.c_str());
+    res = opincParamParse.ParseOPIncInternal(node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+    xmlNode childNode;
+    childNode.type = xmlElementType::XML_ELEMENT_NODE;
+    node.xmlChildrenNode = &childNode;
+    xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)("children"));
+    xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("0"));
+    res = opincParamParse.ParseOPIncInternal(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: ParseFeatureMultiParamTest001
+ * @tc.desc: Test ParseFeatureMultiParam with no children nodes
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest001, TestSize.Level1)
+{
+    OPIncParamParse opincParamParse;
+    xmlNode node;
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+    auto res = opincParamParse.ParseFeatureMultiParam(node);
+    EXPECT_EQ(res, PARSE_GET_CHILD_FAIL);
+}
+
+/**
+ * @tc.name: ParseFeatureMultiParamTest002
+ * @tc.desc: Test ParseFeatureMultiParam with empty bundleName
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest002, TestSize.Level1)
+{
+    OPIncParamParse opincParamParse;
+    xmlNode node;
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+
+    xmlNode childNode;
+    childNode.type = xmlElementType::XML_ELEMENT_NODE;
+    node.xmlChildrenNode = &childNode;
+    xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)(""));
+    xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("1"));
+
+    auto res = opincParamParse.ParseFeatureMultiParam(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList(""));
+
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
+}
+
+/**
+ * @tc.name: ParseFeatureMultiParamTest003
+ * @tc.desc: Test ParseFeatureMultiParam with bundleName exceeding limit (100 chars)
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest003, TestSize.Level1)
+{
+    OPIncParamParse opincParamParse;
+    xmlNode node;
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+
+    xmlNode childNode;
+    childNode.type = xmlElementType::XML_ELEMENT_NODE;
+    node.xmlChildrenNode = &childNode;
+    std::string longName(101, 'a');
+    xmlSetProp(&childNode, (const xmlChar*)("name"), (const xmlChar*)(longName.c_str()));
+    xmlSetProp(&childNode, (const xmlChar*)("value"), (const xmlChar*)("1"));
+
+    auto res = opincParamParse.ParseFeatureMultiParam(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList(longName));
+
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
+}
+
+/**
+ * @tc.name: ParseFeatureMultiParamTest004
+ * @tc.desc: Test ParseFeatureMultiParam with multiple whitelist items
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest004, TestSize.Level1)
+{
+    OPIncParamParse opincParamParse;
+    xmlNode node;
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+
+    xmlNode childNode1;
+    childNode1.type = xmlElementType::XML_ELEMENT_NODE;
+    node.xmlChildrenNode = &childNode1;
+    xmlSetProp(&childNode1, (const xmlChar*)("name"), (const xmlChar*)("com.example.app1"));
+    xmlSetProp(&childNode1, (const xmlChar*)("value"), (const xmlChar*)("1"));
+
+    xmlNode childNode2;
+    childNode2.type = xmlElementType::XML_ELEMENT_NODE;
+    childNode1.next = &childNode2;
+    xmlSetProp(&childNode2, (const xmlChar*)("name"), (const xmlChar*)("com.example.app2"));
+    xmlSetProp(&childNode2, (const xmlChar*)("value"), (const xmlChar*)("1"));
+
+    xmlNode childNode3;
+    childNode3.type = xmlElementType::XML_ELEMENT_NODE;
+    childNode2.next = &childNode3;
+    xmlSetProp(&childNode3, (const xmlChar*)("name"), (const xmlChar*)("com.example.app3"));
+    xmlSetProp(&childNode3, (const xmlChar*)("value"), (const xmlChar*)("0"));
+
+    auto res = opincParamParse.ParseFeatureMultiParam(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app1"));
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app2"));
+    EXPECT_FALSE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList("com.example.app3"));
+
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
+}
+
+/**
+ * @tc.name: ParseFeatureMultiParamTest005
+ * @tc.desc: Test ParseFeatureMultiParam with no-element child node type
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(OpincParamParseTest, ParseFeatureMultiParamTest005, TestSize.Level1)
+{
+    OPIncParamParse opincParamParse;
+    xmlNode node;
+    node.type = xmlElementType::XML_ELEMENT_NODE;
+
+    xmlNode childNode;
+    childNode.type = xmlElementType::XML_ATTRIBUTE_NODE;
+    node.xmlChildrenNode = &childNode;
+
+    auto res = opincParamParse.ParseFeatureMultiParam(node);
+    EXPECT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    EXPECT_TRUE(RsCommonHook::Instance().IsInLayerPartRenderWhiteList(""));
+
+    RsCommonHook::Instance().SetLayerPartRenderWhiteList({});
 }
 }

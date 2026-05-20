@@ -48,7 +48,11 @@ void RSRenderInteractiveImplictAnimator::AddAnimations(std::vector<std::pair<Nod
                 "RSRenderInteractiveImplictAnimator::AddAnimations - node null, nodeId: %{public}" PRIu64, nodeId);
             continue;
         }
-        auto animation = node->GetAnimationManager().GetAnimation(animationId);
+        auto animationManager = node->GetAnimationManager();
+        if (!animationManager) {
+            continue;
+        }
+        auto animation = animationManager->GetAnimation(animationId);
         if (animation == nullptr) {
             ROSEN_LOGE("RSRenderInteractiveImplictAnimator::AddAnimations - animation null, "
                 "nodeId: %{public}" PRIu64 ", animationId: %{public}" PRIu64, nodeId, animationId);
@@ -286,7 +290,7 @@ void RSRenderTimeDrivenGroupAnimator::PauseAnimator()
 
     // When pause occurs during the delay period, record the elapsed delay time and add it to the total executed time.
     int64_t minLeftDelayTime = 0;
-    animationFraction_.GetAnimationFraction(context->GetCurrentTimestamp(), minLeftDelayTime, false);
+    animationFraction_.GetAnimationFraction(context->GetCurrentTimestamp(), minLeftDelayTime, false, true);
 
     groupWaitingAnimationIds_.clear();
     for (auto& weakAnim : cachedAnimations_) {
@@ -335,7 +339,7 @@ void RSRenderTimeDrivenGroupAnimator::OnAnimate(int64_t timestamp, int64_t& minL
 void RSRenderTimeDrivenGroupAnimator::UpdateFraction(int64_t timestamp, int64_t& minLeftDelayTime)
 {
     auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =
-        animationFraction_.GetAnimationFraction(timestamp, minLeftDelayTime, false);
+        animationFraction_.GetAnimationFraction(timestamp, minLeftDelayTime, false, true);
 
     RS_TRACE_NAME_FMT("RSRenderTimeDrivenGroupAnimator::UpdateFraction animator[%llu] fraction[%f] "
         "runningTime[%lld]ms duration[%d]ms delay[%d]ms repeat[%d] childCount[%zu]",
@@ -412,9 +416,12 @@ void RSRenderTimeDrivenGroupAnimator::FinishAnimator(RSInteractiveAnimationPosit
         }
 
         animation->FinishOnPosition(finishPos);
-        auto& animationManager = node->GetAnimationManager();
-        animationManager.OnAnimationFinished(animation);
-        animationManager.RemoveAnimation(animation->GetAnimationId());
+        auto animationManager = node->GetAnimationManager();
+        if (!animationManager) {
+            continue;
+        }
+        animationManager->OnAnimationFinished(animation);
+        animationManager->RemoveAnimation(animation->GetAnimationId());
     }
     state_ = GroupAnimatorState::FINISHED;
     context->GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(id_);

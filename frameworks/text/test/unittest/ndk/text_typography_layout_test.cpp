@@ -790,7 +790,7 @@ HWTEST_F(NdkTypographyTest, SetTailIndents_EmptyArray, TestSize.Level0)
     double tailIndents[] = {};
     OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, tailIndents, 0);
-    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
     double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
     EXPECT_DOUBLE_EQ(longestLineWithIndent, 799.9991455078125);

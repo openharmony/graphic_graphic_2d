@@ -31,6 +31,7 @@
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
 #include "feature/uifirst/rs_frame_control.h"
+#include "feature/behind_window_filter/rs_behind_window_filter_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "monitor/self_drawing_node_monitor.h"
@@ -162,7 +163,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
-      bundleName_(config.bundleName)
+      bundleName_(config.bundleName),
+      tunnelRuntimeState_(std::make_unique<RSTunnelRuntimeState>())
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -197,7 +199,14 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 {
-    GetMutableRSSurfaceHandler()->SetConsumer(consumer);
+    auto surfaceHandler = GetMutableRSSurfaceHandler();
+    if (surfaceHandler == nullptr) {
+        return;
+    }
+    if (surfaceHandler->GetConsumer() != consumer && tunnelRuntimeState_ != nullptr) {
+        tunnelRuntimeState_->Clear();
+    }
+    surfaceHandler->SetConsumer(consumer);
 }
 #endif
 
@@ -1411,6 +1420,18 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop, bool isTopLayerForceRefresh)
     surfaceParams->SetLayerTop(isTop);
     AddToPendingSyncList();
 #endif
+}
+
+void RSSurfaceRenderNode::SetHdrForceHwcEnabled(bool isHdrForceHwcEnabled)
+{
+    isHdrForceHwcEnabled_ = isHdrForceHwcEnabled;
+    SetContentDirty();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
+    AddToPendingSyncList();
 }
 
 void RSSurfaceRenderNode::SetForceRefresh(bool isForceRefresh)
@@ -3617,7 +3638,8 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
     return RSSystemProperties::GetBehindWindowFilterEnabled() && !GetRenderProperties().GetBackgroundFilter() &&
-        !childrenBlurBehindWindow_.empty() && GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER);
+        !childrenBlurBehindWindow_.empty() && GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER) &&
+        RSBehindWindowFilterManager::Instance().IsBehindWindowFilterEnabledByCCM();
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)

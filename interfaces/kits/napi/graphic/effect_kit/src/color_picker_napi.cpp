@@ -497,6 +497,9 @@ napi_value ColorPickerNapi::CreateColorPicker(napi_env env, napi_callback_info i
         }
         EFFECT_LOG_E("ColorPickerNapi CreateColorPicker creating async work fail");
     }
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.createColorPicker", 1);
+#endif
     return result;
 }
 
@@ -592,6 +595,9 @@ napi_value ColorPickerNapi::GetMainColor(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("ColorPickerNapi GetMainColor creating async work fail");
     }
 
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getMainColor", 1);
+#endif
     return result;
 }
 
@@ -654,6 +660,10 @@ napi_value ColorPickerNapi::GetMainColorSync(napi_env env, napi_callback_info in
     } else {
         napi_get_undefined(env, &result);
     }
+
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getMainColorSync", 1);
+#endif
     return result;
 }
 
@@ -685,6 +695,10 @@ napi_value ColorPickerNapi::GetLargestProportionColor(napi_env env, napi_callbac
     } else {
         napi_get_undefined(env, &result);
     }
+
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getLargestProportionColor", 1);
+#endif
     return result;
 }
 
@@ -715,6 +729,10 @@ napi_value ColorPickerNapi::GetHighestSaturationColor(napi_env env, napi_callbac
     } else {
         napi_get_undefined(env, &result);
     }
+
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getHighestSaturationColor", 1);
+#endif
     return result;
 }
 
@@ -745,6 +763,10 @@ napi_value ColorPickerNapi::GetAverageColor(napi_env env, napi_callback_info inf
     } else {
         napi_get_undefined(env, &result);
     }
+
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getAverageColor", 1);
+#endif
     return result;
 }
 
@@ -777,6 +799,10 @@ napi_value ColorPickerNapi::IsBlackOrWhiteOrGrayColor(napi_env env, napi_callbac
     bool rst = thisColorPicker->nativeColorPicker_->IsBlackOrWhiteOrGrayColor(color);
     napi_value result = nullptr;
     napi_get_boolean(env, rst, &result);
+
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.isBlackOrWhiteOrGrayColor", 1);
+#endif
     return result;
 }
 
@@ -1024,6 +1050,10 @@ napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_i
         napi_value colorValue = i >= colors.size() ?  nullptr : BuildJsColor(env, colors[i]);
         napi_set_element(env, arrayValue, i, colorValue);
     }
+
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getTopProportionColors", 1);
+#endif
     return arrayValue;
 }
 
@@ -1067,6 +1097,10 @@ napi_value ColorPickerNapi::GetTopProportionColorsAndPercentage(napi_env env, na
         }
         napi_map_set_property(env, mapNapiValue, colorValue, percentageValue);
     }
+
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getTopProportionColorsAndPercentage", 1);
+#endif
     return mapNapiValue;
 }
 
@@ -1099,6 +1133,10 @@ napi_value ColorPickerNapi::ComplexityDegree(napi_env env, napi_callback_info in
         napi_create_int32(env, rst, &result);
         EFFECT_LOG_E("ERR_EFFECT_INVALID_VALUE: ColorPickerNapi::ComplexityDegree get degree fail");
     }
+
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getComplexityDegree", 1);
+#endif
     return result;
 }
  
@@ -1131,6 +1169,10 @@ napi_value ColorPickerNapi::ShadeDegree(napi_env env, napi_callback_info info)
         napi_create_int32(env, rst, &result);
         EFFECT_LOG_E("ERR_EFFECT_INVALID_VALUE: ColorPickerNapi::ShadeDegree get degree fail");
     }
+
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getShadeDegree", 1);
+#endif
     return result;
 }
 
@@ -1158,6 +1200,9 @@ napi_value ColorPickerNapi::GetAlphaZeroTransparentProportion(napi_env env, napi
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && percentageValue != nullptr, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetFullyTransparentProportion create map fail"));
 
+#ifndef CROSS_PLATFORM
+    HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.getAlphaZeroTransparentProportion", 1);
+#endif
     return percentageValue;
 }
 

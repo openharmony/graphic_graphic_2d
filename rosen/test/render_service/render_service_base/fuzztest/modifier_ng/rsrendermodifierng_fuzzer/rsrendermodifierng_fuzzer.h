@@ -21,6 +21,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <fcntl.h>
+#include <unistd.h>
 
 #define FUZZ_PROJECT_NAME "rsrendermodifierng_fuzzer"
 

@@ -18,11 +18,14 @@
 
 #include <chrono>
 #include <condition_variable>
+#include <csignal>
+#include <deque>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <refbase.h>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #include "rs_render_mode_config.h"
@@ -49,7 +52,7 @@ public:
 
     void RecordComposerToRenderConnection(pid_t pid, sptr<IRSComposerToRenderConnection> composerToRenderConnection);
     sptr<RSScreenProperty> GetPendingScreenProperty(pid_t pid);
-    void SetRenderProcessReadyPromise(pid_t pid, const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
+    bool SetRenderProcessReadyPromise(pid_t pid, const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
         const sptr<RSIConnectToRenderProcess>& connectToRenderConnection);
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const override;
@@ -59,8 +62,10 @@ public:
     std::shared_ptr<RSIpcPersistenceManager> GetIpcPersistenceManager() const override;
 
 private:
-    sptr<IRemoteObject> HandleExistingGroup(pid_t pid, ScreenId screenId, const sptr<RSScreenProperty>& property);
-    sptr<IRemoteObject> HandleNewGroup(GroupId groupId, ScreenId screenId, const sptr<RSScreenProperty>& property);
+    sptr<IRemoteObject> HandleExistingGroup(pid_t pid, ScreenId screenId,
+        const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
+    sptr<IRemoteObject> HandleNewGroup(GroupId groupId, ScreenId screenId,
+        const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     GroupId GetGroupIdByScreenId(ScreenId screenId) const;
     std::optional<GroupId> CheckGroupIdByScreenId(ScreenId screenId) const;
 
@@ -81,10 +86,32 @@ private:
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnByPidLocked(pid_t pid) const;
 
     sptr<IRSComposerToRenderConnection> GotComposerToRenderConnByPid(pid_t pid) const;
+    sptr<IRSComposerToRenderConnection> GetComposerToRenderConnByPid(pid_t pid) const;
+    sptr<IRSComposerToRenderConnection> GetComposerToRenderConnByPidLocked(pid_t pid) const;
 
     ScreenId InsertVirtualToPhysicalScreenMap(ScreenId screenId, ScreenId associatedScreenId);
     std::optional<ScreenId> DeleteVirtualToPhysicalScreenMap(ScreenId id);
     ScreenId FindVirtualToPhysicalScreenMap(ScreenId screenId);
+
+    class RenderProcessDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        explicit RenderProcessDeathRecipient(pid_t pid, wptr<RSMultiRenderProcessManager> manager)
+            : pid_(pid), manager_(manager) {}
+        ~RenderProcessDeathRecipient() noexcept override = default;
+        void OnRemoteDied(const wptr<IRemoteObject>& token) override;
+
+    private:
+        pid_t pid_;
+        wptr<RSMultiRenderProcessManager> manager_;
+    };
+
+    void RegisterDeathRecipient(pid_t pid, const sptr<IRemoteObject>& binderObject);
+    void UnregisterDeathRecipient(pid_t pid);
+    void HandleRenderProcessDeath(pid_t pid);
+    std::unordered_map<pid_t, sptr<RenderProcessDeathRecipient>> deathRecipients_;
+
+    void AddScreenOutputToProcess(pid_t pid, ScreenId screenId, const std::shared_ptr<HdiOutput>& output);
+    void RemoveScreenOutputFromProcess(pid_t pid, ScreenId screenId);
 
     mutable std::mutex renderProcessReadyPromiseMutex_;
     std::condition_variable renderProcessReadyPromiseCv_;
@@ -95,6 +122,8 @@ private:
     std::unordered_map<pid_t, sptr<IRSComposerToRenderConnection>> composerToRenderConnections_;
     std::unordered_map<pid_t, sptr<RSIServiceToRenderConnection>> serviceToRenderConnections_;
     std::unordered_map<pid_t, sptr<RSIConnectToRenderProcess>> connectToRenderConnections_;
+    std::unordered_map<pid_t, std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>> pidToScreenOutputMap_;
+    std::function<void(std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>&)> renderProcessDeathCallback_;
 
     mutable std::mutex virtualScreenMutex_;
     std::map<ScreenId, ScreenId> virtualToPhysicalScreenMap_;
@@ -106,6 +135,10 @@ private:
     std::unordered_map<pid_t, PendingScreenConnectInfo> pendingScreenConnectInfos_;
 
     const std::shared_ptr<RSIpcPersistenceManager> ipcPersistenceManager_;
+
+    std::deque<std::chrono::steady_clock::time_point> subprocessDeathTimes_;
+    std::mutex subprocessDeathTimesMutex_;
+    void CheckAndHandleSubprocessDeathOverflow();
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -16,16 +16,12 @@
 
 #include <algorithm>
 #include <sstream>
-
-#include "draw/canvas.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "recording/draw_cmd_list.h"
 #include "recording/recording_canvas.h"
 namespace OHOS {
 namespace Rosen {
 
-RSDrawCmdList::RSDrawCmdList(
-    const std::shared_ptr<Drawing::DrawCmdList> startValue, const std::shared_ptr<Drawing::DrawCmdList> endValue)
+RSDrawCmdList::RSDrawCmdList(const SimpleDrawCmdListPtr startValue, const SimpleDrawCmdListPtr endValue)
 {
     if (startValue && startValue->GetType() == Drawing::CmdList::Type::RS_DRAW_CMD_LIST) {
         auto rsDrawCmdList = std::static_pointer_cast<RSDrawCmdList>(startValue);
@@ -64,7 +60,7 @@ int32_t RSDrawCmdList::GetWidth() const
     if (endValue_.first) {
         return endValue_.first->GetWidth();
     }
-    return Drawing::DrawCmdList::GetWidth();
+    return RSSimpleDrawCmdList::GetWidth();
 }
 
 int32_t RSDrawCmdList::GetHeight() const
@@ -72,7 +68,7 @@ int32_t RSDrawCmdList::GetHeight() const
     if (endValue_.first) {
         return endValue_.first->GetHeight();
     }
-    return Drawing::DrawCmdList::GetHeight();
+    return RSSimpleDrawCmdList::GetHeight();
 }
 
 bool RSDrawCmdList::IsEmpty() const
@@ -88,23 +84,43 @@ void RSDrawCmdList::Estimate(float fraction)
     fraction_.store(fraction, std::memory_order_relaxed);
 }
 
-std::shared_ptr<Drawing::DrawCmdList> RSDrawCmdList::GetEndDrawCmdList() const
+SimpleDrawCmdListPtr RSDrawCmdList::GetEndDrawCmdList() const
 {
     return endValue_.first;
+}
+
+RSB_EXPORT SimpleDrawCmdListPtr operator+(const SimpleDrawCmdListPtr& lhs, const SimpleDrawCmdListPtr& rhs)
+{
+    return lhs;
+}
+RSB_EXPORT SimpleDrawCmdListPtr operator-(const SimpleDrawCmdListPtr& lhs, const SimpleDrawCmdListPtr& rhs)
+{
+    return lhs;
+}
+RSB_EXPORT SimpleDrawCmdListPtr operator*(const SimpleDrawCmdListPtr& lhs, float rhs)
+{
+    return lhs;
+}
+RSB_EXPORT bool operator==(const SimpleDrawCmdListPtr& lhs, const SimpleDrawCmdListPtr& rhs)
+{
+    return false;
 }
 namespace Drawing {
 RSB_EXPORT DrawCmdListPtr operator+(const DrawCmdListPtr& lhs, const DrawCmdListPtr& rhs)
 {
     return lhs;
 }
+
 RSB_EXPORT DrawCmdListPtr operator-(const DrawCmdListPtr& lhs, const DrawCmdListPtr& rhs)
 {
     return lhs;
 }
+
 RSB_EXPORT DrawCmdListPtr operator*(const DrawCmdListPtr& lhs, float rhs)
 {
     return lhs;
 }
+
 RSB_EXPORT bool operator==(const DrawCmdListPtr& lhs, const DrawCmdListPtr& rhs)
 {
     return false;

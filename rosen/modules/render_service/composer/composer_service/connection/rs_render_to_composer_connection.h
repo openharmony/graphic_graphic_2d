@@ -28,6 +28,8 @@ public:
     bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override;
     void ClearFrameBuffers() override;
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override;
+    int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence) override;
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) override;
     void SetScreenBacklight(uint32_t level) override;

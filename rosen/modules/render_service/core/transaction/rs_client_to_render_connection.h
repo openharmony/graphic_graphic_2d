@@ -184,6 +184,12 @@ private:
     ) override;
 
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
+
+    int32_t UpdateFrameStabilityDetection(
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    ) override;
+
     ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
 
     void SetFreeMultiWindowStatus(bool enable) override;

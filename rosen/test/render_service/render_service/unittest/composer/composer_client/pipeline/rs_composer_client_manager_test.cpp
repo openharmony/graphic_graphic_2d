@@ -19,14 +19,18 @@
 #include <tuple>
 #include <memory>
 #include <string>
+#include <thread>
+#include <atomic>
 
 #include "rs_composer_client_manager.h"
+#include "rs_render_to_composer_connection_stub.h"
 #include "layer_backend/hdi_output.h"
 #include "rs_composer_client.h"
 #include "rs_composer_context.h"
 #include "rs_surface_layer.h"
 #include "rs_layer_transaction_data.h"
 #include "params/rs_render_params.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -38,8 +42,61 @@ class RSComposerClientManagerTest : public Test {};
 static std::shared_ptr<RSComposerClient> MakeClient()
 {
     sptr<IRSRenderToComposerConnection> conn = nullptr; // keep nullptr to avoid remote interactions
-    return std::make_shared<RSComposerClient>(conn);
+    return RSComposerClient::Create(conn, nullptr);
 }
+
+namespace {
+class RecordingRenderToComposerConnection final : public RSRenderToComposerConnectionStub {
+public:
+    bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override
+    {
+        return false;
+    }
+
+    void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override {}
+
+    int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence) override
+    {
+        commitTunnelCalled = true;
+        lastSurfaceId = surfaceId;
+        lastTunnelLayerId = tunnelLayerId;
+        lastBufferSeqNum = buffer == nullptr ? 0 : buffer->GetSeqNum();
+        releaseFence = SyncFence::InvalidFence();
+        return returnValue;
+    }
+
+    void ClearFrameBuffers() override {}
+    void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) override {}
+    void SetScreenBacklight(uint32_t level) override {}
+    void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
+    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
+
+    bool commitTunnelCalled = false;
+    uint64_t lastSurfaceId = 0;
+    uint64_t lastTunnelLayerId = 0;
+    uint32_t lastBufferSeqNum = 0;
+    int32_t returnValue = GRAPHIC_DISPLAY_SUCCESS;
+};
+
+sptr<SurfaceBuffer> CreateTunnelTestBuffer()
+{
+    BufferRequestConfig requestConfig = {
+        .width = 4,
+        .height = 4,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    if (buffer != nullptr && buffer->Alloc(requestConfig) != GSERROR_OK) {
+        return nullptr;
+    }
+    return buffer;
+}
+} // namespace
 
 /**
  * Function: AddGet_And_NoOverride
@@ -197,9 +254,9 @@ HWTEST_F(RSComposerClientManagerTest, CleanLayerBufferBySurfaceId_WithLayer_Forw
 HWTEST_F(RSComposerClientManagerTest, SetScreenBacklight_WithClientAndNoClient_NoCrash, TestSize.Level1)
 {
     RSComposerClientManager mgr;
-    mgr.SetScreenBacklight(9999, 80); // no client path
+    mgr.SetScreenBacklight(RsScreenBrightnessData(9999, 80)); // no client path
     mgr.AddComposerClient(1, MakeClient());
-    mgr.SetScreenBacklight(1, 90); // with client path
+    mgr.SetScreenBacklight(RsScreenBrightnessData(1, 90)); // with client path
     EXPECT_EQ(mgr.GetComposerClient(9999), nullptr);
     EXPECT_NE(mgr.GetComposerClient(1), nullptr);
 }
@@ -513,5 +570,255 @@ HWTEST_F(RSComposerClientManagerTest, ClearRedrawGPUCompositionCache_EmptyClient
     EXPECT_EQ(mgr.GetMinAccumulatedBufferCount(), 0);
 }
 
-} // namespace OHOS::Rosen
+/**
+ * Function: AddComposerClient_MultiThreadConcurrency_100Loops
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSComposerClientManager
+ *                  2. create multiple threads to concurrently call AddComposerClient 100 times each
+ *                  3. verify no crash or data race occurs during concurrent execution
+ */
+HWTEST_F(RSComposerClientManagerTest, AddComposerClient_MultiThreadConcurrency_100Loops, TestSize.Level1)
+{
+    constexpr uint32_t threadCount = 4u;
+    constexpr uint32_t loopCount = 100u;
+    constexpr ScreenId baseScreenId = 900u;
 
+    RSComposerClientManager mgr;
+    std::vector<std::thread> threads;
+    std::atomic<uint32_t> successCount { 0u };
+
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        threads.emplace_back([&, threadIdx]() {
+            for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+                ScreenId screenId = baseScreenId + threadIdx * loopCount + loopIdx;
+                auto client = MakeClient();
+                mgr.AddComposerClient(screenId, client);
+                successCount.fetch_add(1u);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    EXPECT_EQ(successCount.load(), threadCount * loopCount);
+}
+
+/**
+ * Function: DeleteComposerClient_MultiThreadConcurrency_100Loops
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSComposerClientManager and pre-add multiple clients
+ *                  2. create multiple threads to concurrently call DeleteComposerClient 100 times each
+ *                  3. verify no crash or data race occurs during concurrent execution
+ */
+HWTEST_F(RSComposerClientManagerTest, DeleteComposerClient_MultiThreadConcurrency_100Loops, TestSize.Level1)
+{
+    constexpr uint32_t threadCount = 4u;
+    constexpr uint32_t loopCount = 100u;
+    constexpr ScreenId baseScreenId = 1000u;
+
+    RSComposerClientManager mgr;
+
+    // Pre-add clients to ensure they exist in the map
+    std::vector<ScreenId> addedScreenIds;
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+            ScreenId screenId = baseScreenId + threadIdx * loopCount + loopIdx;
+            mgr.AddComposerClient(screenId, MakeClient());
+            addedScreenIds.push_back(screenId);
+        }
+    }
+
+    std::vector<std::thread> threads;
+    std::atomic<uint32_t> successCount { 0u };
+
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        threads.emplace_back([&, threadIdx]() {
+            for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+                ScreenId screenId = addedScreenIds[threadIdx * loopCount + loopIdx];
+                mgr.DeleteComposerClient(screenId);
+                successCount.fetch_add(1u);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    EXPECT_EQ(successCount.load(), threadCount * loopCount);
+}
+
+/**
+ * Function: GetComposerClient_MultiThreadConcurrency_100Loops
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSComposerClientManager and pre-add multiple clients
+ *                  2. create multiple threads to concurrently call GetComposerClient 100 times each
+ *                  3. verify no crash or data race occurs during concurrent execution
+ */
+HWTEST_F(RSComposerClientManagerTest, GetComposerClient_MultiThreadConcurrency_100Loops, TestSize.Level1)
+{
+    constexpr uint32_t threadCount = 4u;
+    constexpr uint32_t loopCount = 100u;
+    constexpr ScreenId baseScreenId = 1100u;
+
+    RSComposerClientManager mgr;
+
+    // Pre-add clients to ensure they exist in the map
+    std::vector<ScreenId> addedScreenIds;
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+            ScreenId screenId = baseScreenId + threadIdx * loopCount + loopIdx;
+            mgr.AddComposerClient(screenId, MakeClient());
+            addedScreenIds.push_back(screenId);
+        }
+    }
+
+    std::vector<std::thread> threads;
+    std::atomic<uint32_t> successCount { 0u };
+    std::atomic<uint32_t> foundCount { 0u };
+
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        threads.emplace_back([&, threadIdx]() {
+            for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+                ScreenId screenId = addedScreenIds[threadIdx * loopCount + loopIdx];
+                auto client = mgr.GetComposerClient(screenId);
+                if (client != nullptr) {
+                    foundCount.fetch_add(1u);
+                }
+                successCount.fetch_add(1u);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    EXPECT_EQ(successCount.load(), threadCount * loopCount);
+    EXPECT_EQ(foundCount.load(), threadCount * loopCount);
+}
+
+/**
+ * Function: PreAllocProtectedFrameBuffers_MultiThreadConcurrency_100Loops
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSComposerClientManager and pre-add multiple clients
+ *                  2. create multiple threads to concurrently call PreAllocProtectedFrameBuffers 100 times each
+ *                  3. verify no crash or data race occurs during concurrent execution
+ */
+HWTEST_F(RSComposerClientManagerTest, PreAllocProtectedFrameBuffers_MultiThreadConcurrency_100Loops, TestSize.Level1)
+{
+    constexpr uint32_t threadCount = 4u;
+    constexpr uint32_t loopCount = 100u;
+    constexpr ScreenId baseScreenId = 1200u;
+
+    RSComposerClientManager mgr;
+
+    // Pre-add clients to ensure they exist in the map
+    std::vector<ScreenId> addedScreenIds;
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+            ScreenId screenId = baseScreenId + threadIdx * loopCount + loopIdx;
+            mgr.AddComposerClient(screenId, MakeClient());
+            addedScreenIds.push_back(screenId);
+        }
+    }
+
+    std::vector<std::thread> threads;
+    std::atomic<uint32_t> successCount { 0u };
+
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        threads.emplace_back([&, threadIdx]() {
+            for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+                ScreenId screenId = addedScreenIds[threadIdx * loopCount + loopIdx];
+                sptr<SurfaceBuffer> buffer = nullptr;
+                mgr.PreAllocProtectedFrameBuffers(screenId, buffer);
+                successCount.fetch_add(1u);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    EXPECT_EQ(successCount.load(), threadCount * loopCount);
+}
+
+
+/**
+ * Function: CommitTunnelLayerBySurfaceId_NoClient_ReturnsFailure
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. do not add composer client
+ *                  2. call CommitTunnelLayerBySurfaceId
+ *                  3. expect GRAPHIC_DISPLAY_FAILURE
+ */
+HWTEST_F(RSComposerClientManagerTest, CommitTunnelLayerBySurfaceId_NoClient_ReturnsFailure, TestSize.Level1)
+{
+    RSComposerClientManager mgr;
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    TunnelLayerCommitInfo commitInfo;
+    commitInfo.surfaceId = 11u;
+    commitInfo.nodeId = 22u;
+    commitInfo.tunnelLayerId = 33u;
+    EXPECT_EQ(mgr.CommitTunnelLayerBySurfaceId(commitInfo, releaseFence), GRAPHIC_DISPLAY_FAILURE);
+}
+
+/**
+ * Function: CommitTunnelLayerBySurfaceId_ForwardToMatchedClient
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. add client with matching rs layer
+ *                  2. call CommitTunnelLayerBySurfaceId
+ *                  3. verify parameters are forwarded to the matched client connection
+ */
+HWTEST_F(RSComposerClientManagerTest, CommitTunnelLayerBySurfaceId_ForwardToMatchedClient, TestSize.Level1)
+{
+    auto conn = sptr<RecordingRenderToComposerConnection>::MakeSptr();
+    ASSERT_NE(conn, nullptr);
+    auto client = RSComposerClient::Create(conn, nullptr);
+    ASSERT_NE(client, nullptr);
+
+    RSComposerClientManager mgr;
+    constexpr ScreenId screenId = 9001;
+    constexpr RSLayerId nodeId = 9101;
+    constexpr uint64_t surfaceId = 9201;
+    constexpr uint64_t tunnelLayerId = 9301;
+    mgr.AddComposerClient(screenId, client);
+
+    auto ctx = client->GetComposerContext();
+    ASSERT_NE(ctx, nullptr);
+    auto layer = RSSurfaceLayer::Create(nodeId, ctx);
+    ASSERT_NE(layer, nullptr);
+    layer->SetNodeId(nodeId);
+
+    auto buffer = CreateTunnelTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    TunnelLayerCommitInfo commitInfo;
+    commitInfo.surfaceId = surfaceId;
+    commitInfo.nodeId = nodeId;
+    commitInfo.tunnelLayerId = tunnelLayerId;
+    commitInfo.buffer = buffer;
+    commitInfo.acquireFence = nullptr;
+    EXPECT_EQ(mgr.CommitTunnelLayerBySurfaceId(commitInfo, releaseFence), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_TRUE(conn->commitTunnelCalled);
+    EXPECT_EQ(conn->lastSurfaceId, surfaceId);
+    EXPECT_EQ(conn->lastTunnelLayerId, tunnelLayerId);
+    EXPECT_EQ(conn->lastBufferSeqNum, buffer->GetSeqNum());
+}
+
+} // namespace OHOS::Rosen

@@ -747,5 +747,20 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterFrameStabilityDetectionTes
     int32_t ret = proxy->RegisterFrameStabilityDetection(target, config, nullptr);
     EXPECT_EQ(ret, INVALID_ARGUMENTS);
 }
+
+/**
+ * @tc.name: UpdateFrameStabilityDetectionTest001
+ * @tc.desc: Test UpdateFrameStabilityDetection with valid parameters
+ * @tc.type: FUNC
+ * @tc.require: issue23671
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, UpdateFrameStabilityDetectionTest001, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
+    FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
+    int32_t ret = proxy->UpdateFrameStabilityDetection(oldTarget, newTarget);
+    EXPECT_EQ(ret, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

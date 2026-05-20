@@ -55,6 +55,10 @@ int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::M
             }
             break;
         }
+        case IRENDER_TO_COMPOSER_CONNECTION_COMMIT_TUNNEL_LAYER_BY_SURFACE_ID: {
+            ret = CommitTunnelLayerBySurfaceIdStub(data, reply);
+            break;
+        }
         case IRENDER_TO_COMPOSER_CONNECTION_CLEAR_REDRAW_GPU_COMPOSITION_CACHE: {
             auto bufferIds = ParseClearRedrawCacheBufferIds(data);
             ClearRedrawGPUCompositionCache(bufferIds);
@@ -103,6 +107,51 @@ int32_t RSRenderToComposerConnectionStub::GetCleanLayerBufferSurfaceId(OHOS::Mes
     if (!parcel.ReadUint64(surfaceId)) {
         RS_LOGE("%{public}s read surface id failed.", __func__);
         return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
+    return COMPOSITOR_ERROR_OK;
+}
+
+int32_t RSRenderToComposerConnectionStub::CommitTunnelLayerBySurfaceIdStub(OHOS::MessageParcel& data,
+    OHOS::MessageParcel& reply)
+{
+    uint64_t surfaceId = 0;
+    uint64_t tunnelLayerId = 0;
+    if (!data.ReadUint64(surfaceId) || !data.ReadUint64(tunnelLayerId)) {
+        RS_LOGE("%{public}s read tunnel info failed", __func__);
+        reply.WriteInt32(GRAPHIC_DISPLAY_PARAM_ERR);
+        reply.WriteBool(false);
+        return COMPOSITOR_ERROR_OK;
+    }
+
+    uint32_t sequence = 0;
+    sptr<SurfaceBuffer> buffer = nullptr;
+    auto readSafeFdFunc = [](OHOS::MessageParcel& messageParcel,
+                             std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
+        return messageParcel.ReadFileDescriptor();
+    };
+    if (ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc) != GSERROR_OK) {
+        RS_LOGE("%{public}s read surface buffer failed", __func__);
+        reply.WriteInt32(GRAPHIC_DISPLAY_FAILURE);
+        reply.WriteBool(false);
+        return COMPOSITOR_ERROR_OK;
+    }
+
+    bool hasAcquireFence = data.ReadBool();
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    if (hasAcquireFence) {
+        acquireFence = new SyncFence(data.ReadFileDescriptor());
+    }
+
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    int32_t ret = CommitTunnelLayerBySurfaceId(surfaceId, tunnelLayerId, buffer, acquireFence, releaseFence);
+    reply.WriteInt32(ret);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS || releaseFence == nullptr || releaseFence->Get() < 0) {
+        reply.WriteBool(false);
+        return COMPOSITOR_ERROR_OK;
+    }
+    reply.WriteBool(true);
+    if (!reply.WriteFileDescriptor(releaseFence->Get())) {
+        RS_LOGE("%{public}s write release fence failed", __func__);
     }
     return COMPOSITOR_ERROR_OK;
 }

@@ -183,7 +183,8 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationTest, TestSize.Level1
     displayNode->modifiersNG_.emplace(ModifierNG::RSModifierType::HDR_BRIGHTNESS, modifiers);
     auto animationProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(0, 1, animationProperty);
-    displayNode->animationManager_.animations_[0] = renderPropertyAnimation;
+    displayNode->animationManager_ = std::make_shared<RSAnimationManager>();
+    displayNode->animationManager_->animations_[0] = renderPropertyAnimation;
     displayNode->IsOnlyHDRAnimation();
 
     auto modifier3 = ModifierNG::RSRenderModifier::MakeRenderModifier(
@@ -191,7 +192,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationTest, TestSize.Level1
     modifiers.emplace_back(modifier3);
     renderPropertyAnimation->propertyId_ = 2;
     std::shared_ptr<RSRenderAnimation> animation2;
-    displayNode->animationManager_.animations_[1] = animation2;
+    displayNode->animationManager_->animations_[1] = animation2;
     displayNode->IsOnlyHDRAnimation();
 }
 
@@ -537,5 +538,34 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdateDimensionsTest, TestSize.Level1)
     renderNode->UpdateRotation();
     renderNode->UpdateFixedSize();
     EXPECT_EQ(renderNode->GetCompositeType(), CompositeType::HARDWARE_COMPOSITE);
+}
+
+/**
+ * @tc.name: IsOnlyHDRAnimationWithNullManager001
+ * @tc.desc: Verify IsOnlyHDRAnimation returns false with null animationManager and HDR modifiers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationWithNullManager001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+
+    // Add HDR modifiers but NO animationManager (don't add any animation)
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    property->GetRef() = drawCmdList;
+    property->id_ = 1;
+    ModifierId id = 1;
+
+    auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
+        ModifierNG::RSModifierType::HDR_BRIGHTNESS, property, id, ModifierNG::RSPropertyType::HDR_BRIGHTNESS_FACTOR);
+    RSRootRenderNode::ModifierNGContainer modifiers { modifier };
+    displayNode->modifiersNG_.emplace(ModifierNG::RSModifierType::HDR_BRIGHTNESS, modifiers);
+
+    // animationManager_ is null since no animations were added
+    EXPECT_EQ(displayNode->GetAnimationManager(), nullptr);
+    EXPECT_FALSE(displayNode->IsOnlyHDRAnimation());
 }
 } // namespace OHOS::Rosen

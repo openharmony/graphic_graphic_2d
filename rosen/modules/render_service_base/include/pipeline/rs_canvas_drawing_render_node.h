@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
-using ModifierCmdList = std::list<Drawing::DrawCmdListPtr>;
+using ModifierCmdList = std::list<SimpleDrawCmdListPtr>;
 class RSRecordingCanvas;
 
 class RSB_EXPORT RSCanvasDrawingRenderNode : public RSCanvasRenderNode {
@@ -90,8 +90,8 @@ private:
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
     void InitRenderParams() override;
-    void ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const;
-    void SplitDrawCmdList(size_t firstOpCount, Drawing::DrawCmdListPtr drawCmdList, bool splitOrigin);
+    void ReportOpCount(const std::list<SimpleDrawCmdListPtr>& cmdLists) const;
+    void SplitDrawCmdList(size_t firstOpCount, SimpleDrawCmdListPtr drawCmdList, bool splitOrigin);
     size_t ApplyCachedCmdList();
     void AfterSync();
     void ClearResource();

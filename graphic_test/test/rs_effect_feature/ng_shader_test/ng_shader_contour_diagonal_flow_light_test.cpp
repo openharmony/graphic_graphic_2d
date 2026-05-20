@@ -29,14 +29,13 @@ void InitContourDiagonalFlowLight(std::shared_ptr<RSNGContourDiagonalFlowLight>&
     }
     // Contour (vector of Vector2f points)
     std::vector<Vector2f> contour = {
-        Vector2f{0.2f, 0.2f},
-        Vector2f{0.8f, 0.2f},
-        Vector2f{0.8f, 0.8f},
-        Vector2f{0.2f, 0.8f}
+        Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.5f}, Vector2f{0.0f, 1.0f},
+        Vector2f{0.5f, 1.0f}, Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.5f},
+        Vector2f{1.0f, 0.0f}, Vector2f{0.5f, 0.0f}
     };
     contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightContourTag>(contour);
     // Line1Start
-    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLine1StartTag>(0.0f);
+    contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLine1StartTag>(0.5f);
     // Line1Length
     contourDiagonalFlowLight->Setter<ContourDiagonalFlowLightLine1LengthTag>(0.5f);
     // Line1Color
@@ -64,19 +63,24 @@ const int SCREEN_HEIGHT = 2000;
 
 // Contour values
 const std::vector<std::vector<Vector2f>> contourValues = {
-    {Vector2f{0.0f, 0.0f}},
-    {Vector2f{0.5f, 0.5f}},
-    {Vector2f{1.0f, 1.0f}}
+    {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.5f}, Vector2f{0.0f, 1.0f}, Vector2f{0.5f, 1.0f},
+     Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.5f}, Vector2f{1.0f, 0.0f}, Vector2f{0.5f, 0.0f}},
+    {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.8f}, Vector2f{0.0f, 1.0f}, Vector2f{0.2f, 1.0f},
+     Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.7f}, Vector2f{1.0f, 0.0f}, Vector2f{0.8f, 0.0f}},
+    {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.1f}, Vector2f{0.0f, 0.8f}, Vector2f{0.8f, 1.0f},
+     Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.2f}, Vector2f{1.0f, 0.0f}, Vector2f{0.5f, 0.0f}},
+    {Vector2f{0.0f, 0.0f}, Vector2f{0.0f, 0.4f}, Vector2f{0.0f, 0.6f}, Vector2f{0.8f, 1.0f},
+     Vector2f{1.0f, 1.0f}, Vector2f{1.0f, 0.8f}, Vector2f{1.0f, 0.0f}, Vector2f{0.8f, 0.0f}}
 };
 
 // Thickness values
 const std::vector<float> thicknessValues = {0.0f, 5.0f, 10.0f, 20.0f};
 
 // Halo radius values
-const std::vector<float> haloRadiusValues = {0.0f, 10.0f, 50.0f};
+const std::vector<float> haloRadiusValues = {0.0f, 10.0f, 25.0f, 50.0f};
 
 // Light weight values
-const std::vector<float> lightWeightValues = {0.0f, 0.5f, 1.0f};
+const std::vector<float> lightWeightValues = {0.0f, 0.5f, 0.8f, 1.0f};
 }
 
 class NGShaderContourDiagonalFlowLightTest : public RSGraphicTest {
@@ -110,13 +114,13 @@ private:
  */
 GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_Contour_Test)
 {
-    const size_t columnCount = 3;
+    const size_t columnCount = 4;
     const size_t rowCount = 1;
 
     for (size_t i = 0; i < contourValues.size(); i++) {
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
         InitContourDiagonalFlowLight(contourLight);
-        contourLight->Setter<ContourDiagonalFlowLightContourTag>(std::vector<Vector2f>{Vector2f{0.5f, 0.5f}});
+        contourLight->Setter<ContourDiagonalFlowLightContourTag>(contourValues[i]);
         contourLight->Setter<ContourDiagonalFlowLightThicknessTag>(10.0f);
 
         SetUpTestNode(i, columnCount, rowCount, contourLight);
@@ -134,7 +138,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
     for (size_t i = 0; i < thicknessValues.size(); i++) {
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
         InitContourDiagonalFlowLight(contourLight);
-        contourLight->Setter<ContourDiagonalFlowLightContourTag>(std::vector<Vector2f>{Vector2f{0.5f, 0.5f}});
+        contourLight->Setter<ContourDiagonalFlowLightContourTag>(contourValues[i]);
         contourLight->Setter<ContourDiagonalFlowLightThicknessTag>(thicknessValues[i]);
 
         SetUpTestNode(i, columnCount, rowCount, contourLight);
@@ -146,14 +150,14 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
  */
 GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_Halo_Combination_Test)
 {
-    const size_t columnCount = 3;
+    const size_t columnCount = 4;
     const size_t rowCount = 1;
 
     for (size_t i = 0; i < haloRadiusValues.size(); i++) {
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
         InitContourDiagonalFlowLight(contourLight);
-        contourLight->Setter<ContourDiagonalFlowLightContourTag>(std::vector<Vector2f>{Vector2f{0.5f, 0.5f}});
-        contourLight->Setter<ContourDiagonalFlowLightThicknessTag>(10.0f);
+        contourLight->Setter<ContourDiagonalFlowLightContourTag>(contourValues[i]);
+        contourLight->Setter<ContourDiagonalFlowLightThicknessTag>(thicknessValues[i]);
         contourLight->Setter<ContourDiagonalFlowLightHaloRadiusTag>(haloRadiusValues[i]);
         contourLight->Setter<ContourDiagonalFlowLightLightWeightTag>(lightWeightValues[i]);
 

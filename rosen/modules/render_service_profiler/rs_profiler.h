@@ -585,7 +585,7 @@ public:
     RSB_EXPORT static TextureRecordType GetTextureRecordType();
     RSB_EXPORT static void SetTextureRecordType(TextureRecordType type);
 
-    RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
+    RSB_EXPORT static void DrawingNodeAddClearOp(const SimpleDrawCmdListPtr& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
     RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
@@ -737,7 +737,7 @@ private:
     RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag = false,
         bool absRoot = false, bool isSorted = true);
     RSB_EXPORT static void DumpNodeAbsoluteProperties(const RSRenderNode& node, JsonWriter& out);
-    RSB_EXPORT static void DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& out);
+    RSB_EXPORT static void DumpNodeAnimations(std::shared_ptr<RSAnimationManager> animationManager, JsonWriter& out);
     RSB_EXPORT static void DumpNodeAnimation(const RSRenderAnimation& animation, JsonWriter& out);
     RSB_EXPORT static void DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag);
     RSB_EXPORT static void DumpNodeSubsurfaces(const RSRenderNode& node, JsonWriter& out);
@@ -757,7 +757,7 @@ private:
     RSB_EXPORT static void DumpNodeChildrenListUpdate(const RSRenderNode& node, JsonWriter& out);
 
     // RSAnimationManager
-    RSB_EXPORT static void FilterAnimationForPlayback(RSAnimationManager& manager);
+    RSB_EXPORT static void FilterAnimationForPlayback(std::shared_ptr<RSAnimationManager> manager);
 
     RSB_EXPORT static NodeId PatchPlainNodeId(const Parcel& parcel, NodeId id);
     RSB_EXPORT static pid_t PatchPlainPid(const Parcel& parcel, pid_t pid);

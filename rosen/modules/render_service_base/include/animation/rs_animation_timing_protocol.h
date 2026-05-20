@@ -38,7 +38,7 @@ class RSB_EXPORT RSAnimationTimingProtocol {
 public:
     RSAnimationTimingProtocol() = default;
     RSAnimationTimingProtocol(int duration) : duration_(duration) {}
-    virtual ~RSAnimationTimingProtocol() = default;
+    virtual ~RSAnimationTimingProtocol();
 
     void SetDuration(int duration)
     {

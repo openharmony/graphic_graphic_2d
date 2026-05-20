@@ -86,6 +86,7 @@ using FrameStabilityCallback = std::function<void(bool)>;
 
 class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
 public:
+    RSRenderPipelineClient();
     RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote);
     ~RSRenderPipelineClient() = default;
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
@@ -218,6 +219,11 @@ public:
     );
 
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result);
+
+    int32_t UpdateFrameStabilityDetection(
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    );
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,

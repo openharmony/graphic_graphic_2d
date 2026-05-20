@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "pipeline/rs_render_node.h"
 namespace OHOS {
 namespace Rosen {

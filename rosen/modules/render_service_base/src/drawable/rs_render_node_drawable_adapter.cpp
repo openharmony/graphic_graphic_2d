@@ -402,6 +402,7 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
     }
     RSRenderNode::DumpNodeType(nodeType_, out);
     out += "[" + std::to_string(nodeId_) + "]";
+    out += ", hasRenderNode: " + std::to_string(!renderNode_.expired());
     renderNode->DumpSubClassNode(out);
     out += ", DrawableVec:[" + DumpDrawableVec(renderNode) + "]";
     if (renderParams_ == nullptr) {
@@ -527,6 +528,9 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
     curCanvas->ResetClip();
     curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    if (curDrawingCacheRoot_) {
+        curDrawingCacheRoot_->SetShouldClipHole(true);
+    }
     UpdateFilterInfoForNodeGroup(curCanvas);
 }
 

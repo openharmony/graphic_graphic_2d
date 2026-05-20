@@ -48,6 +48,8 @@
 #include "pipeline/hwc/rs_hwc_context.h"
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
+#include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
@@ -68,6 +70,8 @@ class AccessibilityObserver;
 #endif
 class HgmRenderContext;
 class RSIRenderToServiceConnection;
+class RSTunnelLayerStateHandler;
+class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
 namespace Detail {
@@ -156,6 +160,13 @@ public:
         return *context_;
     }
 
+    bool HasContext() const
+    {
+        return context_ != nullptr;
+    }
+
+    RSTunnelLayerStateHandler* GetTunnelLayerStateHandler() const;
+
     void SetGlobalDarkColorMode(bool isDark)
     {
         isGlobalDarkColorMode_ = isDark;
@@ -196,6 +207,7 @@ public:
     void AddWindowCapTask(NodeId id, std::function<void()> task);
     void CheckWindowCapTasks();
     void ProcessWindowCapTasks();
+    bool IsSnapshotPendingThisFrame() const;
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
@@ -473,6 +485,7 @@ private:
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
+    void RequestDelayedVSyncForAnimation(int64_t minLeftDelayTime, uint64_t timestamp, int64_t nextFrameTime);
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
     void Render();
@@ -582,8 +595,6 @@ private:
     void EndGPUDraw();
 
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
-    void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     void CleanRenderNodes(pid_t remotePid) noexcept;
     void CleanBrightnessInfoChangeCallbacks(pid_t remotePid) noexcept;
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -831,6 +842,8 @@ private:
 #endif
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
+    std::unique_ptr<RSTunnelLayerManager> tunnelLayerManager_ = nullptr;
+    std::unique_ptr<RSTunnelRouteArbiter> tunnelRouteArbiter_ = nullptr;
     std::mutex dumpInfoMutex_;
 
     bool hasCanvasDrawingNodeCachedOp_ = false;

@@ -333,7 +333,7 @@ bool DoCollectHdrStatus(const uint8_t* data)
     auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
     rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     HdrStatus hdrStatus = GetData<HdrStatus>();
-    rsScreenRenderNode->CollectHdrStatus(hdrStatus);
+    rsScreenRenderNode->CollectHdrStatus(node->GetId(), hdrStatus);
     return true;
 }
 
@@ -352,6 +352,24 @@ bool DoSetExistHWCNode(const uint8_t* data)
     rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     bool existHWCNode = GetData<bool>();
     rsScreenRenderNode->SetExistHWCNode(existHWCNode);
+    return true;
+}
+
+bool DoSetHasForceHwcHdrSurface(const uint8_t* data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto node = std::static_pointer_cast<RSRenderNode>(rsScreenRenderNode);
+    rsScreenRenderNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+    bool hasForceHwcHdrSurface = GetData<bool>();
+    rsScreenRenderNode->SetHasForceHwcHdrSurface(hasForceHwcHdrSurface);
     return true;
 }
 
@@ -399,6 +417,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetFixVirtualBuffer10Bit(data);
     OHOS::Rosen::DoCollectHdrStatus(data);
     OHOS::Rosen::DoSetExistHWCNode(data);
+    OHOS::Rosen::DoSetHasForceHwcHdrSurface(data);
     OHOS::Rosen::DoSetForceFreeze(data);
     return 0;
 }

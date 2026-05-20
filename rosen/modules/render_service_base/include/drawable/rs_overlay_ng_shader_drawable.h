@@ -58,6 +58,8 @@ private:
     bool stagingEnableEDREffect_ = false;
     std::shared_ptr<Drawing::ShaderEffect> stagingSDFShaderEffect_;
     std::shared_ptr<Drawing::ShaderEffect> sdfShaderEffect_;
+    Drawing::Rect sdfDrawRect_;
+    Drawing::Rect stagingSdfDrawRect_;
     RectF drawRect_;
     RectF stagingDrawRect_;
 
@@ -82,6 +84,7 @@ private:
     static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetNormalLightShaderBuilder();
     static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetSDFBorderLightShaderBuilder();
     static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetSDFContentLightShaderBuilder();
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetSDFContentAndBorderLightShaderBuilder();
 
     static float GetBrightnessMapping(float headroom, float input);
     static bool NeedToneMapping(float supportHeadroom);
@@ -97,6 +100,13 @@ private:
     void DrawBorderLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
         Drawing::Pen& pen, const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
     bool DrawSDFBorderLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect) const;
+
+    void DrawContentAndBorderLight(Drawing::Canvas& canvas,
+ 	         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Drawing::Pen& pen,
+ 	         const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
+    void DrawSDFContentAndBorderLight(Drawing::Canvas& canvas,
+        std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffectContent,
+        std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect, Drawing::Brush& brush) const;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

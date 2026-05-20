@@ -658,7 +658,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     if (renderGroupCache_) {
         target->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
     }
-    target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;
     target->hdrBrightness_ = hdrBrightness_;

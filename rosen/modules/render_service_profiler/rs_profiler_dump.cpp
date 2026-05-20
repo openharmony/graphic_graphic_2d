@@ -44,7 +44,7 @@ void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearM
     }
     DumpNodeOptionalFlags(node, out);
     DumpNodeDrawCmdModifiers(node, out);
-    DumpNodeAnimations(node.animationManager_, out);
+    DumpNodeAnimations(node.GetAnimationManager(), out);
     DumpNodeChildrenListUpdate(node, out);
 
     auto& children = out["children"];
@@ -550,14 +550,14 @@ void RSProfiler::DumpNodePropertiesColor(const RSProperties& properties, JsonWri
     }
 }
 
-void RSProfiler::DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& out)
+void RSProfiler::DumpNodeAnimations(std::shared_ptr<RSAnimationManager> animationManager, JsonWriter& out)
 {
-    if (animationManager.animations_.empty()) {
+    if (!animationManager || animationManager->animations_.empty()) {
         return;
     }
     auto& animations = out["RSAnimationManager"];
     animations.PushArray();
-    for (auto [id, animation] : animationManager.animations_) {
+    for (auto [id, animation] : animationManager->animations_) {
         if (animation) {
             DumpNodeAnimation(*animation, animations);
         }

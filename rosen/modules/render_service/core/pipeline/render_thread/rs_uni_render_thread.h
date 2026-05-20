@@ -267,6 +267,12 @@ public:
         bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence, bufferOwnerCount);
     }
 
+    void ReplacePendingReleaseBufferFence(sptr<IConsumerSurface> consumer, sptr<OHOS::SurfaceBuffer> buffer,
+        sptr<SyncFence> fence, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr)
+    {
+        bufferManager_.ReplacePendingReleaseBufferFence(consumer, buffer, fence, bufferOwnerCount);
+    }
+
     void OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec,
         uint64_t screenId)
@@ -327,6 +333,10 @@ public:
     {
         return composerClientManager_;
     }
+
+    using CommitDoneCallback = std::function<void(ScreenId)>;
+    void SetCommitDoneCallback(CommitDoneCallback callback);
+    void NotifyCommitDone(ScreenId screenId);
 
 private:
     RSUniRenderThread();
@@ -403,6 +413,7 @@ private:
     std::atomic<uint32_t> totalProcessNodeNum_ = 0;
     RSBufferManager bufferManager_ = RSBufferManager();
     std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
+    CommitDoneCallback commitDoneCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

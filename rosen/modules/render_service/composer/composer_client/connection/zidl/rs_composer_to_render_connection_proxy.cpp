@@ -160,5 +160,38 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
     }
     return replyMessage;
 }
+
+int32_t RSComposerToRenderConnectionProxy::NotifyLayerStateChangedToRender(
+    uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: write InterfaceToken failed", __func__);
+        return -1;
+    }
+    if (!data.WriteUint64(nodeId)) {
+        ROSEN_LOGE("%{public}s write nodeId failed", __func__);
+        return -1;
+    }
+    if (!data.WriteUint64(tunnelLayerGeneration)) {
+        ROSEN_LOGE("%{public}s write tunnelLayerGeneration failed", __func__);
+        return -1;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(state))) {
+        ROSEN_LOGE("%{public}s write state failed", __func__);
+        return -1;
+    }
+
+    uint32_t code = static_cast<uint32_t>(NOTIFY_LAYER_STATE_CHANGED_TO_RENDER);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
+        return -1;
+    }
+    return COMPOSITOR_ERROR_OK;
+}
 } // namespace Rosen
 } // namespace OHOS

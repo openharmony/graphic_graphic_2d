@@ -119,7 +119,7 @@ HWTEST_F(RSModifiersDrawTest, PlaybackTest001, TestSize.Level1)
     RSModifiersDraw::ResetSurfaceByNodeId(width, height, nodeId, false, false);
     auto surfaceEntry = RSModifiersDraw::GetSurfaceEntryByNodeId(nodeId);
     auto surface = surfaceEntry.surface;
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>();
     RSModifiersDraw::Playback(surface, cmdList, true);
     RSModifiersDraw::RemoveSurfaceByNodeId(nodeId, false);
     surfaceEntry = RSModifiersDraw::GetSurfaceEntryByNodeId(nodeId);
@@ -135,7 +135,7 @@ HWTEST_F(RSModifiersDrawTest, PlaybackTest001, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawTest, AddPixelMapDrawOpTest001, TestSize.Level1)
 {
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
     int32_t width = 100;
     int32_t height = 100;
@@ -154,7 +154,7 @@ HWTEST_F(RSModifiersDrawTest, ConvertCmdListForCanvasTest001, TestSize.Level1)
     NodeId nodeId = 1;
     int32_t width = 100;
     int32_t height = 100;
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>(width, height);
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(width, height);
     RSModifiersDraw::ConvertCmdListForCanvas(cmdList, nodeId);
     ASSERT_NE(cmdList, nullptr);
 }
@@ -170,7 +170,7 @@ HWTEST_F(RSModifiersDrawTest, ConvertCmdListTest001, TestSize.Level1)
     NodeId nodeId = 1;
     int32_t width = 100;
     int32_t height = 100;
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>(width, height);
+    auto cmdList = std::make_shared<RSSimpleDrawCmdList>(width, height);
     RSModifiersDraw::ConvertCmdList(cmdList, nodeId);
     ASSERT_NE(cmdList, nullptr);
 }

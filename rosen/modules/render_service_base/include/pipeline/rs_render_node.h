@@ -28,7 +28,9 @@
 #include <vector>
 
 #include "display_engine/rs_luminance_control.h"
+#include "feature/opinc/rs_layer_part_render_cache.h"
 #include "feature/opinc/rs_opinc_cache.h"
+#include "feature/opinc/rs_opinc_root_cache.h"
 #include "feature/single_frame_composer/rs_single_frame_composer.h"
 #include "hwc/rs_hwc_recorder.h"
 
@@ -496,6 +498,10 @@ public:
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
     bool UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegionManager>& dirtyManager);
+    // Calculating bouding box of the render node
+    virtual RectF CalcBoundingBox() const {
+        return GetRenderProperties().GetBoundsRect();
+    }
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         std::optional<RectI> clipRect = std::nullopt);
@@ -509,11 +515,10 @@ public:
     {
         return renderProperties_;
     }
-    void UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
-    bool IsRenderUpdateIgnored() const;
+    bool UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
 
-    // used for animation test
-    RSAnimationManager& GetAnimationManager();
+    std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
+    void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
 
     void ApplyAlphaAndBoundsGeometry(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -580,6 +585,7 @@ public:
     ModifierNGContainer GetModifiersNG(ModifierNG::RSModifierType type) const;
     const ModifiersNGMap& GetAllModifiers() const;
     bool HasDrawCmdModifiers() const;
+    bool HasValidDrawCmd() const;
     bool HasContentStyleModifierOnly() const;
 
     size_t GetAllModifierSize();
@@ -661,7 +667,6 @@ public:
     }
 
     void SetDrawRegion(const std::shared_ptr<RectF>& rect);
-    const std::shared_ptr<RectF>& GetDrawRegion() const;
     void SetOutOfParent(OutOfParentType outOfParent);
     OutOfParentType GetOutOfParent() const;
 
@@ -749,6 +754,37 @@ public:
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
     void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
+
+    RSOpincRootCache& GetOpincRootCache()
+    {
+        if (opincRootCache_ == nullptr) {
+            opincRootCache_ = std::make_unique<RSOpincRootCache>();
+        }
+        return *opincRootCache_;
+    }
+
+    const RSOpincRootCache* TryGetOpincRootCachePtr() const
+    {
+        return opincRootCache_.get();
+    }
+
+    RSOpincCache& GetOpincCache()
+    {
+        return opincCache_;
+    }
+
+    RSLayerPartRenderCache& GetLayerPartRenderCache()
+    {
+        if (layerPartRenderCache_ == nullptr) {
+            layerPartRenderCache_ = std::make_unique<RSLayerPartRenderCache>();
+        }
+        return *layerPartRenderCache_;
+    }
+
+    const RSLayerPartRenderCache* TryGetLayerPartRenderCachePtr() const
+    {
+        return layerPartRenderCache_.get();
+    }
 
     /////////////////////////////////////////////
 
@@ -1000,21 +1036,9 @@ public:
     // Enable HWCompose
     RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
     const RSHwcRecorder& GetConstHwcRecorder() const { return hwcRecorder_; }
+    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
 
-    RSOpincCache& GetOpincCache()
-    {
-        return opincCache_;
-    }
-
-    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-    {
-        screensWithSubTreeWhitelist_.insert(screenIds.begin(), screenIds.end());
-    }
-
-    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
-    {
-        screensWithSubTreeWhitelist_ = screenIds;
-    }
+    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
 
     void SyncWhiteListInfoToParent();
     bool IsForegroundFilterEnable();
@@ -1134,7 +1158,6 @@ protected:
         isDirtyRegionUpdated_ = true;
     }
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
-    bool isRenderUpdateIgnored_ = false;
     bool isShadowValidLastFrame_ = false;
     bool IsSelfDrawingNode() const;
     bool needClearSurface_ = false;
@@ -1257,7 +1280,8 @@ private:
     // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
     // `for (auto child : *GetSortedChildren()) { ... }` will crash.
     // When an empty list is needed, use EmptyChildrenList instead.
-    static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
+    static const inline RS_HIDDEN auto EmptyChildrenList =
+        std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
     std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
@@ -1271,7 +1295,6 @@ private:
     RectF selfDrawRect_;
     // map parentMatrix
     RectI absDrawRect_;
-    RectF absDrawRectF_;
     RectI oldAbsDrawRect_;
     // round in by absDrawRectF_, only used for opaque region calculations
     RectI innerAbsDrawRect_;
@@ -1285,7 +1308,6 @@ private:
     RectI oldClipRect_;
     // aim to record children rect in abs coords, without considering clip
     // aim to record current frame clipped children dirty region, in abs coords
-    RectI subTreeDirtyRegion_;
     Vector4f globalCornerRadius_{ 0.f, 0.f, 0.f, 0.f };
     RectI globalCornerRect_;
     RectF selfDrawingNodeDirtyRect_;
@@ -1314,8 +1336,10 @@ private:
     Drawing::Matrix oldAbsMatrix_;
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
     bool released_ = false;
-    RSAnimationManager animationManager_;
+    std::shared_ptr<RSAnimationManager> animationManager_;
     RSOpincCache opincCache_;
+    std::unique_ptr<RSOpincRootCache> opincRootCache_ = nullptr;
+    std::unique_ptr<RSLayerPartRenderCache> layerPartRenderCache_ = nullptr;
     std::unordered_set<NodeId> subtreeParallelNodes_;
     bool isAllChildRepaintBoundary_ = false;
     uint32_t repaintBoundaryWeight_ = 0;
@@ -1328,8 +1352,6 @@ private:
     std::string nodeName_ = "";
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
-
-    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_ = {};
 
     RSProperties renderProperties_;
 

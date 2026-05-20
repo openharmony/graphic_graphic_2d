@@ -31,6 +31,7 @@ private:
     std::unordered_set<uint64_t> ParseClearRedrawCacheBufferIds(OHOS::MessageParcel& parcel);
     std::unique_ptr<RSLayerTransactionData> ParseTransactionData(OHOS::MessageParcel& parcel);
     int32_t GetCleanLayerBufferSurfaceId(OHOS::MessageParcel& parcel, uint64_t& surfaceId);
+    int32_t CommitTunnelLayerBySurfaceIdStub(OHOS::MessageParcel& data, OHOS::MessageParcel& reply);
     int32_t GetBacklightLevel(OHOS::MessageParcel& parcel, uint32_t& level);
     int32_t SetComposerToRenderConnectionStub(OHOS::MessageParcel& parcel);
     int32_t PreAllocProtectedFrameBuffersStub(OHOS::MessageParcel& parcel);

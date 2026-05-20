@@ -28,6 +28,7 @@
 #include "common/rs_rect.h"
 #include "drawable/rs_property_drawable.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 #include "recording/recording_canvas.h"
 #include "screen_manager/screen_types.h"
 #include "utils/rect.h"
@@ -166,7 +167,7 @@ public:
     static void ClearResource();
     using DrawableVec = std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>>;
     static void AddToClearDrawables(DrawableVec &vec);
-    using CmdListVec = std::vector<std::shared_ptr<Drawing::DrawCmdList>>;
+    using CmdListVec = std::vector<SimpleDrawCmdListPtr>;
     static void AddToClearCmdList(CmdListVec &vec);
     inline const std::unique_ptr<RSRenderParams>& GetRenderParams() const
     {
@@ -244,6 +245,12 @@ public:
     NodeId GetLastDrawnFilterNodeId() const
     {
         return lastDrawnFilterNodeId_;
+    }
+
+    virtual void SetShouldClipHole(bool value) {}
+    virtual bool ShouldClipHole() const
+    {
+        return false;
     }
 
     virtual void SetUIExtensionNeedToDraw(bool needToDraw) {}
@@ -391,7 +398,7 @@ private:
                             std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
     static std::map<NodeId, WeakPtr> RenderNodeDrawableCache_;
-    static inline std::mutex cacheMapMutex_;
+    static inline RS_HIDDEN std::mutex cacheMapMutex_;
     static DrawableVec toClearDrawableVec_;
     static CmdListVec toClearCmdListVec_;
     std::atomic<DrawSkipType> drawSkipType_ = DrawSkipType::NONE;

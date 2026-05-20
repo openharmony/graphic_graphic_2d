@@ -228,7 +228,7 @@ public:
 
     int32_t GetScreenBacklight(ScreenId id);
 
-    void SetScreenBacklight(ScreenId id, uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
@@ -360,6 +360,8 @@ public:
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
+
+    void SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled);
 
     void SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh);
 

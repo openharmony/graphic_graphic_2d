@@ -230,6 +230,9 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState().c_str());
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTrackerCache(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_CACHE);
+    RSTagTracker tag = GetFilterType() == RSFilter::FilterType::MATERIAL ?
+        RSTagTracker(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_MATERIAL_CACHE) :
+        RSTagTracker(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_CACHE);
     RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_FILTERCACHEENABLEVMA);
 #endif
     if (!IsCacheValid()) {

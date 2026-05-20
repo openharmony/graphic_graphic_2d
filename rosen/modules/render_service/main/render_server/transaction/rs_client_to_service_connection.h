@@ -212,7 +212,7 @@ private:
 
     ErrCode GetScreenBacklight(uint64_t id, int32_t& level) override;
 
-    void SetScreenBacklight(ScreenId id, uint32_t level) override;
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData) override;
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) override;
 
@@ -367,6 +367,8 @@ private:
 
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
+    ErrCode SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled) override;
+
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
@@ -446,6 +448,7 @@ private:
     bool cleanDone_ = false;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
+    const std::string VIDEO_TUNNEL = "VIDEO_TUNNEL";
     static const std::string GPU_FREQ_PREF;
     sptr<RSVsyncManagerAgent> vsyncManagerAgent_ = nullptr;
     bool needRefresh_ = false;

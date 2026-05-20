@@ -238,7 +238,9 @@ HWTEST_F(TypefaceTest, NullTests001, TestSize.Level1)
     EXPECT_EQ(typeface->GetFontStyle(), FontStyle());
     EXPECT_EQ(typeface->GetUnitsPerEm(), 0);
     EXPECT_EQ(typeface->IsCustomTypeface(), false);
+    typeface->SetIsCustomTypeface(false);
     EXPECT_EQ(typeface->IsThemeTypeface(), false);
+    typeface->SetIsThemeTypeface(false);
     EXPECT_EQ(typeface->GetHash(), 0);
     uint32_t hash = 1;
     typeface->SetHash(hash);

@@ -162,6 +162,16 @@ HWTEST_F(RSModifierManagerTest, DrawTest, TestSize.Level1)
     ASSERT_FALSE(rsModifierManager.modifiers_.empty());
     rsModifierManager.Draw();
     ASSERT_TRUE(rsModifierManager.modifiers_.empty());
+
+    NodeId nodeId = 1;
+    auto dstModifierManager = std::make_shared<RSModifierManager>();
+    rsModifierManager.MoveModifier(dstModifierManager, nodeId);
+    ASSERT_TRUE(rsModifierManager.modifiers_.empty());
+
+    rsModifierManager.AddModifier(alphaModifier);
+    rsModifierManager.MoveModifier(dstModifierManager, nodeId);
+    ASSERT_FALSE(rsModifierManager.modifiers_.empty());
+    ASSERT_TRUE(dstModifierManager->modifiers_.empty());
 }
 
 /**

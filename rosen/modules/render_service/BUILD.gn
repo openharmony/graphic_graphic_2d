@@ -47,10 +47,18 @@ config("render_service_link_config") {
       }
     }
     if (target_cpu == "arm64" && defined(build_ext_path)) {
-      ldflags += [ 
+      render_service_version_script =
+        rebase_path("//foundation/graphic/graphic_2d/rosen/modules/render_service/librender_service.versionscript",
+                    root_build_dir)
+      ldflags += [
+        "-Wl,--version-script=${render_service_version_script}",
         "-Wl,--emit-relocs",
-        "-Wl,--no-relax", 
-        "-mno-fix-cortex-a53-843419" 
+        "-Wl,--no-relax",
+        "-mno-fix-cortex-a53-843419",
+        "-Wl,--exclude-libs=libunwind.a",
+        "-Wl,--exclude-libs=libc++_static.a",
+        "-Wl,--exclude-libs=libc++.a",
+        "-Wl,--exclude-libs=libc++abi.a"
       ]
     }
   }
@@ -145,12 +153,19 @@ ohos_shared_library("librender_service") {
     "core/feature/image_enhance/image_enhance_manager.cpp",
     "core/feature/layer/rs_layer_cache_manager.cpp",
     "core/feature/lpp/render_process/lpp_video_handler.cpp",
+    "core/feature/multi_screen/rs_multi_screen_util.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
+    "core/feature/opinc/rs_layer_part_draw_cache.cpp",
     "core/feature/opinc/rs_opinc_draw_cache.cpp",
+    "core/feature/opinc/rs_opinc_draw_cache_helper.cpp",
+    "core/feature/opinc/rs_layer_part_draw_cache_helper.cpp",
     "core/feature/render_group/rs_render_group_cache_drawable.cpp",
     "core/feature/pointer_window_manager/rs_pointer_window_manager.cpp",
     "core/feature/special_layer/rs_special_layer_utils.cpp",
+    "core/feature/tunnel_layer/rs_tunnel_layer_helper.cpp",
+    "core/feature/tunnel_layer/rs_tunnel_layer_manager.cpp",
+    "core/feature/tunnel_layer/rs_tunnel_route_arbiter.cpp",
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
     "core/feature/watermark/rs_surface_watermark.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_node_drawable.cpp",
@@ -226,6 +241,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/extend_feature/gpu_cache_param.cpp",
     "core/feature_cfg/feature_param/feature_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/accessibility_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/behind_window_filter_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/dirtyregion_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/dvsync_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/filter_param.cpp",
@@ -253,6 +269,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/extend_feature_parser/ui_capture_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/gpu_cache_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/accessibility_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/behind_window_filter_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/dirtyregion_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/dvsync_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/filter_param_parse.cpp",
@@ -273,6 +290,12 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/performance_feature_parser/buffer_reclaim_param_parse.cpp",
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
   ]
+
+  #frame_stability
+  if (defined(graphic_2d_frame_stability_configs.vendor_root)) {
+    sources += graphic_2d_frame_stability_configs.librender_service_ext_frame_stability_sources
+    sources -= graphic_2d_frame_stability_configs.librender_service_ext_frame_stability_sources_del
+  }
 
   #dfx
   sources += [
@@ -381,6 +404,7 @@ ohos_shared_library("librender_service") {
 
   include_dirs = [
     "core",
+    "core/feature",
     "core/feature_cfg",
     "core/feature_cfg/feature_param",
     "core/feature_cfg/feature_param/extend_feature",
@@ -462,13 +486,18 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
-    "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/utils/color_manager:color_manager",
     "$graphic_2d_root/utils:socketpair",
     "$graphic_2d_root/rosen/modules/render_service/vsync:libvsync_manager",
   ]
+
+  if (!(is_ohos && is_clang && target_cpu == "arm64" && defined(build_ext_path))) {
+    deps += [
+      "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
+    ]
+  }
 
   if (graphic_2d_feature_enable_chipset_vsync) {
     defines += [ "RS_ENABLE_CHIPSET_VSYNC" ]
@@ -656,7 +685,6 @@ ohos_shared_library("librender_service") {
   if (tp_feature_enable) {
     defines += tp_defines
   }
-
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

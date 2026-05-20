@@ -142,6 +142,7 @@ public:
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop);
+    ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled);
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics);
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode);
@@ -191,7 +192,7 @@ public:
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
     ErrCode GetHdrOnDuration(int64_t& hdrOnDuration);
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList);
-    void OnScreenBacklightChanged(ScreenId screenId, uint32_t level);
+    void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData);
     void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
     int32_t NotifyScreenRefresh(ScreenId screenId);
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
@@ -221,6 +222,11 @@ public:
         const FrameStabilityTarget& target,
         const FrameStabilityConfig& config);
     int32_t GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result);
+    int32_t UpdateFrameStabilityDetection(
+        pid_t pid,
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    );
 private:
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;

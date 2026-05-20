@@ -1137,5 +1137,224 @@ HWTEST_F(RsRenderComposerManagerTest, RegisterVsyncManagerCallbacks_CallbacksExe
     // Note: Callbacks may not be executed immediately as they are forwarded to agent
     EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 }
+
+/**
+ * Function: OnScreenConnected_MultiThreadConcurrency_100Loops
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager with valid uni-render enabled
+ *                  2. create multiple threads to concurrently call OnScreenConnected 100 times each
+ *                  3. verify no crash or data race occurs during concurrent execution
+ */
+HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_MultiThreadConcurrency_100Loops, TestSize.Level1)
+{
+    constexpr uint32_t threadCount = 2u;
+    constexpr uint32_t loopCount = 100u;
+    constexpr ScreenId baseScreenId = 500u;
+
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+
+    auto originalType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+
+    std::vector<std::thread> threads;
+    std::atomic<uint32_t> successCount { 0u };
+
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        threads.emplace_back([&, threadIdx]() {
+            for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+                ScreenId screenId = baseScreenId + threadIdx * loopCount + loopIdx;
+                auto output = std::make_shared<HdiOutput>(screenId);
+                output->Init();
+                sptr<RSScreenProperty> property = new RSScreenProperty();
+                mgr->OnScreenConnected(output, property);
+                successCount.fetch_add(1u);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    EXPECT_EQ(successCount.load(), threadCount * loopCount);
+
+    RSUniRenderJudgement::uniRenderEnabledType_ = originalType;
+}
+
+/**
+ * Function: OnScreenDisconnected_MultiThreadConcurrency_100Loops
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager with valid uni-render enabled
+ *                  2. pre-connect multiple screens
+ *                  3. create multiple threads to concurrently call OnScreenDisconnected 100 times each
+ *                  4. verify no crash or data race occurs during concurrent execution
+ */
+HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_MultiThreadConcurrency_100Loops, TestSize.Level1)
+{
+    constexpr uint32_t threadCount = 2u;
+    constexpr uint32_t loopCount = 100u;
+    constexpr ScreenId baseScreenId = 600u;
+
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+
+    auto originalType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+
+    // Pre-connect screens to ensure they exist in the map
+    std::vector<ScreenId> connectedScreenIds;
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+            ScreenId screenId = baseScreenId + threadIdx * loopCount + loopIdx;
+            auto output = std::make_shared<HdiOutput>(screenId);
+            output->Init();
+            sptr<RSScreenProperty> property = new RSScreenProperty();
+            mgr->OnScreenConnected(output, property);
+            connectedScreenIds.push_back(screenId);
+        }
+    }
+
+    std::vector<std::thread> threads;
+    std::atomic<uint32_t> successCount { 0u };
+
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        threads.emplace_back([&, threadIdx]() {
+            for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+                ScreenId screenId = connectedScreenIds[threadIdx * loopCount + loopIdx];
+                mgr->OnScreenDisconnected(screenId);
+                successCount.fetch_add(1u);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    EXPECT_EQ(successCount.load(), threadCount * loopCount);
+
+    RSUniRenderJudgement::uniRenderEnabledType_ = originalType;
+}
+
+/**
+ * Function: OnHwcRestored_MultiThreadConcurrency_100Loops
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager with valid uni-render enabled
+ *                  2. pre-connect multiple screens with valid agents
+ *                  3. create multiple threads to concurrently call OnHwcRestored 100 times each
+ *                  4. verify no crash or data race occurs during concurrent execution
+ */
+HWTEST_F(RsRenderComposerManagerTest, OnHwcRestored_MultiThreadConcurrency_100Loops, TestSize.Level1)
+{
+    constexpr uint32_t threadCount = 2u;
+    constexpr uint32_t loopCount = 100u;
+    constexpr ScreenId baseScreenId = 700u;
+
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+
+    auto originalType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+
+    // Pre-connect screens and store outputs for reuse
+    std::vector<std::shared_ptr<HdiOutput>> outputs;
+    std::vector<sptr<RSScreenProperty>> properties;
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+            ScreenId screenId = baseScreenId + threadIdx * loopCount + loopIdx;
+            auto output = std::make_shared<HdiOutput>(screenId);
+            output->Init();
+            sptr<RSScreenProperty> property = new RSScreenProperty();
+            mgr->OnScreenConnected(output, property);
+            outputs.push_back(output);
+            properties.push_back(property);
+        }
+    }
+
+    std::vector<std::thread> threads;
+    std::atomic<uint32_t> successCount { 0u };
+
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        threads.emplace_back([&, threadIdx]() {
+            for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+                uint32_t index = threadIdx * loopCount + loopIdx;
+                mgr->OnHwcRestored(outputs[index], properties[index]);
+                successCount.fetch_add(1u);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    EXPECT_EQ(successCount.load(), threadCount * loopCount);
+
+    RSUniRenderJudgement::uniRenderEnabledType_ = originalType;
+}
+
+/**
+ * Function: OnHwcDead_MultiThreadConcurrency_100Loops
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager with valid uni-render enabled
+ *                  2. pre-connect multiple screens with valid agents
+ *                  3. create multiple threads to concurrently call OnHwcDead 100 times each
+ *                  4. verify no crash or data race occurs during concurrent execution
+ */
+HWTEST_F(RsRenderComposerManagerTest, OnHwcDead_MultiThreadConcurrency_100Loops, TestSize.Level1)
+{
+    constexpr uint32_t threadCount = 2u;
+    constexpr uint32_t loopCount = 100u;
+    constexpr ScreenId baseScreenId = 800u;
+
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+
+    auto originalType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+
+    // Pre-connect screens to ensure they exist in the map
+    std::vector<ScreenId> connectedScreenIds;
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+            ScreenId screenId = baseScreenId + threadIdx * loopCount + loopIdx;
+            auto output = std::make_shared<HdiOutput>(screenId);
+            output->Init();
+            sptr<RSScreenProperty> property = new RSScreenProperty();
+            mgr->OnScreenConnected(output, property);
+            connectedScreenIds.push_back(screenId);
+        }
+    }
+
+    std::vector<std::thread> threads;
+    std::atomic<uint32_t> successCount { 0u };
+
+    for (uint32_t threadIdx = 0u; threadIdx < threadCount; threadIdx++) {
+        threads.emplace_back([&, threadIdx]() {
+            for (uint32_t loopIdx = 0u; loopIdx < loopCount; loopIdx++) {
+                ScreenId screenId = connectedScreenIds[threadIdx * loopCount + loopIdx];
+                mgr->OnHwcDead(screenId);
+                successCount.fetch_add(1u);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    EXPECT_EQ(successCount.load(), threadCount * loopCount);
+
+    RSUniRenderJudgement::uniRenderEnabledType_ = originalType;
+}
 } // namespace Rosen
 } // namespace OHOS

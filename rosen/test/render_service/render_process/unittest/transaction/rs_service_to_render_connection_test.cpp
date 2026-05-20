@@ -518,4 +518,17 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenPropertyChangedInfoToRende
     g_renderProcessAgent = nullptr;
     g_renderProcess = nullptr;
 }
+
+/**
+ * @tc.name: SetHdrForceHwcEnabledTest
+ * @tc.desc: Test SetHdrForceHwcEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, SetHdrForceHwcEnabledTest, TestSize.Level1)
+{
+    std::string nodeIdStr = "test_node";
+    ErrCode ret = g_rsConn->SetHdrForceHwcEnabled(nodeIdStr, true);
+    EXPECT_EQ(ret, ERR_OK);
+}
 } // namespace OHOS::Rosen

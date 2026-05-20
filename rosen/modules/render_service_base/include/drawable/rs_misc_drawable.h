@@ -29,12 +29,8 @@
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "property/rs_properties_def.h"
-
+#include "pipeline/rs_simple_draw_cmd_list.h"
 namespace OHOS::Rosen {
-namespace Drawing {
-class DrawCmdList;
-}
-
 namespace DrawableV2 {
 class RSRenderNodeDrawableAdapter;
 // RSChildrenDrawable, for drawing children of RSRenderNode, updates on child add/remove
@@ -79,8 +75,8 @@ private:
     Gravity stagingGravity_ = Gravity::DEFAULT;
     bool isCanvasNode_ = false;
     bool stagingIsCanvasNode_ = false;
-    std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVec_;
-    std::vector<std::shared_ptr<Drawing::DrawCmdList>> stagingDrawCmdListVec_;
+    std::vector<SimpleDrawCmdListPtr> drawCmdListVec_;
+    std::vector<SimpleDrawCmdListPtr> stagingDrawCmdListVec_;
 };
 
 // ============================================================================

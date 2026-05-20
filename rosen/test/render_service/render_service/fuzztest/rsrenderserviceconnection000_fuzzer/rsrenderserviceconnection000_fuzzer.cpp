@@ -107,6 +107,7 @@ const uint8_t DO_SET_COLOR_FOLLOW = 30;
 const uint8_t DO_SET_FORCE_REFRESH = 31;
 const uint8_t DO_SET_SCREEN_OFFSET = 32;
 const uint8_t TARGET_SIZE = 33;
+const uint8_t DO_SET_HDR_FORCE_HWC_ENABLED = 34;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -464,9 +465,11 @@ void DoSetScreenBacklight()
     MessageParcel replyParcel;
     ScreenId id = GetData<uint64_t>();
     uint32_t level = GetData<uint32_t>();
+    float brightnessPosition = GetData<float>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint32(level);
+    dataParcel.WriteFloat(brightnessPosition);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -773,6 +776,20 @@ void DoSetLayerTop()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteString(nodeIdStr);
     dataParcel.WriteBool(isTop);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoSetHdrForceHwcEnabled()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    std::string nodeIdStr = GetData<std::string>();
+    bool isHdrForceHwcEnabled = GetData<bool>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteString(nodeIdStr);
+    dataParcel.WriteBool(isHdrForceHwcEnabled);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -1122,6 +1139,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_LAYER_TOP:
             OHOS::Rosen::DoSetLayerTop();
+            break;
+        case OHOS::Rosen::DO_SET_HDR_FORCE_HWC_ENABLED:
+            OHOS::Rosen::DoSetHdrForceHwcEnabled();
             break;
         case OHOS::Rosen::DO_SET_FORCE_REFRESH:
             OHOS::Rosen::DoSetForceRefresh();

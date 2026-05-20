@@ -39,7 +39,7 @@ public:
     MOCK_METHOD(bool, IsHdrOn, (ScreenId screenId), (override, const));
     MOCK_METHOD(bool, IsDimmingOn, (ScreenId screenId), (override));
     MOCK_METHOD(void, DimmingIncrease, (ScreenId screenId), (override));
-    MOCK_METHOD(void, SetSdrLuminance, (ScreenId screenId, uint32_t level), (override));
+    MOCK_METHOD(void, SetSdrLuminance, (const RsScreenBrightnessData& brightnessData), (override));
     MOCK_METHOD(uint32_t, GetNewHdrLuminance, (ScreenId screenId), (override));
     MOCK_METHOD(void, SetNowHdrLuminance, (ScreenId screenId, uint32_t level), (override));
     MOCK_METHOD(bool, IsNeedUpdateLuminance, (ScreenId screenId), (override));
@@ -117,7 +117,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.initStatus_ = true;
     luminCtrl.DimmingIncrease(screenId);
     luminCtrl.SetNowHdrLuminance(screenId, level);
-    luminCtrl.SetSdrLuminance(screenId, level);
+    luminCtrl.SetSdrLuminance(RsScreenBrightnessData(screenId, level));
     luminCtrl.ForceCloseHdr(screenId, true);
     luminCtrl.GetBrightnessInfo(screenId);
     luminCtrl.HandleGamutSpecialRender(mode);
@@ -133,7 +133,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.UpdateScreenStatus(screenId, POWER_STATUS_ON);
     luminCtrl.DimmingIncrease(screenId);
     luminCtrl.SetNowHdrLuminance(screenId, level);
-    luminCtrl.SetSdrLuminance(screenId, level);
+    luminCtrl.SetSdrLuminance(RsScreenBrightnessData(screenId, level));
     luminCtrl.SetHdrStatus(screenId, HdrStatus::NO_HDR);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_VIDEO);
     luminCtrl.SetHdrStatus(screenId, HdrStatus::AI_HDR_VIDEO_GTM);

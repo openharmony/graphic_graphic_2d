@@ -43,8 +43,9 @@ public:
     virtual void OnVirtualScreenDisconnected(ScreenId id) = 0;
     virtual void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) = 0;
     virtual void OnActiveScreenIdChanged(ScreenId activeScreenId) = 0;
-    virtual void OnScreenBacklightChanged(ScreenId id, uint32_t level) = 0;
+    virtual void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData) = 0;
     virtual void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) = 0;
+    virtual void OnProcessDisconnected(ScreenId id) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

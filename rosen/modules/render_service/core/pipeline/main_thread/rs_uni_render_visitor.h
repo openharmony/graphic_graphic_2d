@@ -212,6 +212,7 @@ private:
     void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
     void ProcessAncoNode(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
     void UpdateAncoNodeHWCDisabledState(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
+    void UpdateScreenHdrForceHwcState(const std::unordered_set<pid_t>& hdrForceHwcNodes);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(
         std::shared_ptr<RSSurfaceRenderNode>& node, std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
     void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
@@ -378,6 +379,7 @@ private:
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
 
     void HandleColorPickerHwcDisable(RSRenderNode& node);
+    void ScheduleColorPickIfCurrentSurfaceDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     /**
      * @brief Prepare color pickers with dirty region intersection checking
      */
@@ -412,6 +414,8 @@ private:
     std::shared_ptr<RSLogicalDisplayRenderNode> curLogicalDisplayNode_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcCleanFilter_;
+    // map of surface node color gamut collected in CheckColorSpace
+    std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcDirtyFilter_;
     // record DRM nodes

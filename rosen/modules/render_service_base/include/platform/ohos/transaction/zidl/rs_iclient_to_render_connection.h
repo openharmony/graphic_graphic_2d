@@ -215,6 +215,11 @@ public:
     ) = 0;
 
     virtual int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) = 0;
+
+    virtual int32_t UpdateFrameStabilityDetection(
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    ) = 0;
     
     virtual void RegisterRemoteRefreshCallback() = 0;
 

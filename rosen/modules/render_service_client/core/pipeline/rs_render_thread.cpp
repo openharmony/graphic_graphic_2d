@@ -39,7 +39,7 @@
 #include "render/rs_image_cache.h"
 #include "render/rs_typeface_cache.h"
 #include "render_context/shader_cache.h"
-#include "rosen_text/font_collection.h"
+#include "text/font_event_callback.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -116,16 +116,17 @@ RSRenderThread& RSRenderThread::Instance()
 
 RSRenderThread::RSRenderThread()
 {
-    FontCollection::RegisterUnloadFontFinishCallback([](const FontCollection*, const FontEventInfo& info) {
-        std::vector uniqueIds = info.uniqueIds;
-        auto task = [uniqueIds]() {
-            auto context = RSRenderThread::Instance().GetRenderContext()->GetDrGPUContext();
-            for (size_t i = 0; i < uniqueIds.size() && context; i += 1) {
-                context->FreeCpuCache(uniqueIds[i]);
-            }
-        };
-        RSRenderThread::Instance().PostTask(task);
-    });
+    Drawing::FontEventCallbackManager::GetInstance().RegisterUnloadFontFinishCallback(
+        [](const Drawing::FontEventInfo& info) {
+            std::vector<uint32_t> uniqueIds = info.uniqueIds;
+            auto task = [uniqueIds]() {
+                auto context = RSRenderThread::Instance().GetRenderContext()->GetDrGPUContext();
+                for (size_t i = 0; i < uniqueIds.size() && context; i += 1) {
+                    context->FreeCpuCache(uniqueIds[i]);
+                }
+            };
+            RSRenderThread::Instance().PostTask(task);
+        });
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));

@@ -422,7 +422,7 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
             result = renderServiceClient_->RegisterTypeface(tf, tf->GetIndex());
         }
         if (result != INVALID_FD) {
-            TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+            Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
         } else {
             RS_LOGE("RSInterfaces: Failed to register typeface, name: %{public}s hash: %{public}u",
                 tf->GetFamilyName().c_str(), tf->GetHash());
@@ -432,7 +432,7 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
         tf->GetFamilyName().c_str(), tf->GetUniqueID());
-    TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+    Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
     return tf->GetFd();
 }
 
@@ -589,10 +589,12 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
     return renderServiceClient_->GetScreenBacklight(id);
 }
 
-void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSInterfaces::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
-    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
-    renderServiceClient_->SetScreenBacklight(id, level);
+    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64
+        ", level: %{public}u, brightnessPosition: %{public}.4f",
+        brightnessData.screenId, brightnessData.level, brightnessData.brightnessPosition);
+    renderServiceClient_->SetScreenBacklight(brightnessData);
 }
 
 int32_t RSInterfaces::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
@@ -1070,6 +1072,11 @@ void RSInterfaces::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
+
+void RSInterfaces::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    renderServiceClient_->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
 }
 
 void RSInterfaces::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)

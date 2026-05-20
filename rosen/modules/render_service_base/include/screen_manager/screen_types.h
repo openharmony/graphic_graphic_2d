@@ -64,6 +64,7 @@ enum class ScreenEvent : uint8_t {
 enum class ScreenChangeReason : uint8_t {
     DEFAULT = 0,
     HWCDEAD = 1,
+    PROCESS_DISCONNECTED = 2,
 };
 
 enum class ScreenRotation : uint32_t {
@@ -194,6 +195,19 @@ typedef struct {
     ScreenHDRMetadataKey key;
     float value;
 } ScreenHDRMetaData;
+
+/*
+ * @brief Defines the screen brightness data. This structure must align with DmsScreenBrightnessData.
+ */
+struct RsScreenBrightnessData {
+    uint64_t screenId;
+    uint32_t level;
+    float brightnessPosition;
+
+    RsScreenBrightnessData() : screenId(0), level(0), brightnessPosition(-1.0f) {}
+    RsScreenBrightnessData(uint64_t sid, uint32_t lvl, float pos = -1.0f)
+        : screenId(sid), level(lvl), brightnessPosition(pos) {}
+};
 
 typedef enum : uint32_t {
     SUCCESS = 0,

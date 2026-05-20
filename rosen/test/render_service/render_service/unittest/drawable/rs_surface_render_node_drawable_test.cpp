@@ -258,6 +258,104 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCapture003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnCapture004
+ * @tc.desc: Test OnCapture with privacy content layer in single surface capture
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCapture004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+
+    CaptureParam captureParam;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isSystemCalling_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams->privacyContentLayerIds_.insert(surfaceDrawable_->nodeId_);
+    ASSERT_TRUE(surfaceParams->HasPrivacyContentLayer());
+
+    surfaceDrawable_->OnCapture(*canvas_);
+    EXPECT_TRUE(RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_);
+
+    surfaceParams->privacyContentLayerIds_.clear();
+    RSUniRenderThread::SetCaptureParam(CaptureParam());
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+}
+
+/**
+ * @tc.name: OnCapture005
+ * @tc.desc: Test OnCapture with privacy content layer but isSystemCalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCapture005, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+
+    CaptureParam captureParam;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isSystemCalling_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams->privacyContentLayerIds_.insert(surfaceDrawable_->nodeId_);
+    ASSERT_TRUE(surfaceParams->HasPrivacyContentLayer());
+
+    surfaceDrawable_->OnCapture(*canvas_);
+    EXPECT_FALSE(RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_);
+
+    surfaceParams->privacyContentLayerIds_.clear();
+    RSUniRenderThread::SetCaptureParam(CaptureParam());
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+}
+
+/**
+ * @tc.name: OnCapture006
+ * @tc.desc: Test OnCapture with HAS_GENERAL_SPECIAL special layer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCapture006, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(drawable_->renderParams_, nullptr);
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+
+    CaptureParam captureParam;
+    captureParam.isSingleSurface_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, true);
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(HAS_GENERAL_SPECIAL));
+
+    surfaceDrawable_->OnCapture(*canvas_);
+    EXPECT_TRUE(RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_);
+
+    surfaceParams->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
+    RSUniRenderThread::SetCaptureParam(CaptureParam());
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+}
+
+/**
  * @tc.name: CaptureSurface001
  * @tc.desc: Test CaptureSurface, default case
  * @tc.type: FUNC
@@ -3172,6 +3270,93 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
     RSUniRenderThread::Instance().Sync(std::move(params));
 
     surfaceDrawable_->OnDraw(*canvas_);
+
+    ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
+
+/**
+ * @tc.name: OnCaptureBackFaceSkipTest001
+ * @tc.desc: Test OnCapture skips with BACKFACE_SKIP when single sided + back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCaptureBackFaceSkipTest001, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->shouldPaint_ = true;
+    surfaceParams->contentEmpty_ = false;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(-1.0f, 1.0f);
+    surfaceParams->SetMatrix(matrix);
+    surfaceParams->SetDoubleSidedEnabled(false);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    surfaceDrawable_->OnCapture(*canvas_);
+
+    ASSERT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
+
+/**
+ * @tc.name: OnCaptureBackFaceSkipTest002
+ * @tc.desc: Test OnCapture does NOT skip when double sided + back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCaptureBackFaceSkipTest002, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->shouldPaint_ = true;
+    surfaceParams->contentEmpty_ = false;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(-1.0f, 1.0f);
+    surfaceParams->SetMatrix(matrix);
+    surfaceParams->SetDoubleSidedEnabled(true);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    surfaceDrawable_->OnCapture(*canvas_);
+
+    ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
+
+/**
+ * @tc.name: OnCaptureBackFaceSkipTest003
+ * @tc.desc: Test OnCapture does NOT skip when single sided + front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCaptureBackFaceSkipTest003, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->shouldPaint_ = true;
+    surfaceParams->contentEmpty_ = false;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(1.0f, 1.0f);
+    surfaceParams->SetMatrix(matrix);
+    surfaceParams->SetDoubleSidedEnabled(false);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    surfaceDrawable_->OnCapture(*canvas_);
 
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }

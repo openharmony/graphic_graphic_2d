@@ -329,6 +329,10 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
         return __eglMustCastToProperFunctionPointerType(addr);
     }
 
+    if (auto it = gCustomMap.find(procname); it != gCustomMap.end()) {
+        return __eglMustCastToProperFunctionPointerType(it->second);
+    }
+
     EglWrapperLoader& loader(EglWrapperLoader::GetInstance());
     void *func = loader.GetProcAddrFromDriver(procname);
 
@@ -343,12 +347,6 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressImpl(const char *procn
         return __eglMustCastToProperFunctionPointerType(func);
     }
 
-#ifdef OPENGL_WRAPPER_ENABLE_GL4
-    auto it = gCustomMap.find(procname);
-    if (it != gCustomMap.end()) {
-        return __eglMustCastToProperFunctionPointerType(it->second);
-    }
-#endif
     WLOGD("FindEglExtApi did not find an entry for %{public}s", procname);
     return nullptr;
 }

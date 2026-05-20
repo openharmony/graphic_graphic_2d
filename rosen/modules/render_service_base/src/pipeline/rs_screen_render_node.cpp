@@ -389,19 +389,28 @@ HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
 }
 // LCOV_EXCL_STOP
 
-void RSScreenRenderNode::CollectHdrStatus(HdrStatus hdrStatus)
+void RSScreenRenderNode::CollectHdrStatus(NodeId id, HdrStatus hdrStatus)
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
     if (screenParams == nullptr) {
         RS_LOGE("%{public}s screenParams is nullptr", __func__);
         return;
     }
-    HdrStatus currentHDRStatus = screenParams->GetScreenHDRStatus();
-    HdrStatus newHDRStatus = static_cast<HdrStatus>(currentHDRStatus | hdrStatus);
-    screenParams->CollectHdrStatus(newHDRStatus);
+    screenParams->CollectHdrStatus(id, hdrStatus);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
+}
+
+const std::unordered_map<NodeId, HdrStatus>& RSScreenRenderNode::GetDisplayHdrStatusMap() const
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        static const std::unordered_map<NodeId, HdrStatus> emptyMap;
+        return emptyMap;
+    }
+    return screenParams->GetScreenHDRStatusMap();
 }
 
 // LCOV_EXCL_START
@@ -721,6 +730,28 @@ void RSScreenRenderNode::ResetVideoHeadroomInfo()
     headroomCounts_.erase(HdrStatus::HDR_VIDEO);
     headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GTM);
     headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GAINMAP);
+}
+
+void RSScreenRenderNode::SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface)
+{
+    if (hasForceHwcHdrSurface_ == hasForceHwcHdrSurface) {
+        return;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::SetHasForceHwcHdrSurface screenParams is null");
+        return;
+    }
+    hasForceHwcHdrSurface_ = hasForceHwcHdrSurface;
+    screenParams->SetHasForceHwcHdrSurface(hasForceHwcHdrSurface);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+bool RSScreenRenderNode::GetHasForceHwcHdrSurface() const
+{
+    return hasForceHwcHdrSurface_;
 }
 } // namespace Rosen
 } // namespace OHOS

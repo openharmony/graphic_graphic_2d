@@ -284,6 +284,16 @@ DECLARE_SHADER(SDFEdgeLightEffect, SDF_EDGE_LIGHT_EFFECT,
     ADD_PROPERTY_TAG(SDFEdgeLightEffect, SDFShape)
 );
 
+DECLARE_SHADER(BorderSDFShader, BORDER_SDF_SHADER,
+    ADD_PROPERTY_TAG(BorderSDFShader, Color),
+    ADD_PROPERTY_TAG(BorderSDFShader, Width),
+    ADD_PROPERTY_TAG(BorderSDFShader, IsOutline),
+    ADD_PROPERTY_TAG(BorderSDFShader, Style),
+    ADD_PROPERTY_TAG(BorderSDFShader, DashWidth),
+    ADD_PROPERTY_TAG(BorderSDFShader, DashGap),
+    ADD_PROPERTY_TAG(BorderSDFShader, Shape)
+);
+
 DECLARE_SHADER(SpatialPointLight, SPATIAL_POINT_LIGHT,
     ADD_PROPERTY_TAG(SpatialPointLight, LightIntensity),
     ADD_PROPERTY_TAG(SpatialPointLight, LightPosition),

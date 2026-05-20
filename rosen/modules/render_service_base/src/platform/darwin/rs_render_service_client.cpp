@@ -322,7 +322,7 @@ int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
     return {};
 }
 
-void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSRenderServiceClient::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
 }
 
@@ -681,6 +681,10 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
 }
 
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+}
+
+void RSRenderServiceClient::SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled)
 {
 }
 

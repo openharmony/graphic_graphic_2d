@@ -34,6 +34,7 @@ public:
 private:
     int32_t ReleaseLayerBuffersStub(MessageParcel& data, MessageParcel& reply, MessageOption& option);
     int32_t NotifyLppLayerToRenderStub(MessageParcel& data, MessageParcel& reply, MessageOption& option);
+    int32_t NotifyLayerStateChangedToRenderStub(MessageParcel& data, MessageParcel& reply, MessageOption& option);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -2532,21 +2532,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetAncoFlags, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTunnelLayerId
- * @tc.desc: test results of SetTunnelLayerId
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetTunnelLayerId, TestSize.Level1)
-{
-    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(testNode, nullptr);
-    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
-    testNode->SetTunnelLayerId(1);
-    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
-}
- 
-/**
  * @tc.name: IsHardwareForcedDisabled001
  * @tc.desc: test results of IsHardwareForcedDisabled001
  * @tc.type: FUNC
@@ -2556,10 +2541,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsHardwareForcedDisabled001, TestSize.Level1)
 {
     auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);
-    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
- 
-    testNode->SetTunnelLayerId(1);
-    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
     ASSERT_EQ(testNode->IsHardwareForcedDisabled(), false);
 }
 
@@ -3381,6 +3362,40 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeGamutForceSRGBTest, TestSize.
 
     RsCommonHook::Instance().SetForceSRGBOutput(false);
     node->gamutCollector_.GetFirstLevelNodeGamut();
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_NullParams
+ * @tc.desc: Test SetHdrForceHwcEnabled when stagingRenderParams_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetHdrForceHwcEnabled_NullParams, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    
+    surfaceNode->SetHdrForceHwcEnabled(true);
+    EXPECT_TRUE(surfaceNode->IsHdrForceHwcEnabled());
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_WithParams
+ * @tc.desc: Test SetHdrForceHwcEnabled when stagingRenderParams_ is valid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetHdrForceHwcEnabled_WithParams, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    
+    surfaceNode->SetHdrForceHwcEnabled(true);
+    EXPECT_TRUE(surfaceNode->IsHdrForceHwcEnabled());
+    
+    surfaceNode->SetHdrForceHwcEnabled(false);
+    EXPECT_FALSE(surfaceNode->IsHdrForceHwcEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -44,10 +44,10 @@ namespace drawing {
     native clean(): void;
   }
 
-  let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
+  let destroyRegister: FinalizationRegistry<Cleaner> = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
     cleaner.clean();
   });
-  let unregisterToken = new object();
+  let unregisterToken: Object = new object();
 
   /**
    * Enumerate blending modes for colors.
@@ -2793,6 +2793,21 @@ namespace drawing {
      * @since 20
      */
     native getTextPath(text: string, byteLength: int, x: double, y: double): Path | undefined;
+
+    /**
+     * Gets the path outline for the given text with font fallback support.
+     *
+     * @param { string } text - UTF-8 text-encoded.
+     * @param { int } byteLength - The length of the text in bytes.
+     *     which is obtained based on the minimum value between the passed value of byteLength and
+     *     the actual text byte size.
+     * @param { double } x - X coordinate of the text in the drawing area, with the origin as the start point.
+     * @param { double } y - Y coordinate of the text in the drawing area, with the origin as the start point.
+     * @returns { Path | undefined } Returns the path outline for the text.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 26.0.0
+     */
+    native getTextPathWithFallback(text: string, byteLength: int, x: double, y: double): Path | undefined;
 
     /**
      * Sets whether to follow the theme font. When followed is set to true,

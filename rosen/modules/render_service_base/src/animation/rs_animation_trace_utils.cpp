@@ -42,6 +42,12 @@ RSAnimationTraceUtils::RSAnimationTraceUtils()
         GRAPHIC_TEST_MODE_TRACE_NAME, OnAnimationTraceEnabledChangedCallback, nullptr);
 }
 
+RSAnimationTraceUtils& RSAnimationTraceUtils::GetInstance()
+{
+    static RSAnimationTraceUtils instance;
+    return instance;
+}
+
 void RSAnimationTraceUtils::OnAnimationTraceEnabledChangedCallback(const char* key, const char* value, void* context)
 {
     isDebugEnabled_ = RSSystemProperties::GetAnimationTraceEnabled();

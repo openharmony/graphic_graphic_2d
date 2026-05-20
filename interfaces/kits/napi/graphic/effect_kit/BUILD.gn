@@ -12,8 +12,17 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ## Build effect_kit.so
+
+declare_args() {
+  arkgraphic2d_api_metrics = true
+}
+if (defined(global_parts_info) &&
+    !defined(global_parts_info.hiviewdfx_api_metrics)) {
+  arkgraphic2d_api_metrics = false
+}
 
 config("graphic_napi_effect_kit_config") {
   visibility = [ ":*" ]
@@ -64,8 +73,9 @@ if (is_arkui_x) {
       "//foundation/graphic/graphics_effect/include/util",
     ]
 
+    defines = ["CROSS_PLATFORM"]
     if(target_os == "ios") {
-      defines = ["ROSEN_IOS"]
+      defines += ["ROSEN_IOS"]
     }
 
     sources = [
@@ -119,6 +129,11 @@ if (is_arkui_x) {
       "image_framework:image_native",
       "napi:ace_napi",
     ]
+    
+    if (defined(arkgraphic2d_api_metrics) && arkgraphic2d_api_metrics) {
+      external_deps += [ "api_metrics:histogrammanager" ]
+      defines = [ "HISTOGRAM_MANAGEMENT_ENABLE=1" ]
+    }
 
     cflags_cc = [ "-std=c++17" ]
 

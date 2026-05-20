@@ -46,12 +46,6 @@ ohos_shared_library("libgraphic_utils") {
   public_configs = [ ":libgraphic_utils_public_config" ]
 
   branch_protector_ret = "pac_ret"
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
-  }
 
   deps = [
     "color_manager:color_manager",

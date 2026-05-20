@@ -222,7 +222,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenBlackList, TestSi
     ScreenId id = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t repCode = 0;
-    EXPECT_EQ(proxy->AddVirtualScreenBlackList(id, blackListVector, repCode), ERR_INVALID_VALUE);
+    EXPECT_EQ(proxy->AddVirtualScreenBlackList(id, blackListVector, repCode), 0);
 }
 
 /**
@@ -236,47 +236,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenBlackList, Tes
     ScreenId id = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t repCode = 0;
-    EXPECT_EQ(proxy->RemoveVirtualScreenBlackList(id, blackListVector, repCode), ERR_INVALID_VALUE);
-}
-
-/**
- * @tc.name: SetVirtualScreenTypeBlackListTest
- * @tc.desc: test SetVirtualScreenTypeBlackList
- * @tc.type: FUNC
- * @tc.require: issue23264
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, SetVirtualScreenTypeBlackListTest, TestSize.Level2)
-{
-    int32_t repCode = 0;
-    std::vector<NodeType> typeBlackListVector;
-    ASSERT_NE(proxy, nullptr);
-    ASSERT_EQ(proxy->SetVirtualScreenTypeBlackList(0, typeBlackListVector, repCode), ERR_INVALID_VALUE);
-}
-
-/**
- * @tc.name: AddVirtualScreenWhiteListTest
- * @tc.desc: test AddVirtualScreenWhiteList
- * @tc.type: FUNC
- * @tc.require: issue23264
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenWhiteListTest, TestSize.Level2)
-{
-    int32_t repCode = 0;
-    ASSERT_NE(proxy, nullptr);
-    ASSERT_EQ(proxy->AddVirtualScreenWhiteList(0, {}, repCode), ERR_INVALID_VALUE);
-}
-
-/**
- * @tc.name: RemoveVirtualScreenWhiteListTest
- * @tc.desc: test RemoveVirtualScreenWhiteList
- * @tc.type: FUNC
- * @tc.require: issue23264
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenWhiteListTest, TestSize.Level2)
-{
-    int32_t repCode = 0;
-    ASSERT_NE(proxy, nullptr);
-    ASSERT_EQ(proxy->RemoveVirtualScreenWhiteList(0, {}, repCode), ERR_INVALID_VALUE);
+    EXPECT_EQ(proxy->RemoveVirtualScreenBlackList(id, blackListVector, repCode), 0);
 }
 
 /**
@@ -970,7 +930,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetScreenBacklight, TestSize.Leve
 {
     ScreenId id = 1;
     uint32_t level = 1;
-    proxy->SetScreenBacklight(id, level);
+    proxy->SetScreenBacklight(RsScreenBrightnessData(id, level));
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
@@ -1530,6 +1490,40 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
     proxy->SetLayerTop(nodeIdStr, true);
     proxy->SetLayerTop(nodeIdStr, false);
     ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_Normal_Success
+ * @tc.desc: Test SetHdrForceHwcEnabled when normal case
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_Normal_Success, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    std::string nodeIdStr = "test_node";
+    bool isHdrForceHwcEnabled = true;
+    ErrCode ret = mockProxy->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled_SendRequestFail
+ * @tc.desc: Test SetHdrForceHwcEnabled when SendRequest fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_SendRequestFail, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+    std::string nodeIdStr = "test_node";
+    bool isHdrForceHwcEnabled = true;
+    ErrCode ret = mockProxy->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
 /**

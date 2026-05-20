@@ -33,6 +33,9 @@ public:
     // LPP
     int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) override;
     void RegisterJudgeLppLayerCB(JudgeLppLayerCB callback) override {}
+    int32_t NotifyLayerStateChangedToRender(
+        uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration) override;
+    void RegisterLayerStateChangedCB(LayerStateChangedCB callback) override {}
 
 private:
     static inline BrokerDelegator<RSComposerToRenderConnectionProxy> delegator_;

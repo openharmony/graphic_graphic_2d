@@ -33,7 +33,7 @@ public:
         auto destroyedCB = [](uint32_t id) { Rosen::RSInterfaces::GetInstance().UnRegisterTypeface(id); };
 #endif
         auto uniqueIdCB = [](uint64_t id) {
-            return TypefaceMap::GetTypefaceByUniqueId(RSTypefaceCache::GetTypefaceId(id));
+            return Drawing::TypefaceMap::GetTypefaceByUniqueId(RSTypefaceCache::GetTypefaceId(id));
         };
         Drawing::Typeface::RegisterCallBackFunc(registerCB);
         Drawing::Typeface::RegisterOnTypefaceDestroyed(destroyedCB);

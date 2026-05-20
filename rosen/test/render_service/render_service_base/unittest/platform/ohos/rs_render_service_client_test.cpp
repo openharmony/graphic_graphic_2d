@@ -307,7 +307,7 @@ HWTEST_F(RSServiceClientTest, AddVirtualScreenBlackListTest001, TestSize.Level1)
     ScreenId screenId = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t ret = rsClient->AddVirtualScreenBlackList(screenId, blackListVector);
-    ASSERT_EQ(ret, READ_PARCEL_ERR);
+    ASSERT_EQ(ret, 0);
 }
 
 /**
@@ -321,7 +321,7 @@ HWTEST_F(RSServiceClientTest, AddVirtualScreenBlackListTest002, TestSize.Level1)
     ASSERT_NE(rsClient, nullptr);
     std::vector<NodeId> blackList(MAX_SPECIAL_LAYER_NUM + 1);
     int32_t ret = rsClient->AddVirtualScreenBlackList(INVALID_SCREEN_ID, blackList);
-    ASSERT_EQ(ret, READ_PARCEL_ERR);
+    ASSERT_EQ(ret, 0);
 }
 
 /**
@@ -336,7 +336,7 @@ HWTEST_F(RSServiceClientTest, RemoveVirtualScreenBlackListTest, TestSize.Level1)
     ScreenId screenId = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t ret = rsClient->RemoveVirtualScreenBlackList(screenId, blackListVector);
-    ASSERT_EQ(ret, READ_PARCEL_ERR);
+    ASSERT_EQ(ret, 0);
 }
 
 /**
@@ -941,7 +941,7 @@ HWTEST_F(RSServiceClientTest, GetScreenBacklight001, TestSize.Level1)
 {
     auto screenId = rsClient->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    rsClient->SetScreenBacklight(screenId, 60); // for test
+    rsClient->SetScreenBacklight(RsScreenBrightnessData(screenId, 60)); // for test
     usleep(SET_REFRESHRATE_SLEEP_US);
     auto backLight = rsClient->GetScreenBacklight(screenId);
     EXPECT_EQ(backLight, 60); // for test
@@ -1147,6 +1147,22 @@ HWTEST_F(RSServiceClientTest, SetLayerTop001, TestSize.Level1)
     const std::string nodeIdStr = "123456";
     rsClient->SetLayerTop(nodeIdStr, true);
     rsClient->SetLayerTop(nodeIdStr, false);
+}
+
+/**
+ * @tc.name: SetHdrForceHwcEnabled001 Test
+ * @tc.desc: SetHdrForceHwcEnabled001, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSServiceClientTest, SetHdrForceHwcEnabled001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    const std::string nodeIdStr = "123456";
+    RSRenderServiceConnectHub::Destroy();
+    rsClient->SetHdrForceHwcEnabled(nodeIdStr, true);
+    RSRenderServiceConnectHub::Init();
+    rsClient->SetHdrForceHwcEnabled(nodeIdStr, false);
 }
 
 /**

@@ -47,7 +47,7 @@ public:
 class BrokerDelegatorBase {
 public:
     BrokerDelegatorBase() = default;
-    virtual ~BrokerDelegatorBase() = default;
+    virtual ~BrokerDelegatorBase();
 
 public:
     bool isSoUnloaded = false;

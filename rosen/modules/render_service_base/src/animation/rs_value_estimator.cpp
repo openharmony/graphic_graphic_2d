@@ -70,12 +70,12 @@ float RSCurveValueEstimator<float>::EstimateFraction(const std::shared_ptr<RSInt
 }
 
 template<>
-void RSCurveValueEstimator<Drawing::DrawCmdListPtr>::InitCurveAnimationValue(
+void RSCurveValueEstimator<SimpleDrawCmdListPtr>::InitCurveAnimationValue(
     const std::shared_ptr<RSRenderPropertyBase>& property, const std::shared_ptr<RSRenderPropertyBase>& startValue,
     const std::shared_ptr<RSRenderPropertyBase>& endValue, const std::shared_ptr<RSRenderPropertyBase>& lastValue)
 {
-    auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(property);
-    auto animatableEndValue = std::static_pointer_cast<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>(endValue);
+    auto animatableProperty = std::static_pointer_cast<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>(property);
+    auto animatableEndValue = std::static_pointer_cast<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>(endValue);
     if (animatableProperty && animatableEndValue) {
         property_ = animatableProperty;
         auto rsDrawCmdList = std::make_shared<RSDrawCmdList>(animatableProperty->Get(), animatableEndValue->Get());
@@ -84,7 +84,7 @@ void RSCurveValueEstimator<Drawing::DrawCmdListPtr>::InitCurveAnimationValue(
 }
 
 template<>
-void RSCurveValueEstimator<Drawing::DrawCmdListPtr>::UpdateAnimationValue(const float fraction, const bool isAdditive)
+void RSCurveValueEstimator<SimpleDrawCmdListPtr>::UpdateAnimationValue(const float fraction, const bool isAdditive)
 {
     if (property_ == nullptr) {
         return;

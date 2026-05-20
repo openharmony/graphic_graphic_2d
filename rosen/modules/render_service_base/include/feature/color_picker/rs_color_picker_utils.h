@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "common/rs_macros.h"
+#include "common/rs_rect.h"
 #include "draw/color.h"
 #include "image/image.h"
 
@@ -135,9 +136,13 @@ Drawing::ColorQuad InterpolateColor(Drawing::ColorQuad start, Drawing::ColorQuad
 RSB_EXPORT std::unordered_set<NodeId> CollectColorPickerNodeIds(
     const std::vector<std::shared_ptr<RSRenderNode>>& surfaces, const RSRenderNodeMap& nodeMap);
 /**
- * @brief Check if color picker needs to execute based on dirty region intersection
+ * @brief Check if color picker needs to execute based on the current surface dirty region.
  */
-RSB_EXPORT bool IsColorPickerDirty(
+RSB_EXPORT bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRect);
+/**
+ * @brief Check if color picker needs to execute based on dirty region intersection from surfaces below.
+ */
+RSB_EXPORT bool DirtyInSurfacesBelow(
     const RSRenderNode& filterNode, const std::vector<std::shared_ptr<RSRenderNode>>& surfaces);
 } // namespace RSColorPickerUtils
 } // namespace OHOS::Rosen

@@ -1128,6 +1128,22 @@ HWTEST_F(RSSurfaceNodeTest, SetContainerWindow001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetWindowId001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetWindowId001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    uint32_t windowId = 1;
+    surfaceNode->SetWindowId(windowId);
+    ASSERT_EQ(surfaceNode->windowId_, 1);
+}
+
+/**
  * @tc.name: SetIsNotifyUIBufferAvailable001
  * @tc.desc:
  * @tc.type: FUNC

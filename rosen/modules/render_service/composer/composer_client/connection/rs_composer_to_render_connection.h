@@ -31,10 +31,14 @@ public:
     // LPP
     int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) override;
     void RegisterJudgeLppLayerCB(JudgeLppLayerCB callback) override;
+    int32_t NotifyLayerStateChangedToRender(
+        uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration) override;
+    void RegisterLayerStateChangedCB(LayerStateChangedCB callback) override;
 
 private:
     ReleaseLayerBuffersCB releaseLayerBuffersCB_;
     JudgeLppLayerCB judgeLppLayerCB_;
+    LayerStateChangedCB layerStateChangedCB_;
 };
 } // namespace Rosen
 } // namespace OHOS

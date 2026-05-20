@@ -154,8 +154,9 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
 
-    if (node->GetArsrTag()) {
+    if (arsrPreEnabled_ && CheckIfDoArsrPre(node)) {
         info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
+        node->SetArsrTag(true);
     }
     CheckIfDoCopybit(node, transform, info);
     node->SetDeviceOfflineEnable(false);
@@ -220,7 +221,7 @@ bool RSUniHwcPrevalidateUtil::CreateScreenNodeLayerInfo(uint32_t zorder,
     auto buffer = surfaceHandler->GetBuffer();
     info.id = node->GetId();
     info.srcRect = {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
-    info.dstRect = {0, 0, screenProperty.GetPhyWidth(), screenProperty.GetPhyHeight()};
+    info.dstRect = {0, 0, screenProperty.GetWidth(), screenProperty.GetHeight()};
     info.zOrder = zorder;
     info.bufferUsage = buffer->GetUsage();
     info.layerUsage = info.layerUsage | USAGE_UNI_LAYER;

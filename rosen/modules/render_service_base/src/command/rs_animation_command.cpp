@@ -51,7 +51,12 @@ AnimationCommandHelper::NodeAndAnimationPair AnimationCommandHelper::GetNodeAndA
         RS_LOGE("%{public}s, node is nullptr", funcName);
         return {nullptr, nullptr};
     }
-    auto animation = node->GetAnimationManager().GetAnimation(animId);
+    auto animationManager = node->GetAnimationManager();
+    if (!animationManager) {
+        RS_LOGE("%{public}s: animationManager is nullptr", funcName);
+        return { nullptr, nullptr };
+    }
+    auto animation = animationManager->GetAnimation(animId);
     if (animation == nullptr) {
         RS_LOGE("%{public}s, animation is nullptr", funcName);
         return {node, nullptr};
@@ -79,7 +84,7 @@ void AnimationCommandHelper::CreateAnimation(
         return;
     }
     RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
-    node->GetAnimationManager().AddAnimation(animation);
+    node->AddAnimation(animation);
     if (auto property = node->GetProperty(animation->GetPropertyId())) {
         animation->AttachRenderProperty(property);
     }
@@ -102,7 +107,7 @@ void AnimationCommandHelper::CreateParticleAnimationNG(RSContext& context, NodeI
         return;
     }
     RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
-    node->GetAnimationManager().AddAnimation(animation);
+    node->AddAnimation(animation);
     auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(
         animation->GetRenderParticle(), animation->GetPropertyId());
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier<RSRenderParticleVector>(
@@ -122,8 +127,9 @@ void AnimationCommandHelper::CancelAnimation(RSContext& context, NodeId targetId
         return;
     }
 
-    auto& animationManager = node->GetAnimationManager();
-    animationManager.CancelAnimationByPropertyId(propertyId);
+    if (auto animationManager = node->GetAnimationManager()) {
+        animationManager->CancelAnimationByPropertyId(propertyId);
+    }
 }
 
 void AnimationCommandHelper::CreateInteractiveAnimator(RSContext& context,

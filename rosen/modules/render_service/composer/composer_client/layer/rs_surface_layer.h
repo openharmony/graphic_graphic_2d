@@ -99,6 +99,8 @@ public:
     uint64_t GetTunnelLayerId() const override;
     void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) override;
     uint32_t GetTunnelLayerProperty() const override;
+    void SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration) override;
+    uint64_t GetTunnelLayerGeneration() const override;
     void SetIsSupportedPresentTimestamp(bool isSupported) override;
     bool GetIsSupportedPresentTimestamp() const override;
     void SetPresentTimestamp(const GraphicPresentTimestamp& timestamp) override;
@@ -234,6 +236,7 @@ private:
     uint64_t nodeId_ = 0;
     uint64_t tunnelLayerId_ = 0;
     uint32_t tunnelLayerProperty_ = 0;
+    uint64_t tunnelLayerGeneration_ = 0;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;

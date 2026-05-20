@@ -299,6 +299,18 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetLayerTop(nodeIdStr, isTop);
             break;
         }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED): {
+            std::string nodeIdStr;
+            bool isHdrForceHwcEnabled{false};
+            if (!data.ReadString(nodeIdStr) ||
+                !data.ReadBool(isHdrForceHwcEnabled)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_HDR_FORCE_HWC_ENABLED Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE): {
             float cpuMemSize = 0.f;
             float gpuMemSize = 0.f;
@@ -1009,19 +1021,23 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BACKLIGHT_LEVEL): {
-            ScreenId id{INVALID_SCREEN_ID};
-            if (!data.ReadUint64(id)) {
+            RsScreenBrightnessData brightnessData;
+            if (!data.ReadUint64(brightnessData.screenId)) {
                 RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read ScreenId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            uint32_t level{};
-            if (!data.ReadUint32(level)) {
+            if (!data.ReadUint32(brightnessData.level)) {
                 RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read level failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            OnScreenBacklightChanged(id, level);
+            if (!data.ReadFloat(brightnessData.brightnessPosition)) {
+                RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read brightnessPosition failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            OnScreenBacklightChanged(brightnessData);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED) : {

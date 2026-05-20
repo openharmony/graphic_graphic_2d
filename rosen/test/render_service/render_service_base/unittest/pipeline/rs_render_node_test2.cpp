@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <parameters.h>
 
+#include "animation/rs_render_curve_animation.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -194,7 +195,6 @@ HWTEST_F(RSRenderNodeTest2, FallbackAnimationsToRoot, TestSize.Level1)
     RSRenderNode node(id, context);
     node.FallbackAnimationsToRoot();
     node.FallbackAnimationsToRoot();
-    node.animationManager_.animations_.clear();
     node.FallbackAnimationsToRoot();
     ASSERT_TRUE(true);
 }
@@ -3823,6 +3823,28 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker003, TestSize.Level1)
     // Call PrepareColorPicker with darkMode = true, should not be overridden
     bool needSync = node.PrepareColorPicker(true);
     EXPECT_TRUE(needSync);
+}
+
+/**
+ * @tc.name: AnimateWithAnimationManager001
+ * @tc.desc: Verify Animate with non-null animationManager
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, AnimateWithAnimationManager001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    // Add animation to make animationManager_ non-null
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node.AddAnimation(animation);
+    ASSERT_NE(node.GetAnimationManager(), nullptr);
+
+    int64_t minLeftDelayTime = 0;
+    int64_t nextFrameTime = 0;
+    node.Animate(1, minLeftDelayTime, nextFrameTime, 0, false);
 }
 
 /**

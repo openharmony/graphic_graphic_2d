@@ -237,6 +237,8 @@ public:
     virtual TextProcessState GetProcessState() const = 0;
     virtual TextDisplayState GetTextDisplayState() const = 0;
     virtual TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) = 0;
+    virtual void SetForceReuseRasterResult(bool flag) = 0;
+    virtual bool GetForceReuseRasterResult() const = 0;
 #ifdef ENABLE_OHOS_ENHANCE
     virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;

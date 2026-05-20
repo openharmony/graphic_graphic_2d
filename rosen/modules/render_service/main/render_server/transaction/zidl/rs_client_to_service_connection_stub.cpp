@@ -188,6 +188,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_COLOR_FOLLOW),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
@@ -288,10 +289,12 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     int32_t data{0};
     if (!parcelCopied->ReadInt32(data)) {
         RS_LOGE("RSClientToServiceConnectionStub::CopyParcelIfNeed parcel data Read failed");
+        free(base);
         return nullptr;
     }
     if (data != 0) {
         RS_LOGE("RSClientToServiceConnectionStub::CopyParcelIfNeed parcel data not match");
+        free(base);
         return nullptr;
     }
     return parcelCopied;
@@ -1339,14 +1342,14 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT): {
-            ScreenId id{INVALID_SCREEN_ID};
-            uint32_t level{0};
-            if (!data.ReadUint64(id) || !data.ReadUint32(level)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_BACK_LIGHT Read parcel failed!");
+            RsScreenBrightnessData brightnessData;
+            if (!data.ReadUint64(brightnessData.screenId) || !data.ReadUint32(brightnessData.level) ||
+                !data.ReadFloat(brightnessData.brightnessPosition)) {
+                ROSEN_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_BACK_LIGHT Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            SetScreenBacklight(id, level);
+            SetScreenBacklight(brightnessData);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS): {
@@ -2909,6 +2912,18 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetLayerTop(nodeIdStr, isTop);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED) : {
+            std::string nodeIdStr;
+            bool isHdrForceHwcEnabled{false};
+            if (!data.ReadString(nodeIdStr) ||
+                !data.ReadBool(isHdrForceHwcEnabled)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_HDR_FORCE_HWC_ENABLED Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH) : {

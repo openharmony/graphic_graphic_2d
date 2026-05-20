@@ -296,13 +296,13 @@ int32_t RSScreenManagerAgent::GetScreenBacklight(ScreenId id) const
     return screenManager_->GetScreenBacklight(id);
 }
 
-void RSScreenManagerAgent::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSScreenManagerAgent::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return;
     }
-    screenManager_->SetScreenBacklight(id, level);
+    screenManager_->SetScreenBacklight(brightnessData);
 }
 
 void RSScreenManagerAgent::DisablePowerOffRenderControl(ScreenId id)

@@ -58,7 +58,7 @@ const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 
 bool RSSystemProperties::isEnableEarlyZ_ = system::GetBoolParameter("persist.sys.graphic.ddgrEarlyZ.enabled", true);
 
-int ConvertToInt(const char *originValue, int defaultValue)
+static int ConvertToInt(const char *originValue, int defaultValue)
 {
     if (originValue == nullptr) {
         return defaultValue;
@@ -1148,6 +1148,15 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, defaultValue ? 1 : 0) != 0;
+}
+
+bool RSSystemProperties::GetNewTunnelEnabled()
+{
+    static CachedHandle handle = CachedParameterCreate("rosen.debug.new_tunnel", "false");
+    int changed = 0;
+    const char* enabled = CachedParameterGetChanged(handle, &changed);
+    return enabled != nullptr &&
+        (strcmp(enabled, "1") == 0 || strcmp(enabled, "true") == 0);
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)

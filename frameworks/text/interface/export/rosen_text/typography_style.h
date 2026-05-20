@@ -56,6 +56,7 @@ enum class RelayoutParagraphStyleAttribute {
     FIRST_LINE_INDENT = 27,
     LINE_HEAD_INDENTS = 28,
     LINE_TAIL_INDENTS = 29,
+    PUNCTUATION_OVERFLOW = 30,
 
     PARAGRAPH_STYLE_ATTRIBUTE_BUTT,
 };
@@ -109,6 +110,7 @@ struct RS_EXPORT TypographyStyle {
     bool isEndAddParagraphSpacing{false};
     bool isTrailingSpaceOptimized{false};
     bool compressHeadPunctuation{false};
+    bool punctuationOverflow{false};
     bool enableAutoSpace{false};
     TextVerticalAlign verticalAlignment{TextVerticalAlign::BASELINE};
 

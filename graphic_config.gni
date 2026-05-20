@@ -89,6 +89,7 @@ if (is_ios && is_arkui_x) {
 }
 
 if (graphic_2d_feature_product == "phone" ||
+    graphic_2d_feature_product == "pc" ||
     graphic_2d_feature_product == "tablet" ||
     graphic_2d_feature_product == "wearable") {
   graphic_2d_feature_enable_opinc = true
@@ -212,10 +213,6 @@ check_ddgr_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/config.gni"),
 ]
-check_igraphics_core_file_args = [
-  "--filename",
-  rebase_path("//foundation/graphic/graphic_2d_ext/gpu_turbo_x/EGL/config.gni"),
-]
 check_delegator_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/delegator/config.gni"),
@@ -234,6 +231,11 @@ check_math_tools_ext_file_args = [
   "--filename",
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni"),
+]
+check_frame_stability_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni"),
 ]
 check_hgm_ext_file_args = [
   "--filename",
@@ -280,11 +282,6 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")) {
   }
 }
 
-if (path_exists("//vendor/huawei/foundation/graphics_game/gpu_turbo_x/EGL/config.gni")) {
-  graphic_2d_feature_use_igraphics_extend_hooks = true
-  import("//foundation/graphic/graphic_2d_ext/gpu_turbo_x/EGL/config.gni")
-}
-
 graphic_2d_delegator_configs = {
 }
 if (path_exists("//foundation/graphic/graphic_2d_ext/delegator/config.gni")) {
@@ -316,6 +313,15 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools
   graphic_2d_math_tools_configs = {
     import(
         "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni")
+  }
+}
+
+graphic_2d_frame_stability_configs = {
+}
+if (path_exists("//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni")) {
+  graphic_2d_frame_stability_configs = {
+    import(
+        "//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni")
   }
 }
 

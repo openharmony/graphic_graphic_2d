@@ -32,6 +32,7 @@
 #include "typography_types.h"
 #include "text/font_types.h"
 #include "hm_symbol_txt.h"
+#include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -152,12 +153,16 @@ struct RS_EXPORT TextStyle {
     RectStyle backgroundRect{0, 0.0, 0.0, 0.0, 0.0};
     int styleId{0};
     size_t textStyleUid{0};
+    // Priority font objects array for text shaping
+    std::vector<std::shared_ptr<Drawing::Typeface>> fontTypefaces;
     TextStyle() = default;
     TextStyle(const TextStyle& other) = default;
     TextStyle& operator=(const TextStyle& other) = default;
     bool operator ==(const TextStyle &rhs) const;
     bool EqualByFonts(const TextStyle &rhs) const;
     bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
+    void SetFontTypefaces(const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces);
+    const std::vector<std::shared_ptr<Drawing::Typeface>>& GetFontTypefaces() const;
     // symbol glyph
     bool isSymbolGlyph{false};
     HMSymbolTxt symbol;

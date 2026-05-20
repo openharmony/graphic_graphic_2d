@@ -175,6 +175,9 @@ public:
 
     TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) override;
 
+    void SetForceReuseRasterResult(bool flag) override;
+    bool GetForceReuseRasterResult() const override;
+
     ParagraphStyle GetParagraphStyle() const override;
 
     TextProcessState GetProcessState() const override;
@@ -238,6 +241,7 @@ private:
     std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
     std::once_flag initSymbolRunsFlag_;
     bool updateAttr{false};
+    bool forceReuseRasterResult_{false};
 };
 } // namespace SPText
 } // namespace Rosen

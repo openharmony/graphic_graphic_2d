@@ -22,6 +22,77 @@
 
 namespace OHOS {
 namespace Rosen {
+RSSurfaceHandler::BufferOwnerCount::~BufferOwnerCount()
+{
+    if (bufferReleaseCb_ != nullptr && bufferId_ != 0 && refCount_.load() != 0) {
+        RS_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount bufferId %" PRIu64 " refCount_ %u",
+            bufferId_, refCount_.load());
+        bufferReleaseCb_(bufferId_);
+        bufferReleaseCb_ = nullptr;
+    }
+}
+
+void RSSurfaceHandler::BufferOwnerCount::AddRef()
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::AddRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
+        refCount_.load());
+    if (bufferId_ == 0) {
+        RS_LOGE("BufferOwnerCount::AddRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
+            refCount_.load());
+        return;
+    }
+    refCount_.fetch_add(1, std::memory_order_acq_rel);
+}
+
+bool RSSurfaceHandler::BufferOwnerCount::DecRef()
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::DecRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
+        refCount_.load());
+    if (bufferId_ == 0) {
+        RS_LOGE("BufferOwnerCount::DecRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
+            refCount_.load());
+        return bufferReleaseCb_ == nullptr;
+    }
+    auto ret = refCount_.fetch_sub(1, std::memory_order_acq_rel);
+    if (ret == 1) {
+        if (bufferReleaseCb_ == nullptr) {
+            RS_LOGE("BufferOwnerCount::DecRef bufferReleaseCb_ is nullptr");
+            return true;
+        }
+        bufferReleaseCb_(bufferId_);
+        bufferReleaseCb_ = nullptr;
+    }
+    return bufferReleaseCb_ == nullptr;
+}
+
+void RSSurfaceHandler::BufferOwnerCount::InsertUniOnDrawSet(uint64_t layerId, uint64_t bufferId)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("InsertUniOnDrawSet layerId:%" PRIu64 " bufferId:%" PRIu64,
+        layerId, bufferId);
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    auto iter = uniOnDrawBuffersMap_.find(layerId);
+    if (iter != uniOnDrawBuffersMap_.end()) {
+        iter->second.insert(bufferId);
+    } else {
+        uniOnDrawBuffersMap_.emplace(layerId, std::set<uint64_t>{bufferId});
+    }
+}
+
+void RSSurfaceHandler::BufferOwnerCount::SetUniBufferOwner(uint64_t bufferId, uint64_t screenId)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("SetUniBufferOwner seq:%" PRIu64 " uniSeq:%" PRIu64 " screenId:%",
+        bufferId_, bufferId, screenId);
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    uniBufferOwnerSeqNumMap_[screenId] = bufferId;
+}
+
+bool RSSurfaceHandler::BufferOwnerCount::CheckLastUniBufferOwner(uint64_t bufferId, uint64_t screenId)
+{
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    auto iter = uniBufferOwnerSeqNumMap_.find(screenId);
+    // If not find screenId, true is returned to release the buffer
+    return iter == uniBufferOwnerSeqNumMap_.end() || iter->second == bufferId;
+}
 
 GPUCacheCleanupCallback RSSurfaceHandler::s_gpuCacheCleanupCallback = nullptr;
 std::mutex RSSurfaceHandler::s_gpuCacheCleanupCallbackMutex_;

@@ -487,6 +487,18 @@ bool ConvertVector4fFromAniTuple(OHOS::Rosen::Vector4f& vector4f, uintptr_t opaq
     return true;
 }
 
+void SetVectorCoeff(OHOS::Rosen::BrightnessBlender& blender, const Tuple3F& coeff, bool isPositive)
+{
+    OHOS::Rosen::Vector3f vector3f(static_cast<float>(coeff.x),
+                                 static_cast<float>(coeff.y),
+                                 static_cast<float>(coeff.z));
+    if (isPositive) {
+        blender.SetPositiveCoeff(vector3f);
+    } else {
+        blender.SetNegativeCoeff(vector3f);
+    }
+}
+
 // without OHOS::Rosen::BrightnessBlender SetHdr
 bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const BrightnessBlender& brightnessBlender)
 {
@@ -497,18 +509,10 @@ bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const Brigh
     blender.SetSaturation(static_cast<float>(brightnessBlender->getSaturation()));
 
     auto posCoeff = brightnessBlender->getPositiveCoefficient();
-    OHOS::Rosen::Vector3f posVector3f(
-        static_cast<float>(posCoeff.x),
-        static_cast<float>(posCoeff.y),
-        static_cast<float>(posCoeff.z));
-    blender.SetPositiveCoeff(posVector3f);
+    SetVectorCoeff(blender, posCoeff, true);
 
     auto negCoeff = brightnessBlender->getNegativeCoefficient();
-    OHOS::Rosen::Vector3f negVector3f(
-        static_cast<float>(negCoeff.x),
-        static_cast<float>(negCoeff.y),
-        static_cast<float>(negCoeff.z));
-    blender.SetNegativeCoeff(negVector3f);
+    SetVectorCoeff(blender, negCoeff, false);
 
     blender.SetFraction(static_cast<float>(brightnessBlender->getFraction()));
     return true;

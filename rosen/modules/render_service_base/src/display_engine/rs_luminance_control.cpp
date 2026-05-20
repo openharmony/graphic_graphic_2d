@@ -125,10 +125,10 @@ void RSLuminanceControl::DimmingIncrease(ScreenId screenId)
     }
 }
 
-void RSLuminanceControl::SetSdrLuminance(ScreenId screenId, uint32_t level)
+void RSLuminanceControl::SetSdrLuminance(const RsScreenBrightnessData& brightnessData)
 {
     if (rSLuminanceControlInterface_ != nullptr) {
-        rSLuminanceControlInterface_->SetSdrLuminance(screenId, level);
+        rSLuminanceControlInterface_->SetSdrLuminance(brightnessData);
     }
 }
 

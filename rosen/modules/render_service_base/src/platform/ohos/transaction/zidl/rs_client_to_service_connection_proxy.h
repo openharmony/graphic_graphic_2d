@@ -165,7 +165,7 @@ public:
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
     ErrCode GetScreenBacklight(uint64_t id, int32_t& level) override;
 
-    void SetScreenBacklight(ScreenId id, uint32_t level) override;
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData) override;
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) override;
 
@@ -361,6 +361,8 @@ private:
     int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
+
+    ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled) override;
 
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
 

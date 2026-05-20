@@ -134,13 +134,15 @@ void HveFilter::DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
     Drawing::Rect parmDstRect = surfaceNodeInfo.dstRect_;
     // Get the color of solidlayer
     Color solidLayerColor = surfaceNodeInfo.solidLayerColor_;
-    // A valid solidlayer color exists.
-    if (solidLayerColor != RgbPalette::Transparent()) {
-        canvas->Clear(static_cast<Drawing::ColorQuad>(solidLayerColor.AsArgbInt()));
-    }
     canvas->Save();
     canvas->Translate(-srcRect.GetLeft(), -srcRect.GetTop());
     canvas->ConcatMatrix(rotateMatrix);
+    Drawing::Brush rectBrush;
+    rectBrush.SetARGB(solidLayerColor.GetAlpha(),
+        solidLayerColor.GetRed(), solidLayerColor.GetGreen(), solidLayerColor.GetBlue());
+    canvas->AttachBrush(rectBrush);
+    canvas->DrawRect(parmDstRect);
+    canvas->DetachBrush();
     canvas->DrawImageRect(*surfaceImage, parmSrcRect, parmDstRect, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas->Restore();
@@ -167,6 +169,7 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
         ClearSurfaceNodeInfo();
         return nullptr;
     }
+    offscreenCanvas->Clear(Drawing::Color::COLOR_BLACK);
 
     std::shared_ptr<Drawing::Image> snapshot;
     std::vector<SurfaceNodeInfo> vecSurfaceNode = GetSurfaceNodeInfo();

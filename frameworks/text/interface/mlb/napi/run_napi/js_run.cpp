@@ -300,7 +300,7 @@ napi_value JsRun::OnGetTextDirection(napi_env env, napi_callback_info info)
     }
 
     TextDirection textDirection = run_->GetTextDirection();
-    return CreateJsNumber(env, (int)textDirection);
+    return CreateJsNumber(env, static_cast<int>(textDirection));
 }
 
 napi_value JsRun::GetOffsets(napi_env env, napi_callback_info info)

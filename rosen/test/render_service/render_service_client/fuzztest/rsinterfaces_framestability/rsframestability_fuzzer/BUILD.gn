@@ -41,6 +41,8 @@ ohos_fuzztest("RSFrameStabilityFuzzTest") {
         "-O0",
         "-Wno-unused-variable",
         "-fno-omit-frame-pointer",
+        "-Dprivate=public",
+        "-Dprotected=public",
     ]
 
     sources = [ "rsframestability_fuzzer.cpp" ]

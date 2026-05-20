@@ -872,6 +872,26 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest015, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDamageRegionTest001
+ * @tc.desc: Test SetDamageRegion
+ * @tc.type: FUNC
+ * @tc.require: #ICQ74B
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, SetDamageRegionTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    EXPECT_EQ(screenDrawable_->wiredMirrorRenderFrame_, nullptr);
+    std::vector<RectI> rects;
+    screenDrawable_->SetDamageRegion(rects);
+
+    auto wiredMirrorRenderFrame = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    screenDrawable_->wiredMirrorRenderFrame_ = std::move(wiredMirrorRenderFrame);
+    EXPECT_NE(screenDrawable_->wiredMirrorRenderFrame_, nullptr);
+    screenDrawable_->SetDamageRegion(rects);
+    ASSERT_NE(screenDrawable_, nullptr);
+}
+
+/**
  * @tc.name: CheckScreenFreezeSkip
  * @tc.desc: Test CheckScreenFreezeSkip
  * @tc.type: FUNC
@@ -1869,4 +1889,28 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, UpdateSurfaceDrawRegionTest, TestSize.L
     screenDrawable_->UpdateSurfaceDrawRegion(canvas, params);
 }
 #endif
+
+/**
+ * @tc.name: OnDrawTest_hasForceHwcHdrSurface
+ * @tc.desc: Test OnDraw when screen hasForceHwcHdrSurface is/not true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_hasForceHwcHdrSurface, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->mirrorSourceDrawable_.reset();
+    EXPECT_EQ(params->GetMirrorSourceDrawable().lock(), nullptr);
+    params->SetHDRPresent(true);
+    // when hasForceHwcHdrSurface is true
+    params->SetHasForceHwcHdrSurface(true);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_TRUE(params->GetHasForceHwcHdrSurface());
+    // when hasForceHwcHdrSurface is false
+    params->SetHasForceHwcHdrSurface(false);
+    screenDrawable_->OnDraw(canvas);
+    EXPECT_FALSE(params->GetHasForceHwcHdrSurface());
+}
 } // namespace OHOS::Rosen

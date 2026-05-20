@@ -417,9 +417,11 @@ void DoSetScreenBacklight(FuzzedDataProvider& fdp)
     MessageParcel reply;
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
     uint32_t level = fdp.ConsumeIntegral<uint32_t>();
+    float brightnessPosition = fdp.ConsumeFloatingPoint<float>();
     dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataP.WriteUint64(id);
     dataP.WriteUint32(level);
+    dataP.WriteFloat(brightnessPosition);
     g_toServiceConnectionStub->OnRemoteRequest(code, dataP, reply, option);
 }
 

@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_PROPERTY_RS_SPATIAL_EFFECT_DEF_H
 #define RENDER_SERVICE_BASE_PROPERTY_RS_SPATIAL_EFFECT_DEF_H
 
+#include <variant>
+
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 
@@ -42,12 +44,35 @@ struct DepthLightPara {
 };
 
 struct SpatialEffectPara {
-    Vector3f leftTop;
-    Vector3f rightTop;
-    Vector3f leftBottom;
-    Vector3f rightBottom;
+    static constexpr uint8_t LEFT_TOP_INDEX = 0;
+    static constexpr uint8_t RIGHT_TOP_INDEX = 1;
+    static constexpr uint8_t LEFT_BOTTOM_INDEX = 2;
+    static constexpr uint8_t RIGHT_BOTTOM_INDEX = 3;
+    static constexpr uint8_t CORNER_NUMBER = 4;
+
+    using CornerPositions = std::array<Vector3f, CORNER_NUMBER>;
+
+    union {
+        struct {
+            Vector3f leftTop;
+            Vector3f rightTop;
+            Vector3f leftBottom;
+            Vector3f rightBottom;
+        };
+        CornerPositions corners;
+    };
+
     float occlusionWeight = 0.f;
+
+    SpatialEffectPara() {};
+    ~SpatialEffectPara() {};
 };
+
+struct SpatialEffectVariantPara {
+    std::variant<float, SpatialEffectPara::CornerPositions> position;
+    float occlusionWeight = 0.0f;
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

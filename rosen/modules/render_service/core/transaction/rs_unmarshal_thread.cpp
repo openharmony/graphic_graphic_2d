@@ -30,7 +30,6 @@
 #include "rs_profiler.h"
 #include "command/rs_node_command.h"
 #include "command/rs_canvas_node_command.h"
-#include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
 #include "platform/common/rs_hisysevent.h"
 

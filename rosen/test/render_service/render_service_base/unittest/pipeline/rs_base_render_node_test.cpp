@@ -1085,8 +1085,7 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateRenderStatus, TestSize.Level1)
     node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
 
     isPartialRenderEnabled = true;
-    node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
-    ASSERT_TRUE(node->isRenderUpdateIgnored_);
+    ASSERT_TRUE(node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled));
 }
 
 /**
@@ -1134,8 +1133,8 @@ HWTEST_F(RSBaseRenderNodeTest, MarkSuggestOpincNode, TestSize.Level1)
     bool isOpincNode = true;
     bool isNeedCalculate = true;
     node->MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
-    ASSERT_TRUE(node->GetOpincCache().IsSuggestOpincNode());
-    ASSERT_TRUE(node->GetOpincCache().isNeedCalculate_);
+    ASSERT_TRUE(node->GetOpincRootCache().IsSuggestOpincNode());
+    ASSERT_TRUE(node->GetOpincRootCache().isNeedCalculate_);
     ASSERT_TRUE(node->IsDirty());
 }
 } // namespace OHOS::Rosen

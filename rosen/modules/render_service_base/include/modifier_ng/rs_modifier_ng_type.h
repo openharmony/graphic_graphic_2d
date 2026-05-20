@@ -19,6 +19,7 @@
 #include <bitset>
 #include <string>
 #include <unordered_map>
+#include "common/rs_macros.h"
 
 namespace OHOS::Rosen::ModifierNG {
 enum class RSModifierType : uint16_t {
@@ -92,7 +93,7 @@ public:
     }
 
 private:
-    static inline std::unordered_map<RSModifierType, RSPropertyType> modifierToPropertyMap_ = {
+    static inline RS_HIDDEN std::unordered_map<RSModifierType, RSPropertyType> modifierToPropertyMap_ = {
         { RSModifierType::TRANSITION_STYLE, RSPropertyType::TRANSITION_STYLE },
         { RSModifierType::BACKGROUND_STYLE, RSPropertyType::BACKGROUND_STYLE },
         { RSModifierType::CONTENT_STYLE, RSPropertyType::CONTENT_STYLE },
@@ -194,6 +195,7 @@ public:
             case RSPropertyType::BORDER_STYLE: return "BorderStyle";
             case RSPropertyType::BORDER_DASH_WIDTH: return "BorderDashWidth";
             case RSPropertyType::BORDER_DASH_GAP: return "BorderDashGap";
+            case RSPropertyType::BORDER_SDF_SHADER: return "BorderSDFShader";
             case RSPropertyType::BACKGROUND_FILTER: return "BackgroundFilter";
             case RSPropertyType::LINEAR_GRADIENT_BLUR_PARA: return "LinearGradientBlurPara";
             case RSPropertyType::DYNAMIC_LIGHT_UP_RATE: return "DynamicLightUpRate";
@@ -257,6 +259,7 @@ public:
             case RSPropertyType::OUTLINE_DASH_WIDTH: return "OutlineDashWidth";
             case RSPropertyType::OUTLINE_DASH_GAP: return "OutlineDashGap";
             case RSPropertyType::OUTLINE_RADIUS: return "OutlineRadius";
+            case RSPropertyType::OUTLINE_SDF_SHADER: return "OutlineSDFShader";
             case RSPropertyType::GREY_COEF: return "GreyCoef";
             case RSPropertyType::LIGHT_INTENSITY: return "LightIntensity";
             case RSPropertyType::LIGHT_COLOR: return "LightColor";

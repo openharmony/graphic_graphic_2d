@@ -36,7 +36,7 @@ public:
     using NotifyClientCallback = std::function<void(uint64_t, uint32_t)>;
 
     static RSColorPickerThread& Instance();
-    bool PostTask(const std::function<void()>& task, bool limited = true, int64_t delayTime = 0);
+    bool PostTask(const std::function<void()>& task, int64_t delayTime);
     void RegisterNodeDirtyCallback(const NodeDirtyCallback& callback);
     void NotifyNodeDirty(uint64_t nodeId);
 
@@ -60,10 +60,6 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     NodeDirtyCallback callback_ = nullptr;
     NotifyClientCallback notifyClient_ = nullptr;
-
-    // Rate limiting for PostTask
-    std::atomic<uint32_t> taskCount_ { 0 };
-    std::atomic<int64_t> lastResetTime_ { 0 };
 
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<RenderContext> renderContext_ = nullptr;

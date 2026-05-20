@@ -24,6 +24,7 @@
 
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_outline_modifier.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -72,5 +73,21 @@ HWTEST_F(RSOutlineModifierNGTypeTest, RSOutlineModifierTest, TestSize.Level1)
     Vector4f radius = { 3.2f, 3.3f, 3.1f, 3.0f };
     modifier->SetOutlineRadius(radius);
     EXPECT_EQ(modifier->GetOutlineRadius(), radius);
+}
+
+/**
+ * @tc.name: RSOutlineModifierSetGetOutlineSDFShader
+ * @tc.desc: Test SetOutlineSDFShader and GetOutlineSDFShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSOutlineModifierNGTypeTest, RSOutlineModifierSetGetOutlineSDFShader, TestSize.Level1)
+{
+    std::shared_ptr<ModifierNG::RSOutlineModifier> modifier = std::make_shared<ModifierNG::RSOutlineModifier>();
+    EXPECT_EQ(modifier->GetOutlineSDFShader(), nullptr);
+
+    auto shader = RSNGShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    modifier->SetOutlineSDFShader(shader);
+    EXPECT_EQ(modifier->GetOutlineSDFShader(), shader);
 }
 } // namespace OHOS::Rosen

@@ -619,16 +619,6 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     }
     bool changeColorSpace = rsSubThreadCache.GetTargetColorGamut() != effectiveColorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
-        // When ScRGB or Adaptive P3 is enabled, some operations may cause the window color gamut to change.
-        // If the buffer format is not FP16, the uifirst cache need to be cleared when colorspace changed.
-        bool isNeedFP16 = surfaceParams->GetHDRPresent() || isScRGBEnable;
-        if (!isNeedFP16 && ColorGamutParam::IsAdaptiveColorGamutEnabled() && changeColorSpace) {
-            HILOG_COMM_INFO("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
-                "nodeID: [%{public}" PRIu64"]", id);
-            RS_TRACE_NAME_FMT("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
-                "nodeID: [%" PRIu64"]", id);
-            drawable->GetRsSubThreadCache().ClearCacheSurfaceInThread();
-        }
         rsSubThreadCache.SetScreenId(id);
         rsSubThreadCache.SetTargetColorGamut(effectiveColorGamut);
     }
@@ -763,6 +753,11 @@ bool RSUifirstManager::NeedPurgePendingPostNodesInner(
         return false;
     }
     auto& [id, node] = *it;
+    // Check if the node and its parent should be painted
+    if (!node->GetSelfAndParentShouldPaint()) {
+        return true;
+    }
+
     auto& subThreadCache = drawable->GetRsSubThreadCache();
     bool needPurge = purgeEnable_ && subThreadCache.HasCachedTexture() &&
         (cachedStaticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
@@ -1653,7 +1648,7 @@ bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
     return false;
 }
 
-bool RSUifirstManager::HasBgNodeBelowRootNode(RSSurfaceRenderNode& appNode) const
+bool RSUifirstManager::HasBgNodeBelowRootNode(const RSSurfaceRenderNode& appNode) const
 {
     auto appFirstChildren = appNode.GetFirstChild();
     if (!appFirstChildren) {
@@ -1679,42 +1674,44 @@ bool RSUifirstManager::HasBgNodeBelowRootNode(RSSurfaceRenderNode& appNode) cons
     return false;
 }
 
-bool RSUifirstManager::CheckHasTransAndFilter(RSSurfaceRenderNode& node)
+bool RSUifirstManager::CheckHasTransAndFilter(const RSSurfaceRenderNode& node)
 {
     if (!node.IsLeashWindow()) {
         return false;
     }
-    bool childHasVisibleFilter = node.ChildHasVisibleFilter();
-    bool hasTransparent = false;
     RectI mainAppSurfaceRect = {};
     bool isMainAppSurface = false;
-    bool hasChildOutOfMainAppSurface = false;
+    bool isMainAppSurfaceHasTransparent = false;
+    bool hasTransparentBlurChildOutsideMain = false;
     for (auto &child : *node.GetSortedChildren()) {
         auto childSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-        if (childSurface == nullptr || hasChildOutOfMainAppSurface) {
+        if (childSurface == nullptr) {
             continue;
         }
         if (!isMainAppSurface && childSurface->IsAppWindow()) {
-            bool isBgColorTrans = HasBgNodeBelowRootNode(*childSurface);
-            hasTransparent |= (childSurface->IsTransparent() && !isBgColorTrans);
-            mainAppSurfaceRect = childSurface->GetAbsDrawRect();
             isMainAppSurface = true;
-            RS_OPTIONAL_TRACE_NAME_FMT("Id:%" PRIu64 " name[%s] isTrans:%d isBgTrans:%d, hasTrans:%d",
-                childSurface->GetId(), childSurface->GetName().c_str(),
-                childSurface->IsTransparent(), isBgColorTrans, hasTransparent);
+            mainAppSurfaceRect = childSurface->GetOldDirty();
+            bool hasBgNode = HasBgNodeBelowRootNode(*childSurface);
+            isMainAppSurfaceHasTransparent |= (childSurface->IsTransparent() && !hasBgNode);
+            RS_OPTIONAL_TRACE_NAME_FMT("node:%" PRIu64 " name:%s isTrans:%d hasBgNode:%d mainRect:%s",
+                childSurface->GetId(), childSurface->GetName().c_str(), childSurface->IsTransparent(),
+                hasBgNode, mainAppSurfaceRect.ToString().c_str());
             continue;
         }
         if (childSurface->IsTransparent() && childSurface->ChildHasVisibleFilter() &&
-            !childSurface->GetAbsDrawRect().IsInsideOf(mainAppSurfaceRect)) {
-            RS_OPTIONAL_TRACE_NAME_FMT("Id:%" PRIu64 " name[%s] absDrawRect is outof mainAppNode",
-                childSurface->GetId(), childSurface->GetName().c_str());
-            hasChildOutOfMainAppSurface = true;
+            !childSurface->GetOldDirty().IsInsideOf(mainAppSurfaceRect)) {
+            hasTransparentBlurChildOutsideMain = true;
+            RS_OPTIONAL_TRACE_NAME_FMT("node:%" PRIu64 " name:%s subRect:%s outside main", childSurface->GetId(),
+                childSurface->GetName().c_str(), childSurface->GetOldDirty().ToString().c_str());
+            break;
         }
     }
-    hasTransparent |= hasChildOutOfMainAppSurface;
-    RS_TRACE_NAME_FMT("CheckHasTransAndFilter node:%" PRIu64 " hasTransparent: %d, childHasVisibleFilter: %d",
-        node.GetId(), hasTransparent, childHasVisibleFilter);
-    return hasTransparent && childHasVisibleFilter;
+    bool isMainAppSurfaceHasTransAndBlur = isMainAppSurfaceHasTransparent && node.ChildHasVisibleFilter();
+    bool hasTransparentAndBlur = isMainAppSurfaceHasTransAndBlur || hasTransparentBlurChildOutsideMain;
+    RS_TRACE_NAME_FMT("CheckHasTransAndFilter node:%" PRIu64 " hasTransAndBlur:%d isMainTrans:%d hasVisibleFilter:%d "
+        "hasTransAndBlurChild:%d", node.GetId(), hasTransparentAndBlur, isMainAppSurfaceHasTransparent,
+        node.ChildHasVisibleFilter(), hasTransparentBlurChildOutsideMain);
+    return hasTransparentAndBlur;
 }
 
 void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType)

@@ -68,15 +68,13 @@ RSCanvasRenderNode::~RSCanvasRenderNode()
 }
 
 void RSCanvasRenderNode::UpdateRecordingNG(
-    std::shared_ptr<Drawing::DrawCmdList> drawCmds, ModifierNG::RSModifierType type, bool isSingleFrameComposer)
+    SimpleDrawCmdListPtr drawCmds, ModifierNG::RSModifierType type, bool isSingleFrameComposer)
 {
     if (!drawCmds || drawCmds->IsEmpty()) {
         return;
     }
-    auto renderProperty =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(drawCmds, ANONYMOUS_MODIFIER_NG_ID);
-    auto renderModifier =
-        ModifierNG::RSRenderModifier::MakeRenderModifier<Drawing::DrawCmdListPtr>(type, renderProperty);
+    auto renderProperty = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmds, ANONYMOUS_MODIFIER_NG_ID);
+    auto renderModifier = ModifierNG::RSRenderModifier::MakeRenderModifier<SimpleDrawCmdListPtr>(type, renderProperty);
     AddModifier(renderModifier, isSingleFrameComposer);
 }
 

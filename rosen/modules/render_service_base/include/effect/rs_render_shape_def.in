@@ -46,6 +46,12 @@ DECLARE_SHAPE(SDFTriangleShape, SDF_TRIANGLE_SHAPE,
     ADD_PROPERTY_TAG(SDFTriangleShape, Radius)
 );
 
+DECLARE_SHAPE(SDFEllipseShape, SDF_ELLIPSE_SHAPE,
+    ADD_PROPERTY_TAG(SDFEllipseShape, Center),
+    ADD_PROPERTY_TAG(SDFEllipseShape, Width),
+    ADD_PROPERTY_TAG(SDFEllipseShape, Height)
+);
+
 DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
     ADD_PROPERTY_TAG(SDFTransformShape, Matrix),
     ADD_PROPERTY_TAG(SDFTransformShape, Shape),
@@ -54,6 +60,12 @@ DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
     ADD_PROPERTY_TAG(SDFTransformShape, GravityStrength),
     ADD_PROPERTY_TAG(SDFTransformShape, GravitySpacing),
     ADD_PROPERTY_TAG(SDFTransformShape, GravityHotZone)
+);
+
+DECLARE_SHAPE(SDFPathShape, SDF_PATH_SHAPE,
+    ADD_PROPERTY_TAG(SDFPathShape, Path),
+    ADD_PROPERTY_TAG(SDFPathShape, Offset),
+    ADD_PROPERTY_TAG(SDFPathShape, Scale)
 );
 
 DECLARE_SHAPE(SDFPixelmapShape, SDF_PIXELMAP_SHAPE,

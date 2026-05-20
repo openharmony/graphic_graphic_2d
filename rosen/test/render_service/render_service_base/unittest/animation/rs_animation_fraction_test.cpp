@@ -664,7 +664,7 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFractionTest001, TestSize.Level1)
     RSAnimationFraction rsAnimationFraction;
     int64_t time = 0;
     int64_t delayTime = 0;
-    rsAnimationFraction.GetAnimationFraction(time, delayTime, false);
+    rsAnimationFraction.GetAnimationFraction(time, delayTime, false, true);
     ASSERT_FALSE(time);
 }
 

@@ -636,8 +636,7 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    node.UpdateRenderStatus(curDirtyRegion_, isOpDropped_);
-    if (node.IsRenderUpdateIgnored()) {
+    if (node.UpdateRenderStatus(curDirtyRegion_, isOpDropped_)) {
         return;
     }
 #endif

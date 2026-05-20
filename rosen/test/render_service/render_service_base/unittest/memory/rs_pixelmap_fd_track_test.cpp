@@ -533,21 +533,29 @@ HWTEST_F(RSPixelMapFdTrackTest, ReportFdOverLimitTest001, testing::ext::TestSize
 
 /**
  * @tc.name: WriteFdMemInfoToFileTest001
- * @tc.desc: Test function WriteFdMemInfoToFile
+ * @tc.desc: Test function WriteFdMemInfoToFile with valid path (file will be created)
  * @tc.type: FUNC
  * @tc.require: issue#21888
  */
 HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest001, testing::ext::TestSize.Level1)
 {
     std::string fdMemInfo = "test info";
-    std::string fdMemInfoPath = "/data/service/el0/render_service/renderservice_fdmem.txt";
+    std::string fdMemInfoPath = "/data/service/el0/render_service/renderservice_fdmem_test.txt";
+    std::filesystem::remove(fdMemInfoPath);
     RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
-    ASSERT_TRUE(std::ifstream(fdMemInfoPath).good());
+    std::ifstream file1(fdMemInfoPath);
+    EXPECT_TRUE(file1.good());
+    file1.close();
+    RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
+    std::ifstream file2(fdMemInfoPath);
+    EXPECT_TRUE(file2.good());
+    file2.close();
+    std::filesystem::remove(fdMemInfoPath);
 }
 
 /**
  * @tc.name: WriteFdMemInfoToFileTest002
- * @tc.desc: Test function WriteFdMemInfoToFile when file cannot be opened
+ * @tc.desc: Test function WriteFdMemInfoToFile when parent directory does not exist
  * @tc.type: FUNC
  * @tc.require: issue#21888
  */
@@ -557,6 +565,95 @@ HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest002, testing::ext::TestS
     std::string fdMemInfoPath = "/invalid/path/test.txt";
     RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
     EXPECT_FALSE(std::ifstream(fdMemInfoPath).good());
+}
+
+/**
+ * @tc.name: WriteFdMemInfoToFileTest003
+ * @tc.desc: Test function WriteFdMemInfoToFile when path is an existing directory
+ * @tc.type: FUNC
+ * @tc.require: issue#23694
+ */
+HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest003, testing::ext::TestSize.Level1)
+{
+    std::string fdMemInfo = "test info";
+    std::string fdMemInfoPath = "/data/service/el0/render_service";
+    RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
+    EXPECT_FALSE(std::filesystem::is_regular_file(fdMemInfoPath));
+}
+
+/**
+ * @tc.name: WriteFdMemInfoToFileTest004
+ * @tc.desc: Test function WriteFdMemInfoToFile with path ending with "/" (filename is empty)
+ * @tc.type: FUNC
+ * @tc.require: issue#23694
+ */
+HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest004, testing::ext::TestSize.Level1)
+{
+    std::string fdMemInfo = "test info";
+    std::string fdMemInfoPath = "/invalid/path/";
+    RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
+    EXPECT_FALSE(std::filesystem::exists(fdMemInfoPath));
+}
+
+/**
+ * @tc.name: WriteFdMemInfoToFileTest005
+ * @tc.desc: Test function WriteFdMemInfoToFile with empty directory path (only filename)
+ * @tc.type: FUNC
+ * @tc.require: issue#23694
+ */
+HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest005, testing::ext::TestSize.Level1)
+{
+    std::string fdMemInfo = "test info";
+    std::string fdMemInfoPath = "renderservice_fdmem_test.txt";
+    std::filesystem::remove(fdMemInfoPath);
+    RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
+    EXPECT_TRUE(std::ifstream(fdMemInfoPath).good());
+    std::filesystem::remove(fdMemInfoPath);
+}
+
+/**
+ * @tc.name: WriteFdMemInfoToFileTest006
+ * @tc.desc: Test function WriteFdMemInfoToFile when file cannot be opened (permission denied)
+ * @tc.type: FUNC
+ * @tc.require: issue#23694
+ */
+HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest006, testing::ext::TestSize.Level1)
+{
+    std::string fdMemInfo = "test info";
+    std::string fdMemInfoPath = "/proc/renderservice_fdmem_test.txt";
+    RSPixelMapFdTrack::WriteFdMemInfoToFile(fdMemInfoPath, fdMemInfo);
+    EXPECT_FALSE(std::ifstream(fdMemInfoPath).good());
+}
+
+/**
+ * @tc.name: WriteFdMemInfoToFileTest007
+ * @tc.desc: Test function WriteFdMemInfoToFile with symlink path
+ * @tc.type: FUNC
+ * @tc.require: issue#23694
+ */
+HWTEST_F(RSPixelMapFdTrackTest, WriteFdMemInfoToFileTest007, testing::ext::TestSize.Level1)
+{
+    std::string fdMemInfo = "test info";
+    std::string targetFile = "/data/service/el0/render_service/renderservice_fdmem_test_target.txt";
+    std::string symlinkPath = "/data/service/el0/render_service/renderservice_fdmem_test_symlink.txt";
+
+    std::filesystem::remove(targetFile);
+    std::filesystem::remove(symlinkPath);
+
+    std::ofstream(targetFile) << "initial content";
+    std::filesystem::create_symlink(targetFile, symlinkPath);
+
+    RSPixelMapFdTrack::WriteFdMemInfoToFile(symlinkPath, fdMemInfo);
+
+    std::ifstream file(targetFile);
+    EXPECT_TRUE(file.good());
+    std::string content;
+    std::getline(file, content, '\0');
+    EXPECT_TRUE(content.find(fdMemInfo) != std::string::npos);
+    file.close();
+
+    std::filesystem::remove(targetFile);
+    std::filesystem::remove(symlinkPath);
 }
 
 /**
@@ -590,7 +687,40 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadAshmemInfoFromFileTest002, testing::ext::Tes
     RSPixelMapFdTrack::ReadAshmemInfoFromFile(nonExistentPath, ashmemInfo, testPid);
 
     EXPECT_FALSE(ashmemInfo.empty());
-    EXPECT_TRUE(ashmemInfo.find("Failed to open ashmemInfoFile") != std::string::npos);
+    EXPECT_TRUE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
+}
+
+/**
+ * @tc.name: ReadAshmemInfoFromFileTest003
+ * @tc.desc: Test function ReadAshmemInfoFromFile when path is a directory (not a regular file)
+ * @tc.type: FUNC
+ * @tc.require: issue#23694
+ */
+HWTEST_F(RSPixelMapFdTrackTest, ReadAshmemInfoFromFileTest003, testing::ext::TestSize.Level1)
+{
+    std::string dirPath = "/proc";
+    std::string ashmemInfo;
+    int32_t testPid = -1;
+    RSPixelMapFdTrack::ReadAshmemInfoFromFile(dirPath, ashmemInfo, testPid);
+
+    EXPECT_FALSE(ashmemInfo.empty());
+    EXPECT_TRUE(ashmemInfo.find("Failed to check ashmemInfoPath") != std::string::npos);
+}
+
+/**
+ * @tc.name: ReadAshmemInfoFromFileTest004
+ * @tc.desc: Test function ReadAshmemInfoFromFile when file cannot be opened (permission denied)
+ * @tc.type: FUNC
+ * @tc.require: issue#23694
+ */
+HWTEST_F(RSPixelMapFdTrackTest, ReadAshmemInfoFromFileTest004, testing::ext::TestSize.Level1)
+{
+    std::string testFilePath = "/proc/sysrq-trigger";
+    std::string ashmemInfo;
+    int32_t testPid = -1;
+    RSPixelMapFdTrack::ReadAshmemInfoFromFile(testFilePath, ashmemInfo, testPid);
+
+    EXPECT_TRUE(ashmemInfo.find(std::to_string(testPid)) == std::string::npos);
 }
 
 /**
@@ -624,7 +754,40 @@ HWTEST_F(RSPixelMapFdTrackTest, ReadDmaBufInfoFromFileTest002, testing::ext::Tes
     RSPixelMapFdTrack::ReadDmaBufInfoFromFile(nonExistentPath, dmaBufInfo, testPid);
 
     EXPECT_FALSE(dmaBufInfo.empty());
-    EXPECT_TRUE(dmaBufInfo.find("Failed to open dmaBufInfoFile") != std::string::npos);
+    EXPECT_TRUE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
+}
+
+/**
+ * @tc.name: ReadDmaBufInfoFromFileTest003
+ * @tc.desc: Test function ReadDmaBufInfoFromFile when path is a directory (not a regular file)
+ * @tc.type: FUNC
+ * @tc.require: issue#23694
+ */
+HWTEST_F(RSPixelMapFdTrackTest, ReadDmaBufInfoFromFileTest003, testing::ext::TestSize.Level1)
+{
+    std::string dirPath = "/proc";
+    std::string dmaBufInfo;
+    int32_t testPid = -1;
+    RSPixelMapFdTrack::ReadDmaBufInfoFromFile(dirPath, dmaBufInfo, testPid);
+
+    EXPECT_FALSE(dmaBufInfo.empty());
+    EXPECT_TRUE(dmaBufInfo.find("Failed to check dmaBufInfoPath") != std::string::npos);
+}
+
+/**
+ * @tc.name: ReadDmaBufInfoFromFileTest004
+ * @tc.desc: Test function ReadDmaBufInfoFromFile when file cannot be opened (permission denied)
+ * @tc.type: FUNC
+ * @tc.require: issue#23694
+ */
+HWTEST_F(RSPixelMapFdTrackTest, ReadDmaBufInfoFromFileTest004, testing::ext::TestSize.Level1)
+{
+    std::string testFilePath = "/proc/sysrq-trigger";
+    std::string dmaBufInfo;
+    int32_t testPid = -1;
+    RSPixelMapFdTrack::ReadDmaBufInfoFromFile(testFilePath, dmaBufInfo, testPid);
+
+    EXPECT_TRUE(dmaBufInfo.find(std::to_string(testPid)) == std::string::npos);
 }
 
 /**

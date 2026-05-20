@@ -137,10 +137,11 @@ float RSSubThread::GetAppGpuMemoryInMB()
     return total;
 }
 
-NodeId RSSubThread::GetSubAppNodeId(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable,
-    RSSurfaceRenderParams* surfaceParams)
+std::pair<NodeId, std::string> RSSubThread::GetSubAppNodeInfo(
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable, RSSurfaceRenderParams* surfaceParams)
 {
-    NodeId tagNodeId = nodeDrawable->GetId();
+    NodeId tagNodeId = INVALID_NODEID;
+    std::string subAppName = "";
     for (const auto& subDrawable : nodeDrawable->GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
         if (UNLIKELY(!subDrawable)) {
             continue;
@@ -151,10 +152,11 @@ NodeId RSSubThread::GetSubAppNodeId(std::shared_ptr<DrawableV2::RSSurfaceRenderN
         }
         if (subSurfaceParams->IsAppWindow()) {
             tagNodeId = subDrawable->GetId();
+            subAppName = subSurfaceParams->GetName();
             break;
         }
     }
-    return tagNodeId;
+    return {tagNodeId, subAppName};
 }
 
 bool RSSubThread::CheckValid(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
@@ -190,9 +192,13 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
         RS_LOGE("DrawableCache surfaceParams is nullptr");
         return;
     }
-
-    RSTagTracker tagTracker(grContext_, GetSubAppNodeId(nodeDrawable, surfaceParams),
-            RSTagTracker::TAGTYPE::TAG_SUB_THREAD, nodeDrawable->GetName());
+    auto [subAppNodeId, subAppName] = GetSubAppNodeInfo(nodeDrawable, surfaceParams);
+    std::optional<RSTagTracker> tagTracker;
+    if (INVALID_NODEID == subAppNodeId) {
+        tagTracker.emplace(grContext_, RSTagTracker::TAGTYPE::TAG_SUB_THREAD);
+    } else {
+        tagTracker.emplace(grContext_, subAppNodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD, subAppName);
+    }
     // set cur firstlevel node in subThread
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), surfaceParams->GetId());
@@ -214,9 +220,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     }
     DrawableCacheWithSkImage(nodeDrawable);
 
-    RSMainThread::Instance()->PostTask([]() {
-        RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);
-    });
+    RSMainThread::Instance()->PostTask([]() { RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true); });
 
     rsSubThreadCache.SetCacheSurfaceProcessedStatus(CacheProcessStatus::DONE);
     rsSubThreadCache.SetCacheSurfaceNeedUpdated(true);
@@ -288,7 +292,15 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
         RSUifirstManager::Instance().GetUiFirstSwitch();
     bool isNeedFP16 = isHdrSurface || isScRGBEnable;
     bool bufferFormatNeedUpdate = RSHdrUtil::BufferFormatNeedUpdate(cacheSurface, isNeedFP16);
-    if (!cacheSurface || rsSubThreadCache.NeedInitCacheSurface(surfaceParams) || bufferFormatNeedUpdate) {
+    bool bufferColorSpaceChange =
+        rsSubThreadCache.GetTargetColorGamut() != rsSubThreadCache.GetCacheSurfaceColorSpace();
+    if (!cacheSurface || rsSubThreadCache.NeedInitCacheSurface(surfaceParams) ||
+        bufferFormatNeedUpdate || bufferColorSpaceChange) {
+        if (bufferColorSpaceChange) {
+            RS_TRACE_NAME_FMT("UIFirst InitCacheSurface due to ColorSpaceChange: target=%d, current=%d",
+                static_cast<int>(rsSubThreadCache.GetTargetColorGamut()),
+                static_cast<int>(rsSubThreadCache.GetCacheSurfaceColorSpace()));
+        }
         DrawableV2::RsSubThreadCache::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
         rsSubThreadCache.InitCacheSurface(grContext_.get(), nodeDrawable, func, threadIndex_, isNeedFP16);
         cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_);

@@ -125,6 +125,20 @@ bool SkiaTypeface::GetItalic() const
     return skTypeface_->isItalic();
 }
 
+bool SkiaTypeface::GetMonospace() const
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+    return skTypeface_->isFixedPitch();
+}
+
+bool SkiaTypeface::IsColored() const
+{
+    return false;
+}
+
 uint32_t SkiaTypeface::GetUniqueID() const
 {
     if (!skTypeface_) {
@@ -172,6 +186,15 @@ bool SkiaTypeface::IsCustomTypeface() const
     return skTypeface_->isCustomTypeface();
 }
 
+void SkiaTypeface::SetIsCustomTypeface(bool isCustom)
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    skTypeface_->setIsCustomTypeface(isCustom);
+}
+
 bool SkiaTypeface::IsThemeTypeface() const
 {
     if (!skTypeface_) {
@@ -179,6 +202,15 @@ bool SkiaTypeface::IsThemeTypeface() const
         return false;
     }
     return skTypeface_->isThemeTypeface();
+}
+
+void SkiaTypeface::SetIsThemeTypeface(bool isTheme)
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    skTypeface_->setIsThemeTypeface(isTheme);
 }
 
 sk_sp<SkTypeface> SkiaTypeface::GetSkTypeface()

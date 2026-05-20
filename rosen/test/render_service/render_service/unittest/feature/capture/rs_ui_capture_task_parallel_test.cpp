@@ -496,6 +496,50 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function
 }
 
 /*
+ * @tc.name: LimitSizeNormal
+ * @tc.desc: Test RSUiCaptureTaskParallel::LimitSizeNormal
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, LimitSizeNormal, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+
+    NodeId nodeId = 130;
+    RSSurfaceCaptureConfig config;
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(40000.0f);
+    renderNode->renderProperties_.SetBoundsHeight(40000.0f);
+    nodeMap.RegisterRenderNode(renderNode);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 20.f, 50.f);
+
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(specifiedAreaRect), true);
+}
+
+/*
+ * @tc.name: LimitSizeAbnormal
+ * @tc.desc: Test RSUiCaptureTaskParallel::LimitSizeAbnormal
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, LimitSizeAbnormal, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+
+    NodeId nodeId = 132;
+    RSSurfaceCaptureConfig config;
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(40000.0f);
+    renderNode->renderProperties_.SetBoundsHeight(40000.0f);
+    nodeMap.RegisterRenderNode(renderNode);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 35000.f, 35000.f);
+
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(specifiedAreaRect), false);
+}
+
+/*
  * @tc.name: CreateResources001
  * @tc.desc: Test RSUiCaptureTaskParallel::CreateResources
  * @tc.type: FUNC

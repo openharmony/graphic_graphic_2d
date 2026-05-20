@@ -41,14 +41,6 @@ namespace OHOS::Rosen {
 #define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + (rect).ToString() + "] ")
 #define RENDER_PARAM_TO_STRING(param) (std::string(#param "[") + (param).ToString() + "] ")
 
-struct DirtyRegionInfoForDFX {
-    RectI oldDirty;
-    RectI oldDirtyInSurface;
-    bool operator==(const DirtyRegionInfoForDFX& rhs) const
-    {
-        return oldDirty == rhs.oldDirty && oldDirtyInSurface == rhs.oldDirtyInSurface;
-    }
-};
 struct RSLayerInfo;
 
 typedef enum {
@@ -562,6 +554,10 @@ public:
         return screensWithSubTreeWhitelist_;
     }
 
+    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
+    {
+        screensWithSubTreeWhitelist_.insert(screenIds.begin(), screenIds.end());
+    }
     // [Attention] Only used in PC window resize scene now
     void SetWindowKeyFrameNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetWindowKeyFrameNodeDrawable();
@@ -613,7 +609,6 @@ private:
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     std::unique_ptr<RSRenderGroupCache> renderGroupCache_ = nullptr;
-    DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincSuggestFlag_ = false;
     bool isOpincSupportFlag_ = false;

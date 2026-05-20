@@ -66,80 +66,17 @@ public:
     struct BufferOwnerCount {
         BufferOwnerCount() {}
 
-        ~BufferOwnerCount() {
-            if (bufferReleaseCb_ != nullptr && bufferId_ != 0 && refCount_.load() != 0) {
-                RS_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount bufferId %" PRIu64 " refCount_ %u",
-                    bufferId_, refCount_.load());
-                bufferReleaseCb_(bufferId_);
-                bufferReleaseCb_ = nullptr;
-            }
-        }
-
-        void AddRef()
-        {
-            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::AddRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
-                refCount_.load());
-            if (bufferId_ == 0) {
-                RS_LOGE("BufferOwnerCount::AddRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
-                    refCount_.load());
-                return;
-            }
-            refCount_.fetch_add(1, std::memory_order_acq_rel);
-        }
-
-        bool DecRef()
-        {
-            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::DecRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
-                refCount_.load());
-            if (bufferId_ == 0) {
-                RS_LOGE("BufferOwnerCount::DecRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
-                    refCount_.load());
-                return bufferReleaseCb_ == nullptr;
-            }
-            auto ret = refCount_.fetch_sub(1, std::memory_order_acq_rel);
-            if (ret == 1) {
-                if (bufferReleaseCb_ == nullptr) {
-                    RS_LOGE("BufferOwnerCount::DecRef bufferReleaseCb_ is nullptr");
-                    return true;
-                }
-                bufferReleaseCb_(bufferId_);
-                bufferReleaseCb_ = nullptr;
-            }
-            return bufferReleaseCb_ == nullptr;
-        }
+        ~BufferOwnerCount();
+        void AddRef();
+        bool DecRef();
 
         void OnBufferReleased() {
             DecRef();
         }
 
-        void InsertUniOnDrawSet(uint64_t layerId, uint64_t bufferId)
-        {
-            RS_OPTIONAL_TRACE_NAME_FMT("InsertUniOnDrawSet layerId:%" PRIu64 " bufferId:%" PRIu64,
-                layerId, bufferId);
-            std::lock_guard<std::mutex> lock(mapMutex_);
-            auto iter = uniOnDrawBuffersMap_.find(layerId);
-            if (iter != uniOnDrawBuffersMap_.end()) {
-                iter->second.insert(bufferId);
-            } else {
-                uniOnDrawBuffersMap_.emplace(layerId, std::set<uint64_t>{bufferId});
-            }
-        }
-
-        void SetUniBufferOwner(uint64_t bufferId, uint64_t screenId)
-        {
-            RS_OPTIONAL_TRACE_NAME_FMT("SetUniBufferOwner seq:%" PRIu64 " uniSeq:%" PRIu64 " screenId:%",
-                bufferId_, bufferId, screenId);
-            std::lock_guard<std::mutex> lock(mapMutex_);
-            uniBufferOwnerSeqNumMap_[screenId] = bufferId;
-        }
-
-        bool CheckLastUniBufferOwner(uint64_t bufferId, uint64_t screenId)
-        {
-            std::lock_guard<std::mutex> lock(mapMutex_);
-            auto iter = uniBufferOwnerSeqNumMap_.find(screenId);
-            // If not find screenId, true is returned to release the buffer
-            return iter == uniBufferOwnerSeqNumMap_.end() || iter->second == bufferId;
-        }
+        void InsertUniOnDrawSet(uint64_t layerId, uint64_t bufferId);
+        void SetUniBufferOwner(uint64_t bufferId, uint64_t screenId);
+        bool CheckLastUniBufferOwner(uint64_t bufferId, uint64_t screenId);
 
         std::mutex mapMutex_;
         std::map<uint64_t, std::set<uint64_t>> uniOnDrawBuffersMap_;
@@ -373,6 +310,26 @@ public:
         preBuffer_.Reset(needBufferDeleteCb);
     }
 
+    bool ReleaseAndResetPreBuffer(bool needBufferDeleteCb = true)
+    {
+#ifndef ROSEN_CROSS_PLATFORM
+        sptr<SurfaceBuffer> preBuffer;
+        std::shared_ptr<BufferOwnerCount> preBufferOwnerCount;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (preBuffer_.buffer == nullptr || preBuffer_.bufferOwnerCount_ == nullptr) {
+                return false;
+            }
+            preBuffer = preBuffer_.buffer;
+            preBufferOwnerCount = preBuffer_.bufferOwnerCount_;
+            preBuffer_.Reset(needBufferDeleteCb);
+        }
+        return preBufferOwnerCount->DecRef();
+#else
+        return false;
+#endif
+    }
+
     int32_t GetAvailableBufferCount() const
     {
         return bufferAvailableCount_;
@@ -462,12 +419,12 @@ public:
 
     void SetSourceType(uint32_t sourceType)
     {
-        sourceType_ = sourceType;
+        sourceType_.store(sourceType, std::memory_order_release);
     }
 
     uint32_t GetSourceType() const
     {
-        return sourceType_;
+        return sourceType_.load(std::memory_order_acquire);
     }
 
     void SetLastBufferId(const uint64_t bufferId) // must call thisFunc in rsMainThread
@@ -512,15 +469,15 @@ public:
     }
     inline bool IsCurrentFrameBufferConsumed() const
     {
-        return isCurrentFrameBufferConsumed_;
+        return isCurrentFrameBufferConsumed_.load(std::memory_order_acquire);
     }
     inline void ResetCurrentFrameBufferConsumed()
     {
-        isCurrentFrameBufferConsumed_ = false;
+        isCurrentFrameBufferConsumed_.store(false, std::memory_order_release);
     }
     inline void SetCurrentFrameBufferConsumed()
     {
-        isCurrentFrameBufferConsumed_ = true;
+        isCurrentFrameBufferConsumed_.store(true, std::memory_order_release);
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -550,7 +507,7 @@ protected:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IConsumerSurface> consumer_ = nullptr;
 #endif
-    bool isCurrentFrameBufferConsumed_ = false;
+    std::atomic_bool isCurrentFrameBufferConsumed_ = false;
 
 private:
     void ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer);
@@ -568,7 +525,7 @@ private:
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
     bool bufferTransformTypeChanged_ = false;
-    uint32_t sourceType_ = 0;
+    std::atomic<uint32_t> sourceType_ = 0;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 
     // GPU cache cleanup set (owned per RSSurfaceHandler instance).

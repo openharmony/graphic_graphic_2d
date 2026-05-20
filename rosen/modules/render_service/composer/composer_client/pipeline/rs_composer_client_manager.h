@@ -17,10 +17,23 @@
 #define RENDER_SERVICE_COMPOSER_CLIENT_MANAGER_PIPELINE_RS_RENDER_COMPOSER_CLIENT_H
 
 #include <unordered_map>
+
+#include "common/rs_common_def.h"
 #include "rs_composer_client.h"
+#include "screen_manager/screen_types.h"
+#include "surface_buffer.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {
+struct TunnelLayerCommitInfo {
+    uint64_t surfaceId = 0;
+    NodeId nodeId = 0;
+    uint64_t tunnelLayerId = 0;
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+};
+
 class RSComposerClientManager {
 public:
     RSComposerClientManager() = default;
@@ -31,7 +44,8 @@ public:
     void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds);
     void RenderFrameStart(uint64_t timestamp);
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId, NodeId nodeId);
-    void SetScreenBacklight(ScreenId screenId, uint32_t level);
+    int32_t CommitTunnelLayerBySurfaceId(const TunnelLayerCommitInfo& commitInfo, sptr<SyncFence>& releaseFence);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
     PipelineParam GetPipelineParam(ScreenId screenId);
     void UpdatePipelineParam(ScreenId screenId, const PipelineParam& pipelineParam);
     void PreAllocProtectedFrameBuffers(ScreenId screenId, const sptr<SurfaceBuffer>& buffer);

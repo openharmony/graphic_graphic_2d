@@ -28,10 +28,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class DrawCmdList;
-using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
-}
 class RSNGRenderFilterBase;
 class RSNGRenderMaskBase;
 class RSNGRenderShaderBase;
@@ -168,7 +164,7 @@ public:
     RSRenderPropertyBase(const RSRenderPropertyBase&&) = delete;
     RSRenderPropertyBase& operator=(const RSRenderPropertyBase&) = delete;
     RSRenderPropertyBase& operator=(const RSRenderPropertyBase&&) = delete;
-    virtual ~RSRenderPropertyBase() = default;
+    virtual ~RSRenderPropertyBase();
 
     PropertyId GetId() const
     {
@@ -186,6 +182,10 @@ public:
 
     virtual void Dump(std::string& out) const = 0;
     virtual size_t GetSize() const = 0;
+
+    virtual bool IsDrawCmdListProperty() const = 0;
+
+    virtual std::shared_ptr<RSRenderPropertyBase> CreateSimpleProperty() const = 0;
 
 protected:
     virtual bool Marshalling(Parcel& parcel) = 0;
@@ -242,7 +242,7 @@ protected:
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier_;
 
     using UnmarshallingFunc = std::function<bool (Parcel&, std::shared_ptr<RSRenderPropertyBase>&)>;
-    inline static std::unordered_map<uint16_t, UnmarshallingFunc> UnmarshallingFuncs_;
+    inline static RS_HIDDEN std::unordered_map<uint16_t, UnmarshallingFunc> UnmarshallingFuncs_;
 
     class RSPropertyUnmarshallingFuncRegister {
     public:
@@ -354,6 +354,16 @@ public:
         updateUIPropertyFunc_ = updateUIPropertyFunc;
     }
 
+    bool IsDrawCmdListProperty() const override
+    {
+        return false;
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> CreateSimpleProperty() const override
+    {
+        return nullptr;
+    }
+
 protected:
     T stagingValue_{};
     static constexpr RSPropertyType type_ = RSRenderPropertyTypeTraits<T>::type;
@@ -416,6 +426,11 @@ public:
         if (RSRenderProperty<T>::updateUIPropertyFunc_) {
             RSRenderProperty<T>::updateUIPropertyFunc_(RSRenderProperty<T>::shared_from_this());
         }
+    }
+
+    std::shared_ptr<RSRenderPropertyBase> CreateSimpleProperty() const override
+    {
+        return nullptr;
     }
 
 protected:
@@ -574,6 +589,18 @@ template<>
 size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
 
 template<>
+bool RSRenderProperty<Drawing::DrawCmdListPtr>::IsDrawCmdListProperty() const;
+
+template<>
+std::shared_ptr<RSRenderPropertyBase> RSRenderProperty<Drawing::DrawCmdListPtr>::CreateSimpleProperty() const;
+template<>
+std::shared_ptr<RSRenderPropertyBase> RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>::CreateSimpleProperty() const;
+
+template<>
+size_t RSRenderProperty<SimpleDrawCmdListPtr>::GetSize() const;
+template<>
+void RSRenderProperty<SimpleDrawCmdListPtr>::Dump(std::string& out) const;
+template<>
 void RSRenderProperty<std::shared_ptr<RSNGRenderFilterBase>>::OnAttach(RSRenderNode& node,
     std::weak_ptr<ModifierNG::RSRenderModifier> modifier);
 template<>
@@ -637,7 +664,8 @@ void RSRenderProperty<std::shared_ptr<RSNGRenderShapeBase>>::Set(
 
 class RSRenderParticleVector;
 extern template class RSRenderProperty<RSRenderParticleVector>;
+extern template class PROPERTY_EXPORT RSRenderProperty<SimpleDrawCmdListPtr>;
+extern template class RSRenderAnimatableProperty<std::shared_ptr<RSSimpleDrawCmdList>>;
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // RENDER_SERVICE_BASE_MODIFIER_RS_RENDER_PROPERTY_H

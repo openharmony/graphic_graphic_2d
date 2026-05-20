@@ -1133,13 +1133,13 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame001, TestSize.Level1)
     RSProperties properties;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    std::shared_ptr<Drawing::DrawCmdList> cmds = nullptr;
+    SimpleDrawCmdListPtr cmds = nullptr;
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
     EXPECT_TRUE(!properties.contentDirty_);
 
     int32_t w = 0;
     int32_t h = 0;
-    cmds = std::make_shared<Drawing::DrawCmdList>(w, h);
+    cmds = std::make_shared<RSSimpleDrawCmdList>(w, h);
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
     EXPECT_TRUE(cmds != nullptr);
 }
@@ -1158,7 +1158,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFrame002, TestSize.Level1)
     properties.SetFrame(frame);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    auto cmds = std::make_shared<Drawing::DrawCmdList>(5, 5);
+    auto cmds = std::make_shared<RSSimpleDrawCmdList>(5, 5);
     RSPropertiesPainter::DrawFrame(properties, canvas, cmds);
     EXPECT_TRUE(cmds != nullptr);
 

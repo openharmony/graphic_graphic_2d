@@ -23,6 +23,7 @@
 
 using namespace OHOS;
 using namespace Rosen;
+std::shared_ptr<OHOS::Rosen::RSRenderInterface> rsRenderInterface = nullptr;
 
 void PrintMenu()
 {
@@ -34,6 +35,7 @@ void PrintMenu()
     std::cout << "2. UnregisterFrameStabilityDetection\n";
     std::cout << "3. StartFrameStabilityCollection\n";
     std::cout << "4. GetFrameStabilityResult\n";
+    std::cout << "5. UpdateFrameStabilityDetection\n";
     std::cout << "0. Exit\n";
     std::cout << "============================================\n";
     std::cout << "Enter your choice: ";
@@ -93,7 +95,7 @@ void TestRegisterFrameStabilityDetection()
         std::cout << "[Callback] Is stable: " << (isStable ? "true" : "false") << "\n";
     };
     
-    int32_t ret = RSInterfaces::GetInstance().RegisterFrameStabilityDetection(target, config, callback);
+    int32_t ret = rsRenderInterface->RegisterFrameStabilityDetection(target, config, callback);
     std::cout << "RegisterFrameStabilityDetection returned: " << ret;
     if (ret == 0) {
         std::cout << " (SUCCESS)\n";
@@ -108,7 +110,7 @@ void TestUnregisterFrameStabilityDetection()
     
     FrameStabilityTarget target = GetFrameStabilityTarget();
     
-    int32_t ret = RSInterfaces::GetInstance().UnregisterFrameStabilityDetection(target);
+    int32_t ret = rsRenderInterface->UnregisterFrameStabilityDetection(target);
     std::cout << "UnregisterFrameStabilityDetection returned: " << ret;
     if (ret == 0) {
         std::cout << " (SUCCESS)\n";
@@ -124,7 +126,7 @@ void TestStartFrameStabilityCollection()
     FrameStabilityTarget target = GetFrameStabilityTarget();
     FrameStabilityConfig config = GetFrameStabilityConfig();
     
-    int32_t ret = RSInterfaces::GetInstance().StartFrameStabilityCollection(target, config);
+    int32_t ret = rsRenderInterface->StartFrameStabilityCollection(target, config);
     std::cout << "StartFrameStabilityCollection returned: " << ret;
     if (ret == 0) {
         std::cout << " (SUCCESS)\n";
@@ -141,11 +143,27 @@ void TestGetFrameStabilityResult()
     FrameStabilityTarget target = GetFrameStabilityTarget();
     
     bool result = false;
-    int32_t ret = RSInterfaces::GetInstance().GetFrameStabilityResult(target, result);
+    int32_t ret = rsRenderInterface->GetFrameStabilityResult(target, result);
     std::cout << "GetFrameStabilityResult returned: " << ret;
     if (ret == 0) {
         std::cout << " (SUCCESS)\n";
         std::cout << "Frame stability result: " << (result ? "STABLE" : "UNSTABLE") << "\n";
+    } else {
+        std::cout << " (FAILED)\n";
+    }
+}
+
+void TestUpdateFrameStabilityDetection()
+{
+    std::cout << "\n--- Test UpdateFrameStabilityDetection ---\n";
+    
+    FrameStabilityTarget oldTarget = GetFrameStabilityTarget();
+    FrameStabilityTarget newTarget = GetFrameStabilityTarget();
+
+    int32_t ret = rsRenderInterface->UpdateFrameStabilityDetection(oldTarget, newTarget);
+    std::cout << "UpdateFrameStabilityDetection returned: " << ret;
+    if (ret == 0) {
+        std::cout << " (SUCCESS)\n";
     } else {
         std::cout << " (FAILED)\n";
     }
@@ -156,10 +174,14 @@ int main()
     std::cout << "============================================\n";
     std::cout << "Frame Stability Interface Test Demo\n";
     std::cout << "============================================\n";
-    std::cout << "This demo tests 4 frame stability interfaces.\n";
+    std::cout << "This demo tests 5 frame stability interfaces.\n";
     std::cout << "You can test each interface with custom parameters.\n";
     std::cout << "Press Ctrl+C to exit at any time.\n";
     std::cout << "============================================\n";
+
+    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+    auto connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    rsRenderInterface = std::make_shared<RSRenderInterface>(connectToRender);
     
     while (true) {
         PrintMenu();
@@ -188,6 +210,9 @@ int main()
                 break;
             case '4':
                 TestGetFrameStabilityResult();
+                break;
+            case '5':
+                TestUpdateFrameStabilityDetection();
                 break;
             default:
                 std::cout << "\nInvalid choice! Please enter 0-4.\n";

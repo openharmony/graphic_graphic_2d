@@ -2082,21 +2082,26 @@ uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> d
 
 uint32_t RSPaintFilterCanvasBase::CustomSaveLayer(DrawFunc customFunc)
 {
+    auto* stack = canvas_ ? canvas_->getCustomSaveLayerStack() : nullptr;
+    if (stack == nullptr) {
+        return 0;
+    }
     std::pair<uint32_t, DrawFunc> data(GetSaveCount(), customFunc);
-    customStack_.push(data);
-    return customStack_.size();
+    stack->push(data);
+    return stack->size();
 }
 
 void RSPaintFilterCanvasBase::CustomRestore(uint32_t saveCount)
 {
-    if (customStack_.empty()) {
+    auto* stack = canvas_ ? canvas_->getCustomSaveLayerStack() : nullptr;
+    if (stack == nullptr || stack->empty()) {
         return;
     }
-    if (saveCount != customStack_.top().first) {
+    if (saveCount != stack->top().first) {
         return;
     }
-    auto data = customStack_.top();
-    customStack_.pop();
+    auto data = stack->top();
+    stack->pop();
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         auto canvas = *iter;

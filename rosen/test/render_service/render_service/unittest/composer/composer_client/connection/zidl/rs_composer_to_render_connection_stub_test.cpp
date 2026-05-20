@@ -161,6 +161,45 @@ HWTEST_F(RSComposerToRenderConnectionStubTest, Stub_OnRemoteRequest_Notify_Norma
 }
 
 /**
+ * Function: Stub_OnRemoteRequest_NotifyLayerStateChanged_Unavailable
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. write valid token, nodeId and unavailable state
+ *                  2. expect callback receives the same values
+ */
+HWTEST_F(RSComposerToRenderConnectionStubTest,
+    Stub_OnRemoteRequest_NotifyLayerStateChanged_Unavailable, TestSize.Level1)
+{
+    RSComposerToRenderConnection stub;
+    uint64_t capturedNodeId = 0;
+    uint64_t capturedGeneration = 0;
+    LayerStateChange capturedState = LayerStateChange::AVAILABLE;
+    stub.RegisterLayerStateChangedCB([&](uint64_t nodeId, LayerStateChange state, uint64_t generation) {
+        capturedNodeId = nodeId;
+        capturedState = state;
+        capturedGeneration = generation;
+    });
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+
+    ASSERT_TRUE(data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor()));
+    ASSERT_TRUE(data.WriteUint64(124u));
+    ASSERT_TRUE(data.WriteUint64(55u));
+    ASSERT_TRUE(data.WriteUint32(static_cast<uint32_t>(LayerStateChange::UNAVAILABLE)));
+
+    int ret = stub.OnRemoteRequest(
+        IRSComposerToRenderConnection::NOTIFY_LAYER_STATE_CHANGED_TO_RENDER,
+        data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    EXPECT_EQ(reply.ReadInt32(), COMPOSITOR_ERROR_OK);
+    EXPECT_EQ(capturedNodeId, 124u);
+    EXPECT_EQ(capturedState, LayerStateChange::UNAVAILABLE);
+    EXPECT_EQ(capturedGeneration, 55u);
+}
+
+/**
  * Function: Stub_OnRemoteRequest_Notify_BadToken
  * Type: Function
  * Rank: Important(2)

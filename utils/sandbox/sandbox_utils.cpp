@@ -22,14 +22,10 @@
 #endif
 
 namespace OHOS {
-pid_t GetRealPid(void)
-{
 #ifdef _WIN32
+pid_t GetRealPidWin(void)
+{
     return GetCurrentProcessId();
-#elif defined(OHOS_LITE) || defined(__APPLE__) || defined(__gnu_linux__) || defined(ROSEN_CROSS_PLATFORM)
-    return getpid();
-#else
-    return getprocpid();
-#endif
 }
+#endif
 } // namespace OHOS

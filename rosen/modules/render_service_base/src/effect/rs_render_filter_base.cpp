@@ -210,22 +210,22 @@ static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {
             constexpr float tuneNum = 4.0f;
             constexpr float tuneDenomBase = 2.0f;
             if (distortion[0] > 0) {
-                left -= ceil(rect.GetWidth() *
-                    (halfUV - distortScale * (tuneNum + distortion[0]) / (tuneDenomBase + distortion[0])));
+                left -= rect.GetWidth() *
+                    (halfUV - distortScale * (tuneNum + distortion[0]) / (tuneDenomBase + distortion[0]));
             }
             if (distortion[1] > 0) {
-                right += ceil(rect.GetWidth() *
-                    (halfUV - distortScale * (tuneNum + distortion[1]) / (tuneDenomBase + distortion[1])));
+                right += rect.GetWidth() *
+                    (halfUV - distortScale * (tuneNum + distortion[1]) / (tuneDenomBase + distortion[1]));
             }
             if (distortion[2] > 0) {
-                top -= ceil(rect.GetHeight() *
-                    (halfUV - distortScale * (tuneNum + distortion[2]) / (tuneDenomBase + distortion[2])));
+                top -= rect.GetHeight() *
+                    (halfUV - distortScale * (tuneNum + distortion[2]) / (tuneDenomBase + distortion[2]));
             }
             if (distortion[3] > 0) {
-                bottom += ceil(rect.GetHeight() *
-                    (halfUV - distortScale * (tuneNum + distortion[3]) / (tuneDenomBase + distortion[3])));
+                bottom += rect.GetHeight() *
+                    (halfUV - distortScale * (tuneNum + distortion[3]) / (tuneDenomBase + distortion[3]));
             }
-            return RectF(left, top, right - left, bottom - top);
+            return RectF(floor(left), floor(top), ceil(right) - floor(left), ceil(bottom) - floor(top));
         }
 #ifndef ROSEN_ARKUI_X
     },
@@ -280,6 +280,8 @@ static std::unordered_map<RSNGEffectType, CheckFilterSkipFrameFunc> checkFilterS
     },
 #endif
 };
+
+RSNGRenderFilterBase::~RSNGRenderFilterBase() = default;
 
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)
 {

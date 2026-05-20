@@ -241,7 +241,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.GetScreenPowerStatus(id1, powerStatus);
     rsClientToServiceConnectionProxy.GetScreenData(id1);
     rsClientToServiceConnectionProxy.GetScreenBacklight(id1, backlightlevel);
-    rsClientToServiceConnectionProxy.SetScreenBacklight(id1, width);
+    rsClientToServiceConnectionProxy.SetScreenBacklight(RsScreenBrightnessData(id1, width));
     rsClientToRenderConnectionProxy.RegisterBufferAvailableListener(id1, callback2, true);
     rsClientToRenderConnectionProxy.RegisterBufferClearListener(id1, callback3);
     rsClientToServiceConnectionProxy.GetScreenSupportedColorGamuts(id1, mode);
@@ -306,6 +306,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         rsIFrameRateLinkerExpectedFpsUpdateCallback);
     rsFrameRateLinkerExpectedFpsUpdateCallbackProxy.OnFrameRateLinkerExpectedFpsUpdate(pid, XCOMPONENT_ID, expectedFps);
     rsClientToServiceConnectionProxy.GetRefreshInfoByPidAndUniqueId(pid, uniqueId, getRefreshInfoEnable);
+    rsClientToServiceConnectionProxy.SetHdrForceHwcEnabled(name, true);
     return true;
 }
 

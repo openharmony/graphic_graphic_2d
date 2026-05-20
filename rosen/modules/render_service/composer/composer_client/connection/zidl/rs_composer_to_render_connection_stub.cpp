@@ -30,6 +30,19 @@ namespace Rosen {
 namespace {
 constexpr size_t RELEASE_LAYER_MAX_SIZE = 1000; // upper bound of parcel capacity
 constexpr int32_t MAX_LPP_LAYER_SIZE = 5;
+
+bool ReadLayerStateChange(MessageParcel& data, LayerStateChange& state)
+{
+    uint32_t stateValue = 0;
+    if (!data.ReadUint32(stateValue)) {
+        return false;
+    }
+    if (stateValue > static_cast<uint32_t>(LayerStateChange::UNAVAILABLE)) {
+        return false;
+    }
+    state = static_cast<LayerStateChange>(stateValue);
+    return true;
+}
 }
 int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
@@ -47,6 +60,10 @@ int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
         }
         case NOTIFY_LPP_LAYER_TO_RENDER: {
             ret = NotifyLppLayerToRenderStub(data, reply, option);
+            break;
+        }
+        case NOTIFY_LAYER_STATE_CHANGED_TO_RENDER: {
+            ret = NotifyLayerStateChangedToRenderStub(data, reply, option);
             break;
         }
 
@@ -161,6 +178,29 @@ int32_t RSComposerToRenderConnectionStub::NotifyLppLayerToRenderStub(MessageParc
         lppNodeIds.insert(nodeId);
     }
     auto replyMessage = NotifyLppLayerToRender(vsyncId, lppNodeIds);
+    reply.WriteInt32(replyMessage);
+    return COMPOSITOR_ERROR_OK;
+}
+
+int32_t RSComposerToRenderConnectionStub::NotifyLayerStateChangedToRenderStub(MessageParcel& data,
+    MessageParcel& reply, MessageOption& option)
+{
+    uint64_t nodeId = 0;
+    uint64_t tunnelLayerGeneration = 0;
+    LayerStateChange state = LayerStateChange::AVAILABLE;
+    if (!data.ReadUint64(nodeId)) {
+        ROSEN_LOGE("%{public}s read nodeId failed", __func__);
+        return ERR_INVALID_DATA;
+    }
+    if (!data.ReadUint64(tunnelLayerGeneration)) {
+        ROSEN_LOGE("%{public}s read tunnelLayerGeneration failed", __func__);
+        return ERR_INVALID_DATA;
+    }
+    if (!ReadLayerStateChange(data, state)) {
+        ROSEN_LOGE("%{public}s read state failed", __func__);
+        return ERR_INVALID_DATA;
+    }
+    auto replyMessage = NotifyLayerStateChangedToRender(nodeId, state, tunnelLayerGeneration);
     reply.WriteInt32(replyMessage);
     return COMPOSITOR_ERROR_OK;
 }

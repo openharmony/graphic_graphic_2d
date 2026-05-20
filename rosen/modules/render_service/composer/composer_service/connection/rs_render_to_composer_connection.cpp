@@ -56,6 +56,18 @@ void RSRenderToComposerConnection::CleanLayerBufferBySurfaceId(uint64_t surfaceI
     rsRenderComposerAgent_->CleanLayerBufferBySurfaceId(surfaceId);
 }
 
+int32_t RSRenderToComposerConnection::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
+{
+    RS_TRACE_NAME_FMT("%s screenId:%" PRIu64 ", surfaceId:%" PRIu64, __func__, screenId_, surfaceId);
+    if (surfaceId == 0 || tunnelLayerId == 0 || buffer == nullptr || rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("%{public}s param illegal", __func__);
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+    return rsRenderComposerAgent_->CommitTunnelLayerBySurfaceId(surfaceId, tunnelLayerId,
+        buffer, acquireFence, releaseFence);
+}
+
 void RSRenderToComposerConnection::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
 {
     RS_TRACE_NAME_FMT("%s screenId:" PRIu64, __func__, screenId);

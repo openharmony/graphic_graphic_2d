@@ -232,17 +232,28 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
         targetRect = endNodeParams->GetBounds();
     }
 #ifdef RS_ENABLE_VK
-    float nodeBoundsWidth = node->GetRenderProperties().GetBoundsWidth();
-    float nodeBoundsHeight = node->GetRenderProperties().GetBoundsHeight();
-    int32_t width = ceil(nodeBoundsWidth * captureConfig_.scaleX);
-    int32_t height = ceil(nodeBoundsHeight * captureConfig_.scaleY);
-    if (width > 0 && static_cast<int32_t>(OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) / width < height) {
-        RS_LOGE("RSUiCaptureTaskParallel::CreateResources: image is too large, width:%{public}d, height::%{public}d",
-            width, height);
-        return false;
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    bool isQuerySuccess = RSMainThread::Instance()->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    if (isQuerySuccess) {
+        float nodeBoundsWidth = node->GetRenderProperties().GetBoundsWidth();
+        float nodeBoundsHeight = node->GetRenderProperties().GetBoundsHeight();
+        RS_LOGD("RSUiCaptureTaskParallel::CreateResources: nodeBoundsWidth:%{public}f, nodeBoundsHeight:%{public}f,"
+            " maxWidth: %{public}u, maxHeight: %{public}u", nodeBoundsWidth, nodeBoundsHeight, maxWidth, maxHeight);
+        if (IsRectValid(nodeId_, targetRect)) {
+            nodeBoundsWidth = targetRect.GetWidth();
+            nodeBoundsHeight = targetRect.GetHeight();
+        }
+        int32_t width = ceil(nodeBoundsWidth * captureConfig_.scaleX);
+        int32_t height = ceil(nodeBoundsHeight * captureConfig_.scaleY);
+        if (width <= 0 || height <= 0 || width >= maxWidth || height >= maxHeight) {
+            RS_LOGE("RSUiCaptureTaskParallel::CreateResources: image is too large, width:%{public}d, "
+                "height:%{public}d, maxWidth: %{public}u, maxHeight: %{public}u", width, height, maxWidth, maxHeight);
+            return false;
+        }
+    } else {
+        RS_LOGW("RSUiCaptureTaskParallel::CreateResources: GetMaxGpuBufferSize failed");
     }
-    RS_LOGD("RSUiCaptureTaskParallel::CreateResources: Origin nodeBoundsWidth is [%{public}f,]"
-        " Origin nodeBoundsHeight is [%{public}f]", nodeBoundsWidth, nodeBoundsHeight);
 #endif
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         // Determine whether cache can be used

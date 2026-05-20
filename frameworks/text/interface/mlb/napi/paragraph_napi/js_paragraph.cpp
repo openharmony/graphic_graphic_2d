@@ -122,6 +122,7 @@ napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("getProcessState", JsParagraph::GetProcessState),
     DECLARE_NAPI_FUNCTION("getTextDisplayState", JsParagraph::GetTextDisplayState),
     DECLARE_NAPI_FUNCTION("getParagraphStyle", JsParagraph::GetParagraphStyle),
+    DECLARE_NAPI_FUNCTION("forceReuseRasterResult", JsParagraph::ForceReuseRasterResult),
 };
 }
 
@@ -1269,5 +1270,35 @@ napi_value JsParagraph::IsStrutStyleEqual(napi_env env, napi_callback_info info)
 
     bool equal = (styleFrom == styleTo);
     return CreateJsValue(env, equal);
+}
+
+napi_value JsParagraph::ForceReuseRasterResult(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnForceReuseRasterResult(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnForceReuseRasterResult(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Null paragraph");
+    }
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool isForce = false;
+    status = napi_get_value_bool(env, argv[0], &isForce);
+    if (status != napi_ok) {
+        TEXT_LOGE("Failed to get bool value, ret %{public}d", status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    paragraph_->SetForceReuseRasterResult(isForce);
+    return NapiGetUndefined(env);
 }
 } // namespace OHOS::Rosen

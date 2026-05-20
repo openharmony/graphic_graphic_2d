@@ -20,6 +20,10 @@
 namespace OHOS {
 namespace Rosen {
 
+RSRenderPipelineClient::RSRenderPipelineClient()
+{
+}
+
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
 }
@@ -291,6 +295,13 @@ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
 }
 
 int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
 {
     return 0;
 }

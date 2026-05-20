@@ -60,6 +60,7 @@ const uint8_t DO_SET_FORCE_REFRESH = 10;
 const uint8_t DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK = 11;
 const uint8_t DO_GET_BRIGHTNESS_INFO = 12;
 const uint8_t TARGET_SIZE = 13;
+const uint8_t DO_SET_HDR_FORCE_HWC_ENABLED = 14;
 } // namespace
 
 RSMainThread* g_mainThread = OHOS::Rosen::RSMainThread::Instance();
@@ -233,6 +234,14 @@ void DoSetLayerTop(FuzzedDataProvider& fdp)
     g_toServiceConnectionStub->SetLayerTop(nodeId, isLayerTop);
 }
 
+/* Fuzzer test SetHdrForceHwcEnabled */
+void DoSetHdrForceHwcEnabled(FuzzedDataProvider& fdp)
+{
+    std::string nodeId = std::to_string(fdp.ConsumeIntegral<uint64_t>());
+    bool isHdrForceHwcEnabled = fdp.ConsumeBool();
+    g_toServiceConnectionStub->SetHdrForceHwcEnabled(nodeId, isHdrForceHwcEnabled);
+}
+
 /* Fuzzer test SetBrightnessInfoChangeCallback */
 void DoSetBrightnessInfoChangeCallback(FuzzedDataProvider& fdp)
 {
@@ -360,6 +369,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::DoSetColorFollow(fdp);
     } else if (tarPos == OHOS::Rosen::DO_SET_LAYER_TOP) {
         OHOS::Rosen::DoSetLayerTop(fdp);
+    } else if (tarPos == OHOS::Rosen::DO_SET_HDR_FORCE_HWC_ENABLED) {
+        OHOS::Rosen::DoSetHdrForceHwcEnabled(fdp);
     } else if (tarPos == OHOS::Rosen::DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK) {
         OHOS::Rosen::DoSetBrightnessInfoChangeCallback(fdp);
     } else if (tarPos == OHOS::Rosen::DO_GET_BRIGHTNESS_INFO) {
