@@ -18,6 +18,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "common/rs_vector2.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -74,6 +75,24 @@ public:
         return needClipHoleForFilter_;
     }
 
+    bool SetNeedClearRenderGroupCache(bool needClear);
+    bool NeedClearRenderGroupCache() const
+    {
+        return needClearRenderGroupCache_;
+    }
+
+    bool SetRenderGroupIncludeProperty(bool includeProperty);
+    bool IsRenderGroupIncludeProperty() const
+    {
+        return renderGroupIncludeProperty_;
+    }
+
+    bool SetCacheSize(Vector2f size);
+    Vector2f GetCacheSize() const
+    {
+        return cacheSize_;
+    }
+
     enum class RSFreezeFlag : uint8_t {
         NONE = 0,
         FREEZED_BY_UI = 1 << NONE,
@@ -100,6 +119,9 @@ private:
     bool childHasTranslateOnSqueeze_ = false;
     bool nodeGroupHasChildInBlacklist_ = false;
     bool needClipHoleForFilter_ = false;
+    bool needClearRenderGroupCache_ = false;
+    bool renderGroupIncludeProperty_ = false;
+    Vector2f cacheSize_;
     RSFreezeFlag freezeFlag_ = RSFreezeFlag::NONE;
 };
 

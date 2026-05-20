@@ -4747,7 +4747,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildrenBlacklistTes
     rsUniRenderVisitor->allBlackList_.insert(1);
     surfaceNode->InitRenderParams();
     rsUniRenderVisitor->UpdateDrawingCacheInfoAfterChildren(*surfaceNode);
-    EXPECT_TRUE(cacheRoot->GetStagingRenderParams()->NodeGroupHasChildInBlacklist());
+    EXPECT_TRUE(cacheRoot->GetStagingRenderParams()->IsRenderGroupHasChildInBlacklist());
 }
 
 /**

@@ -44,5 +44,68 @@ void RSRenderGroupCacheDrawable::SetLastFrameCacheRootHasExcludedChild(bool hasF
 {
     isLastFrameCacheRootHasExcludedChild_ = hasFilter;
 }
+
+void RSRenderGroupCacheDrawable::SetRenderGroupCachedSurface(const std::shared_ptr<Drawing::Surface>& surface)
+{
+    renderGroupCachedSurface_ = surface;
+}
+
+std::shared_ptr<Drawing::Surface>& RSRenderGroupCacheDrawable::GetRenderGroupCachedSurface()
+{
+    return renderGroupCachedSurface_;
+}
+
+void RSRenderGroupCacheDrawable::SetRenderGroupCachedImage(const std::shared_ptr<Drawing::Image>& image)
+{
+    renderGroupCachedImage_ = image;
+}
+
+std::shared_ptr<Drawing::Image>& RSRenderGroupCacheDrawable::GetRenderGroupCachedImage()
+{
+    return renderGroupCachedImage_;
+}
+
+pid_t RSRenderGroupCacheDrawable::GetRenderGroupCacheThreadId() const
+{
+    return renderGroupCacheThreadId_.load();
+}
+
+std::atomic<pid_t>& RSRenderGroupCacheDrawable::GetMutableRenderGroupCacheThreadId()
+{
+    return renderGroupCacheThreadId_;
+}
+
+void RSRenderGroupCacheDrawable::ClearRenderGroupResource()
+{
+    renderGroupCachedSurface_ = nullptr;
+    renderGroupCachedImage_ = nullptr;
+}
+
+void RSRenderGroupCacheDrawable::SetRenderGroupDrawableCacheType(DrawableCacheType drawableCacheType)
+{
+    drawableCacheType_ = drawableCacheType;
+}
+
+DrawableCacheType RSRenderGroupCacheDrawable::GetRenderGroupDrawableCacheType() const
+{
+    return drawableCacheType_;
+}
+
+std::scoped_lock<std::recursive_mutex> RSRenderGroupCacheDrawable::RenderGroupCacheScopedLock() const
+{
+    return std::scoped_lock<std::recursive_mutex>(cacheMutex_);
+}
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+void RSRenderGroupCacheDrawable::SetCachedBackendTexture(const Drawing::BackendTexture& texture)
+{
+    cachedBackendTexture_ = texture;
+}
+
+const Drawing::BackendTexture& RSRenderGroupCacheDrawable::GetCachedBackendTexture() const
+{
+    return cachedBackendTexture_;
+}
+#endif
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

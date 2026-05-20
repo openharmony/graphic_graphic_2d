@@ -490,7 +490,8 @@ void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canva
     if (drawCmdList_.empty() || curDrawingCacheRoot_ == nullptr) {
         return;
     }
-    curDrawingCacheRoot_->withoutFilterMatrixMap_[GetId()] = canvas.GetTotalMatrix();
+    auto& withoutFilterMatrixMap = curDrawingCacheRoot_->GetWithoutFilterMatrixMap();
+    withoutFilterMatrixMap[GetId()] = canvas.GetTotalMatrix();
 }
 
 void RSRenderNodeDrawableAdapter::CollectInfoForUnobscuredUEC(Drawing::Canvas& canvas)
@@ -538,13 +539,14 @@ void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanv
 {
     if (curDrawingCacheRoot_ != nullptr) {
         const auto clipBounds = curCanvas->GetDeviceClipBounds();
-        auto iter = std::find_if(curDrawingCacheRoot_->filterInfoVec_.begin(),
-            curDrawingCacheRoot_->filterInfoVec_.end(),
+        auto& filterInfoVec = curDrawingCacheRoot_->GetFilterInfoVec();
+        auto iter = std::find_if(filterInfoVec.begin(),
+            filterInfoVec.end(),
             [nodeId = GetId()](const auto& item) -> bool { return item.nodeId_ == nodeId; });
-        if (iter != curDrawingCacheRoot_->filterInfoVec_.end()) {
+        if (iter != filterInfoVec.end()) {
             iter->rectVec_.emplace_back(clipBounds);
         } else {
-            curDrawingCacheRoot_->filterInfoVec_.emplace_back(
+            filterInfoVec.emplace_back(
                 FilterNodeInfo(GetId(), curCanvas->GetTotalMatrix(), { clipBounds }));
         }
         curDrawingCacheRoot_->AddRectToUnifiedFilterRegion(clipBounds);
@@ -808,5 +810,68 @@ void RSRenderNodeSingleDrawableLocker::DrawableOnDrawMultiAccessEventReport(cons
     };
     RSBackgroundThread::Instance().PostTask(task);
 #endif
+}
+
+void RSRenderNodeDrawableAdapter::SetFilterNodeSize(size_t size)
+{
+    if (!renderGroupCacheAdapter_) {
+        renderGroupCacheAdapter_ = std::make_unique<RSRenderGroupCacheAdapter>();
+    }
+    renderGroupCacheAdapter_->SetFilterNodeSize(size);
+}
+
+size_t RSRenderNodeDrawableAdapter::GetFilterNodeSize() const
+{
+    if (renderGroupCacheAdapter_) {
+        return renderGroupCacheAdapter_->GetFilterNodeSize();
+    }
+    return 0;
+}
+
+void RSRenderNodeDrawableAdapter::ReduceFilterNodeSize()
+{
+    if (renderGroupCacheAdapter_) {
+        renderGroupCacheAdapter_->ReduceFilterNodeSize();
+    }
+}
+
+std::vector<FilterNodeInfo>& RSRenderNodeDrawableAdapter::GetFilterInfoVec()
+{
+    if (!renderGroupCacheAdapter_) {
+        renderGroupCacheAdapter_ = std::make_unique<RSRenderGroupCacheAdapter>();
+    }
+    return renderGroupCacheAdapter_->GetFilterInfoVec();
+}
+
+void RSRenderNodeDrawableAdapter::ClearFilterInfoVec()
+{
+    if (renderGroupCacheAdapter_) {
+        return renderGroupCacheAdapter_->ClearFilterInfoVec();
+    }
+}
+
+std::unordered_map<NodeId, Drawing::Matrix>& RSRenderNodeDrawableAdapter::GetWithoutFilterMatrixMap()
+{
+    if (renderGroupCacheAdapter_) {
+        return renderGroupCacheAdapter_->GetWithoutFilterMatrixMap();
+    }
+    static std::unordered_map<NodeId, Drawing::Matrix> emptyMap;
+    return emptyMap;
+}
+
+void RSRenderNodeDrawableAdapter::SetLastDrawnFilterNodeId(NodeId nodeId)
+{
+    if (!renderGroupCacheAdapter_) {
+        renderGroupCacheAdapter_ = std::make_unique<RSRenderGroupCacheAdapter>();
+    }
+    renderGroupCacheAdapter_->SetLastDrawnFilterNodeId(nodeId);
+}
+
+NodeId RSRenderNodeDrawableAdapter::GetLastDrawnFilterNodeId() const
+{
+    if (renderGroupCacheAdapter_) {
+        return renderGroupCacheAdapter_->GetLastDrawnFilterNodeId();
+    }
+    return INVALID_NODEID;
 }
 } // namespace OHOS::Rosen::DrawableV2

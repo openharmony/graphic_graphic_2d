@@ -1341,6 +1341,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ClearChildrenCache, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, OnTreeStateChangedTest, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->InitRenderParams();
     node->OnTreeStateChanged();
     node->nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
     node->OnTreeStateChanged();

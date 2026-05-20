@@ -82,6 +82,33 @@ bool RSRenderGroupCache::SetNeedClipHoleForFilter(bool val)
     return true;
 }
 
+bool RSRenderGroupCache::SetNeedClearRenderGroupCache(bool needClear)
+{
+    if (needClearRenderGroupCache_ == needClear) {
+        return false;
+    }
+    needClearRenderGroupCache_ = needClear;
+    return true;
+}
+
+bool RSRenderGroupCache::SetRenderGroupIncludeProperty(bool includeProperty)
+{
+    if (renderGroupIncludeProperty_ == includeProperty) {
+        return false;
+    }
+    renderGroupIncludeProperty_ = includeProperty;
+    return true;
+}
+
+bool RSRenderGroupCache::SetCacheSize(Vector2f size)
+{
+    if (cacheSize_ == size) {
+        return false;
+    }
+    cacheSize_ = size;
+    return true;
+}
+
 bool RSRenderGroupCache::SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI)
 {
     RSFreezeFlag originFreezeFlag = freezeFlag_;

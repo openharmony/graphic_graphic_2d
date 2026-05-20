@@ -149,12 +149,9 @@ void RSLogicalDisplayRenderNode::ClearModifiersByPid(pid_t pid)
 }
 
 void RSLogicalDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
+    NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
-    // if node is marked as cacheRoot, update subtree status when update surface
-    // in case prepare stage upper cacheRoot cannot specify dirty subnode
-    RSRenderNode::SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId, uifirstRootNodeId,
-        screenNodeId, GetId());
+    RSRenderNode::SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, uifirstRootNodeId, screenNodeId, GetId());
 }
 
 void RSLogicalDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container)

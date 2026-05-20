@@ -173,6 +173,7 @@ HWTEST_F(RSProxyRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     auto target = std::make_shared<RSSurfaceRenderNode>(config);
     auto node = std::make_shared<RSProxyRenderNode>(id, target, targetId);
+    node->InitRenderParams();
     auto clipRegion = Drawing::Rect();
     node->OnTreeStateChanged();
     node->isOnTheTree_ = true;

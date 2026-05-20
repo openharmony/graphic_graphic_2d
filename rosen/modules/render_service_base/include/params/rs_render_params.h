@@ -291,13 +291,9 @@ public:
         return childHasVisibleEffect_;
     }
 
-    void SetCacheSize(Vector2f size);
-    inline Vector2f GetCacheSize() const
-    {
-        return cacheSize_;
-    }
-
     // used for RenderGroup
+    void SetCacheSize(Vector2f size);
+    Vector2f GetCacheSize() const;
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
     bool GetDrawingCacheChanged() const
     {
@@ -328,11 +324,10 @@ public:
     bool ChildHasTranslateOnSqueeze() const;
     void SetNeedClipHoleForFilter(bool val);
     bool NeedClipHoleForFilter() const;
-    void SetDrawingCacheIncludeProperty(bool includeProperty);
-    bool GetDrawingCacheIncludeProperty() const
-    {
-        return drawingCacheIncludeProperty_;
-    }
+    void SetNeedClearRenderGroupCache(bool needClear);
+    bool NeedClearRenderGroupCache() const;
+    void SetRenderGroupIncludeProperty(bool includeProperty);
+    bool IsRenderGroupIncludeProperty() const;
     void SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI = false);
     bool GetRSFreezeFlag() const;
     RSRenderGroupCache::RSFreezeFlag GetRSFreezeFlagType() const;
@@ -589,7 +584,6 @@ private:
     // this rect should map display coordination
     RectF localDrawRect_;
     RectI absDrawRect_;
-    Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
     // default 1.0f means max available headroom
     float hdrBrightness_ = 1.0f;
@@ -601,7 +595,6 @@ private:
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
-    bool drawingCacheIncludeProperty_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;

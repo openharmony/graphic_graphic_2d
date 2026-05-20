@@ -439,7 +439,7 @@ HWTEST_F(RSBaseRenderNodeTest, MarkNodeGroup, TestSize.Level1)
     isNodeGroup = true;
     type = RSRenderNode::NodeGroupType::GROUPED_BY_UI;
     node->MarkNodeGroup(type, isNodeGroup, includeProperty);
-    ASSERT_EQ(node->nodeGroupIncludeProperty_, includeProperty);
+    ASSERT_EQ(node->IsRenderGroupIncludeProperty(), includeProperty);
 }
 
 /**
@@ -488,6 +488,7 @@ HWTEST_F(RSBaseRenderNodeTest, GetFilterRect, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->InitRenderParams();
     node->OnTreeStateChanged();
 
     node->isOnTheTree_ = true;
