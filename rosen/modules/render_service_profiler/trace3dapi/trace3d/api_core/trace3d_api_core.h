@@ -720,8 +720,8 @@ public:
         : DebugScope(coreAPI, tagPool) {
         if (coreAPI_) {
             pushed_ = coreAPI_->DebugTracePoolGroupPushWithParam(
-                          tagPool_, tagName.data(), &tagParam) >=
-                      trace3d::api::RET_SUCCESS;
+                tagPool_, tagName.data(), &tagParam) >=
+                trace3d::api::RET_SUCCESS;
         }
     }
     DebugScope(DebugScope &other) { this->operator = (other); }
