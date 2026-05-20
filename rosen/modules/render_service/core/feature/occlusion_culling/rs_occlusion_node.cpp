@@ -159,7 +159,7 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
     auto foregroundFilter = RSUniRenderJudgement::IsUniRender() ? renderProperties.GetForegroundFilterCache()
         : renderProperties.GetForegroundFilter();
     const bool hasOutBoundsProp = (drawRegion && !drawRegion->IsInsideOf(drawRect)) ||
-        renderProperties.IsShadowValid() || outline || pixelStretch.has_value() ||
+        renderProperties.IsShadowValid() || outline || !pixelStretch.IsZero() ||
         foregroundFilter || (distortionK.has_value() && *distortionK > 0);
 
     return hasOutBoundsProp;

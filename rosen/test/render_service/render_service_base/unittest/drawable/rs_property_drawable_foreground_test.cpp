@@ -158,10 +158,10 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest003, TestSiz
     std::shared_ptr<DrawableV2::RSPixelStretchDrawable> pixelStretchDrawable =
         std::make_shared<DrawableV2::RSPixelStretchDrawable>();
     EXPECT_NE(pixelStretchDrawable, nullptr);
-    renderNodeTest9.renderProperties_.GetEffect().pixelStretch_ = std::nullopt;
+    renderNodeTest9.renderProperties_.SetPixelStretch(std::nullopt);
     EXPECT_EQ(pixelStretchDrawable->OnGenerate(renderNodeTest9), nullptr);
     Vector4f pixelStretchTest(0.0f, 0.0f, 0.0f, 1.0f);
-    renderNodeTest9.renderProperties_.GetEffect().pixelStretch_ = pixelStretchTest;
+    renderNodeTest9.renderProperties_.SetPixelStretch(pixelStretchTest);
     EXPECT_NE(pixelStretchDrawable->OnGenerate(renderNodeTest9), nullptr);
 }
 

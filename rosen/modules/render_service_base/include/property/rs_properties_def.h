@@ -430,6 +430,68 @@ enum class EffectRectType : uint8_t {
     SNAPSHOT = 1,
     DRAW = 2,
 };
+
+struct RSDynamicLightUpPara {
+    float rate = 0.f;
+    float degree = 0.f;
+    bool operator==(const RSDynamicLightUpPara& other) const
+    {
+        return ROSEN_EQ(rate, other.rate) && ROSEN_EQ(degree, other.degree);
+    }
+};
+
+struct RSPixelStretchPara {
+    Vector4f size {};
+    Vector4f percent {};
+    int tileMode = 0;
+    bool operator==(const RSPixelStretchPara& other) const
+    {
+        return size == other.size && percent == other.percent && tileMode == other.tileMode;
+    }
+};
+
+struct RSDistortionPara {
+    float distortionK = 0.f;
+    bool dirty = false;
+    bool operator==(const RSDistortionPara& other) const
+    {
+        return distortionK == other.distortionK && dirty == other.dirty;
+    }
+};
+
+struct RSBackgroundBlurPara {
+    float radius = 0.f;
+    float saturation = 1.f;
+    float brightness = 1.f;
+    int colorMode = 0; // BLUR_COLOR_MODE::DEFAULT
+    float radiusX = 0.f;
+    float radiusY = 0.f;
+    Color maskColor {};
+    bool operator==(const RSBackgroundBlurPara& other) const
+    {
+        return ROSEN_EQ(radius, other.radius) && ROSEN_EQ(saturation, other.saturation) &&
+               ROSEN_EQ(brightness, other.brightness) && colorMode == other.colorMode &&
+               ROSEN_EQ(radiusX, other.radiusX) && ROSEN_EQ(radiusY, other.radiusY) &&
+               maskColor == other.maskColor;
+    }
+};
+
+struct RSForegroundBlurPara {
+    float radius = 0.f;
+    float saturation = 1.f;
+    float brightness = 1.f;
+    int colorMode = 0; // BLUR_COLOR_MODE::DEFAULT
+    float radiusX = 0.f;
+    float radiusY = 0.f;
+    Color maskColor {};
+    bool operator==(const RSForegroundBlurPara& other) const
+    {
+        return ROSEN_EQ(radius, other.radius) && ROSEN_EQ(saturation, other.saturation) &&
+               ROSEN_EQ(brightness, other.brightness) && colorMode == other.colorMode &&
+               ROSEN_EQ(radiusX, other.radiusX) && ROSEN_EQ(radiusY, other.radiusY) &&
+               maskColor == other.maskColor;
+    }
+};
 } // namespace Rosen
 } // namespace OHOS
 
