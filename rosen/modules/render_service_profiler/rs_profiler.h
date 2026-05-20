@@ -37,6 +37,8 @@
 #include "params/rs_screen_render_params.h"
 
 #include "rs_profiler_utils.h"
+struct TRACE3D_CORE_API_TABLE;
+RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 
 #define RS_PROFILER_INIT(renderPipeline, serviceToRenderConnection) \
     RSProfiler::Init(renderPipeline, serviceToRenderConnection)
@@ -72,7 +74,9 @@
 #define RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, typeface) RSProfiler::WriteSharedTypeface(parcel, typeface)
 #define RS_PROFILER_READ_SHARED_TYPEFACE(parcel, typeface) RSProfiler::ReadSharedTypeface(parcel, typeface)
 #define RS_PROFILER_GET_FRAME_NUMBER() RSProfiler::GetFrameNumber()
-#define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN() RSProfiler::OnParallelRenderBegin()
+#define RS_PROFILER_GET_RENDER_FRAME_NUMBER() RSProfiler::GetRenderFrameNumber()
+#define RS_PROFILER_GET_TRACE3D_API() RSProfiler::GetTrace3DApi()
+#define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber) RSProfiler::OnParallelRenderBegin(renderFrameNumber)
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber) RSProfiler::OnParallelRenderEnd(renderFrameNumber)
 #define RS_PROFILER_SHOULD_BLOCK_HWCNODE() RSProfiler::ShouldBlockHWCNode()
 #define RS_PROFILER_ANIME_SET_START_TIME(id, time) RSProfiler::AnimeSetStartTime(id, time)
@@ -142,7 +146,9 @@
 #define RS_PROFILER_READ_SHARED_TYPEFACE(parcel, typeface) \
     ((typeface).fd_ = static_cast<MessageParcel*>(&(parcel))->ReadFileDescriptor())
 #define RS_PROFILER_GET_FRAME_NUMBER() 0
-#define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN()
+#define RS_PROFILER_GET_RENDER_FRAME_NUMBER() 0
+#define RS_PROFILER_GET_TRACE3D_API() nullptr
+#define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber)
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber)
 #define RS_PROFILER_SHOULD_BLOCK_HWCNODE() false
 #define RS_PROFILER_ANIME_SET_START_TIME(id, time) time
@@ -475,7 +481,7 @@ public:
     static void OnFrameEnd();
     static void OnRenderBegin();
     static void OnRenderEnd();
-    static void OnParallelRenderBegin();
+    static void OnParallelRenderBegin(uint32_t renderFrameNumber);
     static void OnParallelRenderEnd(uint32_t frameNumber);
     static void OnProcessCommand();
 
@@ -614,6 +620,7 @@ public:
     RSB_EXPORT static void MetricRenderNodeInit(RSContext* context);
     RSB_EXPORT static void ResetCustomMetrics();
     RSB_EXPORT static RSProfilerCustomMetrics& GetCustomMetrics();
+    static inline const TRACE3D_CORE_API_TABLE* GetTrace3DApi() { return trace3dApi_; }
 
 private:
     static void StartNetworkThread();
@@ -913,6 +920,8 @@ private:
     static void RenderToReadableBuffer(std::shared_ptr<RSSurfaceRenderNode> node, sptr<SurfaceBuffer> toSurfaceBuffer);
     static void SurfaceNodeUpdateBuffer(std::shared_ptr<RSRenderNode> node, sptr<SurfaceBuffer> buffer);
 
+    static void InitTrace3D(const ArgList& args);
+    static void StopTrace3D();
 private:
     using CommandRegistry = std::map<std::string, void (*)(const ArgList&)>;
     static const CommandRegistry COMMANDS;
@@ -931,6 +940,7 @@ private:
 
     // flag for enabling profiler
     RSB_EXPORT static bool enabled_;
+    RSB_EXPORT static inline const TRACE3D_CORE_API_TABLE* trace3dApi_ = nullptr;
     RSB_EXPORT static bool hrpServiceEnabled_;
     RSB_EXPORT static std::atomic_uint32_t mode_;
     // flag for enabling profiler beta recording feature
@@ -940,6 +950,7 @@ private:
 
     inline static const char SYS_KEY_ENABLED[] = "persist.graphic.profiler.enabled";
     inline static const char SYS_KEY_BETARECORDING[] = "persist.graphic.profiler.betarecording";
+    inline static bool trace3DEnabled_ = false;
     // flag for enabling DRAWING_CANVAS_NODE redrawing
     RSB_EXPORT static std::atomic_bool dcnRedraw_;
     RSB_EXPORT static std::atomic_bool renderNodeKeepDrawCmdList_;

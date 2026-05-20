@@ -54,6 +54,31 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #endif
 
+#include "parameters.h"
+
+#ifndef TRACE3D_CORE_API_NO_NAMESPACE
+#define TRACE3D_CORE_API_NO_NAMESPACE
+#endif
+
+#define TRACE3D_CORE_API_INIT() Trace3DCoreInitRS()
+#include "trace3d/api_core/trace3d_api_core.h"
+
+const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS()
+{
+    static bool initDone = false;
+    static const TRACE3D_CORE_API_TABLE *apiTablePtr = nullptr;
+    if (initDone) {
+        return apiTablePtr;
+    }
+    if (OHOS::system::GetParameter("graphic.profiler.trace3d.enabled", "0") == "1" ||
+        OHOS::system::GetParameter("persist.graphic.profiler.trace3d.enabled", "0") == "1") {
+        apiTablePtr = TRACE3D_CoreInitImpl();
+    }
+    initDone = true;
+    return apiTablePtr;
+}
+
+
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_service_to_render_connection.h"
 
@@ -77,6 +102,7 @@ static std::atomic<uint32_t> g_lastCacheImageCount = 0;
 static RSFile g_recordFile {};
 static double g_recordStartTime = 0.0;
 static uint32_t g_frameNumber = 0;
+static uint32_t g_renderFrameNumber = 0;
 
 static RSFile g_playbackFile {};
 static NodeId g_playbackParentNodeId = 0;
@@ -114,6 +140,37 @@ static std::mutex g_mutexFirstFrameMarshalling;
 static std::mutex g_mutexJobMarshallingTick;
 static std::atomic<uint32_t> g_jobTickTaskCount = 0;
 static std::atomic<uint64_t> g_counterOnRemoteRequest = 0;
+
+uint64_t ExtractTrace3DNumber(const std::string& str)
+{
+    size_t colonPos = str.find_last_of(':');
+    if (colonPos == std::string::npos || colonPos + 1 >= str.length()) {
+        return static_cast<uint64_t>(-1);
+    }
+    return std::stoull(str.substr(colonPos + 1));
+}
+
+Trace3DCoreParamValue CreateAndUpdateTraceParam(const std::vector<std::string>& args,
+    const TRACE3D_CORE_API_TABLE* api, const std::string& flag,
+    Trace3DCoreParamType pType, trace3d::api::ParamValueType vType)
+{
+    Trace3DCoreParamValue param{};
+
+    auto it = std::find_if(args.begin(), args.end(),
+        [&flag](const std::string& s) {
+            return s.find(flag) != std::string::npos;
+        });
+    if (it != args.end()) {
+        param.type = pType;
+        param.valueType = vType;
+        param.value[0].uint64 = ExtractTrace3DNumber(*it);
+        if (param.value[0].uint64 != static_cast<uint64_t>(-1)) {
+            api->UpdateParam(&param);
+        }
+    }
+
+    return param;
+}
 } // namespace
 
 std::shared_ptr<RSRenderPipeline> RSProfiler::renderPipeline_;
@@ -374,6 +431,7 @@ void RSProfiler::Init(const std::shared_ptr<RSRenderPipeline>& renderPipeline,
     mainThread_ = renderPipeline ? renderPipeline->mainThread_ : nullptr;
     context_ = mainThread_ ? mainThread_->context_.get() : nullptr;
     serviceToRenderConnection_ = serviceToRenderConnection;
+    trace3dApi_ = Trace3DCoreInitRS();
 
     RSSystemProperties::SetProfilerDisabled();
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
@@ -686,11 +744,13 @@ void RSProfiler::OnRenderEnd()
     g_renderServiceCpuId = Utils::GetCpuId();
 }
 
-void RSProfiler::OnParallelRenderBegin()
+void RSProfiler::OnParallelRenderBegin(uint32_t renderFrameNumber)
 {
     if (!IsEnabled()) {
         return;
     }
+
+    g_renderFrameNumber = renderFrameNumber;
 
     if (g_calcPerfNode > 0) {
         // force render thread to be on fastest CPU
@@ -2054,6 +2114,80 @@ void RSProfiler::ClearTestTree(const ArgList& args)
     SendMessage("Test tree cleared");
 }
 
+void RSProfiler::InitTrace3D(const ArgList& args)
+{
+    auto& listArgs = args.GetList();
+    auto mode = std::find_if(listArgs.begin(), listArgs.end(),
+    [](const std::string& s) { return s.find("trace3d_disp_mode") != std::string::npos; });
+    if (!trace3dApi_ || mode == listArgs.end()) {
+        return;
+    }
+
+    trace3DEnabled_ = true;
+
+    Trace3DCoreParamValue paramMode{};
+    paramMode.type = TRACE3D_CORE_PARAM_MODE;
+    paramMode.valueType = trace3d::api::ParamValueType::UINT32;
+    paramMode.value[0].uint32 = static_cast<uint32_t>(ExtractTrace3DNumber(*mode));
+    if (paramMode.value[0].uint32 != static_cast<uint32_t>(-1)) {
+        trace3dApi_->UpdateParam(&paramMode);
+    }
+
+    Trace3DCoreParamValue paramLog = CreateAndUpdateTraceParam(listArgs, trace3dApi_,
+        "trace3d_log_flags", TRACE3D_CORE_PARAM_LOG_FLAGS,
+        trace3d::api::ParamValueType::UINT64);
+
+    Trace3DCoreParamValue paramStat = CreateAndUpdateTraceParam(listArgs, trace3dApi_,
+        "trace3d_stat_flags", TRACE3D_CORE_PARAM_STAT_FLAGS,
+        trace3d::api::ParamValueType::UINT64);
+
+    Trace3DCoreParamValue paramMetric = CreateAndUpdateTraceParam(listArgs, trace3dApi_,
+        "trace3d_metric_flags", TRACE3D_CORE_PARAM_METRIC_FLAGS,
+        trace3d::api::ParamValueType::UINT64);
+
+    trace3dApi_->ResetStatisticTime();
+
+    Trace3DCoreParamValue p0{};
+    Trace3DCoreParamValue p1{};
+    Trace3DCoreParamValue p2{};
+    trace3dApi_->GetParam(TRACE3D_CORE_PARAM_STATISTIC_ORIGIN_TIME_MICROSECONDS, &p0);
+    trace3dApi_->GetParam(TRACE3D_CORE_PARAM_STATISTIC_TIME_MICROSECONDS, &p1);
+    trace3dApi_->GetParam(TRACE3D_CORE_PARAM_TIME_MICROSECONDS, &p2);
+
+    trace3dApi_->DebugTraceLogLevelMsg(TRACE3D_CORE_DEBUG_TRACE_LOG_LEVEL_INFO,
+        TRACE3D_CORE_DEBUG_TRACE_MESSAGE_FLAG_BACKTRACE,
+        "%s:%d TRACE3D Start Record statOrigTimeMcs:%u, statTimeMcs:%u, timeMcs:%u, mode: %u, logFlags: %u, "
+        "statFlags: %u, metricFlags: %u",
+        __FUNCTION__, __LINE__, p0.value[0].uint64, p1.value[0].uint64, p2.value[0].uint64,
+        paramMode.value[0].uint32, paramLog.value[0].uint64, paramStat.value[0].uint64,
+        paramMetric.value[0].uint64);
+}
+
+void RSProfiler::StopTrace3D()
+{
+    if (trace3dApi_ && trace3DEnabled_) {
+        trace3DEnabled_ = false;
+        Trace3DCoreParamValue param{};
+        param.type = TRACE3D_CORE_PARAM_MODE;
+        param.valueType = trace3d::api::ParamValueType::UINT32;
+        param.value[0].uint32 = 0; // passthrough mode
+
+        Trace3DCoreParamValue p0{};
+        Trace3DCoreParamValue p1{};
+        Trace3DCoreParamValue p2{};
+        trace3dApi_->GetParam(TRACE3D_CORE_PARAM_STATISTIC_ORIGIN_TIME_MICROSECONDS, &p0);
+        trace3dApi_->GetParam(TRACE3D_CORE_PARAM_STATISTIC_TIME_MICROSECONDS, &p1);
+        trace3dApi_->GetParam(TRACE3D_CORE_PARAM_TIME_MICROSECONDS, &p2);
+
+        trace3dApi_->DebugTraceLogLevelMsg(TRACE3D_CORE_DEBUG_TRACE_LOG_LEVEL_WARN,
+            TRACE3D_CORE_DEBUG_TRACE_MESSAGE_FLAG_BACKTRACE,
+            "%s:%d TRACE3D Stop Record statOrigTimeMcs:%u, statTimeMcs:%u, timeMcs:%u, mode: %u", __FUNCTION__,
+            __LINE__, p0.value[0].uint64, p1.value[0].uint64, p2.value[0].uint64, param.value[0].uint32);
+
+        trace3dApi_->UpdateParam(&param);
+    }
+}
+
 void RSProfiler::RecordStart(const ArgList& args)
 {
     if (!mainThread_ || !context_) {
@@ -2146,6 +2280,8 @@ void RSProfiler::RecordStart(const ArgList& args)
 
     g_recordFile.LayerAddHeaderProperty(0, "MetricsList", RsMetricGetList());
 
+    InitTrace3D(args);
+
     g_recordStartTime = Now();
     g_frameNumber = 0;
     SetMode(Mode::WRITE);
@@ -2174,6 +2310,8 @@ void RSProfiler::RecordStop(const ArgList& args)
         SendMessage("Record: Stop failed. Record is not in progress");
         return;
     }
+
+    StopTrace3D();
 
     SetMode(Mode::SAVING);
     if (args.String() == "REMOVELAST") {
@@ -2559,6 +2697,11 @@ void RSProfiler::ProcessCommands()
 uint32_t RSProfiler::GetFrameNumber()
 {
     return g_frameNumber;
+}
+
+uint32_t RSProfiler::GetRenderFrameNumber()
+{
+    return g_renderFrameNumber;
 }
 
 void RSProfiler::BlinkNodeUpdate()

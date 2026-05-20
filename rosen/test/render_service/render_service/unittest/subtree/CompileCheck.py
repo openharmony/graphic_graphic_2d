@@ -31,7 +31,7 @@ compile_check_groundtruth = [
     ['rs_surface_render_node_drawable.cpp', 672, 819],
     ['rs_canvas_render_node_drawable.cpp', 80, 139],
     ['rs_effect_render_node_drawable.cpp', 37, 91],
-    ['rs_render_node_drawable.cpp', 102, 117],
+    ['rs_render_node_drawable.cpp', 132, 163],
 ]
 
 

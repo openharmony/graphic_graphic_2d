@@ -43,6 +43,15 @@
 #include "rs_parallel_misc.h"
 #endif
 
+#include "rs_profiler.h"
+
+#ifndef TRACE3D_CORE_API_NO_NAMESPACE
+#define TRACE3D_CORE_API_NO_NAMESPACE
+#endif
+
+#define TRACE3D_CORE_API_INIT() Trace3DCoreInitRS()
+#include "trace3d/api_core/trace3d_api_core.h"
+
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
@@ -101,6 +110,22 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
     }
 }
 
+static auto Trace3DDebugScopeCreate(const TRACE3D_CORE_API_TABLE *trace3dApi, uint64_t id)
+{
+    auto rsFrame = RS_PROFILER_GET_RENDER_FRAME_NUMBER();
+
+    Trace3DCoreDebugTagParamValue dbgParam[2] = {};
+    dbgParam[0].type = TRACE3D_CORE_DEBUG_TAG_PARAM_WM_NODE;
+    dbgParam[0].wmNode.id = id;
+    dbgParam[1].type = TRACE3D_CORE_DEBUG_TAG_PARAM_WM_FRAME;
+    dbgParam[1].wmFrame.number = (uint64_t)rsFrame;
+
+    auto dbgScope =
+        std::make_shared<::trace3d::api::DebugScope>(trace3dApi, "", TRACE3D_DEBUG_TAG_POOL_GPU_ZONE, dbgParam[0]);
+    dbgScope->SetTagParam(dbgParam[1]);
+    return dbgScope;
+}
+
 /*
  * This function will be called recursively many times, and the logic should be as concise as possible.
  */
@@ -127,6 +152,11 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // Skip nodes that were culled by the control-level occlusion.
     if (SkipCulledNodeOrEntireSubtree(canvas, bounds)) {
         return;
+    }
+
+    std::shared_ptr<::trace3d::api::DebugScope> dbgScope;
+    if (const TRACE3D_CORE_API_TABLE* trace3dApi = RS_PROFILER_GET_TRACE3D_API(); trace3dApi) {
+        dbgScope = Trace3DDebugScopeCreate(trace3dApi, static_cast<uint64_t>(GetId()));
     }
 
 #ifdef SUBTREE_PARALLEL_ENABLE

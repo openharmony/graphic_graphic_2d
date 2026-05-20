@@ -45,6 +45,11 @@ public:
         return std::find(args_.begin(), args_.end(), string) != args_.end();
     }
 
+    const std::vector<std::string>& GetList() const
+    {
+        return args_;
+    }
+
     const std::string& String(size_t index = 0u) const
     {
         static const std::string EMPTY;
