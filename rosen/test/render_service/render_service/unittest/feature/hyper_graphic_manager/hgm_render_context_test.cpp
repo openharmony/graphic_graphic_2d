@@ -417,7 +417,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
     std::vector<std::string> appBufferList;
 
     // Test Case 1: ability_enable value="1" -> hgmAbilityEnabled_ should be true
-    const char *xmlContentEnabled = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    const char* xmlContentEnabled = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                                     "<root>\n"
                                     "    <param name=\"ability_enable\" value=\"1\"/>\n"
                                     "</root>\n";
@@ -434,7 +434,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
     std::remove(testXmlPath1.c_str());
  
     // Test Case 2: ability_enable value="0" -> hgmAbilityEnabled_ should be false
-    const char *xmlContentDisabled = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    const char* xmlContentDisabled = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                                      "<root>\n"
                                      "    <param name=\"ability_enable\" value=\"0\"/>\n"
                                      "</root>\n";
@@ -451,7 +451,7 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
     std::remove(testXmlPath2.c_str());
  
     // Test Case 3: No ability_enable node -> hgmAbilityEnabled_ should be true (default)
-    const char *xmlContentNoNode = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    const char* xmlContentNoNode = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                                    "<root>\n"
                                    "</root>\n";
     std::string testXmlPath3 = "/data/test/hgm_test_default.xml";
