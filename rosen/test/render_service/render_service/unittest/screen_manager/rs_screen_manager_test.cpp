@@ -358,7 +358,7 @@ HWTEST_F(RSScreenManagerTest, SetAsMainScreenTest001, TestSize.Level1)
     EXPECT_NE(result, StatusCode::SUCCESS);
 
     ScreenId id = 0;
-    screenManager_->screens_[id] = std::make_shared<Screen>(id);
+    screenManager_->screens_[id] = std::make_shared<RSScreen>(id);
     result = screenManager_->SetAsMainScreen(id, false);
     EXPECT_EQ(result, StatusCode::SUCCESS);
 }
@@ -373,7 +373,7 @@ HWTEST_F(RSScreenManagerTest, GetMainScreenIdTest001, TestSize.Level1)
 {
     ASSERT_NE(screenManager_, nullptr);
 
-    screenManager_->screens_[0] = std::make_shared<Screen>(0);
+    screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
     int32_t ret = screenManager_->SetAsMainScreen(0, true);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
     ScreenId result = screenManager_->GetMainScreenId();
