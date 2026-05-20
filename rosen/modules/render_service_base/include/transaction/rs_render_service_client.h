@@ -121,17 +121,7 @@ public:
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 
     // Multi-surface virtual screen APIs
-    // Single-surface creation (uses separate IPC code path)
-    ScreenId CreateVirtualScreen(
-        const std::string& name,
-        uint32_t width,
-        uint32_t height,
-        sptr<Surface> surface,
-        ScreenId associatedScreenId = 0,
-        int32_t flags = 0,
-        std::vector<NodeId> whiteList = {});
-
-    // Multi-surface creation (vector-based overload)
+    // Multi-surface creation (vector-based)
     ScreenId CreateVirtualScreen(
         const std::string& name,
         uint32_t width,

@@ -261,7 +261,8 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
     damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(
         drawable, bufferAge, screenInfo, rsDirtyRectsDfx, params);
     uniParam->Reset();
-    if (uniParam->IsVirtualExpandScreenDirtyEnabled() && !uniParam->IsVirtualDirtyDfxEnabled()) {
+    if (uniParam->IsVirtualExpandScreenDirtyEnabled() && !uniParam->IsVirtualDirtyDfxEnabled() &&
+        expandProcessor->IsMultiSurfaceExtendMode()) {
         expandProcessor->SetDirtyInfo(damageRegionRects);
     } else {
         std::vector<RectI> emptyRects = {};

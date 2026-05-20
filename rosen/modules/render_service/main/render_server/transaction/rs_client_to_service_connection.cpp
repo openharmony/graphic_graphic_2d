@@ -510,13 +510,8 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
     auto screenId = screenManagerAgent_->CreateVirtualScreen(
         name, width, height, surfaceConfigs, associatedScreenId, flags, whiteList);
     if (screenId != INVALID_SCREEN_ID) {
-        bool hasValidSurface = false;
-        for (const auto& config : surfaceConfigs) {
-            if (config.surface != nullptr) {
-                hasValidSurface = true;
-                break;
-            }
-        }
+        bool hasValidSurface = std::any_of(surfaceConfigs.begin(), surfaceConfigs.end(),
+            [](const auto& config) { return config.surface != nullptr; });
         if (hasValidSurface) {
             EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
             NotifyRefreshRateEvent(event);

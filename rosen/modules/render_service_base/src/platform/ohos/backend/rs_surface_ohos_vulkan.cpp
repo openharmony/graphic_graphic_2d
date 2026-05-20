@@ -530,7 +530,6 @@ void RSSurfaceOhosVulkan::CancelActiveFlush()
     }
     ROSEN_LOGW("RSSurfaceOhosVulkan::CancelActiveFlush canceling abandoned flush sequence");
     CancelBuffer(flushState_.bufferKey);
-    flushState_.Reset();
 }
 
 bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
@@ -643,6 +642,16 @@ bool RSSurfaceOhosVulkan::SubmitGpu(std::unique_ptr<RSSurfaceFrame>& frame, uint
         mSkContext->EndFrame();
     }
 
+    return true;
+}
+
+bool RSSurfaceOhosVulkan::FlushBuffer(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
+{
+    if (!flushState_.valid || flushState_.bufferKey == nullptr || flushState_.callbackInfo == nullptr) {
+        ROSEN_LOGE("RSSurfaceOhosVulkan::FlushBuffer called without valid flush state");
+        return false;
+    }
+
 #ifdef HETERO_HDR_ENABLE
     RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(flushState_.hdrFrameIdVec);
     flushState_.hdrFrameIdVec.clear();
@@ -656,15 +665,6 @@ bool RSSurfaceOhosVulkan::SubmitGpu(std::unique_ptr<RSSurfaceFrame>& frame, uint
     }
 #endif
 
-    return true;
-}
-
-bool RSSurfaceOhosVulkan::FlushBuffer(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
-{
-    if (!flushState_.valid || flushState_.bufferKey == nullptr || flushState_.callbackInfo == nullptr) {
-        ROSEN_LOGE("RSSurfaceOhosVulkan::FlushBuffer called without valid flush state");
-        return false;
-    }
     auto surfaceIt = mSurfaceMap.find(flushState_.bufferKey);
     if (surfaceIt == mSurfaceMap.end()) {
         ROSEN_LOGE("RSSurfaceOhosVulkan::FlushBuffer buffer no longer exists in surface map");
@@ -688,7 +688,6 @@ bool RSSurfaceOhosVulkan::FlushBuffer(std::unique_ptr<RSSurfaceFrame>& frame, ui
             vkContext.DestroyAllSemaphoreFence();
         }
         CancelBuffer(flushState_.bufferKey);
-        flushState_.Reset();
         ROSEN_LOGE("RSSurfaceOhosVulkan QueueSignalReleaseImageOHOS failed %{public}d", err);
         return false;
     }
@@ -706,7 +705,6 @@ bool RSSurfaceOhosVulkan::FlushBuffer(std::unique_ptr<RSSurfaceFrame>& frame, ui
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {
         CancelBuffer(flushState_.bufferKey);
-        flushState_.Reset();
         ROSEN_LOGE("RSSurfaceOhosVulkan NativeWindowFlushBuffer failed");
         return false;
     }

@@ -87,8 +87,13 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     int flags,
     std::vector<NodeId> whiteList)
 {
+    std::vector<SurfaceRegionConfig> surfaceConfigs;
+    if (surface != nullptr) {
+        surfaceConfigs.emplace_back(SurfaceRegionConfig{
+            surface, RectI{0, 0, static_cast<int32_t>(width), static_cast<int32_t>(height)}});
+    }
     return renderServiceClient_->CreateVirtualScreen(
-        name, width, height, surface, associatedScreenId, flags, whiteList);
+        name, width, height, surfaceConfigs, associatedScreenId, flags, whiteList);
 }
 
 ScreenId RSInterfaces::CreateVirtualScreen(

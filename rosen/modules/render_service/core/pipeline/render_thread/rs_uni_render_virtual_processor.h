@@ -117,7 +117,7 @@ public:
     sptr<SyncFence> GetFrameAcquireFence();
 
     // Multi-surface support
-    bool IsMultiSurfaceExtendMode() const { return surfaceFrames_.size() > 1 && needsOffscreenRender_; }
+    bool IsMultiSurfaceExtendMode() const { return needsOffscreenRender_; }
     const std::vector<SurfaceFrameConfig>& GetSurfaceFrames() const { return surfaceFrames_; }
     void BlitRegionsToSurfaces(const std::shared_ptr<Drawing::Image>& offscreenImage);
 

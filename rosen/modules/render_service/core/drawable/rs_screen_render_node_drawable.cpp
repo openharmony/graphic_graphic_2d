@@ -596,7 +596,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (isVirtualExpandComposite) {
         RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params,
             syncDirtyManager->IsCurrentFrameDirty());
-        if (RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *this)) {
+        bool isMultiSurfaceExpand = screenProperty.GetMultiSurfaceConfigs().size() > 1;
+        if (!isMultiSurfaceExpand &&
+            RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *this)) {
             RS_TRACE_NAME("VirtualExpandScreenNode skip");
             return;
         }

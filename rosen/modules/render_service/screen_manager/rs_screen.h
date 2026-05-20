@@ -131,10 +131,10 @@ public:
     // Multi-surface virtual screen (for mirror/extend mode with multiple surfaces)
     using MultiSurfaceConfigs = std::vector<SurfaceRegionConfig>;
     void SetMultiSurfaceConfigs(const MultiSurfaceConfigs& configs);
+    void AddSurfaceConfigs(const MultiSurfaceConfigs& configs);
+    void RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceIds);
+    void UpdateSurfaceRegion(uint64_t surfaceId, const RectI& region);
     MultiSurfaceConfigs GetMultiSurfaceConfigs() const;
-    int32_t AddVirtualScreenSurface(const std::vector<SurfaceRegionConfig>& surfaceConfigs);
-    int32_t RemoveVirtualScreenSurface(const std::vector<sptr<Surface>>& surfaces);
-    int32_t UpdateVirtualScreenSurfaceRegion(sptr<Surface> surface, const RectI& region);
 
     void ResizeVirtualScreen(uint32_t width, uint32_t height);
 

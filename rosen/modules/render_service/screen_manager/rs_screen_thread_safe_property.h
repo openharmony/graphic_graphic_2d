@@ -16,6 +16,7 @@
 #ifndef RS_SCREEN_THREAD_SAFE_PROPERTY_H
 #define RS_SCREEN_THREAD_SAFE_PROPERTY_H
 
+#include <optional>
 #include <shared_mutex>
 #include <screen_manager/rs_screen_property.h>
 #include <screen_manager/rs_surface_region_config.h>
@@ -70,6 +71,9 @@ public:
     ResType SetScreenSwitchStatus(bool status);
     ResType SetFrameGravity(int32_t gravity);
     ResType SetMultiSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
+    ResType AddSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
+    ResType RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceIds);
+    std::optional<ResType> UpdateSurfaceRegion(uint64_t surfaceId, const RectI& region);
     ResType SetAsMainScreen(bool isMainScreen);
 
     ScreenId GetId() const;

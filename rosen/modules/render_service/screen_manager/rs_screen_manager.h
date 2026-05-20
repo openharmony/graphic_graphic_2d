@@ -216,6 +216,7 @@ private:
     std::map<ScreenId, std::shared_ptr<RSScreen>> screens_;
     using ScreenNode = decltype(screens_)::value_type;
     bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
+    std::unordered_set<uint64_t> CollectVirtualScreenSurfaceIds(ScreenId excludeId = INVALID_SCREEN_ID) const;
 
     void OnScreenBacklightChanged(ScreenId id, uint32_t level);
 

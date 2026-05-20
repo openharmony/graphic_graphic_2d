@@ -244,21 +244,6 @@ std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
     return clientToService->GetAllScreenIds();
 }
 
-ScreenId RSRenderServiceClient::CreateVirtualScreen(
-    const std::string& name,
-    uint32_t width,
-    uint32_t height,
-    sptr<Surface> surface,
-    ScreenId associatedScreenId,
-    int32_t flags,
-    std::vector<NodeId> whiteList)
-{
-    SurfaceRegionConfig config;
-    config.surface = surface;
-    std::vector<SurfaceRegionConfig> surfaceConfigs = { config };
-    return CreateVirtualScreen(name, width, height, surfaceConfigs, associatedScreenId, flags, whiteList);
-}
-
 int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();

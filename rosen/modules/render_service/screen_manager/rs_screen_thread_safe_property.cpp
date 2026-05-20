@@ -14,6 +14,8 @@
  */
 #include "rs_screen_thread_safe_property.h"
 
+#include <algorithm>
+
 #include "platform/common/rs_log.h"
 #include <pixel_map.h>
 
@@ -339,6 +341,45 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetMultiSurfaceC
     auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
     return { ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
 }
+
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::AddSurfaceConfigs(
+    const std::vector<SurfaceRegionConfig>& configs)
+{
+    UniqueLock lock(propertyMutex_);
+    auto current = property_->GetMultiSurfaceConfigs();
+    current.insert(current.end(), configs.begin(), configs.end());
+    auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(current);
+    return { ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
+}
+
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::RemoveSurfaceConfigs(
+    const std::unordered_set<uint64_t>& surfaceIdsToRemove)
+{
+    UniqueLock lock(propertyMutex_);
+    auto configs = property_->GetMultiSurfaceConfigs();
+    configs.erase(std::remove_if(configs.begin(), configs.end(),
+        [&surfaceIdsToRemove](const SurfaceRegionConfig& config) {
+            return surfaceIdsToRemove.count(config.surface->GetUniqueId()) > 0;
+        }), configs.end());
+    auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
+    return { ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
+}
+
+std::optional<RSScreenThreadSafeProperty::ResType> RSScreenThreadSafeProperty::UpdateSurfaceRegion(
+    uint64_t surfaceIdToUpdate, const RectI& newRegion)
+{
+    UniqueLock lock(propertyMutex_);
+    auto configs = property_->GetMultiSurfaceConfigs();
+    for (auto& config : configs) {
+        if (config.surface->GetUniqueId() == surfaceIdToUpdate) {
+            config.region = newRegion;
+            auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
+            return ResType{ ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
+        }
+    }
+    return std::nullopt;
+}
+
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)
 {
     UniqueLock lock(propertyMutex_);

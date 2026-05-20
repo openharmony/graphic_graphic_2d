@@ -535,16 +535,12 @@ void RSUniRenderVirtualProcessor::PostProcess()
     }
 
     if (surfaceFrames_.size() == 1) {
-        if (surfaceFrames_[0].frame == nullptr) {
-            RS_LOGE("RSUniRenderVirtualProcessor::PostProcess renderFrame is nullptr");
-            return;
-        }
-        auto surfaceOhos = surfaceFrames_[0].frame->GetSurface();
-        RSBaseRenderEngine::SetUiTimeStamp(surfaceFrames_[0].frame, surfaceOhos);
-        surfaceFrames_[0].frame->Flush();
-        sptr<SyncFence> fence = surfaceFrames_[0].frame->GetAcquireFence();
+        auto& frame = surfaceFrames_[0].frame;
+        auto surfaceOhos = frame->GetSurface();
+        RSBaseRenderEngine::SetUiTimeStamp(frame, surfaceOhos);
+        frame->Flush();
         if (isMirror_) {
-            MergeMirrorFenceToHardwareEnabledDrawables(fence);
+            MergeMirrorFenceToHardwareEnabledDrawables(frame->GetAcquireFence());
         }
         RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
