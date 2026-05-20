@@ -162,6 +162,7 @@ public:
     void SetScreenManager(RSScreenManager* screenManager) { screenManager_ = screenManager; }
     bool HgmAbilityEnabled() const { return hgmAbilityEnabled_; }
     uint32_t GetScreenActiveRefreshRate(ScreenId id) const;
+
 private:
     HgmCore();
     ~HgmCore() noexcept = default;

@@ -38,10 +38,10 @@ constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config
 std::string g_testStr = HGM_CONFIG_PATH;
 std::string g_customTestXmlPath;
 
-// Helper lambda to create test XML file
-bool CreateTestXml(const std::string &path, const char *content)
+// Helper func to create test XML file
+bool CreateTestXml(const std::string& path, const char* content)
 {
-    FILE *fp = fopen(path.c_str(), "w");
+    FILE* fp = fopen(path.c_str(), "w");
     if (fp == nullptr) {
         return false;
     }
