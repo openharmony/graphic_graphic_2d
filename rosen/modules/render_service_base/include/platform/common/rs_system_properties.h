@@ -272,6 +272,7 @@ public:
     static bool GetAnimationCacheEnabled();
 
     static bool ViewDrawNodeType();
+    static bool GetNewTunnelEnabled();
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();

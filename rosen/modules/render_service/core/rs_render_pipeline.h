@@ -136,6 +136,7 @@ private:
 
     // LPP
     void RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
+    void RegisterLayerStateChangedCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
     RSMainThread* mainThread_ = nullptr;
     RSUniRenderThread* uniRenderThread_ = nullptr;
     std::map<sptr<IRemoteObject>, sptr<RSIClientToRenderConnection>> renderConnections_ = {};

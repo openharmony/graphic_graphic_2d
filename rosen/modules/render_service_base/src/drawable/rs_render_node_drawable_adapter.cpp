@@ -55,9 +55,17 @@ RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ =
 #endif
 
 RSRenderNodeDrawableAdapter::RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node)
-    : nodeType_(node->GetType()), renderNode_(std::move(node)), nodeId_(node->GetId()) {}
+    : nodeId_(node->GetId()) {}
 
 RSRenderNodeDrawableAdapter::~RSRenderNodeDrawableAdapter() = default;
+
+RSRenderNodeType RSRenderNodeDrawableAdapter::GetNodeType() const
+{
+    if (renderParams_) {
+        return renderParams_->GetType();
+    }
+    return RSRenderNodeType::UNKNOW;
+}
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::GetDrawableById(NodeId id)
 {

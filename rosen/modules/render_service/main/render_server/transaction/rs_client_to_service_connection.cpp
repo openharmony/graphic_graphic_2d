@@ -93,6 +93,7 @@
 #define LOG_TAG "RSClientToServiceConnection"
 
 #include "app_mgr_client.h"
+#include "surface_utils.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 
 namespace OHOS {
@@ -1193,13 +1194,13 @@ ErrCode RSClientToServiceConnection::GetScreenBacklight(uint64_t screenId, int32
     return ERR_OK;
 }
 
-void RSClientToServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSClientToServiceConnection::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
     if (!screenManagerAgent_) {
         RS_LOGE("%{public}s screenManagerAgent_ is nullptr.", __func__);
         return;
     }
-    screenManagerAgent_->SetScreenBacklight(id, level);
+    screenManagerAgent_->SetScreenBacklight(brightnessData);
 }
 
 ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, PanelPowerStatus& status)
@@ -1721,11 +1722,32 @@ ErrCode RSClientToServiceConnection::NotifyAppStrategyConfigChangeEvent(const st
 
 void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+    if (VOTER_SCENE_BLUR == eventInfo.eventName) {
+        RsFrameBlurPredict::GetInstance().TakeEffectBlurScene(eventInfo);
+        return;
+    }
+    if (VOTER_SCENE_GPU == eventInfo.eventName) {
+        RsFrameReport::ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
+        return;
+    }
+#ifdef RS_ENABLE_VK
+    if (GPU_FREQ_PREF == eventInfo.eventName) {
+        RS_LOGE("GPU frequency adjustment event occurs, isFullScreen=%{public}d focusBundleName=%{public}s",
+            eventInfo.eventStatus, eventInfo.description.c_str());
+        RsFrameReport::ReportWindowInfo(eventInfo.eventStatus, eventInfo.description.c_str());
+        return;
+    }
+#endif
     if (hgmContext_ == nullptr) {
         RS_LOGE("%{public}s hgmContext is nullptr", __func__);
         return;
     }
     hgmContext_->NotifyRefreshRateEvent(remotePid_, eventInfo);
+    if (VIDEO_TUNNEL == eventInfo.eventName) {
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s add config=%s", __func__, eventInfo.description.c_str());
+        SurfaceUtils::GetInstance()->AddTunnelLayerConfig(eventInfo.description);
+        RS_LOGD("TUNNEL_DEBUG %s add config:%{public}s", __func__, eventInfo.description.c_str());
+    }
 }
 
 

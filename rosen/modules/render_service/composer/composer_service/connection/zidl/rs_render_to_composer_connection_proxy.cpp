@@ -160,6 +160,58 @@ void RSRenderToComposerConnectionProxy::CleanLayerBufferBySurfaceId(uint64_t sur
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_CLEAN_LAYER_BUFFER_BY_SURFACE_ID, parcel, reply, option);
 }
 
+int32_t RSRenderToComposerConnectionProxy::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
+{
+    if (surfaceId == 0 || tunnelLayerId == 0 || buffer == nullptr) {
+        RS_LOGE("%{public}s invalid param", __func__);
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+    MessageOption option;
+    MessageParcel reply;
+    MessageParcel parcel;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!parcel.WriteInterfaceToken(GetDescriptor())) {
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+    if (!parcel.WriteUint64(surfaceId) || !parcel.WriteUint64(tunnelLayerId)) {
+        RS_LOGE("%{public}s Write tunnel info failed", __func__);
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+    uint32_t sequence = buffer->GetSeqNum();
+    GSError ret = WriteSurfaceBufferImpl(parcel, sequence, buffer);
+    if (ret != GSERROR_OK) {
+        RS_LOGE("%{public}s WriteSurfaceBufferImpl failed, ret:%{public}d", __func__, ret);
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+    int32_t acquireFenceFd = acquireFence == nullptr ? -1 : acquireFence->Get();
+    if (!parcel.WriteBool(acquireFenceFd >= 0)) {
+        RS_LOGE("%{public}s Write acquire fence flag failed", __func__);
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+    if (acquireFenceFd >= 0 && !parcel.WriteFileDescriptor(acquireFenceFd)) {
+        RS_LOGE("%{public}s Write acquire fence failed", __func__);
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+    if (SendRequest(IRENDER_TO_COMPOSER_CONNECTION_COMMIT_TUNNEL_LAYER_BY_SURFACE_ID, parcel, reply, option) !=
+        COMPOSITOR_ERROR_OK) {
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+
+    int32_t serverRet = reply.ReadInt32();
+    if (serverRet != GRAPHIC_DISPLAY_SUCCESS) {
+        return serverRet;
+    }
+    bool hasReleaseFence = reply.ReadBool();
+    if (!hasReleaseFence) {
+        releaseFence = SyncFence::InvalidFence();
+        return GRAPHIC_DISPLAY_SUCCESS;
+    }
+    releaseFence = new SyncFence(reply.ReadFileDescriptor());
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
 void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds)
 {
     MessageOption option;

@@ -218,6 +218,20 @@ int Surface::Height() const
     return impl_->Height();
 }
 
+TileGranularity Surface::GetRenderAreaGranularity()
+{
+    if (!impl_) {
+        LOGE("surfaceImpl GetRenderAreaGranularity failed impl nullptr");
+        return {0, 0};
+    }
+    return impl_->GetRenderAreaGranularity();
+}
+
+sk_sp<SkSurface> Surface::GetSkSurface() const
+{
+    return impl_->GetSkSurface();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

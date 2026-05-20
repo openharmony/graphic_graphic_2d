@@ -346,7 +346,7 @@ void SkiaFont::GetTextPath(const void* text, size_t byteLength, TextEncoding enc
     }
     SkPath& skpath = skPathImpl->GetMutablePath();
 
-    SkTextUtils::GetPath(text, std::min(GetStrLength(text, byteLength, encoding), byteLength),
+    SkTextUtils::GetPath(text, std::min(GetByteLength(text, byteLength, encoding), byteLength),
         static_cast<SkTextEncoding>(encoding), x, y, skFont_, &skpath);
 }
 

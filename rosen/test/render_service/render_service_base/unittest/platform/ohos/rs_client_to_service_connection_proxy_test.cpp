@@ -930,7 +930,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetScreenBacklight, TestSize.Leve
 {
     ScreenId id = 1;
     uint32_t level = 1;
-    proxy->SetScreenBacklight(id, level);
+    proxy->SetScreenBacklight(RsScreenBrightnessData(id, level));
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
@@ -1494,8 +1494,9 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
 
 /**
  * @tc.name: SetHdrForceHwcEnabled_Normal_Success
- * @tc.desc: Test SetHdrForceHwcEnabled when normal case
+ * @tc.desc: Test SetHdrForceHwcEnabled with normal case
  * @tc.type: FUNC
+ *
  * @tc.require:
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_Normal_Success, TestSize.Level1)
@@ -1513,6 +1514,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_Normal_Succ
  * @tc.name: SetHdrForceHwcEnabled_SendRequestFail
  * @tc.desc: Test SetHdrForceHwcEnabled when SendRequest fails
  * @tc.type: FUNC
+ *
  * @tc.require:
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_SendRequestFail, TestSize.Level1)

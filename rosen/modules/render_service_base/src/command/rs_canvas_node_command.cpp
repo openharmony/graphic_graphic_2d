@@ -18,6 +18,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
@@ -43,7 +44,7 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
 }
 
 bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(
-    std::shared_ptr<RSCanvasRenderNode> node, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType)
+    std::shared_ptr<RSCanvasRenderNode> node, SimpleDrawCmdListPtr drawCmds, uint16_t modifierType)
 {
     if (node->GetNodeIsSingleFrameComposer()) {
         node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType),
@@ -65,17 +66,18 @@ void RSCanvasNodeCommandHelper::UpdateRecording(
         return;
     }
     auto drawCmds = std::move(srcDrawCmds);
+    auto simpleDrawCmds = drawCmds != nullptr ? RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmds) : nullptr;
     if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
-        if (AddCmdToSingleFrameComposer(node, drawCmds, modifierType)) {
+        if (AddCmdToSingleFrameComposer(node, simpleDrawCmds, modifierType)) {
             return;
         }
     } else {
-        node->UpdateRecordingNG(drawCmds, static_cast<ModifierNG::RSModifierType>(modifierType));
+        node->UpdateRecordingNG(simpleDrawCmds, static_cast<ModifierNG::RSModifierType>(modifierType));
     }
-    if (!drawCmds) {
+    if (!simpleDrawCmds) {
         return;
     }
-    drawCmds->UpdateNodeIdToPicture(id);
+    simpleDrawCmds->UpdateNodeIdToPicture(id);
 }
 
 void RSCanvasNodeCommandHelper::ClearRecording(RSContext& context, NodeId id)

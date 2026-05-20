@@ -46,8 +46,12 @@ bool RSRenderToServiceConnection::NotifyRenderProcessInitFinished(
         RS_LOGE("%{public}s: iface_cast failed", __func__);
         return false;
     }
-    renderProcessManagerAgent_->SetRenderProcessReadyPromise(GetCallingPid(), serviceToRenderConn, connectToRenderConn);
-    return true;
+    bool success = renderProcessManagerAgent_->SetRenderProcessReadyPromise(
+        GetCallingPid(), serviceToRenderConn, connectToRenderConn);
+    if (!success) {
+        RS_LOGE("%{public}s: SetRenderProcessReadyPromise failed, render_process may already died", __func__);
+    }
+    return success;
 }
 
 sptr<ReplyToRenderInfo> RSRenderToServiceConnection::SendProcessInfo(

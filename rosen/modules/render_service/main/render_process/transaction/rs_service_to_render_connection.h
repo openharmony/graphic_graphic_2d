@@ -45,7 +45,7 @@ public:
     // Screen Manager
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
-    void OnScreenBacklightChanged(ScreenId screenId, uint32_t level) override;
+    void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData) override;
     void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
 
     // Partial Render

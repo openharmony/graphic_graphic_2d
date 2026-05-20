@@ -78,7 +78,7 @@ public:
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const;
     RSScreenData GetScreenData(ScreenId id) const;
     int32_t GetScreenBacklight(ScreenId id) const;
-    void SetScreenBacklight(ScreenId id, uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
     void DisablePowerOffRenderControl(ScreenId id);
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const;
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) const;

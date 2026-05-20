@@ -441,13 +441,13 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenBacklight001, TestSize.Level1)
         "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     screenManager_->screenBacklight_[virtualScreenId] = 50;
-    screenManagerAgent_->SetScreenBacklight(virtualScreenId, 100);
+    screenManagerAgent_->SetScreenBacklight(RsScreenBrightnessData(virtualScreenId, 100));
     EXPECT_EQ(screenManager_->screenBacklight_[virtualScreenId], 100);
     screenManagerAgent_->RemoveVirtualScreen(virtualScreenId);
 
     auto screenManager = screenManagerAgent_->screenManager_;
     screenManagerAgent_->screenManager_ = nullptr;
-    screenManagerAgent_->SetScreenBacklight(virtualScreenId, 100);
+    screenManagerAgent_->SetScreenBacklight(RsScreenBrightnessData(virtualScreenId, 100));
     screenManagerAgent_->screenManager_ = screenManager;
 }
 

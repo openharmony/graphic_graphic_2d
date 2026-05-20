@@ -49,14 +49,14 @@ void RSRenderProcessManager::OnHwcEvent(uint32_t deviceId, uint32_t eventId, con
     }
 }
 
-void RSRenderProcessManager::OnScreenBacklightChanged(ScreenId id, uint32_t level)
+void RSRenderProcessManager::OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
-    auto conn = GetServiceToRenderConn(id);
+    auto conn = GetServiceToRenderConn(brightnessData.screenId);
     if (conn == nullptr) {
         RS_LOGE("%{public}s conn is nullptr", __func__);
         return;
     }
-    conn->OnScreenBacklightChanged(id, level);
+    conn->OnScreenBacklightChanged(brightnessData);
 }
 
 void RSRenderProcessManager::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)

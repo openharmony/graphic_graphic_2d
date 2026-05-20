@@ -25,13 +25,15 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <unistd.h>
+#ifndef ENABLE_RS_PROXY
 #include <utils/rect.h>
+#include "draw/color.h"
+#include "../../../../utils/color_manager/export/color_space.h"
+#endif
 #include <vector>
 
 #include "common/rs_macros.h"
 #include "common/rs_anco_type.h"
-#include "draw/color.h"
-#include "../../../../utils/color_manager/export/color_space.h"
 
 namespace OHOS {
 class Surface;
@@ -388,7 +390,7 @@ enum class DisplayIntent : uint32_t {
     LOCAL = 1, // current screen nits
     DISPLAY_INTENT_BUTT, // a boundary for DisplayIntent Security Check
 };
-
+#ifndef ENABLE_RS_PROXY
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -459,7 +461,7 @@ struct RSSurfaceCapturePermissions {
     bool isSystemCalling = false;
     bool selfCapture = false;
 };
-
+#endif
 #define CHECK_FALSE_RETURN(var)      \
     do {                             \
         if (!(var)) {                \

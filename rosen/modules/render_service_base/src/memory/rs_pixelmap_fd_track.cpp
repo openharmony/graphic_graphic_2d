@@ -15,6 +15,9 @@
 
 #include "memory/rs_pixelmap_fd_track.h"
 
+#ifdef RS_ENABLE_UNI_RENDER
+#include <filesystem>
+#endif
 #include <fstream>
 #include <sstream>
 
@@ -36,6 +39,70 @@ constexpr int32_t INVALID_PID = 0;
 const std::string ASHMEM_INFO_PATH = "/proc/ashmem_process_info";
 const std::string DMABUF_INFO_PATH = "/proc/process_dmabuf_info";
 const std::string RS_FD_MEM_PATH = "/data/service/el0/render_service/renderservice_fdmem.txt";
+
+#ifdef RS_ENABLE_UNI_RENDER
+bool CheckAndGetCanonicalProcMemInfoPath(const std::string& procMemInfoPath, std::filesystem::path& canonicalPath)
+{
+    char canonicalFile[PATH_MAX] = {0};
+    if (realpath(procMemInfoPath.c_str(), canonicalFile) == nullptr) {
+        ROSEN_LOGE("CheckAndGetCanonicalProcMemInfoPath realpath check failed");
+        return false;
+    }
+    std::error_code errCode;
+    bool isRegularFile = std::filesystem::is_regular_file(canonicalFile, errCode);
+    if (errCode) {
+        std::string errMessage = errCode.message();
+        ROSEN_LOGE("CheckAndGetCanonicalProcMemInfoPath is_regular_file check failed: %{public}s", errMessage.c_str());
+        return false;
+    }
+    if (!isRegularFile) {
+        ROSEN_LOGE("CheckAndGetCanonicalProcMemInfoPath procMemInfoPath is not a file");
+        return false;
+    }
+    canonicalPath = canonicalFile;
+    return true;
+}
+
+bool CheckAndGetCanonicalFdMemInfoPath(const std::string& fdMemInfoPath, std::filesystem::path& canonicalPath)
+{
+    std::error_code errCode;
+    std::filesystem::file_status status = std::filesystem::status(fdMemInfoPath, errCode);
+    if (errCode && errCode != std::errc::no_such_file_or_directory) {
+        std::string errMessage = errCode.message();
+        ROSEN_LOGE("CheckAndGetCanonicalFdMemInfoPath status check failed: %{public}s", errMessage.c_str());
+        return false;
+    }
+    if (std::filesystem::exists(status)) {
+        if (!std::filesystem::is_regular_file(status)) {
+            ROSEN_LOGE("CheckAndGetCanonicalFdMemInfoPath fdMemInfoPath is not a file");
+            return false;
+        }
+        char canonicalFile[PATH_MAX] = {0};
+        if (realpath(fdMemInfoPath.c_str(), canonicalFile) == nullptr) {
+            ROSEN_LOGE("CheckAndGetCanonicalFdMemInfoPath realpath check failed");
+            return false;
+        }
+        canonicalPath = canonicalFile;
+    } else {
+        std::filesystem::path fullPath(fdMemInfoPath);
+        std::filesystem::path fileName = fullPath.filename();
+        if (fileName.empty()) {
+            ROSEN_LOGE("CheckAndGetCanonicalFdMemInfoPath output filename is empty");
+            return false;
+        }
+        char canonicalDir[PATH_MAX] = {0};
+        std::filesystem::path dirPath = fullPath.parent_path();
+        std::string dirPathStr = dirPath.empty() ? "." : dirPath.string();
+        if (realpath(dirPathStr.c_str(), canonicalDir) == nullptr) {
+            ROSEN_LOGE("CheckAndGetCanonicalFdMemInfoPath realpath check failed");
+            return false;
+        }
+        std::filesystem::path canonicalDirPath(canonicalDir);
+        canonicalPath = canonicalDirPath / fileName;
+    }
+    return true;
+}
+#endif
 }
 
 void RSPixelMapFdTrack::AddFdRecord(int32_t pid, const void* addr, Media::AllocatorType allocType)
@@ -217,7 +284,13 @@ void RSPixelMapFdTrack::WriteFdMemInfoToFile(const std::string& fdMemInfoPath, c
 {
     RS_TRACE_NAME("RSPixelMapFdTrack::WriteFdMemInfoToFile");
 
-    std::ofstream fdMemInfoFile(fdMemInfoPath);
+#ifdef RS_ENABLE_UNI_RENDER
+    std::filesystem::path canonicalPath;
+    if (!CheckAndGetCanonicalFdMemInfoPath(fdMemInfoPath, canonicalPath)) {
+        ROSEN_LOGE("RSPixelMapFdTrack::WriteFdMemInfoToFile fdMemInfoPath check failed");
+        return;
+    }
+    std::ofstream fdMemInfoFile(canonicalPath);
     if (fdMemInfoFile.is_open()) {
         fdMemInfoFile << "\n******************************\n";
         fdMemInfoFile << fdMemInfo;
@@ -226,40 +299,57 @@ void RSPixelMapFdTrack::WriteFdMemInfoToFile(const std::string& fdMemInfoPath, c
     } else {
         ROSEN_LOGE("RSPixelMapFdTrack::WriteFdMemInfoToFile can not open fdMemInfoFile");
     }
+#endif
 }
 
 void RSPixelMapFdTrack::ReadAshmemInfoFromFile(const std::string& ashmemInfoPath, std::string& ashmemInfo, int32_t pid)
 {
     RS_TRACE_NAME("RSPixelMapFdTrack::ReadAshmemInfoFromFile");
 
+#ifdef RS_ENABLE_UNI_RENDER
+    std::filesystem::path canonicalPath;
+    if (!CheckAndGetCanonicalProcMemInfoPath(ashmemInfoPath, canonicalPath)) {
+        ashmemInfo = "Failed to check ashmemInfoPath: " + ashmemInfoPath;
+        ROSEN_LOGE("RSPixelMapFdTrack::ReadAshmemInfoFromFile ashmemInfoPath check failed");
+        return;
+    }
     std::ifstream ashmemInfoFile;
-    ashmemInfoFile.open(ashmemInfoPath);
+    ashmemInfoFile.open(canonicalPath);
     if (ashmemInfoFile.is_open()) {
         std::stringstream ashmemInfoStream;
         ashmemInfoStream << ashmemInfoFile.rdbuf();
         FilterAshmemInfoByPid(ashmemInfo, ashmemInfoStream.str(), pid);
         ashmemInfoFile.close();
     } else {
-        ashmemInfo = "Failed to open ashmemInfoFile: " + ashmemInfoPath;
+        ashmemInfo = "Failed to open ashmemInfoFile: " + canonicalPath.string();
         ROSEN_LOGE("RSPixelMapFdTrack::ReadAshmemInfoFromFile can not open ashmemInfoFile");
     }
+#endif
 }
 
 void RSPixelMapFdTrack::ReadDmaBufInfoFromFile(const std::string& dmaBufInfoPath, std::string& dmaBufInfo, int32_t pid)
 {
     RS_TRACE_NAME("RSPixelMapFdTrack::ReadDmaBufInfoFromFile");
 
+#ifdef RS_ENABLE_UNI_RENDER
+    std::filesystem::path canonicalPath;
+    if (!CheckAndGetCanonicalProcMemInfoPath(dmaBufInfoPath, canonicalPath)) {
+        dmaBufInfo = "Failed to check dmaBufInfoPath: " + dmaBufInfoPath;
+        ROSEN_LOGE("RSPixelMapFdTrack::ReadDmaBufInfoFromFile dmaBufInfoPath check failed");
+        return;
+    }
     std::ifstream dmaBufInfoFile;
-    dmaBufInfoFile.open(dmaBufInfoPath);
+    dmaBufInfoFile.open(canonicalPath);
     if (dmaBufInfoFile.is_open()) {
         std::stringstream dmaBufInfoStream;
         dmaBufInfoStream << dmaBufInfoFile.rdbuf();
         FilterDmaBufInfoByPid(dmaBufInfo, dmaBufInfoStream.str(), pid);
         dmaBufInfoFile.close();
     } else {
-        dmaBufInfo = "Failed to open dmaBufInfoFile: " + dmaBufInfoPath;
+        dmaBufInfo = "Failed to open dmaBufInfoFile: " + canonicalPath.string();
         ROSEN_LOGE("RSPixelMapFdTrack::ReadDmaBufInfoFromFile can not open dmaBufInfoFile");
     }
+#endif
 }
 
 void RSPixelMapFdTrack::FilterAshmemInfoByPid(std::string& out, const std::string& info, int32_t pid)

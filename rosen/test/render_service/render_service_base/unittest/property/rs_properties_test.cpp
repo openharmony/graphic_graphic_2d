@@ -2243,8 +2243,8 @@ HWTEST_F(RSPropertiesTest, SetNGetVisible001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, GenerateNGetRRect001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.GenerateRRect();
-    EXPECT_NE(properties.boundsGeo_, nullptr);
+    properties.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f));
+    EXPECT_TRUE(properties.GetClipToRRect());
 }
 
 /**
@@ -4043,6 +4043,54 @@ HWTEST_F(RSPropertiesTest, GetMaterialShader001, TestSize.Level1)
     RSProperties properties;
 
     EXPECT_EQ(properties.GetMaterialShader(), nullptr);
+}
+
+/**
+ * @tc.name: SetDoubleSidedEnabled001
+ * @tc.desc: test SetDoubleSidedEnabled with different value (if branch taken)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetDoubleSidedEnabled001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_TRUE(properties.GetDoubleSidedEnabled());
+
+    properties.SetDoubleSidedEnabled(false);
+    EXPECT_FALSE(properties.GetDoubleSidedEnabled());
+}
+
+/**
+ * @tc.name: SetDoubleSidedEnabled002
+ * @tc.desc: test SetDoubleSidedEnabled with same value (if branch not taken)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetDoubleSidedEnabled002, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_TRUE(properties.GetDoubleSidedEnabled());
+
+    properties.SetDoubleSidedEnabled(true);
+    EXPECT_TRUE(properties.GetDoubleSidedEnabled());
+}
+
+/**
+ * @tc.name: SetDoubleSidedEnabled003
+ * @tc.desc: test SetDoubleSidedEnabled toggle false then true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetDoubleSidedEnabled003, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_TRUE(properties.GetDoubleSidedEnabled());
+
+    properties.SetDoubleSidedEnabled(false);
+    EXPECT_FALSE(properties.GetDoubleSidedEnabled());
+
+    properties.SetDoubleSidedEnabled(true);
+    EXPECT_TRUE(properties.GetDoubleSidedEnabled());
+
+    properties.SetDoubleSidedEnabled(true);
+    EXPECT_TRUE(properties.GetDoubleSidedEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS

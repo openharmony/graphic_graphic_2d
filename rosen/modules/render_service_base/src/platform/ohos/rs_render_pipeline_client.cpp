@@ -1059,5 +1059,16 @@ int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarg
     }
     return clientToRenderConnection_->GetFrameStabilityResult(target, result);
 }
+
+int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("UpdateFrameStabilityDetection clientToRenderConnection_ == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToRenderConnection_->UpdateFrameStabilityDetection(oldTarget, newTarget);
+}
 } // namespace Rosen
 } // namespace OHOS

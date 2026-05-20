@@ -52,8 +52,8 @@ HWTEST_F(RSOptimizeCanvasDirtyCollectorTest, CalcCmdlistDrawRegionFromOpItem001,
         system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled", "1");
     }
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    SimpleDrawCmdListPtr drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
@@ -76,12 +76,12 @@ HWTEST_F(RSOptimizeCanvasDirtyCollectorTest, CalcCmdlistDrawRegionFromOpItem002,
         system::SetParameter("rosen.graphic.optimizeCanvasDrawRegion.enabled", "1");
     }
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
     ASSERT_NE(drawCmdList, nullptr);
     ASSERT_EQ(drawCmdList->GetCmdlistDrawRegion().IsEmpty(), true);
-    drawCmdList->SetWidth(1);
-    drawCmdList->SetHeight(1);
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    drawCmdList->width_ = 1;
+    drawCmdList->height_ = 1;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(

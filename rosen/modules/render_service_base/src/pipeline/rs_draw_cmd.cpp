@@ -23,7 +23,6 @@
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_image_cache.h"
 #include "recording/cmd_list_helper.h"
-#include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
@@ -361,6 +360,11 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
         !colorSpace->Equals(imageCache->GetImageInfo().GetColorSpace()));
     if (!needMakeFromTexture) {
         this->image_ = imageCache;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        if (sampling.GetMipmapMode() != Drawing::MipmapMode::NONE) {
+            RSImageCache::Instance().ReserveImageInfo(rsImage_, nodeId_, weak_from_this());
+        }
+#endif
     } else {
         bool ret = MakeFromTextureForVK(
             canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), sampling, colorSpace);

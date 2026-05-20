@@ -340,12 +340,26 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
     if (!RSSystemProperties::GetDefaultMemClearEnabled()) {
         return;
     }
+
+    auto drawCmdShared = drawCmd.lock();
+    if (!drawCmdShared) {
+        return;
+    }
     if (rsImage != nullptr) {
         auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
         if (drawableAdapter == nullptr) {
             return;
         }
         NodeId surfaceNodeId = drawableAdapter->GetRenderParams()->GetFirstLevelNodeId();
+        for (const auto& [existingImg, existingCmd] : rsImageInfoMap[surfaceNodeId]) {
+            auto existingImgShared = existingImg.lock();
+            auto existingCmdShared = existingCmd.lock();
+            if (existingImgShared && existingCmdShared &&
+                rsImage.get() == existingImgShared.get() &&
+                drawCmdShared.get() == existingCmdShared.get()) {
+                return;
+            }
+        }
         std::weak_ptr<RSImage> rsImage_weak = rsImage;
         rsImageInfoMap[surfaceNodeId].push_back(std::make_pair(rsImage_weak, drawCmd));
     }

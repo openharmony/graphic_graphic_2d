@@ -48,6 +48,16 @@ void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textS
     textStyle.fontEdging = skStyle.getFontEdging();
     textStyle.isFakeBoldEnabled = skStyle.isFakeBoldEnabled();
     textStyle.fontTypefaces = skStyle.getFontTypefaces();
+    const auto& fontArgs = skStyle.getFontArguments();
+    if (fontArgs.has_value()) {
+        const std::vector<uint32_t>& nListIndex = fontArgs->getNormalizationListIndex();
+        const std::vector<SkFontArguments::VariationPosition::Coordinate>& coordinates = fontArgs->getCoordinates();
+        for (size_t i = 0; i < coordinates.size(); ++i) {
+            const auto& coord = coordinates[i];
+            const bool isNormalization = std::find(nListIndex.begin(), nListIndex.end(), i) != nListIndex.end();
+            textStyle.fontVariations.SetAxisValue(SkFourByteTagToString(coord.axis), coord.value, isNormalization);
+        }
+    }
 }
 
 TextStyle SkStyleToSPTextStyle(const skia::textlayout::TextStyle& skStyle,

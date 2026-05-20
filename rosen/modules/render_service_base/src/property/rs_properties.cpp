@@ -774,7 +774,7 @@ const std::optional<Matrix3f>& RSProperties::GetSublayerTransform() const
 void RSProperties::SetForegroundColor(Color color)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     decoration_->foregroundColor_ = color;
     SetDirty();
@@ -791,7 +791,7 @@ void RSProperties::SetBackgroundColor(Color color)
 {
     UpdateHDRColorMaxHeadroom(GetHDRColorHeadroom(), color.GetHeadroom());
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     if (color.GetAlpha() > 0) {
         isDrawn_ = true;
@@ -804,7 +804,7 @@ void RSProperties::SetBackgroundColor(Color color)
 void RSProperties::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     if (shader) {
         isDrawn_ = true;
@@ -823,7 +823,7 @@ std::shared_ptr<RSShader> RSProperties::GetBackgroundShader() const
 void RSProperties::SetBackgroundShaderProgress(const float& progress)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     isDrawn_ = true;
     decoration_->bgShaderProgress_ = progress;
@@ -841,7 +841,7 @@ float RSProperties::GetBackgroundShaderProgress() const
 void RSProperties::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     if (image) {
         isDrawn_ = true;
@@ -859,7 +859,7 @@ std::shared_ptr<RSImage> RSProperties::GetBgImage() const
 void RSProperties::SetBgImageInnerRect(const Vector4f& rect)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     decoration_->bgImageInnerRect_ = rect;
     SetDirty();
@@ -874,7 +874,7 @@ Vector4f RSProperties::GetBgImageInnerRect() const
 void RSProperties::SetBgImageDstRect(const Vector4f& rect)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     decoration_->bgImageRect_ = RectF(rect);
     SetDirty();
@@ -895,7 +895,7 @@ const RectF& RSProperties::GetBgImageRect() const
 void RSProperties::SetBgImageWidth(float width)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     decoration_->bgImageRect_.width_ = width;
     SetDirty();
@@ -905,7 +905,7 @@ void RSProperties::SetBgImageWidth(float width)
 void RSProperties::SetBgImageHeight(float height)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     decoration_->bgImageRect_.height_ = height;
     SetDirty();
@@ -915,7 +915,7 @@ void RSProperties::SetBgImageHeight(float height)
 void RSProperties::SetBgImagePositionX(float positionX)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     decoration_->bgImageRect_.left_ = positionX;
     SetDirty();
@@ -925,7 +925,7 @@ void RSProperties::SetBgImagePositionX(float positionX)
 void RSProperties::SetBgImagePositionY(float positionY)
 {
     if (!decoration_) {
-        decoration_ = std::make_optional<Decoration>();
+        decoration_ = std::make_unique<Decoration>();
     }
     decoration_->bgImageRect_.top_ = positionY;
     SetDirty();
@@ -2307,7 +2307,7 @@ void RSProperties::SetDrawRegion(const std::shared_ptr<RectF>& rect)
 
 void RSProperties::SetClipRRect(RRect clipRRect)
 {
-    clipRRect_ = clipRRect;
+    clipRRect_ = std::make_unique<RRect>(clipRRect);
     if (GetClipToRRect()) {
         isDrawn_ = true;
     }
@@ -2415,15 +2415,9 @@ void RSProperties::SetVisible(bool visible)
     subTreeAllDirty_ = true;
 }
 
-const RRect& RSProperties::GetRRect() const
+RRect RSProperties::GetRRect() const
 {
-    return rrect_;
-}
-
-void RSProperties::GenerateRRect()
-{
-    RectF rect = GetBoundsRect();
-    rrect_ = RRect(rect, GetCornerRadius());
+    return RRect(GetBoundsRect(), GetCornerRadius());
 }
 
 RRect RSProperties::GetInnerRRect() const
@@ -5398,11 +5392,11 @@ std::string RSProperties::Dump() const
         dumpInfo.append(", SDFShape[" + sdfShape->Dump() + "]");
     }
     // node slimming dump
-    dumpInfo.append(", hasDecoration: " + std::to_string(decoration_.has_value()));
-    dumpInfo.append(", hasClipRRect: " + std::to_string(clipRRect_.has_value()));
-    dumpInfo.append(", hasGeoTrans: " + std::to_string(frameGeo_.GetPivotX() != 0.5f ||
-        frameGeo_.GetPivotY() != 0.5f || frameGeo_.GetScaleX() != 1.f || frameGeo_.GetScaleY() != 1.f ||
-        frameGeo_.GetRotation() != 0.f || frameGeo_.GetTranslateX() != 0.f || frameGeo_.GetTranslateY() != 0.f));
+    dumpInfo.append(", hasDecoration: " + std::to_string(decoration_ != nullptr));
+    dumpInfo.append(", hasClipRRect: " + std::to_string(clipRRect_ != nullptr));
+    dumpInfo.append(", hasGeoTrans: " + std::to_string(GetPivotX() != 0.5f ||
+        GetPivotY() != 0.5f || GetScaleX() != 1.f || GetScaleY() != 1.f ||
+        GetRotation() != 0.f || GetTranslateX() != 0.f || GetTranslateY() != 0.f));
     auto rrect = GetRRect();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
@@ -5520,7 +5514,6 @@ void RSProperties::OnApplyModifiers()
         GetEffect().greyCoefNeedUpdate_ = false;
         filterNeedUpdate_ = true;
     }
-    GenerateRRect();
     if (filterNeedUpdate_) {
         UpdateFilter();
     }
@@ -5561,7 +5554,7 @@ void RSProperties::UpdateFilter()
                      IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
                      GetNeedDrawBehindWindow() || GetColorFilter() != nullptr || localMagnificationCap_ ||
-                     GetPixelStretch().has_value() || GetMaterialFilter() != nullptr;
+                     GetPixelStretch().has_value() || GetMaterialFilter() != nullptr || IsSDFDistortShape();
 #ifdef SUBTREE_PARALLEL_ENABLE
     // needForceSubmit_ is used to determine whether the subtree needs to read/scale pixels
     needForceSubmit_ = IsFilterNeedForceSubmit(GetFilter()) ||
@@ -5865,6 +5858,12 @@ void RSProperties::SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape
 std::shared_ptr<RSNGRenderShapeBase> RSProperties::GetSDFShape() const
 {
     return renderSDFShape_;
+}
+
+bool RSProperties::IsSDFDistortShape() const
+{
+    auto sdfShape = GetSDFShape();
+    return sdfShape && sdfShape->GetType() == RSNGEffectType::SDF_DISTORT_OP_SHAPE;
 }
 
 void RSProperties::SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter)

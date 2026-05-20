@@ -292,7 +292,15 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
         RSUifirstManager::Instance().GetUiFirstSwitch();
     bool isNeedFP16 = isHdrSurface || isScRGBEnable;
     bool bufferFormatNeedUpdate = RSHdrUtil::BufferFormatNeedUpdate(cacheSurface, isNeedFP16);
-    if (!cacheSurface || rsSubThreadCache.NeedInitCacheSurface(surfaceParams) || bufferFormatNeedUpdate) {
+    bool bufferColorSpaceChange =
+        rsSubThreadCache.GetTargetColorGamut() != rsSubThreadCache.GetCacheSurfaceColorSpace();
+    if (!cacheSurface || rsSubThreadCache.NeedInitCacheSurface(surfaceParams) ||
+        bufferFormatNeedUpdate || bufferColorSpaceChange) {
+        if (bufferColorSpaceChange) {
+            RS_TRACE_NAME_FMT("UIFirst InitCacheSurface due to ColorSpaceChange: target=%d, current=%d",
+                static_cast<int>(rsSubThreadCache.GetTargetColorGamut()),
+                static_cast<int>(rsSubThreadCache.GetCacheSurfaceColorSpace()));
+        }
         DrawableV2::RsSubThreadCache::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
         rsSubThreadCache.InitCacheSurface(grContext_.get(), nodeDrawable, func, threadIndex_, isNeedFP16);
         cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_);

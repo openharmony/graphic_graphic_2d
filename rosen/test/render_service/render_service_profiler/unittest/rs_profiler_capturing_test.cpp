@@ -69,7 +69,7 @@ HWTEST_F(RSProfilerCapturingTest, RSDrawingRedrawTest, testing::ext::TestSize.Le
     EXPECT_NO_THROW({
         const auto res = 1000;
         auto drawCmdList =
-            std::make_shared<Drawing::DrawCmdList>(res, res, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+            std::make_shared<RSSimpleDrawCmdList>(res, res);
         EXPECT_TRUE(drawCmdList != nullptr);
         const auto roundRect = Drawing::RoundRect(
 

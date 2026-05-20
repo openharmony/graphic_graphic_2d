@@ -26,6 +26,8 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorShape = {
         [] { return std::make_shared<RSNGSDFRRectShape>(); }},
     {RSNGEffectType::SDF_TRIANGLE_SHAPE,
         [] { return std::make_shared<RSNGSDFTriangleShape>(); }},
+    {RSNGEffectType::SDF_ELLIPSE_SHAPE,
+        [] { return std::make_shared<RSNGSDFEllipseShape>(); }},
     {RSNGEffectType::SDF_TRANSFORM_SHAPE,
         [] { return std::make_shared<RSNGSDFTransformShape>(); }},
     {RSNGEffectType::SDF_PIXELMAP_SHAPE,

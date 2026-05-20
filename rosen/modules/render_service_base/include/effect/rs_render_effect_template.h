@@ -96,6 +96,7 @@ public:
             case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: return "SDFSmoothUnionOpShape";
             case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
             case RSNGEffectType::SDF_TRIANGLE_SHAPE: return "SDFTriangleShape";
+            case RSNGEffectType::SDF_ELLIPSE_SHAPE: return "SDFEllipseShape";
             case RSNGEffectType::SDF_PATH_SHAPE: return "SDFPathShape";
             case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
             case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";

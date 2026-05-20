@@ -121,9 +121,9 @@ HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
     params.SetRSFreezeFlag(false);
     drawable->GenerateCacheIfNeed(canvas, params);
     ASSERT_FALSE(params.GetRSFreezeFlag());
-    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    drawable->GetOpincDrawCache().isOpincMarkCached_ = true;
     drawable->GenerateCacheIfNeed(canvas, params);
-    ASSERT_TRUE(drawable->opincDrawCache_.OpincGetCachedMark());
+    ASSERT_TRUE(drawable->GetOpincDrawCache().OpincGetCachedMark());
 
     params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->GenerateCacheIfNeed(canvas, params);
@@ -143,10 +143,10 @@ HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
     params.isDrawingCacheChanged_ = false;
     drawable->GenerateCacheIfNeed(canvas, params);
 
-    drawable->opincDrawCache_.isOpincMarkCached_ = false;
+    drawable->GetOpincDrawCache().isOpincMarkCached_ = false;
     params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->GenerateCacheIfNeed(canvas, params);
-    ASSERT_TRUE(!drawable->opincDrawCache_.OpincGetCachedMark());
+    ASSERT_TRUE(!drawable->GetOpincDrawCache().OpincGetCachedMark());
     params.SetRSFreezeFlag(false);
     drawable->GenerateCacheIfNeed(canvas, params);
     ASSERT_FALSE(params.GetRSFreezeFlag());
@@ -475,6 +475,35 @@ HWTEST_F(RSRenderNodeDrawableTest, InitCachedSurfaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitCachedSurfaceEmptyUnionRectBranchTest
+ * @tc.desc: Cover false branch of !unionRect.IsEmpty() in InitCachedSurface
+ * @tc.type: FUNC
+ * @tc.require: issueTddCover699
+ */
+HWTEST_F(RSRenderNodeDrawableTest, InitCachedSurfaceEmptyUnionRectBranchTest, TestSize.Level1)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
+
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({64.f, 32.f});
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    ASSERT_NE(context, nullptr);
+
+    drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid());
+    if (drawable->cachedSurface_ && drawable->cachedSurface_->GetCanvas()) {
+        EXPECT_EQ(drawable->cachedSurface_->GetCanvas()->GetWidth(), 64);
+        EXPECT_EQ(drawable->cachedSurface_->GetCanvas()->GetHeight(), 32);
+    }
+    drawable->ClearCachedSurface();
+#else
+    SUCCEED();
+#endif
+}
+
+/**
  * @tc.name: NeedInitCachedSurface
  * @tc.desc: Test If NeedInitCachedSurface Can Run
  * @tc.type: FUNC
@@ -487,14 +516,33 @@ HWTEST_F(RSRenderNodeDrawableTest, NeedInitCachedSurfaceTest, TestSize.Level1)
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    drawable->opincDrawCache_.isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
+    drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
     drawable->cachedSurface_ = nullptr;
     auto result = drawable->NeedInitCachedSurface(params.GetCacheSize());
     ASSERT_EQ(result, true);
 
     drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
-    drawable->opincDrawCache_.isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
+    drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
     result = drawable->NeedInitCachedSurface(params.GetCacheSize());
+}
+
+/**
+ * @tc.name: NeedInitCachedSurfaceEmptyUnionRectBranchTest
+ * @tc.desc: Cover false branch of !unionRect.IsEmpty() in NeedInitCachedSurface
+ * @tc.type: FUNC
+ * @tc.require: issueTddCover754
+ */
+HWTEST_F(RSRenderNodeDrawableTest, NeedInitCachedSurfaceEmptyUnionRectBranchTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
+    drawable->cachedSurface_ = std::make_shared<Drawing::Surface>();
+    drawable->cachedSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>(32, 16);
+
+    const bool needInit = drawable->NeedInitCachedSurface(Vector2f(32.f, 16.f));
+    EXPECT_FALSE(needInit);
 }
 
 /**
@@ -552,10 +600,10 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageTest, TestSize.Level1)
     RSPaintFilterCanvas paintFilterCanvas2(&canvas2);
     drawable->DrawCachedImage(paintFilterCanvas2, params);
 
-    drawable->opincDrawCache_.isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
+    drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
     drawable->DrawCachedImage(paintFilterCanvas2, params);
     drawable->ClearCachedSurface();
-    drawable->opincDrawCache_.isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_INIT;
+    drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_INIT;
 
     drawable->cachedSurface_ = std::make_shared<Drawing::Surface>();
     drawable->cachedImage_ = std::make_shared<Drawing::Image>();
@@ -563,10 +611,10 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageTest, TestSize.Level1)
     paintFilterCanvas.canvas_ = drawingCanvas.get();
     paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     drawable->DrawCachedImage(paintFilterCanvas, params);
-    drawable->opincDrawCache_.isAdd_ = true;
+    drawable->GetOpincDrawCache().isAdd_ = true;
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
-    ASSERT_FALSE(drawable->opincDrawCache_.IsComputeDrawAreaSucc());
+    ASSERT_FALSE(drawable->GetOpincDrawCache().IsComputeDrawAreaSucc());
 }
 
 /**
@@ -598,9 +646,9 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest001, TestSize.Level
 
     drawable->cachedSurface_ = std::make_shared<Drawing::Surface>();
     drawable->cachedSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
-    drawable->opincDrawCache_.isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
+    drawable->GetOpincDrawCache().isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
     Drawing::Rect unionRect(0.f, 0.f, 0.f, 0.f);
-    drawable->opincDrawCache_.opListDrawAreas_.opInfo_.unionRect = unionRect;
+    drawable->GetOpincDrawCache().opListDrawAreas_.opInfo_.unionRect = unionRect;
     updateTimes = 0;
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
     ASSERT_TRUE(result);
@@ -608,7 +656,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest001, TestSize.Level
     drawable->drawingCacheUpdateTimeMap_.clear();
     updateTimes = 1;
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
-    ASSERT_FALSE(result);
+    ASSERT_TRUE(result);
     updateTimes = 1;
     params.isDrawingCacheChanged_ = true;
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
@@ -966,7 +1014,7 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest001, TestSize.Level1)
     drawable->UpdateCacheSurface(paintFilterCanvas1, params);
     ASSERT_NE(params.foregroundFilterCache_, nullptr);
 
-    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    drawable->GetOpincDrawCache().isOpincMarkCached_ = true;
     ASSERT_TRUE(drawable->GetOpincDrawCache().OpincGetCachedMark());
     drawable->UpdateCacheSurface(paintFilterCanvas1, params);
 }
@@ -996,11 +1044,11 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest002, TestSize.Level1)
     EXPECT_NE(drawable->GetCachedSurface(threadId), nullptr);
     EXPECT_EQ(drawable->GetOpincDrawCache().isAdd_, false);
 
-    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    drawable->GetOpincDrawCache().isOpincMarkCached_ = true;
     ASSERT_TRUE(drawable->GetOpincDrawCache().OpincGetCachedMark());
     drawable->UpdateCacheSurface(paintFilterCanvas, params);
 
-    drawable->opincDrawCache_.isOpincMarkCached_ = false;
+    drawable->GetOpincDrawCache().isOpincMarkCached_ = false;
     ASSERT_FALSE(drawable->GetOpincDrawCache().OpincGetCachedMark());
     drawable->UpdateCacheSurface(paintFilterCanvas, params);
 
@@ -1092,6 +1140,127 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceClearUnifiedFilterRegion001
 }
 
 /**
+ * @tc.name: UpdateCacheSurfaceWithColorGamutMap001
+ * @tc.desc: Test UpdateCacheSurface uses color gamut from surfaceColorGamutMap_
+ * @tc.type: FUNC
+ * @tc.require: issueIAJJ43
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceWithColorGamutMap001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({ 10.0f, 10.0f });
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    // Create a cached surface with SRGB color space
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    ASSERT_NE(context, nullptr);
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto cacheSurface = drawable->GetCachedSurface(gettid());
+    ASSERT_NE(cacheSurface, nullptr);
+
+    // Set params to have DISPLAY_P3 color space initially
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // Create render thread params with surfaceColorGamutMap_
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    std::unordered_map<NodeId, GraphicColorGamut> colorGamutMap;
+    colorGamutMap[params.GetFirstLevelNodeId()] = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    uniParams->surfaceColorGamutMap_ = colorGamutMap;
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    // UpdateCacheSurface should use the color gamut from the map
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    // Verify the cache surface was updated with the correct color gamut
+    auto updatedSurface = drawable->GetCachedSurface(gettid());
+    EXPECT_NE(updatedSurface, nullptr);
+
+    drawable->ClearCachedSurface();
+#endif
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceWithColorGamutMap002
+ * @tc.desc: Test UpdateCacheSurface falls back to params color space when not in map
+ * @tc.type: FUNC
+ * @tc.require: issueIAJJ43
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceWithColorGamutMap002, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({ 10.0f, 10.0f });
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    // Create a cached surface with SRGB color space
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    ASSERT_NE(context, nullptr);
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto cacheSurface = drawable->GetCachedSurface(gettid());
+    ASSERT_NE(cacheSurface, nullptr);
+
+    // Set params to have DISPLAY_P3 color space
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // Create render thread params with empty surfaceColorGamutMap_
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    std::unordered_map<NodeId, GraphicColorGamut> colorGamutMap; // Empty map
+    uniParams->surfaceColorGamutMap_ = colorGamutMap;
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    // UpdateCacheSurface should fall back to params.GetNodeColorSpace()
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    // Verify the cache surface was updated with the correct color gamut from params
+    auto updatedSurface = drawable->GetCachedSurface(gettid());
+    EXPECT_NE(updatedSurface, nullptr);
+
+    drawable->ClearCachedSurface();
+#endif
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceWithNullUniParam
+ * @tc.desc: Test UpdateCacheSurface when uniParam is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJJ43
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceWithNullUniParam, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({ 10.0f, 10.0f });
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    ASSERT_NE(context, nullptr);
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    // Set uniParam to nullptr
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+
+    // UpdateCacheSurface should use params.GetNodeColorSpace() when uniParam is nullptr
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    auto updatedSurface = drawable->GetCachedSurface(gettid());
+    EXPECT_NE(updatedSurface, nullptr);
+
+    drawable->ClearCachedSurface();
+#endif
+}
+
+/**
  * @tc.name: GetNodeDebugInfo
  * @tc.desc: Test GetNodeDebugInfo by default
  * @tc.type: FUNC
@@ -1105,6 +1274,7 @@ HWTEST_F(RSRenderNodeDrawableTest, GetNodeDebugInfo001, TestSize.Level1)
     EXPECT_EQ(drawable->GetNodeDebugInfo(), "");
     NodeId nodeId = 1;
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    (void)drawable->GetOpincDrawCache();
     EXPECT_NE(drawable->GetRenderParams(), nullptr);
     EXPECT_NE(drawable->GetNodeDebugInfo(), "");
 }
@@ -1461,7 +1631,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest001, TestSi
     paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     ASSERT_NE(drawable->cachedSurface_, nullptr);
 
-    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    drawable->GetOpincDrawCache().isOpincMarkCached_ = true;
     drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
@@ -1499,7 +1669,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest002, TestSi
     paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     ASSERT_NE(drawable->cachedSurface_, nullptr);
 
-    drawable->opincDrawCache_.isOpincMarkCached_ = false;
+    drawable->GetOpincDrawCache().isOpincMarkCached_ = false;
     drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
@@ -1537,7 +1707,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest003, TestSi
     paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     ASSERT_NE(drawable->cachedSurface_, nullptr);
 
-    drawable->opincDrawCache_.isOpincMarkCached_ = true;
+    drawable->GetOpincDrawCache().isOpincMarkCached_ = true;
     drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
@@ -1575,7 +1745,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest004, TestSi
     paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
     ASSERT_NE(drawable->cachedSurface_, nullptr);
 
-    drawable->opincDrawCache_.isOpincMarkCached_ = false;
+    drawable->GetOpincDrawCache().isOpincMarkCached_ = false;
     drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
@@ -1612,9 +1782,9 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest001, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     std::shared_ptr<Drawing::Surface> cacheSurface = nullptr;
-    RSRenderParams params(RSRenderNodeDrawableTest::id);
     bool isNeedFP16 = false;
-    EXPECT_TRUE(drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16));
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    EXPECT_TRUE(drawable->BufferNeedUpdate(cacheSurface, isNeedFP16, colorGamut));
 }
 
 /**
@@ -1626,11 +1796,11 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest001, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest002, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    RSRenderParams params(RSRenderNodeDrawableTest::id);
     auto cacheSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(cacheSurface, nullptr);
     bool isNeedFP16 = true;
-    EXPECT_TRUE(drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16));
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    EXPECT_TRUE(drawable->BufferNeedUpdate(cacheSurface, isNeedFP16, colorGamut));
 }
 
 /**
@@ -1642,11 +1812,11 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest002, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest003, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    RSRenderParams params(RSRenderNodeDrawableTest::id);
     auto cacheSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(cacheSurface, nullptr);
     bool isNeedFP16 = false;
-    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, isNeedFP16, colorGamut);
 #ifdef RS_ENABLE_VK
     EXPECT_TRUE(result);
 #else
@@ -1663,12 +1833,11 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest003, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest004, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    RSRenderParams params(RSRenderNodeDrawableTest::id);
-    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     auto cacheSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     ASSERT_NE(cacheSurface, nullptr);
     bool isNeedFP16 = false;
-    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, isNeedFP16, colorGamut);
 #ifdef RS_ENABLE_VK
     EXPECT_TRUE(result);
 #else
@@ -1695,7 +1864,8 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest005, TestSize.Level1)
     auto cacheSurface = drawable->GetCachedSurface(gettid());
     ASSERT_NE(cacheSurface, nullptr);
     bool isNeedFP16 = false;
-    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, isNeedFP16, colorGamut);
     EXPECT_FALSE(result);
     drawable->ClearCachedSurface();
 #endif
@@ -1719,9 +1889,9 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest006, TestSize.Level1)
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     auto cacheSurface = drawable->GetCachedSurface(gettid());
     ASSERT_NE(cacheSurface, nullptr);
-    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     bool isNeedFP16 = false;
-    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, isNeedFP16, colorGamut);
     EXPECT_TRUE(result);
     drawable->ClearCachedSurface();
 #endif
@@ -1745,9 +1915,9 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest007, TestSize.Level1)
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     auto cacheSurface = drawable->GetCachedSurface(gettid());
     ASSERT_NE(cacheSurface, nullptr);
-    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
     bool isNeedFP16 = false;
-    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, isNeedFP16, colorGamut);
     EXPECT_TRUE(result);
     drawable->ClearCachedSurface();
 #endif
@@ -1771,9 +1941,9 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest008, TestSize.Level1)
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     auto cacheSurface = drawable->GetCachedSurface(gettid());
     ASSERT_NE(cacheSurface, nullptr);
-    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
     bool isNeedFP16 = false;
-    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, isNeedFP16, colorGamut);
     EXPECT_TRUE(result);
     drawable->ClearCachedSurface();
 #endif

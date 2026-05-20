@@ -113,4 +113,31 @@ HWTEST_F(RSComposerToRenderConnectionTest, Connection_NotifyLppLayerToRender_Nor
     ret = conn.NotifyLppLayerToRender(555u, ids);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
 }
+
+/**
+ * Function: Connection_NotifyLayerStateChangedToRender_Unavailable
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. register layer state callback
+ *                  2. notify tunnel unavailable state
+ *                  3. expect callback receives the same values
+ */
+HWTEST_F(RSComposerToRenderConnectionTest, Connection_NotifyLayerStateChangedToRender_Unavailable, TestSize.Level1)
+{
+    RSComposerToRenderConnection conn;
+    uint64_t capturedNodeId = 0;
+    uint64_t capturedGeneration = 0;
+    LayerStateChange capturedState = LayerStateChange::AVAILABLE;
+    conn.RegisterLayerStateChangedCB([&](uint64_t nodeId, LayerStateChange state, uint64_t generation) {
+        capturedNodeId = nodeId;
+        capturedState = state;
+        capturedGeneration = generation;
+    });
+
+    int32_t ret = conn.NotifyLayerStateChangedToRender(778u, LayerStateChange::UNAVAILABLE, 33u);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    EXPECT_EQ(capturedNodeId, 778u);
+    EXPECT_EQ(capturedState, LayerStateChange::UNAVAILABLE);
+    EXPECT_EQ(capturedGeneration, 33u);
+}
 } // namespace OHOS::Rosen

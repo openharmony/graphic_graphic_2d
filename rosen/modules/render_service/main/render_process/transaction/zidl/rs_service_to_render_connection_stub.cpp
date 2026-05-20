@@ -1021,19 +1021,23 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BACKLIGHT_LEVEL): {
-            ScreenId id{INVALID_SCREEN_ID};
-            if (!data.ReadUint64(id)) {
+            RsScreenBrightnessData brightnessData;
+            if (!data.ReadUint64(brightnessData.screenId)) {
                 RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read ScreenId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            uint32_t level{};
-            if (!data.ReadUint32(level)) {
+            if (!data.ReadUint32(brightnessData.level)) {
                 RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read level failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            OnScreenBacklightChanged(id, level);
+            if (!data.ReadFloat(brightnessData.brightnessPosition)) {
+                RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read brightnessPosition failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            OnScreenBacklightChanged(brightnessData);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED) : {

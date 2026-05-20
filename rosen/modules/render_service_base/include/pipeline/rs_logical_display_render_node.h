@@ -138,6 +138,9 @@ public:
     bool GetVirtualScreenMuteStatus() const;
     void SetDisplaySpecialSurfaceChanged(bool displaySpecialSurfaceChanged);
 
+    void SetBootAnimation(bool isBootAnimation) override;
+    bool GetBootAnimation() const override;
+
     RSSpecialLayerManager& GetMultableSpecialLayerMgr();
     const RSSpecialLayerManager& GetSpecialLayerMgr() const;
 
@@ -222,6 +225,8 @@ private:
     bool hasSecLayerInVisibleRectChanged_ = false;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     bool hasCaptureWindow_ = false;
+
+    bool isBootAnimation_ = false;
 
     bool waitToSetOnTree_ = false;
 

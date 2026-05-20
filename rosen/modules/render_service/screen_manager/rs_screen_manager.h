@@ -105,7 +105,7 @@ public:
     // used to skip render frame or render only one frame when screen power is off.
     void MarkPowerOffNeedProcessOneFrame();
 
-    void SetScreenBacklight(ScreenId id, uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
     int32_t GetScreenBacklight(ScreenId id) const;
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type);
 
@@ -195,6 +195,8 @@ public:
     uint64_t GetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId);
     bool GetIsFoldScreenFlag();
 
+    void OnProcessDisconnected(const std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>& screens);
+
 private:
     void OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens);
 
@@ -218,7 +220,7 @@ private:
     bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
     std::unordered_set<uint64_t> CollectVirtualScreenSurfaceIds(ScreenId excludeId = INVALID_SCREEN_ID) const;
 
-    void OnScreenBacklightChanged(ScreenId id, uint32_t level);
+    void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData);
 
     // global blacklist
     int32_t SetGlobalBlackList(const std::unordered_set<NodeId>& blackList);

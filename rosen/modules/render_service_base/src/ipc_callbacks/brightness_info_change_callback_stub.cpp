@@ -56,7 +56,8 @@ bool RSBrightnessInfoChangeCallbackStub::ReadBrightnessInfo(BrightnessInfo& brig
 {
     if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
         !data.ReadFloat(brightnessInfo.maxHeadroom) ||
-        !data.ReadFloat(brightnessInfo.sdrNits)) {
+        !data.ReadFloat(brightnessInfo.sdrNits) ||
+        !data.ReadFloat(brightnessInfo.brightnessPosition)) {
         ROSEN_LOGE("RSBrightnessInfoChangeCallbackStub::ReadBrightnessInfo read brightnessInfo failed");
         return false;
     }

@@ -223,7 +223,7 @@ void RSProfiler::DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out
     if (node.GetBootAnimation()) {
         out["GetBootAnimation"] = true;
     }
-    if (node.isContainBootAnimation_) {
+    if (node.IsContainBootAnimation()) {
         out["isContainBootAnimation_"] = true;
     }
     if (node.dirtyStatus_ != RSRenderNode::NodeDirty::CLEAN) {

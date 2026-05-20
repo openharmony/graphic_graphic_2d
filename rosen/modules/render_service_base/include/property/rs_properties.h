@@ -399,6 +399,7 @@ public:
     void InternalSetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape);
     void SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape);
     std::shared_ptr<RSNGRenderShapeBase> GetSDFShape() const;
+    bool IsSDFDistortShape() const;
     void SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetMaterialNGFilter() const;
     void SetMaterialShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
@@ -616,7 +617,7 @@ public:
     }
     bool GetClipToRRect() const
     {
-        return clipRRect_.has_value() && !clipRRect_->rect_.IsEmpty();
+        return clipRRect_ && !clipRRect_->rect_.IsEmpty();
     }
     void SetClipBounds(const std::shared_ptr<RSPath>& path);
     const std::shared_ptr<RSPath>& GetClipBounds() const
@@ -878,7 +879,7 @@ public:
     void ClearFilterCache();
 #endif
 
-    const RRect& GetRRect() const;
+    RRect GetRRect() const;
     RRect GetInnerRRect() const;
     RectF GetFrameRect() const;
 
@@ -892,7 +893,6 @@ public:
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
     RRect GetRRectForSDF() const;
-
 private:
     struct CommonEffectParams {
         bool isAttractionValid_ = false;
@@ -1017,7 +1017,6 @@ private:
     bool NeedBlurFuzed();
     bool NeedLightBlur(bool disableSystemAdaptation);
 
-    void GenerateRRect();
     RectI GetDirtyRect() const;
     // added for update dirty region dfx
     RectI GetDirtyRect(RectI& drawRegion) const;
@@ -1077,7 +1076,7 @@ private:
     bool isGravityPullModeCenter_ = false; // true, current node is gravity pull center
     int uniModeUC_ = 0; // 1 GravityPull Mode, 0 SmoothUnion.
     bool alphaOffscreen_ = false;
-    std::optional<RRect> clipRRect_;
+    std::unique_ptr<RRect> clipRRect_;
     bool alphaNeedApply_ = false;
     bool needSkipShadow_ = false;
     bool localMagnificationCap_ = false;
@@ -1108,13 +1107,12 @@ private:
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     std::weak_ptr<RSRenderNode> backref_;
     std::unique_ptr<Sandbox> sandbox_ = nullptr;
-    RRect rrect_ = RRect{};
     RSObjGeometry frameGeo_;
     std::optional<Vector4f> cornerRadius_;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
     int cornerApplyType_ = 0;
 
-    std::optional<Decoration> decoration_;
+    std::unique_ptr<Decoration> decoration_;
     std::optional<Matrix3f> sublayerTransform_;
 
     std::optional<RectI> lastRect_;

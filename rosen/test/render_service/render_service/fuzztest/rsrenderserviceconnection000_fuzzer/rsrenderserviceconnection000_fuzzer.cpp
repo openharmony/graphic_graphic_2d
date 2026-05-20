@@ -465,9 +465,11 @@ void DoSetScreenBacklight()
     MessageParcel replyParcel;
     ScreenId id = GetData<uint64_t>();
     uint32_t level = GetData<uint32_t>();
+    float brightnessPosition = GetData<float>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint32(level);
+    dataParcel.WriteFloat(brightnessPosition);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 

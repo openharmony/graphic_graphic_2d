@@ -392,7 +392,7 @@ void Font::GetTextPathWithFallback(const void* text, size_t byteLength, TextEnco
 
     path->Reset();
     std::vector<int32_t> codepoints;
-    size_t len = std::min(GetStrLength(text, byteLength, encoding), byteLength);
+    size_t len = std::min(GetByteLength(text, byteLength, encoding), byteLength);
     if (!DecodeTextToCodepoints(text, len, encoding, codepoints) || codepoints.empty()) {
         LOGE("Font::GetTextPathWithFallback decode text failed");
         return;

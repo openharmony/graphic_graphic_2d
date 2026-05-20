@@ -15,7 +15,6 @@
 
 #include "modifier_ng/rs_render_modifier_ng.h"
 
-#include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
 
 #include "modifier/rs_render_property.h"
@@ -298,7 +297,7 @@ void RSCustomRenderModifier<T>::Apply(RSPaintFilterCanvas* canvas, RSProperties&
 {
     auto propertyType = ModifierTypeConvertor::GetPropertyType(GetType());
     if (HasProperty(propertyType) && canvas) {
-        auto cmds = Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
+        auto cmds = Getter<SimpleDrawCmdListPtr>(propertyType, nullptr);
         RSPropertiesPainter::DrawFrame(properties, *canvas, cmds);
     }
 }
@@ -309,6 +308,23 @@ void RSCustomRenderModifier<T>::OnSetDirty()
     if (auto node = target_.lock()) {
         node->MarkNonGeometryChanged();
         node->SetContentDirty();
+    }
+}
+
+template<RSModifierType T>
+void RSCustomRenderModifier<T>::ConvertDrawCmdListToSimple()
+{
+    if (properties_.empty()) {
+        return;
+    }
+
+    auto properties = properties_;
+    for (auto& [type, property] : properties) {
+        if (!property->IsDrawCmdListProperty()) {
+            continue;
+        }
+        DetachProperty(type);
+        AttachProperty(type, property->CreateSimpleProperty());
     }
 }
 

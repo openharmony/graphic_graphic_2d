@@ -398,6 +398,17 @@ public:
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
 
     /**
+     * @brief Update the target ID for an existing frame stability detection.
+     * @param oldTarget Frame stability target (screen or node).
+     * @param newTarget Frame stability target (screen or node).
+     * @return 0 means success, others failed.
+     */
+    int32_t UpdateFrameStabilityDetection(
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    );
+
+    /**
      * @brief Set logical camera rotation correction, used to correct logical rotation.
      * @param id Screen id.
      * @param logicalCorrection Logical camera rotation correction, see ScreenRotation.

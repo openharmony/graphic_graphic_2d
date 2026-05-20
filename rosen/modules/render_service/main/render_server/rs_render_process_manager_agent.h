@@ -26,7 +26,7 @@ public:
     explicit RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager);
     ~RSRenderProcessManagerAgent() noexcept override = default;
 
-    void SetRenderProcessReadyPromise(pid_t pid, const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
+    bool SetRenderProcessReadyPromise(pid_t pid, const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
         const sptr<RSIConnectToRenderProcess>& connectToRenderConnection);
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const;

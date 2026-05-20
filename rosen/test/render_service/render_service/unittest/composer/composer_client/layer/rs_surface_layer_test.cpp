@@ -18,29 +18,49 @@
 #include <hilog/log.h>
 #include <iservice_registry.h>
 #include <memory>
+#include <parameters.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include "connection/rs_render_to_composer_connection.h"
+#include "common/rs_tunnel_layer_utils.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer_backend/hdi_output.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
-#include "pipeline/rs_render_composer_agent.h"
+#include "layer/rs_surface_layer.h"
+#include "surface_buffer.h"
+
 #include "pipeline/rs_composer_client.h"
+#include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_render_composer_manager.h"
 #include "pipeline/rs_surface_handler.h"
-
 #include "screen_manager/rs_screen_property.h"
-
-#include "layer/rs_surface_layer.h"
 
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+class ScopedNewTunnelSwitch {
+public:
+    explicit ScopedNewTunnelSwitch(bool enabled) : oldValue_(Rosen::IsNewTunnelEnabled())
+    {
+        system::SetParameter("rosen.debug.new_tunnel", enabled ? "true" : "false");
+    }
+
+    ~ScopedNewTunnelSwitch()
+    {
+        system::SetParameter("rosen.debug.new_tunnel", oldValue_ ? "true" : "false");
+    }
+
+private:
+    bool oldValue_;
+};
+} // namespace
+
 class RSSurfaceLayerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -105,6 +125,97 @@ HWTEST_F(RSSurfaceLayerTest, CreateLayerTest, Function | SmallTest | Level2)
 
     auto layer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     EXPECT_NE(layer2, nullptr);
+}
+
+/**
+ * @tc.name: TunnelLayerDestroyedCallback001
+ * @tc.desc: Test tunnel layer destruction forwards DESTROYED through local layer state callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceLayerTest, TunnelLayerDestroyedCallback001, Function | SmallTest | Level2)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto consumer = IConsumerSurface::Create();
+    ASSERT_NE(consumer, nullptr);
+    sptr<IBufferProducer> producerObj = consumer->GetProducer();
+    auto producer = Surface::CreateSurfaceAsProducer(producerObj);
+    ASSERT_NE(producer, nullptr);
+
+    uint64_t reportedNodeId = 0;
+    uint64_t reportedGeneration = 0;
+    constexpr uint64_t expectedGeneration = 321u;
+    std::vector<LayerStateChange> reportedStates;
+    auto conn = sMgr->GetRSComposerConnection(screenId);
+    sptr<IRSRenderToComposerConnection> ifaceConn = conn;
+    auto localClient = RSComposerClient::Create(ifaceConn, nullptr);
+    ASSERT_NE(localClient, nullptr);
+    localClient->RegisterLayerStateChangedCB(
+        [&reportedNodeId, &reportedGeneration, &reportedStates](
+            uint64_t nodeId, LayerStateChange state, uint64_t generation) {
+            reportedNodeId = nodeId;
+            reportedGeneration = generation;
+            reportedStates.emplace_back(state);
+        });
+
+    auto context = localClient->GetComposerContext();
+    ASSERT_NE(context, nullptr);
+    {
+        auto rsLayer = std::static_pointer_cast<RSSurfaceLayer>(RSSurfaceLayer::Create(123u, context));
+        ASSERT_NE(rsLayer, nullptr);
+        rsLayer->SetNodeId(456u);
+        rsLayer->SetSurface(consumer);
+        rsLayer->SetTunnelLayerId(789u);
+        rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_RS_FORCE);
+        rsLayer->SetTunnelLayerGeneration(expectedGeneration);
+    }
+
+    ASSERT_EQ(reportedStates.size(), 1u);
+    EXPECT_EQ(reportedNodeId, 456u);
+    EXPECT_EQ(reportedGeneration, expectedGeneration);
+    EXPECT_EQ(reportedStates[0], LayerStateChange::UNAVAILABLE);
+}
+
+/**
+ * @tc.name: TunnelLayerDestroyedCallback002
+ * @tc.desc: Test tunnel layer destruction keeps callback when property is invalid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceLayerTest, TunnelLayerDestroyedCallback002, Function | SmallTest | Level2)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto consumer = IConsumerSurface::Create();
+    ASSERT_NE(consumer, nullptr);
+    sptr<IBufferProducer> producerObj = consumer->GetProducer();
+    auto producer = Surface::CreateSurfaceAsProducer(producerObj);
+    ASSERT_NE(producer, nullptr);
+
+    uint64_t reportedNodeId = 0;
+    std::vector<LayerStateChange> reportedStates;
+    auto conn = sMgr->GetRSComposerConnection(screenId);
+    sptr<IRSRenderToComposerConnection> ifaceConn = conn;
+    auto localClient = RSComposerClient::Create(ifaceConn, nullptr);
+    ASSERT_NE(localClient, nullptr);
+    localClient->RegisterLayerStateChangedCB(
+        [&reportedNodeId, &reportedStates](uint64_t nodeId, LayerStateChange state, uint64_t) {
+            reportedNodeId = nodeId;
+            reportedStates.emplace_back(state);
+        });
+
+    auto context = localClient->GetComposerContext();
+    ASSERT_NE(context, nullptr);
+    {
+        auto rsLayer = std::static_pointer_cast<RSSurfaceLayer>(RSSurfaceLayer::Create(124u, context));
+        ASSERT_NE(rsLayer, nullptr);
+        rsLayer->SetNodeId(457u);
+        rsLayer->SetSurface(consumer);
+        rsLayer->SetTunnelLayerId(790u);
+    }
+
+    ASSERT_EQ(reportedStates.size(), 1u);
+    EXPECT_EQ(reportedNodeId, 457u);
+    EXPECT_EQ(reportedStates[0], LayerStateChange::UNAVAILABLE);
 }
 
 /**
@@ -449,8 +560,11 @@ HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_SetGetAndSeqRetrieve, Function | S
 
     auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     boc->bufferId_ = 42u;
-    std::atomic<int> released{0};
-    boc->bufferReleaseCb_ = [&released](uint64_t seq){ (void)seq; released.fetch_add(1); };
+    std::atomic<int> released { 0 };
+    boc->bufferReleaseCb_ = [&released](uint64_t seq) {
+        (void)seq;
+        released.fetch_add(1);
+    };
 
     lyr->SetBufferOwnerCount(boc, true);
     auto cur = lyr->GetBufferOwnerCount();

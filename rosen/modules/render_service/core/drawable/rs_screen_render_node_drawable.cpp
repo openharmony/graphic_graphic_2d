@@ -331,6 +331,14 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
         if (drawable->GetRenderParams()->GetHardwareEnabled()) {
             auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+            // record surface current frame refresh area to frame stability manager
+            std::vector<RectI> tempRefreshRects;
+            auto rect = surfaceParams->GetLayerInfo().dstRect;
+            RectI dstRect = { rect.x, rect.y, rect.w, rect.h };
+            tempRefreshRects.emplace_back(dstRect);
+            RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
+                surfaceParams->GetInstanceRootNodeId(), tempRefreshRects,
+                params.GetScreenProperty().GetWidth() * params.GetScreenProperty().GetHeight());
             // hpae offline
             if (surfaceParams->GetLayerInfo().useDeviceOffline &&
                 ProcessOfflineSurfaceDrawable(processor, surfaceDrawable, false)) {

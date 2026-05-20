@@ -160,28 +160,28 @@ HWTEST_F(FontTest, MeasureSingleCharacterWithFeatures001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetStrLength001
- * @tc.desc: test for GetStrLength with GLYPH_ID encoding.
+ * @tc.name: GetByteLength001
+ * @tc.desc: test for GetByteLength with GLYPH_ID encoding.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(FontTest, GetStrLength001, TestSize.Level1)
+HWTEST_F(FontTest, GetByteLength001, TestSize.Level1)
 {
     const char* text = "test";
-    size_t len = GetStrLength(text, 4, TextEncoding::GLYPH_ID);
+    size_t len = GetByteLength(text, 4, TextEncoding::GLYPH_ID);
     ASSERT_EQ(len, 4);
 }
 
 /**
- * @tc.name: GetStrLength002
- * @tc.desc: test for GetStrLength with invalid encoding.
+ * @tc.name: GetByteLength002
+ * @tc.desc: test for GetByteLength with invalid encoding.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(FontTest, GetStrLength002, TestSize.Level1)
+HWTEST_F(FontTest, GetByteLength002, TestSize.Level1)
 {
     const char* text = "test";
-    size_t len = GetStrLength(text, 4, static_cast<TextEncoding>(100));
+    size_t len = GetByteLength(text, 4, static_cast<TextEncoding>(100));
     ASSERT_EQ(len, 0);
 }
 
@@ -279,7 +279,9 @@ HWTEST_F(FontTest, FontGetTextPathWithFallback001, TestSize.Level1)
 {
     Font font;
     const char* text = "test";
-    font.GetTextPathWithFallback(text, 4, TextEncoding::UTF8, 0, 0, nullptr);
+    Path* path = nullptr;
+    font.GetTextPathWithFallback(text, 4, TextEncoding::UTF8, 0, 0, path);
+    ASSERT_TRUE(path == nullptr);
 }
 
 /**

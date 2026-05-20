@@ -42,7 +42,7 @@ RectF RSOptimizeCanvasDirtyCollector::CalcCmdlistDrawRegionFromOpItem(
 {
     auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
     auto propertyPtr =
-        std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(modifier->GetProperty(propertyType));
+        std::static_pointer_cast<RSRenderProperty<SimpleDrawCmdListPtr>>(modifier->GetProperty(propertyType));
     auto drawCmdlistPtr = propertyPtr ? propertyPtr->Get() : nullptr;
     if (drawCmdlistPtr == nullptr) {
         RS_OPTIONAL_TRACE_NAME_FMT(

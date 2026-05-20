@@ -163,7 +163,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
-      bundleName_(config.bundleName)
+      bundleName_(config.bundleName),
+      tunnelRuntimeState_(std::make_unique<RSTunnelRuntimeState>())
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -193,12 +194,25 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
 #endif
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
     RsCommandVerifyHelper::GetInstance().SubSurfaceNodeCreateCnt(ExtractPid(GetId()));
+    if (GetNodeIsSingleFrameComposer()) {
+        pid_t pid = ExtractPid(GetId());
+        if (pid != 0) {
+            RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, pid);
+        }
+    }
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 {
-    GetMutableRSSurfaceHandler()->SetConsumer(consumer);
+    auto surfaceHandler = GetMutableRSSurfaceHandler();
+    if (surfaceHandler == nullptr) {
+        return;
+    }
+    if (surfaceHandler->GetConsumer() != consumer && tunnelRuntimeState_ != nullptr) {
+        tunnelRuntimeState_->Clear();
+    }
+    surfaceHandler->SetConsumer(consumer);
 }
 #endif
 
@@ -724,7 +738,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
 
 #ifndef ROSEN_CROSS_PLATFORM
     RSPropertiesPainter::DrawBackground(
-        property, canvas, true, IsSelfDrawingNode() && (surfaceHandler_->GetBuffer() != nullptr));
+        property, canvas, true, HasSurfaceBuffer() && (surfaceHandler_->GetBuffer() != nullptr));
 #else
     RSPropertiesPainter::DrawBackground(property, canvas);
 #endif
@@ -853,6 +867,7 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextClipRegion>(GetId(), clipRegion);
     SendCommandFromRT(command, GetId());
 }
+
 void RSSurfaceRenderNode::SetBootAnimation(bool isBootAnimation)
 {
     ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 ", isBootAnimation:%{public}d",
@@ -3026,6 +3041,11 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
         }
     }
     return isNodeSingleFrameComposer_ || flag;
+}
+
+void RSSurfaceRenderNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid)
+{
+    isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
 }
 
 bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)

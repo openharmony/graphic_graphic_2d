@@ -333,6 +333,16 @@ uint32_t RSRenderSurfaceLayer::GetTunnelLayerProperty() const
     return tunnelLayerProperty_;
 }
 
+void RSRenderSurfaceLayer::SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration)
+{
+    tunnelLayerGeneration_ = tunnelLayerGeneration;
+}
+
+uint64_t RSRenderSurfaceLayer::GetTunnelLayerGeneration() const
+{
+    return tunnelLayerGeneration_;
+}
+
 void RSRenderSurfaceLayer::SetIsSupportedPresentTimestamp(bool isSupported)
 {
     isSupportedPresentTimestamp_ = isSupported;
@@ -698,6 +708,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     needBilinearInterpolation_ = rsLayer->GetNeedBilinearInterpolation();
     tunnelLayerId_ = rsLayer->GetTunnelLayerId();
     tunnelLayerProperty_ = rsLayer->GetTunnelLayerProperty();
+    tunnelLayerGeneration_ = rsLayer->GetTunnelLayerGeneration();
     isSupportedPresentTimestamp_ = rsLayer->GetIsSupportedPresentTimestamp();
     presentTimestamp_ = rsLayer->GetPresentTimestamp();
     windowsName_ = rsLayer->GetWindowsName();

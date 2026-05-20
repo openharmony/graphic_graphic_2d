@@ -483,9 +483,9 @@ void RSRenderService::ScreenManagerListener::OnActiveScreenIdChanged(ScreenId ac
     HgmCore::Instance().SetActiveScreenId(activeScreenId);
 }
 
-void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(ScreenId id, uint32_t level)
+void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
-    renderService_.renderProcessManager_->OnScreenBacklightChanged(id, level);
+    renderService_.renderProcessManager_->OnScreenBacklightChanged(brightnessData);
 }
 
 void RSRenderService::ScreenManagerListener::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
@@ -525,6 +525,16 @@ void RSRenderService::InitGameFrameHandler()
 const sptr<RsGameFrameHandler>& RSRenderService::GetGameFrameHandler() const
 {
     return rsGameFrameHandler_;
+}
+
+void RSRenderService::ScreenManagerListener::OnProcessDisconnected(ScreenId screenId)
+{
+    RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, screenId);
+    renderService_.rsRenderComposerManager_->OnScreenDisconnected(screenId);
+    if (const auto& hgmContext = renderService_.GetHgmContext()) {
+        hgmContext->RemoveScreenFromHgm(screenId);
+    }
+    renderService_.vsyncManager_->OnScreenDisconnected(screenId, renderService_.handler_);
 }
 } // namespace Rosen
 } // namespace OHOS

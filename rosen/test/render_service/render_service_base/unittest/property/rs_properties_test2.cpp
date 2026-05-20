@@ -909,7 +909,7 @@ HWTEST_F(PropertiesTest, SetClipRRectTest, TestSize.Level1)
 
     RRect clipRRectNew;
     properties.SetClipRRect(clipRRectNew);
-    EXPECT_TRUE(properties.clipRRect_.has_value());
+    EXPECT_TRUE(properties.clipRRect_ != nullptr);
 }
 
 /**
@@ -1665,7 +1665,7 @@ HWTEST_F(PropertiesTest, GenerateMaterialFilter002, TestSize.Level1)
 HWTEST_F(PropertiesTest, GetRRectForSDFTest001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.clipRRect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    properties.clipRRect_ = std::make_unique<RRect>(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
     ASSERT_TRUE(properties.GetClipToRRect());
     ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
 }
@@ -1679,7 +1679,7 @@ HWTEST_F(PropertiesTest, GetRRectForSDFTest002, TestSize.Level1)
 {
     RSProperties properties;
     properties.cornerRadius_ = Vector4f(5.f);
-    properties.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    properties.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f));
     ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
 }
 
@@ -2276,6 +2276,39 @@ HWTEST_F(PropertiesTest, SetParticleFieldsNullPara001, TestSize.Level1)
     RSProperties properties;
     properties.SetParticleFields(nullptr);
     EXPECT_EQ(properties.GetParticleFields(), nullptr);
+}
+
+/**
+ * @tc.name: DecorationLazyAllocationTest
+ * @tc.desc: Verify decoration_ is lazily allocated only when needed
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, DecorationLazyAllocationTest, TestSize.Level1)
+{
+    RSProperties properties;
+    ASSERT_NE(&properties, nullptr);
+
+    Color color;
+    color.SetRed(255);
+    color.SetGreen(0);
+    color.SetBlue(0);
+    color.SetAlpha(255);
+    properties.SetBackgroundColor(color);
+    ASSERT_TRUE(properties.decoration_ != nullptr);
+    EXPECT_EQ(properties.decoration_->backgroundColor_.GetRed(), 255);
+}
+
+/**
+ * @tc.name: DecorationNotAllocatedWhenNotUsedTest
+ * @tc.desc: Verify decoration_ remains nullptr when not used
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, DecorationNotAllocatedWhenNotUsedTest, TestSize.Level1)
+{
+    RSProperties properties;
+    ASSERT_NE(&properties, nullptr);
+
+    ASSERT_TRUE(properties.decoration_ == nullptr);
 }
 
 } // namespace Rosen

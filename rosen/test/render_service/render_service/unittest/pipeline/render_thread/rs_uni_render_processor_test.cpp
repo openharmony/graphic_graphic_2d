@@ -687,18 +687,24 @@ HWTEST_F(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Leve
 {
     ASSERT_NE(renderProcessor, nullptr);
     RSSurfaceRenderParams params(0);
+    constexpr uint64_t testTunnelLayerId = 1001;
+    constexpr uint32_t testTunnelLayerProperty = TUNNEL_PROP_BUFFER_ADDR;
 
     RSLayerPtr layer = nullptr;
-    params.SetTunnelLayerId(0);
-    renderProcessor->HandleTunnelLayerParameters(params, layer);
-
-    params.SetTunnelLayerId(0);
+    params.SetTunnelLayerInfo(testTunnelLayerId, testTunnelLayerProperty);
     renderProcessor->HandleTunnelLayerParameters(params, layer);
 
     layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(layer, nullptr);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    EXPECT_EQ(layer->GetTunnelLayerId(), 0u);
+    EXPECT_EQ(layer->GetTunnelLayerProperty(), TUNNEL_PROP_INVALID);
+
+    layer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
     renderProcessor->HandleTunnelLayerParameters(params, layer);
 
-    ASSERT_EQ(layer->GetTunnelLayerId(), params.GetTunnelLayerId());
+    EXPECT_EQ(layer->GetTunnelLayerId(), testTunnelLayerId);
+    EXPECT_EQ(layer->GetTunnelLayerProperty(), testTunnelLayerProperty);
 }
 
 /**

@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 #include <string>
 
 #include "animation/rs_animation_common.h"
@@ -171,8 +172,51 @@ int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs, 
     return static_cast<int64_t>(ret);
 }
 
+std::optional<std::tuple<float, bool, bool, bool>> RSAnimationFraction::HandleStartDelayPhase(int64_t startDelayNs,
+    int64_t deltaTime, bool isCustom, int64_t& minLeftDelayTime, bool& isInStartDelay, bool isOnTree)
+{
+    if (!IsStartRunning(deltaTime, startDelayNs, isCustom)) {
+        if (IsFinished(isCustom)) {
+            minLeftDelayTime = 0;
+            return std::make_optional(std::make_tuple(GetStartFraction(), isInStartDelay, true, false));
+        }
+        isInStartDelay = true;
+        if (minLeftDelayTime > 0) {
+            int64_t leftDelayTime = CalculateLeftDelayTime(startDelayNs, isCustom);
+            if (!isOnTree && repeatCount_ != INFINITE) {
+                leftDelayTime += static_cast<int64_t>(duration_) * repeatCount_;
+            }
+            minLeftDelayTime = std::min(leftDelayTime, minLeftDelayTime);
+        }
+        return std::make_optional(std::make_tuple(GetStartFraction(), isInStartDelay, false, false));
+    }
+    // Delay phase passed, animation starts running
+    // For on-tree nodes: set to 0 for immediate VSync
+    // For off-tree nodes: keep value for CalculateRemainingTime to compute delay + remaining
+    if (isOnTree) {
+        minLeftDelayTime = 0;
+    }
+    return std::nullopt;
+}
+
+void RSAnimationFraction::CalculateRemainingTime(int64_t durationNs, int64_t& minLeftDelayTime, bool isOnTree)
+{
+    if (isOnTree) {
+        minLeftDelayTime = 0;
+        return;
+    }
+    if (repeatCount_ != INFINITE && minLeftDelayTime > 0) {
+        int64_t remainingCycles = repeatCount_ - currentRepeatCount_;
+        int64_t remainingInCurrentCycle = durationNs - playTime_;
+        int64_t futureCompleteCycles = remainingCycles - 1;
+        int64_t totalRemainingTime = futureCompleteCycles * durationNs + remainingInCurrentCycle;
+        int64_t remainingTimeMs = totalRemainingTime / MS_TO_NS;
+        minLeftDelayTime = std::min(minLeftDelayTime, remainingTimeMs);
+    }
+}
+
 std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
-    int64_t time, int64_t& minLeftDelayTime, bool isCustom)
+    int64_t time, int64_t& minLeftDelayTime, bool isCustom, bool isOnTree)
 {
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
@@ -184,9 +228,8 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
     // When the UI animation and spring animation are inherited, time will be passed the default value of -1 for
     // lastFrameTime_, which is a normal situation.
     if (deltaTime < 0 && time != -1) {
-        ROSEN_LOGE("RSAnimationFraction::GetAnimationFraction, "
-            "current time: %{public}lld is earlier than last frame time: %{public}lld",
-            static_cast<long long>(time), static_cast<long long>(lastFrameTime_));
+        ROSEN_LOGE("RSAnimationFraction::GetAnimationFraction, current time: %{public}lld is earlier than last frame"
+            " time: %{public}lld", static_cast<long long>(time), static_cast<long long>(lastFrameTime_));
     }
     lastFrameTime_ = time;
 
@@ -196,18 +239,10 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
         return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished };
     }
     // 1. Calculates the total running fraction of animation
-    if (!IsStartRunning(deltaTime, startDelayNs, isCustom)) {
-        if (IsFinished(isCustom)) {
-            minLeftDelayTime = 0;
-            return { GetStartFraction(), isInStartDelay, true, isRepeatFinished };
-        }
-        isInStartDelay = true;
-        if (minLeftDelayTime > 0) {
-            minLeftDelayTime = std::min(CalculateLeftDelayTime(startDelayNs, isCustom), minLeftDelayTime);
-        }
-        return { GetStartFraction(), isInStartDelay, false, isRepeatFinished };
+    if (auto startDelayResult =
+            HandleStartDelayPhase(startDelayNs, deltaTime, isCustom, minLeftDelayTime, isInStartDelay, isOnTree)) {
+        return *startDelayResult;
     }
-    minLeftDelayTime = 0;
 
     // 2. Calculate the running time of the current cycle animation.
     int64_t realPlayTime = runningTime_ - startDelayNs - (currentRepeatCount_ * durationNs);
@@ -233,11 +268,16 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
 
     // 5. get final animation fraction
     if (isFinished) {
+        minLeftDelayTime = 0;
         return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_ };
     }
     currentTimeFraction_ = static_cast<float>(playTime_) / durationNs;
     currentTimeFraction_ = currentIsReverseCycle_ ? (1.0f - currentTimeFraction_) : currentTimeFraction_;
     currentTimeFraction_ = std::clamp(currentTimeFraction_, 0.0f, 1.0f);
+
+    // 6. calculate remaining time for finite animation
+    CalculateRemainingTime(durationNs, minLeftDelayTime, isOnTree);
+
     return { currentTimeFraction_, isInStartDelay, isFinished, isRepeatFinished };
 }
 

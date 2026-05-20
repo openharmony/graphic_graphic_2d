@@ -41,17 +41,19 @@ public:
     ~RSTestStyleModifier() override = default;
     static inline constexpr auto type = ModType;
     ModifierNG::RSModifierType GetType() const override { return type; }
-    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
+    SimpleDrawCmdListPtr GetPropertySimpleDrawCmdList() const override
     {
         if constexpr (isNull) {
             return nullptr;
         } else if constexpr (isEmpty) {
-            return std::make_shared<Drawing::DrawCmdList>();
+            return std::make_shared<RSSimpleDrawCmdList>();
         } else {
             // Use DEFERRED mode with drawOpItems to make IsEmpty() return false
             auto cmdList = std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
-            cmdList->AddDrawOp(std::make_shared<Drawing::DrawColorOpItem>(0xFF000000, Drawing::BlendMode::SRC_OVER));
-            return cmdList;
+            auto simpleCommandList = RSSimpleDrawCmdList::CreateFromDrawCmdList(cmdList);
+            simpleCommandList->AddDrawOp(std::make_shared<Drawing::DrawColorOpItem>(
+                0xFF000000, Drawing::BlendMode::SRC_OVER));
+            return simpleCommandList;
         }
     }
 };

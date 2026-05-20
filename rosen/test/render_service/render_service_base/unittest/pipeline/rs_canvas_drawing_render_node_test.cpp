@@ -22,6 +22,7 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
 
@@ -73,11 +74,13 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     NodeId nodeId = 1;
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId);
     // case 1: can GetSizeFromDrawCmdModifiers
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>(
+        Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     drawCmdList->SetWidth(1024);
     drawCmdList->SetHeight(1090);
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
+    auto simpleCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
+    property->GetRef() = simpleCmdList;
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     RSRenderNode::ModifierNGContainer vecModifier = { modifier };
@@ -166,9 +169,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest001, Test
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
     EXPECT_FALSE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>(1024, 1090);
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(1024, 1090,
+        Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
+    auto simpleCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList);
+    property->GetRef() = simpleCmdList;
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     RSRenderNode::ModifierNGContainer vecModifier = { modifier };
@@ -328,8 +333,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetPixelmapSurfaceImgValidTest, TestSize
 HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyTypeTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
-    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100);
-    node->outOfLimitCmdList_.emplace_back(drawCmdList);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(100, 100, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto simpleCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList);
+    node->outOfLimitCmdList_.emplace_back(simpleCmdList);
     EXPECT_FALSE(node->outOfLimitCmdList_.empty());
     node->AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
     EXPECT_TRUE(node->outOfLimitCmdList_.empty());
@@ -485,9 +491,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedTest, Te
  */
 HWTEST_F(RSCanvasDrawingRenderNodeTest, ApplyCachedCmdListTest, TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(10, 10);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(10, 10, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(9);
-    node->outOfLimitCmdList_.emplace_back(drawCmdList);
+    auto simpleCmdList = RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList);
+    node->outOfLimitCmdList_.emplace_back(simpleCmdList);
     node->ApplyCachedCmdList();
     EXPECT_TRUE(node->outOfLimitCmdList_.empty());
     node->ApplyCachedCmdList();
@@ -762,7 +769,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, OnSyncWaitSyncTrueTest, TestSize.Level1)
 HWTEST_F(RSCanvasDrawingRenderNodeTest, SplitDrawCmdListTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(13);
-    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>();
     Drawing::Brush brush;
     drawCmdList->AddDrawOp(std::make_shared<Drawing::DrawBackgroundOpItem>(brush));
     node->SplitDrawCmdList(1, drawCmdList, true);

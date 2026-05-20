@@ -585,7 +585,7 @@ public:
     RSB_EXPORT static TextureRecordType GetTextureRecordType();
     RSB_EXPORT static void SetTextureRecordType(TextureRecordType type);
 
-    RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
+    RSB_EXPORT static void DrawingNodeAddClearOp(const SimpleDrawCmdListPtr& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
     RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);

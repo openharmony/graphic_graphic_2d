@@ -196,10 +196,11 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     } else {
         for (const auto& modifier : customModifiers) {
             auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifierTypeNG_);
-            auto drawCmdList = modifier->Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
+            auto drawCmdList = modifier->Getter<SimpleDrawCmdListPtr>(propertyType, nullptr);
             if (drawCmdList == nullptr || drawCmdList->IsEmpty()) {
                 continue;
             }
+            drawCmdList->UpdateNodeIdToPicture(node.GetId());
             if (drawCmdList->GetWidth() > 0 && drawCmdList->GetHeight() > 0) {
                 stagingDrawCmdListVec_.push_back(drawCmdList);
             }

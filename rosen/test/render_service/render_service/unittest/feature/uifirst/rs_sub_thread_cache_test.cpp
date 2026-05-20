@@ -2135,4 +2135,405 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedCacheSurfaceVsyncIdTest, TestSize.Lev
     vsyncId = subCache.GetCompletedCacheSurfaceVsyncId();
     EXPECT_EQ(vsyncId, 67890);
 }
+
+/**
+ * @tc.name: GetCacheSurfaceColorSpaceTest
+ * @tc.desc: Test GetCacheSurfaceColorSpace method - get color space from cache surface info
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceColorSpaceTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+
+    // Test default color space is NATIVE
+    GraphicColorGamut colorSpace = subCache.GetCacheSurfaceColorSpace();
+    EXPECT_EQ(colorSpace, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+
+    // Test after setting colorSpace in cacheSurfaceInfo_
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    colorSpace = subCache.GetCacheSurfaceColorSpace();
+    EXPECT_EQ(colorSpace, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    // Test with DISPLAY_P3
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    colorSpace = subCache.GetCacheSurfaceColorSpace();
+    EXPECT_EQ(colorSpace, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // Test with BT2020
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    colorSpace = subCache.GetCacheSurfaceColorSpace();
+    EXPECT_EQ(colorSpace, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    // Reset to default
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceInfoColorSpaceTest
+ * @tc.desc: Test UpdateCacheSurfaceInfo stores color space from targetColorGamut
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfoColorSpaceTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    RsSubThreadCache subCache;
+    
+    // Initial state - colorSpace should be NATIVE
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+
+    // Set target color gamut
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    
+    // Create surface params
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    ASSERT_NE(surfaceParams, nullptr);
+    
+    // Update cache surface info - should store target color gamut
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    
+    // Verify color space is updated to target
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    // Test with different color gamut
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // Test with BT2020
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceInfoColorSpaceWithNullParamsTest
+ * @tc.desc: Test UpdateCacheSurfaceInfo with null params - color space should not change
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfoColorSpaceWithNullParamsTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    RsSubThreadCache subCache;
+    
+    // Set initial color space
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    
+    // Call UpdateCacheSurfaceInfo with null params
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), nullptr);
+    
+    // Color space should remain unchanged (still SRGB)
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceInfoColorSpaceWithNullDrawableTest
+ * @tc.desc: Test UpdateCacheSurfaceInfo with null drawable - should not crash
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfoColorSpaceWithNullDrawableTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    
+    // Set initial target color gamut
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    
+    // Create surface params
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
+    ASSERT_NE(surfaceParams, nullptr);
+    
+    // Call UpdateCacheSurfaceInfo with null drawable - should not crash
+    subCache.UpdateCacheSurfaceInfo(nullptr, surfaceParams.get());
+    
+    // Color space should remain default NATIVE (unchanged because drawable is null)
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+}
+
+/**
+ * @tc.name: CacheSurfaceInfoResetColorSpaceTest
+ * @tc.desc: Test CacheSurfaceInfo Reset method resets color space to NATIVE
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, CacheSurfaceInfoResetColorSpaceTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    RsSubThreadCache::CacheSurfaceInfo info;
+    
+    // Initial state - should be NATIVE
+    EXPECT_EQ(info.colorSpace, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+    
+    // Modify color space
+    info.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    EXPECT_EQ(info.colorSpace, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    
+    // Call Reset
+    info.Reset();
+    
+    // After reset, should be NATIVE again
+    EXPECT_EQ(info.colorSpace, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+}
+
+/**
+ * @tc.name: GetCacheSurfaceColorSpaceAfterClearCacheTest
+ * @tc.desc: Test GetCacheSurfaceColorSpace after ClearCacheSurface is called
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceColorSpaceAfterClearCacheTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    
+    // Set color space to a non-default value
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    
+    // Verify color space is set
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    
+    // Clear cache surface
+    subCache.ClearCacheSurfaceInThread();
+    
+    // After clear, color space should be reset to default NATIVE
+    // because ClearCacheSurface calls Reset() which resets colorSpace
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+}
+
+/**
+ * @tc.name: GetCacheSurfaceColorSpaceAfterClearCacheSurfaceOnlyTest
+ * @tc.desc: Test GetCacheSurfaceColorSpace after ClearCacheSurfaceOnly is called
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceColorSpaceAfterClearCacheSurfaceOnlyTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    
+    // Set color space to a non-default value
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    
+    // Verify color space is set
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    
+    // Clear only cache surface (not completed)
+    subCache.ClearCacheSurfaceOnly();
+    
+    // Color space in cacheSurfaceInfo_ should remain unchanged
+    // because ClearCacheSurfaceOnly only clears cacheSurface_, not cacheSurfaceInfo_
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: ColorSpaceChangeDetectionTest
+ * @tc.desc: Test color space change detection - target vs current cache
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, ColorSpaceChangeDetectionTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    
+    // Case 1: Same color space - no change
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    
+    bool isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_FALSE(isColorSpaceChanged);
+    
+    // Case 2: Different color space - change detected
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    
+    isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_TRUE(isColorSpaceChanged);
+    
+    // Case 3: Target changes to BT2020, cache is still SRGB
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    
+    isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_TRUE(isColorSpaceChanged);
+    
+    // Case 4: After UpdateCacheSurfaceInfo, they should be equal
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    
+    isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_FALSE(isColorSpaceChanged);
+}
+
+/**
+ * @tc.name: ResetUifirstColorSpaceTest
+ * @tc.desc: Test ResetUifirst resets color space properly
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, ResetUifirstColorSpaceTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    
+    // Set color space to a non-default value
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    
+    // Verify color space is set
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    
+    // Call ResetUifirst
+    subCache.ResetUifirst(false);
+    
+    // After reset, color space should be reset to default NATIVE
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+}
+
+/**
+ * @tc.name: UpdateCompletedCacheSurfaceColorSpaceTest
+ * @tc.desc: Test color space is swapped when UpdateCompletedCacheSurface is called
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCompletedCacheSurfaceColorSpaceTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    
+    // Set up cache surface with SRGB
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    
+    // Create a valid cache surface to make UpdateCompletedCacheSurface work
+    auto grContext = std::make_shared<Drawing::GPUContext>();
+    subCache.InitCacheSurface(grContext.get(), nullptr, nullptr, 0, false);
+    
+    // Verify current cache color space
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: ColorSpaceMultipleFrameUpdateTest
+ * @tc.desc: Test color space across multiple frame updates
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, ColorSpaceMultipleFrameUpdateTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    
+    // Frame 1: SRGB
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    
+    // Frame 2: DISPLAY_P3
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    
+    // Frame 3: BT2020
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    
+    // Frame 4: Back to SRGB
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    
+    // Frame 5: NATIVE
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+}
+
+/**
+ * @tc.name: SetTargetColorGamutTest
+ * @tc.desc: Test SetTargetColorGamut method stores color gamut correctly
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, SetTargetColorGamutTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    
+    // Test default is SRGB
+    EXPECT_EQ(subCache.GetTargetColorGamut(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    
+    // Set to DISPLAY_P3
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(subCache.GetTargetColorGamut(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    
+    // Set to BT2020
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    EXPECT_EQ(subCache.GetTargetColorGamut(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    
+    // Set to NATIVE
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+    EXPECT_EQ(subCache.GetTargetColorGamut(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+    
+    // Reset to default SRGB
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: ColorSpaceConsistencyBetweenCacheAndCompletedTest
+ * @tc.desc: Test color space consistency between cacheSurfaceInfo_ and cacheCompletedSurfaceInfo_
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, ColorSpaceConsistencyBetweenCacheAndCompletedTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    
+    // Set up initial color space
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    
+    // Create a valid cache surface to make UpdateCompletedCacheSurface work
+    auto grContext = std::make_shared<Drawing::GPUContext>();
+    subCache.InitCacheSurface(grContext.get(), nullptr, nullptr, 0, false);
+    
+    // Before UpdateCompletedCacheSurface, they should be different
+    // cacheSurfaceInfo_ has SRGB, cacheCompletedSurfaceInfo_ has default NATIVE
+    EXPECT_EQ(subCache.cacheSurfaceInfo_.colorSpace, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(subCache.cacheCompletedSurfaceInfo_.colorSpace, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+}
+
+/**
+ * @tc.name: GetCacheSurfaceColorSpaceConstRefTest
+ * @tc.desc: Test GetCacheSurfaceColorSpace returns const reference
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceColorSpaceConstRefTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    
+    // Test that the method can be called on const object
+    const RsSubThreadCache& constSubCache = subCache;
+    GraphicColorGamut colorSpace = constSubCache.GetCacheSurfaceColorSpace();
+    
+    // Should return the same value
+    EXPECT_EQ(colorSpace, subCache.GetCacheSurfaceColorSpace());
+}
 } // namespace OHOS::Rosen

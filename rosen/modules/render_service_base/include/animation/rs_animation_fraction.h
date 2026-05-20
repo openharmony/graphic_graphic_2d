@@ -41,9 +41,14 @@ public:
     /**
      * @brief Normalize the animation time percentage into a fraction
      * @param time Vsync time
+     * @param minLeftDelayTime [in/out] minimum left delay time in ms. For nodes on tree, delayTime only.
+     *        For nodes not on tree, delayTime + remainingTime.
+     * @param isCustom whether this is a custom animation
+     * @param isOnTree whether the target node is on the render tree
      * @return tuple<fraction, isInStartDelay, isFinished, isRepeatFinished>
      */
-    std::tuple<float, bool, bool, bool> GetAnimationFraction(int64_t time, int64_t& minLeftDelayTime, bool isCustom);
+    std::tuple<float, bool, bool, bool> GetAnimationFraction(
+        int64_t time, int64_t& minLeftDelayTime, bool isCustom, bool isOnTree);
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;
@@ -70,6 +75,21 @@ private:
     void UpdateReverseState(bool finish);
     bool IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs, bool isCustom);
     int64_t CalculateLeftDelayTime(const int64_t startDelayNs, bool isCustom);
+    /**
+     * @brief Handle animation start delay phase
+     * @param startDelayNs Start delay time in nanoseconds
+     * @param deltaTime Time delta from last frame in nanoseconds
+     * @param isCustom Whether this is a custom animation
+     * @param minLeftDelayTime [in/out] Minimum left delay time in ms. For on-tree nodes: delayTime only;
+     *        for off-tree nodes: delayTime + duration * repeatCount (total estimated time)
+     * @param isInStartDelay [out] Whether animation is in start delay phase
+     * @param isOnTree Whether the target node is on the render tree
+     * @return Optional tuple containing {fraction, isInStartDelay, isFinished, isRepeatFinished} if in delay phase;
+     *         nullopt if delay phase has passed
+     */
+    std::optional<std::tuple<float, bool, bool, bool>> HandleStartDelayPhase(int64_t startDelayNs, int64_t deltaTime,
+        bool isCustom, int64_t& minLeftDelayTime, bool& isInStartDelay, bool isOnTree);
+    void CalculateRemainingTime(int64_t durationNs, int64_t& minLeftDelayTime, bool isOnTree);
 
     static std::atomic<float> animationScale_;
     static std::atomic<bool> isInitialized_;

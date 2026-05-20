@@ -723,6 +723,12 @@ int SkiaSurface::Height() const
     return skSurface_->height();
 }
 
+TileGranularity SkiaSurface::GetRenderAreaGranularity()
+{
+    LOGD("SkiaSurface::GetRenderAreaGranularity - Not implemented for Skia backend");
+    return {0, 0};
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

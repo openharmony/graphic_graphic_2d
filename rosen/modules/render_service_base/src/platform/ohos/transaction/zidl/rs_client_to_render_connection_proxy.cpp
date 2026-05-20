@@ -1111,7 +1111,8 @@ bool RSClientToRenderConnectionProxy::ReadBrightnessInfo(BrightnessInfo& brightn
 {
     if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
         !data.ReadFloat(brightnessInfo.maxHeadroom) ||
-        !data.ReadFloat(brightnessInfo.sdrNits)) {
+        !data.ReadFloat(brightnessInfo.sdrNits) ||
+        !data.ReadFloat(brightnessInfo.brightnessPosition)) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::ReadBrightnessInfo read parcel failed!");
         return false;
     }
@@ -1896,6 +1897,44 @@ int32_t RSClientToRenderConnectionProxy::GetFrameStabilityResult(
         return READ_PARCEL_ERR;
     }
     return repCode;
+}
+
+int32_t RSClientToRenderConnectionProxy::UpdateFrameStabilityDetection(
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    if (!data.WriteUint64(oldTarget.id)) {
+        ROSEN_LOGE("%{public}s: WriteUint64 oldTarget.id err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(oldTarget.type))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 oldTarget.type err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(newTarget.id)) {
+        ROSEN_LOGE("%{public}s: WriteUint64 newTarget.id err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(newTarget.type))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 newTarget.type err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRequest err: %{public}d", __func__, err);
+        return RS_CONNECTION_ERROR;
+    }
+    return reply.ReadInt32();
 }
 
 void RSClientToRenderConnectionProxy::SetFreeMultiWindowStatus(bool enable)

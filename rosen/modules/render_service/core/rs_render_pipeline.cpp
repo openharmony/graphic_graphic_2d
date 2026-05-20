@@ -26,6 +26,7 @@
 #include "engine/rs_base_render_engine.h"
 #include "engine/rs_uni_render_engine.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_state_handler.h"
 #ifdef RS_ENABLE_GPU
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
@@ -46,7 +47,6 @@
 
 #include "parameter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -184,7 +184,16 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         composerToRenderConn->RegisterReleaseLayerBuffersCB(
             std::bind(&RSUniRenderThread::ReleaseLayerBuffers, uniRenderThread_, std::placeholders::_1));
         RegisterJudgeLppLayerCB(composerToRenderConn);
+        RegisterLayerStateChangedCB(composerToRenderConn);
         composerClient = RSComposerClient::Create(renderToComposerConn, composerToRenderConn);
+        auto tunnelLayerStateHandler = mainThread_->GetTunnelLayerStateHandler();
+        composerClient->RegisterLayerStateChangedCB(
+            [tunnelLayerStateHandler](uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration) {
+                if (tunnelLayerStateHandler == nullptr) {
+                    return;
+                }
+                tunnelLayerStateHandler->HandleLayerStateChanged(nodeId, state, tunnelLayerGeneration);
+            });
         composerClient->RegisterOnReleaseLayerBuffersCB(std::bind(&RSUniRenderThread::OnReleaseLayerBuffers,
             uniRenderThread_, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         composerClient->SetRmvSurfaceFpsOpCallback([](const std::vector<SurfaceFpsOp>& rmvList) {
@@ -361,6 +370,20 @@ void RSRenderPipeline::RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderCon
     composerToRenderConn->RegisterJudgeLppLayerCB(
         [mainThread = mainThread_](uint64_t vsyncId, const std::unordered_set<uint64_t>& lppNodeIds) {
             mainThread->GetLppVideoHander().JudgeLppLayer(vsyncId, lppNodeIds);
+        });
+}
+
+void RSRenderPipeline::RegisterLayerStateChangedCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto tunnelLayerStateHandler = mainThread == nullptr ? nullptr : mainThread->GetTunnelLayerStateHandler();
+    if (tunnelLayerStateHandler == nullptr) {
+        composerToRenderConn->RegisterLayerStateChangedCB(LayerStateChangedCB());
+        return;
+    }
+    composerToRenderConn->RegisterLayerStateChangedCB(
+        [tunnelLayerStateHandler](uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration) {
+            tunnelLayerStateHandler->HandleLayerStateChanged(nodeId, state, tunnelLayerGeneration);
         });
 }
 } // namespace Rosen

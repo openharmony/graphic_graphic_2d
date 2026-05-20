@@ -14,10 +14,14 @@
  */
 #include "gtest/gtest.h"
 
+#include "drawable/rs_render_node_drawable.h"
+#include "feature/opinc/rs_layer_part_draw_cache.h"
 #include "feature/opinc/rs_opinc_draw_cache.h"
+#include "feature/opinc/rs_opinc_draw_cache_helper.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -398,7 +402,7 @@ HWTEST_F(RSOpincDrawCacheTest, BeforeDrawCache, TestSize.Level1)
     ASSERT_FALSE(opincDrawCache.isOpincCalculateStart_);
 
     opincDrawCache.rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
-    opincDrawCache.nodeCacheType_ =  NodeStrategyType::OPINC_AUTOCACHE;
+    opincDrawCache.nodeCacheType_ = NodeStrategyType::OPINC_AUTOCACHE;
     opincDrawCache.recordState_ = NodeRecordState::RECORD_CALCULATE;
     opincDrawCache.BeforeDrawCache(canvas, params);
     ASSERT_TRUE(opincDrawCache.isOpincCalculateStart_);
@@ -769,7 +773,7 @@ HWTEST_F(RSOpincDrawCacheTest, GetOpincCacheMaxHeightWithScreen, TestSize.Level1
  */
 HWTEST_F(RSOpincDrawCacheTest, PushLayerPartRenderDirtyRegion, TestSize.Level1)
 {
-    DrawableV2::RSOpincDrawCache opincDrawCache;
+    DrawableV2::RSLayerPartDrawCache layerPartDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     auto params = std::shared_ptr<RSRenderParams>(
@@ -782,7 +786,7 @@ HWTEST_F(RSOpincDrawCacheTest, PushLayerPartRenderDirtyRegion, TestSize.Level1)
     params->SetAbsDrawRect(dirtyRect);
     params->SetCacheSize({ LAYER_PART_RENDER_CACHE_SIZE, LAYER_PART_RENDER_CACHE_SIZE });
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+    layerPartDrawCache.PushLayerPartRenderDirtyRegion(*params,
         paintFilterCanvas, paintFilterCanvas, LAYER_PART_RENDER_NODE_COUNT);
     SUCCEED();
 }
@@ -795,7 +799,7 @@ HWTEST_F(RSOpincDrawCacheTest, PushLayerPartRenderDirtyRegion, TestSize.Level1)
  */
 HWTEST_F(RSOpincDrawCacheTest, LayerPartRenderClipDirtyRegion, TestSize.Level1)
 {
-    DrawableV2::RSOpincDrawCache opincDrawCache;
+    DrawableV2::RSLayerPartDrawCache layerPartDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSRenderParams params(id);
@@ -805,11 +809,11 @@ HWTEST_F(RSOpincDrawCacheTest, LayerPartRenderClipDirtyRegion, TestSize.Level1)
     params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
     params.SetLayerPartRenderEnabled(true);
 
-    opincDrawCache.LayerPartRenderClipDirtyRegion(params, paintFilterCanvas);
+    layerPartDrawCache.LayerPartRenderClipDirtyRegion(paintFilterCanvas);
     ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 
     params.SetLayerPartRenderEnabled(false);
-    opincDrawCache.LayerPartRenderClipDirtyRegion(params, paintFilterCanvas);
+    layerPartDrawCache.LayerPartRenderClipDirtyRegion(paintFilterCanvas);
     ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
@@ -821,7 +825,7 @@ HWTEST_F(RSOpincDrawCacheTest, LayerPartRenderClipDirtyRegion, TestSize.Level1)
  */
 HWTEST_F(RSOpincDrawCacheTest, PopLayerPartRenderDirtyRegion, TestSize.Level1)
 {
-    DrawableV2::RSOpincDrawCache opincDrawCache;
+    DrawableV2::RSLayerPartDrawCache layerPartDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     auto params = std::shared_ptr<RSRenderParams>(
@@ -833,9 +837,9 @@ HWTEST_F(RSOpincDrawCacheTest, PopLayerPartRenderDirtyRegion, TestSize.Level1)
     params->SetCacheSize({ LAYER_PART_RENDER_CACHE_SIZE, LAYER_PART_RENDER_CACHE_SIZE });
     ASSERT_TRUE(params->GetLayerPartRenderEnabled());
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+    layerPartDrawCache.PushLayerPartRenderDirtyRegion(*params,
         paintFilterCanvas, paintFilterCanvas, LAYER_PART_RENDER_NODE_COUNT);
-    opincDrawCache.PopLayerPartRenderDirtyRegion(*params, paintFilterCanvas);
+    layerPartDrawCache.PopLayerPartRenderDirtyRegion(paintFilterCanvas);
     SUCCEED();
 }
 
@@ -1093,6 +1097,94 @@ HWTEST_F(RSOpincDrawCacheTest, DrawAutoCacheWithEmptyRects, TestSize.Level1)
     opincDrawCache.opListDrawAreas_ = Drawing::OpListHandle(opInfo2);
     ASSERT_FALSE(opincDrawCache.DrawAutoCache(paintFilterCanvas, image, samplingOptions,
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT));
+}
+
+/**
+ * @tc.name: HelperPrepareAndFinishOpincSubtreeBranches
+ * @tc.desc: Cover PrepareOpincSubtree(30 true/35 false) and FinishOpincSubtree(46 true)
+ * @tc.type: FUNC
+ * @tc.require: issueTddCoverHelperBranches
+ */
+HWTEST_F(RSOpincDrawCacheTest, HelperPrepareAndFinishOpincSubtreeBranches, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto drawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    ASSERT_EQ(drawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    RSRenderParams suggestParams(GenerateUniqueNodeIdForRS());
+    suggestParams.OpincSetIsSuggest(true);
+    RSOpincDrawCacheHelper::PrepareOpincSubtree(*drawable, suggestParams);
+    ASSERT_NE(drawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    RSOpincDrawCacheHelper::FinishOpincSubtree(suggestParams);
+
+    auto anotherNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto anotherDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(anotherNode));
+    ASSERT_NE(anotherDrawable, nullptr);
+    RSRenderParams normalParams(GenerateUniqueNodeIdForRS());
+    ASSERT_TRUE(RSOpincDrawCacheHelper::PrepareOpincSubtree(*anotherDrawable, normalParams));
+    ASSERT_EQ(anotherDrawable->TryGetOpincDrawCachePtr(), nullptr);
+}
+
+/**
+ * @tc.name: HelperProcessBeforeAfterDrawCacheBranches
+ * @tc.desc: Cover ProcessBeforeDrawCache(55 false) and ProcessAfterDrawCache(64 true)
+ * @tc.type: FUNC
+ * @tc.require: issueTddCoverHelperBranches
+ */
+HWTEST_F(RSOpincDrawCacheTest, HelperProcessBeforeAfterDrawCacheBranches, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto drawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+
+    Drawing::Canvas canvas;
+    RSRenderParams params(GenerateUniqueNodeIdForRS());
+
+    ASSERT_EQ(drawable->TryGetOpincDrawCachePtr(), nullptr);
+    RSOpincDrawCacheHelper::ProcessBeforeDrawCache(*drawable, canvas, params);
+    ASSERT_EQ(drawable->TryGetOpincDrawCachePtr(), nullptr);
+
+    (void)drawable->GetOpincDrawCache();
+    ASSERT_NE(drawable->TryGetOpincDrawCachePtr(), nullptr);
+    RSOpincDrawCacheHelper::ProcessAfterDrawCache(*drawable, canvas, params);
+    ASSERT_NE(drawable->TryGetOpincDrawCachePtr(), nullptr);
+}
+
+/**
+ * @tc.name: HelperTryDrawOpincAutoCacheAllTrue
+ * @tc.desc: Cover TryDrawOpincAutoCache with all true conditions at line 109
+ * @tc.type: FUNC
+ * @tc.require: issueTddCoverHelperBranches
+ */
+HWTEST_F(RSOpincDrawCacheTest, HelperTryDrawOpincAutoCacheAllTrue, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(GenerateUniqueNodeIdForRS());
+    auto drawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+
+    auto& opincDrawCache = drawable->GetOpincDrawCache();
+    opincDrawCache.isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
+    opincDrawCache.opCanCache_ = true;
+    Drawing::OpListHandle::OpInfo opInfo = {
+        .unionRect = Drawing::Rect(0.f, 0.f, 16.f, 16.f),
+        .drawAreaRects = { Drawing::Rect(0.f, 0.f, 8.f, 8.f) }
+    };
+    opincDrawCache.opListDrawAreas_ = Drawing::OpListHandle(opInfo);
+
+    Drawing::Canvas drawCanvas;
+    RSPaintFilterCanvas paintCanvas(&drawCanvas);
+    Drawing::Image cacheImage;
+    Drawing::SamplingOptions samplingOptions;
+    std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos;
+
+    ASSERT_TRUE(RSOpincDrawCacheHelper::TryDrawOpincAutoCache(
+        *drawable, paintCanvas, cacheImage, samplingOptions, autoCacheRenderNodeInfos));
 }
 } // namespace Rosen
 } // namespace OHOS

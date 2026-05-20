@@ -899,5 +899,10 @@ bool RSSystemProperties::GetTransactionDataTraceEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetNewTunnelEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

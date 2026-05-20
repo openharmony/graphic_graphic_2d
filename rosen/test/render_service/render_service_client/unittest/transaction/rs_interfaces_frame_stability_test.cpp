@@ -27,9 +27,16 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static inline std::shared_ptr<OHOS::Rosen::RSRenderInterface> rsRenderInterface_ = nullptr;
 };
 
-void RSInterfacesFrameStabilityTest::SetUpTestCase() {}
+void RSInterfacesFrameStabilityTest::SetUpTestCase()
+{
+    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+    auto connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    rsRenderInterface_ = std::make_shared<RSRenderInterface>(connectToRender);
+}
 void RSInterfacesFrameStabilityTest::TearDownTestCase() {}
 void RSInterfacesFrameStabilityTest::SetUp() {}
 void RSInterfacesFrameStabilityTest::TearDown() {}
@@ -178,6 +185,21 @@ HWTEST_F(RSInterfacesFrameStabilityTest, GetFrameStabilityResult001, Function | 
     RSInterfaces& instance = RSInterfaces::GetInstance();
     bool result = false;
     int32_t ret = instance.GetFrameStabilityResult(DEFAULT_TARGET, result);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: UpdateFrameStabilityDetection001
+ * @tc.desc: Test UpdateFrameStabilityDetection with valid parameters
+ * @tc.type: FUNC
+ * @tc.require: issue23671
+ */
+HWTEST_F(RSInterfacesFrameStabilityTest, UpdateFrameStabilityDetection001, TestSize.Level1)
+{
+    ASSERT_NE(rsRenderInterface_, nullptr);
+    FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
+    FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
+    int32_t ret = rsRenderInterface_->UpdateFrameStabilityDetection(oldTarget, newTarget);
     EXPECT_EQ(ret, 0);
 }
 } // namespace OHOS::Rosen

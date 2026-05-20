@@ -53,9 +53,9 @@ public:
         return true;
     }
 
-    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
+    SimpleDrawCmdListPtr GetPropertyDrawCmdList() const
     {
-        return Getter<Drawing::DrawCmdListPtr>(RSPropertyType::CONTENT_STYLE, nullptr);
+        return Getter<SimpleDrawCmdListPtr>(RSPropertyType::CONTENT_STYLE, nullptr);
     }
 
 protected:
@@ -399,11 +399,9 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
  */
 HWTEST_F(RSProfilerTest, UnmarshalNodeModifiersTest, testing::ext::TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(100); // DrawCmdList width for test is 100
-    drawCmdList->SetHeight(100); // DrawCmdList height for test is 100
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
     auto modifier = std::make_shared<ModifierNG::TestCustomRenderModifier>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     std::shared_ptr<RSContext> context = nullptr;

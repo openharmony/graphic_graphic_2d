@@ -29,7 +29,8 @@ bool RSBrightnessInfoChangeCallbackProxy::WriteBrightnessInfo(const BrightnessIn
 {
     if (!data.WriteFloat(brightnessInfo.currentHeadroom) ||
         !data.WriteFloat(brightnessInfo.maxHeadroom) ||
-        !data.WriteFloat(brightnessInfo.sdrNits)) {
+        !data.WriteFloat(brightnessInfo.sdrNits) ||
+        !data.WriteFloat(brightnessInfo.brightnessPosition)) {
         ROSEN_LOGE("RSScreenChangeCallbackProxy::WriteBrightnessInfo write brightnessInfo failed");
         return false;
     }

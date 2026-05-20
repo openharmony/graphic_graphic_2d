@@ -140,7 +140,8 @@ HWTEST_F(HdiLayerTest, Init001, Function | MediumTest| Level1)
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: 1. call GetReleaseFence()
- *                  2. check ret
+ *                  2. set release fence and update rs layer again
+ *                  3. check ret
  */
 HWTEST_F(HdiLayerTest, GetReleaseFence001, Function | MediumTest| Level1)
 {
@@ -151,6 +152,12 @@ HWTEST_F(HdiLayerTest, GetReleaseFence001, Function | MediumTest| Level1)
     HdiLayerTest::hdiLayer_->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     HdiLayerTest::hdiLayer_->RecordPresentTime(0);
     ASSERT_EQ(HdiLayerTest::hdiLayer_->GetReleaseFence().GetRefPtr()->Get(), -1);
+    sptr<SyncFence> releaseFence = new SyncFence(11);
+    HdiLayerTest::hdiLayer_->SetReleaseFence(releaseFence);
+    HdiLayerTest::hdiLayer_->UpdateRSLayer(rsLayer_);
+    auto actualFence = HdiLayerTest::hdiLayer_->GetReleaseFence();
+    ASSERT_NE(actualFence, nullptr);
+    ASSERT_EQ(actualFence->Get(), releaseFence->Get());
 }
 
 /**
@@ -318,6 +325,49 @@ HWTEST_F(HdiLayerTest, ClearBufferCache001, Function | MediumTest| Level1)
 {
     HdiLayerTest::hdiLayer_->ClearBufferCache();
     EXPECT_EQ(hdiLayer_->bufferCache_.size(), 0);
+}
+
+/**
+ * Function: SetLayerBuffer_TunnelDeviceCommitFirstFrame001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. setup tunnel layer first frame with device commit property
+ *                  2. call SetLayerBuffer
+ *                  3. verify first frame still submits normal layer buffer
+ */
+HWTEST_F(HdiLayerTest, SetLayerBuffer_TunnelDeviceCommitFirstFrame001, Function | MediumTest| Level1)
+{
+    NiceMock<Mock::HdiDeviceMock> hdiDeviceMock;
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    ASSERT_NE(hdiLayer, nullptr);
+    ASSERT_NE(rsLayer, nullptr);
+
+    BufferRequestConfig requestConfig = {
+        .width = WIDTH_VAL,
+        .height = HEIGHT_VAL,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    ASSERT_EQ(buffer->Alloc(requestConfig), GSERROR_OK);
+    sptr<SyncFence> fence = new SyncFence(-1);
+    rsLayer->SetBuffer(buffer, fence);
+    rsLayer->SetTunnelLayerId(100);
+    rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT | TUNNEL_PROP_RS_FORCE);
+
+    ASSERT_EQ(hdiLayer->SetHdiDeviceMock(&hdiDeviceMock), GRAPHIC_DISPLAY_SUCCESS);
+    hdiLayer->rsLayer_ = rsLayer;
+
+    EXPECT_CALL(hdiDeviceMock, SetLayerBuffer(_, _, _)).WillOnce(testing::Return(0));
+    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerBuffer(_, _, _, _)).Times(0);
+
+    auto ret = hdiLayer->SetLayerBuffer();
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /**
@@ -789,6 +839,82 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest, Function | MediumTest| Leve
     EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(_, _, _)).WillRepeatedly(testing::Return(-1));
     ret = hdiLayer_->SetTunnelLayerParameters();
     EXPECT_EQ(ret, -1);
+}
+
+/**
+ * Function: SetTunnelLayerParametersTest002
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetTunnelLayerParameters() with invalid property
+ *                  2. check tunnelLayerId still be set successfully
+ */
+HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest002, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    rsLayer->SetTunnelLayerId(2);
+    rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
+    hdiLayer_->rsLayer_ = rsLayer;
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, 2)).WillOnce(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(_, _, TUNNEL_PROP_INVALID))
+        .WillOnce(testing::Return(0));
+    auto ret = hdiLayer_->SetTunnelLayerParameters();
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+/**
+ * Function: SetTunnelLayerParametersTest003
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. prev frame uses tunnel parameters
+ *                  2. current frame clears tunnel parameters
+ *                  3. verify zero and invalid are sent to device
+ */
+HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest003, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    auto prevRsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    prevRsLayer->SetTunnelLayerId(2);
+    prevRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
+    hdiLayer_->prevRSLayer_ = prevRsLayer;
+
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    rsLayer->SetTunnelLayerId(0);
+    rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
+    hdiLayer_->rsLayer_ = rsLayer;
+
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, 0)).WillOnce(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(_, _, TUNNEL_PROP_INVALID))
+        .WillOnce(testing::Return(0));
+    auto ret = hdiLayer_->SetTunnelLayerParameters();
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/**
+ * Function: SetTunnelLayerParametersTest004
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. first frame carries no tunnel parameters
+ *                  2. verify tunnel parameters are not sent to device
+ */
+HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest004, Function | MediumTest| Level1)
+{
+    NiceMock<Mock::HdiDeviceMock> hdiDeviceMock;
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    ASSERT_EQ(hdiLayer->SetHdiDeviceMock(&hdiDeviceMock), GRAPHIC_DISPLAY_SUCCESS);
+
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    rsLayer->SetTunnelLayerId(0);
+    rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
+    hdiLayer->rsLayer_ = rsLayer;
+
+    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerId(_, _, 0)).Times(0);
+    EXPECT_CALL(hdiDeviceMock, SetTunnelLayerProperty(_, _, TUNNEL_PROP_INVALID)).Times(0);
+    auto ret = hdiLayer->SetTunnelLayerParameters();
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /**
@@ -4741,6 +4867,7 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameterBrightnessRatio_RatiosDifferZeroToPos
     auto ret = hdiLayer_->SetPerFrameParameterBrightnessRatio();
     ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
+
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

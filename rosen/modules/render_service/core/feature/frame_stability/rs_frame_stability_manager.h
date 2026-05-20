@@ -54,13 +54,19 @@ public:
 
     int32_t GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result);
 
+    int32_t UpdateFrameStabilityDetection(
+        pid_t pid,
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    );
+
     // Clean contexts related to the pid, called when process exits
     void CleanResourcesByPid(pid_t pid);
 
-    // Clean contexts related to the screenId, called when ScreenRenderNodeDrawable is destructed
-    void CleanResourcesByScreenId(ScreenId screenId);
+    // Clean contexts related to the nodeId, called when ScreenRenderNodeDrawable is destructed
+    void CleanResourcesByScreenId(NodeId nodeId);
 
-    void RecordCurrentFrameDirty(ScreenId screenId, const std::vector<RectI>& damageRegionRects, float screenArea);
+    void RecordCurrentFrameDirty(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float screenArea);
 private:
     RSFrameStabilityManager() = default;
     ~RSFrameStabilityManager() = default;
@@ -72,13 +78,13 @@ private:
     void HandleStabilityTimeout(uint64_t targetId);
     void TriggerCallback(uint64_t targetId, bool isStable);
     float CalculateRegionPercentage(const Occlusion::Region& region, float screenArea);
-    void RecordDirtyToCollector(ScreenId screenId, const std::vector<RectI>& damageRegionRects, float screenArea);
-    void RecordDirtyToDetector(ScreenId screenId, const std::vector<RectI>& damageRegionRects, float screenArea);
+    void RecordDirtyToCollector(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float screenArea);
+    void RecordDirtyToDetector(NodeId nodeId, const std::vector<RectI>& damageRegionRects, float screenArea);
 
     std::mutex detectorMutex_;
     std::mutex collectorMutex_;
-    std::unordered_map<ScreenId, std::shared_ptr<DetectorContext>> screenDetectorContexts_;
-    std::unordered_map<ScreenId, std::shared_ptr<CollectorContext>> screenCollectorContexts_;
+    std::unordered_map<NodeId, std::shared_ptr<DetectorContext>> detectorContexts_;
+    std::unordered_map<NodeId, std::shared_ptr<CollectorContext>> collectorContexts_;
 };
 } // namespace Rosen
 } // namespace OHOS

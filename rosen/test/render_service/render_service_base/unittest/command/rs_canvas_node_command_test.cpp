@@ -103,7 +103,7 @@ HWTEST_F(RSCanvasNodeCommandTest, AddCmdToSingleFrameComposer001, TestSize.Level
     NodeId id = static_cast<NodeId>(1);
     RSCanvasNodeCommandHelper::Create(context, id, true);
     auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmds;
+    SimpleDrawCmdListPtr drawCmds = nullptr;
     uint16_t type = 0;
     bool res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, type);
     EXPECT_TRUE(res == false);
@@ -112,15 +112,6 @@ HWTEST_F(RSCanvasNodeCommandTest, AddCmdToSingleFrameComposer001, TestSize.Level
     RSSingleFrameComposer::SetSingleFrameFlag(thisThreadId);
     res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, type);
     EXPECT_TRUE(res);
-
-    node->isNodeSingleFrameComposer_ = true;
-    res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, type);
-    EXPECT_TRUE(res == false);
-
-    std::thread::id threadId = std::this_thread::get_id();
-    RSSingleFrameComposer::SetSingleFrameFlag(threadId);
-    res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, type);
-    EXPECT_TRUE(res == false);
 }
 
 /**

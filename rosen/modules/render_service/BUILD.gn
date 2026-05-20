@@ -156,10 +156,16 @@ ohos_shared_library("librender_service") {
     "core/feature/multi_screen/rs_multi_screen_util.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
+    "core/feature/opinc/rs_layer_part_draw_cache.cpp",
     "core/feature/opinc/rs_opinc_draw_cache.cpp",
+    "core/feature/opinc/rs_opinc_draw_cache_helper.cpp",
+    "core/feature/opinc/rs_layer_part_draw_cache_helper.cpp",
     "core/feature/render_group/rs_render_group_cache_drawable.cpp",
     "core/feature/pointer_window_manager/rs_pointer_window_manager.cpp",
     "core/feature/special_layer/rs_special_layer_utils.cpp",
+    "core/feature/tunnel_layer/rs_tunnel_layer_helper.cpp",
+    "core/feature/tunnel_layer/rs_tunnel_layer_manager.cpp",
+    "core/feature/tunnel_layer/rs_tunnel_route_arbiter.cpp",
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
     "core/feature/watermark/rs_surface_watermark.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_node_drawable.cpp",
@@ -285,6 +291,12 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
   ]
 
+  #frame_stability
+  if (defined(graphic_2d_frame_stability_configs.vendor_root)) {
+    sources += graphic_2d_frame_stability_configs.librender_service_ext_frame_stability_sources
+    sources -= graphic_2d_frame_stability_configs.librender_service_ext_frame_stability_sources_del
+  }
+
   #dfx
   sources += [
     "core/drawable/dfx/rs_refresh_rate_dfx.cpp",
@@ -392,6 +404,7 @@ ohos_shared_library("librender_service") {
 
   include_dirs = [
     "core",
+    "core/feature",
     "core/feature_cfg",
     "core/feature_cfg/feature_param",
     "core/feature_cfg/feature_param/extend_feature",

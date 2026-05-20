@@ -629,10 +629,12 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
     return renderServiceClient_->GetScreenBacklight(id);
 }
 
-void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSInterfaces::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
-    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
-    renderServiceClient_->SetScreenBacklight(id, level);
+    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64
+        ", level: %{public}u, brightnessPosition: %{public}.4f",
+        brightnessData.screenId, brightnessData.level, brightnessData.brightnessPosition);
+    renderServiceClient_->SetScreenBacklight(brightnessData);
 }
 
 int32_t RSInterfaces::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)

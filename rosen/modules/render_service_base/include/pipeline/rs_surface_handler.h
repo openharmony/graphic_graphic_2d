@@ -310,6 +310,26 @@ public:
         preBuffer_.Reset(needBufferDeleteCb);
     }
 
+    bool ReleaseAndResetPreBuffer(bool needBufferDeleteCb = true)
+    {
+#ifndef ROSEN_CROSS_PLATFORM
+        sptr<SurfaceBuffer> preBuffer;
+        std::shared_ptr<BufferOwnerCount> preBufferOwnerCount;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (preBuffer_.buffer == nullptr || preBuffer_.bufferOwnerCount_ == nullptr) {
+                return false;
+            }
+            preBuffer = preBuffer_.buffer;
+            preBufferOwnerCount = preBuffer_.bufferOwnerCount_;
+            preBuffer_.Reset(needBufferDeleteCb);
+        }
+        return preBufferOwnerCount->DecRef();
+#else
+        return false;
+#endif
+    }
+
     int32_t GetAvailableBufferCount() const
     {
         return bufferAvailableCount_;
@@ -399,12 +419,12 @@ public:
 
     void SetSourceType(uint32_t sourceType)
     {
-        sourceType_ = sourceType;
+        sourceType_.store(sourceType, std::memory_order_release);
     }
 
     uint32_t GetSourceType() const
     {
-        return sourceType_;
+        return sourceType_.load(std::memory_order_acquire);
     }
 
     void SetLastBufferId(const uint64_t bufferId) // must call thisFunc in rsMainThread
@@ -449,15 +469,15 @@ public:
     }
     inline bool IsCurrentFrameBufferConsumed() const
     {
-        return isCurrentFrameBufferConsumed_;
+        return isCurrentFrameBufferConsumed_.load(std::memory_order_acquire);
     }
     inline void ResetCurrentFrameBufferConsumed()
     {
-        isCurrentFrameBufferConsumed_ = false;
+        isCurrentFrameBufferConsumed_.store(false, std::memory_order_release);
     }
     inline void SetCurrentFrameBufferConsumed()
     {
-        isCurrentFrameBufferConsumed_ = true;
+        isCurrentFrameBufferConsumed_.store(true, std::memory_order_release);
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -487,7 +507,7 @@ protected:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IConsumerSurface> consumer_ = nullptr;
 #endif
-    bool isCurrentFrameBufferConsumed_ = false;
+    std::atomic_bool isCurrentFrameBufferConsumed_ = false;
 
 private:
     void ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer);
@@ -505,7 +525,7 @@ private:
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
     bool bufferTransformTypeChanged_ = false;
-    uint32_t sourceType_ = 0;
+    std::atomic<uint32_t> sourceType_ = 0;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 
     // GPU cache cleanup set (owned per RSSurfaceHandler instance).

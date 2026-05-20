@@ -1189,6 +1189,20 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    bool isDoubleSided = surfaceParams->GetDoubleSidedEnabled();
+    if (!isDoubleSided) {
+        Drawing::Matrix baseMatrix = surfaceParams->HasSandBox()
+            ? RSRenderParams::GetParentSurfaceMatrix()
+            : rscanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(surfaceParams->GetMatrix());
+        if (IsBackFace(baseMatrix)) {
+            SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+            RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture[%s] backface skip, id:%" PRIu64,
+                name_.c_str(), surfaceParams->GetId());
+            return;
+        }
+    }
+
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(rscanvas->GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_ONCAPTURE);
 #endif

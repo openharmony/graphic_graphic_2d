@@ -31,7 +31,7 @@ public:
     MOCK_METHOD(void, UpdateScreenStatus, (ScreenId screenId, ScreenPowerStatus powerStatus), (override));
     MOCK_METHOD(bool, IsDimmingOn, (ScreenId screenId), (override));
     MOCK_METHOD(void, DimmingIncrease, (ScreenId screenId), (override));
-    MOCK_METHOD(void, SetSdrLuminance, (ScreenId screenId, uint32_t level), (override));
+    MOCK_METHOD(void, SetSdrLuminance, (const RsScreenBrightnessData& brightnessData), (override));
     MOCK_METHOD(uint32_t, GetNewHdrLuminance, (ScreenId screenId), (override));
     MOCK_METHOD(void, SetNowHdrLuminance, (ScreenId screenId, uint32_t level), (override));
     MOCK_METHOD(bool, IsNeedUpdateLuminance, (ScreenId screenId), (override));

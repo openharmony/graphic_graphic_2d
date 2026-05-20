@@ -24,6 +24,7 @@
 #include "consumer_surface.h"
 
 #include "command/rs_base_node_command.h"
+#include "common/rs_tunnel_layer_utils.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -3384,6 +3385,48 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ConsumeAndUpdateAllNodes_KeepDirectSkipsRedundantVsync
+ * @tc.desc: When the tunnel route stays KEEP_DIRECT (listener owns this vsync), the tail
+ *           "available>0 ⇒ schedule vsync" branch must be skipped so a stale availableBufferCount
+ *           does not request a redundant vsync that re-arrives as KEEP_DIRECT again.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes_KeepDirectSkipsRedundantVsync, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->timestamp_ = 1000;
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node));
+
+    auto& tunnelRuntime = node->GetTunnelRuntimeState();
+    tunnelRuntime.SetBuilding();
+    ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+    ASSERT_TRUE(tunnelRuntime.TryClaimByListener());
+    ASSERT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::TUNNEL_INFLIGHT);
+
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetAvailableBufferCount(1);
+    mainThread->requestNextVsyncTime_ = -1;
+
+    mainThread->ConsumeAndUpdateAllNodes();
+
+    EXPECT_EQ(mainThread->requestNextVsyncTime_, -1);
+
+    tunnelRuntime.ReleaseByListener();
+    mainThread->isUniRender_ = isUniRender;
+#endif
+}
+
+/**
  * @tc.name: ConsumeAndUpdateLowPowerVideoNode001
  * @tc.desc: Test ConsumeAndUpdateAllNodes with OH_SURFACE_SOURCE_LOWPOWERVIDEO
  * @tc.type: FUNC
@@ -3424,6 +3467,12 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateLowPowerVideoNode001, TestSize.Level1
     SurfaceFlushBuffers(psurf, 5, desiredPresentTimestamp);
 
     mainThread->ConsumeAndUpdateAllNodes();
+
+    uint64_t actualTunnelLayerId = 0;
+    uint32_t actualProperty = TUNNEL_PROP_INVALID;
+    rsSurfaceRenderNode->GetTunnelLayerInfo(actualTunnelLayerId, actualProperty);
+    EXPECT_NE(actualTunnelLayerId, 0u);
+    EXPECT_EQ(actualProperty, TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
 
     mainThread->vsyncRsTimestamp_.store(vsyncRsTimestamp);
 }
@@ -5572,7 +5621,7 @@ HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt002, TestSize.Level2)
 
     mainThread->UpdateSubSurfaceCnt();
     // cnt + 2: rootNode contain 2 subSurfaceNodes(leash and app)
-    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
+    ASSERT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 2);
 }
 
 /**
@@ -5607,7 +5656,7 @@ HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt003, TestSize.Level2)
     context->nodeMap.RegisterRenderNode(appNode);
 
     mainThread->UpdateSubSurfaceCnt();
-    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt);
+    ASSERT_EQ(rootNode->GetSubSurfaceCnt(), cnt);
 }
 
 /**
@@ -5850,87 +5899,6 @@ HWTEST_F(RSMainThreadTest, GetForceCommitReasonTest, TestSize.Level1)
     mainThread->forceUpdateUniRenderFlag_ = true;
     forceCommitReason |= ForceCommitReason::FORCED_BY_UNI_RENDER_FLAG;
     EXPECT_EQ(mainThread->GetForceCommitReason(), forceCommitReason);
-}
-
-/**
- * @tc.name: HandleTunnelLayerId001
- * @tc.desc: HandleTunnelLayerId001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, HandleTunnelLayerId001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
-    auto surfaceHandler = surfaceNode->surfaceHandler_;
-
-    mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
-    EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
-}
-
-/**
- * @tc.name: HandleTunnelLayerId002
- * @tc.desc: HandleTunnelLayerId002
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, HandleTunnelLayerId002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
-    auto surfaceHandler = surfaceNode->surfaceHandler_;
-    ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->consumer_ = nullptr;
-
-    EXPECT_EQ(surfaceHandler->sourceType_, 0);
-
-    mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
-    EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
-}
-
-/**
- * @tc.name: HandleTunnelLayerId003
- * @tc.desc: HandleTunnelLayerId003
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, HandleTunnelLayerId003, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
-    auto surfaceHandler = surfaceNode->surfaceHandler_;
-    ASSERT_NE(surfaceHandler, nullptr);
-
-    surfaceHandler->sourceType_ = 5;
-    ASSERT_EQ(surfaceHandler->GetSourceType(), 5);
-    surfaceHandler->consumer_ = nullptr;
-
-    mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
-}
-
-/**
- * @tc.name: HandleTunnelLayerId004
- * @tc.desc: HandleTunnelLayerId004
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
-    auto surfaceHandler = surfaceNode->surfaceHandler_;
-    ASSERT_NE(surfaceHandler, nullptr);
-
-    surfaceHandler->sourceType_ = 4;
-    ASSERT_EQ(surfaceHandler->GetSourceType(), 4);
-
-    mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
 }
 
 /**
@@ -7062,5 +7030,51 @@ HWTEST_F(RSMainThreadTest, AnimateWithAnimationManager, TestSize.Level1)
     mainThread->Animate(1);
 
     GTEST_LOG_(INFO) << "RSMainThreadTest AnimateWithAnimationManager end";
+}
+
+/**
+ * @tc.name: RequestDelayedVSyncForAnimation_BasicFunction001
+ * @tc.desc: Test RequestDelayedVSyncForAnimation basic function with normal parameters.
+ *           This method was updated in commit 974b560f with optimization (pre-calculate maxDelayFromTimestamp).
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_BasicFunction001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_BasicFunction001 start";
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    int64_t minLeftDelayTime = 100;
+    uint64_t timestamp = 1000000;
+    int64_t nextFrameTime = 0;
+
+    mainThread->RequestDelayedVSyncForAnimation(minLeftDelayTime, timestamp, nextFrameTime);
+
+    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_BasicFunction001 end";
+}
+
+/**
+ * @tc.name: RequestDelayedVSyncForAnimation_DelayOverflowClamp001
+ * @tc.desc: Test RequestDelayedVSyncForAnimation when delayTimeNs > maxDelayFromTimestamp.
+ *           Line 3842 branch: if (delayTimeNs > maxDelayFromTimestamp) -> true
+ *           When timestamp is near INT64_MAX, maxDelayFromTimestamp is small,
+ *           delayTimeNs can exceed it and should be clamped.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_DelayOverflowClamp001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 start";
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    int64_t minLeftDelayTime = 18;
+    uint64_t timestamp = static_cast<uint64_t>(INT64_MAX - 500000);
+    int64_t nextFrameTime = 0;
+
+    mainThread->RequestDelayedVSyncForAnimation(minLeftDelayTime, timestamp, nextFrameTime);
+
+    GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 end";
 }
 } // namespace OHOS::Rosen

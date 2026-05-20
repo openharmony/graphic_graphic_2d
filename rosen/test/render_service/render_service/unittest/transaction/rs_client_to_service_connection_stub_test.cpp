@@ -4570,6 +4570,23 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ATC_NotifyRefreshRateEvent, TestSi
 }
 
 /**
+ * @tc.name: NotifyRefreshRateEvent001
+ * @tc.desc: Test NotifyRefreshRateEvent001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, NotifyRefreshRateEvent001, TestSize.Level1)
+{
+    EventInfo eventInfo;
+    eventInfo.eventName = "VOTER_SCENE_BLUR";
+    connectionStub_->NotifyRefreshRateEvent(eventInfo);
+    EXPECT_NE(connectionStub_, nullptr);
+    eventInfo.eventName = "VOTER_SCENE_GPU";
+    connectionStub_->NotifyRefreshRateEvent(eventInfo);
+    EXPECT_NE(connectionStub_, nullptr);
+}
+
+/**
  * @tc.name: testnullptrCase001
  * @tc.desc: Test testnullptrCase
  * @tc.type: FUNC
@@ -4782,7 +4799,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase003, TestSize.Level
     int32_t level = 0;
     connection->GetScreenBacklight(INVALID_SCREEN_ID, level);
     // test SetScreenBacklight
-    connection->SetScreenBacklight(INVALID_SCREEN_ID, level);
+    connection->SetScreenBacklight(RsScreenBrightnessData(INVALID_SCREEN_ID, level));
     // test GetScreenSupportedColorGamuts
     std::vector<ScreenColorGamut> gamutMode = {};
     connection->GetScreenSupportedColorGamuts(INVALID_SCREEN_ID, gamutMode);

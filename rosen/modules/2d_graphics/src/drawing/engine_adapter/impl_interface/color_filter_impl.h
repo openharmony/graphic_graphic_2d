@@ -21,6 +21,7 @@
 #include "draw/blend_mode.h"
 #include "draw/color.h"
 #include "effect/color_matrix.h"
+#include "include/core/SkColorFilter.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -50,6 +51,7 @@ public:
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
     virtual bool AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const = 0;
+    virtual sk_sp<SkColorFilter> GetSkColorFilter() const = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

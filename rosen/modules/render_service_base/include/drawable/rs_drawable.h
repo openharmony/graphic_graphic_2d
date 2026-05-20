@@ -27,6 +27,23 @@
 #include "modifier_ng/rs_modifier_ng_type.h"
 
 namespace OHOS::Rosen {
+
+enum DrawableVecStatus : uint8_t {
+    CLIP_TO_BOUNDS     = 1 << 0,
+    BG_BOUNDS_PROPERTY = 1 << 1,
+    FG_BOUNDS_PROPERTY = 1 << 2,
+    ENV_CHANGED        = 1 << 3,
+    // Used by skip logic in RSRenderNode::UpdateDisplayList
+    FRAME_NOT_EMPTY    = 1 << 4,
+    NODE_NOT_EMPTY     = 1 << 5,
+    DRAWABLE_VEC_NEED_CLEAR = 1 << 6,
+
+    // masks
+    BOUNDS_MASK  = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
+    FRAME_MASK   = FRAME_NOT_EMPTY,
+    OTHER_MASK   = ENV_CHANGED,
+};
+
 class RSRenderNode;
 
 // NOTE: MUST update DrawableGeneratorLut in rs_drawable_content.cpp when new slots are added

@@ -41,9 +41,9 @@ extern char const * const gGlApiNames3[GLES_API_NUM];
 #ifdef OPENGL_WRAPPER_ENABLE_GL4
 constexpr const char *SUPPORT_GL_TO_VK = "const.graphic.gl_to_vk_support";
 extern char const * const gGlApiNames4[OPENGL_API_NUM];
-extern const std::map<std::string, EglWrapperFuncPointer> gCustomMap;
 extern PFNEGLGETPROCADDRESSPROC gGetProcAddress;
 #endif
+extern const std::map<std::string, EglWrapperFuncPointer> gCustomMap;
 extern const std::map<std::string, EglWrapperFuncPointer> gExtensionMap;
 
 extern GlHookTable gGlHookNoContext;

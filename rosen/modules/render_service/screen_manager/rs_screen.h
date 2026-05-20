@@ -99,7 +99,7 @@ public:
     int32_t SetAsMainScreen(bool isMainScreen);
     bool IsMainScreen() const;
 
-    void SetScreenBacklight(uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
     int32_t GetScreenBacklight() const;
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type);
 
@@ -179,7 +179,7 @@ public:
 
     using OnPropertyChangeCallback = std::function<void(ScreenId, ScreenPropertyType, const sptr<ScreenPropertyBase>&)>;
     void SetOnPropertyChangedCallback(OnPropertyChangeCallback callback);
-    void SetOnBacklightChangedCallback(std::function<void(ScreenId, uint32_t)> callback);
+    void SetOnBacklightChangedCallback(std::function<void(const RsScreenBrightnessData&)> callback);
 
     sptr<RSScreenProperty> GetProperty() const;
     ScreenInfo GetScreenInfo() const;
@@ -233,7 +233,7 @@ private:
     static std::map<GraphicHDRFormat, ScreenHDRFormat> HDI_HDR_FORMAT_TO_RS_MAP;
     static std::map<ScreenHDRFormat, GraphicHDRFormat> RS_TO_HDI_HDR_FORMAT_MAP;
 
-    std::function<void(ScreenId, uint32_t)> onBackLightChange_;
+    std::function<void(const RsScreenBrightnessData&)> onBackLightChange_;
     std::atomic<int32_t> backlightLevel_ = INVALID_BACKLIGHT_VALUE;
     std::atomic<bool> hasLogBackLightAfterPowerStatusChanged_ = false;
 

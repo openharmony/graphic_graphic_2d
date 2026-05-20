@@ -57,6 +57,9 @@
 #include "screen_manager/rs_screen_property.h"
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
+using testing::_;
+using testing::DoAll;
+using testing::SetArgReferee;
 using namespace testing::ext;
 
 namespace OHOS {
@@ -104,6 +107,53 @@ void RsRenderComposerTest::SetUp() {}
 void RsRenderComposerTest::TearDown() {}
 
 namespace {
+
+constexpr size_t LAYER_ID_ARG = 3;
+
+class TestRSRenderComposer : public RSRenderComposer {
+public:
+    TestRSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
+        : RSRenderComposer(output, property)
+    {}
+
+    using RSRenderComposer::CommitTunnelLayerBySurfaceId;
+    using RSRenderComposer::SetComposerToRenderConnection;
+};
+
+std::shared_ptr<RSSurfaceLayer> CreateTunnelSurfaceLayer(
+    uint64_t surfaceId, uint64_t nodeId, uint64_t tunnelLayerId, uint32_t property)
+{
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    if (rsLayer == nullptr) {
+        return nullptr;
+    }
+    rsLayer->SetSurfaceUniqueId(surfaceId);
+    rsLayer->SetNodeId(nodeId);
+    rsLayer->SetTunnelLayerId(tunnelLayerId);
+    rsLayer->SetTunnelLayerProperty(property);
+    rsLayer->SetTunnelLayerGeneration(tunnelLayerId);
+    return rsLayer;
+}
+
+sptr<SurfaceBuffer> CreateTunnelTestBuffer()
+{
+    constexpr uint32_t testBufferSize = 4;
+    constexpr uint32_t testStrideAlignment = 0x8;
+    BufferRequestConfig requestConfig = {
+        .width = testBufferSize,
+        .height = testBufferSize,
+        .strideAlignment = testStrideAlignment,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    if (buffer == nullptr || buffer->Alloc(requestConfig) != GSERROR_OK) {
+        return nullptr;
+    }
+    return buffer;
+}
 
 // Fake RSLayer for testing
 class FakeRSLayer : public RSLayer {
@@ -394,6 +444,14 @@ public:
     {
         return tunnelLayerProperty_;
     }
+    void SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration) override
+    {
+        tunnelLayerGeneration_ = tunnelLayerGeneration;
+    }
+    uint64_t GetTunnelLayerGeneration() const override
+    {
+        return tunnelLayerGeneration_;
+    }
     void SetIsSupportedPresentTimestamp(bool isSupported) override
     {
         supportedPresentTimestamp_ = isSupported;
@@ -643,6 +701,7 @@ private:
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     uint64_t tunnelLayerId_ = 0;
     uint32_t tunnelLayerProperty_ = 0;
+    uint64_t tunnelLayerGeneration_ = 0;
     bool supportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ {};
     float sdrNit_ = 0.0f;
@@ -3683,6 +3742,7 @@ HWTEST_F(RsRenderComposerTest, ContextRegisterPostTask_Coverage, TestSize.Level1
  */
 HWTEST_F(RsRenderComposerTest, UpdateTransactionData_Coverage, TestSize.Level1)
 {
+    constexpr uint64_t surfaceId = 8302;
     auto output = std::make_shared<HdiOutput>(0u);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
@@ -3705,6 +3765,17 @@ HWTEST_F(RsRenderComposerTest, UpdateTransactionData_Coverage, TestSize.Level1)
     transactionData->payload_.push_back({ id, parcel2 });
     transactionData->payload_.push_back({ id, parcel3 });
     rsRenderComposerTmp->UpdateTransactionData(transactionData);
+
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    ASSERT_NE(layer, nullptr);
+    layer->SetSurfaceUniqueId(surfaceId);
+    rsRenderComposerTmp->rsRenderComposerContext_->AddRSRenderLayer(id, layer);
+    output->MarkTunnelSurfaceInvalid(surfaceId);
+    std::shared_ptr<RSLayerTransactionData> destroyData = std::make_shared<RSLayerTransactionData>();
+    destroyData->payload_.push_back({ id, parcel2 });
+    rsRenderComposerTmp->UpdateTransactionData(destroyData);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) == 0);
+    EXPECT_EQ(rsRenderComposerTmp->rsRenderComposerContext_->GetRSRenderLayer(id), nullptr);
 }
 
 /**
@@ -9044,5 +9115,63 @@ HWTEST_F(RsRenderComposerTest, OnScreenConnected_Reconnect_ResetDisconnectedStat
     EXPECT_NE(rsRenderComposer_->rsRenderComposerContext_, nullptr);
 }
 
+/**
+ * @tc.name: CommitTunnelLayerBySurfaceId001
+ * @tc.desc: Test direct commit failure is handled by composer service with single UNAVAILABLE callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
+{
+    constexpr uint32_t screenId = 0;
+    constexpr uint64_t surfaceId = 8201;
+    constexpr uint64_t nodeId = 8202;
+    constexpr uint64_t tunnelLayerId = 8203;
+    constexpr uint32_t property = TUNNEL_PROP_BUFFER_ADDR;
+    constexpr uint32_t layerId = 8204;
+
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
+    auto composer = std::make_shared<TestRSRenderComposer>(output, screenProperty);
+    sptr<RSComposerToRenderConnection> connection = new RSComposerToRenderConnection();
+    struct CallbackResult {
+        uint64_t nodeId;
+        LayerStateChange state;
+        uint64_t generation;
+    };
+    std::vector<CallbackResult> results;
+    connection->RegisterLayerStateChangedCB([&results](uint64_t callbackNodeId,
+        LayerStateChange state, uint64_t generation) {
+        results.emplace_back(CallbackResult { callbackNodeId, state, generation });
+    });
+    composer->SetComposerToRenderConnection(connection);
+
+    auto rsLayer = CreateTunnelSurfaceLayer(surfaceId, nodeId, tunnelLayerId, property);
+    ASSERT_NE(rsLayer, nullptr);
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _))
+        .WillOnce(DoAll(SetArgReferee<LAYER_ID_ARG>(layerId), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    output->SetRSLayers({ rsLayer });
+
+    auto buffer = CreateTunnelTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerBuffer(screenId, tunnelLayerId, testing::NotNull(), -1))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_CALL(*hdiDeviceMock_, CommitTunnelLayer(screenId, tunnelLayerId, testing::_)).Times(0);
+    EXPECT_CALL(*hdiDeviceMock_, CloseLayer(screenId, layerId)).WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+
+    EXPECT_EQ(composer->CommitTunnelLayerBySurfaceId(surfaceId, tunnelLayerId, buffer, nullptr, releaseFence),
+        GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) != 0);
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0].nodeId, nodeId);
+    EXPECT_EQ(results[0].state, LayerStateChange::UNAVAILABLE);
+    EXPECT_EQ(results[0].generation, tunnelLayerId);
+
+    composer->uniRenderEngine_ = nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS

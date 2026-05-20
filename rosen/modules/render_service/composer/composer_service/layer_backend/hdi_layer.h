@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_COMPOSER_SERVICE_LAYER_BACKEND_HDI_LAYER_H
 
 #include <array>
+#include <atomic>
 #include <cstdint>
 #include <surface.h>
 #include "hdi_device.h"
@@ -47,6 +48,7 @@ public:
     void UpdateCompositionType(GraphicCompositionType type);
 
     std::shared_ptr<RSLayer> GetRSLayer();
+    GraphicLayerType GetCreatedLayerType() const;
     void SetLayerStatus(bool inUsing);
     bool GetLayerStatus() const;
     void UpdateRSLayer(const std::shared_ptr<RSLayer>& rsLayer);
@@ -63,6 +65,9 @@ public:
     void SavePrevRSLayer();
     void DumpByName(std::string windowName, std::string& result);
     void SelectHitchsInfo(std::string windowName, std::string& result);
+    void MarkPendingTunnelLayerCreated(uint64_t tunnelLayerGeneration);
+    bool HasPendingTunnelLayerCreated() const;
+    bool TakePendingTunnelLayerCreated(uint64_t& tunnelLayerGeneration);
 
     /* only used for mock tests */
     int32_t SetHdiDeviceMock(HdiDevice* hdiDeviceMock);
@@ -86,6 +91,7 @@ private:
     uint32_t mergedCount_ = 0; // used for uni render layer
     uint32_t screenId_ = INT_MAX;
     uint32_t layerId_ = INT_MAX;
+    GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     bool isInUsing_ = false;
     sptr<LayerBufferInfo> currBufferInfo_ = nullptr;
     sptr<SurfaceBuffer> prevSbuffer_ = nullptr;
@@ -100,6 +106,7 @@ private:
     mutable std::mutex mutex_;
     sptr<SurfaceBuffer> currBuffer_ = nullptr;
     bool bufferCleared_ = false;
+    std::atomic<uint64_t> pendingTunnelLayerCreatedGeneration_ = 0;
 
     int32_t CreateLayer(const std::shared_ptr<RSLayer> &rsLayer);
     void CloseLayer();

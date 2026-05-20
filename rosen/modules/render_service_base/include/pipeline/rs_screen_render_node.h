@@ -539,6 +539,9 @@ public:
     void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
     bool GetHasForceHwcHdrSurface() const;
 
+    void SetBootAnimation(bool isBootAnimation) override;
+    bool GetBootAnimation() const override;
+
 protected:
     void OnSync() override;
 private:
@@ -558,6 +561,7 @@ private:
     bool isLuminanceStatusChange_ = false;
     bool hasFingerprint_ = false;
     bool isGeometryInitialized_ = false;
+    bool isBootAnimation_ = false;
 
     bool forceFreeze_ = false;
 

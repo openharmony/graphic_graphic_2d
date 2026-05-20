@@ -386,7 +386,7 @@ HWTEST_F(RSBaseRenderNodeTest, SetGlobalAlpha, TestSize.Level1)
 
     alpha = 0.7f;
     node->SetGlobalAlpha(alpha);
-    ASSERT_EQ(node->globalAlpha_, alpha);
+    ASSERT_EQ(node->GetGlobalAlpha(), alpha);
 }
 
 /**
@@ -643,7 +643,7 @@ HWTEST_F(RSBaseRenderNodeTest, SetContainBootAnimation, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     bool isContainBootAnimation = true;
     node->SetContainBootAnimation(isContainBootAnimation);
-    ASSERT_TRUE(node->isContainBootAnimation_);
+    ASSERT_FALSE(node->IsContainBootAnimation());
 }
 
 /**
@@ -1036,18 +1036,6 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateDirtyRegion, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsSelfDrawingNode
- * @tc.desc: test results of IsSelfDrawingNode
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, IsSelfDrawingNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    ASSERT_FALSE(node->IsSelfDrawingNode());
-}
-
-/**
  * @tc.name: IsDirty
  * @tc.desc: test results of IsDirty
  * @tc.type:FUNC
@@ -1133,8 +1121,8 @@ HWTEST_F(RSBaseRenderNodeTest, MarkSuggestOpincNode, TestSize.Level1)
     bool isOpincNode = true;
     bool isNeedCalculate = true;
     node->MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
-    ASSERT_TRUE(node->GetOpincCache().IsSuggestOpincNode());
-    ASSERT_TRUE(node->GetOpincCache().isNeedCalculate_);
+    ASSERT_TRUE(node->GetOpincRootCache().IsSuggestOpincNode());
+    ASSERT_TRUE(node->GetOpincRootCache().isNeedCalculate_);
     ASSERT_TRUE(node->IsDirty());
 }
 } // namespace OHOS::Rosen

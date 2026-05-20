@@ -16,6 +16,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_frame_stability_types.h"
 
@@ -23,14 +24,17 @@ namespace OHOS {
 namespace Rosen {
 
 RSInterfaces* g_rsInterfaces = nullptr;
+std::shared_ptr<RSRenderInterface> g_rsRenderInterfaces_ = nullptr;
 
 namespace {
 const uint8_t DO_REGISTER_FRAME_STABILITY_DETECTION = 0;
 const uint8_t DO_UNREGISTER_FRAME_STABILITY_DETECTION = 1;
 const uint8_t DO_START_FRAME_STABILITY_COLLECTION = 2;
 const uint8_t DO_GET_FRAME_STABILITY_RESULT = 3;
-const uint8_t TARGET_SIZE = 4;
+const uint8_t DO_UPDATE_FRAME_STABILITY_DETECTION = 4;
+const uint8_t TARGET_SIZE = 5;
 const uint32_t MAX_TARGET_TYPE = 2;
+
 void DoRegisterFrameStabilityDetection(FuzzedDataProvider& fdp)
 {
     FrameStabilityTarget target;
@@ -72,6 +76,21 @@ void DoGetFrameStabilityResult(FuzzedDataProvider& fdp)
     bool result = false;
     g_rsInterfaces->GetFrameStabilityResult(target, result);
 }
+
+void DoUpdateFrameStabilityDetection(FuzzedDataProvider& fdp)
+{
+    FrameStabilityTarget oldTarget;
+    oldTarget.id = fdp.ConsumeIntegral<uint64_t>();
+    oldTarget.type = static_cast<FrameStabilityTargetType>(fdp.ConsumeIntegral<uint32_t>() % MAX_TARGET_TYPE);
+    
+    FrameStabilityTarget newTarget;
+    newTarget.id = fdp.ConsumeIntegral<uint64_t>();
+    newTarget.type = static_cast<FrameStabilityTargetType>(fdp.ConsumeIntegral<uint32_t>() % MAX_TARGET_TYPE);
+    
+    if (g_rsRenderInterfaces_ != nullptr) {
+        g_rsRenderInterfaces_->UpdateFrameStabilityDetection(oldTarget, newTarget);
+    }
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
@@ -80,6 +99,13 @@ void DoGetFrameStabilityResult(FuzzedDataProvider& fdp)
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
     OHOS::Rosen::g_rsInterfaces = &OHOS::Rosen::RSInterfaces::GetInstance();
+    
+    // Initialize RSRenderInterface for UpdateFrameStabilityDetection
+    auto screenId = OHOS::Rosen::RSInterfaces::GetInstance().GetDefaultScreenId();
+    auto connectToRender = OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    if (connectToRender != nullptr) {
+        OHOS::Rosen::g_rsRenderInterfaces_ = std::make_shared<OHOS::Rosen::RSRenderInterface>(connectToRender);
+    }
     return 0;
 }
 
@@ -104,6 +130,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_FRAME_STABILITY_RESULT:
             OHOS::Rosen::DoGetFrameStabilityResult(fdp);
+            break;
+        case OHOS::Rosen::DO_UPDATE_FRAME_STABILITY_DETECTION:
+            OHOS::Rosen::DoUpdateFrameStabilityDetection(fdp);
             break;
         default:
             return -1;

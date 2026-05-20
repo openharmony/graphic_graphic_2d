@@ -31,6 +31,7 @@ enum class FrameStabilityErrorCode : int32_t {
     TARGET_ID_NOT_REGISTERED,
     CONNECTIONS_OCCUPIED,
     INVALID_ID,
+    PERMISSION_DENIED,
     UNKNOWN
 };
 

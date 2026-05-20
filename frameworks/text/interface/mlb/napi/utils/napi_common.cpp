@@ -980,6 +980,37 @@ napi_value CreateFontFeatureArrayJsValue(napi_env env, const FontFeatures& fontF
     return jsArray;
 }
 
+napi_value CreateFontVariationArrayJsValue(napi_env env, const FontVariations& fontVariations)
+{
+    napi_value jsArray;
+    napi_status arrayStatus = napi_create_array(env, &jsArray);
+    if (arrayStatus != napi_ok) {
+        TEXT_LOGE("Failed to create fontVariation array, ret %{public}d", arrayStatus);
+        return nullptr;
+    }
+    const std::map<std::string, std::pair<float, bool>>& variationSet = fontVariations.GetAxisValues();
+    size_t index = 0;
+    for (const auto& [axis, valPair] : variationSet) {
+        napi_value jsObject;
+        napi_status status = napi_create_object(env, &jsObject);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to create fontVariation, ret %{public}d", status);
+            continue;
+        }
+        napi_set_named_property(env, jsObject, "axis", CreateStringJsValue(env, Str8ToStr16(axis)));
+        napi_set_named_property(env, jsObject, "value", CreateJsNumber(env, static_cast<double>(valPair.first)));
+        napi_set_named_property(env, jsObject, "isNormalized", CreateJsValue(env, valPair.second));
+        status = napi_set_element(env, jsArray, index, jsObject);
+        if (status != napi_ok) {
+            TEXT_LOGE("Failed to set fontVariation, ret %{public}d", status);
+            continue;
+        }
+        index++;
+    }
+
+    return jsArray;
+}
+
 napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle)
 {
     napi_value objValue = nullptr;
@@ -1030,6 +1061,8 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
         napi_set_named_property(env, objValue, "textShadows", CreateShadowArrayJsValue(env, textStyle.shadows));
         napi_set_named_property(
             env, objValue, "fontFeatures", CreateFontFeatureArrayJsValue(env, textStyle.fontFeatures));
+        napi_set_named_property(
+            env, objValue, "fontVariations", CreateFontVariationArrayJsValue(env, textStyle.fontVariations));
         napi_set_named_property(env, objValue, "badgeType", CreateJsNumber(
             env, static_cast<size_t>(textStyle.badgeType)));
         napi_set_named_property(env, objValue, "lineHeightMaximum", CreateJsNumber(

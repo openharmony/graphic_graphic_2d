@@ -1,0 +1,74 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_base"
+
+ohos_unittest("RSProxyTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_client_to_service_connect_hub_test.cpp",
+   "rs_render_service_client_proxy_test.cpp"]
+
+  defines = [ "ENABLE_RS_PROXY" ]
+
+  configs = [ ":rs_proxy_test_config" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base/proxy:render_service_proxy_src",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "graphic_surface:surface_headers",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  subsystem_name = "graphic"
+}
+
+config("rs_proxy_test_config") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":RSProxyTest" ]
+}
