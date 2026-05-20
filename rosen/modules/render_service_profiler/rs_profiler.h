@@ -539,6 +539,7 @@ public:
     RSB_EXPORT static void WriteSharedTypeface(Parcel& parcel, const Drawing::SharedTypeface& typeface);
     RSB_EXPORT static void ReadSharedTypeface(Parcel& parcel, Drawing::SharedTypeface& typeface);
     RSB_EXPORT static uint32_t GetFrameNumber();
+    static uint32_t GetRenderFrameNumber();
     RSB_EXPORT static bool ShouldBlockHWCNode();
 
     RSB_EXPORT static void AnimeGetStartTimesFromFile(
