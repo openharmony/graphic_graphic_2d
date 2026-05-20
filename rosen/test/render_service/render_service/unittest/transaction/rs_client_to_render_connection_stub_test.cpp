@@ -619,49 +619,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetBrightnessInfoTest, TestSize.Lev
 }
 
 /**
- * @tc.name: WriteBrightnessInfoTest
- * @tc.desc: Test WriteBrightnessInfo
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, WriteBrightnessInfoTest, TestSize.Level2)
-{
-    // case 1: normal write
-    {
-        BrightnessInfo brightnessInfo;
-        MessageParcel data;
-        ASSERT_TRUE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 2: can't write any data
-    {
-        BrightnessInfo brightnessInfo;
-        MessageParcel data;
-        size_t desireCapacity = sizeof(float) * 0;
-        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
-        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 3: can write one float
-    {
-        BrightnessInfo brightnessInfo;
-        MessageParcel data;
-        size_t desireCapacity = sizeof(float) * 1;
-        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
-        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 4: can write two float
-    {
-        BrightnessInfo brightnessInfo;
-        MessageParcel data;
-        size_t desireCapacity = sizeof(float) * 2;
-        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
-        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
-    }
-}
-
-/**
  * @tc.name: GetScreenHDRStatus001
  * @tc.desc: Test GetScreenHDRStatus
  * @tc.type: FUNC

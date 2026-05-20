@@ -30,8 +30,6 @@ public:
     ~RSBrightnessInfoChangeCallbackStub() = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-private:
-    bool ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data);
 };
 } // namespace Rosen
 } // namespace OHOS

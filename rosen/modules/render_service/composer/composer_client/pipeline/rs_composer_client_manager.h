@@ -20,7 +20,6 @@
 
 #include "common/rs_common_def.h"
 #include "rs_composer_client.h"
-#include "screen_manager/screen_types.h"
 #include "surface_buffer.h"
 #include "sync_fence.h"
 
