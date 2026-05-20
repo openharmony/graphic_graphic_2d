@@ -194,6 +194,12 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
 #endif
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
     RsCommandVerifyHelper::GetInstance().SubSurfaceNodeCreateCnt(ExtractPid(GetId()));
+    if (GetNodeIsSingleFrameComposer()) {
+        pid_t pid = ExtractPid(GetId());
+        if (pid != 0) {
+            RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, pid);
+        }
+    }
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -732,7 +738,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
 
 #ifndef ROSEN_CROSS_PLATFORM
     RSPropertiesPainter::DrawBackground(
-        property, canvas, true, IsSelfDrawingNode() && (surfaceHandler_->GetBuffer() != nullptr));
+        property, canvas, true, HasSurfaceBuffer() && (surfaceHandler_->GetBuffer() != nullptr));
 #else
     RSPropertiesPainter::DrawBackground(property, canvas);
 #endif
@@ -861,6 +867,7 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextClipRegion>(GetId(), clipRegion);
     SendCommandFromRT(command, GetId());
 }
+
 void RSSurfaceRenderNode::SetBootAnimation(bool isBootAnimation)
 {
     ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 ", isBootAnimation:%{public}d",
@@ -3034,6 +3041,11 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
         }
     }
     return isNodeSingleFrameComposer_ || flag;
+}
+
+void RSSurfaceRenderNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid)
+{
+    isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
 }
 
 bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)

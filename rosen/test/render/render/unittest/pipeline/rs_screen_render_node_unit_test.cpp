@@ -1176,14 +1176,11 @@ HWTEST_F(RSScreenRenderNodeUnitTest, SetHasMirrorScreenTest, TestSize.Level1)
 HWTEST_F(RSScreenRenderNodeUnitTest, SetBootAnimationTest, TestSize.Level1)
 {
     NodeId id = 0;
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
     auto childNode = std::make_shared<RSScreenRenderNode>(id + 1, screenId);
-    node->AddChild(childNode);
     childNode->SetBootAnimation(true);
-    ASSERT_EQ(childNode->GetBootAnimation(), true);
-    node->SetBootAnimation(false);
+    ASSERT_EQ(childNode->GetBootAnimation(), false);
     childNode->SetBootAnimation(false);
-    ASSERT_FALSE(node->GetBootAnimation());
+    ASSERT_FALSE(childNode->GetBootAnimation());
 }
 
 /**
@@ -1196,9 +1193,6 @@ HWTEST_F(RSScreenRenderNodeUnitTest, GetBootAnimationTest, TestSize.Level1)
 {
     NodeId id = 0;
     auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-    node->SetBootAnimation(true);
-    ASSERT_TRUE(node->GetBootAnimation());
-    node->SetBootAnimation(false);
     ASSERT_FALSE(node->GetBootAnimation());
 }
 

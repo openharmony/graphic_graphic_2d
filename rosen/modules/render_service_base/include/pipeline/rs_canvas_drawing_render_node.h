@@ -111,7 +111,7 @@ private:
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
-    std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
+    std::unique_ptr<ExtendRecordingCanvas> recordingCanvas_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     std::mutex imageMutex_;
     std::mutex taskMutex_;

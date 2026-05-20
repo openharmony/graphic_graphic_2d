@@ -941,10 +941,44 @@ static void SetNodeOpaque(RSSurfaceRenderNode& node)
  */
 HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_NotLeashWindow, TestSize.Level1)
 {
-    // Not a leash window → early return false
-    auto nonLeashNode = RSTestUtil::CreateSurfaceNode();
-    nonLeashNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*nonLeashNode));
+    // leash window --> app window
+    auto parentNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    auto childNode1 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(childNode1, nullptr);
+    childNode1->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    childNode1->absDrawRect_ = {0, 0, 100, 100};
+    parentNode->AddChild(childNode1);
+    parentNode->GenerateFullChildrenList();
+    auto result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
+
+    // leash window ---> (app window, default surface) --> rootNode
+    auto childNode2 = RSTestUtil::CreateSurfaceNode();
+    childNode2->absDrawRect_ = {0, 0, 50, 50};
+    parentNode->AddChild(childNode2);
+    parentNode->GenerateFullChildrenList();
+    NodeId nodeId = 200;
+    auto rootChildNode = std::make_shared<RSRootRenderNode>(nodeId);
+    childNode1->AddChild(rootChildNode);
+    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
+
+    // leash window ---> (app window, default surface) --> rootNode --> canvasNode
+    nodeId = 300;
+    auto canvasChildNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    rootChildNode->AddChild(canvasChildNode);
+    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
+
+    // has filter and transparent
+    parentNode->childHasVisibleFilter_ = true;
+    childNode2->absDrawRect_ = {0, 0, 200, 200};
+    childNode2->abilityBgAlpha_ = 0;
+    childNode2->SetGlobalAlpha(0);
+    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, true);
 }
 
 /**

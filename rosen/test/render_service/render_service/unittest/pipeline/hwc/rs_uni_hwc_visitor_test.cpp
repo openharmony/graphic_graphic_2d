@@ -3397,7 +3397,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRect_005, Function | SmallTest | 
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
     canvasNode->InitRenderParams();
     RRect rect({0, 10, 20, 30}, 1.f, 1.f);
-    canvasNode->renderProperties_.clipRRect_ = rect;
+    canvasNode->renderProperties_.clipRRect_ = std::make_unique<RRect>(rect);
     Drawing::Matrix canvasNodeMatrix;
     canvasNodeMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
     canvasNode->renderProperties_.boundsGeo_->ConcatMatrix(canvasNodeMatrix);

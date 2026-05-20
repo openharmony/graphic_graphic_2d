@@ -712,6 +712,19 @@ void RSScreenRenderNode::SetLogicalCameraRotationCorrection(ScreenRotation logic
     }
 }
 
+void RSScreenRenderNode::SetBootAnimation(bool isBootAnimation)
+{
+    isBootAnimation_ = isBootAnimation;
+    if (isBootAnimation) {
+        SetContainBootAnimation(true);
+    }
+}
+
+bool RSScreenRenderNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
+}
+
 void RSScreenRenderNode::UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level)
 {
     headroomCounts_[status][level]++;

@@ -3397,5 +3397,86 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetHdrForceHwcEnabled_WithParams, TestSize.Lev
     surfaceNode->SetHdrForceHwcEnabled(false);
     EXPECT_FALSE(surfaceNode->IsHdrForceHwcEnabled());
 }
+
+/**
+ * @tc.name: SurfaceNodeSetNewOnTreeTest
+ * @tc.desc: Verify SetNewOnTree and IsNewOnTree work correctly in RSSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSetNewOnTreeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetNewOnTree(true);
+    ASSERT_TRUE(node->IsNewOnTree());
+
+    node->SetNewOnTree(false);
+    ASSERT_FALSE(node->IsNewOnTree());
+
+    node->SetClean();
+    ASSERT_FALSE(node->IsNewOnTree());
+}
+
+/**
+ * @tc.name: SurfaceNodeHasSurfaceBufferTest
+ * @tc.desc: Verify HasSurfaceBuffer and SetHasSurfaceBuffer work correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeHasSurfaceBufferTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetHasSurfaceBuffer(true);
+    ASSERT_TRUE(node->HasSurfaceBuffer());
+
+    node->SetHasSurfaceBuffer(false);
+    ASSERT_FALSE(node->HasSurfaceBuffer());
+}
+
+/**
+ * @tc.name: SurfaceNodeSingleFrameComposerTest
+ * @tc.desc: Verify MarkNodeSingleFrameComposer and GetSingleFrameComposer work correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSingleFrameComposerTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_FALSE(node->GetNodeIsSingleFrameComposer());
+
+    node->MarkNodeSingleFrameComposer(true, getpid());
+    ASSERT_TRUE(node->GetNodeIsSingleFrameComposer());
+
+    auto composer = node->GetSingleFrameComposer();
+    ASSERT_NE(composer, nullptr);
+
+    node->MarkNodeSingleFrameComposer(false);
+    ASSERT_FALSE(node->GetNodeIsSingleFrameComposer());
+}
+
+/**
+ * @tc.name: SurfaceNodeSelfAddedForSubSurfaceTest
+ * @tc.desc: Verify isSelfAddedForSubSurface_ flag is correctly set and used
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSelfAddedForSubSurfaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_FALSE(node->isSelfAddedForSubSurface_);
+    node->isSelfAddedForSubSurface_ = true;
+    ASSERT_TRUE(node->isSelfAddedForSubSurface_);
+
+    node->isSelfAddedForSubSurface_ = false;
+    ASSERT_FALSE(node->isSelfAddedForSubSurface_);
+}
 } // namespace Rosen
 } // namespace OHOS

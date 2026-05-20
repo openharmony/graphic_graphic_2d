@@ -178,10 +178,7 @@ public:
     {
         return nodeId_;
     }
-    inline RSRenderNodeType GetNodeType() const
-    {
-        return nodeType_;
-    }
+    RSRenderNodeType GetNodeType() const;
     virtual std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const
     {
         return nullptr;

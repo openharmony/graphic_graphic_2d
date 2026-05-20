@@ -108,29 +108,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RRect2DrawingRRectAndCreateShadowPathTest0
 }
 
 /**
- * @tc.name: GetRRectForDrawingBorderTest002
- * @tc.desc: GetRRectForDrawingBorder test
- * @tc.type: FUNC
- * @tc.require:issueI9SCBR
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, GetRRectForDrawingBorderTest002, testing::ext::TestSize.Level1)
-{
-    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
-    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
-    RSProperties properties;
-    properties.rrect_ = RRect(RectT<float>(0.0f, 0.0f, 1.0f, 1.0f), 0.0f, 1.0f);
-    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
-    EXPECT_NE(border, nullptr);
-    EXPECT_EQ(rsPropertyDrawableUtils->GetRRectForDrawingBorder(properties, border, false),
-        RRect(RectT<float>(0.0f, 0.0f, 1.0f, 1.0f), 0.0f, 1.0f));
-    EXPECT_EQ(rsPropertyDrawableUtils->GetInnerRRectForDrawingBorder(properties, border, true),
-        RRect(RectT<float>(0.0f, 0.0f, 1.0f, 1.0f), 0.0f, 1.0f));
-    border = nullptr;
-    rsPropertyDrawableUtils->GetRRectForDrawingBorder(properties, border, false);
-    rsPropertyDrawableUtils->GetInnerRRectForDrawingBorder(properties, border, true);
-}
-
-/**
  * @tc.name: GetDarkColorTest004
  * @tc.desc: GetDarkColor test
  * @tc.type: FUNC

@@ -1276,7 +1276,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ClipHoleForSurfaceNode001, TestSize.Level1)
     visitor.ClipHoleForSurfaceNode(node);
     EXPECT_TRUE(!visitor.surfaceCallbacks_.empty());
 
-    properties.decoration_ = std::make_optional<Decoration>();
+    properties.decoration_ = std::make_unique<Decoration>();
     properties.decoration_->backgroundColor_ = RgbPalette::Transparent();
     visitor.ClipHoleForSurfaceNode(node);
     EXPECT_TRUE(!visitor.surfaceCallbacks_.empty());
