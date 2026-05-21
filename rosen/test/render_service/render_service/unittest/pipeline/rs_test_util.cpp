@@ -39,6 +39,9 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode(const RSSurfa
     csurf = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     rsSurfaceRenderNode->InitRenderParams();
+    if (rsSurfaceRenderNode->renderDrawable_ != nullptr) {
+        rsSurfaceRenderNode->renderDrawable_->renderParams_->renderNodeType_ = rsSurfaceRenderNode->GetType();
+    }
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
     if (uniRenderThread_ == nullptr) {
         uniRenderThread_ = std::make_shared<RSUniRenderThread>();
