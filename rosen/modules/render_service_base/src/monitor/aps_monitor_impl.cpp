@@ -48,13 +48,14 @@ ApsMonitorImpl& ApsMonitorImpl::GetInstance()
     return apsMonitorImpl;
 }
 
-void ApsMonitorImpl::SetApsSurfaceBoundChange(std::string height, std::string width, std::string id)
+void ApsMonitorImpl::SetApsSurfaceBoundChange(std::string name, std::string height, std::string width, std::string id)
 {
     LoadApsFuncsOnce();
     if (sendApsEventFunc_ == nullptr) {
         return;
     }
     std::unordered_map<std::string, std::string> eventData;
+    eventData.emplace("name", std::move(name));
     eventData.emplace("height", std::move(height));
     eventData.emplace("width", std::move(width));
     eventData.emplace("id", std::move(id));

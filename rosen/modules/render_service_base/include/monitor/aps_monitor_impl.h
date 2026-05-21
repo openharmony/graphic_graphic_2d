@@ -25,7 +25,7 @@ namespace Rosen {
 
 class ApsMonitorImpl {
 public:
-    void SetApsSurfaceBoundChange(std::string height, std::string width, std::string id);
+    void SetApsSurfaceBoundChange(std::string name, std::string height, std::string width, std::string id);
     void SetApsSurfaceDestroyedInfo(std::string id);
     void SetApsSurfaceNodeTreeChange(bool onTree, std::string name);
     static ApsMonitorImpl& GetInstance();

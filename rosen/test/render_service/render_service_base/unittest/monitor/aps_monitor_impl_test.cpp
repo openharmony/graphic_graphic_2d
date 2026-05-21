@@ -48,13 +48,13 @@ HWTEST_F(ApsMonitorImplTest, SetApsSurfaceBoundChangeTest, TestSize.Level1)
 {
     monitor_->isApsFuncsAvailable_ = true;
     monitor_->isApsFuncsLoad_ = false;
-    monitor_->SetApsSurfaceBoundChange("1", "2", "3");
+    monitor_->SetApsSurfaceBoundChange("name", "1", "2", "3");
     ASSERT_EQ(monitor_->sendApsEventFunc_, nullptr);
  
     monitor_->isApsFuncsAvailable_ = false;
     monitor_->isApsFuncsLoad_ = true;
     monitor_->sendApsEventFunc_ = nullptr;
-    monitor_->SetApsSurfaceBoundChange("1", "2", "3");
+    monitor_->SetApsSurfaceBoundChange("name", "1", "2", "3");
     ASSERT_EQ(monitor_->sendApsEventFunc_, nullptr);
 }
 

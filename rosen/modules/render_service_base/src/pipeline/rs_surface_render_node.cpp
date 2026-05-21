@@ -3001,8 +3001,8 @@ void RSSurfaceRenderNode::SendSurfaceNodeBoundChange()
         prevSelfDrawHeight_ = properties.GetBoundHeight();
         prevSelfDrawWidth_ = properties.GetBoundsWidth();
         std::shared_ptr<ApsMonitorImpl> apsMonitor_ = std::make_shared<ApsMonitorImpl>();
-        apsMonitor_->SetApsSurfaceBoundChange(std::to_string(prevSelfDrawHeight_), std::to_string(prevSelfDrawWidth_),
-            std::to_string((uint64_t)GetId()));
+        apsMonitor_->SetApsSurfaceBoundChange(name_, std::to_string(prevSelfDrawHeight_),
+            std::to_string(prevSelfDrawWidth_), std::to_string((uint64_t)GetId()));
     }
 }
 #endif
