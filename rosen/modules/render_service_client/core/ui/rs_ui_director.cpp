@@ -567,8 +567,9 @@ bool RSUIDirector::HasUIRunningAnimation()
 
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t instanceId, bool useMultiInstance)
 {
-    if (!useMultiInstance) {
+    if (!useMultiInstance || !RSSystemProperties::GetUniRenderEnabled()) {
         std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex_);
+        ROSEN_LOGI("RSUIDirector::SetUITaskRunner:%{public}d", instanceId);
         instanceId_ = instanceId;
         uiTaskRunners_[this] = uiTaskRunner;
         if (!isHgmConfigChangeCallbackReg_) {
@@ -731,17 +732,28 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
     static uint32_t messageId = 0;
     std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> instanceCmdMap;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> uiContextCmdMap;
-    for (auto& [id, _, cmd] : cmds->GetPayload()) {
-        uint64_t token = cmd->GetToken();
-        if (token == 0) {
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        for (auto& [id, _, cmd] : cmds->GetPayload()) {
             NodeId realId = (id == 0 && cmd) ? cmd->GetNodeId() : id;
             int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
             if (instanceId == INSTANCE_ID_UNDEFINED) {
                 instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
             }
             instanceCmdMap[instanceId].push_back(std::move(cmd));
-        } else {
-            uiContextCmdMap[token].push_back(std::move(cmd));
+        }
+    } else {
+        for (auto& [id, _, cmd] : cmds->GetPayload()) {
+            uint64_t token = cmd->GetToken();
+            if (token == 0) {
+                NodeId realId = (id == 0 && cmd) ? cmd->GetNodeId() : id;
+                int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
+                if (instanceId == INSTANCE_ID_UNDEFINED) {
+                    instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
+                }
+                instanceCmdMap[instanceId].push_back(std::move(cmd));
+            } else {
+                uiContextCmdMap[token].push_back(std::move(cmd));
+            }
         }
     }
     auto msgId = ++messageId;
@@ -835,7 +847,7 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t toke
 
 void RSUIDirector::PostFrameRateTask(const std::function<void()>& task, bool useMultiInstance)
 {
-    if (!useMultiInstance) {
+    if (!useMultiInstance || !RSSystemProperties::GetUniRenderEnabled()) {
         PostTask(task);
         return;
     }
