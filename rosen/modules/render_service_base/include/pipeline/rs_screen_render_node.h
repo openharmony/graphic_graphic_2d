@@ -526,6 +526,7 @@ public:
     void SetScreenDirtyFlag(bool flag) { screenDirtyFlag_ = flag; }
     bool GetAndResetScreenDirtyFlag() { return std::exchange(screenDirtyFlag_, false); }
     void SetVirtualSurfaceChanged(bool isChanged);
+    void SetActiveRectChanged(bool isChanged);
 
     using HeadroomMap = std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
     const HeadroomMap& GetHeadroomMap() const {

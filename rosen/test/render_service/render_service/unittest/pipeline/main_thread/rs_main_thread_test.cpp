@@ -4660,6 +4660,28 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HandleScreenPropertyRefreshOneFrameTest
+ * @tc.desc: Test HandleScreenPropertyRefreshOneFrame
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, HandleScreenPropertyRefreshOneFrameTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+    ScreenId screenId = 0;
+
+    auto node = std::make_shared<RSScreenRenderNode>(GenerateUniqueNodeIdForRS(),
+        screenId, mainThread->context_->weak_from_this());
+    ASSERT_NE(node, nullptr);
+    nodeMap.RegisterRenderNode(node);
+    mainThread->context_->GetGlobalRootRenderNode()->AddChild(node);
+
+    mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::ACTIVE_RECT_OPTION);
+    mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::PRODUCER_SURFACE);
+}
+
+/**
  * @tc.name: UpdateFocusNodeId001
  * @tc.desc: test UpdateFocusNodeId while focusNodeId don't change
  * @tc.type: FUNC

@@ -1093,6 +1093,28 @@ HWTEST_F(RSScreenRenderNodeTest, SetVirtualSurfaceChangedTest, TestSize.Level1)
     screenNode->SetVirtualSurfaceChanged(true);
 }
 
+/**
+ * @tc.name: SetActiveRectChangedTest
+ * @tc.desc: test results of SetActiveRectChanged
+ * @tc.type: FUNC
+ * @tc.require: issuesICQ74B
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetActiveRectChangedTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->SetActiveRectChanged(true);
+
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
+    screenNode->stagingRenderParams_->needSync_ = false;
+    screenNode->SetActiveRectChanged(true);
+
+    screenNode->stagingRenderParams_->needSync_ = true;
+    screenNode->SetActiveRectChanged(true);
+}
+
 void RSScreenRenderNodeTest::CheckWithStatusLevel(const RSScreenRenderNode::HeadroomMap &map,
     HdrStatus status, uint32_t level)
 {

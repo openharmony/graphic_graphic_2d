@@ -226,6 +226,9 @@ public:
     void SetVirtualSurfaceChanged(bool isChanged) { isVirtualSurfaceChanged_ = isChanged; }
     bool IsVirtualSurfaceChanged() const { return isVirtualSurfaceChanged_; }
 
+    void SetActiveRectChanged(bool isChanged) { isActiveRectChanged_ = isChanged; }
+    bool IsActiveRectChanged() const { return isActiveRectChanged_; }
+
     void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod) { isEqualVsyncPeriod_ = isEqualVsyncPeriod; }
     bool IsEqualVsyncPeriod() const { return isEqualVsyncPeriod_; }
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
@@ -266,6 +269,7 @@ private:
     bool isAccumulatedHdrStatusChanged_ = false;
     bool isAccumulatedSpecialLayerStatusChanged_ = false;
     bool isVirtualSurfaceChanged_ = false;
+    bool isActiveRectChanged_ = false;
     bool isEqualVsyncPeriod_ = true;
     std::unordered_set<NodeId> lastBlackList_ = {};
     bool lastSecExemption_ = false;
