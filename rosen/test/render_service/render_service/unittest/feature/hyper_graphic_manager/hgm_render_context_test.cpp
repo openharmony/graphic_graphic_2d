@@ -172,21 +172,6 @@ HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: NotifyRpHgmFrameRateTest001
- * @tc.desc: test HgmRenderContext.NotifyRpHgmFrameRate
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest001, TestSize.Level1)
-{
-    HgmRenderContext hgmRenderContext(nullptr);
-    hgmRenderContext.rsCurrRange_ = {60, 90, 90};
-    hgmRenderContext.hgmAbilityEnabled_ = false;
- 
-    hgmRenderContext.hgmAbilityEnabled_ = true;
-}
-
-/**
  * @tc.name: HandleAdaptiveVsyncConditionTest
  * @tc.desc: test HgmRenderContext.HandleAdaptiveVsyncCondition
  * @tc.type: FUNC

@@ -4628,6 +4628,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
         renderService_.vsyncManager_->GetVsyncManagerAgent());
     ASSERT_NE(connection, nullptr);
 
+    HgmCore::Instance().hgmAbilityEnabled_ = true;
     auto renderProcessManagerAgent = connection->renderProcessManagerAgent_;
     auto hgmContext = connection->hgmContext_;
     auto screenManagerAgent = connection->screenManagerAgent_;

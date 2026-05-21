@@ -265,6 +265,18 @@ HWTEST_F(HgmHardwareUtilsTest, SwitchRefreshRateTest, TestSize.Level1)
         rsScreen->property_.SetPowerStatus(ScreenPowerStatus::POWER_STATUS_SUSPEND);
         hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
     }
+    // test when hgmCore_.GetFrameRateMgr() is nullptr
+    hgmCore.SetScreenManager(screenManager.GetRefPtr());
+    EXPECT_EQ(pipelineParam.pendingScreenRefreshRate, 60);
+    auto oriFrameRateMgr = hgmCore.GetFrameRateMgr();
+    hgmCore.hgmFrameRateMgr_ = nullptr;
+    ASSERT_NE(screen, nullptr);
+    auto preFlag = screen->GetSelfOwnedScreenFlag();
+    screen->SetSelfOwnedScreenFlag(false);
+    hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
+    hgmCore.hgmFrameRateMgr_ = oriFrameRateMgr;
+    screen->SetSelfOwnedScreenFlag(preFlag);
+
     hgmCore.SetScreenManager(orgScmFromHgm);
 }
 
