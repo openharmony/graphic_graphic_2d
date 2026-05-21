@@ -100,7 +100,8 @@ if (is_arkui_x) {
     } else if (target_os == "ios") {
       defines = [
         "IOS_PLATFORM",
-        "ROSEN_IOS"
+        "ROSEN_IOS",
+        "ROSEN_ARKUI_X",
       ]
     }
 
