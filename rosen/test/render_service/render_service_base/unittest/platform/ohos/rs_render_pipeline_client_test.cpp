@@ -452,6 +452,7 @@ HWTEST_F(RSPipelineClientTest, ClearUifirstCacheTest, TestSize.Level1)
     rsClient->ClearUifirstCache(nodeId);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: TaskSurfaceCaptureWithAllWindows Test
  * @tc.desc: TaskSurfaceCaptureWithAllWindows when screen frozen
@@ -816,5 +817,6 @@ HWTEST_F(RSPipelineClientTest, UpdateFrameStabilityDetection002, TestSize.Level1
 
     RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS
