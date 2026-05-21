@@ -409,13 +409,13 @@ void RSProfiler::DumpNodePropertiesDecoration(const RSProperties& properties, Js
             properties.GetCornerRadius().z_, properties.GetCornerRadius().w_ };
     }
     const auto& propPixelStretch = properties.GetPixelStretch();
-    if (propPixelStretch.has_value()) {
+    if (!propPixelStretch.IsZero()) {
         auto& pixelStretch = out["PixelStretch"];
         pixelStretch.PushObject();
-        pixelStretch["left"] = propPixelStretch->x_;
-        pixelStretch["top"] = propPixelStretch->y_;
-        pixelStretch["right"] = propPixelStretch->z_;
-        pixelStretch["bottom"] = propPixelStretch->w_;
+        pixelStretch["left"] = propPixelStretch.x_;
+        pixelStretch["top"] = propPixelStretch.y_;
+        pixelStretch["right"] = propPixelStretch.z_;
+        pixelStretch["bottom"] = propPixelStretch.w_;
         pixelStretch.PopObject();
     }
     if (!ROSEN_EQ(properties.GetAlpha(), 1.f)) {
@@ -498,13 +498,11 @@ void RSProfiler::DumpNodePropertiesEffects(const RSProperties& properties, JsonW
     if (!ROSEN_EQ(properties.GetLightUpEffect(), 1.f)) {
         out["LightUpEffect"] = properties.GetLightUpEffect();
     }
-    auto dynamicLightUpRate = properties.GetDynamicLightUpRate();
-    if (dynamicLightUpRate.has_value() && !ROSEN_EQ(*dynamicLightUpRate, 0.f)) {
-        out["DynamicLightUpRate"] = *dynamicLightUpRate;
+    if (!ROSEN_EQ(properties.GetDynamicLightUpRate(), 0.f)) {
+        out["DynamicLightUpRate"] = properties.GetDynamicLightUpRate();
     }
-    auto dynamicLightUpDegree = properties.GetDynamicLightUpDegree();
-    if (dynamicLightUpDegree.has_value() && !ROSEN_EQ(*dynamicLightUpDegree, 0.f)) {
-        out["DynamicLightUpDegree"] = *dynamicLightUpDegree;
+    if (!ROSEN_EQ(properties.GetDynamicLightUpDegree(), 0.f)) {
+        out["DynamicLightUpDegree"] = properties.GetDynamicLightUpDegree();
     }
 }
 

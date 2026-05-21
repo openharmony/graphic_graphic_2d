@@ -538,11 +538,12 @@ bool RSUifirstManager::CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSS
     if (!GetDrawableDirtyRect(node, surfaceDirtyRect)) {
         return true;
     }
-    RS_TRACE_NAME_FMT("uifirstFrameDirtyRegion %" PRIu64", surfaceDirtyRegion[%d %d %d %d]", node->GetId(),
-        surfaceDirtyRect.left_, surfaceDirtyRect.top_, surfaceDirtyRect.width_, surfaceDirtyRect.height_);
     Occlusion::Region surfaceDirtyRegion { { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
         surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() } };
     Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
+    RS_TRACE_NAME_FMT("curSurface name:%s, id:%" PRIu64 ", dirtyRegion:%s, visibleRegion:%s, intersectRegion:%s",
+        node->GetName().c_str(), node->GetId(), surfaceDirtyRegion.GetRegionInfo().c_str(),
+        visibleRegion.GetRegionInfo().c_str(), surfaceVisibleDirtyRegion.GetRegionInfo().c_str());
     if (surfaceVisibleDirtyRegion.IsEmpty()) {
         RS_OPTIONAL_TRACE_NAME_FMT("curSurface name:%s id:%" PRIu64" visibleDirtyRegion is IsEmpty",
             node->GetName().c_str(), node->GetId());

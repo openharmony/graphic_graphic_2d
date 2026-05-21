@@ -921,7 +921,7 @@ HWTEST_F(RSRenderNodeUnitTest4, ApplyModifiersProcessUnionInfoAfterApplyModifier
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -937,7 +937,7 @@ HWTEST_F(RSRenderNodeUnitTest4, ApplyModifiersProcessUnionInfoAfterApplyModifier
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**

@@ -558,22 +558,22 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode005, TestSize.Level1)
 
     rsRenderThreadVisitor.isOpDropped_ = false;
     auto& properties = node.GetMutableRenderProperties();
-    properties.GetEffect().isSpherizeValid_ = true;
+    properties.SetSpherize(1.0f);
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(properties.GetEffect().isSpherizeValid_);
+    EXPECT_TRUE(properties.IsSpherizeValid());
 
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(properties.GetEffect().isSpherizeValid_);
+    EXPECT_TRUE(properties.IsSpherizeValid());
 
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(properties.GetEffect().isSpherizeValid_);
+    EXPECT_TRUE(properties.IsSpherizeValid());
 
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(properties.GetEffect().isSpherizeValid_);
+    EXPECT_TRUE(properties.IsSpherizeValid());
 
-    properties.GetEffect().isSpherizeValid_ = false;
+    properties.SetSpherize(0.0f);
     rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
-    EXPECT_TRUE(!properties.GetEffect().isSpherizeValid_);
+    EXPECT_TRUE(!properties.IsSpherizeValid());
 }
 
 /**

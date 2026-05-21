@@ -115,8 +115,9 @@ void RSVsyncRateReduceManager::FrameDurationEnd()
     if (!vRateConditionQualified_.load()) {
         return;
     }
-    if (oneFramePeriod_ > 0) {
-        float val = static_cast<float>(Now() - curTime_) / static_cast<float>(oneFramePeriod_);
+    int64_t framePeriod = oneFramePeriod_.load();
+    if (framePeriod > 0) {
+        float val = static_cast<float>(Now() - curTime_) / static_cast<float>(framePeriod);
         EnqueueFrameDuration(val);
     }
     curTime_ = 0;
@@ -463,7 +464,7 @@ void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
     if (!vRateConditionQualified_) {
         return;
     }
-    oneFramePeriod_ = PERIOD_CHECK_THRESHOLD / static_cast<int64_t>(rsRefreshRate);
+    oneFramePeriod_.store(PERIOD_CHECK_THRESHOLD / static_cast<int64_t>(rsRefreshRate));
     rsRefreshRate_ = rsRefreshRate;
 }
 
