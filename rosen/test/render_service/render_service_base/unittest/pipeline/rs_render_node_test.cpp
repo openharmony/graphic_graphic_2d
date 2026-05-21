@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 
 #include "animation/rs_render_curve_animation.h"
-#include "command/rs_animation_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -42,7 +41,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
-#include "transaction/rs_transaction_handler_manager.h"
 #include "parameters.h"
 
 using namespace testing;
@@ -59,11 +57,6 @@ const std::string OUT_STR2 =
     ", rrect[-inf -inf -inf -inf rx:0.0 ry:0.0]"
     ", NodeColorSpace: 4, "
     "RSUIContextToken: NO_RSUIContext, "
-    "GetBootAnimation: true, isContainBootAnimation: true, "
-    "isNewOnTree: 0, isSelfDrawingNode: 0, selfAddForSubSurfaceCnt: 0, "
-    "visitedForSubSurfaceCnt: 0, isNodeSingleFrameComposer: 0, singleFrameComposer: 0, "
-    "appPid: 0, renderNodeSaveCount: [-1,-1,-1], globalAlpha: 1.000000, isPurgeable: 0, "
-    "isAccessibilityConfigChanged: 0, drawableVecNeedClear: 0, subSurfaceCnt: 0, nodeName: [], "
     "isNodeDirty: 1, isPropertyDirty: true, "
     "isSubTreeDirty: true, IsPureContainer: true, opincRootCacheNull: true, layerPartCacheNull: true "
     "Children list needs update, current count: 0 expected count: 0, "
@@ -211,8 +204,8 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest001, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, AddModifierTest002, TestSize.Level1)
 {
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    SimpleDrawCmdListPtr drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
@@ -369,17 +362,17 @@ HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     node.SetBootAnimation(true);
-    ASSERT_EQ(node.GetBootAnimation(), true);
+    ASSERT_EQ(node.GetBootAnimation(), false);
     node.SetBootAnimation(false);
     ASSERT_FALSE(node.GetBootAnimation());
 
     RSDisplayNodeConfig config;
     NodeId nodeId = 2;
     auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
-    auto rsRenderNode = std::static_pointer_cast<RSRenderNode>(logicalDisplayNode);
-    auto tempRenderNode = std::make_shared<RSRenderNode>(1);
-    rsRenderNode->parent_ = tempRenderNode;
-    rsRenderNode->SetBootAnimation(false);
+    logicalDisplayNode->SetBootAnimation(true);
+    ASSERT_EQ(logicalDisplayNode->GetBootAnimation(), true);
+    logicalDisplayNode->SetBootAnimation(false);
+    ASSERT_FALSE(logicalDisplayNode->GetBootAnimation());
 }
 
 /**
@@ -736,26 +729,25 @@ HWTEST_F(RSRenderNodeTest, GenerateFullChildrenListTest, TestSize.Level1)
     node->GenerateFullChildrenList();
     EXPECT_TRUE(node->children_.empty());
     std::shared_ptr<RSRenderNode> sNode1 = std::make_shared<RSRenderNode>(id, context);
-    sNode1->isBootAnimation_ = false;
     wNode1 = sNode1;
     node->children_.emplace_back(wNode1); // wNode1 isn't nullptr
 
-    node->isContainBootAnimation_ = true;
+    node->SetContainBootAnimation(true);
     node->GenerateFullChildrenList();
     EXPECT_TRUE(!node->children_.empty());
 
-    node->isContainBootAnimation_ = false;
+    node->SetContainBootAnimation(false);
     node->GenerateFullChildrenList();
     EXPECT_TRUE(!node->children_.empty());
 
     // disappearingChildren_ isn't empty
     node->disappearingChildren_.emplace_back(sNode1, id);
     node->GenerateFullChildrenList();
-    EXPECT_FALSE(node->isContainBootAnimation_);
+    EXPECT_FALSE(node->IsContainBootAnimation());
 
-    node->isContainBootAnimation_ = true;
+    node->SetContainBootAnimation(true);
     node->GenerateFullChildrenList();
-    EXPECT_TRUE(node->isContainBootAnimation_);
+    EXPECT_FALSE(node->IsContainBootAnimation());
 }
 
 /**
@@ -1018,18 +1010,18 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest001, TestSize.Level1)
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
     leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     rootNode->AddChild(leashNode);
-    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
-    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
+    rootNode->UpdateSubSurfaceCnt(leashNode->GetSubSurfaceCnt());
+    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 1);
 
     auto selfDrawNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
     selfDrawNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     leashNode->AddChild(selfDrawNode);
-    leashNode->UpdateSubSurfaceCnt(selfDrawNode->subSurfaceCnt_);
-    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
+    leashNode->UpdateSubSurfaceCnt(selfDrawNode->GetSubSurfaceCnt());
+    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 1);
 
     rootNode->RemoveChild(leashNode);
-    rootNode->UpdateSubSurfaceCnt(-leashNode->subSurfaceCnt_);
-    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt);
+    rootNode->UpdateSubSurfaceCnt(-leashNode->GetSubSurfaceCnt());
+    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt);
 }
 
 /**
@@ -1046,25 +1038,25 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest002, TestSize.Level1)
     auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
     leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     rootNode->AddChild(leashNode);
-    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
-    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
+    rootNode->UpdateSubSurfaceCnt(leashNode->GetSubSurfaceCnt());
+    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 1);
 
     auto appNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
     appNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     leashNode->AddChild(appNode);
-    leashNode->UpdateSubSurfaceCnt(appNode->subSurfaceCnt_);
-    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
+    leashNode->UpdateSubSurfaceCnt(appNode->GetSubSurfaceCnt());
+    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 2);
 
     auto antherApp = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 3);
     antherApp->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     appNode->AddChild(antherApp);
-    appNode->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
-    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
+    appNode->UpdateSubSurfaceCnt(antherApp->GetSubSurfaceCnt());
+    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 3);
 
     // loop tree
     antherApp->AddChild(leashNode);
-    antherApp->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
-    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
+    antherApp->UpdateSubSurfaceCnt(antherApp->GetSubSurfaceCnt());
+    EXPECT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 3);
 }
 
 /**
@@ -2220,37 +2212,37 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest003, TestSize.Level1)
     parent->SetChildHasVisibleFilter(false);
     parent->childHasSharedTransition_ = false;
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->subSurfaceCnt_ = 0; // false
+    parent->SetSubSurfaceCnt(0); // false
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(true, isOccluded));
     EXPECT_FALSE(parent->IsSubTreeNeedPrepare(false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->subSurfaceCnt_ = 0; // false
+    parent->SetSubSurfaceCnt(0); // false
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->subSurfaceCnt_ = 1; // true
+    parent->SetSubSurfaceCnt(1); // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->subSurfaceCnt_ = 1; // true
+    parent->SetSubSurfaceCnt(1); // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
 
     parent->childHasSharedTransition_ = true;
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->subSurfaceCnt_ = 0; // false
+    parent->SetSubSurfaceCnt(0); // false
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->subSurfaceCnt_ = 0; // false
+    parent->SetSubSurfaceCnt(0); // false
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = false;
-    parent->subSurfaceCnt_ = 1; // true
+    parent->SetSubSurfaceCnt(1); // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
     parent->isAccumulatedClipFlagChanged_ = true;
-    parent->subSurfaceCnt_ = 1; // true
+    parent->SetSubSurfaceCnt(1); // true
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(true, isOccluded));
     EXPECT_TRUE(parent->IsSubTreeNeedPrepare(false, isOccluded));
 }
@@ -2635,7 +2627,6 @@ HWTEST_F(RSRenderNodeTest, ParentChildRelationshipTest006, TestSize.Level1)
 
     nodeTest->isFullChildrenListValid_ = true;
     nodeTest->disappearingTransitionCount_ = 1;
-    nodeTest->isBootAnimation_ = true;
 
     std::shared_ptr<RSRenderNode> child1 = std::make_shared<RSRenderNode>(1);
     std::shared_ptr<RSRenderNode> child2 = std::make_shared<RSRenderNode>(2);
@@ -3313,8 +3304,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     std::optional<RSShadow> shadow(rsShadow);
     shadow->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
     renderNodeTest->renderProperties_.GetEffect().shadow_ = shadow;
-    RRect rrect;
-    renderNodeTest->renderProperties_.rrect_ = rrect;
     renderNodeTest->UpdateDrawableVecV2();
     EXPECT_GE(renderNodeTest->dirtySlots_.size(), 2);
 }
@@ -4250,8 +4239,8 @@ HWTEST_F(RSRenderNodeTest, ResetAndApplyModifiers001, TestSize.Level1)
     auto node = std::make_shared<MockRSRenderNode>(1);
     EXPECT_CALL(*node, ResetAndApplyModifiers()).Times(1);
     node->needUseCmdlistDrawRegion_ = true;
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    SimpleDrawCmdListPtr drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
@@ -4334,8 +4323,8 @@ HWTEST_F(RSRenderNodeTest, RemoveModifier, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    SimpleDrawCmdListPtr drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
@@ -4358,8 +4347,8 @@ HWTEST_F(RSRenderNodeTest, GetHDRBrightness, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
 
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    SimpleDrawCmdListPtr drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     ModifierId id = 1;
     auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
@@ -4734,67 +4723,257 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams003, TestSize.L
 }
 
 /**
- * @tc.name: SendCommandFromRTWithTokenFound001
- * @tc.desc: SendCommandFromRT when handler for uiContextToken is found
+ * @tc.name: MarkAccessibilityConfigChangedTest
+ * @tc.desc: Verify MarkAccessibilityConfigChanged inserts/removes node from static set
  * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest, SendCommandFromRTWithTokenFound001, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, MarkAccessibilityConfigChangedTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
     ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
 
-    constexpr uint64_t token = 99999;
-    auto handler = std::make_shared<RSTransactionHandler>();
-    ASSERT_NE(handler, nullptr);
-    RSTransactionHandlerManager::Instance().Register(token, handler);
+    node->MarkAccessibilityConfigChanged(true);
+    ASSERT_TRUE(node->IsAccessibilityConfigChangedNode());
 
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(DEFAULT_NODE_ID, 1, 1, AnimationCallbackEvent::FINISHED);
-    node->SendCommandFromRT(command, DEFAULT_NODE_ID, token);
-
-    RSTransactionHandlerManager::Instance().Unregister(token);
-    EXPECT_TRUE(true);
+    node->MarkAccessibilityConfigChanged(false);
+    ASSERT_FALSE(node->IsAccessibilityConfigChangedNode());
 }
 
 /**
- * @tc.name: SendCommandFromRTWithTokenNotFoundButFallback001
- * @tc.desc: SendCommandFromRT when token not found but GetAny returns fallback handler
+ * @tc.name: SetDrawableVecNeedClearTest
+ * @tc.desc: Verify SetDrawableVecNeedClear sets bit in drawableVecStatus correctly
  * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest, SendCommandFromRTWithTokenNotFoundButFallback001, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, SetDrawableVecNeedClearTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
     ASSERT_NE(node, nullptr);
 
-    constexpr uint64_t registeredToken = 88888;
-    constexpr uint64_t unknownToken = 77777;
-    auto handler = std::make_shared<RSTransactionHandler>();
-    ASSERT_NE(handler, nullptr);
-    RSTransactionHandlerManager::Instance().Register(registeredToken, handler);
+    node->SetDrawableVecNeedClear(true);
+    ASSERT_TRUE(node->IsDrawableVecNeedClear());
 
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(DEFAULT_NODE_ID, 1, 1, AnimationCallbackEvent::FINISHED);
-    node->SendCommandFromRT(command, DEFAULT_NODE_ID, unknownToken);
-
-    RSTransactionHandlerManager::Instance().Unregister(registeredToken);
-    EXPECT_TRUE(true);
+    node->SetDrawableVecNeedClear(false);
+    ASSERT_FALSE(node->IsDrawableVecNeedClear());
 }
 
 /**
- * @tc.name: SendCommandFromRTWithNoHandlerFound001
- * @tc.desc: SendCommandFromRT when neither Get nor GetAny finds a handler
+ * @tc.name: GetGlobalAlphaFromStagingParamsTest
+ * @tc.desc: Verify GetGlobalAlpha reads from stagingRenderParams_
  * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSRenderNodeTest, SendCommandFromRTWithNoHandlerFound001, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, GetGlobalAlphaFromStagingParamsTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    constexpr float alpha = 0.5f;
+    node->stagingRenderParams_->SetGlobalAlpha(alpha);
+    ASSERT_FLOAT_EQ(node->GetGlobalAlpha(), alpha);
+}
+
+/**
+ * @tc.name: GetGlobalAlphaDefaultValueTest
+ * @tc.desc: Verify GetGlobalAlpha returns default value when stagingRenderParams_ is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetGlobalAlphaDefaultValueTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
     ASSERT_NE(node, nullptr);
 
-    constexpr uint64_t unknownToken = 66666;
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSAnimationCallback>(DEFAULT_NODE_ID, 1, 1, AnimationCallbackEvent::FINISHED);
-    node->SendCommandFromRT(command, DEFAULT_NODE_ID, unknownToken);
-    EXPECT_TRUE(true);
+    ASSERT_EQ(node->GetGlobalAlpha(), 1.0f);
+}
+
+/**
+ * @tc.name: SetGlobalAlphaInitParamsTest
+ * @tc.desc: Verify SetGlobalAlpha creates stagingRenderParams_ when it's null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetGlobalAlphaInitParamsTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->stagingRenderParams_, nullptr);
+
+    constexpr float alpha = 0.8f;
+    node->SetGlobalAlpha(alpha);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    ASSERT_FLOAT_EQ(node->GetGlobalAlpha(), alpha);
+}
+
+/**
+ * @tc.name: SetSubSurfaceCntEraseWhenZeroTest
+ * @tc.desc: Verify SetSubSurfaceCnt erases entry when cnt is 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetSubSurfaceCntEraseWhenZeroTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+
+    node->SetSubSurfaceCnt(5);
+    ASSERT_EQ(node->GetSubSurfaceCnt(), 5);
+
+    node->SetSubSurfaceCnt(0);
+    ASSERT_EQ(node->GetSubSurfaceCnt(), 0);
+}
+
+/**
+ * @tc.name: SetSubSurfaceCntNonZeroTest
+ * @tc.desc: Verify SetSubSurfaceCnt stores non-zero value correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetSubSurfaceCntNonZeroTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+
+    node->SetSubSurfaceCnt(10);
+    ASSERT_EQ(node->GetSubSurfaceCnt(), 10);
+
+    node->SetSubSurfaceCnt(3);
+    ASSERT_EQ(node->GetSubSurfaceCnt(), 3);
+}
+
+/**
+ * @tc.name: SetGlobalAlphaSameValueTest
+ * @tc.desc: Verify SetGlobalAlpha returns early when alpha value is unchanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetGlobalAlphaSameValueTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+
+    constexpr float alpha = 0.5f;
+    node->SetGlobalAlpha(alpha);
+    ASSERT_FLOAT_EQ(node->GetGlobalAlpha(), alpha);
+
+    node->SetGlobalAlpha(alpha);
+    ASSERT_FLOAT_EQ(node->GetGlobalAlpha(), alpha);
+}
+
+/**
+ * @tc.name: SetContainBootAnimationScreenNodeNoParentTest
+ * @tc.desc: Verify SetContainBootAnimation for SCREEN_NODE with no parent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetContainBootAnimationScreenNodeNoParentTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+    node->stagingRenderParams_->SetNodeType(RSRenderNodeType::SCREEN_NODE);
+
+    node->SetContainBootAnimation(true);
+    ASSERT_TRUE(node->IsContainBootAnimation());
+
+    node->SetContainBootAnimation(false);
+    ASSERT_FALSE(node->IsContainBootAnimation());
+}
+
+/**
+ * @tc.name: SetNodeNameWithContextTest
+ * @tc.desc: Verify SetNodeName handles non-empty string with valid context
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetNodeNameWithContextTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID, context);
+    ASSERT_NE(node, nullptr);
+
+    node->SetNodeName("TestNode");
+    ASSERT_EQ(node->GetNodeName(), "TestNode");
+}
+
+/**
+ * @tc.name: SetNodeNameWithoutContextTest
+ * @tc.desc: Verify SetNodeName handles non-empty string when context is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetNodeNameWithoutContextTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+
+    node->SetNodeName("TestNodeNoContext");
+    ASSERT_EQ(node->GetNodeName(), "TestNodeNoContext");
+}
+
+/**
+ * @tc.name: BaseNodeVirtualMethodsTest
+ * @tc.desc: Verify base class virtual methods return default values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, BaseNodeVirtualMethodsTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_FALSE(node->GetNodeIsSingleFrameComposer());
+    ASSERT_FALSE(node->HasSurfaceBuffer());
+
+    node->SetHasSurfaceBuffer(true);
+    ASSERT_FALSE(node->HasSurfaceBuffer());
+
+    node->SetNewOnTree(true);
+}
+
+/**
+ * @tc.name: IsPurgeAbleLogicTest
+ * @tc.desc: Verify node purge logic: node is purgeable when not drawn and has no draw cmd modifiers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsPurgeAbleLogicTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    bool hasContentStyleModifierOnly = node->HasContentStyleModifierOnly();
+    bool hasDrawCmdModifiers = node->HasDrawCmdModifiers();
+    bool isDrawn = node->GetRenderProperties().isDrawn_;
+
+    bool isPurgeable = !isDrawn && ((hasContentStyleModifierOnly) || !hasDrawCmdModifiers);
+    ASSERT_TRUE(isPurgeable);
+}
+
+/**
+ * @tc.name: SetGlobalAlphaTriggersOnAlphaChangedTest
+ * @tc.desc: Verify SetGlobalAlpha triggers OnAlphaChanged when alpha changes between 1.0 and non-1.0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetGlobalAlphaTriggersOnAlphaChangedTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+
+    node->SetGlobalAlpha(0.5f);
+    ASSERT_FLOAT_EQ(node->GetGlobalAlpha(), 0.5f);
+
+    node->SetGlobalAlpha(1.0f);
+    ASSERT_FLOAT_EQ(node->GetGlobalAlpha(), 1.0f);
 }
 
 /**

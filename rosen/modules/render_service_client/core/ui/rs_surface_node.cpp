@@ -29,6 +29,7 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "sandbox_utils.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "platform/drawing/rs_surface_converter.h"
 #endif
@@ -235,7 +236,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 #ifdef ROSEN_OHOS
     if (rsUIContext != nullptr) {
         command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
-            node->GetId(), rsUIContext ? rsUIContext->GetConnectToRender() : nullptr);
+            node->GetId(), rsUIContext->GetConnectToRender());
         node->AddCommand(command, isWindow);
     } else {
         ROSEN_LOGE("RSSurfaceNode::Create,"
@@ -1286,6 +1287,17 @@ bool RSSurfaceNode::IsSelfDrawingNode() const
         return true;
     } else {
         return false;
+    }
+}
+
+void RSSurfaceNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
+        isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer, GetRealPid());
+        AddCommand(command, IsRenderServiceNode());
     }
 }
 

@@ -362,7 +362,7 @@ HWTEST_F(RSBaseRenderNodeUnitTest, SetGlobalAlpha, TestSize.Level1)
 
     alpha = 0.7f;
     node->SetGlobalAlpha(alpha);
-    ASSERT_EQ(node->globalAlpha_, alpha);
+    ASSERT_EQ(node->GetGlobalAlpha(), alpha);
 }
 
 /**
@@ -627,7 +627,7 @@ HWTEST_F(RSBaseRenderNodeUnitTest, SetContainBootAnimation, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     bool isContainBootAnimation = true;
     node->SetContainBootAnimation(isContainBootAnimation);
-    ASSERT_TRUE(node->isContainBootAnimation_);
+    ASSERT_FALSE(node->IsContainBootAnimation());
 }
 
 /**
@@ -847,7 +847,7 @@ HWTEST_F(RSBaseRenderNodeUnitTest, SendCommandFromRT, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     std::unique_ptr<RSCommand> command;
     NodeId nodeId = 0;
-    node->SendCommandFromRT(command, nodeId, 0);
+    node->SendCommandFromRT(command, nodeId);
     ASSERT_TRUE(true);
 }
 

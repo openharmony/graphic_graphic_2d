@@ -893,5 +893,10 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
 {
     return false;
 }
+
+bool RSSystemProperties::GetNewTunnelEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

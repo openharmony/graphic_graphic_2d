@@ -50,7 +50,7 @@ const std::string OUT_STR2 =
     "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], [nodeGroup1], uifirstRootNodeId_: 1, "
     "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], NodeColorSpace: 4, "
     "RSUIContextToken: NO_RSUIContext, "
-    "GetBootAnimation: true, isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, "
+    "isNodeDirty: 1, isPropertyDirty: true, "
     "isSubTreeDirty: true, IsPureContainer: true, Children list needs update, current count: 0 expected count: 0, "
     "disappearingChildren: 1(0 )\n  | RS_NODE[0], instanceRootNodeId[0], Properties: Bounds[-inf -inf -inf -inf] "
     "Frame[-inf -inf -inf -inf], NodeColorSpace: 4, RSUIContextToken: NO_RSUIContext, IsPureContainer: true\n";
@@ -1190,7 +1190,6 @@ HWTEST_F(RSRenderNodeUnitTest2, ParentChildRelationshipTest006, TestSize.Level1)
 
     nodeTest->isFullChildrenListValid_ = true;
     nodeTest->disappearingTransitionCount_ = 1;
-    nodeTest->isBootAnimation_ = true;
 
     std::shared_ptr<RSRenderNode> child1 = std::make_shared<RSRenderNode>(1);
     std::shared_ptr<RSRenderNode> child2 = std::make_shared<RSRenderNode>(2);
@@ -1859,8 +1858,6 @@ HWTEST_F(RSRenderNodeUnitTest2, UpdateDrawableVecV2Test019, TestSize.Level1)
     std::optional<RSShadow> shadow(rsShadow);
     shadow->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
     renderNodeTest->renderProperties_.GetEffect().shadow_ = shadow;
-    RRect rrect;
-    renderNodeTest->renderProperties_.rrect_ = rrect;
     renderNodeTest->UpdateDrawableVecV2();
     EXPECT_EQ(renderNodeTest->dirtySlots_.size(), 2);
 }

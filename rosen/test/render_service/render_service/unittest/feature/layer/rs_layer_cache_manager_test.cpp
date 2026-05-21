@@ -397,8 +397,6 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest006, TestSize.Level2)
         auto& captureParam = RSUniRenderThread::GetCaptureParam();
         NodeId id = 100;
         captureParam.endNodeId_ = id;
-        captureParam.endNodeId_ = id;
-        canvasDrawable->nodeId_ = id;
         canvasDrawable->renderParams_ = nullptr;
         auto& layerCacheManager = RSLayerCacheManager::Instance();
         EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
@@ -493,11 +491,10 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest009, TestSize.Level2)
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     NodeId id = 100;
     captureParam.endNodeId_ = id;
-    canvasDrawable->nodeId_ = id;
     canvasDrawable->renderParams_ = nullptr;
     bool shouldPaint =
         canvasDrawable->ShouldPaint() || (canvas.GetUICapture() && canvasDrawable->IsUiRangeCaptureEndNode());
-    EXPECT_TRUE(shouldPaint);
+    EXPECT_FALSE(shouldPaint);
     EXPECT_TRUE(canvasDrawable->isDrawingCacheEnabled_);
     EXPECT_TRUE(canvasDrawable->GetRenderParams() == nullptr);
     EXPECT_TRUE(canvasDrawable);
@@ -535,7 +532,6 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest011, TestSize.Level2)
     NodeId id = 100;
     NodeId id1 = 101;
     captureParam.endNodeId_ = id;
-    canvasDrawable->nodeId_ = id1;
 
     auto& layerCacheManager = RSLayerCacheManager::Instance();
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
@@ -570,7 +566,6 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest012, TestSize.Level2)
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     NodeId id = 100;
     captureParam.endNodeId_ = id;
-    canvasDrawable->nodeId_ = id;
 
     auto& layerCacheManager = RSLayerCacheManager::Instance();
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
@@ -606,7 +601,6 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest013, TestSize.Level2)
     NodeId id = 100;
     NodeId id1 = 101;
     captureParam.endNodeId_ = id;
-    canvasDrawable->nodeId_ = id1;
 
     auto& layerCacheManager = RSLayerCacheManager::Instance();
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
@@ -641,7 +635,6 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest014, TestSize.Level2)
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     NodeId id = 100;
     captureParam.endNodeId_ = id;
-    canvasDrawable->nodeId_ = id;
 
     auto& layerCacheManager = RSLayerCacheManager::Instance();
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
@@ -676,7 +669,6 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest015, TestSize.Level2)
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     NodeId id = 100;
     captureParam.endNodeId_ = id;
-    canvasDrawable->nodeId_ = id;
 
     auto& layerCacheManager = RSLayerCacheManager::Instance();
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
@@ -711,7 +703,6 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest016, TestSize.Level2)
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     NodeId id = 100;
     NodeId id1 = 101;
-    canvasDrawable->nodeId_ = id1;
 
     auto& layerCacheManager = RSLayerCacheManager::Instance();
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
@@ -746,7 +737,6 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest017, TestSize.Level2)
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     NodeId id = 100;
     captureParam.endNodeId_ = id;
-    canvasDrawable->nodeId_ = id;
 
     auto& layerCacheManager = RSLayerCacheManager::Instance();
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
@@ -782,7 +772,6 @@ HWTEST_F(RSLayerCacheManagerTest, TryPrepareLayerCacheTest018, TestSize.Level2)
     NodeId id = 100;
     NodeId id1 = 101;
     captureParam.endNodeId_ = id;
-    canvasDrawable->nodeId_ = id1;
 
     auto& layerCacheManager = RSLayerCacheManager::Instance();
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());

@@ -149,21 +149,6 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                                         // RESTORE_ALL,
 };
 
-enum DrawableVecStatus : uint8_t {
-    CLIP_TO_BOUNDS     = 1 << 0,
-    BG_BOUNDS_PROPERTY = 1 << 1,
-    FG_BOUNDS_PROPERTY = 1 << 2,
-    ENV_CHANGED        = 1 << 3,
-    // Used by skip logic in RSRenderNode::UpdateDisplayList
-    FRAME_NOT_EMPTY    = 1 << 4,
-    NODE_NOT_EMPTY     = 1 << 5,
-
-    // masks
-    BOUNDS_MASK  = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
-    FRAME_MASK   = FRAME_NOT_EMPTY,
-    OTHER_MASK   = ENV_CHANGED,
-};
-
 inline static bool HasPropertyDrawableInRange(
     const RSDrawable::Vec& drawableVec, RSDrawableSlot begin, RSDrawableSlot end) noexcept
 {
@@ -587,7 +572,9 @@ void RSDrawable::UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t
     // Step 3: Universal save/clip/restore optimization
 
     // Step 3.1: calculate new drawable map status
+    auto drawableVecStatusOld = drawableVecStatus;
     auto drawableVecStatusNew = CalculateDrawableVecStatus(node, drawableVec);
+    drawableVecStatusNew = drawableVecStatusNew | (drawableVecStatusOld & DRAWABLE_VEC_NEED_CLEAR);
 
     uint8_t changedBits = drawableVecStatus ^ drawableVecStatusNew;
     if (changedBits == 0) {

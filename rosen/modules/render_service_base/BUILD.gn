@@ -284,6 +284,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
     "src/pipeline/rs_screen_render_node.cpp",
+    "src/pipeline/rs_simple_draw_cmd_list.cpp",
     "src/pipeline/rs_surface_buffer_callback_manager.cpp",
     "src/pipeline/rs_surface_handler.cpp",
     "src/pipeline/rs_surface_render_node_utils.cpp",
@@ -373,7 +374,6 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_transaction_data.cpp",
     "src/transaction/rs_transaction_data_callback_manager.cpp",
     "src/transaction/rs_transaction_handler.cpp",
-    "src/transaction/rs_transaction_handler_manager.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
     "src/transaction/rs_uiextension_data.cpp",
 

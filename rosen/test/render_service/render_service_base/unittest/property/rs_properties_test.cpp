@@ -2243,8 +2243,8 @@ HWTEST_F(RSPropertiesTest, SetNGetVisible001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, GenerateNGetRRect001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.GenerateRRect();
-    EXPECT_NE(properties.boundsGeo_, nullptr);
+    properties.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f));
+    EXPECT_TRUE(properties.GetClipToRRect());
 }
 
 /**

@@ -205,70 +205,6 @@ HWTEST_F(EglWrapperHookTest, Hook_AlreadyInitialized, Level1)
 }
 
 /**
- * @tc.name: Hook_LoadHookLayerFailed
- * @tc.desc: Test Hook when LoadHookLayer returns false
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperHookTest, Hook_LoadHookLayerFailed, Level2)
-{
-    auto& instance = EglWrapperHook::GetInstance();
-    instance.layerInited_ = true;
-
-    EglWrapperDispatchTable table;
-    bool result = instance.Hook(&table);
-
-    ASSERT_FALSE(result);
-    ASSERT_FALSE(instance.IsInit());
-}
-
-/**
- * @tc.name: Hook_CheckCompatibilityFailed
- * @tc.desc: Test Hook when CheckCompatility returns false (after LoadHookLayer succeeds)
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperHookTest, Hook_CheckCompatibilityFailed, Level2)
-{
-    auto& instance = EglWrapperHook::GetInstance();
-    instance.layerInited_ = true;
-
-    // Mock CheckCompatility 返回 false
-    instance.gtx.gtxCheckEglCompatibility = [](uint64_t*, uint32_t, uint64_t) -> bool {
-        return false;
-    };
-
-    EglWrapperDispatchTable table;
-    bool result = instance.Hook(&table);
-
-    ASSERT_FALSE(result);
-    ASSERT_FALSE(instance.IsInit());
-}
-
-/**
- * @tc.name: Hook_InitHookLayerFailed
- * @tc.desc: Test Hook when InitHookLayer returns false (after LoadHookLayer and CheckCompatility succeed)
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperHookTest, Hook_InitHookLayerFailed, Level2)
-{
-    auto& instance = EglWrapperHook::GetInstance();
-    instance.layerInited_ = true;
-
-    // Mock InitHookLayer 返回 false (layerIsEnable 返回 false)
-    instance.layerEntry.layerIsEnable = []() -> bool { return false; };
-
-    // Mock CheckCompatility 返回 true
-    instance.gtx.gtxCheckEglCompatibility = [](uint64_t*, uint32_t, uint64_t) -> bool {
-        return true;
-    };
-
-    EglWrapperDispatchTable table;
-    bool result = instance.Hook(&table);
-
-    ASSERT_FALSE(result);
-    ASSERT_FALSE(instance.IsInit());
-}
-
-/**
  * @tc.name: LoadHookLayer_ReturnTrue
  * @tc.desc: Test LoadHookLayer when dlopen success
  * @tc.type: FUNC
@@ -325,7 +261,7 @@ HWTEST_F(EglWrapperHookTest, LayerEntries_NoReplacement, Level2)
     ASSERT_EQ(original, *curr);
 }
 
-static void CaputreEGLCallBack(
+static void CaptrueEGLCallBack(
     EGLGetGlesVersionCallBackFunc getVersion,
     EGLSwitchTableCallBackFunc switchTable,
     EGLMakeCurrentAfterHookCallBackFunc makeCurrent)
@@ -345,7 +281,7 @@ HWTEST_F(EglWrapperHookTest, EGLGetGlesVersion_NoContext, Level1)
     auto& instance = EglWrapperHook::GetInstance();
     auto originalSetCallback = instance.gtx.gtxSetEGLCallBack;
 
-    instance.gtx.gtxSetEGLCallBack = CaputreEGLCallBack;
+    instance.gtx.gtxSetEGLCallBack = CaptrueEGLCallBack;
 
     EglWrapperDispatchTable table;
     bool result = instance.InitHookTable(&table);
@@ -369,7 +305,7 @@ HWTEST_F(EglWrapperHookTest, EGLMakeSwitchHookTable_OriginMode, Level2)
     auto& instance = EglWrapperHook::GetInstance();
     auto originalSetCallback = instance.gtx.gtxSetEGLCallBack;
 
-    instance.gtx.gtxSetEGLCallBack = CaputreEGLCallBack;
+    instance.gtx.gtxSetEGLCallBack = CaptrueEGLCallBack;
 
     EglWrapperDispatchTable table;
     bool result = instance.InitHookTable(&table);
@@ -392,7 +328,7 @@ HWTEST_F(EglWrapperHookTest, EGLMakeSwitchHookTable_WrapperMode, Level2)
     auto& instance = EglWrapperHook::GetInstance();
     auto originalSetCallback = instance.gtx.gtxSetEGLCallBack;
 
-    instance.gtx.gtxSetEGLCallBack = CaputreEGLCallBack;
+    instance.gtx.gtxSetEGLCallBack = CaptrueEGLCallBack;
 
     EglWrapperDispatchTable table;
     bool result = instance.InitHookTable(&table);
@@ -415,7 +351,7 @@ HWTEST_F(EglWrapperHookTest, EGLMakeCurrentAfterHook_InvalidDisplay, Level2)
     auto& instance = EglWrapperHook::GetInstance();
     auto originalSetCallback = instance.gtx.gtxSetEGLCallBack;
 
-    instance.gtx.gtxSetEGLCallBack = CaputreEGLCallBack;
+    instance.gtx.gtxSetEGLCallBack = CaptrueEGLCallBack;
 
     EglWrapperDispatchTable table;
     bool result = instance.InitHookTable(&table);

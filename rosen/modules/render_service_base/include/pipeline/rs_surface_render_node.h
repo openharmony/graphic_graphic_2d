@@ -130,6 +130,17 @@ public:
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
+    void SetClean() override
+    {
+        isNewOnTree_ = false;
+        RSRenderNode::SetClean();
+    }
+
+    void SetNewOnTree(bool isNewOnTree) override
+    {
+        isNewOnTree_ = isNewOnTree;
+    }
+
     void SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID, NodeId screenNodeId = INVALID_NODEID,
@@ -1140,6 +1151,11 @@ public:
         return IsAppWindow() && (GetChildrenCount() == 0 || HasOnlyOneRootNode());
     }
 
+    inline bool IsNewOnTree() const
+    {
+        return isNewOnTree_;
+    }
+
     // Due to the BehindWindowFilter enabling ui-first, the condition is excluded.
     // This condition is now only used by ui-first
     inline bool IsAlphaTransparent() const
@@ -1473,6 +1489,22 @@ public:
         return isForeground_;
     }
     bool GetNodeIsSingleFrameComposer() const override;
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) override;
+    std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const override
+    {
+        if (!singleFrameComposer_) {
+            singleFrameComposer_ = std::make_shared<RSSingleFrameComposer>();
+        }
+        return singleFrameComposer_;
+    }
+    bool HasSurfaceBuffer() const override
+    {
+        return hasSurfaceBuffer_;
+    }
+    void SetHasSurfaceBuffer(bool hasSurfaceBuffer) override
+    {
+        hasSurfaceBuffer_ = hasSurfaceBuffer;
+    }
 
     void SetAncestorScreenNode(const RSBaseRenderNode::WeakPtr& ancestorScreenNode)
     {
@@ -2045,8 +2077,12 @@ private:
     bool isLastHardCursor_ = false;
     bool needDrawFocusChange_ = false;
     bool hasTransparentSurface_ = false;
+    bool hasSurfaceBuffer_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
+    bool isSelfAddedForSubSurface_ = false;
+    bool isNodeSingleFrameComposer_ = false;
+    mutable std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_;
     bool isNodeToBeCaptured_ = false;
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
@@ -2289,11 +2325,16 @@ private:
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
+    bool isBootAnimation_ = false;
+
     bool isFrameGravityNewVersionEnabled_ = false;
 
     bool isSurfaceBufferOpaque_ = false;
 
     uint32_t hdrType_ = 0;
+    RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
+
+    bool isNewOnTree_ = false;
 
     // Used for control-level occlusion culling scene info and culled nodes transmission.
     std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;

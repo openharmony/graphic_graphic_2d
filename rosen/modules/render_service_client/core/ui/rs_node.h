@@ -1760,7 +1760,8 @@ public:
 
     void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
 
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
+    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
+    virtual bool IsNodeSingleFrameComposer() const { return false; }
 
     void MarkRepaintBoundary(const std::string& tag);
     void SetGrayScale(float grayScale);
@@ -2264,8 +2265,6 @@ private:
     bool isNodeGroup_ = false;
     bool isExcludedFromNodeGroup_ = false;
     bool isRepaintBoundary_ = false;
-
-    bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
     bool isLayer_ = false;

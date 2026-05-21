@@ -1165,4 +1165,180 @@ HWTEST_F(RSObjAbsGeometryTest, SetAbsMatrix, TestSize.Level1)
     geo->SetAbsMatrix(mat);
     EXPECT_FALSE(geo->absMatrix_->IsIdentity());
 }
+
+/**
+ * @tc.name: GetPivotDefaultValuesTest
+ * @tc.desc: Verify GetPivot methods return default values when trans_ is not initialized
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, GetPivotDefaultValuesTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    EXPECT_EQ(rsObjAbsGeometry->GetPivotX(), 0.5f);
+    EXPECT_EQ(rsObjAbsGeometry->GetPivotY(), 0.5f);
+    EXPECT_EQ(rsObjAbsGeometry->GetPivotZ(), 0.f);
+}
+
+/**
+ * @tc.name: GetScaleDefaultValuesTest
+ * @tc.desc: Verify GetScale methods return default values when trans_ is not initialized
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, GetScaleDefaultValuesTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    EXPECT_EQ(rsObjAbsGeometry->GetScaleX(), 1.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetScaleY(), 1.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetScaleZ(), 1.f);
+}
+
+/**
+ * @tc.name: GetSkewDefaultValuesTest
+ * @tc.desc: Verify GetSkew methods return default values when trans_ is not initialized
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, GetSkewDefaultValuesTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    EXPECT_EQ(rsObjAbsGeometry->GetSkewX(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetSkewY(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetSkewZ(), 0.f);
+}
+
+/**
+ * @tc.name: GetPerspDefaultValuesTest
+ * @tc.desc: Verify GetPersp methods return default values when trans_ is not initialized
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, GetPerspDefaultValuesTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    EXPECT_EQ(rsObjAbsGeometry->GetPerspX(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetPerspY(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetPerspZ(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetPerspW(), 1.f);
+}
+
+/**
+ * @tc.name: GetRotationDefaultValuesTest
+ * @tc.desc: Verify GetRotation methods return default values when trans_ is not initialized
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, GetRotationDefaultValuesTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    EXPECT_EQ(rsObjAbsGeometry->GetRotation(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetRotationX(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetRotationY(), 0.f);
+}
+
+/**
+ * @tc.name: GetTranslateDefaultValuesTest
+ * @tc.desc: Verify GetTranslate methods return default values when trans_ is not initialized
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, GetTranslateDefaultValuesTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    EXPECT_EQ(rsObjAbsGeometry->GetTranslateX(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetTranslateY(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetTranslateZ(), 0.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetCameraDistance(), 0.f);
+}
+
+/**
+ * @tc.name: SetAndGetPivotTest
+ * @tc.desc: Verify SetPivot and GetPivot work correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, SetAndGetPivotTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    constexpr float pivotX = 100.f;
+    constexpr float pivotY = 200.f;
+
+    rsObjAbsGeometry->SetPivot(pivotX, pivotY);
+    EXPECT_EQ(rsObjAbsGeometry->GetPivotX(), pivotX);
+    EXPECT_EQ(rsObjAbsGeometry->GetPivotY(), pivotY);
+}
+
+/**
+ * @tc.name: SetAndGetScaleTest
+ * @tc.desc: Verify SetScale and GetScale work correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, SetAndGetScaleTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    constexpr float scaleX = 1.5f;
+    constexpr float scaleY = 2.0f;
+
+    rsObjAbsGeometry->SetScale(scaleX, scaleY);
+    EXPECT_EQ(rsObjAbsGeometry->GetScaleX(), scaleX);
+    EXPECT_EQ(rsObjAbsGeometry->GetScaleY(), scaleY);
+}
+
+/**
+ * @tc.name: SetAndGetRotationTest
+ * @tc.desc: Verify SetRotation and GetRotation work correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, SetAndGetRotationTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    constexpr float rotation = 45.f;
+
+    rsObjAbsGeometry->SetRotation(rotation);
+    EXPECT_EQ(rsObjAbsGeometry->GetRotation(), rotation);
+}
+
+/**
+ * @tc.name: SetTransformCreatesTransTest
+ * @tc.desc: Verify Set methods create trans_ optional when it's null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, SetTransformCreatesTransTest, TestSize.Level1)
+{
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_NE(rsObjAbsGeometry, nullptr);
+
+    rsObjAbsGeometry->SetPivotX(10.f);
+    rsObjAbsGeometry->SetScaleX(2.f);
+    rsObjAbsGeometry->SetRotation(90.f);
+
+    EXPECT_EQ(rsObjAbsGeometry->GetPivotX(), 10.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetScaleX(), 2.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetRotation(), 90.f);
+
+    rsObjAbsGeometry->SetPivotX(20.f);
+    EXPECT_EQ(rsObjAbsGeometry->GetPivotX(), 20.f);
+}
 } // namespace OHOS::Rosen

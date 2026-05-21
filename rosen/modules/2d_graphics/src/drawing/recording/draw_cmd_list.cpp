@@ -638,6 +638,14 @@ bool DrawCmdList::UnmarshallingDrawOpsSimple(
     return true;
 }
 
+bool DrawCmdList::UnmarshallingDrawOpsSimple()
+{
+    if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
+        return true;
+    }
+    return UnmarshallingDrawOpsSimple(drawOpItems_, lastOpGenSize_);
+}
+
 void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
 {
     if (!UnmarshallingDrawOpsSimple(drawOpItems_, lastOpGenSize_)) {

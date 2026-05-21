@@ -3507,16 +3507,7 @@ void RSNode::ExcludedFromNodeGroup(bool isExcluded)
     AddCommand(command, IsRenderServiceNode());
 }
 
-void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
-{
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
-        isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
-        std::unique_ptr<RSCommand> command =
-            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer, GetRealPid());
-        AddCommand(command, IsRenderServiceNode());
-    }
-}
+void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) {}
 
 void RSNode::MarkRepaintBoundary(const std::string& tag)
 {
@@ -4325,7 +4316,7 @@ void RSNode::Dump(std::string& out) const
     out += "], isNodeGroup[";
     out += isNodeGroup_ ? "true" : "false";
     out += "], isSingleFrameComposer[";
-    out += isNodeSingleFrameComposer_ ? "true" : "false";
+    out += IsNodeSingleFrameComposer() ? "true" : "false";
     out += "], isSuggestOpincNode[";
     out += isSuggestOpincNode_ ? "true" : "false";
     out += "], isUifirstNode[";

@@ -325,7 +325,7 @@ HWTEST(RSProfilerDumpTest, DumpNodeOptionalFlags, TestSize.Level1)
 
     RSProfiler::DumpNodeOptionalFlags(*node, out);
     std::string expected {
-        "\"GetBootAnimation\":1,\"isContainBootAnimation_\":1,\"isSubTreeDirty\":1,\"IsPureContainer\":1"
+        "\"isSubTreeDirty\":1,\"IsPureContainer\":1"
     };
     expected.append(1, '\0');
     EXPECT_EQ(out.GetDumpString(), expected);

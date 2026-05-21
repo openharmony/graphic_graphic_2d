@@ -74,7 +74,7 @@ public:
         return false;
     }
 
-    virtual Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const
+    virtual SimpleDrawCmdListPtr GetPropertySimpleDrawCmdList() const
     {
         return nullptr;
     }
@@ -212,6 +212,8 @@ public:
         return renderModifier;
     }
 
+    virtual void ConvertDrawCmdListToSimple() {}
+
     using ResetFunc = void (*)(RSProperties& properties);
     static const std::unordered_map<RSModifierType, ResetFunc>& GetResetFuncMap();
 
@@ -348,10 +350,12 @@ public:
         return isSingleFrameModifier_;
     }
 
-    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
+    SimpleDrawCmdListPtr GetPropertySimpleDrawCmdList() const override
     {
-        return Getter<Drawing::DrawCmdListPtr>(ModifierTypeConvertor::GetPropertyType(GetType()), nullptr);
+        return Getter<SimpleDrawCmdListPtr>(ModifierTypeConvertor::GetPropertyType(GetType()), nullptr);
     }
+
+    void ConvertDrawCmdListToSimple() override;
 
     void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) override;
 

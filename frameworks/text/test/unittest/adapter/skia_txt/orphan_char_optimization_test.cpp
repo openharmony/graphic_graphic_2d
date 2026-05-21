@@ -810,5 +810,45 @@ HWTEST_F(OHDrawingOrphanCharOptimizationTest, OHDrawingOrphanCharOptimizationSce
         EXPECT_EQ(lineMetric.endIndex, expectRanges[i].end);
     }
 }
+
+/*
+ * @tc.name: OHDrawingOrphanCharOptimizationSceneTest018
+ * @tc.desc: Test orphan char optimization with auto spacing
+ * @tc.type: FUNC
+ *
+ * Scenario: Test with "中国-西安IP接入号码"
+ *           Font size: 50, Max width: 475.0
+ *           Target: Verify -- scene
+ */
+HWTEST_F(OHDrawingOrphanCharOptimizationTest, OHDrawingOrphanCharOptimizationSceneTest018, TestSize.Level0)
+{
+    TypographyStyle typographyStyle;
+    typographyStyle.orphanCharOptimization = true;
+    typographyStyle.enableAutoSpace = true;
+    typographyCreate_ = TypographyCreate::Create(typographyStyle, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+    TextStyle style;
+    style.fontSize = 50.0;
+    std::u16string text = StrToU16Str("中国-西安IP接入号码");
+    typographyCreate_->PushStyle(style);
+    typographyCreate_->AppendText(text);
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 475.0;
+    typography_->Layout(maxWidth);
+
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 2);
+    std::vector<double> expectWidths{379.7496337890625, 99.99990844726563};
+    std::vector<TextRange> expectRanges{{0, 9}, {9, 11}};
+    for (size_t i = 0; i < lineCount; ++i) {
+        LineMetrics lineMetric;
+        EXPECT_TRUE(typography_->GetLineMetricsAt(i, &lineMetric));
+        EXPECT_DOUBLE_EQ(lineMetric.width, expectWidths[i]);
+        EXPECT_EQ(lineMetric.startIndex, expectRanges[i].start);
+        EXPECT_EQ(lineMetric.endIndex, expectRanges[i].end);
+    }
+    EXPECT_DOUBLE_EQ(typography_->GetLongestLineWithIndent(), expectWidths[0]);
+}
 } // namespace Rosen
 } // namespace OHOS

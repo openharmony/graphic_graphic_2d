@@ -526,6 +526,7 @@ public:
     void SetScreenDirtyFlag(bool flag) { screenDirtyFlag_ = flag; }
     bool GetAndResetScreenDirtyFlag() { return std::exchange(screenDirtyFlag_, false); }
     void SetVirtualSurfaceChanged(bool isChanged);
+    void SetActiveRectChanged(bool isChanged);
 
     using HeadroomMap = std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
     const HeadroomMap& GetHeadroomMap() const {
@@ -538,6 +539,9 @@ public:
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
     void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
     bool GetHasForceHwcHdrSurface() const;
+
+    void SetBootAnimation(bool isBootAnimation) override;
+    bool GetBootAnimation() const override;
 
 protected:
     void OnSync() override;
@@ -558,6 +562,7 @@ private:
     bool isLuminanceStatusChange_ = false;
     bool hasFingerprint_ = false;
     bool isGeometryInitialized_ = false;
+    bool isBootAnimation_ = false;
 
     bool forceFreeze_ = false;
 

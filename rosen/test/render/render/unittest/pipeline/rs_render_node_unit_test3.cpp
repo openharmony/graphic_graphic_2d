@@ -982,7 +982,7 @@ HWTEST_F(RSRenderNodeUnitTest3, SendCommandFromRT, TestSize.Level1)
     RSRenderNode node(id, context);
     std::unique_ptr<RSCommand> command;
     NodeId nodeId = 0;
-    node.SendCommandFromRT(command, nodeId, 0);
+    node.SendCommandFromRT(command, nodeId);
     ASSERT_TRUE(true);
 }
 
@@ -1008,7 +1008,6 @@ HWTEST_F(RSRenderNodeUnitTest3, InternalRemoveSelfFromDisappearingChildren, Test
 HWTEST_F(RSRenderNodeUnitTest3, DestroyRSRenderNode, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    node.appPid_ = 1;
     ASSERT_TRUE(true);
 }
 
@@ -1383,7 +1382,7 @@ HWTEST_F(RSRenderNodeUnitTest3, UpdateAbsDirtyRegion002, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    node.isSelfDrawingNode_ = true;
+    node.SetSelfDrawingNode(true);
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
@@ -1401,7 +1400,7 @@ HWTEST_F(RSRenderNodeUnitTest3, UpdateAbsDirtyRegion003, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    node.isSelfDrawingNode_ = true;
+    node.SetSelfDrawingNode(true);
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = false;
@@ -1421,7 +1420,7 @@ HWTEST_F(RSRenderNodeUnitTest3, UpdateAbsDirtyRegion004, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    node.isSelfDrawingNode_ = true;
+    node.SetSelfDrawingNode(true);
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = true;
@@ -1464,7 +1463,7 @@ HWTEST_F(RSRenderNodeUnitTest3, UpdateDrawRectAndDirtyRegion002, TestSize.Level1
     properties.clipToFrame_ = true;
     properties.geoDirty_ = true;
     node.dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
-    node.isSelfDrawingNode_ = true;
+    node.SetSelfDrawingNode(true);
     node.srcOrClipedAbsDrawRectChangeFlag_ = true;
     node.shouldPaint_ = true;
     node.isLastVisible_ = true;

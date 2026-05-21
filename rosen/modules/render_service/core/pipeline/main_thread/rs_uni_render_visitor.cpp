@@ -1348,12 +1348,12 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node)
     CheckFilterCacheNeedForceClearOrSave(node);
     bool isAccessibilityConfigChanged = IsAccessibilityConfigChanged();
     if (isAccessibilityConfigChanged) {
-        node.SetIsAccessibilityConfigChanged(true);
+        node.MarkAccessibilityConfigChanged(true);
     }
     UpdateDrawingCacheInfoBeforeChildren(node);
     UpdateOffscreenCanvasNodeId(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
-    node.SetIsAccessibilityConfigChanged(false);
+    node.MarkAccessibilityConfigChanged(false);
     RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
         isAccessibilityConfigChanged);
     RectI prepareClipRect = prepareClipRect_;
@@ -1993,7 +1993,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     CheckFilterCacheNeedForceClearOrSave(node);
     bool isAccessibilityConfigChanged = IsAccessibilityConfigChanged();
     if (isAccessibilityConfigChanged) {
-        node.SetIsAccessibilityConfigChanged(true);
+        node.MarkAccessibilityConfigChanged(true);
     }
     
     RSOpincManager::Instance().InitLayerPartRenderNode(OPIncParam::IsLayerPartRenderEnable(), node,
@@ -2002,7 +2002,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     UpdateDrawingCacheInfoBeforeChildren(node);
     UpdateOffscreenCanvasNodeId(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
-    node.SetIsAccessibilityConfigChanged(false);
+    node.MarkAccessibilityConfigChanged(false);
     RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
         isAccessibilityConfigChanged);
     RectI prepareClipRect = prepareClipRect_;

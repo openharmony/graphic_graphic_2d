@@ -118,7 +118,7 @@ HWTEST_F(RSUnionRenderNodeTest, GetOrCreateChildSDFShape002, TestSize.Level1)
 {
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
     auto child = std::make_shared<RSRenderNode>(id + 1, context);
-    child->renderProperties_.clipRRect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child->renderProperties_.clipRRect_ = std::make_unique<RRect>(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
 
     auto ret = unionNode->GetOrCreateChildSDFShape(child);
     ASSERT_NE(ret, nullptr);
@@ -134,7 +134,7 @@ HWTEST_F(RSUnionRenderNodeTest, GetOrCreateChildSDFShape003, TestSize.Level1)
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
     auto child = std::make_shared<RSRenderNode>(id + 1, context);
     child->renderProperties_.cornerRadius_ = Vector4f(3.f);
-    child->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
 
     auto ret = unionNode->GetOrCreateChildSDFShape(child);
     ASSERT_NE(ret, nullptr);
@@ -456,7 +456,7 @@ HWTEST_F(RSUnionRenderNodeTest, GenerateSDFLeaf007, TestSize.Level1)
     child1->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
     auto ret = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(ret, nullptr);
 
@@ -490,7 +490,7 @@ HWTEST_F(RSUnionRenderNodeTest, GenerateSDFLeaf008, TestSize.Level1)
     child1->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
     auto ret = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(ret, nullptr);
 
@@ -532,8 +532,8 @@ HWTEST_F(RSUnionRenderNodeTest, GenerateSDFLeaf009, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
 
@@ -577,8 +577,8 @@ HWTEST_F(RSUnionRenderNodeTest, GenerateSDFLeaf010, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
 
@@ -638,8 +638,8 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape002, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
     unionNode->renderProperties_.unionSpacing_ = 0.5f;
@@ -683,8 +683,8 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape003, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
     unionNode->renderProperties_.unionSpacing_ = 0.f;
@@ -758,8 +758,8 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape006, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
     unionNode->renderProperties_.unionSpacing_ = 0.5f;
@@ -1100,7 +1100,7 @@ HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter006, TestSize.Level1)
     unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
     child->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
     child->parent_ = unionNode;
-    child->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 0.f, 0.f);
+    child->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 0.f, 0.f));
     auto ret = unionNode->GetGravityCenter();
     ASSERT_EQ(ret[0], 0.0f);
     ASSERT_EQ(ret[1], 0.0f);
@@ -1198,7 +1198,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape009, TestSize.Level1)
     unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
     child1->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
     child1->parent_ = unionNode;
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
 

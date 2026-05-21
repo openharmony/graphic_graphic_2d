@@ -1690,6 +1690,22 @@ ErrCode RSClientToServiceConnection::NotifyAppStrategyConfigChangeEvent(const st
 
 void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+    if (VOTER_SCENE_BLUR == eventInfo.eventName) {
+        RsFrameBlurPredict::GetInstance().TakeEffectBlurScene(eventInfo);
+        return;
+    }
+    if (VOTER_SCENE_GPU == eventInfo.eventName) {
+        RsFrameReport::ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
+        return;
+    }
+#ifdef RS_ENABLE_VK
+    if (GPU_FREQ_PREF == eventInfo.eventName) {
+        RS_LOGE("GPU frequency adjustment event occurs, isFullScreen=%{public}d focusBundleName=%{public}s",
+            eventInfo.eventStatus, eventInfo.description.c_str());
+        RsFrameReport::ReportWindowInfo(eventInfo.eventStatus, eventInfo.description.c_str());
+        return;
+    }
+#endif
     if (hgmContext_ == nullptr) {
         RS_LOGE("%{public}s hgmContext is nullptr", __func__);
         return;

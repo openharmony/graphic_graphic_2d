@@ -54,12 +54,6 @@ public:
     virtual void OnDraw(Drawing::Canvas& canvas);
     virtual void OnCapture(Drawing::Canvas& canvas);
 
-    // deprecated
-    inline std::shared_ptr<const RSRenderNode> GetRenderNode()
-    {
-        return renderNode_.lock();
-    }
-
     inline bool GetOpDropped() const
     {
         return isOpDropped_;

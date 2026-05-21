@@ -131,6 +131,21 @@ Occlusion::Region RSLogicalDisplayRenderNode::GetTopSurfaceOpaqueRegion() const
     return topSurfaceOpaqueRegion;
 }
 
+void RSLogicalDisplayRenderNode::SetBootAnimation(bool isBootAnimation)
+{
+    ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 "isBootAnimation %{public}d",
+        GetId(), isBootAnimation);
+    isBootAnimation_ = isBootAnimation;
+    if (auto parent = GetParent().lock()) {
+        parent->SetBootAnimation(isBootAnimation);
+    }
+}
+
+bool RSLogicalDisplayRenderNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
+}
+
 void RSLogicalDisplayRenderNode::ClearModifiersByPid(pid_t pid)
 {
     RS_LOGI("RSLogicalDisplayRenderNode::ClearModifiersByPid %{public}u", static_cast<uint32_t>(pid));

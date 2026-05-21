@@ -82,7 +82,7 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateRecording002, TestSize.Level1)
     int32_t w;
     int32_t h;
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id + 1);
-    auto drawCmds = std::make_shared<Drawing::DrawCmdList>(w, h);
+    auto drawCmds = std::make_shared<RSSimpleDrawCmdList>(w, h);
     Drawing::Paint paint;
     auto drawOpItem = std::make_shared<Drawing::DrawWithPaintOpItem>(paint, Drawing::DrawOpItem::Type::POINT_OPITEM);
     drawCmds->drawOpItems_.emplace_back(drawOpItem);

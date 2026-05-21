@@ -325,6 +325,14 @@ bool RSRenderCurveAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
+    if (startValue_ && startValue_->IsDrawCmdListProperty()) {
+        startValue_ = startValue_->CreateSimpleProperty();
+    }
+
+    if (endValue_ && endValue_->IsDrawCmdListProperty()) {
+        endValue_ = endValue_->CreateSimpleProperty();
+    }
+
     std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
     if (interpolator == nullptr) {
         ROSEN_LOGE("RSRenderCurveAnimation::ParseParam, Unmarshalling interpolator failed");
@@ -383,6 +391,14 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
             RSMarshallingHelper::Unmarshalling(parcel, endValue_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, RSRenderPropertyBase Fail");
         return false;
+    }
+   
+    if (startValue_ && startValue_->IsDrawCmdListProperty()) {
+        startValue_ = startValue_->CreateSimpleProperty();
+    }
+
+    if (endValue_ && endValue_->IsDrawCmdListProperty()) {
+        endValue_ = endValue_->CreateSimpleProperty();
     }
 
     if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
@@ -491,6 +507,11 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling interpolator failed");
             return false;
         }
+        
+        if (tupValue1 && tupValue1->IsDrawCmdListProperty()) {
+            tupValue1 = tupValue1->CreateSimpleProperty();
+        }
+
         keyframes_.emplace_back(std::make_tuple(tupValue0, tupValue1, interpolator));
     }
     return true;
@@ -513,6 +534,10 @@ bool RSRenderKeyframeAnimation::ParseDurationKeyframesParam(Parcel& parcel, int 
         if (interpolator == nullptr) {
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseDurationParam, Unmarshalling interpolator failed");
             return false;
+        }
+        
+        if (tupValue1 && tupValue1->IsDrawCmdListProperty()) {
+            tupValue1 = tupValue1->CreateSimpleProperty();
         }
         durationKeyframes_.emplace_back(std::make_tuple(startFraction, endFraction, tupValue1, interpolator));
     }

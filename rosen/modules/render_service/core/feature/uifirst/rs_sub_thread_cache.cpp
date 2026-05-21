@@ -991,6 +991,7 @@ void RsSubThreadCache::UpdateCacheSurfaceInfo(RSSurfaceRenderNodeDrawable* surfa
     cacheSurfaceInfo_.processedNodeCount = RSRenderNodeDrawable::GetProcessedNodeCount();
     cacheSurfaceInfo_.alpha = surfaceParams->GetGlobalAlpha();
     cacheSurfaceInfo_.isContainShadow = surfaceParams->IsUIFirstLeashAllEnable();
+    cacheSurfaceInfo_.colorSpace = targetColorGamut_;
     cacheSurfaceInfo_.processedSubSurfaceNodeIds = surfaceParams->GetAllSubSurfaceNodeIds();
     if (const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
         cacheSurfaceInfo_.vsyncId = uniParam->GetVsyncId();

@@ -152,7 +152,7 @@ HWTEST_F(RSPropertyDrawableTest, OnUpdateTest004, TestSize.Level1)
     RSRenderNode nodeTest2(0);
     RectT<float> rect(1.0f, 1.0f, 1.0f, 1.0f);
     RRectT<float> rectt(rect, 1.0f, 1.0f);
-    nodeTest2.renderProperties_.clipRRect_ = rectt;
+    nodeTest2.renderProperties_.clipRRect_ = std::make_unique<RRect>(rectt);
     EXPECT_TRUE(clipToBoundsDrawable->OnUpdate(nodeTest2));
 
     RSRenderNode nodeTest3(0);

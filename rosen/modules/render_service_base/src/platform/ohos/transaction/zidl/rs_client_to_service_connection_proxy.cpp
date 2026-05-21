@@ -14,7 +14,8 @@
  */
 
 #include "rs_client_to_service_connection_proxy.h"
-
+#include "common/rs_common_def.h"
+#ifndef ENABLE_RS_PROXY
 #include <algorithm>
 #include <cstdint>
 #include <message_option.h>
@@ -26,10 +27,11 @@
 #include "transaction/rs_hrp_service.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "rs_trace.h"
-
+#endif
 namespace OHOS {
 namespace Rosen {
 namespace {
+#ifndef ENABLE_RS_PROXY
 static constexpr size_t ASHMEM_SIZE_THRESHOLD = 200 * 1024; // cannot > 500K in TF_ASYNC mode
 static constexpr int MAX_RETRY_COUNT = 30;
 static constexpr int RETRY_WAIT_TIME_US = 5000; // wait 5ms before retry SendRequest
@@ -37,13 +39,14 @@ static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemp
 static constexpr uint32_t EDID_DATA_MAX_SIZE = 64 * 1024;
 static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map size not exceed 100
 static constexpr int ZERO = 0; // empty map size
+#endif
 }
 
 RSClientToServiceConnectionProxy::RSClientToServiceConnectionProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIClientToServiceConnection>(impl)
 {
 }
-
+#ifndef ENABLE_RS_PROXY
 ErrCode RSClientToServiceConnectionProxy::GetUniRenderEnabled(bool& enable)
 {
     MessageParcel data;
@@ -4217,7 +4220,7 @@ bool RSClientToServiceConnectionProxy::NotifySoftVsyncRateDiscountEvent(uint32_t
     }
     return enable;
 }
-
+#endif
 ErrCode RSClientToServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     MessageParcel data;
@@ -4248,7 +4251,7 @@ ErrCode RSClientToServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, 
     }
     return ERR_OK;
 }
-
+#ifndef ENABLE_RS_PROXY
 void RSClientToServiceConnectionProxy::NotifyDynamicModeEvent(bool enableDynamicMode)
 {
     MessageParcel data;
@@ -4345,7 +4348,7 @@ ErrCode RSClientToServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnab
     }
     return ERR_OK;
 }
-
+#endif
 void RSClientToServiceConnectionProxy::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     OnRemoteDiedCallback_ = callback;
@@ -4357,7 +4360,7 @@ void RSClientToServiceConnectionProxy::RunOnRemoteDiedCallback()
         OnRemoteDiedCallback_();
     }
 }
-
+#ifndef ENABLE_RS_PROXY
 std::vector<ActiveDirtyRegionInfo> RSClientToServiceConnectionProxy::GetActiveDirtyRegionInfo()
 {
     MessageParcel data;
@@ -4888,7 +4891,7 @@ int32_t RSClientToServiceConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCal
     }
     return result;
 }
-
+#endif
 int32_t RSClientToServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
@@ -4897,7 +4900,7 @@ int32_t RSClientToServiceConnectionProxy::SendRequest(uint32_t code, MessageParc
     }
     return Remote()->SendRequest(code, data, reply, option);
 }
-
+#ifndef ENABLE_RS_PROXY
 ErrCode RSClientToServiceConnectionProxy::NotifyScreenSwitched()
 {
     MessageParcel data;
@@ -5173,5 +5176,6 @@ ErrCode RSClientToServiceConnectionProxy::SetOptimizeCanvasDirtyPidList(const st
 {
     return ERR_INVALID_VALUE;
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

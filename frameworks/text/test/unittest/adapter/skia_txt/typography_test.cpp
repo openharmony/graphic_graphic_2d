@@ -1565,6 +1565,48 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText005, TestS
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographySplitRunsText006
+ * @tc.desc: test for split run in special characters situation, no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText006, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    typographyStyle.ellipsis = u"...";
+    typographyStyle.ellipsisModal = EllipsisModal::TAIL;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 100 for normal English characters situation
+    style.fontSize = 100;
+    std::u16string text =
+        u"\u{000a}\u{0604}\u{514d}\u{ff09}\u{04b0}\u{0035}\u{00cd}\u{00e0}\u{ff1b}\u{04c3}\u{5621}\u{6233}\u{0f50}"
+        u"\u{d610}\u{00f3}\u{000d}\u{00d9}\u{00e9}\u{04eb}\u{cfb5}\u{00c1}\u{007b}\u{5756}\u{4fa0}\u{559d}\u{5311}"
+        u"\u{00bf}\u{0032}\u{51aa}\u{ff1f}\u{0009}\u{60eb}\u{06a8}\u{00ca}\u{3040}\u{0038}\u{30df}\u{0fb1}\u{523a}"
+        u"\u{0653}\u{2026}\u{acb0}\u{0f06}\u{61d6}\u{4e63}\u{3047}\u{5c8c}\u{50c4}\u{00c8}\u{3002}\u{5ac6}\u{00d2}"
+        u"\u{00a1}\u{5e46}\u{0410}\u{ff0c}\u{0038}\u{00e8}\u{00c1}\u{0693}\u{cd15}\u{00e9}\u{000a}\u{304a}\u{04d3}"
+        u"\u{5695}\u{ff08}\u{0037}\u{047b}\u{518e}\u{3083}\u{005c}\u{0fbd}\u{06af}\u{59fd}\u{3001}\u{0f86}\u{5c8b}"
+        u"\u{5911}\u{5354}\u{0033}\u{0657}\u{ff1f}\u{0036}\u{5458}\u{00c2}\u{309f}\u{00ca}\u{00e0}\u{0032}\u{0041}"
+        u"\u{00cd}\u{00ea}\u{ae94}\u{5625}\u{0032}\u{00f4}\u{00eb}\u{0038}\u{000a}";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->LayoutWithConstraints({340, 198});
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    size_t expectRunSize = 70;
+    EXPECT_EQ(runs.size(), expectRunSize);
+    size_t expectLineSize = 1;
+    EXPECT_EQ(paragraph->GetLineCount(), expectLineSize);
+}
+
+/*
  * @tc.name: OH_Drawing_TypographyRtlClusterIndexOffset001
  * @tc.desc: test for rtl's text adjusting textRange
  * @tc.type: FUNC

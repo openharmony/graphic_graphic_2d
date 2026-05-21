@@ -540,14 +540,11 @@ HWTEST_F(RSScreenRenderNodeTest, SetHasMirrorScreenTest, TestSize.Level1)
 HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 {
     NodeId id = 0;
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
     auto childNode = std::make_shared<RSScreenRenderNode>(id + 1, screenId);
-    node->AddChild(childNode);
     childNode->SetBootAnimation(true);
-    ASSERT_EQ(childNode->GetBootAnimation(), true);
-    node->SetBootAnimation(false);
+    ASSERT_EQ(childNode->GetBootAnimation(), false);
     childNode->SetBootAnimation(false);
-    ASSERT_FALSE(node->GetBootAnimation());
+    ASSERT_FALSE(childNode->GetBootAnimation());
 }
 
 /**
@@ -560,9 +557,6 @@ HWTEST_F(RSScreenRenderNodeTest, GetBootAnimationTest, TestSize.Level1)
 {
     NodeId id = 0;
     auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-    node->SetBootAnimation(true);
-    ASSERT_TRUE(node->GetBootAnimation());
-    node->SetBootAnimation(false);
     ASSERT_FALSE(node->GetBootAnimation());
 }
 
@@ -1099,6 +1093,28 @@ HWTEST_F(RSScreenRenderNodeTest, SetVirtualSurfaceChangedTest, TestSize.Level1)
     screenNode->SetVirtualSurfaceChanged(true);
 }
 
+/**
+ * @tc.name: SetActiveRectChangedTest
+ * @tc.desc: test results of SetActiveRectChanged
+ * @tc.type: FUNC
+ * @tc.require: issuesICQ74B
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetActiveRectChangedTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->SetActiveRectChanged(true);
+
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
+    screenNode->stagingRenderParams_->needSync_ = false;
+    screenNode->SetActiveRectChanged(true);
+
+    screenNode->stagingRenderParams_->needSync_ = true;
+    screenNode->SetActiveRectChanged(true);
+}
+
 void RSScreenRenderNodeTest::CheckWithStatusLevel(const RSScreenRenderNode::HeadroomMap &map,
     HdrStatus status, uint32_t level)
 {
@@ -1404,5 +1420,65 @@ HWTEST_F(RSScreenRenderNodeTest, SetHasForceHwcHdrSurface_NullScreenParams, Test
 
     screenNode->SetHasForceHwcHdrSurface(true);
     EXPECT_FALSE(screenNode->GetHasForceHwcHdrSurface());
+}
+
+/**
+ * @tc.name: SetBootAnimationPropagateToContainTest
+ * @tc.desc: Verify SetBootAnimation(true) propagates to SetContainBootAnimation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationPropagateToContainTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->SetBootAnimation(true);
+    ASSERT_TRUE(node->GetBootAnimation());
+    ASSERT_TRUE(node->IsContainBootAnimation());
+
+    node->SetBootAnimation(false);
+    ASSERT_FALSE(node->GetBootAnimation());
+}
+
+/**
+ * @tc.name: SetBootAnimationPropagateToParentTest
+ * @tc.desc: Verify SetBootAnimation propagates to parent only when parent is also SCREEN_NODE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationPropagateToParentTest, TestSize.Level1)
+{
+    auto childNode = std::make_shared<RSScreenRenderNode>(id + 1, screenId, context);
+    auto parentNode = std::make_shared<RSScreenRenderNode>(id + 2, screenId, context);
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id + 1);
+    parentNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id + 2);
+    parentNode->AddChild(childNode);
+
+    childNode->SetBootAnimation(true);
+    ASSERT_TRUE(childNode->IsContainBootAnimation());
+    ASSERT_TRUE(parentNode->IsContainBootAnimation());
+
+    childNode->SetBootAnimation(false);
+    ASSERT_FALSE(childNode->IsContainBootAnimation());
+    ASSERT_FALSE(parentNode->IsContainBootAnimation());
+}
+
+/**
+ * @tc.name: SetBootAnimationFalseNotPropagateTest
+ * @tc.desc: Verify SetBootAnimation(false) does not propagate SetContainBootAnimation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetBootAnimationFalseNotPropagateTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->SetBootAnimation(false);
+    ASSERT_FALSE(node->GetBootAnimation());
+    ASSERT_FALSE(node->IsContainBootAnimation());
 }
 } // namespace OHOS::Rosen
