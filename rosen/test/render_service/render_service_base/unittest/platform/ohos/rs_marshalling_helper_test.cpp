@@ -2482,6 +2482,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectCreationFailureT
  */
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     constexpr int32_t TEST_FD_COUNT = 29001;
     constexpr int32_t TEST_PID = 10001;
     constexpr uint64_t TEST_UNIQUE_ID = static_cast<uint64_t>(TEST_PID) << 32;
@@ -2514,6 +2515,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, T
     for (int32_t i = 0; i < TEST_FD_COUNT; i++) {
         MemoryTrack::Instance().RemovePictureRecord(reinterpret_cast<const void*>(i));
     }
+#endif
 }
 
 /**

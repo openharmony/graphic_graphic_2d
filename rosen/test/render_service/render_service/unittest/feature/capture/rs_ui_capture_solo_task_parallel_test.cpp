@@ -171,6 +171,7 @@ std::shared_ptr<RenderContext> RSUiCaptureSoloTaskParallelTest::renderContext_ =
 RSDisplayNodeConfig RSUiCaptureSoloTaskParallelTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
 std::shared_ptr<RSDisplayNode> RSUiCaptureSoloTaskParallelTest::displayNode_ = nullptr;
 
+#ifdef RS_ENABLE_UNI_RENDER
 /*
 * @tc.name: RSUiCaptureSoloTaskParallelValid
 * @tc.desc: Test RSUiCaptureSoloTaskParallel with valid node
@@ -404,6 +405,6 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, TestCreateSurfaceSyncCopyTask, Functio
     mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
 #endif
 }
-
+#endif
 } // namespace Rosen
 } // namespace OHOS

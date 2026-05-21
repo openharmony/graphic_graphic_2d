@@ -901,6 +901,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessScreenRenderNode005, Function | SmallT
     RSMainThread::Instance()->SetCurtainScreenUsingStatus(false);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /*
  * @tc.name: TakeSurfaceCaptureWithBlurTest
  * @tc.desc: Test RSSurfaceCaptureTaskTest.TakeSurfaceCaptureWithBlur
@@ -1082,5 +1083,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureTest, Function | SmallTest 
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS
