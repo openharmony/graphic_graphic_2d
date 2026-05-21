@@ -89,7 +89,7 @@ auto Trace3DDebugScopeCreate(const TRACE3D_CORE_API_TABLE *trace3dApi, uint64_t 
     dbgParam[1].wmFrame.number = (uint64_t)rsFrame;
 
     auto dbgScope =
-        std::make_shared<::trace3d::api::DebugScope>(trace3dApi, "", TRACE3D_DEBUG_TAG_POOL_GPU_ZONE, dbgParam[0]);
+        std::make_shared<trace3d::api::DebugScope>(trace3dApi, "", TRACE3D_DEBUG_TAG_POOL_GPU_ZONE, dbgParam[0]);
     dbgScope->SetTagParam(dbgParam[1]);
     return dbgScope;
 }
