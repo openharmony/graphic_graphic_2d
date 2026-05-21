@@ -111,7 +111,8 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
         node->Prepare(visitor);
     }
     node->Process(visitor);
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
+#if ((defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && defined(RS_ENABLE_EGLIMAGE)) || \
+    (defined(RS_ENABLE_VK) && defined(ROSEN_IOS))
     std::shared_ptr<Drawing::Image> img(drSurface.get()->GetImageSnapshot());
     if (!img) {
         RS_LOGE("RSDividedUICapture::Run: img is nullptr");

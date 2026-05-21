@@ -193,6 +193,8 @@ bool SystemProperties::CheckVulkanEnable()
 {
 #ifndef RS_ENABLE_VK
     return false;
+#elif defined(ROSEN_IOS)
+    return true;
 #else
     VulkanLoader loader;
     if (!LoadVulkanLibrary(loader)) {
