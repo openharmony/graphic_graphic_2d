@@ -140,6 +140,13 @@ void RSComposerClientManager::SetScreenBacklight(const RsScreenBrightnessData& b
     }
 }
 
+void RSComposerClientManager::SetScreenLinearMatrix(ScreenId screenId, const std::vector<float>& matrix)
+{
+    if (auto client = GetComposerClient(screenId)) {
+        client->SetScreenLinearMatrix(matrix);
+    }
+}
+
 PipelineParam RSComposerClientManager::GetPipelineParam(ScreenId screenId)
 {
     if (auto client = GetComposerClient(screenId)) {

@@ -165,6 +165,11 @@ public:
         (void)level;
     }
 
+    void SetScreenLinearMatrix(const std::vector<float>& matrix) override
+    {
+        (void)matrix;
+    }
+
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override
     {
         (void)composerToRenderConn;

@@ -60,6 +60,7 @@ public:
     void DumpCurrentFrameLayers();
     void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
+    void SetScreenLinearMatrix(const std::vector<float>& matrix);
     static void ConvertScreenInfo(const ScreenInfo& screenInfo, ComposerScreenInfo& composerScreenInfo);
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
     std::shared_ptr<HdiOutput> GetOutput() const;

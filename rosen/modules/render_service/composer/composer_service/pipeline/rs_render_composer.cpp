@@ -1510,6 +1510,15 @@ void RSRenderComposer::SetScreenBacklight(uint32_t level)
     hdiOutput_->SetScreenBacklight(level);
 }
 
+void RSRenderComposer::SetScreenLinearMatrix(const std::vector<float>& matrix)
+{
+    if (hdiOutput_ == nullptr) {
+        RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);
+        return;
+    }
+    hdiOutput_->SetScreenLinearMatrix(matrix);
+}
+
 int64_t RSRenderComposer::GetDelayTime() const
 {
     return delayTime_.load();

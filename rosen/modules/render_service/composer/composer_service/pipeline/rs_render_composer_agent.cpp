@@ -224,6 +224,23 @@ void RSRenderComposerAgent::SetScreenBacklight(uint32_t level)
     );
 }
 
+void RSRenderComposerAgent::SetScreenLinearMatrix(const std::vector<float>& matrix)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, matrix]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->SetScreenLinearMatrix(matrix);
+        }
+    );
+}
+
 void RSRenderComposerAgent::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
 {
     if (rsRenderComposer_ == nullptr) {

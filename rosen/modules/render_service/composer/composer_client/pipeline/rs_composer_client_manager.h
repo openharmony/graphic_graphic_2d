@@ -46,6 +46,7 @@ public:
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId, NodeId nodeId);
     int32_t CommitTunnelLayerBySurfaceId(const TunnelLayerCommitInfo& commitInfo, sptr<SyncFence>& releaseFence);
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
+    void SetScreenLinearMatrix(ScreenId screenId, const std::vector<float>& matrix);
     PipelineParam GetPipelineParam(ScreenId screenId);
     void UpdatePipelineParam(ScreenId screenId, const PipelineParam& pipelineParam);
     void PreAllocProtectedFrameBuffers(ScreenId screenId, const sptr<SurfaceBuffer>& buffer);

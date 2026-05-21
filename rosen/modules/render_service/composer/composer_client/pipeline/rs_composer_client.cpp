@@ -152,6 +152,11 @@ void RSComposerClient::SetScreenBacklight(uint32_t level)
     rsComposerContext_->SetScreenBacklight(level);
 }
 
+void RSComposerClient::SetScreenLinearMatrix(const std::vector<float>& matrix)
+{
+    rsComposerContext_->SetScreenLinearMatrix(matrix);
+}
+
 uint32_t RSComposerClient::GetUnExecuteTaskNum() const
 {
     return unExecuteTaskNum_.load();

@@ -45,6 +45,8 @@ static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static constexpr uint32_t DEFAULT_TUNNEL_LAYER_THRESHOLD = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
 static const std::string GENERIC_METADATA_KEY_COPYBIT_NEEDED = "TryToDoCopybit";
+static constexpr size_t MATRIX_SIZE = 9;
+static const std::string GENERIC_METADATA_KEY_DISPLAY_LINEAR_MATRIX = "DisplayLinearMatrix";
 
 using TunnelLayerKey = std::pair<uint32_t, uintptr_t>;
 std::mutex g_tunnelLayerMutex;
@@ -1664,6 +1666,27 @@ void HdiOutput::SetScreenBacklight(uint32_t level)
 {
     if (device_ != nullptr) {
         device_->SetScreenBacklight(screenId_, level);
+    }
+}
+
+void HdiOutput::SetScreenLinearMatrix(const std::vector<float>& matrix)
+{
+    if (device_ == nullptr) {
+        HLOGE("%{public}s failed : HdiDevice is null", __func__);
+        return;
+    }
+    if (matrix.size() != MATRIX_SIZE) {
+        HLOGE("%{public}s failed : size is invalid", __func__);
+        return;
+    }
+    std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
+    if (memcpy_s(valueBlob.data(), valueBlob.size(), matrix.data(), MATRIX_SIZE * sizeof(float)) != EOK) {
+        return;
+    }
+    int32_t ret = device_->SetDisplayPerFrameParameterSmq(screenId_,
+        GENERIC_METADATA_KEY_DISPLAY_LINEAR_MATRIX, valueBlob);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGD("Call hdi SetDisplayPerFrameParameterSmq failed, ret is %{public}d", ret);
     }
 }
 

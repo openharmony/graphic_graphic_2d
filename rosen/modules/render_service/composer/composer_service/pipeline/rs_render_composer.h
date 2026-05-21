@@ -154,6 +154,7 @@ private:
     void UpdateForSurfaceFps(const PipelineParam&);
     void AddSolidColorLayer(std::vector<std::shared_ptr<RSLayer>>& layers);
     void SetScreenBacklight(uint32_t level);
+    void SetScreenLinearMatrix(const std::vector<float>& matrix);
     void ReInit(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void RegisterLayerCreatedCallbackToOutput();
     void ClearLayerCreatedCallbackFromOutput() const;

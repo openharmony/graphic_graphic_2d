@@ -98,6 +98,16 @@ void RSRenderToComposerConnection::SetScreenBacklight(uint32_t level)
     rsRenderComposerAgent_->SetScreenBacklight(level);
 }
 
+void RSRenderToComposerConnection::SetScreenLinearMatrix(const std::vector<float>& matrix)
+{
+    RS_TRACE_NAME_FMT("%s", __func__);
+    if (rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("%{public}s param illegal", __func__);
+        return;
+    }
+    rsRenderComposerAgent_->SetScreenLinearMatrix(matrix);
+}
+
 void RSRenderToComposerConnection::SetComposerToRenderConnection(
     const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {

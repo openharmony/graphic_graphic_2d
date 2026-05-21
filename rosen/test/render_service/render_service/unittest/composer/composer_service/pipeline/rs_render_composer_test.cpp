@@ -3271,6 +3271,31 @@ HWTEST_F(RsRenderComposerTest, SetScreenBacklight_Branches, TestSize.Level1)
 }
 
 /**
+ * Function: SetScreenLinearMatrix_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call with valid hdiOutput_
+ *                  2. call with null hdiOutput_
+ */
+HWTEST_F(RsRenderComposerTest, SetScreenLinearMatrix_Branches, TestSize.Level1)
+{
+    std::vector<float> matrix = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+
+    // Verify initial hdiOutput_ is not null
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+
+    // Call with valid hdiOutput_
+    rsRenderComposer_->SetScreenLinearMatrix(matrix);
+
+    // Call with null hdiOutput_
+    auto backup = rsRenderComposer_->hdiOutput_;
+    rsRenderComposer_->hdiOutput_ = nullptr;
+    rsRenderComposer_->SetScreenLinearMatrix(matrix);
+    rsRenderComposer_->hdiOutput_ = backup;
+}
+
+/**
  * Function: CleanLayerBufferBySurfaceId_Normal
  * Type: Function
  * Rank: Important(2)

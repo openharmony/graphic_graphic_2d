@@ -53,6 +53,7 @@
 #include "string_utils.h"
 #include "v2_2/cm_color_space.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "pipeline/mock/mock_rs_color_temperature.h"
 #include "pipeline/mock/mock_rs_luminance_control.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
@@ -4822,6 +4823,7 @@ HWTEST_F(RSMainThreadTest, UpdateLuminanceAndColorTempTest, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    mainThread->composerClientManager_ = std::make_shared<RSComposerClientManager>();
 
     auto backUpNode = mainThread->context_->globalRootRenderNode_;
     NodeId id = 1;
@@ -4839,8 +4841,17 @@ HWTEST_F(RSMainThreadTest, UpdateLuminanceAndColorTempTest, TestSize.Level2)
     node1->GenerateFullChildrenList();
     mainThread->context_->globalRootRenderNode_ = node1;
 
+    auto& colorTemp = RSColorTemperature::Get();
+    auto mockColorTemp = std::make_shared<OHOS::Rosen::Mock::RSColorTemperatureInterfaceMock>();
+    auto backupInterface = colorTemp.rSColorTemperatureInterface_;
+    colorTemp.rSColorTemperatureInterface_ = mockColorTemp.get();
+    EXPECT_CALL(*mockColorTemp, IsDimmingOn(_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(*mockColorTemp, GetNewLinearCct(_)).WillRepeatedly(Return(std::vector<float>(9, 0.0f)));
+    EXPECT_CALL(*mockColorTemp, DimmingIncrease(_)).WillRepeatedly(Return());
+
     mainThread->UpdateLuminanceAndColorTemp();
 
+    colorTemp.rSColorTemperatureInterface_ = backupInterface;
     mainThread->context_->globalRootRenderNode_ = backUpNode;
 }
 

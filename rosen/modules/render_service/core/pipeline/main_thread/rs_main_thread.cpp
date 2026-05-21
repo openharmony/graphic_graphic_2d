@@ -5383,6 +5383,7 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
         if (rsColorTemperature.IsDimmingOn(screenId)) {
             std::vector<float> matrix = rsColorTemperature.GetNewLinearCct(screenId);
             rsColorTemperature.DimmingIncrease(screenId);
+            composerClientManager_->SetScreenLinearMatrix(screenId, matrix);
             isNeedRefreshAll = true;
         }
         RSHdrUtil::CheckNotifyCallback(GetContext(), screenId);

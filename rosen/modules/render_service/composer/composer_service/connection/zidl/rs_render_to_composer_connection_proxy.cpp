@@ -258,7 +258,30 @@ void RSRenderToComposerConnectionProxy::SetScreenBacklight(uint32_t level)
         RS_LOGE("%{public}s WriteUint32 failed", __func__);
         return;
     }
-    SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_BACKLIGHT_LEVEL, parcel, reply, option);
+    auto ret = SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_BACKLIGHT_LEVEL, parcel, reply, option);
+    if (ret != COMPOSITOR_ERROR_OK) {
+        RS_LOGE("%{public}s SendRequest failed, err: %{public}d", __func__, ret);
+    }
+}
+
+void RSRenderToComposerConnectionProxy::SetScreenLinearMatrix(const std::vector<float>& matrix)
+{
+    MessageOption option;
+    MessageParcel reply;
+    MessageParcel parcel;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!parcel.WriteInterfaceToken(GetDescriptor())) {
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
+        return;
+    }
+    if (!parcel.WriteFloatVector(matrix)) {
+        RS_LOGE("%{public}s WriteFloatVector failed", __func__);
+        return;
+    }
+    auto ret = SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_LINEAR_MATRIX, parcel, reply, option);
+    if (ret != COMPOSITOR_ERROR_OK) {
+        RS_LOGE("%{public}s SendRequest failed, err: %{public}d", __func__, ret);
+    }
 }
 
 void RSRenderToComposerConnectionProxy::SetComposerToRenderConnection(

@@ -140,6 +140,7 @@ public:
     void ClearLayerCreatedCallback();
     void Repaint();
     void SetScreenBacklight(uint32_t level);
+    void SetScreenLinearMatrix(const std::vector<float>& matrix);
     int32_t GetCurrentFramePresentFd() const
     {
         return curPresentFd_;

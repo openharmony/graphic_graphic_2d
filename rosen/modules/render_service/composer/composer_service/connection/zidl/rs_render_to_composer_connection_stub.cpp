@@ -68,6 +68,17 @@ int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::M
             uint32_t level = 0;
             if (GetBacklightLevel(data, level) == COMPOSITOR_ERROR_OK) {
                 SetScreenBacklight(level);
+            } else {
+                ret = COMPOSITOR_ERROR_BINDER_ERROR;
+            }
+            break;
+        }
+        case IRENDER_TO_COMPOSER_CONNECTION_SET_LINEAR_MATRIX: {
+            std::vector<float> matrix;
+            if (GetLinearMatrix(data, matrix) == COMPOSITOR_ERROR_OK) {
+                SetScreenLinearMatrix(matrix);
+            } else {
+                ret = COMPOSITOR_ERROR_BINDER_ERROR;
             }
             break;
         }
@@ -172,6 +183,15 @@ std::unordered_set<uint64_t> RSRenderToComposerConnectionStub::ParseClearRedrawC
 int32_t RSRenderToComposerConnectionStub::GetBacklightLevel(OHOS::MessageParcel& parcel, uint32_t& level)
 {
     if (!parcel.ReadUint32(level)) {
+        RS_LOGE("%{public}s failed.", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
+    return COMPOSITOR_ERROR_OK;
+}
+
+int32_t RSRenderToComposerConnectionStub::GetLinearMatrix(OHOS::MessageParcel& parcel, std::vector<float>& matrix)
+{
+    if (!parcel.ReadFloatVector(&matrix)) {
         RS_LOGE("%{public}s failed.", __func__);
         return COMPOSITOR_ERROR_BINDER_ERROR;
     }
