@@ -34,9 +34,6 @@ bool ParticleFuzzTest001(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
         return false;
@@ -61,9 +58,6 @@ bool ParticleFuzzTest002(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
         return false;
@@ -102,9 +96,6 @@ bool ParticleFuzzTest003(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
         return false;
@@ -128,9 +119,6 @@ bool ParticleFuzzTest004(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
         return false;
@@ -224,9 +212,6 @@ bool ParticleFuzzTest005(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
         return false;
@@ -262,9 +247,6 @@ bool ParticleFuzzTest006(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
         return false;
@@ -296,6 +278,10 @@ bool ParticleFuzzTest006(const uint8_t* data, size_t size)
     auto effect = builder->MakeParticleEffect(maxParticleCount);
     if (!effect) {
         std::cout << "ParticleFuzzTest006 failed, effect faild." << std::endl;
+        if (dataText != nullptr) {
+            delete [] dataText;
+            dataText = nullptr;
+        }
         return false;
     }
     std::shared_ptr<Image> imagePtr = std::make_shared<Image>(image);
@@ -313,10 +299,6 @@ bool ParticleFuzzTest007(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     auto effect = std::make_shared<Drawing::ParticleEffect>();
 
     auto dataVal = std::make_shared<Data>();
