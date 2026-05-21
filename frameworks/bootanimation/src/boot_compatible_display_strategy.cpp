@@ -79,13 +79,12 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
         return;
     }
 
-    constexpr uint32_t WAIT_FOR_CONNECT_TO_RENDER_MS = 10000;
-    GetConnectToRenderMap(configs.size(), WAIT_FOR_CONNECT_TO_RENDER_MS);
-    for (auto& config : configs) {
-        if (!PrepareScreenConfig(config)) {
-            continue;
-        }
-        RunAnimationAndOta(config, duration);
+    GetConnectToRenderMap(configs.size());
+    if (!noScreen_) {
+        PrepareScreenConfig(configs[0]);
+        RunAnimationAndOta(configs[0], duration);
+    } else {
+        LOGI("BootCompatibleDisplayStrategy::No screen connected");
     }
 
     while (!CheckExitAnimation()) {
