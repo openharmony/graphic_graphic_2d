@@ -268,12 +268,12 @@ void Region::MakeBound()
     }
 }
 
-Region Region::GetAlignedRegion(int alignmentSize) const
+Region Region::GetAlignedRegion(int alignmentWidth, int alignmentHeight) const
 {
     Region alignedRegion;
     for (const auto& rect : rects_) {
-        Rect alignedRect(AlignDown(rect.left_, alignmentSize), AlignDown(rect.top_, alignmentSize),
-            AlignUp(rect.right_, alignmentSize), AlignUp(rect.bottom_, alignmentSize));
+        Rect alignedRect(AlignDown(rect.left_, alignmentWidth), AlignDown(rect.top_, alignmentHeight),
+            AlignUp(rect.right_, alignmentWidth), AlignUp(rect.bottom_, alignmentHeight));
         Region alignedSubRegion{alignedRect};
         alignedRegion.OrSelf(alignedSubRegion);
     }
@@ -445,27 +445,26 @@ std::ostream& operator<<(std::ostream& os, const Region& r)
     return os;
 }
 
-int Region::Area() const
+int64_t Region::Area() const
 {
-    int areaSum = 0;
+    int64_t areaSum = 0;
     for (const auto& rect : GetRegionRects()) {
         areaSum += rect.Area();
     }
     return areaSum;
 }
 
-int Region::IntersectArea(const Rect& r) const
+int64_t Region::IntersectArea(const Rect& r) const
 {
     if (r.IsEmpty()) {
         return 0;
     }
-    int areaSum = 0;
+    int64_t areaSum = 0;
     for (const auto& rect : GetRegionRects()) {
         areaSum += rect.IntersectArea(r);
     }
     return areaSum;
 }
-
 } // namespace Occlusion
 } // namespace Rosen
 } // namespace OHOS

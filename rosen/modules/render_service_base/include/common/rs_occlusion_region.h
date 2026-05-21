@@ -110,15 +110,15 @@ public:
         return RectI{left_, top_, right_ - left_, bottom_ - top_};
     }
 
-    int Area() const
+    int64_t Area() const
     {
         if (IsEmpty()) {
             return 0;
         }
-        return (right_ - left_) * (bottom_ - top_);
+        return static_cast<int64_t>(right_ - left_) * (bottom_ - top_);
     }
 
-    int IntersectArea(const Rect& r) const
+    int64_t IntersectArea(const Rect& r) const
     {
         Rect res = this->Intersect(r);
         return res.Area();
@@ -274,7 +274,7 @@ public:
         return rectIs;
     }
 
-    int GetSize() const
+    size_t GetSize() const
     {
         return rects_.size();
     }
@@ -328,8 +328,8 @@ public:
     // bound of all region rects
     void MakeBound();
 
-    Region GetAlignedRegion(int alignmentSize) const;
-    
+    Region GetAlignedRegion(int alignmentWidth, int alignmentHeight) const;
+
     bool IsIntersectWith(const Rect& r) const
     {
         for (const Rect& rect : rects_) {
@@ -367,9 +367,9 @@ public:
     Region Sub(const Region& r);
 
     // get current region's area, return the sum of the areas of all rectangles (as they are not intersect each other)
-    int Area() const;
+    int64_t Area() const;
     // return the area of the region where the current region intersects the rectangle
-    int IntersectArea(const Rect& r) const;
+    int64_t IntersectArea(const Rect& r) const;
 
 private:
     class Rects {

@@ -162,8 +162,6 @@ private:
     Occlusion::Region GetSurfaceTransparentFilterRegion(const RSSurfaceRenderNode& surfaceNode) const;
     void CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion);
     void PartialRenderOptionInit();
-    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
-        const Occlusion::Region& selfDrawRegion);
     void UpdateSurfaceOcclusionInfo();
     enum class RSPaintStyle {
         FILL,

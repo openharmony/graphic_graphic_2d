@@ -20,6 +20,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/mock/mock_meta_data_helper.h"
@@ -970,6 +971,9 @@ HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion004, TestSize.Level1
     constexpr int sampledDrawnRegionWidth{2048};
     constexpr int sampledDrawnRegionHeight{3072};
 
+    constexpr int gpuTileWidth = 128;
+    constexpr int gpuTileHeight = 128;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
     ScreenInfo screenInfo{
         .isSamplingOn = true,
         .samplingDistance = 3,
@@ -986,6 +990,103 @@ HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion004, TestSize.Level1
     EXPECT_EQ(sampledDamageRegion.GetBound().GetHeight(), sampledDamageRegionHeight);
     EXPECT_EQ(sampledDrawnRegion.GetBound().GetWidth(), sampledDrawnRegionWidth);
     EXPECT_EQ(sampledDrawnRegion.GetBound().GetHeight(), sampledDrawnRegionHeight);
+}
+
+/**
+ * @tc.name: GetSampledDamageAndDrawnRegion005
+ * @tc.desc: test GetSampledDamageAndDrawnRegion with valid GPU tile for alignment
+ * @tc.type: FUNC
+ * @tc.require: issue23698
+ */
+HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion005, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = 128;
+    constexpr int gpuTileHeight = 64;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+
+    constexpr int srcDamageRegionWidth{100};
+    constexpr int srcDamageRegionHeight{200};
+
+    ScreenInfo screenInfo{
+        .isSamplingOn = true,
+        .samplingDistance = 0,
+        .samplingTranslateX = 0.f,
+        .samplingTranslateY = 0.f,
+        .samplingScale = 0.5f
+    };
+    Occlusion::Region srcDamageRegion{Occlusion::Rect(0, 0, srcDamageRegionWidth, srcDamageRegionHeight)};
+    Occlusion::Region sampledDamageRegion;
+    Occlusion::Region sampledDrawnRegion;
+    RSUniRenderUtil::GetSampledDamageAndDrawnRegion(screenInfo, srcDamageRegion, true,
+        sampledDamageRegion, sampledDrawnRegion);
+    constexpr int sampledDrawnRegionWidth{128};
+    constexpr int sampledDrawnRegionHeight{128};
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetWidth(), sampledDrawnRegionWidth);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetHeight(), sampledDrawnRegionHeight);
+}
+
+/**
+ * @tc.name: GetSampledDamageAndDrawnRegion006
+ * @tc.desc: test GetSampledDamageAndDrawnRegion with invalid GPU tile skips alignment
+ * @tc.type: FUNC
+ * @tc.require: issue23698
+ */
+HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion006, TestSize.Level1)
+{
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(0, 0));
+
+    constexpr int srcDamageRegionWidth{100};
+    constexpr int srcDamageRegionHeight{200};
+
+    ScreenInfo screenInfo{
+        .isSamplingOn = true,
+        .samplingDistance = 0,
+        .samplingTranslateX = 0.f,
+        .samplingTranslateY = 0.f,
+        .samplingScale = 0.5f
+    };
+    Occlusion::Region srcDamageRegion{Occlusion::Rect(0, 0, srcDamageRegionWidth, srcDamageRegionHeight)};
+    Occlusion::Region sampledDamageRegion;
+    Occlusion::Region sampledDrawnRegion;
+    RSUniRenderUtil::GetSampledDamageAndDrawnRegion(screenInfo, srcDamageRegion, true,
+        sampledDamageRegion, sampledDrawnRegion);
+    constexpr int sampledDrawnRegionWidth{50};
+    constexpr int sampledDrawnRegionHeight{100};
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetWidth(), sampledDrawnRegionWidth);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetHeight(), sampledDrawnRegionHeight);
+}
+
+/**
+ * @tc.name: GetSampledDamageAndDrawnRegion007
+ * @tc.desc: test GetSampledDamageAndDrawnRegion with isDirtyAlignEnabled=false skips alignment
+ * @tc.type: FUNC
+ * @tc.require: issue23698
+ */
+HWTEST_F(RSUniRenderUtilTest, GetSampledDamageAndDrawnRegion007, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = 128;
+    constexpr int gpuTileHeight = 128;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+
+    constexpr int srcDamageRegionWidth{100};
+    constexpr int srcDamageRegionHeight{200};
+
+    ScreenInfo screenInfo{
+        .isSamplingOn = true,
+        .samplingDistance = 0,
+        .samplingTranslateX = 0.f,
+        .samplingTranslateY = 0.f,
+        .samplingScale = 0.5f
+    };
+    Occlusion::Region srcDamageRegion{Occlusion::Rect(0, 0, srcDamageRegionWidth, srcDamageRegionHeight)};
+    Occlusion::Region sampledDamageRegion;
+    Occlusion::Region sampledDrawnRegion;
+    RSUniRenderUtil::GetSampledDamageAndDrawnRegion(screenInfo, srcDamageRegion, false,
+        sampledDamageRegion, sampledDrawnRegion);
+    constexpr int sampledDrawnRegionWidth{50};
+    constexpr int sampledDrawnRegionHeight{100};
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetWidth(), sampledDrawnRegionWidth);
+    EXPECT_EQ(sampledDamageRegion.GetBound().GetHeight(), sampledDrawnRegionHeight);
 }
 
 /**
@@ -1176,6 +1277,158 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory002, TestSize.Level1)
     RSUniRenderThread::Instance().Sync(std::move(renderParams));
     int32_t bufferAge = 0;
     ScreenInfo screenInfo;
+    auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    EXPECT_EQ(rects.empty(), false);
+}
+
+/**
+ * @tc.name: MergeDirtyHistory003
+ * @tc.desc: test MergeDirtyHistory with dirty align enabled and valid GPU tile
+ * @tc.type: FUNC
+ * @tc.require: issue23698
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory003, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = 256;
+    constexpr int gpuTileHeight = 128;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+
+    NodeId defaultDisplayId = 5;
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNodeDrawable> displayDrawable(
+        GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext));
+    ASSERT_NE(displayDrawable, nullptr);
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->isDirtyAlignEnabled_ = true;
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+    int32_t bufferAge = 0;
+    ScreenInfo screenInfo;
+    auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    EXPECT_EQ(rects.empty(), false);
+}
+
+/**
+ * @tc.name: MergeDirtyHistory004
+ * @tc.desc: test MergeDirtyHistory with dirty align enabled but invalid GPU tile
+ * @tc.type: FUNC
+ * @tc.require: issue23698
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory004, TestSize.Level1)
+{
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(0, 0));
+
+    NodeId defaultDisplayId = 5;
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNodeDrawable> displayDrawable(
+        GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext));
+    ASSERT_NE(displayDrawable, nullptr);
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->isDirtyAlignEnabled_ = true;
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+    int32_t bufferAge = 0;
+    ScreenInfo screenInfo;
+    auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    EXPECT_EQ(rects.empty(), false);
+}
+
+/**
+ * @tc.name: MergeDirtyHistory005
+ * @tc.desc: test MergeDirtyHistory with dirty align disabled triggers ExpandDamageRegion
+ * @tc.type: FUNC
+ * @tc.require: issue23698
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory005, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = 128;
+    constexpr int gpuTileHeight = 128;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+
+    NodeId defaultDisplayId = 5;
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNodeDrawable> displayDrawable(
+        GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext));
+    ASSERT_NE(displayDrawable, nullptr);
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->isDirtyAlignEnabled_ = false;
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+    int32_t bufferAge = 0;
+    ScreenInfo screenInfo;
+    auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    EXPECT_EQ(rects.empty(), false);
+}
+
+/**
+ * @tc.name: MergeDirtyHistory006
+ * @tc.desc: test MergeDirtyHistory non-sampling with align disabled and single rect
+ * @tc.type: FUNC
+ * @tc.require: issue23698
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory006, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = 128;
+    constexpr int gpuTileHeight = 128;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+
+    NodeId defaultDisplayId = 5;
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNodeDrawable> displayDrawable(
+        GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext));
+    ASSERT_NE(displayDrawable, nullptr);
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    std::unique_ptr<RSScreenRenderParams> params = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSDirtyRectsDfx rsDirtyRectsDfx(*displayDrawable);
+    auto renderParams = std::make_unique<RSRenderThreadParams>();
+    renderParams->isDirtyAlignEnabled_ = false;
+    RSUniRenderThread::Instance().Sync(std::move(renderParams));
+    int32_t bufferAge = 0;
+    ScreenInfo screenInfo;
+    screenInfo.isSamplingOn = false;
+    screenInfo.samplingScale = 0;
     auto rects = RSUniRenderUtil::MergeDirtyHistory(*displayDrawable, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     EXPECT_EQ(rects.empty(), false);
@@ -2439,5 +2692,22 @@ HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode012, TestSize.Level1)
     screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
     auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
     ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ExpandDamageRegionToSingleRect001
+ * @tc.desc: test ExpandDamageRegionToSingleRect uses DIRTY_REGION_COUNT_THRESHOLD constant
+ * @tc.type: FUNC
+ * @tc.require: issue23698
+ */
+HWTEST_F(RSUniRenderUtilTest, ExpandDamageRegionToSingleRect001, TestSize.Level1)
+{
+    Occlusion::Region singleRectRegion{Occlusion::Rect(0, 0, 100, 200)};
+    EXPECT_EQ(singleRectRegion.GetSize(), RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD);
+
+    Occlusion::Region multiRectRegion;
+    multiRectRegion.OrSelf(Occlusion::Region{Occlusion::Rect(0, 0, 100, 100)});
+    multiRectRegion.OrSelf(Occlusion::Region{Occlusion::Rect(200, 200, 300, 300)});
+    EXPECT_TRUE(multiRectRegion.GetSize() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD);
 }
 } // namespace OHOS::Rosen

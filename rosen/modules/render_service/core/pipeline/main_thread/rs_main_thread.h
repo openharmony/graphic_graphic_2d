@@ -540,8 +540,6 @@ private:
     void TraverseCanvasDrawingNodes();
 
     void SetFocusLeashWindowId();
-    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
-        const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
 #ifdef RES_SCHED_ENABLE

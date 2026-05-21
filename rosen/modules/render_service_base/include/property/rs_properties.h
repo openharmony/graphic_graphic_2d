@@ -673,6 +673,7 @@ public:
     RectF GetBoundsRect() const;
     NodeId GetRenderNodeId() const;
 
+    bool IsDirty() const;
     bool IsGeoDirty() const;
     bool IsCurGeoDirty() const;
     bool IsContentDirty() const;
@@ -964,7 +965,6 @@ private:
     }
     void SetDirty();
     void ResetDirty();
-    bool IsDirty() const;
     void AccumulateDirtyStatus();
     void RecordCurDirtyStatus();
 
