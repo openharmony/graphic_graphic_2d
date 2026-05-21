@@ -472,6 +472,77 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateBufferDirtyRegion006
+ * @tc.desc: test UpdateBufferDirtyRegion when bufferDropped is true and bufferSizeChanged is false
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion006, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
+    surfaceNode->GetRSSurfaceHandler()->bufferSizeChanged_ = false;
+    surfaceNode->GetRSSurfaceHandler()->bufferDropped_ = true;
+    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
+    surfaceNode->UpdateBufferDirtyRegion();
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBufferDropped() == false);
+}
+
+/**
+ * @tc.name: UpdateBufferDirtyRegion007
+ * @tc.desc: test UpdateBufferDirtyRegion when both bufferSizeChanged and bufferDropped are true
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion007, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
+    surfaceNode->GetRSSurfaceHandler()->bufferSizeChanged_ = true;
+    surfaceNode->GetRSSurfaceHandler()->bufferDropped_ = true;
+    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
+    surfaceNode->UpdateBufferDirtyRegion();
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBufferDropped() == false);
+}
+
+/**
+ * @tc.name: UpdateBufferDirtyRegion008
+ * @tc.desc: test UpdateBufferDirtyRegion when both bufferSizeChanged and bufferDropped are false
+ *           should not reset dirty rect, should fall through to damageRegion logic
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion008, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
+    surfaceNode->GetRSSurfaceHandler()->bufferSizeChanged_ = false;
+    surfaceNode->GetRSSurfaceHandler()->bufferDropped_ = false;
+    surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
+    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
+    surfaceNode->UpdateBufferDirtyRegion();
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBufferDropped() == false);
+}
+
+/**
  * @tc.name: UpdateSelfDrawRect
  * @tc.desc: test
  * @tc.type: FUNC

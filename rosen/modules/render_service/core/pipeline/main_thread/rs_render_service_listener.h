@@ -33,6 +33,7 @@ public:
     void OnCleanCache(uint32_t *bufSeqNum) override;
     void OnGoBackground() override;
     void OnTransformChange() override;
+    void OnDropBuffer() override;
 
 private:
     void SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,

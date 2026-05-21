@@ -464,6 +464,18 @@ public:
         return bufferSizeChanged_;
     }
 
+    bool GetBufferDropped() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return bufferDropped_;
+    }
+
+    void SetBufferDropped(bool dropped)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        bufferDropped_ = dropped;
+    }
+
     bool GetBufferTransformTypeChanged() const
     {
         return bufferTransformTypeChanged_;
@@ -534,6 +546,7 @@ private:
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
+    bool bufferDropped_ = false;
     bool bufferTransformTypeChanged_ = false;
     std::atomic<uint32_t> sourceType_ = 0;
     bool sourceTypeChanged_ = false;
