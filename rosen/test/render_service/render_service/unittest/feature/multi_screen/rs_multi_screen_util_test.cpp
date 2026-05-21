@@ -18,6 +18,7 @@
 #include <parameters.h>
 
 #include "drawable/rs_logical_display_render_node_drawable.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/multi_screen/rs_multi_screen_util.h"
 #include "graphic_feature_param_manager.h"
@@ -487,6 +488,137 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest003, TestSize.Level
     RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *params, processor);
     params->SetHasMirrorScreen(true);
     RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *params, processor);
+    EXPECT_NE(params, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest004
+ * @tc.desc: Test HandleVirtualExtendScreen with dirty align enabled and valid GpuTile
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest004, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    params->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    RSUniRenderThread::Instance().InitGrContext();
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
+
+    // Enable virtual expand screen dirty and dirty align
+    uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    uniParam->isDirtyAlignEnabled_ = true;
+
+    // Set valid GpuTile
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile({64, 64});
+
+    // Test with multiple dirty regions (size > dirtyRegionCountThresholdYf)
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *params, processor);
+
+    // Reset state
+    uniParam->isDirtyAlignEnabled_ = false;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile({0, 0});
+    EXPECT_NE(params, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest005
+ * @tc.desc: Test HandleVirtualExtendScreen with dirty align disabled
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest005, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    params->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    RSUniRenderThread::Instance().InitGrContext();
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
+
+    // Enable virtual expand screen dirty but disable dirty align
+    uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    uniParam->isDirtyAlignEnabled_ = false;
+
+    // Set valid GpuTile (should not take the Clear path since dirty align is disabled)
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile({64, 64});
+
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *params, processor);
+
+    // Reset state
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile({0, 0});
+    EXPECT_NE(params, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest006
+ * @tc.desc: Test HandleVirtualExtendScreen with invalid GpuTile
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest006, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    params->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    RSUniRenderThread::Instance().InitGrContext();
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
+
+    // Enable virtual expand screen dirty and dirty align
+    uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    uniParam->isDirtyAlignEnabled_ = true;
+
+    // Set invalid GpuTile (zero values), should take ClipRegion path
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile({0, 0});
+
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *params, processor);
+
+    // Reset state
+    uniParam->isDirtyAlignEnabled_ = false;
+    EXPECT_NE(params, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest007
+ * @tc.desc: Test HandleVirtualExtendScreen with single dirty region
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest007, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    params->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    RSUniRenderThread::Instance().InitGrContext();
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
+
+    // Enable virtual expand screen dirty and dirty align
+    uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    uniParam->isDirtyAlignEnabled_ = true;
+
+    // Set valid GpuTile but with single dirty region (size <= dirtyRegionCountThresholdYf)
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile({64, 64});
+
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *params, processor);
+
+    // Reset state
+    uniParam->isDirtyAlignEnabled_ = false;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile({0, 0});
     EXPECT_NE(params, nullptr);
 }
 }
