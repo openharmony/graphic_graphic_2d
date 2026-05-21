@@ -1444,7 +1444,6 @@ HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenConnectedTest, TestSize.Le
     ASSERT_NE(hgmContext, nullptr);
 
     auto output = std::make_shared<HdiOutput>(0u);
-    //    output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto screenManagerListener = sptr<RSRenderService::ScreenManagerListener>::MakeSptr(*renderService);
 

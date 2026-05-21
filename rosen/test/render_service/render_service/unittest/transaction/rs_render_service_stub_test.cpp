@@ -169,10 +169,10 @@ HWTEST_F(RSRenderServiceStubTest, GetHgmContextTest001, TestSize.Level1)
 {
     auto renderService = static_cast<RSRenderService*>(stub_.GetRefPtr());
     ASSERT_NE(renderService, nullptr);
- 
+
     auto orgHgmPolicyEnabled = HgmCore::Instance().hgmAbilityEnabled_;
     HgmCore::Instance().hgmAbilityEnabled_ = true;
- 
+
     auto hgmContext = renderService->GetHgmContext();
     // When hgmPolicyEnabled is true, GetHgmContext returns hgmContext_ (may be nullptr if not initialized)
     EXPECT_EQ(hgmContext, renderService->hgmContext_);

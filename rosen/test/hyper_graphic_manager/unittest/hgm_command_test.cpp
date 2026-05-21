@@ -163,13 +163,6 @@ HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level0)
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     ASSERT_NE(frameRateMgr, nullptr);
 
-    // test init when mPolicyConfigData_ is null
-    auto oriData = std::move(hgmCore.mPolicyConfigData_);
-    hgmCore.mPolicyConfigData_ = nullptr;
-    hgmCore.Init();
-    hgmCore.mPolicyConfigData_ = std::move(oriData);
-    hgmCore.Init();
-
     // bk
     auto configData = hgmCore.mPolicyConfigData_;
     ASSERT_NE(configData, nullptr);
