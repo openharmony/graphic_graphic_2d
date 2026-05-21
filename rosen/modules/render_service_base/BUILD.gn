@@ -582,6 +582,12 @@ ohos_source_set("render_service_base_src") {
           "-mllvm",
           "-enable-partial-inlining",
         ]
+        if (graphic_2d_feature_enable_func_arg_specialization) {
+          cflags += [
+            "-mllvm",
+            "-enable-func-arg-specialization=true",
+          ]
+        }
         inputs = [ "${graphic_2d_feature_pgo_path}/librender_service_base.profdata" ]
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
@@ -884,6 +890,9 @@ config("render_service_base_link_config") {
                   root_build_dir),
           "-Wl,--no-warn-symbol-ordering",
         ]
+      }
+      if (graphic_2d_feature_enable_func_arg_specialization) {
+        ldflags += [ "-Wl,-mllvm,-enable-func-arg-specialization=true" ]
       }
     }
     if (target_cpu == "arm64" && defined(build_ext_path)) {
