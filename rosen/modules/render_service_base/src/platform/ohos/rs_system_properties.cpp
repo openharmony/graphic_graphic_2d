@@ -460,7 +460,7 @@ bool RSSystemProperties::GetDoDirectCompositionEnabled()
 bool RSSystemProperties::GetDumpRsTreeDetailEnabled()
 {
     static bool dumpRsTreeDetailEnabled = system::GetParameter(
-        "persist.rosen.dumpRsTreeDetail.enabled", "0") != "0";
+        "persist.rosen.dumpRsTreeDetail.enabled", "1") != "0";
     return dumpRsTreeDetailEnabled;
 }
 
