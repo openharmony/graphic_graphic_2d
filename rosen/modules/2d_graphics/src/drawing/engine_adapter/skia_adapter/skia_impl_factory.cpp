@@ -53,6 +53,7 @@
 #include "skia_adapter/skia_trace_memory_dump.h"
 #include "skia_adapter/skia_memory_stream.h"
 #include "skia_adapter/skia_oplist_handle.h"
+#include "skia_adapter/skia_prim_list.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -302,6 +303,11 @@ std::shared_ptr<MemoryStreamImpl> SkiaImplFactory::CreateMemoryStream(
 std::shared_ptr<ResourceHolderImpl> SkiaImplFactory::CreateResourceHolder()
 {
     return std::make_shared<SkiaResourceHolder>();
+}
+
+std::unique_ptr<PrimListImpl> SkiaImplFactory::CreatePrimList()
+{
+    return std::make_unique<SkiaPrimList>();
 }
 } // namespace Drawing
 } // namespace Rosen

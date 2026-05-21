@@ -54,6 +54,7 @@
 #include "impl_interface/vertices_impl.h"
 #include "impl_interface/trace_memory_dump_impl.h"
 #include "impl_interface/memory_stream_impl.h"
+#include "impl_interface/prim_list_impl.h"
 
 
 namespace OHOS {
@@ -115,6 +116,7 @@ public:
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStream(
         const void* data, size_t length, DataReleaseProc proc, void* context);
     static std::shared_ptr<ResourceHolderImpl> CreateResourceHolder();
+    static std::unique_ptr<PrimListImpl> CreatePrimList();
 };
 } // namespace Drawing
 } // namespace Rosen

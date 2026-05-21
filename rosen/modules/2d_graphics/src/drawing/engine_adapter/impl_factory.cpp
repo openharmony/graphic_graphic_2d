@@ -534,6 +534,16 @@ std::shared_ptr<ResourceHolderImpl> ImplFactory::CreateResourceHolderImpl()
 #endif
     return EngineImplFactory::CreateResourceHolder();
 }
+
+std::unique_ptr<PrimListImpl> ImplFactory::CreatePrimListImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreatePrimList();
+    }
+#endif
+    return EngineImplFactory::CreatePrimList();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
