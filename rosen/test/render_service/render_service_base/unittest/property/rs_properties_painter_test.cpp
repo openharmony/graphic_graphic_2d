@@ -861,7 +861,7 @@ HWTEST_F(RSPropertiesPainterTest, GetPixelStretchDirtyRect001, TestSize.Level1)
     RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, true);
     EXPECT_TRUE(!properties.needFilter_);
 
-    properties.GetEffect().pixelStretch_ = Vector4f { 1.f, 1.f, 1.f, 1.f };
+    properties.SetPixelStretch(Vector4f { 1.f, 1.f, 1.f, 1.f });
     RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, true);
     EXPECT_TRUE(!properties.needFilter_);
 }
@@ -1368,6 +1368,59 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundNGFilterDirtyRect001, TestSize.Le
     RSPropertiesPainter::GetForegroundNGFilterDirtyRect(dirtyForegroundNGFilter, properties);
     EXPECT_TRUE(properties.GetForegroundFilter() != nullptr);
     EXPECT_FALSE(drawingFilter->HasCustomRegion());
+}
+
+/**
+ * @tc.name: GetPixelStretchDirtyRect002
+ * @tc.desc: test GetPixelStretchDirtyRect with non-zero pixel stretch and isAbsCoordinate=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetPixelStretchDirtyRect002, TestSize.Level1)
+{
+    RectI dirtyPixelStretch;
+    RSProperties properties;
+    Vector4f bounds(10.0f, 20.0f, 100.0f, 200.0f);
+    properties.SetBounds(bounds);
+    properties.SetPixelStretch(Vector4f(5.f, 10.f, 5.f, 10.f));
+    RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, true);
+    EXPECT_GT(dirtyPixelStretch.width_, 0);
+    EXPECT_GT(dirtyPixelStretch.height_, 0);
+    EXPECT_EQ(dirtyPixelStretch.left_, -5);
+    EXPECT_EQ(dirtyPixelStretch.top_, -10);
+}
+
+/**
+ * @tc.name: GetPixelStretchDirtyRect003
+ * @tc.desc: test GetPixelStretchDirtyRect with non-zero pixel stretch and isAbsCoordinate=false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetPixelStretchDirtyRect003, TestSize.Level1)
+{
+    RectI dirtyPixelStretch;
+    RSProperties properties;
+    Vector4f bounds(10.0f, 20.0f, 100.0f, 200.0f);
+    properties.SetBounds(bounds);
+    properties.SetPixelStretch(Vector4f(5.f, 10.f, 5.f, 10.f));
+    RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, false);
+    EXPECT_GT(dirtyPixelStretch.width_, 0);
+    EXPECT_GT(dirtyPixelStretch.height_, 0);
+}
+
+/**
+ * @tc.name: GetPixelStretchDirtyRect004
+ * @tc.desc: test GetPixelStretchDirtyRect with asymmetric stretch values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetPixelStretchDirtyRect004, TestSize.Level1)
+{
+    RectI dirtyPixelStretch;
+    RSProperties properties;
+    Vector4f bounds(0.0f, 0.0f, 50.0f, 50.0f);
+    properties.SetBounds(bounds);
+    properties.SetPixelStretch(Vector4f(3.f, 7.f, 4.f, 8.f));
+    RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, false);
+    EXPECT_GT(dirtyPixelStretch.width_, 50);
+    EXPECT_GT(dirtyPixelStretch.height_, 50);
 }
 } // namespace Rosen
 } // namespace OHOS

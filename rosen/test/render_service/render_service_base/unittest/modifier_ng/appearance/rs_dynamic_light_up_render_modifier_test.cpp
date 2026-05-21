@@ -56,7 +56,7 @@ HWTEST_F(RSDynamicLightUpRenderModifierNGTest, RSDynamicLightUpRenderModifierTes
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::DYNAMIC_LIGHT_UP);
     RSProperties properties;
     modifier.ResetProperties(properties);
-    EXPECT_EQ(properties.GetDynamicLightUpRate(), std::nullopt);
-    EXPECT_EQ(properties.GetDynamicLightUpDegree(), std::nullopt);
+    EXPECT_EQ(properties.GetDynamicLightUpRate(), 0.f);
+    EXPECT_EQ(properties.GetDynamicLightUpDegree(), 0.f);
 }
 } // namespace OHOS::Rosen

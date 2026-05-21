@@ -787,7 +787,7 @@ bool RSRenderNode::CanFuzePixelStretch()
 
 bool RSRenderNode::IsPixelStretchValid() const
 {
-    if (!GetRenderProperties().GetPixelStretch().has_value()) {
+    if (GetRenderProperties().GetPixelStretch().IsZero()) {
         return false;
     }
     const auto drawablePtr = findMapValueRef(GetDrawableVec(__func__),
@@ -2371,7 +2371,7 @@ void RSRenderNode::UpdateDirtyRegion(
         }
 
         // Add node's pixelStretch region to dirtyRect
-        if (properties.GetPixelStretch()) {
+        if (!properties.GetPixelStretch().IsZero()) {
             auto stretchDirtyRect = properties.GetPixelStretchDirtyRect();
             dirtyRect = dirtyRect.JoinRect(stretchDirtyRect);
         }

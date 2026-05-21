@@ -642,7 +642,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape002, TestSize.Level1)
     child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
-    unionNode->renderProperties_.unionSpacing_ = 0.5f;
+    unionNode->renderProperties_.SetUnionSpacing(0.5f);
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     ASSERT_NE(stagingRenderParams, nullptr);
     unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
@@ -687,7 +687,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape003, TestSize.Level1)
     child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
-    unionNode->renderProperties_.unionSpacing_ = 0.f;
+    unionNode->renderProperties_.SetUnionSpacing(0.f);
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     ASSERT_NE(stagingRenderParams, nullptr);
     unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
@@ -762,7 +762,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape006, TestSize.Level1)
     child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
-    unionNode->renderProperties_.unionSpacing_ = 0.5f;
+    unionNode->renderProperties_.SetUnionSpacing(0.5f);
     unionNode->renderProperties_.SetSDFUnionMode(1);
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     ASSERT_NE(stagingRenderParams, nullptr);
@@ -791,7 +791,7 @@ HWTEST_F(RSUnionRenderNodeTest, CreateChildToContainerSDFTransformShape001, Test
     auto childShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
     EXPECT_NE(childShape, nullptr);
     
-    unionNode->renderProperties_.unionSpacing_ = 0.5f;
+    unionNode->renderProperties_.SetUnionSpacing(0.5f);
     unionNode->unionMode_ = 1;
     unionNode->gravityCenter_ = Vector2f(10.0f, 20.0f);
     
@@ -918,10 +918,10 @@ HWTEST_F(RSUnionRenderNodeTest, FindClosestUnionAncestor002, TestSize.Level1)
 HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoOnTreeStateChanged001, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
-    node->renderProperties_.useUnion_ = false;
+    node->renderProperties_.SetUseUnion(false);
 
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -932,10 +932,10 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoOnTreeStateChanged001, TestSize.
 HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoOnTreeStateChanged002, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
-    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.SetUseUnion(true);
 
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
-    ASSERT_TRUE(node->renderProperties_.useUnion_);
+    ASSERT_TRUE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -950,7 +950,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoOnTreeStateChanged003, TestSize.
     std::shared_ptr<RSUnionRenderNode> unionNode = std::make_shared<RSUnionRenderNode>(2);
     node->parent_ = parent;
     parent->parent_ = unionNode;
-    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.SetUseUnion(true);
     node->isOnTheTree_ = true;
 
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
@@ -998,7 +998,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoAfterApplyModifiers003, TestSize
     node->parent_ = parent;
     parent->parent_ = unionNode;
     node->AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
-    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.SetUseUnion(true);
     node->isOnTheTree_ = true;
 
     RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(node);
