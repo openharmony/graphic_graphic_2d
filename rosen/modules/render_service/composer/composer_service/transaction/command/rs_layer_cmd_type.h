@@ -96,6 +96,7 @@ enum class RSLayerCmdType : uint16_t {
     DELETE_LAYER,
     HPAE_ORIGINAL_INFO,
     TUNNEL_LAYER_GENERATION,
+    VCLD_INFO,
 
     LAYER_CMD = 254,
     MAX_RS_LAYER_CMD_TYPE = 255,

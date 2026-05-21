@@ -77,6 +77,8 @@ public:
     const GraphicLayerColor& GetBackgroundColor() const override;
     void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo) override;
     const std::vector<float>& GetCornerRadiusInfoForDRM() const override;
+    void SetVcldInfo(const RSVcldParam& vcldInfo) override;
+    const RSVcldParam& GetVcldInfo() const override;
     void SetColorTransform(const std::vector<float>& matrix) override;
     const std::vector<float>& GetColorTransform() const override;
     void SetColorDataSpace(GraphicColorDataSpace colorSpace) override;
@@ -242,6 +244,7 @@ private:
     bool arsrTag_ = true;
     bool copybitTag_ = false;
     std::vector<float> drmCornerRadiusInfo_;
+    RSVcldParam vcldInfo_;
     bool isMaskLayer_ = false;
     uint32_t ancoFlags_ = 0;
     uint32_t cycleBuffersNum_ = 0;

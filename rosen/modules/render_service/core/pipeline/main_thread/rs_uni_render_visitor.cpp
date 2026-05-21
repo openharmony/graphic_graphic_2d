@@ -2556,12 +2556,21 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     }
     {
         auto iter = std::find_if(strategy.begin(), strategy.end(),
-            [](const auto& elem) { return elem.second == RequestCompositionType::OFFLINE_DEVICE; });
+            [](const auto& elem) {
+            return (elem.second == RequestCompositionType::OFFLINE_DEVICE ||
+                elem.second == RequestCompositionType::OFFLINE_VCLD_OFF);
+        });
         if (iter == strategy.end()) {
             RSHpaeOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask();
         }
     }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    UpdateHwcNodeEnableByPrevalidate(strategy, nodeMap);
+}
+
+void RSUniRenderVisitor::UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, RequestCompositionType> &strategy,
+    const RSRenderNodeMap& nodeMap)
+{
     for (auto it : strategy) {
         RS_LOGD_IF(DEBUG_PREVALIDATE, "PrevalidateHwcNode id: %{public}" PRIu64 ","
             " result: %{public}d", it.first, it.second);
@@ -2576,16 +2585,24 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             node->SetArsrTag(false);
             continue;
         }
+        if (it.second == RequestCompositionType::DEVICE_VCLD_OFF) {
+            node->ResetVcldInfo();
+            continue;
+        }
         uint64_t nodeTunnelLayerId = 0;
         uint32_t nodeTunnelProperty = TUNNEL_PROP_INVALID;
         node->GetTunnelLayerInfo(nodeTunnelLayerId, nodeTunnelProperty);
-        if (it.second == RequestCompositionType::OFFLINE_DEVICE &&
+        if ((it.second == RequestCompositionType::OFFLINE_DEVICE ||
+            it.second == RequestCompositionType::OFFLINE_VCLD_OFF) &&
 #ifdef HETERO_HDR_ENABLE
             !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
 #endif
             RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady() &&
             nodeTunnelLayerId == 0) {
             node->SetDeviceOfflineEnable(true);
+            if (it.second == RequestCompositionType::OFFLINE_VCLD_OFF) {
+                node->ResetVcldInfo();
+            }
             continue;
         }
         if (node->IsInFixedRotation() || node->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {

@@ -779,6 +779,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     }
     targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
     targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
+    targetSurfaceParams->vcldInfo_ = vcldInfo_;
+    targetSurfaceParams->vcldRoundRect_ = vcldRoundRect_;
     targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
     targetSurfaceParams->uifirstParams_.leashAllEnabled = uifirstParams_.leashAllEnabled;
     targetSurfaceParams->uifirstParams_.isPartialSynced = uifirstParams_.isPartialSynced;

@@ -34,6 +34,7 @@
 #include "rs_layer_cmd_type.h"
 #include "surface_buffer.h"
 #include "sync_fence.h"
+#include "feature/vcld/rs_vcld_param.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -130,7 +131,8 @@ public:
         std::is_same<U, GraphicHDRMetaDataSet>,
         std::is_same<U, GraphicPresentTimestamp>,
         std::is_same<U, GraphicHDRMetaData>,
-        std::is_same<U, GraphicSolidColorLayerProperty>>, bool>::type
+        std::is_same<U, GraphicSolidColorLayerProperty>,
+        std::is_same<U, RSVcldParam>>, bool>::type
     MarshallingValue(OHOS::MessageParcel& parcel, const U& value)
     {
         return parcel.WriteUnpadBuffer(&value, sizeof(U));
@@ -255,7 +257,8 @@ public:
         std::is_same<U, GraphicHDRMetaDataSet>,
         std::is_same<U, GraphicPresentTimestamp>,
         std::is_same<U, GraphicHDRMetaData>,
-        std::is_same<U, GraphicSolidColorLayerProperty>>, bool>::type
+        std::is_same<U, GraphicSolidColorLayerProperty>,
+        std::is_same<U, RSVcldParam>>, bool>::type
     UnmarshallingValue(OHOS::MessageParcel& parcel, U& value)
     {
         if (const uint8_t* buff = parcel.ReadUnpadBuffer(sizeof(U))) {

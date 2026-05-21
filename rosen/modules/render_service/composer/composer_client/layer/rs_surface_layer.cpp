@@ -404,6 +404,20 @@ const std::vector<float>& RSSurfaceLayer::GetCornerRadiusInfoForDRM() const
     return drmCornerRadiusInfo_;
 }
 
+void RSSurfaceLayer::SetVcldInfo(const RSVcldParam& vcldInfo)
+{
+    if (vcldInfo_ == vcldInfo) {
+        return;
+    }
+    vcldInfo_ = vcldInfo;
+    SetRSLayerCmd<RSRenderLayerVcldInfoCmd>(vcldInfo);
+}
+
+const RSVcldParam& RSSurfaceLayer::GetVcldInfo() const
+{
+    return vcldInfo_;
+}
+
 void RSSurfaceLayer::SetColorTransform(const std::vector<float> &matrix)
 {
     if (colorTransformMatrix_ == matrix) {

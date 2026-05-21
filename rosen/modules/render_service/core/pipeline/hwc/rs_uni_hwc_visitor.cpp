@@ -699,6 +699,12 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
         hwcRects.emplace_back(absBound);
         return;
     }
+    if (hwcNode->GetVcldInfo().enable) {
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " skip IntersectedRoundCorner because vcld",
+            hwcNode->GetName().c_str(), hwcNode->GetId());
+        hwcRects.emplace_back(absBound);
+        return;
+    }
     for (const auto& rect : hwcRects) {
         for (auto& roundCornerAABB : hwcNode->GetIntersectedRoundCornerAABBs()) {
             if (!roundCornerAABB.IntersectRect(rect).IsEmpty()) {

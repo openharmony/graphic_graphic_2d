@@ -356,6 +356,14 @@ public:
     {
         return cornerRadiusInfo_;
     }
+    void SetVcldInfo(const RSVcldParam& vcldInfo) override
+    {
+        vcldInfo_ = vcldInfo;
+    }
+    const RSVcldParam& GetVcldInfo() const override
+    {
+        return vcldInfo_;
+    }
     void SetColorTransform(const std::vector<float>& matrix) override
     {
         colorTransform_ = matrix;
@@ -690,6 +698,7 @@ private:
     GraphicLayerColor layerColor_ {};
     GraphicLayerColor backgroundColor_ {};
     std::vector<float> cornerRadiusInfo_;
+    RSVcldParam vcldInfo_{};
     std::vector<float> colorTransform_;
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;

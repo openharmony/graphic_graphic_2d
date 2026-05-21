@@ -57,6 +57,7 @@ private:
     void DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
     void DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
         const ComposerScreenInfo& ComposerscreenInfo);
+    void ClipRoundRectForVCLD(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer);
 
 #ifdef RS_ENABLE_TV_PQ_METADATA
     static inline RecordTvMetadataFunc recordTvMetadataCallback_ = nullptr;

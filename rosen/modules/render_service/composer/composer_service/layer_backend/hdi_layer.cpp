@@ -36,6 +36,7 @@ const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
 const std::string GENERIC_METADATA_KEY_LAYER_LINEAR_MATRIX = "LayerLinearMatrix";
 const std::string GENERIC_METADATA_KEY_SOURCE_CROP_TUNING = "SourceCropTuning";
+const std::string GENERIC_METADATA_KEY_VCLD_PARAM = "VcldParam";
 }
 
 template<typename T>
@@ -864,6 +865,9 @@ int32_t HdiLayer::SetPerFrameParameters()
         } else if (key == GENERIC_METADATA_KEY_SOURCE_CROP_TUNING) {
             ret = SetPerFrameLayerSourceTuning();
             CheckRet(ret, "SetLayerSourceTuning");
+        } else if (key == GENERIC_METADATA_KEY_VCLD_PARAM) {
+            ret = SetPerFrameLayerVcldParam();
+            CheckRet(ret, "SetLayerVcldParam");
         }
     }
     SetTunnelLayerParameters();
@@ -943,6 +947,23 @@ int32_t HdiLayer::SetPerFrameLayerSourceTuning()
     *reinterpret_cast<int32_t*>(valueBlob.data()) = rsLayer_->GetLayerSourceTuning();
     return device_->SetLayerPerFrameParameterSmq(
         screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
+}
+
+int32_t HdiLayer::SetPerFrameLayerVcldParam()
+{
+    if (prevRSLayer_ != nullptr) {
+        if (rsLayer_->GetVcldInfo() == prevRSLayer_->GetVcldInfo()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    } else {
+        if (!rsLayer_->GetVcldInfo().enable || rsLayer_->GetVcldInfo().radius == 0) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+    std::vector<int8_t> valueBlob(sizeof(RSVcldParam));
+    *reinterpret_cast<RSVcldParam*>(valueBlob.data()) = rsLayer_->GetVcldInfo();
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_VCLD_PARAM, valueBlob);
 }
 
 void HdiLayer::ClearBufferCache()

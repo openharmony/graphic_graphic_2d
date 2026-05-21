@@ -1736,13 +1736,15 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
         (bgColor != RgbPalette::Transparent())) {
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
-        if (HasCornerRadius(surfaceParams)) {
+        if (surfaceParams.GetVcldInfo().enable) {
+            auto rrect = surfaceParams.GetRRectForVCLD();
+            canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(rrect), Drawing::ClipOp::INTERSECT, true);
             auto bounds = RSPropertiesPainter::Rect2DrawingRect({ 0, 0,
                 std::round(surfaceParams.GetBounds().GetWidth()), std::round(surfaceParams.GetBounds().GetHeight()) });
             Drawing::SaveLayerOps layerOps(&bounds, nullptr);
             canvas.SaveLayer(layerOps);
             canvas.AttachBrush(brush);
-            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams.GetRRect()));
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams.GetRRectForVCLD()));
             canvas.DetachBrush();
             renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
             canvas.Restore();

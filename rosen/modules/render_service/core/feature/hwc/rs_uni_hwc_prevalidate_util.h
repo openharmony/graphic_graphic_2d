@@ -52,11 +52,14 @@ using RequestCompositionType = enum class RequestComposition : int32_t {
     DEVICE = 2,
     OFFLINE_DEVICE = 3,
     DEVICE_VSCF = 4,
+    DEVICE_VCLD_OFF = 5,
+    OFFLINE_VCLD_OFF = 6,
 };
 
 using PreValidateFunc = int32_t (*)(uint32_t,
     const std::vector<RequestLayerInfo> &, std::map<uint64_t, RequestCompositionType> &);
 using HandleEventFunc = int32_t (*)(uint32_t, uint32_t, const std::vector<int32_t>& eventData);
+using GetVcldEnabledInfoFunc = int32_t (*)(bool &);
 
 class RSUniHwcPrevalidateUtil {
 public:
@@ -73,6 +76,8 @@ public:
     bool IsPrevalidateEnable();
     void CollectSurfaceNodeLayerInfo(std::vector<RequestLayerInfo>& prevalidLayers,
         std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes, uint32_t curFps, uint32_t& zOrder);
+    void UpdateVcldEnabledInfo();
+    bool IsVcldEnabled();
 private:
     RSUniHwcPrevalidateUtil();
     ~RSUniHwcPrevalidateUtil();
@@ -84,6 +89,8 @@ private:
     bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
     void CheckIfDoCopybit(const RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform,
         RequestLayerInfo& info);
+    void UpdateLayerUsage(const RSSurfaceRenderNode::SharedPtr node,
+        RequestLayerInfo& info, bool isHwcEnabledBySolidLayer);
     static bool CheckHwcNode(const RSSurfaceRenderNode::SharedPtr& node);
     static bool IsPointerWindow(const RSSurfaceRenderNode::SharedPtr& node);
     static void EmplaceSurfaceNodeLayer(std::vector<RequestLayerInfo>& prevalidLayers,
@@ -92,9 +99,11 @@ private:
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;
     HandleEventFunc handleEventFunc_ = nullptr;
+    GetVcldEnabledInfoFunc getVcldEnabledInfoFunc_ = nullptr;
     bool loadSuccess_ = false;
     bool arsrPreEnabled_ = false;
     bool isCopybitSupported_ = false;
+    bool isVcldEnabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
