@@ -135,6 +135,7 @@ static std::unordered_map<RSNGEffectType, ShaderGetDrawRect> getDrawRectLUT = {
             return rect.MakeOutset(std::max(maxBorderWidth, outerBorderBloomWidth));
         }
     },
+#ifndef ROSEN_ARKUI_X
     {
         RSNGEffectType::FROSTED_GLASS_EFFECT, [](std::shared_ptr<RSNGRenderShaderBase> filter, const RectF& rect) {
             auto frostedGlassEffect = std::static_pointer_cast<RSNGRenderFrostedGlassEffect>(filter);
@@ -145,6 +146,7 @@ static std::unordered_map<RSNGEffectType, ShaderGetDrawRect> getDrawRectLUT = {
             return shape == nullptr ? rect : shape->GetTransformDrawRect();
         }
     }
+#endif
 };
 
 std::shared_ptr<RSNGRenderShaderBase> RSNGRenderShaderBase::Create(RSNGEffectType type)
