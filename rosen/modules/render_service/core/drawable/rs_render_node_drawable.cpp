@@ -281,7 +281,8 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     }
 }
 
-void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params)
+void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params,
+    bool includeProperty)
 {
     auto& filterInfoVec = GetFilterInfoVec();
     if (filterInfoVec.empty()) {
@@ -315,6 +316,10 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
     canvas.ClipPath(filetrPath);
+    if (includeProperty) {
+        DrawRangeImpl(canvas, params.GetBounds(),
+            drawCmdIndex_.renderGroupBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
+    }
     DrawContent(canvas, params.GetFrameRect());
     DrawChildren(canvas, params.GetBounds());
     curDrawingCacheRoot_->SetLastDrawnFilterNodeId(0);
@@ -469,7 +474,6 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
         __builtin_prefetch(&cachedImage, 0, 1);
     }
 #endif
-    RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!curCanvas) {
         RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas is null");
@@ -487,6 +491,8 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
         DrawAfterCacheWithForegroundFilter(canvas, params.GetBounds());
     } else {
         DrawBeforeCacheWithProperty(canvas, params.GetBounds());
+        // traverse children to draw filter/shadow/effect
+        TraverseSubTreeAndDrawFilterWithClip(canvas, params, true);
         DrawCachedImage(*curCanvas, params);
         DrawAfterCacheWithProperty(canvas, params.GetBounds());
     }
@@ -997,6 +1003,7 @@ void RSRenderNodeDrawable::DrawCachedImage(
         RS_LOGE("RSRenderNodeDrawable::DrawCachedImage invalid cacheimage");
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
     float scaleX = params.GetCacheSize().x_ / static_cast<float>(cacheImage->GetWidth());
     float scaleY = params.GetCacheSize().y_ / static_cast<float>(cacheImage->GetHeight());
     auto unionRect = RSOpincDrawCacheHelper::GetOpincUnionArea(*this);
