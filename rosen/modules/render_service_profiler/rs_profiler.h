@@ -336,12 +336,12 @@ enum RSPROFILER_METRIC_ENUM {
 
 class RSProfilerCustomMetricsParam {
 public:
-    uint32_t kind;
-    int32_t value;
-    float fvalue;
+    uint32_t kind = 0;
+    int32_t value = 0;
+    float fvalue = 0.0f;
     std::string type;
     std::string name;
-    bool manualReset;
+    bool manualReset = false;
 
     RSProfilerCustomMetricsParam(uint32_t kind, std::string type, std::string name, bool manualReset = false)
         : kind(kind), type(std::move(type)), name(std::move(name)), manualReset(manualReset)

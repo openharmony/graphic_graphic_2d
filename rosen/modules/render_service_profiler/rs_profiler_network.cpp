@@ -287,12 +287,13 @@ bool Network::PopCommand(std::vector<std::string>& args)
 {
     args.clear();
 
-    incomingMutex_.lock();
-    if (!incoming_.empty()) {
-        args.swap(incoming_.front());
-        incoming_.pop();
+    {
+        const std::lock_guard<std::mutex> guard(incomingMutex_);
+        if (!incoming_.empty()) {
+            args.swap(incoming_.front());
+            incoming_.pop();
+        }
     }
-    incomingMutex_.unlock();
 
     return !args.empty();
 }
@@ -315,12 +316,13 @@ void Network::Send(Socket& socket)
     while (socket.Connected()) {
         data.clear();
 
-        outgoingMutex_.lock();
-        if (!outgoing_.empty()) {
-            data.swap(outgoing_.front());
-            outgoing_.pop();
+        {
+            const std::lock_guard<std::mutex> guard(outgoingMutex_);
+            if (!outgoing_.empty()) {
+                data.swap(outgoing_.front());
+                outgoing_.pop();
+            }
         }
-        outgoingMutex_.unlock();
 
         if (data.empty()) {
             break;
