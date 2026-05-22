@@ -77,7 +77,10 @@ ohos_unittest("bootanimation_test") {
   ]
 
   if (player_framework_enable) {
-    external_deps += [ "player_framework:media_client" ]
+    external_deps += [
+      "player_framework:media_client",
+      "media_foundation:media_foundation",
+    ]
   }
 
   if (is_standard_system) {
