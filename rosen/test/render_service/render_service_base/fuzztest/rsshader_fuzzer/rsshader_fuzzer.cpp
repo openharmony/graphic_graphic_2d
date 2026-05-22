@@ -58,10 +58,6 @@ bool DoCreateRSShader(const uint8_t* data, size_t size)
         return false;
     }
 
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     auto shader1 = RSShader::CreateRSShader();
     if (shader1 == nullptr) {
         return false;
@@ -77,10 +73,6 @@ bool DoCreateRSShaderWithType(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     uint32_t typeValue = GetData<uint32_t>();
     RSShader::ShaderType type = static_cast<RSShader::ShaderType>(typeValue % SHADER_TYPE_SIZE);
@@ -100,10 +92,6 @@ bool DoSetDrawingShader(const uint8_t* data, size_t size)
         return false;
     }
 
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     auto shader = RSShader::CreateRSShader();
     if (shader == nullptr) {
         return false;
@@ -121,10 +109,6 @@ bool DoMakeDrawingShader(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     auto shader = RSShader::CreateRSShader();
     if (shader == nullptr) {
@@ -147,10 +131,6 @@ bool DoMarshalling(const uint8_t* data, size_t size)
         return false;
     }
 
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
     auto shader = RSShader::CreateRSShader();
     if (shader == nullptr) {
         return false;
@@ -166,10 +146,6 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
 
     auto shader = RSShader::CreateRSShader();
     if (shader == nullptr) {
@@ -193,6 +169,10 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::g_size = size;
+    OHOS::Rosen::g_pos = 0;
+    
     OHOS::Rosen::DoCreateRSShader(data, size);
     OHOS::Rosen::DoCreateRSShaderWithType(data, size);
     OHOS::Rosen::DoSetDrawingShader(data, size);
