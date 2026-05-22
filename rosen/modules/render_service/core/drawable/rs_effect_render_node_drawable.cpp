@@ -15,7 +15,6 @@
 
 #include "drawable/rs_effect_render_node_drawable.h"
 
-#include "drawable/rs_color_picker_drawable.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -131,12 +130,8 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
         // case 0: No children, skip
         return false;
     }
-    // Draw ColorPickerDrawable slot before processing blur
-    if (auto node = renderNode_.lock()) {
-        if (auto colorPickerDrawable = node->GetColorPickerDrawable()) {
-            colorPickerDrawable->OnDraw(&canvas, &bounds);
-        }
-    }
+    // Draw ColorPickerDrawable slot before processing blur.
+    RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.colorPickerIndex_);
 
     if (IsBlurNotRequired(effectParams, paintFilterCanvas)) {
         // case 1: no blur or no need to blur, do nothing
