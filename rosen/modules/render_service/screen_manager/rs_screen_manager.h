@@ -136,7 +136,7 @@ public:
 
     // virtual screen
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height,
-        const std::vector<SurfaceRegionConfig>& surfaceConfigs,
+        sptr<Surface> surface,
         ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<uint64_t> whiteList = {});
     void RemoveVirtualScreen(ScreenId id);
     uint32_t GetCurrentVirtualScreenNum();
@@ -144,8 +144,7 @@ public:
     // Multi-surface virtual screen methods
     int32_t AddVirtualScreenSurface(ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs);
     int32_t RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces);
-    int32_t UpdateVirtualScreenSurfaceRegion(ScreenId id, sptr<Surface> surface, const RectI& region);
-    int32_t SetVirtualScreenSurfaces(ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs);
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);

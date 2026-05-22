@@ -194,7 +194,7 @@ std::vector<ScreenId> RSScreenManagerAgent::GetAllScreenIds()
 }
 
 ScreenId RSScreenManagerAgent::CreateVirtualScreen(const std::string &name, uint32_t width,
-    uint32_t height, const std::vector<SurfaceRegionConfig>& surfaceConfigs, ScreenId associatedScreenId,
+    uint32_t height, sptr<Surface> surface, ScreenId associatedScreenId,
     int32_t flags, std::vector<NodeId> whiteList)
 {
     if (!screenManager_) {
@@ -206,7 +206,7 @@ ScreenId RSScreenManagerAgent::CreateVirtualScreen(const std::string &name, uint
         return INVALID_ARGUMENTS;
     }
     auto screenId = screenManager_->CreateVirtualScreen(
-        name, width, height, surfaceConfigs, associatedScreenId, flags, whiteList);
+        name, width, height, surface, associatedScreenId, flags, whiteList);
     if (screenId != INVALID_SCREEN_ID) {
         std::lock_guard<std::mutex> lock(mutex_);
         virtualScreenIds_.insert(screenId);
@@ -837,24 +837,13 @@ int32_t RSScreenManagerAgent::RemoveVirtualScreenSurface(ScreenId id, const std:
     return screenManager_->RemoveVirtualScreenSurface(id, surfaces);
 }
 
-int32_t RSScreenManagerAgent::UpdateVirtualScreenSurfaceRegion(
-    ScreenId id, sptr<Surface> surface, const RectI& region)
+int32_t RSScreenManagerAgent::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screenManager_->UpdateVirtualScreenSurfaceRegion(id, surface, region);
-}
-
-int32_t RSScreenManagerAgent::SetVirtualScreenSurfaces(
-    ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs)
-{
-    if (!screenManager_) {
-        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screenManager_->SetVirtualScreenSurfaces(id, surfaceConfigs);
+    return screenManager_->SetVirtualScreenSurface(id, surface);
 }
 
 } // namespace Rosen

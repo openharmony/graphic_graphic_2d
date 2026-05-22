@@ -87,26 +87,8 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     int flags,
     std::vector<NodeId> whiteList)
 {
-    std::vector<SurfaceRegionConfig> surfaceConfigs;
-    if (surface != nullptr) {
-        surfaceConfigs.emplace_back(SurfaceRegionConfig{
-            surface, RectI{0, 0, static_cast<int32_t>(width), static_cast<int32_t>(height)}});
-    }
     return renderServiceClient_->CreateVirtualScreen(
-        name, width, height, surfaceConfigs, associatedScreenId, flags, whiteList);
-}
-
-ScreenId RSInterfaces::CreateVirtualScreen(
-    const std::string& name,
-    uint32_t width,
-    uint32_t height,
-    const std::vector<SurfaceRegionConfig>& surfaceConfigs,
-    ScreenId associatedScreenId,
-    int flags,
-    std::vector<NodeId> whiteList)
-{
-    return renderServiceClient_->CreateVirtualScreen(
-        name, width, height, surfaceConfigs, associatedScreenId, flags, whiteList);
+        name, width, height, surface, associatedScreenId, flags, whiteList);
 }
 
 int32_t RSInterfaces::AddVirtualScreenSurface(
@@ -118,17 +100,6 @@ int32_t RSInterfaces::AddVirtualScreenSurface(
 int32_t RSInterfaces::RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces)
 {
     return renderServiceClient_->RemoveVirtualScreenSurface(id, surfaces);
-}
-
-int32_t RSInterfaces::UpdateVirtualScreenSurfaceRegion(ScreenId id, sptr<Surface> surface, const RectI& region)
-{
-    return renderServiceClient_->UpdateVirtualScreenSurfaceRegion(id, surface, region);
-}
-
-int32_t RSInterfaces::SetVirtualScreenSurfaces(
-    ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs)
-{
-    return renderServiceClient_->SetVirtualScreenSurfaces(id, surfaceConfigs);
 }
 
 int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)

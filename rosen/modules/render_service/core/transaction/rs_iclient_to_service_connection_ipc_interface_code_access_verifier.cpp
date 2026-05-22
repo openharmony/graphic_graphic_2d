@@ -259,8 +259,8 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_RESOLUTION");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_SURFACES): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_SURFACES");
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_SURFACE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_SURFACE");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::ADD_VIRTUAL_SCREEN_SURFACE): {
@@ -269,10 +269,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_VIRTUAL_SCREEN_SURFACE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_SURFACE");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::UPDATE_VIRTUAL_SCREEN_SURFACE_REGION): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::UPDATE_VIRTUAL_SCREEN_SURFACE_REGION");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_USING_STATUS): {

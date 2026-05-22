@@ -97,7 +97,7 @@ public:
         const std::string &name,
         uint32_t width,
         uint32_t height,
-        const std::vector<SurfaceRegionConfig>& surfaceRegionConfigs,
+        sptr<Surface> surface,
         ScreenId associatedScreenId = 0,
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) = 0;
@@ -107,10 +107,8 @@ public:
         ScreenId screenId, const std::vector<SurfaceRegionConfig>& surfaceConfigs) = 0;
     virtual int32_t RemoveVirtualScreenSurface(
         ScreenId screenId, const std::vector<sptr<Surface>>& surfaces) = 0;
-    virtual int32_t UpdateVirtualScreenSurfaceRegion(
-        ScreenId screenId, sptr<Surface> surface, const RectI& newRegion) = 0;
-    virtual int32_t SetVirtualScreenSurfaces(
-        ScreenId screenId, const std::vector<SurfaceRegionConfig>& surfaceConfigs) = 0;
+    virtual int32_t SetVirtualScreenSurface(
+        ScreenId screenId, sptr<Surface> surface) = 0;
 
     // blacklist
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList) = 0;
