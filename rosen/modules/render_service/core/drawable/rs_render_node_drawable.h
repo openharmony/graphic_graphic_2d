@@ -164,9 +164,24 @@ protected:
     static inline ScreenId curDisplayScreenId_ = INVALID_SCREEN_ID;
 
     // used for render group cache
-    void SetCacheType(DrawableCacheType cacheType);
-    DrawableCacheType GetCacheType() const;
+    void SetRenderGroupDrawableCacheType(DrawableCacheType drawableCacheType);
+    DrawableCacheType GetRenderGroupDrawableCacheType() const;
+    std::shared_ptr<Drawing::Surface>& GetRenderGroupCachedSurface();
+    void SetRenderGroupCachedSurface(const std::shared_ptr<Drawing::Surface>& surface);
+    std::shared_ptr<Drawing::Image>& GetRenderGroupCachedImage();
+    void SetRenderGroupCachedImage(const std::shared_ptr<Drawing::Image>& image);
+    pid_t GetRenderGroupCacheThreadId() const;
+    std::atomic<pid_t>& GetMutableRenderGroupCacheThreadId();
+    void ClearRenderGroupResource();
+    std::unique_lock<std::recursive_mutex> RenderGroupCacheLock() const;
+    std::unique_lock<std::recursive_mutex> RenderGroupCacheLock();
     void UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id);
+    void InitRenderGroupCache();
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    void SetCachedBackendTexture(const Drawing::BackendTexture& texture);
+    const Drawing::BackendTexture& GetCachedBackendTexture() const;
+#endif
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId,
@@ -201,20 +216,11 @@ protected:
 private:
     static constexpr float EPSILON = 1e-6f;
 
-    std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
-    mutable std::recursive_mutex cacheMutex_;
     mutable std::mutex freezeByCaptureMutex_;
-    std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
-    std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
     std::shared_ptr<Drawing::Image> cachedImageByCapture_ = nullptr;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::BackendTexture cachedBackendTexture_;
 #ifdef RS_ENABLE_VK
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif
-#endif
-    // surface thread id, cachedImage_ will update context when image can be reused.
-    std::atomic<pid_t> cacheThreadId_;
 
     static inline std::mutex drawingCacheMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
@@ -247,7 +253,7 @@ private:
     friend class OHOS::Rosen::RSLayerCacheManager;
     std::unique_ptr<RSOpincDrawCache> opincDrawCache_ = nullptr;
     std::unique_ptr<RSLayerPartDrawCache> layerPartDrawCache_ = nullptr;
-    std::unique_ptr<RSRenderGroupCacheDrawable> renderGroupCache_ = nullptr;
+    std::unique_ptr<RSRenderGroupCacheDrawable> renderGroupCacheDrawable_ = nullptr;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
