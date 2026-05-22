@@ -19,6 +19,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "text_line_base.h"
+#include "txt/font_collection.h"
 #include "typography.h"
 #include "typography_create.h"
 namespace OHOS {

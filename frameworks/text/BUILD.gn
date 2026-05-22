@@ -12,7 +12,49 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+config("rosen_text_config") {
+  defines = [
+    "ENABLE_TEXT_ENHANCE",
+    "ENABLE_DRAWING_ADAPTER",
+  ]
+
+  if (platform_is_ohos) {
+    defines += [
+      "ENABLE_OHOS_ENHANCE",
+      "HM_SYMBOL_TXT_ENABLE",
+      "BUILD_NON_SDK_VER",
+    ]
+  } else {
+    defines += [ "MODULE_TEXTING" ]
+  }
+
+  if (is_arkui_x) {
+    defines += [ "CROSS_PLATFORM" ]
+  }
+
+  if (current_os == "mingw") {
+    defines += [ "WINDOWS_PLATFORM" ]
+  }
+
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
+  }
+
+  include_dirs = [
+    "$rosen_text_root",
+    "$rosen_text_root/interface/export",
+    "$rosen_text_root/interface/export/rosen_text",
+  ]
+
+  cflags_cc = [
+    "-Wno-implicit-fallthrough",
+    "-fvisibility-inlines-hidden",
+    "-std=c++17",
+  ]
+}
 
 if (is_arkui_x) {
   ohos_source_set("rosen_text") {
@@ -23,15 +65,8 @@ if (is_arkui_x) {
   }
 } else {
   ohos_shared_library("rosen_text") {
-    sanitize = {
-      cfi = true
-      cfi_cross_dso = true
-      cfi_no_nvcall = true
-      debug = false
-    }
-
     deps = [
-      "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+      "$rosen_root/modules/2d_graphics:2d_graphics",
       "service:rosen_text_skia",
     ]
 

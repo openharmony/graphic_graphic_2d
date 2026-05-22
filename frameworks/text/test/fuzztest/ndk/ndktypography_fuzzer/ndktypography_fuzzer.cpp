@@ -145,7 +145,7 @@ void SetTextStyle(OH_Drawing_TextStyle* txtStyle, FuzzedDataProvider& fdp)
         0x73 };
     const char* fontFamilies1[] = { fontFamiliesTest };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
-    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies1);
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTextStyleLetterSpacing(txtStyle, fdp.ConsumeIntegral<uint32_t>());
