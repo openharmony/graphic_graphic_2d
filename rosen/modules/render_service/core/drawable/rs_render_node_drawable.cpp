@@ -131,8 +131,8 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    // 创建Trace3D性能分析作用域，如果失败则继续正常渲染流程
-    auto dbgScope = RSProfiler::CreateTrace3DDebugScope(static_cast<uint64_t>(GetId()));
+    std::shared_ptr<::trace3d::api::DebugScope> dbgScope =
+        RS_PROFILER_TRACE3D_DEBUG_SCOPE(static_cast<uint64_t>(GetId()));
 
 #ifdef SUBTREE_PARALLEL_ENABLE
     if (RSParallelManager::Singleton().OnDrawNodeDrawable(canvas, bounds, this)) {
