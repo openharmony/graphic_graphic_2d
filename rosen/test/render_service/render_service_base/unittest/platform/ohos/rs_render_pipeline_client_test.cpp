@@ -452,6 +452,7 @@ HWTEST_F(RSPipelineClientTest, ClearUifirstCacheTest, TestSize.Level1)
     rsClient->ClearUifirstCache(nodeId);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: TaskSurfaceCaptureWithAllWindows Test
  * @tc.desc: TaskSurfaceCaptureWithAllWindows when screen frozen
@@ -781,5 +782,6 @@ HWTEST_F(RSPipelineClientTest, SetLogicalCameraRotationCorrection, TestSize.Leve
     ret = rsClient->SetLogicalCameraRotationCorrection(screenId, ScreenRotation::ROTATION_90);
     ASSERT_EQ(ret, SUCCESS);
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

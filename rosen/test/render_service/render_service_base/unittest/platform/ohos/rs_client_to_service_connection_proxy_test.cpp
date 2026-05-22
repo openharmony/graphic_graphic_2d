@@ -904,6 +904,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetTotalAppMemSize, TestSize.Leve
     ASSERT_EQ(proxy->GetTotalAppMemSize(cpuMemSize, gpuMemSize), ERR_INVALID_VALUE);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: GetScreenPowerStatus Test
  * @tc.desc: GetScreenPowerStatus Test
@@ -927,6 +928,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenPowerStatus, TestSize.Le
     ASSERT_EQ(proxy->GetScreenPowerStatus(id, status), ERR_INVALID_VALUE);
     proxy->GetScreenPowerStatus(0, status);
 }
+#endif
 
 /**
  * @tc.name: GetPanelPowerStatus Test
@@ -1375,6 +1377,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Le
     ASSERT_TRUE(proxy);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: NotifyLightFactorStatus Test
  * @tc.desc: NotifyLightFactorStatus Test
@@ -1388,6 +1391,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, ReportGameStateData, TestSize.Lev
     proxy->NotifyLightFactorStatus(1);
     ASSERT_EQ(proxy->transactionDataIndex_, 5);
 }
+#endif
 
 /**
  * @tc.name: NotifyXComponentExpectedFrameRate Test
