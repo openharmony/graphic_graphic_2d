@@ -201,12 +201,14 @@ private:
 
     sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const; // Only for internal use by ScreenManager
     std::shared_ptr<RSScreen> GetScreen(ScreenId id) const;
+    bool HasPhysicalScreen();
 
     // virtual screen
     ScreenId GenerateVirtualScreenId();
 
     mutable std::mutex screenMapMutex_;
     std::map<ScreenId, std::shared_ptr<RSScreen>> screens_;
+    std::atomic<bool> noScreenProcessed_ = false;
     using ScreenNode = decltype(screens_)::value_type;
     bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
 

@@ -89,7 +89,7 @@ bool BootAnimationStrategy::IsOtaUpdate() const
     return isSingleUpdate || isHmosUpdate;
 }
 
-void BootAnimationStrategy::GetConnectToRenderMap(int count, uint32_t timeoutMs)
+void BootAnimationStrategy::GetConnectToRenderMap(int count)
 {
     LOGI("BootAnimationStrategy::%{public}s set screen change callback start.", __func__);
     auto cv = std::make_shared<std::condition_variable>();
@@ -102,38 +102,38 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count, uint32_t timeoutMs)
                 LOGE("BootAnimationStrategy::GetConnectToRenderMap shared this is null.");
                 return;
             }
-            LOGI("BootAnimationStrategy::Screen connected:" BPUBU64 "", rsScreenId);
-            {
-                std::lock_guard<std::mutex> lock(sharedThis->connectToRenderMapMtx_);
-                sharedThis->connectToRenderMap_.emplace(rsScreenId, connectToRender);
-            }
+            sharedThis->OnScreenChanged(rsScreenId, screenEvent, reason, connectToRender);
             cv->notify_all();
         });
     {
         std::unique_lock<std::mutex> lock(connectToRenderMapMtx_);
-        if (timeoutMs > 0) {
-            LOGI("GetConnectToRenderMap start waiting for %{public}d screens, timeout %{public}u ms.",
-                 count, timeoutMs);
-            bool success = cv->wait_for(lock, std::chrono::milliseconds(timeoutMs), [this, count]() {
-                return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
-            });
-            if (!success) {
-                LOGI("GetConnectToRenderMap wait timeout. Expected %{public}d, got %{public}zu.",
-                     count, this->connectToRenderMap_.size());
-            } else {
-                LOGI("GetConnectToRenderMap wait finished. Currently got %{public}zu.",
-                     this->connectToRenderMap_.size());
-            }
-        } else {
-            LOGI("GetConnectToRenderMap start infinite waiting for %{public}d screens.", count);
-            cv->wait(lock, [this, count]() {
-                return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
-            });
-            LOGI("GetConnectToRenderMap wait finished. Currently got %{public}zu.",
-                 this->connectToRenderMap_.size());
-        }
+        LOGI("GetConnectToRenderMap start infinite waiting for %{public}d screens.", count);
+        cv->wait(lock, [this, count]() {
+            return this->connectToRenderMap_.size() >= static_cast<size_t>(count) || noScreen_.load();
+        });
+        LOGI("GetConnectToRenderMap wait finished. Currently got %{public}zu.", this->connectToRenderMap_.size());
     }
     LOGI("GetConnectToRenderMap %{public}s set screen change callback end.", __func__);
+}
+
+void BootAnimationStrategy::OnScreenChanged(Rosen::ScreenId rsScreenId, Rosen::ScreenEvent screenEvent,
+                                            Rosen::ScreenChangeReason reason, sptr<IRemoteObject> connectToRender)
+{
+    if (rsScreenId == Rosen::INVALID_SCREEN_ID) {
+        noScreen_ = true;
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(connectToRenderMapMtx_);
+        if (screenEvent == Rosen::ScreenEvent::CONNECTED) {
+            LOGI("BootAnimationStrategy::%{public}s Screen connected:" BPUBU64 "", __func__, rsScreenId);
+            connectToRenderMap_.emplace(rsScreenId, connectToRender);
+        }
+        if (screenEvent == Rosen::ScreenEvent::DISCONNECTED) {
+            LOGI("BootAnimationStrategy::%{public}s Screen disconnected:" BPUBU64 "", __func__, rsScreenId);
+            connectToRenderMap_.erase(rsScreenId);
+        }
+    }
 }
 
 void BootAnimationStrategy::SubscribeActiveScreenIdChanged()

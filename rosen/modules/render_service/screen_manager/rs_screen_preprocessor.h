@@ -63,6 +63,7 @@ private:
     void ConfigureScreenDisconnected(std::shared_ptr<HdiOutput>& output);
 
     void ProcessScreenHotPlugEvents();
+    void ProcessNoScreenAfterRegHwcEventCallback();
     void ScheduleTask(std::function<void()> task);
 
     std::atomic<bool> isHwcDead_ = false;

@@ -76,6 +76,21 @@ bool RSScreenManager::Init(const std::shared_ptr<AppExecFwk::EventHandler>& main
     return true;
 }
 
+bool RSScreenManager::HasPhysicalScreen()
+{
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
+    for (const auto& [id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGW("%{public}s: screen %{public}" PRIu64 " not found", __func__, id);
+            continue;
+        }
+        if (!screen->IsVirtual()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 ScreenId RSScreenManager::GetActiveScreenId() const
 {
     return foldScreenManager_ ? foldScreenManager_->GetActiveScreenId() : INVALID_SCREEN_ID;
@@ -98,6 +113,7 @@ void RSScreenManager::OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen
         }
     }
     defaultScreenId_ = INVALID_SCREEN_ID;
+    noScreenProcessed_ = false;
 }
 
 void RSScreenManager::ProcessPendingConnections()
@@ -1514,6 +1530,7 @@ std::shared_ptr<RSScreen> RSScreenManager::GetScreen(ScreenId id) const
 void RSScreenManager::OnScreenChangeCallbackChanged(sptr<RSIScreenManagerAgentListener> agentListener) const
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
+    bool noPhysicalScreen = true;
     for (const auto& [id, screen] : screens_) {
         if (screen == nullptr) {
             RS_LOGW("%{public}s: screen %{public}" PRIu64 " not found", __func__, id);
@@ -1522,7 +1539,13 @@ void RSScreenManager::OnScreenChangeCallbackChanged(sptr<RSIScreenManagerAgentLi
         if (screen->IsVirtual()) {
             continue;
         }
+        noPhysicalScreen = false;
         callbackMgr_->NotifyScreenConnectedToAgentListener(id, ScreenChangeReason::DEFAULT, agentListener);
+    }
+    if (noScreenProcessed_ && noPhysicalScreen) {
+        callbackMgr_->NotifyScreenConnectedToAgentListener(INVALID_SCREEN_ID, ScreenChangeReason::DEFAULT,
+                                                           agentListener);
+        RS_LOGW("%{public}s: no screen.", __func__);
     }
 }
 
