@@ -1148,7 +1148,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     virtualProcesser->CanvasClipRegionForUniscaleMode(visibleClipRectMatrix_, mirroredScreenProperty.GetIsSamplingOn());
     // Set whitelist rect to meta data before concat matrix
     RSSpecialLayerUtils::SetWhiteListRectToMetaData(
-        *curCanvas_, uniParam, curScreenParams->GetScreenProperty(), *mirroredParams);
+        *curCanvas_, uniParam, curScreenParams->GetScreenProperty(), *mirroredParams, scaleManager_);
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     PrepareOffscreenRender(*mirroredDrawable, false, false, curScreenParams->GetFixVirtualBuffer10Bit());
     // Add this flag to disable color picking operations during mirror screen redrawing

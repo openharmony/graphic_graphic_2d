@@ -374,7 +374,8 @@ DrawType RSSpecialLayerUtils::GetDrawTypeInSnapshot(const RSSurfaceRenderParams&
 }
 
 void RSSpecialLayerUtils::SetWhiteListRectToMetaData(RSPaintFilterCanvas& canvas, const RSRenderThreadParams& uniParam,
-    const RSScreenProperty& mirrorScreenProperty, const RSLogicalDisplayRenderParams& sourceLogicalParam)
+    const RSScreenProperty& mirrorScreenProperty, const RSLogicalDisplayRenderParams& sourceLogicalParam,
+    const std::shared_ptr<RSSLRScaleFunction>& scaleManager)
 {
     auto processor = uniParam.GetRSProcessor();
     if (processor == nullptr) {
@@ -394,7 +395,8 @@ void RSSpecialLayerUtils::SetWhiteListRectToMetaData(RSPaintFilterCanvas& canvas
         return;
     }
 
-    const auto& matrix = canvas.GetTotalMatrix();
+    Drawing::Matrix matrix = (RSSystemProperties::GetSLRScaleEnabled() && scaleManager != nullptr) ?
+        scaleManager->GetScaleMatrix() : canvas.GetTotalMatrix();
     // Map whitelist rect with canvas matrix and convert to RectT<uint32_t>
     const auto& rectI = whiteListRects[0];
     Drawing::Rect whiteListRect(rectI.GetLeft(), rectI.GetTop(), rectI.GetRight(), rectI.GetBottom());

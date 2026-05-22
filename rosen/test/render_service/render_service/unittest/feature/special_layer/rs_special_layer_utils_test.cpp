@@ -1238,7 +1238,8 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData001, TestSize.Level2
     
     // Test with null processor - returns directly without any operation
     ASSERT_EQ(uniParam.processor_, nullptr);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
 }
 
 /**
@@ -1262,7 +1263,8 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData002, TestSize.Level2
 
     // Test with no whitelist rects - returns directly without any operation
     ASSERT_NE(uniParam.GetWhiteListRectByScreenId(mirrorScreenProperty.GetScreenId()).size(), 1);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
 }
 
 /**
@@ -1290,7 +1292,8 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData003, TestSize.Level2
 
     // Test multiple whitelist rects - returns directly without any operation
     ASSERT_NE(uniParam.GetWhiteListRectByScreenId(mirrorScreenProperty.GetScreenId()).size(), 1);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
 }
 
 /**
@@ -1317,7 +1320,13 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData004, TestSize.Level2
 
     // Test single whitelist rect - SetCropRectForMetadata will be called
     ASSERT_EQ(uniParam.GetWhiteListRectByScreenId(mirrorScreenProperty.GetScreenId()).size(), 1);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
+
+    std::shared_ptr<RSSLRScaleFunction> scaleManager = std::make_shared<RSSLRScaleFunction>(1.0f, 1.0f, 1.0f, 1.0f);
+    ASSERT_NE(scaleManager, nullptr);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, scaleManager);
 }
 
 /**
@@ -1341,7 +1350,8 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData005, TestSize.Level2
 
     // Test with non-virtual processor - returns directly without any operation
     ASSERT_EQ(RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor), nullptr);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
 }
 
 /**
