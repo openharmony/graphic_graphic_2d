@@ -78,7 +78,9 @@ void RSAnimationBaseTest::InitAnimationWindow()
     struct RSSurfaceNodeConfig surfaceNodeConfig = { .SurfaceNodeName = surfaceNodeName, .isSync = true };
     animationSurfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true);
 
-    rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUiDirector = RSUIDirector::Create(connectToRenderRemote, rsUIContext);
     
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
