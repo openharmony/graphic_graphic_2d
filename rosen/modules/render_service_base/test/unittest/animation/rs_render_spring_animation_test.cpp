@@ -698,9 +698,10 @@ HWTEST_F(RSRenderSpringAnimationTest, OnDetach001, TestSize.Level1)
     EXPECT_TRUE(renderNode != nullptr);
 
     renderSpringAnimation->Attach(renderNode.get());
+    renderNode->AddAnimation(renderSpringAnimation);
+    renderSpringAnimation->OnAttach();
     auto animationManager = renderNode->GetAnimationManager();
     ASSERT_NE(animationManager, nullptr);
-    animationManager->AddAnimation(renderSpringAnimation);
     EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) != nullptr);
     renderSpringAnimation->OnDetach();
     EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) == nullptr);
@@ -998,9 +999,10 @@ HWTEST_F(RSRenderSpringAnimationTest, CallLogicallyFinishCallback001, TestSize.L
     EXPECT_TRUE(renderNode != nullptr);
 
     renderSpringAnimation->Attach(renderNode.get());
+    renderNode->AddAnimation(renderSpringAnimation);
+    renderSpringAnimation->OnAttach();
     auto animationManager = renderNode->GetAnimationManager();
     ASSERT_NE(animationManager, nullptr);
-    animationManager->AddAnimation(renderSpringAnimation);
     EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) != nullptr);
 
     renderSpringAnimation->CallLogicallyFinishCallback();
