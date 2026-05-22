@@ -205,6 +205,12 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest001, TestSize.Level1)
     EXPECT_EQ(ret, DrawingError::ERR_OK);
     ret = image->ApplyBlur(0.5, Drawing::TileMode::MIRROR); // cpu
     EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+    image->image_ = nullptr;
+    ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP);
+    EXPECT_EQ(ret, DrawingError::ERR_IMAGE_NULL);
 }
 
 /**
@@ -305,6 +311,12 @@ HWTEST_F(EffectImageChainUnittest, ApplySDFTest001, TestSize.Level1)
 
     ret = image->Draw();
     ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+    image->image_ = nullptr;
+    ret = image->ApplySDFCreation(64, true);
+    EXPECT_EQ(ret, DrawingError::ERR_IMAGE_NULL);
 }
 
 /**
@@ -422,6 +434,10 @@ HWTEST_F(EffectImageChainUnittest, ApplyMapColorByBrightnessTest, TestSize.Level
     ret = image->ApplyDrawingFilter(filterBlur);
     ret = image->ApplyMapColorByBrightness(colors, positions);
     EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
+
+    image->image_ = nullptr;
+    ret = image->ApplyMapColorByBrightness(colors, positions);
+    EXPECT_EQ(ret, DrawingError::ERR_IMAGE_NULL);
 }
 
 /**
@@ -458,6 +474,10 @@ HWTEST_F(EffectImageChainUnittest, ApplyGammaCorrectionTest, TestSize.Level1)
     ret = image->ApplyDrawingFilter(filterBlur);
     ret = image->ApplyGammaCorrection(gamma);
     EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
+
+    image->image_ = nullptr;
+    ret = image->ApplyGammaCorrection(gamma);
+    EXPECT_EQ(ret, DrawingError::ERR_IMAGE_NULL);
 }
 
 /**
@@ -496,6 +516,24 @@ HWTEST_F(EffectImageChainUnittest, ApplyMaskTransitionFilterTest001, TestSize.Le
     // Test with null top layer
     ret = image->ApplyMaskTransitionFilter(nullptr, mask, 0.5f, false);
     EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    // Test image_ null check
+    std::shared_ptr<Media::PixelMap> topLayerPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(topLayerPixelMap, nullptr);
+    image->image_ = nullptr;
+    ret = image->ApplyMaskTransitionFilter(topLayerPixelMap, mask, 0.5f, false);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+
+    // Test clamp: fractionStops with color values outside [0,1] range
+    ret = image->Prepare(srcPixelMap, false);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+    std::vector<std::pair<float, float>> clampStops = {{-0.5f, 0.0f}, {1.5f, 1.0f}};
+    Drawing::GELinearGradientShaderMaskParams clampMaskParams{
+        clampStops, Drawing::Point(0, 0), Drawing::Point(100, 100)};
+    auto clampMask = std::static_pointer_cast<Drawing::GEShaderMask>(
+        std::make_shared<Drawing::GELinearGradientShaderMask>(clampMaskParams));
+    ret = image->ApplyMaskTransitionFilter(topLayerPixelMap, clampMask, 0.5f, false);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
 }
 
 /**
@@ -635,6 +673,15 @@ HWTEST_F(EffectImageChainUnittest, ApplyWaterDropletTransitionFilterTest001, Tes
     // Test with null params
     ret = image->ApplyWaterDropletTransitionFilter(srcPixelMap, nullptr);
     EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    // Test image_ null check
+    image->image_ = nullptr;
+    Drawing::GEWaterDropletTransitionFilterParams wdParams = {
+        nullptr, false, 0.5f, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f
+    };
+    auto wdValidParams = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(wdParams);
+    ret = image->ApplyWaterDropletTransitionFilter(srcPixelMap, wdValidParams);
+    EXPECT_EQ(ret, DrawingError::ERR_IMAGE_NULL);
 }
 
 /**
@@ -816,6 +863,9 @@ HWTEST_F(EffectImageChainUnittest, WaterGlassFilters, TestSize.Level1)
     auto params = std::make_shared<Drawing::GEWaterGlassDataParams>();
     ASSERT_NE(params, nullptr);
     EXPECT_EQ(chain.ApplyWaterGlass(params), DrawingError::ERR_OK);
+
+    chain.image_ = nullptr;
+    EXPECT_EQ(chain.ApplyWaterGlass(params), DrawingError::ERR_IMAGE_NULL);
 }
 
 /**
@@ -860,6 +910,9 @@ HWTEST_F(EffectImageChainUnittest, ReededGlassFilter, TestSize.Level1)
     auto params = std::make_shared<Drawing::GEReededGlassDataParams>();
     ASSERT_NE(params, nullptr);
     EXPECT_EQ(chain.ApplyReededGlass(params), DrawingError::ERR_OK);
+
+    chain.image_ = nullptr;
+    EXPECT_EQ(chain.ApplyReededGlass(params), DrawingError::ERR_IMAGE_NULL);
 }
 
 /**
@@ -954,6 +1007,10 @@ HWTEST_F(EffectImageChainUnittest, ApplyEllipticalGradientBlurTest001, TestSize.
     std::vector<float> emptyDegrees;
     ret = image->ApplyEllipticalGradientBlur(10.0f, 50.0f, 50.0f, 100.0f, 100.0f, positions, emptyDegrees);
     EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    image->image_ = nullptr;
+    ret = image->ApplyEllipticalGradientBlur(10.0f, 50.0f, 50.0f, 100.0f, 100.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_IMAGE_NULL);
 }
     /**
     * @tc.name: ApplyEllipticalGradientBlurTest002
@@ -1037,6 +1094,10 @@ HWTEST_F(EffectImageChainUnittest, ApplyEllipticalGradientBlurTest001, TestSize.
         ASSERT_EQ(ret, DrawingError::ERR_OK);
         ret = image2->Draw();
         EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+        image->image_ = nullptr;
+        image->DrawOnFilter();
+        EXPECT_EQ(image->image_, nullptr);
     }
     /**
     * @tc.name: GetPixelMapTest001
