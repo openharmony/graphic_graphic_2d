@@ -174,7 +174,7 @@ private:
     
     // Multi-surface support
     std::vector<SurfaceFrameConfig> surfaceFrames_;
-    bool needsOffscreenRender_ = false; // true when at least one surface has a non-empty region
+    bool needsOffscreenRender_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

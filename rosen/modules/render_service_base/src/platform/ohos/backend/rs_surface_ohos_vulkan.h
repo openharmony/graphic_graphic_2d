@@ -20,6 +20,7 @@
 
 #include <list>
 #include <unordered_map>
+#include <mutex>
 #include <optional>
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
