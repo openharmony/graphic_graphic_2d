@@ -17,6 +17,7 @@
 
 #include "ani_common.h"
 #include "ani_cache_manager.h"
+#include "ani_drawing_common.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -735,6 +736,18 @@ ani_status InitAniGlobalRef(ani_vm* vm)
     AniGlobalClass::GetInstance().Init(env);
     AniGlobalEnum::GetInstance().Init(env);
     AniGlobalMethod::GetInstance().Init(env);
+    AniGlobalField::GetInstance().Init(env);
     return ANI_OK;
 }
+
+void AniGlobalField::Init(ani_env* env)
+{
+    ani_class typefaceCls = AniFindClass(env, ANI_CLASS_TYPEFACE_NAME);
+    if (typefaceCls == nullptr) {
+        TEXT_LOGE("Failed to find Typeface class for field caching");
+        return;
+    }
+    typefaceNativeObj = AniClassFindField(env, typefaceCls, "nativeObj");
+}
+
 } // namespace OHOS::Text::ANI
