@@ -82,6 +82,7 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_GET_FRAME_NUMBER() RSProfiler::GetFrameNumber()
 #define RS_PROFILER_GET_RENDER_FRAME_NUMBER() RSProfiler::GetRenderFrameNumber()
 #define RS_PROFILER_GET_TRACE3D_API() RSProfiler::GetTrace3DApi()
+#define RS_PROFILER_TRACE3D_DEBUG_SCOPE(rsNodeId) RSProfiler::Trace3DDebugScopeCreate(rsNodeId)
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber) RSProfiler::OnParallelRenderBegin(renderFrameNumber)
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber) RSProfiler::OnParallelRenderEnd(renderFrameNumber)
 #define RS_PROFILER_SHOULD_BLOCK_HWCNODE() RSProfiler::ShouldBlockHWCNode()
@@ -121,7 +122,6 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #else
 #define Trace3DCoreInitRS() nullptr
 #define RS_PROFILER_GET_RENDER_FRAME_NUMBER() 0
-#define RS_PROFILER_GET_TRACE3D_API() nullptr
 #define RS_PROFILER_INIT(renderPipeline, serviceToRenderConnection)
 #define RS_PROFILER_ON_FRAME_BEGIN(syncTime)
 #define RS_PROFILER_ON_FRAME_END()
@@ -157,6 +157,7 @@ RSB_EXPORT const TRACE3D_CORE_API_TABLE* Trace3DCoreInitRS();
 #define RS_PROFILER_GET_FRAME_NUMBER() 0
 #define RS_PROFILER_GET_RENDER_FRAME_NUMBER() 0
 #define RS_PROFILER_GET_TRACE3D_API() nullptr
+#define RS_PROFILER_TRACE3D_DEBUG_SCOPE(rsNodeId) nullptr
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber)
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber)
 #define RS_PROFILER_SHOULD_BLOCK_HWCNODE() false
@@ -631,9 +632,7 @@ public:
     RSB_EXPORT static void ResetCustomMetrics();
     RSB_EXPORT static RSProfilerCustomMetrics& GetCustomMetrics();
     static inline const TRACE3D_CORE_API_TABLE* GetTrace3DApi() { return trace3dApi_; }
-
-    // Trace3D GPU performance analysis interfaces
-    static std::shared_ptr<trace3d::api::DebugScope> CreateTrace3DDebugScope(uint64_t nodeId);
+    static std::shared_ptr<trace3d::api::DebugScope> Trace3DDebugScopeCreate(uint64_t rsNodeId);
 
 private:
     static void StartNetworkThread();
