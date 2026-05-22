@@ -1126,6 +1126,8 @@ public:
     bool IsColorPickerOnlyNode() const;
 
     void ReSortChildrenByZIndex();
+
+    void AccumulateParentGeoDirty();
 protected:
     void ResetDirtyStatus();
 
