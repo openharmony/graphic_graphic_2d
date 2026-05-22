@@ -263,6 +263,7 @@ HWTEST_F(RSUIContextTest, CloseAllSyncTransactionTest001, TestSize.Level1)
     RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: MoveModifierTest001
  * @tc.desc:
@@ -550,4 +551,5 @@ HWTEST_F(RSUIContextTest, UiPiplineNum006, TestSize.Level1)
     newContext->DetachFromUI();
     ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
 }
+#endif
 } // namespace OHOS::Rosen

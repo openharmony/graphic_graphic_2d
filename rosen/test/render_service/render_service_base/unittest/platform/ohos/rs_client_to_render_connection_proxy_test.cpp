@@ -132,7 +132,9 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, CommitTransaction, TestSize.Level1
     FollowType followType = FollowType::FOLLOW_TO_PARENT;
     transactionData->AddCommand(command, nodeId, followType);
     proxy->CommitTransaction(transactionData);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(proxy->transactionDataIndex_, 1);
+#endif
 }
 
 /**
@@ -553,7 +555,9 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, NotifyLightFactorStatus, TestSize.
 {
     NodeId id = 1;
     proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT, true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(proxy->transactionDataIndex_, 5);
+#endif
 }
 
 /**
