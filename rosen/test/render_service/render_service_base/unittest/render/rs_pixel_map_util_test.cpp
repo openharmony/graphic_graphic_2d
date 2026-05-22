@@ -20,6 +20,7 @@
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Media;
 namespace OHOS {
 namespace Rosen {
 
