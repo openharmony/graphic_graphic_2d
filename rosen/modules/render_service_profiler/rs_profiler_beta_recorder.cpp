@@ -82,9 +82,10 @@ void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
         while (IsBetaRecordStarted()) {
             const DeviceInfo deviceInfo = RSTelemetry::GetDeviceInfo();
 
-            g_deviceInfoMutex.lock();
-            g_deviceInfo = deviceInfo;
-            g_deviceInfoMutex.unlock();
+            {
+                const std::lock_guard<std::mutex> guard(g_deviceInfoMutex);
+                g_deviceInfo = deviceInfo;
+            }
 
             constexpr int32_t sendInterval = 8;
             std::this_thread::sleep_for(std::chrono::milliseconds(sendInterval));
