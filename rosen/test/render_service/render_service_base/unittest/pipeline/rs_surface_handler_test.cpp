@@ -652,5 +652,20 @@ HWTEST_F(RSSurfaceHandlerTest, TryReclaimLastBuffer002, TestSize.Level1)
     }
 }
 
+/**
+ * @tc.name: GetAndSetBufferDropped001
+ * @tc.desc: test GetBufferDropped and SetBufferDropped basic behavior
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSSurfaceHandlerTest, GetAndSetBufferDropped001, TestSize.Level1)
+{
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->GetBufferDropped());
+    rSSurfaceHandlerPtr_->SetBufferDropped(true);
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->GetBufferDropped());
+    rSSurfaceHandlerPtr_->SetBufferDropped(false);
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->GetBufferDropped());
+}
 #endif
 } // namespace OHOS::Rosen
