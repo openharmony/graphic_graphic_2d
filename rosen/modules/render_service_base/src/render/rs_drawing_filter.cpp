@@ -556,6 +556,7 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
     }
     std::shared_ptr<Drawing::Image> outImage = nullptr;
     auto brush = GetBrush(attr.brushAlpha);
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     /*
      * When calling ApplyHpsImageEffect(),
        if outImage == nullptr means:
@@ -581,10 +582,10 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
     if (outImage == nullptr) {
         if (isFrostedGlassFilter || HasCustomRegion()) {
             outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
-                {image, attr.src, attr.dst, attr.geCacheProvider}, Drawing::SamplingOptions());
+                {image, attr.src, attr.dst, attr.geCacheProvider}, samplingOptions);
         } else {
             outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
-                {image, attr.src, attr.src, attr.geCacheProvider}, Drawing::SamplingOptions());
+                {image, attr.src, attr.src, attr.geCacheProvider}, samplingOptions);
         }
         ProfilerLogImageEffect(visualEffectContainer, image, attr.src, outImage);
         if (outImage == nullptr) {
@@ -619,16 +620,16 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         rect.SetRight(attr.src.GetWidth() + rect.GetLeft());
         rect.SetBottom(attr.src.GetHeight() + rect.GetTop());
         canvas.AttachBrush(brush);
-        canvas.DrawImageRect(*outImage, attr.src, rect, Drawing::SamplingOptions());
+        canvas.DrawImageRect(*outImage, attr.src, rect, samplingOptions);
         canvas.DetachBrush();
     } else if (isFrostedGlassFilter || HasCustomRegion()) {
         Drawing::Rect rect(0, 0, outImage->GetWidth(), outImage->GetHeight());
         canvas.AttachBrush(brush);
-        canvas.DrawImageRect(*outImage, rect, attr.dst, Drawing::SamplingOptions());
+        canvas.DrawImageRect(*outImage, rect, attr.dst, samplingOptions);
         canvas.DetachBrush();
     } else {
         canvas.AttachBrush(brush);
-        canvas.DrawImageRect(*outImage, attr.src, attr.dst, Drawing::SamplingOptions());
+        canvas.DrawImageRect(*outImage, attr.src, attr.dst, samplingOptions);
         canvas.DetachBrush();
     }
 }
