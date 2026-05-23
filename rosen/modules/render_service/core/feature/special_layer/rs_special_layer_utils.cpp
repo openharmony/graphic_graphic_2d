@@ -277,35 +277,34 @@ void RSSpecialLayerUtils::NotifyScreenSpecialLayerChange()
 void RSSpecialLayerUtils::DealWithSpecialLayer(
     RSSurfaceRenderNode& surfaceNode, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer)
 {
-    UpdateScreenSpecialLayersRecord(surfaceNode, displayNode, needCalcScreenSpecialLayer);
-    if (surfaceNode.IsCloneCrossNode()) {
-        auto sourceNode = surfaceNode.GetSourceCrossNode().lock();
-        auto sourceSurface = sourceNode ? sourceNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
-        if (sourceSurface == nullptr) {
-            return;
-        }
-        UpdateSpecialLayersRecord(*sourceSurface, displayNode);
-    } else {
-        UpdateSpecialLayersRecord(surfaceNode, displayNode);
-    }
+    // Handle the cross-screen node if it exists.
+    auto sourceCrossNode = surfaceNode.IsCloneCrossNode() ? surfaceNode.GetSourceCrossNode().lock() : nullptr;
+    auto sourceNodePtr = sourceCrossNode ? sourceCrossNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+    RSSurfaceRenderNode& sourceNode = sourceNodePtr ? *sourceNodePtr : surfaceNode;
+
+    UpdateSpecialLayersRecord(sourceNode, displayNode);
+    UpdateScreenSpecialLayersRecord(sourceNode, surfaceNode, displayNode, needCalcScreenSpecialLayer);
 }
 
-void RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(
+void RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(RSSurfaceRenderNode& sourceNode,
     RSSurfaceRenderNode& surfaceNode, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer)
 {
-    surfaceNode.GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
+    sourceNode.GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
     if (!needCalcScreenSpecialLayer) {
         return;
     }
     // update whitelist
-    surfaceNode.UpdateVirtualScreenWhiteListInfo();
+    auto whitelistScreenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_WHITE_LIST, {sourceNode.GetId(), sourceNode.GetLeashPersistentId()});
+    surfaceNode.UpdateVirtualScreenWhiteListInfo(whitelistScreenIds);
+      
     // update blacklist
-    auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
-        SpecialLayerType::IS_BLACK_LIST, {surfaceNode.GetId(), surfaceNode.GetLeashPersistentId()});
-    for (const auto screenId : screenIds) {
-        surfaceNode.SetScreenSpecialLayerStatus(screenId, SpecialLayerType::IS_BLACK_LIST, true);
+    auto blacklistScreenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_BLACK_LIST, {sourceNode.GetId(), sourceNode.GetLeashPersistentId()});
+    for (const auto screenId : blacklistScreenIds) {
+        sourceNode.SetScreenSpecialLayerStatus(screenId, SpecialLayerType::IS_BLACK_LIST, true);
         displayNode.GetMultableSpecialLayerMgr().AddIdsWithScreen(
-            screenId, SpecialLayerType::IS_BLACK_LIST, surfaceNode.GetId());
+            screenId, SpecialLayerType::IS_BLACK_LIST, sourceNode.GetId());
     }
 }
 

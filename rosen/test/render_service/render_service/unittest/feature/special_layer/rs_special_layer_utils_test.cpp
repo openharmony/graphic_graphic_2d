@@ -494,6 +494,9 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord001, TestSize.L
 {
     auto rsContext = std::make_shared<RSContext>();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    auto cloneCrossNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    cloneCrossNode->isCloneCrossNode_ = true;
+    cloneCrossNode->sourceCrossNode_ = surfaceNode;
     RSDisplayNodeConfig displayConfig;
     displayConfig.screenId = GenerateScreenId();
     auto displayNode =
@@ -506,7 +509,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord001, TestSize.L
     property.Set<ScreenPropertyType::ID>(screenId);
     RSSpecialLayerUtils::UpdateScreenSpecialLayer(property);
     
-    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *displayNode, false);
+    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *cloneCrossNode, *displayNode, false);
     ASSERT_FALSE(displayNode->GetSpecialLayerMgr().FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST));
 
     // Clean up
@@ -523,6 +526,9 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord002, TestSize.L
 {
     auto rsContext = std::make_shared<RSContext>();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    auto cloneCrossNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    cloneCrossNode->isCloneCrossNode_ = true;
+    cloneCrossNode->sourceCrossNode_ = surfaceNode;
     RSDisplayNodeConfig displayConfig;
     displayConfig.screenId = GenerateScreenId();
     auto displayNode =
@@ -535,7 +541,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord002, TestSize.L
     property.Set<ScreenPropertyType::ID>(screenId);
     RSSpecialLayerUtils::UpdateScreenSpecialLayer(property);
     
-    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *displayNode, true);
+    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *cloneCrossNode, *displayNode, true);
     ASSERT_TRUE(displayNode->GetSpecialLayerMgr().FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST));
 
     // Clean up
@@ -700,30 +706,6 @@ HWTEST_F(RSSpecialLayerUtilsTest, DealWithSpecialLayer002, TestSize.Level2)
 
     RSSpecialLayerUtils::DealWithSpecialLayer(*surfaceNode, *displayNode, true);
     ASSERT_TRUE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
-}
-
-/**
- * @tc.name: DealWithSpecialLayer003
- * @tc.desc: test DealWithSpecialLayer with clone node having null source
- * @tc.type: FUNC
- * @tc.require: issue41
- */
-HWTEST_F(RSSpecialLayerUtilsTest, DealWithSpecialLayer003, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    RSDisplayNodeConfig displayConfig;
-    displayConfig.screenId = GenerateScreenId();
-    auto displayNode =
-        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
-
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
-    surfaceNode->isCloneCrossNode_ = true;
-    surfaceNode->sourceCrossNode_ = std::weak_ptr<RSSurfaceRenderNode>();
-    surfaceNode->SetSkipLayer(true);
-    surfaceNode->shouldPaint_ = true;
-
-    RSSpecialLayerUtils::DealWithSpecialLayer(*surfaceNode, *displayNode, true);
-    ASSERT_FALSE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
 }
 
 /**

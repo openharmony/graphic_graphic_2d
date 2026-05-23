@@ -1122,13 +1122,11 @@ void RSSurfaceRenderNode::SetScreenSpecialLayerStatus(ScreenId screenId, uint32_
     }
 }
 
-void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
+void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo(const std::unordered_set<ScreenId>& screenIds)
 {
     if (!IsLeashOrMainWindow()) {
         return;
     }
-    auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
-        SpecialLayerType::IS_WHITE_LIST, {GetId(), GetLeashPersistentId()});
     SetScreensWithSubTreeWhitelist(screenIds);
     SyncWhiteListInfoToParent();
 }
