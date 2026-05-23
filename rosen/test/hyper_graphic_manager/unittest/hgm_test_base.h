@@ -43,6 +43,7 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     <Param name="hover_frame_up_config" value="1"/>
     <Param name="p3_node_count_config" value="1"/>
     <Param name="is_covered_surface_close_p3_config" value="1"/>
+    <Param name="ability_enable" value="1"/>
     <Params name="refresh_rate_4settings">
         <Setting name="-1" id="-1"/>
         <Setting name="60" id="1"/>

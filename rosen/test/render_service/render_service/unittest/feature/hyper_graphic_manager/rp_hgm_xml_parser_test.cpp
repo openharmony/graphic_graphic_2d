@@ -68,6 +68,7 @@ HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
 {
     std::string xmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                                 <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+                                    <Param name="ability_enable" value="1"/>
                                     <Param name="default_mode" value="-1"/>
                                     <Params name="additional_touch_rate_config">
                                         <Test name="AAAAA" value="1"/>
@@ -107,5 +108,62 @@ HWTEST_F(RPHgmXmlParserTest, TestParse, TestSize.Level1)
     EXPECT_EQ(parser->Parse(), XML_PARSE_INTERNAL_FAIL);
     EXPECT_EQ(parser->appBufferList_.size(), 2);
     EXPECT_EQ(parser->sourceTuningConfig_.size(), 1);
+}
+
+/**
+ * @tc.name: TestHgmAbilityEnabled001
+ * @tc.desc: test RPHgmXmlParser.HgmAbilityEnabled when ability_enable is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RPHgmXmlParserTest, TestHgmAbilityEnabled001, TestSize.Level1)
+{
+    std::string xmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                                <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+                                    <Param name="ability_enable" value="1"/>
+                                </HgmConfig>)");
+ 
+    auto parser = std::make_shared<RPHgmXMLParser>();
+    parser->xmlDocument_ = StringToXmlDoc(xmlContent);
+    EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
+    EXPECT_TRUE(parser->HgmAbilityEnabled());
+}
+ 
+/**
+ * @tc.name: TestHgmAbilityEnabled002
+ * @tc.desc: test RPHgmXmlParser.HgmAbilityEnabled when ability_enable is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RPHgmXmlParserTest, TestHgmAbilityEnabled002, TestSize.Level1)
+{
+    std::string xmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                                <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+                                    <Param name="ability_enable" value="0"/>
+                                </HgmConfig>)");
+ 
+    auto parser = std::make_shared<RPHgmXMLParser>();
+    parser->xmlDocument_ = StringToXmlDoc(xmlContent);
+    EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
+    EXPECT_FALSE(parser->HgmAbilityEnabled());
+}
+ 
+/**
+ * @tc.name: TestHgmAbilityEnabled003
+ * @tc.desc: test RPHgmXmlParser.HgmAbilityEnabled when ability_enable is not set (default true)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RPHgmXmlParserTest, TestHgmAbilityEnabled003, TestSize.Level1)
+{
+    std::string xmlContent = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                                <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+                                    <Param name="default_mode" value="-1"/>
+                                </HgmConfig>)");
+ 
+    auto parser = std::make_shared<RPHgmXMLParser>();
+    parser->xmlDocument_ = StringToXmlDoc(xmlContent);
+    EXPECT_EQ(parser->Parse(), EXEC_SUCCESS);
+    EXPECT_TRUE(parser->HgmAbilityEnabled());
 }
 } // namespace OHOS::Rosen

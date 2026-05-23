@@ -29,6 +29,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "hgm_core.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "parameters.h"
@@ -476,6 +477,34 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate003, TestSiz
     // Verify the response contains a valid refresh rate
     uint32_t refreshRate = 0;
     EXPECT_TRUE(reply.ReadUint32(refreshRate));
+}
+
+/**
+ * @tc.name: GetRealtimeRefreshRate004
+ * @tc.desc: Test GetRealtimeRefreshRate with valid screenId and whether hgmAbilityEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, GetRealtimeRefreshRate004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
+    uint64_t screenId = 100;
+    data.WriteUint64(screenId);
+ 
+    EXPECT_TRUE(HgmCore::Instance().hgmAbilityEnabled_);
+    HgmCore::Instance().hgmAbilityEnabled_ = false;
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+ 
+    // Verify the response contains a valid refresh rate
+    uint32_t refreshRate = 0;
+    EXPECT_TRUE(reply.ReadUint32(refreshRate));
+    HgmCore::Instance().hgmAbilityEnabled_ = true;
 }
 
 /**
