@@ -3415,6 +3415,33 @@ void RSSurfaceRenderNode::SetCornerRadiusInfoForDRM(const std::vector<float>& dr
 #endif
 }
 
+void RSSurfaceRenderNode::SetVcldInfo(const RSVcldParam& vcldInfo)
+{
+    if (vcldInfo_ == vcldInfo) {
+        return;
+    }
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        return;
+    }
+    stagingSurfaceParams->SetVcldInfo(vcldInfo);
+    vcldInfo_ = vcldInfo;
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::ResetVcldInfo()
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        return;
+    }
+    vcldInfo_.enable = false;
+    vcldInfo_.radius = 0.f;
+    stagingSurfaceParams->SetVcldInfo(vcldInfo_);
+    stagingSurfaceParams->SetRRectForVCLD(RRect({0, 0, 0, 0}, {0, 0, 0, 0}));
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::SetForceDisableClipHoleForDRM(bool isForceDisable)
 {
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());

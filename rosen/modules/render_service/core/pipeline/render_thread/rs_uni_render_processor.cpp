@@ -410,6 +410,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layer->SetCornerRadiusInfoForDRM(params.GetCornerRadiusInfoForDRM());
+    layer->SetVcldInfo(params.GetVcldInfo());
     auto bufferBackgroundColor = params.GetBackgroundColor();
     GraphicLayerColor backgroundColor = {
         .r = bufferBackgroundColor.GetRed(),

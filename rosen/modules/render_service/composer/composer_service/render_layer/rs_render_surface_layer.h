@@ -179,6 +179,8 @@ public:
     void DumpCurrentFrameLayer() const override;
     void SetIsNeedComposition(bool isNeedComposition) override;
     bool GetIsNeedComposition() const override;
+    void SetVcldInfo(const RSVcldParam& vcldInfo) override;
+    const RSVcldParam& GetVcldInfo() const override;
 
 private:
     // rs layer pipeline info
@@ -245,6 +247,7 @@ private:
     bool ignoreAlpha_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
     sptr<IConsumerSurface> cSurface_ = nullptr;
+    RSVcldParam vcldInfo_;
 };
 } // namespace Rosen
 } // namespace OHOS

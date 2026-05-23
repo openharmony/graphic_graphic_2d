@@ -53,6 +53,9 @@ public:
     static bool IsDangerousBlendMode(int32_t blendMode, int32_t blendApplyType);
     static bool IsForegroundColorStrategyValid(RSRenderNode& node);
     static float GetFloatRotationDegreeFromMatrix(const Drawing::Matrix& matrix);
+    static void UpdateHwcNodeVcldInfo(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+        const std::shared_ptr<RSRenderNode>& parent);
+    static float GetMaxAbsoluteRatioFromMatrix(const Drawing::Matrix& matrix);
 
 private:
     struct HwcPropertyContext {

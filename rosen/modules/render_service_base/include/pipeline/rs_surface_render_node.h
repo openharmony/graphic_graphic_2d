@@ -54,6 +54,7 @@
 #include "monitor/aps_monitor_impl.h"
 #endif
 #include "transaction/rs_render_pipeline_client.h"
+#include "feature/vcld/rs_vcld_param.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1705,6 +1706,13 @@ public:
         return drmCornerRadiusInfo_;
     }
 
+    void SetVcldInfo(const RSVcldParam& vcldInfo);
+    void ResetVcldInfo();
+    const RSVcldParam& GetVcldInfo() const
+    {
+        return vcldInfo_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     NodeId GetClonedNodeId() const
     {
@@ -2206,6 +2214,7 @@ private:
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;
     std::vector<float> drmCornerRadiusInfo_;
+    RSVcldParam vcldInfo_;
 
     std::string name_;
     std::string bundleName_;
