@@ -1731,8 +1731,7 @@ HWTEST_F(RSSurfaceNodeTest, OnAlphaValueChanged, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
-    AlphaChangedCallback callback = [](float alpha) {};
-    surfaceNode->SetAlphaChangedCallback(callback);
+    surfaceNode->SetAlphaChangedCallback([](float alpha) {});
     surfaceNode->SetAlpha(0.1f);
     surfaceNode->OnAlphaValueChanged();
 }
