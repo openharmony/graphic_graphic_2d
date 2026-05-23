@@ -872,9 +872,10 @@ sptr<IRemoteObject> RSClientToServiceConnectionProxy::GetConnectToRenderToken(Sc
     }
     sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
     if (rObj == nullptr) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetConnectToRenderToken clientToService is nullptr");
         return nullptr;
     }
-    return nullptr;
+    return rObj;
 }
 
 int32_t RSClientToServiceConnectionProxy::SetScreenSwitchingNotifyCallback(
