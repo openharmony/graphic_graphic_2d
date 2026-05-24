@@ -4011,7 +4011,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenStatusTe
 
 /*
  * @tc.name: DrawExpandDisplayTest001
- * @tc.desc: Test DrawExpandDisplay when displaynode set scale 0.5f
+ * @tc.desc: Test DrawExpandDisplay when displaynode doesn't SetPivot or SetScale
  * @tc.type: FUNC
  */
 GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest001)
@@ -4041,8 +4041,6 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest001
     Vector4f displayRect(0, 0, 200, 200);
     auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
     ASSERT_NE(displayNode, nullptr);
-    displayNode->SetPivot(0.0f, 0.0f);
-    displayNode->SetScale(0.5f);
 
     // Create Surface Node
     Vector4f surfaceNodeRect(0, 0, 100, 100);
@@ -4057,7 +4055,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest001
 
 /*
  * @tc.name: DrawExpandDisplayTest002
- * @tc.desc: Test DrawExpandDisplay when displaynode doesn't set scale
+ * @tc.desc: Test DrawExpandDisplay when displaynode SetPivot(0.0f, 0.0f) and SetScale(0.5f, 0.5f)
  * @tc.type: FUNC
  */
 GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest002)
@@ -4087,6 +4085,238 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest002
     Vector4f displayRect(0, 0, 200, 200);
     auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
     ASSERT_NE(displayNode, nullptr);
+    displayNode->SetPivot(0.0f, 0.0f);
+    displayNode->SetScale(0.5f, 0.5f);
+
+    // Create Surface Node
+    Vector4f surfaceNodeRect(0, 0, 100, 100);
+    auto surfaceNode = CreateSurfaceNodeWithConfig(__func__, surfaceNodeRect, SK_ColorYELLOW);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->RSNode::AddChild(surfaceNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    rsInterfaces.RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: DrawExpandDisplayTest003
+ * @tc.desc: Test DrawExpandDisplay when displaynode SetPivot(0.0f, 0.0f) and SetScale(0.5f, 0.25f)
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest003)
+{
+    RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
+
+    // Create Virtual Screen
+    uint32_t width = 100;
+    uint32_t height = 100;
+    ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // Set Surface for Virtual Screen
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    rsInterfaces.SetVirtualScreenSurface(screenId, psurface);
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Create Display Node
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+        .isSync = true
+    };
+    Vector4f displayRect(0, 0, 200, 400);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetPivot(0.0f, 0.0f);
+    displayNode->SetScale(0.5f, 0.25f);
+
+    // Create Surface Node
+    Vector4f surfaceNodeRect(0, 0, 100, 100);
+    auto surfaceNode = CreateSurfaceNodeWithConfig(__func__, surfaceNodeRect, SK_ColorYELLOW);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->RSNode::AddChild(surfaceNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    rsInterfaces.RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: DrawExpandDisplayTest004
+ * @tc.desc: Test DrawExpandDisplay when displaynode SetPivot(0.0f, 0.0f) and SetScale(0.25f, 0.5f)
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest004)
+{
+    RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
+
+    // Create Virtual Screen
+    uint32_t width = 100;
+    uint32_t height = 100;
+    ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // Set Surface for Virtual Screen
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    rsInterfaces.SetVirtualScreenSurface(screenId, psurface);
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Create Display Node
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+        .isSync = true
+    };
+    Vector4f displayRect(0, 0, 400, 200);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetPivot(0.0f, 0.0f);
+    displayNode->SetScale(0.25f, 0.5f);
+
+    // Create Surface Node
+    Vector4f surfaceNodeRect(0, 0, 100, 100);
+    auto surfaceNode = CreateSurfaceNodeWithConfig(__func__, surfaceNodeRect, SK_ColorYELLOW);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->RSNode::AddChild(surfaceNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    rsInterfaces.RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: DrawExpandDisplayTest005
+ * @tc.desc: Test DrawExpandDisplay when displaynode SetPivot(0.25f, 0.5f) and SetScale(0.25f, 0.5f)
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest005)
+{
+    RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
+
+    // Create Virtual Screen
+    uint32_t width = 100;
+    uint32_t height = 100;
+    ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // Set Surface for Virtual Screen
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    rsInterfaces.SetVirtualScreenSurface(screenId, psurface);
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Create Display Node
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+        .isSync = true
+    };
+    Vector4f displayRect(0, 0, 400, 200);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetPivot(0.25f, 0.5f);
+    displayNode->SetScale(0.25f, 0.5f);
+
+    // Create Surface Node
+    Vector4f surfaceNodeRect(0, 0, 100, 100);
+    auto surfaceNode = CreateSurfaceNodeWithConfig(__func__, surfaceNodeRect, SK_ColorYELLOW);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->RSNode::AddChild(surfaceNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    rsInterfaces.RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: DrawExpandDisplayTest006
+ * @tc.desc: Test DrawExpandDisplay when displaynode SetPivot(0.5f, 0.5f) and SetScale(0.5f, 0.5f)
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest006)
+{
+    RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
+
+    // Create Virtual Screen
+    uint32_t width = 100;
+    uint32_t height = 100;
+    ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // Set Surface for Virtual Screen
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    rsInterfaces.SetVirtualScreenSurface(screenId, psurface);
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Create Display Node
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+        .isSync = true
+    };
+    Vector4f displayRect(0, 0, 200, 200);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetPivot(0.5f, 0.5f);
+    displayNode->SetScale(0.5f, 0.5f);
+
+    // Create Surface Node
+    Vector4f surfaceNodeRect(0, 0, 100, 100);
+    auto surfaceNode = CreateSurfaceNodeWithConfig(__func__, surfaceNodeRect, SK_ColorYELLOW);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->RSNode::AddChild(surfaceNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    rsInterfaces.RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: DrawExpandDisplayTest007
+ * @tc.desc: Test DrawExpandDisplay when displaynode SetPivot(0.5f, 0.25f) and SetScale(0.5f, 0.25f)
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest007)
+{
+    RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
+
+    // Create Virtual Screen
+    uint32_t width = 100;
+    uint32_t height = 100;
+    ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // Set Surface for Virtual Screen
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    rsInterfaces.SetVirtualScreenSurface(screenId, psurface);
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Create Display Node
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+        .isSync = true
+    };
+    Vector4f displayRect(0, 0, 200, 400);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetPivot(0.5f, 0.25f);
+    displayNode->SetScale(0.5f, 0.25f);
 
     // Create Surface Node
     Vector4f surfaceNodeRect(0, 0, 100, 100);
