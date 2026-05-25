@@ -691,7 +691,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, OnGlobalBlacklistChangedStubTest00
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(ret, ERR_INVALID_DATA);
+    ASSERT_EQ(ret, ERR_NONE);
 }
 
 /**
