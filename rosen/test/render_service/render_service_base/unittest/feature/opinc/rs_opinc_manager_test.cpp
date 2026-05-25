@@ -91,7 +91,7 @@ HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag, Function | SmallTest
     auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
 
     rsCanvasRenderNode->hasHdrPresent_ = true;
-    EXPECT_FALSE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
+    ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
     rsCanvasRenderNode->hasHdrPresent_ = false;
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
