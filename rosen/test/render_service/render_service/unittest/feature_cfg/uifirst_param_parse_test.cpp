@@ -190,7 +190,7 @@ HWTEST_F(UIFirstParamParseTest, GetUIFirstSwitchTypeOcclusionEnabledTest, TestSi
  * @tc.name: ParseSubThreadFrameRateControlBySceneTest
  * @tc.desc: Test parse SubThreadFrameRateControlByScene param
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#23839
  */
 HWTEST_F(UIFirstParamParseTest, ParseSubThreadFrameRateControlBySceneTest, TestSize.Level1)
 {
