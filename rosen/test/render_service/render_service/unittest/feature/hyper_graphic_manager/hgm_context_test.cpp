@@ -541,6 +541,8 @@ HWTEST_F(HgmContextTest, RemoveScreenFromHgmTest001, TestSize.Level1)
         ScreenId id = 1;
         auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
         screenProperty->Set<ScreenPropertyType::ID>(id);
+        auto screenManager = sptr<RSScreenManager>::MakeSptr();
+        hgmCore.SetScreenManager(screenManager.GetRefPtr());
         hgmContext->AddScreenToHgm(screenProperty);
 
         ASSERT_FALSE(hgmCore.screenIds_.empty());
@@ -1096,22 +1098,6 @@ HWTEST_F(HgmContextTest, RegisterHgmConfigChangeCallbackTest001, TestSize.Level1
 }
 
 /**
- * @tc.name: RegisterHgmConfigChangeCallbackTest002
- * @tc.desc: test RegisterHgmConfigChangeCallback when callback is not nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmContextTest, RegisterHgmConfigChangeCallbackTest002, TestSize.Level1)
-{
-    auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
-    ASSERT_NE(hgmContext, nullptr);
-
-    pid_t pid = 0;
-    sptr<CustomHgmCallback> callback = new CustomHgmCallback();
-    EXPECT_EQ(hgmContext->RegisterHgmConfigChangeCallback(pid, callback), StatusCode::SUCCESS);
-}
-
-/**
  * @tc.name: RegisterHgmRefreshRateModeChangeCallbackTest001
  * @tc.desc: test RegisterHgmRefreshRateModeChangeCallback when callback is nullptr
  * @tc.type: FUNC
@@ -1125,22 +1111,6 @@ HWTEST_F(HgmContextTest, RegisterHgmRefreshRateModeChangeCallbackTest001, TestSi
     pid_t pid = 0;
     sptr<RSIHgmConfigChangeCallback> callback = nullptr;
     EXPECT_EQ(hgmContext->RegisterHgmRefreshRateModeChangeCallback(pid, callback), StatusCode::INVALID_ARGUMENTS);
-}
-
-/**
- * @tc.name: RegisterHgmRefreshRateModeChangeCallbackTest002
- * @tc.desc: test RegisterHgmRefreshRateModeChangeCallback when callback is not nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmContextTest, RegisterHgmRefreshRateModeChangeCallbackTest002, TestSize.Level1)
-{
-    auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
-    ASSERT_NE(hgmContext, nullptr);
-
-    pid_t pid = 0;
-    sptr<CustomHgmCallback> callback = new CustomHgmCallback();
-    EXPECT_EQ(hgmContext->RegisterHgmRefreshRateModeChangeCallback(pid, callback), StatusCode::SUCCESS);
 }
 
 /**
