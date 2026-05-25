@@ -131,7 +131,7 @@ bool DoCreatePixelMapShader(const uint8_t* data, size_t size)
 
     shaderEffectLazy->Materialize();
     return true;
-
+}
 
 bool RSMainFuzzTest(const uint8_t* data, size_t size)
 {
