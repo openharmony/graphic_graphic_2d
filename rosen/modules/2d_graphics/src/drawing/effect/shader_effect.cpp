@@ -309,32 +309,30 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateLinearGradient(const Point& st
     const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
     TileMode mode, const Matrix *matrix)
 {
-    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, startPt, endPt, colors,
-        colorSpace, pos, mode, matrix);
+    return ShaderEffectLazy::CreateLinearGradient(startPt, endPt, colors, colorSpace, pos, mode, matrix);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradient(const Point& centerPt, scalar radius,
     const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
     TileMode mode, const Matrix *matrix)
 {
-    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::RADIAL_GRADIENT, centerPt, radius, colors,
-        colorSpace, pos, mode, matrix);
+    return ShaderEffectLazy::CreateRadialGradient(centerPt, radius, colors, colorSpace, pos, mode, matrix);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& startPt, scalar startRadius,
     const Point& endPt, scalar endRadius, const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
     const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
-    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::CONICAL_GRADIENT, startPt, startRadius,
-        endPt, endRadius, colors, colorSpace, pos, mode, matrix);
+    return ShaderEffectLazy::CreateTwoPointConical(startPt, startRadius, endPt, endRadius, colors, colorSpace,
+        pos, mode, matrix);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& centerPt, const std::vector<UIColor>& colors,
     std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
     scalar endAngle, const Matrix* matrix)
 {
-    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT,
-        centerPt, colors, colorSpace, pos, mode, startAngle, endAngle, matrix);
+    return ShaderEffectLazy::CreateSweepGradient(centerPt, colors, colorSpace, pos, mode, startAngle, endAngle,
+        matrix);
 }
 
 #ifdef RS_ENABLE_GPU

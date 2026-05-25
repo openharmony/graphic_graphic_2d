@@ -28,6 +28,20 @@ namespace Drawing {
 // Only supports the Drawing NDK interface.
 class DRAWING_API ShaderEffectLazy : public ShaderEffect {
 public:
+    static std::shared_ptr<ShaderEffectLazy> CreateLinearGradient(const Point& startPt, const Point& endPt,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, const Matrix* matrix);
+    static std::shared_ptr<ShaderEffectLazy> CreateRadialGradient(const Point& centerPt, scalar radius,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, const Matrix* matrix);
+    static std::shared_ptr<ShaderEffectLazy> CreateTwoPointConical(const Point& startPt, scalar startRadius,
+        const Point& endPt, scalar endRadius, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+        TileMode mode, const Matrix* matrix);
+    static std::shared_ptr<ShaderEffectLazy> CreateSweepGradient(const Point& centerPt,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
+        scalar endAngle, const Matrix* matrix);
     static std::shared_ptr<ShaderEffectLazy> CreateBlendShader(const std::shared_ptr<ShaderEffect>& dst,
         const std::shared_ptr<ShaderEffect>& src, BlendMode mode);
     static std::shared_ptr<ShaderEffectLazy> CreateFromShaderEffectObj(std::shared_ptr<ShaderEffectObj> object);

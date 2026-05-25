@@ -15,6 +15,10 @@
 #include "effect/shader_effect_lazy.h"
 
 #include "effect/blend_shader_obj.h"
+#include "effect/linear_gradient_shader_obj.h"
+#include "effect/radial_gradient_shader_obj.h"
+#include "effect/conical_gradient_shader_obj.h"
+#include "effect/sweep_gradient_shader_obj.h"
 #include "utils/data.h"
 #include "utils/log.h"
 
@@ -26,6 +30,58 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
+std::shared_ptr<ShaderEffectLazy> ShaderEffectLazy::CreateLinearGradient(const Point& startPt, const Point& endPt,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix* matrix)
+{
+    auto linearGradientObj = LinearGradientShaderObj::Create(startPt, endPt, colors, colorSpace, pos, mode, matrix);
+    if (!linearGradientObj) {
+        LOGD("ShaderEffectLazy::CreateLinearGradient, failed to create LinearGradientShaderObj");
+        return nullptr;
+    }
+    return std::shared_ptr<ShaderEffectLazy>(new ShaderEffectLazy(linearGradientObj));
+}
+
+std::shared_ptr<ShaderEffectLazy> ShaderEffectLazy::CreateRadialGradient(const Point& centerPt, scalar radius,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix* matrix)
+{
+    auto radialGradientObj = RadialGradientShaderObj::Create(centerPt, radius, colors, colorSpace, pos, mode, matrix);
+    if (!radialGradientObj) {
+        LOGD("ShaderEffectLazy::CreateRadialGradient, failed to create RadialGradientShaderObj");
+        return nullptr;
+    }
+    return std::shared_ptr<ShaderEffectLazy>(new ShaderEffectLazy(radialGradientObj));
+}
+
+std::shared_ptr<ShaderEffectLazy> ShaderEffectLazy::CreateTwoPointConical(const Point& startPt, scalar startRadius,
+    const Point& endPt, scalar endRadius, const std::vector<UIColor>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix* matrix)
+{
+    auto conicalGradientObj = ConicalGradientShaderObj::Create(startPt, startRadius, endPt, endRadius, colors,
+        colorSpace, pos, mode, matrix);
+    if (!conicalGradientObj) {
+        LOGD("ShaderEffectLazy::CreateTwoPointConical, failed to create ConicalGradientShaderObj");
+        return nullptr;
+    }
+    return std::shared_ptr<ShaderEffectLazy>(new ShaderEffectLazy(conicalGradientObj));
+}
+
+std::shared_ptr<ShaderEffectLazy> ShaderEffectLazy::CreateSweepGradient(const Point& centerPt,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
+    scalar endAngle, const Matrix* matrix)
+{
+    auto sweepGradientObj = SweepGradientShaderObj::Create(centerPt, colors, colorSpace, pos, mode,
+        startAngle, endAngle, matrix);
+    if (!sweepGradientObj) {
+        LOGD("ShaderEffectLazy::CreateSweepGradient, failed to create SweepGradientShaderObj");
+        return nullptr;
+    }
+    return std::shared_ptr<ShaderEffectLazy>(new ShaderEffectLazy(sweepGradientObj));
+}
 
 std::shared_ptr<ShaderEffectLazy> ShaderEffectLazy::CreateBlendShader(const std::shared_ptr<ShaderEffect>& dst,
                                                                       const std::shared_ptr<ShaderEffect>& src,
