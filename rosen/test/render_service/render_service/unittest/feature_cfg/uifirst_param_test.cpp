@@ -159,7 +159,7 @@ HWTEST_F(UIFirstParamTest, SetOcclusionEnabled, Function | SmallTest | Level1)
  * @tc.name: SetSubThreadFrameRateControlByScene
  * @tc.desc: Verify the SetSubThreadFrameRateControlByScene and GetSubThreadFrameRateControlByScene functions
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require:#23839
  */
 HWTEST_F(UIFirstParamTest, SetSubThreadFrameRateControlByScene, Function | SmallTest | Level1)
 {
