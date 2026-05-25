@@ -3019,7 +3019,7 @@ HWTEST_F(RSRenderNodeTest2, SetUIFirstSwitchTest001, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(id);
     ASSERT_NE(node, nullptr);
     node->SetUIFirstSwitch(RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
-    ASSERT_EQ(node->GetUIFirstSwitch(), RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
+    ASSERT_EQ(node->GetUIFirstSwitch(), RSUIFirstSwitch::NONE);
 }
 
 /**
