@@ -556,7 +556,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, MultTaskAnimationTest, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest001
   * @tc.desc: Test GetSceneIdBit with LAUNCHER_APP_LAUNCH_FROM_ICON
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest001, TestSize.Level1)
 {
@@ -569,7 +569,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest001, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest002
   * @tc.desc: Test GetSceneIdBit with LAUNCHER_APP_LAUNCH_FROM_DOCK
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest002, TestSize.Level1)
 {
@@ -582,7 +582,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest002, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest003
   * @tc.desc: Test GetSceneIdBit with LAUNCHER_APP_SWIPE_TO_HOME
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest003, TestSize.Level1)
 {
@@ -595,7 +595,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest003, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest004
   * @tc.desc: Test GetSceneIdBit with GESTURE_TO_RECENTS
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest004, TestSize.Level1)
 {
@@ -608,7 +608,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest004, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest005
   * @tc.desc: Test GetSceneIdBit with EXIT_RECENT_2_HOME_ANI
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest005, TestSize.Level1)
 {
@@ -621,7 +621,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest005, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest006
   * @tc.desc: Test GetSceneIdBit with CLEAR_1_RECENT_ANI
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest006, TestSize.Level1)
 {
@@ -634,7 +634,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest006, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest007
   * @tc.desc: Test GetSceneIdBit with CLEAR_ALL_RECENT_ANI
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest007, TestSize.Level1)
 {
@@ -647,7 +647,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest007, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest008
   * @tc.desc: Test GetSceneIdBit with AOD_TO_LAUNCHER
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest008, TestSize.Level1)
 {
@@ -660,7 +660,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest008, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest009
   * @tc.desc: Test GetSceneIdBit with LOCKSCREEN_TO_LAUNCHER
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest009, TestSize.Level1)
 {
@@ -673,7 +673,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest009, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest010
   * @tc.desc: Test GetSceneIdBit with UNKNOWN scene
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest010, TestSize.Level1)
 {
@@ -686,7 +686,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest010, TestSize.Level1)
   * @tc.name: GetSceneIdBitTest011
   * @tc.desc: Test GetSceneIdBit with LAUNCHER_APP_LAUNCH_FROM_RECENT (goes to default)
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest011, TestSize.Level1)
 {
@@ -699,7 +699,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest011, TestSize.Level1)
   * @tc.name: IsSceneEnabledTest001
   * @tc.desc: Test IsSceneEnabled returns bool result
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest001, TestSize.Level1)
 {
@@ -712,7 +712,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest001, TestSize.Level1)
   * @tc.name: IsSceneEnabledTest002
   * @tc.desc: Test IsSceneEnabled with UNKNOWN scene
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest002, TestSize.Level1)
 {
@@ -725,7 +725,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest002, TestSize.Level1)
   * @tc.name: IsSceneEnabledTest003
   * @tc.desc: Test IsSceneEnabled with LAUNCHER_APP_LAUNCH_FROM_DOCK
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest003, TestSize.Level1)
 {
@@ -738,7 +738,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest003, TestSize.Level1)
   * @tc.name: IsSceneEnabledTest004
   * @tc.desc: Test IsSceneEnabled with LAUNCHER_APP_SWIPE_TO_HOME
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest004, TestSize.Level1)
 {
@@ -751,7 +751,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest004, TestSize.Level1)
   * @tc.name: IsSceneEnabledTest005
   * @tc.desc: Test IsSceneEnabled with GESTURE_TO_RECENTS
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest005, TestSize.Level1)
 {
@@ -764,7 +764,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest005, TestSize.Level1)
   * @tc.name: IsSceneEnabledTest006
   * @tc.desc: Test IsSceneEnabled with EXIT_RECENT_2_HOME_ANI
   * @tc.type: FUNC
-  * @tc.require:
+  * @tc.require:#23839
   */
 HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest006, TestSize.Level1)
 {
