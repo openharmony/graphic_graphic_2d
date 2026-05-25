@@ -16,13 +16,6 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ## Build uieffect_napi.so
 rosen_is_ohos = current_os == "ohos"
-declare_args() {
-  arkgraphic2d_api_metrics = true
-  if (defined(global_parts_info) &&
-      !defined(global_parts_info.hiviewdfx_api_metrics)) {
-    arkgraphic2d_api_metrics = false
-  }
-}
 config("graphic_napi_uieffect_config") {
   visibility = [ ":*" ]
 
