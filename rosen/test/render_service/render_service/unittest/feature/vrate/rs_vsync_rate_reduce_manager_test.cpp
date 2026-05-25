@@ -121,7 +121,7 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues001, TestSize.Level1)
     rateReduceManager.ResetFrameValues(120);
     EXPECT_EQ(false, rateReduceManager.vRateConditionQualified_);
     rateReduceManager.PushWindowNodeId(nodeId);
-    EXPECT_EQ(0, rateReduceManager.oneFramePeriod_);
+    EXPECT_EQ(0, rateReduceManager.stagingOneFramePeriod_);
     EXPECT_EQ(true, rateReduceManager.curAllMainAndLeashWindowNodesIds_.empty());
 
     rateReduceManager.CollectSurfaceVsyncInfo(screenInfo, *surfaceNode);
@@ -135,7 +135,7 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues001, TestSize.Level1)
     EXPECT_NE(0, rateReduceManager.curTime_);
 
     rateReduceManager.vRateConditionQualified_ = true;
-    rateReduceManager.oneFramePeriod_ = 0;
+    rateReduceManager.stagingOneFramePeriod_ = 0;
     rateReduceManager.frameDurations_.clear();
     rateReduceManager.FrameDurationEnd();
     EXPECT_EQ(true, rateReduceManager.frameDurations_.empty());
@@ -169,7 +169,7 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues002, TestSize.Level1)
     rateReduceManager.ResetFrameValues(120);
     EXPECT_EQ(true, rateReduceManager.vRateConditionQualified_);
     rateReduceManager.PushWindowNodeId(nodeId);
-    EXPECT_NE(0, rateReduceManager.oneFramePeriod_);
+    EXPECT_NE(0, rateReduceManager.stagingOneFramePeriod_);
     EXPECT_EQ(false, rateReduceManager.curAllMainAndLeashWindowNodesIds_.empty());
 
     rateReduceManager.CollectSurfaceVsyncInfo(screenInfo, *surfaceNode);
