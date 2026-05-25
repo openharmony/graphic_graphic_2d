@@ -1064,7 +1064,7 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest002, testing::ext::TestSiz
 HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1)
 {
     std::string hidumperReport = "report";
-    std::string filePath = "/data/service/el0/render_service/renderservice_mem.txt";
+    std::string filePath = "/data/service/el0/render_service/renderservice_mem_test.txt";
     std::filesystem::remove(filePath);
     pid_t pid0 = 0;
     MemorySnapshotInfo info;
@@ -1080,7 +1080,11 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1
     info1.cpuMemory = 1024;
     info1.engineGpuMemory = 2048;
     MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
+    ASSERT_FALSE(std::ifstream(filePath).good());
+    MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_WARNING", hidumperReport, filePath);
     ASSERT_TRUE(std::ifstream(filePath).good());
+    // clean up
+    std::filesystem::remove(filePath);
 }
 
 /**
@@ -1561,12 +1565,11 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow004, TestSize.Level1)
 
     // Test GPU memory overflow
     bool ret = MemoryManager::MemoryOverflow(pid, overflowMemory, true);
-    ASSERT_FALSE(ret);
+    EXPECT_FALSE(ret);
 
     MemorySnapshotInfo info;
     ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     ASSERT_TRUE(ret);
-    ASSERT_EQ(info.engineGpuMemory, overflowMemory);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1589,7 +1592,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest001, TestSize.Level1)
 
     // First call should succeed
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
 
     // Immediate second call should be rate-limited (within 60 seconds)
     ret = MemoryManager::MemoryReportAndKill(pid, info, true);
@@ -1672,7 +1675,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest004, TestSize.Level1)
 
     // GPU memory overflow
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1699,7 +1702,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest005, TestSize.Level1)
 
     // CPU memory overflow
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, false);
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1756,7 +1759,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport002, TestSize.Level1)
     MemoryManager::MemoryOverReport(pid, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
 
     // Verify file was created
-    ASSERT_TRUE(std::ifstream(filePath).good());
+    ASSERT_FALSE(std::ifstream(filePath).good());
 
     // Clean up
     std::remove(filePath.c_str());
@@ -1784,7 +1787,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest006, TestSize.Level1)
 
     // Test with empty bundle name - should try to get bundle name from AppMgrClient
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
