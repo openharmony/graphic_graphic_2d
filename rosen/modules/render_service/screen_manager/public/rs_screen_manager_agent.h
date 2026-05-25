@@ -63,11 +63,11 @@ public:
     std::vector<ScreenId> GetAllScreenIds();
     void MarkPowerOffNeedProcessOneFrame();
 
-    ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height,
-        sptr<Surface> surface, ScreenId associatedScreenId = 0,
-        int32_t flags = 0, std::vector<NodeId> whiteList = {});
+    ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
+        ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
     void RemoveVirtualScreen(ScreenId id);
     void CleanVirtualScreens();
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId);
@@ -145,7 +145,6 @@ public:
     // Multi-surface virtual screen management
     int32_t AddVirtualScreenSurface(ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs);
     int32_t RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces);
-    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 
 private:
     sptr<RSScreenManager> screenManager_;

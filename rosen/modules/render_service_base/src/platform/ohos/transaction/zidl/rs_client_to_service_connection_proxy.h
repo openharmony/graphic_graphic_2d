@@ -63,8 +63,6 @@ public:
     int32_t AddVirtualScreenSurface(
         ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs) override;
     int32_t RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces) override;
-    int32_t SetVirtualScreenSurface(
-        ScreenId id, sptr<Surface> surface) override;
     // blacklist
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList) override;
     ErrCode AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList, int32_t& repCode) override;
@@ -91,6 +89,7 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
     void RemoveVirtualScreen(ScreenId id) override;
 
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;

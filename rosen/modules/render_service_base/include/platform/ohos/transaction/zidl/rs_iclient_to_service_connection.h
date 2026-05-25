@@ -107,8 +107,6 @@ public:
         ScreenId screenId, const std::vector<SurfaceRegionConfig>& surfaceConfigs) = 0;
     virtual int32_t RemoveVirtualScreenSurface(
         ScreenId screenId, const std::vector<sptr<Surface>>& surfaces) = 0;
-    virtual int32_t SetVirtualScreenSurface(
-        ScreenId screenId, sptr<Surface> surface) = 0;
 
     // blacklist
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList) = 0;
@@ -138,7 +136,7 @@ public:
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
 
-    
+    virtual int32_t SetVirtualScreenSurface(ScreenId screenId, sptr<Surface> surface) = 0;
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 

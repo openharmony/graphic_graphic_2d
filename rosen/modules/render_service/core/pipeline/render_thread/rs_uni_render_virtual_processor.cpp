@@ -938,7 +938,7 @@ void RSUniRenderVirtualProcessor::BlitRegionsToSurfaces(const std::shared_ptr<Dr
         Drawing::Rect srcRect(region.left_, region.top_,
             region.left_ + region.width_, region.top_ + region.height_);
         // Destination rect on this surface (full surface)
-        Drawing::Rect dstRect(0, 0, renderFrameConfig_.width_, renderFrameConfig_.height_);
+        Drawing::Rect dstRect(0, 0, renderFrameConfig_.width, renderFrameConfig_.height);
 
         canvas->DrawImageRect(*offscreenImage, srcRect, dstRect, sampling,
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);

@@ -115,13 +115,13 @@ public:
     void CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
     void CancelCurrentFrame();
     sptr<SyncFence> GetFrameAcquireFence();
+    bool SetCropRectForMetadata(const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion& metaRegion);
 
     // Multi-surface support
     bool IsMultiSurfaceExtendMode() const { return needsOffscreenRender_; }
     const std::vector<SurfaceFrameConfig>& GetSurfaceFrames() const { return surfaceFrames_; }
     void BlitRegionsToSurfaces(const std::shared_ptr<Drawing::Image>& offscreenImage);
 
-    bool SetCropRectForMetadata(const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion& metaRegion);
 private:
     void MergeMirrorFenceToHardwareEnabledDrawables(const sptr<SyncFence>& acquireFence);
     void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);

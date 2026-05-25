@@ -434,8 +434,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(
-            RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN): {
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN): {
             // read the parcel data.
             std::string name;
             uint32_t width{0};
@@ -566,28 +565,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_SURFACE Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
-            break;
-        }
-        case static_cast<uint32_t>(
-            RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
-            ScreenId id{INVALID_SCREEN_ID};
-            if (!data.ReadUint64(id)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACE Read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
-            sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bufferProducer);
-            if (surface == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            SetVirtualScreenSurface(id, surface);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST): {
@@ -786,6 +763,28 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetCastScreenEnableSkipWindow(id, enable);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
+            // read the parcel data.
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACE Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+            sptr<Surface> surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+            if (surface == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            SetVirtualScreenSurface(id, surface);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN): {

@@ -229,7 +229,6 @@ public:
     RSScreenType GetScreenType() const;
     ScreenConnectionType GetConnectionType() const;
 #ifndef ROSEN_CROSS_PLATFORM
-    // Multi-surface: Get the multi-surface configs directly
     std::vector<SurfaceRegionConfig> GetMultiSurfaceConfigs() const;
 #endif
     ScreenScaleMode GetScaleMode() const;

@@ -261,6 +261,24 @@ std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
     return clientToService->GetAllScreenIds();
 }
 
+ScreenId RSRenderServiceClient::CreateVirtualScreen(
+    const std::string &name,
+    uint32_t width,
+    uint32_t height,
+    sptr<Surface> surface,
+    ScreenId associatedScreenId,
+    int32_t flags,
+    std::vector<NodeId> whiteList)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
+        return INVALID_SCREEN_ID;
+    }
+
+    return clientToService->CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();
@@ -397,24 +415,6 @@ int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface
     }
 
     return clientToService->SetVirtualScreenSurface(id, surface);
-}
-
-ScreenId RSRenderServiceClient::CreateVirtualScreen(
-    const std::string& name,
-    uint32_t width,
-    uint32_t height,
-    sptr<Surface> surface,
-    ScreenId associatedScreenId,
-    int32_t flags,
-    std::vector<NodeId> whiteList)
-{
-    auto clientToService = RSConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
-        return INVALID_SCREEN_ID;
-    }
-
-    return clientToService->CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
 }
 
 int32_t RSRenderServiceClient::AddVirtualScreenSurface(

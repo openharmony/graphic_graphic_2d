@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "rs_screen_thread_safe_property.h"
-
 #include <algorithm>
+
+#include "rs_screen_thread_safe_property.h"
 
 #include "platform/common/rs_log.h"
 #include <pixel_map.h>
@@ -364,21 +364,6 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::RemoveSurfaceCon
         }), configs.end());
     auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
     return { ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
-}
-
-std::optional<RSScreenThreadSafeProperty::ResType> RSScreenThreadSafeProperty::UpdateSurfaceRegion(
-    uint64_t surfaceIdToUpdate, const RectI& newRegion)
-{
-    UniqueLock lock(propertyMutex_);
-    auto configs = property_->GetMultiSurfaceConfigs();
-    for (auto& config : configs) {
-        if (config.surface->GetUniqueId() == surfaceIdToUpdate) {
-            config.region = newRegion;
-            auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
-            return ResType{ ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
-        }
-    }
-    return std::nullopt;
 }
 
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)

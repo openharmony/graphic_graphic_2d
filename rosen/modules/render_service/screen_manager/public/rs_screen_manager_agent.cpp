@@ -193,9 +193,8 @@ std::vector<ScreenId> RSScreenManagerAgent::GetAllScreenIds()
     return screenManager_->GetAllScreenIds();
 }
 
-ScreenId RSScreenManagerAgent::CreateVirtualScreen(const std::string &name, uint32_t width,
-    uint32_t height, sptr<Surface> surface, ScreenId associatedScreenId,
-    int32_t flags, std::vector<NodeId> whiteList)
+ScreenId RSScreenManagerAgent::CreateVirtualScreen(const std::string &name, uint32_t width, uint32_t height,
+    sptr<Surface> surface, ScreenId associatedScreenId, int32_t flags, std::vector<NodeId> whiteList)
 {
     if (!screenManager_) {
         RS_LOGW("RSScreenManagerAgent::CreateVirtualScreen screenManager_ is nullptr");
@@ -223,6 +222,15 @@ void RSScreenManagerAgent::RemoveVirtualScreen(ScreenId id)
     screenManager_->RemoveVirtualScreen(id);
     std::lock_guard<std::mutex> lock(mutex_);
     virtualScreenIds_.erase(id);
+}
+
+int32_t RSScreenManagerAgent::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetVirtualScreenSurface(id, surface);
 }
 
 uint32_t RSScreenManagerAgent::SetScreenActiveMode(ScreenId id, uint32_t modeId)
@@ -836,15 +844,5 @@ int32_t RSScreenManagerAgent::RemoveVirtualScreenSurface(ScreenId id, const std:
     }
     return screenManager_->RemoveVirtualScreenSurface(id, surfaces);
 }
-
-int32_t RSScreenManagerAgent::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
-{
-    if (!screenManager_) {
-        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screenManager_->SetVirtualScreenSurface(id, surface);
-}
-
 } // namespace Rosen
 } // namespace OHOS

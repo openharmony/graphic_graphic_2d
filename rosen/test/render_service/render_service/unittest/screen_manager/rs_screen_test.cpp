@@ -3579,80 +3579,6 @@ HWTEST_F(RSScreenTest, RemoveSurfaceConfigs_002, TestSize.Level1)
 }
 
 /*
- * @tc.name: UpdateSurfaceRegion_001
- * @tc.desc: Test UpdateSurfaceRegion updates region for existing surface
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenTest, UpdateSurfaceRegion_001, TestSize.Level1)
-{
-    VirtualScreenConfigs config;
-    auto rsScreen = std::make_shared<RSScreen>(config);
-    ASSERT_NE(rsScreen, nullptr);
-
-    bool callbackInvoked = false;
-    rsScreen->SetOnPropertyChangedCallback([&](ScreenId, ScreenPropertyType, const sptr<ScreenPropertyBase>&) {
-        callbackInvoked = true;
-    });
-
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    auto psurface = Surface::CreateSurfaceAsProducer(csurface->GetProducer());
-    ASSERT_NE(psurface, nullptr);
-
-    SurfaceRegionConfig surfaceConfig;
-    surfaceConfig.surface = psurface;
-    surfaceConfig.region = RectI(0, 0, 100, 100);
-    rsScreen->SetMultiSurfaceConfigs({surfaceConfig});
-
-    RectI newRegion(10, 20, 300, 400);
-    rsScreen->UpdateSurfaceRegion(psurface->GetUniqueId(), newRegion);
-
-    auto configs = rsScreen->GetMultiSurfaceConfigs();
-    ASSERT_EQ(configs.size(), 1u);
-    EXPECT_EQ(configs[0].region.left_, 10);
-    EXPECT_EQ(configs[0].region.top_, 20);
-    EXPECT_EQ(configs[0].region.width_, 300);
-    EXPECT_EQ(configs[0].region.height_, 400);
-    EXPECT_TRUE(callbackInvoked);
-}
-
-/*
- * @tc.name: UpdateSurfaceRegion_002
- * @tc.desc: Test UpdateSurfaceRegion for non-existing surface does nothing
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenTest, UpdateSurfaceRegion_002, TestSize.Level1)
-{
-    VirtualScreenConfigs config;
-    auto rsScreen = std::make_shared<RSScreen>(config);
-    ASSERT_NE(rsScreen, nullptr);
-
-    bool callbackInvoked = false;
-    rsScreen->SetOnPropertyChangedCallback([&](ScreenId, ScreenPropertyType, const sptr<ScreenPropertyBase>&) {
-        callbackInvoked = true;
-    });
-
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    auto psurface = Surface::CreateSurfaceAsProducer(csurface->GetProducer());
-    ASSERT_NE(psurface, nullptr);
-
-    SurfaceRegionConfig surfaceConfig;
-    surfaceConfig.surface = psurface;
-    surfaceConfig.region = RectI(0, 0, 100, 100);
-    rsScreen->SetMultiSurfaceConfigs({surfaceConfig});
-
-    constexpr uint64_t NONEXISTENT_SURFACE_ID = 99999;
-    rsScreen->UpdateSurfaceRegion(NONEXISTENT_SURFACE_ID, RectI(10, 20, 300, 400));
-
-    auto configs = rsScreen->GetMultiSurfaceConfigs();
-    ASSERT_EQ(configs.size(), 1u);
-    EXPECT_EQ(configs[0].region.left_, 0);
-    EXPECT_EQ(configs[0].region.width_, 100);
-    EXPECT_FALSE(callbackInvoked);
-}
-
-/*
  * @tc.name: VirtualScreenConstructor_MultiSurface_001
  * @tc.desc: Test VirtualScreen constructor with empty surfaceConfigs
  * @tc.type: FUNC
@@ -3799,56 +3725,6 @@ HWTEST_F(RSScreenTest, ThreadSafeProperty_RemoveSurfaceConfigs_002, TestSize.Lev
     auto remaining = rsScreen->GetMultiSurfaceConfigs();
     ASSERT_EQ(remaining.size(), 1u);
     EXPECT_EQ(remaining[0].surface, nullptr);
-}
-
-/*
- * @tc.name: ThreadSafeProperty_UpdateSurfaceRegion_001
- * @tc.desc: Test RSScreenThreadSafeProperty UpdateSurfaceRegion for existing surface
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenTest, ThreadSafeProperty_UpdateSurfaceRegion_001, TestSize.Level1)
-{
-    VirtualScreenConfigs config;
-    auto rsScreen = std::make_shared<RSScreen>(config);
-    ASSERT_NE(rsScreen, nullptr);
-
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    auto psurface = Surface::CreateSurfaceAsProducer(csurface->GetProducer());
-    ASSERT_NE(psurface, nullptr);
-
-    SurfaceRegionConfig surfaceConfig;
-    surfaceConfig.surface = psurface;
-    surfaceConfig.region = RectI(0, 0, 100, 100);
-    rsScreen->property_.SetMultiSurfaceConfigs({surfaceConfig});
-
-    RectI newRegion(50, 60, 200, 300);
-    auto result = rsScreen->property_.UpdateSurfaceRegion(psurface->GetUniqueId(), newRegion);
-    ASSERT_TRUE(result.has_value());
-    EXPECT_EQ(result->first, ScreenPropertyType::MULTI_SURFACE_CONFIGS);
-
-    auto configs = rsScreen->GetMultiSurfaceConfigs();
-    ASSERT_EQ(configs.size(), 1u);
-    EXPECT_EQ(configs[0].region.left_, 50);
-    EXPECT_EQ(configs[0].region.top_, 60);
-    EXPECT_EQ(configs[0].region.width_, 200);
-    EXPECT_EQ(configs[0].region.height_, 300);
-}
-
-/*
- * @tc.name: ThreadSafeProperty_UpdateSurfaceRegion_002
- * @tc.desc: Test RSScreenThreadSafeProperty UpdateSurfaceRegion for non-existing surface
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenTest, ThreadSafeProperty_UpdateSurfaceRegion_002, TestSize.Level1)
-{
-    VirtualScreenConfigs config;
-    auto rsScreen = std::make_shared<RSScreen>(config);
-    ASSERT_NE(rsScreen, nullptr);
-
-    constexpr uint64_t NONEXISTENT_ID = 99999;
-    auto result = rsScreen->property_.UpdateSurfaceRegion(NONEXISTENT_ID, RectI(0, 0, 100, 100));
-    EXPECT_FALSE(result.has_value());
 }
 
 /*

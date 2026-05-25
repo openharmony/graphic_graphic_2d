@@ -24,7 +24,6 @@
 #include "screen_types.h"
 
 namespace OHOS::Rosen {
-
 enum class ScreenState : uint8_t {
     HDI_OUTPUT_ENABLE,
     PRODUCER_SURFACE_ENABLE,

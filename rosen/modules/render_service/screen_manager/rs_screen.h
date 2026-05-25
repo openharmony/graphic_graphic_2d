@@ -133,7 +133,6 @@ public:
     void SetMultiSurfaceConfigs(const MultiSurfaceConfigs& configs);
     void AddSurfaceConfigs(const MultiSurfaceConfigs& configs);
     void RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceIds);
-    void UpdateSurfaceRegion(uint64_t surfaceId, const RectI& region);
     MultiSurfaceConfigs GetMultiSurfaceConfigs() const;
 
     void ResizeVirtualScreen(uint32_t width, uint32_t height);

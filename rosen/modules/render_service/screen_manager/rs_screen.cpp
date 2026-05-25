@@ -687,14 +687,6 @@ void RSScreen::RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceI
     }
 }
 
-void RSScreen::UpdateSurfaceRegion(uint64_t surfaceId, const RectI& region)
-{
-    auto result = property_.UpdateSurfaceRegion(surfaceId, region);
-    if (result.has_value()) {
-        NotifyScreenPropertyChange(result.value());
-    }
-}
-
 MultiSurfaceConfigs RSScreen::GetMultiSurfaceConfigs() const
 {
     return property_.GetMultiSurfaceConfigs();
