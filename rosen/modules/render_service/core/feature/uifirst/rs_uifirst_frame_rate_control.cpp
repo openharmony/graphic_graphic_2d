@@ -144,7 +144,7 @@ uint32_t RSUifirstFrameRateControl::GetSceneIdBit(SceneId sceneId)
             return 0;
     }
 }
- 
+
 uint32_t RSUifirstFrameRateControl::GetFrameControlScenesMask() const
 {
     return UIFirstParam::GetSubThreadFrameRateControlByScene();
