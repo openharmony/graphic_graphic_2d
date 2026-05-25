@@ -17,6 +17,8 @@
 
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
+#include "common/rs_background_thread.h"
+#include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_core.h"
