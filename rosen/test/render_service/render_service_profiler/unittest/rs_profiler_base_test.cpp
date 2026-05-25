@@ -86,8 +86,11 @@ HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON1, Level1)
     options.srcPixelFormat = Media::PixelFormat::RGBA_8888;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
     options.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
+    options.allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
     options.useDMA = false;
-    auto pixelMap = Media::PixelMap::Create(options);
+    const auto pixelMap = Media::PixelMap::Create(options);
+    ASSERT_NE(pixelMap, nullptr);
+    ASSERT_EQ(pixelMap->GetAllocatorType(), Media::AllocatorType::SHARE_MEM_ALLOC);
 
     RSProfilerLogMsg msg;
     do {
@@ -95,12 +98,15 @@ HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON1, Level1)
     } while (msg.time_);
 
     constexpr uint64_t testId = 123;
-
     PixelMapStorage::Push(testId, *pixelMap);
 
     msg = RSProfiler::ReceiveRSLogBase();
     RSProfiler::SetMode(Mode::NONE);
-    EXPECT_EQ((msg.type_ == RSProfilerLogType::PIXELMAP), true);
+
+    const std::string checkValue = "{\"id\":123,"
+                                   "\"type\":\"SHARED\",\"width\":128,\"height\":256,\"stride\":512,\"format\":3}";
+    EXPECT_EQ((msg.type_ == RSProfilerLogType::PIXELMAP && msg.msg_.find(checkValue) != std::string::npos), true)
+        << "Message: " << msg.msg_;
 }
 
 /*
@@ -119,8 +125,11 @@ HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON2, Level1)
     options.srcPixelFormat = Media::PixelFormat::RGBA_8888;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
     options.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
+    options.allocatorType = Media::AllocatorType::DMA_ALLOC;
     options.useDMA = true;
-    auto pixelMap = Media::PixelMap::Create(options);
+    const auto pixelMap = Media::PixelMap::Create(options);
+    ASSERT_NE(pixelMap, nullptr);
+    ASSERT_EQ(pixelMap->GetAllocatorType(), Media::AllocatorType::DMA_ALLOC);
 
     RSProfilerLogMsg msg;
     do {
@@ -128,14 +137,14 @@ HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON2, Level1)
     } while (msg.time_);
 
     constexpr uint64_t testId = 321;
-    std::string checkValue = "{\"id\":321,"
-        "\"type\":\"DMA\",\"width\":1024,\"height\":512,\"stride\":4096,\"format\":12}";
-
     PixelMapStorage::Push(testId, *pixelMap);
 
     msg = RSProfiler::ReceiveRSLogBase();
     RSProfiler::SetMode(Mode::NONE);
-    EXPECT_EQ((msg.type_ == RSProfilerLogType::PIXELMAP && msg.msg_.find(checkValue) != std::string::npos), true);
+    const std::string checkValue = "{\"id\":321,"
+                                   "\"type\":\"DMA\",\"width\":1024,\"height\":512,\"stride\":4096,\"format\":12}";
+    EXPECT_EQ((msg.type_ == RSProfilerLogType::PIXELMAP && msg.msg_.find(checkValue) != std::string::npos), true)
+        << "Message: " << msg.msg_;
 }
 
 /*

@@ -725,6 +725,8 @@ private:
         bool skipDrawCmdMoifiers = false, bool isBetaRecording = false);
     RSB_EXPORT static void MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
         bool skipDrawCmdModifiers, bool isBetaRecording);
+    RSB_EXPORT static bool MarshalDrawCmdModifiers(const ModifierNG::RSRenderModifier& modifier, std::stringstream& data,
+        bool skipDrawCmdModifiers, bool isBetaRecording);
 
     RSB_EXPORT static std::string UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
     RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);
@@ -763,8 +765,7 @@ private:
     RSB_EXPORT static void DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out);
-    RSB_EXPORT static void DumpNodeDrawCmdModifier(
-        const RSRenderNode& node, JsonWriter& out, std::shared_ptr<ModifierNG::RSRenderModifier> modifier);
+    RSB_EXPORT static void DumpNodeDrawCmdModifier(const ModifierNG::RSRenderModifier& modifier, JsonWriter& out);
     RSB_EXPORT static void DumpNodeProperties(const RSProperties& properties, JsonWriter& out);
     RSB_EXPORT static void DumpNodePropertiesClip(const RSProperties& properties, JsonWriter& out);
     RSB_EXPORT static void DumpNodePropertiesTransform(const RSProperties& properties, JsonWriter& out);
