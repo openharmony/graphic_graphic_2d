@@ -37,7 +37,7 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
             break;
         case SceneId::GESTURE_TO_RECENTS:
             forceRefreshOnce_ = true;
-            SetMultTaskAnimation(true);
+            SetMultiTaskAnimation(true);
             break;
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT:
             forceRefreshOnce_ = false;
@@ -46,7 +46,7 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
         case SceneId::LOCKSCREEN_TO_LAUNCHER:
             SetStartAnimation(false);
             SetStopAnimation(false);
-            SetMultTaskAnimation(false);
+            SetMultiTaskAnimation(false);
             break;
         default:
             break;
@@ -70,12 +70,12 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
             break;
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT:
             forceRefreshOnce_ = true;
-            SetMultTaskAnimation(false);
+            SetMultiTaskAnimation(false);
             break;
         case SceneId::EXIT_RECENT_2_HOME_ANI:
         case SceneId::CLEAR_1_RECENT_ANI:
         case SceneId::CLEAR_ALL_RECENT_ANI:
-            SetMultTaskAnimation(false);
+            SetMultiTaskAnimation(false);
             break;
         default:
             break;
@@ -99,7 +99,7 @@ bool RSUifirstFrameRateControl::GetUifirstFrameDropInternal(int frameInterval)
 
 bool RSUifirstFrameRateControl::SubThreadFrameDropDecision(const RSSurfaceRenderNode& node)
 {
-    bool inAnimation = JudgeStartAnimation() || JudgeStopAnimation() || JudgeMultTaskAnimation();
+    bool inAnimation = JudgeStartAnimation() || JudgeStopAnimation() || JudgeMultiTaskAnimation();
     bool hasMultipleSubSurfaces = JudgeMultiSubSurface(node);
     bool canDropFrame = GetUifirstFrameDropInternal(RSSystemProperties::GetSubThreadDropFrameInterval());
     

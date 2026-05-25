@@ -61,10 +61,10 @@ public:
     bool NeedNextDrawForSkippedNode();
 
     CacheProcessStatus GetNodeStatus(NodeId id);
-    // judge if surfacenode satisfies async subthread rendering condtions for Uifirst
+    // judge if surfacenode satisfies async subthread rendering conditions for Uifirst
     void UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation);
     void UpdateUIFirstNodeUseDma(RSSurfaceRenderNode& node, const std::vector<RectI>& rects);
-    void PostUifistSubTasks();
+    void PostUifirstSubTasks();
     void ProcessSubDoneNode();
     // check whether the node should skip onsync process,
     // if node is drawing in subthread, onsync may cause wrong result.
@@ -79,7 +79,7 @@ public:
     void OnProcessEventComplete(DataBaseRs& info);
     void PrepareCurrentFrameEvent();
 
-    // animate procss
+    // animate process
     void OnProcessAnimateScene(SystemAnimatedScenes systemAnimatedScene);
 
     // check if node is child of main screen or negative screen
@@ -419,24 +419,24 @@ private:
 // record the firstLevelNodeId in the delivered subnode as the real one.
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {
 public:
-    RSUiFirstProcessStateCheckerHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId, NodeId curNodeId)
+    RSUiFirstProcessStateCheckerHelper(NodeId curFirstLevelNodeId, NodeId curUifirstRootNodeId, NodeId curNodeId)
     {
         isCurUifirstRootNodeId_ = curNodeId == curUifirstRootNodeId;
-        isCurFirsLevelNodeId_ = curNodeId == curFirsLevelNodeId;
+        isCurFirsLevelNodeId_ = curNodeId == curFirstLevelNodeId;
         if (isCurUifirstRootNodeId_) {
             curUifirstRootNodeId_ = curUifirstRootNodeId;
         }
         if (isCurFirsLevelNodeId_) {
-            curFirstLevelNodeId_ = curFirsLevelNodeId;
+            curFirstLevelNodeId_ = curFirstLevelNodeId;
         }
     }
 
-    RSUiFirstProcessStateCheckerHelper(NodeId curFirsLevelNodeId, NodeId curUifirstRootNodeId)
+    RSUiFirstProcessStateCheckerHelper(NodeId curFirstLevelNodeId, NodeId curUifirstRootNodeId)
     {
         isCurUifirstRootNodeId_ = true;
         isCurFirsLevelNodeId_ = true;
         curUifirstRootNodeId_ = curUifirstRootNodeId;
-        curFirstLevelNodeId_ = curFirsLevelNodeId;
+        curFirstLevelNodeId_ = curFirstLevelNodeId;
     }
 
     ~RSUiFirstProcessStateCheckerHelper()

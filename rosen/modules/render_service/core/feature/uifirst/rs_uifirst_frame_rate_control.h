@@ -100,25 +100,25 @@ public:
         stopAnimationStatus_.store(status, std::memory_order_relaxed);
     }
 
-    bool JudgeMultTaskAnimation() const
+    bool JudgeMultiTaskAnimation() const
     {
-        return multTaskAnimationStatus_.load(std::memory_order_relaxed);
+        return multiTaskAnimationStatus_.load(std::memory_order_relaxed);
     }
 
-    void SetMultTaskAnimation(bool status)
+    void SetMultiTaskAnimation(bool status)
     {
-        multTaskAnimationStatus_.store(status, std::memory_order_relaxed);
+        multiTaskAnimationStatus_.store(status, std::memory_order_relaxed);
     }
 
 private:
     RSUifirstFrameRateControl(const RSUifirstFrameRateControl&) = delete;
     RSUifirstFrameRateControl& operator=(const RSUifirstFrameRateControl&) = delete;
     RSUifirstFrameRateControl() : startAnimationStatus_(false),
-        stopAnimationStatus_(false), multTaskAnimationStatus_(false) {}
+        stopAnimationStatus_(false), multiTaskAnimationStatus_(false) {}
     std::atomic<int32_t> callCount_ = 0;
     std::atomic<bool> startAnimationStatus_;
     std::atomic<bool> stopAnimationStatus_;
-    std::atomic<bool> multTaskAnimationStatus_;
+    std::atomic<bool> multiTaskAnimationStatus_;
     bool forceRefreshOnce_ = true;
 };
 }

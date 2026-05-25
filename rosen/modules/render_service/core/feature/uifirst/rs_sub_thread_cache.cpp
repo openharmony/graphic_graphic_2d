@@ -595,9 +595,9 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
     if (isShouldContainShadow) {
         auto screenNodeDrawable = surfaceParams->GetAncestorScreenDrawable().lock();
         if (screenNodeDrawable) {
-            auto dirtyManger = screenNodeDrawable->GetSyncDirtyManager();
-            if (dirtyManger) {
-                auto globalDirtyRegion = dirtyManger->GetCurrentFrameDirtyRegion();
+            auto dirtyManager = screenNodeDrawable->GetSyncDirtyManager();
+            if (dirtyManager) {
+                auto globalDirtyRegion = dirtyManager->GetCurrentFrameDirtyRegion();
                 syncUifirstDirtyManager_->MergeDirtyRect(globalDirtyRegion);
                 RS_TRACE_NAME_FMT("UpdateUifirstDirtyManager node[%" PRIu64 "] globalDirtyRegion: %s",
                     surfaceDrawable->GetId(), globalDirtyRegion.ToString().c_str());

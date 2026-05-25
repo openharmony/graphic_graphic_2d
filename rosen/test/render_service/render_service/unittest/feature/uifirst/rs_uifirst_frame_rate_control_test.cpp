@@ -546,10 +546,10 @@ HWTEST_F(RSUifirstFrameRateControlTest, StopAnimationTest, TestSize.Level1)
 HWTEST_F(RSUifirstFrameRateControlTest, MultTaskAnimationTest, TestSize.Level1)
 {
     RSUifirstFrameRateControl control;
-    control.SetMultTaskAnimation(false);
-    EXPECT_EQ(control.JudgeMultTaskAnimation(), false);
-    control.SetMultTaskAnimation(true);
-    EXPECT_EQ(control.JudgeMultTaskAnimation(), true);
+    control.SetMultiTaskAnimation(false);
+    EXPECT_EQ(control.JudgeMultiTaskAnimation(), false);
+    control.SetMultiTaskAnimation(true);
+    EXPECT_EQ(control.JudgeMultiTaskAnimation(), true);
 }
 
 }
