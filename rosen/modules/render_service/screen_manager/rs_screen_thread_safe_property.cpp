@@ -359,7 +359,8 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::RemoveSurfaceCon
     auto configs = property_->GetMultiSurfaceConfigs();
     configs.erase(std::remove_if(configs.begin(), configs.end(),
         [&surfaceIdsToRemove](const SurfaceRegionConfig& config) {
-            return surfaceIdsToRemove.count(config.surface->GetUniqueId()) > 0;
+            return config.surface != nullptr &&
+                surfaceIdsToRemove.count(config.surface->GetUniqueId()) > 0;
         }), configs.end());
     auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
     return { ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };

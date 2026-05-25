@@ -252,6 +252,69 @@ HWTEST_F(RSServiceClientTest, SetVirtualScreenSurface001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddVirtualScreenSurface_001
+ * @tc.desc: Test AddVirtualScreenSurface with empty configs
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, AddVirtualScreenSurface001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<SurfaceRegionConfig> emptyConfigs;
+    int32_t ret = rsClient->AddVirtualScreenSurface(TEST_ID, emptyConfigs);
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenSurface_002
+ * @tc.desc: Test AddVirtualScreenSurface with valid config
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, AddVirtualScreenSurface002, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto psurface = Surface::CreateSurfaceAsProducer(csurface->GetProducer());
+    ASSERT_NE(psurface, nullptr);
+
+    SurfaceRegionConfig config;
+    config.surface = psurface;
+    config.region = RectI(0, 0, 480, 320);
+    int32_t ret = rsClient->AddVirtualScreenSurface(TEST_ID, {config});
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface_001
+ * @tc.desc: Test RemoveVirtualScreenSurface with empty surfaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, RemoveVirtualScreenSurface001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<sptr<Surface>> emptySurfaces;
+    int32_t ret = rsClient->RemoveVirtualScreenSurface(TEST_ID, emptySurfaces);
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface_002
+ * @tc.desc: Test RemoveVirtualScreenSurface with valid surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, RemoveVirtualScreenSurface002, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto psurface = Surface::CreateSurfaceAsProducer(csurface->GetProducer());
+    ASSERT_NE(psurface, nullptr);
+
+    int32_t ret = rsClient->RemoveVirtualScreenSurface(TEST_ID, {psurface});
+    EXPECT_NE(ret, 0);
+}
+
+/**
  * @tc.name: SetVirtualScreenBlackListTest001
  * @tc.desc: Test SetVirtualScreenBlackList when blacklist is valid
  * @tc.type: FUNC

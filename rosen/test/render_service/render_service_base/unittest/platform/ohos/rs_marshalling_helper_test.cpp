@@ -58,6 +58,8 @@
 #include "property/rs_properties_def.h"
 #include "utils/object.h"
 #include "utils/object_helper.h"
+#include "screen_manager/rs_surface_region_config.h"
+#include "iconsumer_surface.h"
 
 
 using namespace testing;
@@ -2530,6 +2532,55 @@ HWTEST_F(RSMarshallingHelperTest, TransactionVersionCheckTest, TestSize.Level1)
         parcel.WriteInt64(0);
     }
     ASSERT_FALSE(RSMarshallingHelper::TransactionVersionCheck(parcel, 0));
+}
+
+/**
+ * @tc.name: SurfaceRegionConfigMarshallingTest001
+ * @tc.desc: Test SurfaceRegionConfig Marshalling and Unmarshalling with null surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, SurfaceRegionConfigMarshallingTest001, TestSize.Level2)
+{
+    MessageParcel parcel;
+    SurfaceRegionConfig original;
+    original.surface = nullptr;
+    original.region = RectI(0, 0, 100, 100);
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, original));
+
+    SurfaceRegionConfig result;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, result));
+    EXPECT_EQ(result.surface, nullptr);
+    EXPECT_EQ(result.region.left_, original.region.left_);
+    EXPECT_EQ(result.region.top_, original.region.top_);
+    EXPECT_EQ(result.region.width_, original.region.width_);
+    EXPECT_EQ(result.region.height_, original.region.height_);
+}
+
+/**
+ * @tc.name: SurfaceRegionConfigMarshallingTest002
+ * @tc.desc: Test SurfaceRegionConfig Marshalling and Unmarshalling with valid surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, SurfaceRegionConfigMarshallingTest002, TestSize.Level2)
+{
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto psurface = Surface::CreateSurfaceAsProducer(csurface->GetProducer());
+    ASSERT_NE(psurface, nullptr);
+
+    MessageParcel parcel;
+    SurfaceRegionConfig original;
+    original.surface = psurface;
+    original.region = RectI(10, 20, 480, 320);
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, original));
+
+    SurfaceRegionConfig result;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, result));
+    EXPECT_NE(result.surface, nullptr);
+    EXPECT_EQ(result.region.left_, original.region.left_);
+    EXPECT_EQ(result.region.top_, original.region.top_);
+    EXPECT_EQ(result.region.width_, original.region.width_);
+    EXPECT_EQ(result.region.height_, original.region.height_);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -56,6 +56,7 @@ constexpr NodeId DEFAULT_ID = 0xFFFF;
 constexpr int32_t DEFAULT_BUFFER_AGE = 10;
 #endif
 const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion DEFAULT_META_REGION {0, 0, 100, 100};
+constexpr int32_t TEST_FRAME_DIM = 100;
 }
 BufferRequestConfig requestConfig = {
     .width = 0x100,
@@ -145,6 +146,14 @@ void RSUniRenderVirtualProcessorTest::SetUp()
 }
 void RSUniRenderVirtualProcessorTest::TearDown()
 {
+    // Clean up surfaceFrames_ safely before destroying frames
+    for (auto& sf : virtualProcessor_->surfaceFrames_) {
+        if (sf.frame) {
+            sf.frame->Reset();
+        }
+        sf.canvas = nullptr;
+    }
+    virtualProcessor_->surfaceFrames_.clear();
     // Clean up per-test resources to prevent crash
     virtualProcessor_->renderFrame_ = nullptr;
     virtualProcessor_ = nullptr;
@@ -417,7 +426,11 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread003, TestSize.Level
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
     virtualProcessor->virtualScreenId_ = screenId;
-    ASSERT_NE(screenManager_->GetProducerSurface(virtualProcessor->virtualScreenId_), nullptr);
+    auto screen = screenManager_->GetScreen(virtualProcessor->virtualScreenId_);
+    ASSERT_NE(screen, nullptr);
+    auto surfaceConfigs = screen->GetMultiSurfaceConfigs();
+    ASSERT_FALSE(surfaceConfigs.empty());
+    ASSERT_NE(surfaceConfigs[0].surface, nullptr);
 
     auto csurf = IConsumerSurface::Create();
     auto producer = csurf->GetProducer();
@@ -1909,5 +1922,299 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata004, TestSize.Le
     // Test with valid buffer - should return true
     ASSERT_TRUE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
 #endif
+}
+
+/*
+ * @tc.name: IsMultiSurfaceExtendMode_001
+ * @tc.desc: Test IsMultiSurfaceExtendMode default false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, IsMultiSurfaceExtendMode_001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    EXPECT_FALSE(processor->IsMultiSurfaceExtendMode());
+}
+
+/*
+ * @tc.name: IsMultiSurfaceExtendMode_002
+ * @tc.desc: Test IsMultiSurfaceExtendMode true when needsOffscreenRender_ set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, IsMultiSurfaceExtendMode_002, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    processor->needsOffscreenRender_ = true;
+    EXPECT_TRUE(processor->IsMultiSurfaceExtendMode());
+}
+
+/*
+ * @tc.name: GetSurfaceFrames_001
+ * @tc.desc: Test GetSurfaceFrames default empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, GetSurfaceFrames_001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    const auto& frames = processor->GetSurfaceFrames();
+    EXPECT_TRUE(frames.empty());
+}
+
+/*
+ * @tc.name: GetSurfaceFrames_002
+ * @tc.desc: Test GetSurfaceFrames returns populated surfaceFrames_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, GetSurfaceFrames_002, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    SurfaceFrameConfig config;
+    config.region = RectI(0, 0, 100, 100);
+    processor->surfaceFrames_.push_back(std::move(config));
+    const auto& frames = processor->GetSurfaceFrames();
+    ASSERT_EQ(frames.size(), 1u);
+    EXPECT_EQ(frames[0].region.left_, 0);
+    EXPECT_EQ(frames[0].region.width_, 100);
+}
+
+/*
+ * @tc.name: BlitRegionsToSurfaces_001
+ * @tc.desc: Test BlitRegionsToSurfaces with empty surfaceFrames
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, BlitRegionsToSurfaces_001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    auto image = std::make_shared<Drawing::Image>();
+    processor->BlitRegionsToSurfaces(image);
+    EXPECT_TRUE(processor->surfaceFrames_.empty());
+}
+
+/*
+ * @tc.name: BlitRegionsToSurfaces_002
+ * @tc.desc: Test BlitRegionsToSurfaces with null image
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, BlitRegionsToSurfaces_002, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    SurfaceFrameConfig config;
+    config.region = RectI(0, 0, 100, 100);
+    processor->surfaceFrames_.push_back(std::move(config));
+    processor->BlitRegionsToSurfaces(nullptr);
+}
+
+/*
+ * @tc.name: BlitRegionsToSurfaces_003
+ * @tc.desc: Test BlitRegionsToSurfaces with single surface (<=1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, BlitRegionsToSurfaces_003, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    SurfaceFrameConfig config;
+    config.region = RectI(0, 0, 100, 100);
+    processor->surfaceFrames_.push_back(std::move(config));
+    auto image = std::make_shared<Drawing::Image>();
+    processor->BlitRegionsToSurfaces(image);
+}
+
+/*
+ * @tc.name: MergeAcquireFences_001
+ * @tc.desc: Test MergeAcquireFences with empty fence list
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, MergeAcquireFences_001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    std::vector<sptr<SyncFence>> fences;
+    auto mergedFence = processor->MergeAcquireFences(fences);
+    EXPECT_FALSE(mergedFence->IsValid());
+}
+
+/*
+ * @tc.name: MergeAcquireFences_002
+ * @tc.desc: Test MergeAcquireFences with single valid fence
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, MergeAcquireFences_002, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    std::vector<sptr<SyncFence>> fences;
+    fences.emplace_back(SyncFence::InvalidFence());
+    auto mergedFence = processor->MergeAcquireFences(fences);
+    EXPECT_FALSE(mergedFence->IsValid());
+}
+
+/*
+ * @tc.name: CancelCurrentFrame_MultiSurface_001
+ * @tc.desc: Test CancelCurrentFrame with multiple surfaceFrames
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, CancelCurrentFrame_MultiSurface_001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    SurfaceFrameConfig config1;
+    config1.region = RectI(0, 0, 100, 100);
+    SurfaceFrameConfig config2;
+    config2.region = RectI(100, 0, 100, 100);
+    processor->surfaceFrames_.push_back(std::move(config1));
+    processor->surfaceFrames_.push_back(std::move(config2));
+    ASSERT_EQ(processor->surfaceFrames_.size(), 2u);
+    processor->CancelCurrentFrame();
+}
+
+/*
+ * @tc.name: GetBufferAge_MultiSurface_001
+ * @tc.desc: Test GetBufferAge with empty surfaceFrames returns 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, GetBufferAge_MultiSurface_001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    EXPECT_EQ(processor->GetBufferAge(), 0);
+}
+
+/*
+ * @tc.name: GetFrameAcquireFence_MultiSurface_001
+ * @tc.desc: Test GetFrameAcquireFence with empty surfaceFrames
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, GetFrameAcquireFence_MultiSurface_001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    auto fence = processor->GetFrameAcquireFence();
+    EXPECT_FALSE(fence->IsValid());
+}
+
+/*
+ * @tc.name: SetDirtyInfo_MultiSurface_001
+ * @tc.desc: Test SetDirtyInfo with empty surfaceFrames
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetDirtyInfo_MultiSurface_001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    std::vector<RectI> dirtyRegion = {RectI(0, 0, 100, 100)};
+    processor->SetDirtyInfo(dirtyRegion);
+}
+
+/*
+ * @tc.name: PostProcess_NullRenderEngine_001
+ * @tc.desc: Test PostProcess with null renderEngine
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess_NullRenderEngine_001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    processor->renderEngine_ = nullptr;
+    processor->PostProcess();
+}
+
+/*
+ * @tc.name: BlitRegionsToSurfaces_EarlyReturn_NullImage
+ * @tc.desc: Test BlitRegionsToSurfaces returns early when offscreenImage is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, BlitRegionsToSurfaces_EarlyReturn_NullImage, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    SurfaceFrameConfig config1;
+    config1.region = RectI(0, 0, 100, 100);
+    config1.canvas = nullptr;
+    SurfaceFrameConfig config2;
+    config2.region = RectI(100, 0, 100, 100);
+    config2.canvas = nullptr;
+    processor->surfaceFrames_ = {config1, config2};
+    processor->BlitRegionsToSurfaces(nullptr);
+}
+
+/*
+ * @tc.name: BlitRegionsToSurfaces_EarlyReturn_SingleSurface
+ * @tc.desc: Test BlitRegionsToSurfaces returns early when only one surface frame
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, BlitRegionsToSurfaces_EarlyReturn_SingleSurface, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    SurfaceFrameConfig config;
+    config.region = RectI(0, 0, 100, 100);
+    config.canvas = nullptr;
+    processor->surfaceFrames_ = {config};
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat format{Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
+    bitmap.Build(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, format);
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bitmap);
+    processor->BlitRegionsToSurfaces(image);
+}
+
+/*
+ * @tc.name: MergeAcquireFences_EmptyVector
+ * @tc.desc: Test MergeAcquireFences with empty fence vector returns invalid fence
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, MergeAcquireFences_EmptyVector, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    std::vector<sptr<SyncFence>> fences;
+    auto result = processor->MergeAcquireFences(fences);
+    EXPECT_FALSE(result->IsValid());
+}
+
+/*
+ * @tc.name: MergeAcquireFences_NullAndInvalidFences
+ * @tc.desc: Test MergeAcquireFences skips null and invalid fences
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, MergeAcquireFences_NullAndInvalidFences, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    ASSERT_NE(processor, nullptr);
+    std::vector<sptr<SyncFence>> fences;
+    fences.push_back(nullptr);
+    fences.push_back(SyncFence::InvalidFence());
+    fences.push_back(nullptr);
+    auto result = processor->MergeAcquireFences(fences);
+    EXPECT_FALSE(result->IsValid());
+}
+
+/*
+ * @tc.name: RequestFramesForAllSurfaces_NullSurfaceSkipped
+ * @tc.desc: Test RequestFramesForAllSurfaces skips null surface entries (continue branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, RequestFramesForAllSurfaces_NullSurfaceSkipped, TestSize.Level2)
+{
+    ASSERT_NE(virtualProcessor_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+    screenDrawable_->renderParams_ = std::make_unique<RSScreenRenderParams>(nodeId_);
+    auto* screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+
+    SurfaceRegionConfig nullConfig;
+    nullConfig.surface = nullptr;
+    nullConfig.region = RectI(0, 0, TEST_FRAME_DIM, TEST_FRAME_DIM);
+    screenParams->screenProperty_.Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>({nullConfig});
+
+    virtualProcessor_->surfaceFrames_.clear();
+    virtualProcessor_->RequestFramesForAllSurfaces(*screenDrawable_);
+    EXPECT_TRUE(virtualProcessor_->surfaceFrames_.empty());
 }
 } // namespace OHOS::Rosen

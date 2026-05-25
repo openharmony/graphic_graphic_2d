@@ -323,4 +323,56 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
     ASSERT_NE(rsVirtualScreenProcessor, nullptr);
     rsVirtualScreenProcessor->ProcessRcdSurface(node);
 }
+
+/**
+ * @tc.name: InitTest007
+ * @tc.desc: Init with empty multi-surface configs returns false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVirtualScreenProcessorTest, InitTest007, TestSize.Level2)
+{
+    auto virtualScreenProcessor = RSProcessorFactory::CreateProcessor(CompositeType::SOFTWARE_COMPOSITE, 0);
+    ASSERT_NE(nullptr, virtualScreenProcessor);
+    NodeId screenNodeId = 0;
+    ScreenId screenId = 1;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(
+        screenNodeId, screenId, context->weak_from_this());
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto renderEngine = uniRenderThread.GetRenderEngine();
+    ASSERT_NE(nullptr, renderEngine);
+    std::vector<SurfaceRegionConfig> emptyConfigs;
+    rsScreenRenderNode->GetScreenProperty().Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(emptyConfigs);
+    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, renderEngine));
+}
+
+/**
+ * @tc.name: InitTest008
+ * @tc.desc: Init with null surface in configs returns false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVirtualScreenProcessorTest, InitTest008, TestSize.Level2)
+{
+    auto virtualScreenProcessor = RSProcessorFactory::CreateProcessor(CompositeType::SOFTWARE_COMPOSITE, 0);
+    ASSERT_NE(nullptr, virtualScreenProcessor);
+    NodeId screenNodeId = 0;
+    ScreenId screenId = 1;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(
+        screenNodeId, screenId, context->weak_from_this());
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto renderEngine = uniRenderThread.GetRenderEngine();
+    ASSERT_NE(nullptr, renderEngine);
+    std::vector<SurfaceRegionConfig> configs;
+    SurfaceRegionConfig cfg;
+    cfg.surface = nullptr;
+    cfg.region = RectI(0, 0, 100, 100);
+    configs.push_back(cfg);
+    rsScreenRenderNode->GetScreenProperty().Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
+    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, renderEngine));
+}
 } // namespace OHOS::Rosen

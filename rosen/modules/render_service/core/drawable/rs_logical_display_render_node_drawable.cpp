@@ -381,7 +381,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
     params.ApplyAlphaAndMatrixToCanvas(*curCanvas_);
 
     // Check for multi-surface extend mode (only when surfaces have specified regions)
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    auto virtualProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
     bool isMultiSurfaceExtend = virtualProcessor && virtualProcessor->IsMultiSurfaceExtendMode();
 
     if (isMultiSurfaceExtend) {

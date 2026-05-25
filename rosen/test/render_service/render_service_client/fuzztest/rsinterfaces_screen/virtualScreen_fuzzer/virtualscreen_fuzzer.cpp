@@ -38,7 +38,9 @@ const uint8_t DO_SET_VIRTUAL_SCREEN_AUTO_ROTATION = 8;
 const uint8_t DO_SET_VIRTUAL_SCREEN_USING_STATUS = 9;
 const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION = 10;
 const uint8_t DO_SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE = 11;
-const uint8_t TARGET_SIZE = 12;
+const uint8_t DO_ADD_VIRTUAL_SCREEN_SURFACE = 12;
+const uint8_t DO_REMOVE_VIRTUAL_SCREEN_SURFACE = 13;
+const uint8_t TARGET_SIZE = 14;
 constexpr size_t STR_LEN = 10;
 
 void DoCreateVirtualScreen(FuzzedDataProvider& fdp)
@@ -160,6 +162,52 @@ void DoSetVirtualMirrorScreenScaleMode(FuzzedDataProvider& fdp)
     g_rsInterfaces->SetVirtualMirrorScreenScaleMode(id, scaleMode);
 }
 
+void DoAddVirtualScreenSurface(FuzzedDataProvider& fdp)
+{
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    uint8_t configSize = fdp.ConsumeIntegral<uint8_t>();
+    std::vector<SurfaceRegionConfig> surfaceConfigs;
+    for (uint8_t i = 0; i < configSize; i++) {
+        auto csurface = IConsumerSurface::Create("FuzzAddSurface");
+        if (csurface == nullptr) {
+            continue;
+        }
+        auto producer = csurface->GetProducer();
+        if (producer == nullptr) {
+            continue;
+        }
+        auto psurface = Surface::CreateSurfaceAsProducer(producer);
+        if (psurface == nullptr) {
+            continue;
+        }
+        SurfaceRegionConfig config;
+        config.surface = psurface;
+        config.region = RectI(fdp.ConsumeIntegral<int32_t>(), fdp.ConsumeIntegral<int32_t>(),
+            fdp.ConsumeIntegral<int32_t>(), fdp.ConsumeIntegral<int32_t>());
+        surfaceConfigs.push_back(config);
+    }
+    g_rsInterfaces->AddVirtualScreenSurface(id, surfaceConfigs);
+}
+
+void DoRemoveVirtualScreenSurface(FuzzedDataProvider& fdp)
+{
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    uint8_t surfaceCount = fdp.ConsumeIntegral<uint8_t>();
+    std::vector<sptr<Surface>> surfaces;
+    for (uint8_t i = 0; i < surfaceCount; i++) {
+        auto csurface = IConsumerSurface::Create("FuzzRemoveSurface");
+        if (csurface == nullptr) {
+            continue;
+        }
+        auto producer = csurface->GetProducer();
+        if (producer == nullptr) {
+            continue;
+        }
+        surfaces.push_back(Surface::CreateSurfaceAsProducer(producer));
+    }
+    g_rsInterfaces->RemoveVirtualScreenSurface(id, surfaces);
+}
+
 } // namespace
 
 } // namespace Rosen
@@ -220,6 +268,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE:
             OHOS::Rosen::DoSetVirtualMirrorScreenScaleMode(fdp);
+            break;
+        case OHOS::Rosen::DO_ADD_VIRTUAL_SCREEN_SURFACE:
+            OHOS::Rosen::DoAddVirtualScreenSurface(fdp);
+            break;
+        case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_SURFACE:
+            OHOS::Rosen::DoRemoveVirtualScreenSurface(fdp);
             break;
         default:
             return -1;
