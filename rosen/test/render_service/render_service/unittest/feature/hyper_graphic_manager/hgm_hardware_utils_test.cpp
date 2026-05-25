@@ -148,8 +148,8 @@ HWTEST_F(HgmHardwareUtilsTest, PerformSetActiveModeTest, TestSize.Level1)
         }
         hgmCore.modeListToApply_->try_emplace(SCREEN_ID, 3);
         hgmHardwareUtils->PerformSetActiveMode(output);
-        EXPECT_EQ(hgmHardwareUtils->setRateRetryMap_.needRetrySetRate, false);
-        EXPECT_EQ(hgmHardwareUtils->setRateRetryMap_.retryCount, MAX_SETRATE_RETRY_COUNT);
+        EXPECT_EQ(hgmHardwareUtils->setRateRetryParam_.needRetrySetRate, true);
+        EXPECT_EQ(hgmHardwareUtils->setRateRetryParam_.retryCount, i + 1);
     }
     // 2. Disable consecutive failure retry
     for (int i = 0; i < MAX_SETRATE_RETRY_COUNT; ++i) {
@@ -158,8 +158,8 @@ HWTEST_F(HgmHardwareUtilsTest, PerformSetActiveModeTest, TestSize.Level1)
         }
         hgmCore.modeListToApply_->try_emplace(SCREEN_ID, 3);
         hgmHardwareUtils->PerformSetActiveMode(output);
-        EXPECT_EQ(hgmHardwareUtils->setRateRetryMap_[SCREEN_ID].first, false);
-        EXPECT_EQ(hgmHardwareUtils->setRateRetryMap_[SCREEN_ID].second, MAX_SETRATE_RETRY_COUNT);
+        EXPECT_EQ(hgmHardwareUtils->setRateRetryParam_.needRetrySetRate, false);
+        EXPECT_EQ(hgmHardwareUtils->setRateRetryParam_.retryCount, MAX_SETRATE_RETRY_COUNT);
     }
 }
 

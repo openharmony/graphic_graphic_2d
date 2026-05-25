@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_core.h"
@@ -53,16 +55,6 @@ void HgmContextTest::TearDownTestCase() {}
 void HgmContextTest::SetUp() {}
 
 void HgmContextTest::TearDown() {}
-
-class CustomHgmCallback : public IRemoteStub<RSIHgmConfigChangeCallback> {
-public:
-    explicit CustomHgmCallback() {}
-    ~CustomHgmCallback() override {};
-
-    void OnHgmConfigChanged(std::shared_ptr<RSHgmConfigData> configData) override {}
-    void OnHgmRefreshRateModeChanged(int32_t refreshRateModeName) override {}
-    void OnHgmRefreshRateUpdate(int32_t refreshRateUpdate) override {}
-};
 
 /**
  * @tc.name: InitHgmTaskHandleThreadTest001
@@ -1098,6 +1090,24 @@ HWTEST_F(HgmContextTest, RegisterHgmConfigChangeCallbackTest001, TestSize.Level1
 }
 
 /**
+ * @tc.name: RegisterHgmConfigChangeCallbackTest002
+ * @tc.desc: test RegisterHgmConfigChangeCallback when callback is not nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, RegisterHgmConfigChangeCallbackTest002, TestSize.Level1)
+{
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+
+    pid_t pid = 0;
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIHgmConfigChangeCallback> callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
+    EXPECT_EQ(hgmContext->RegisterHgmConfigChangeCallback(pid, callback), StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: RegisterHgmRefreshRateModeChangeCallbackTest001
  * @tc.desc: test RegisterHgmRefreshRateModeChangeCallback when callback is nullptr
  * @tc.type: FUNC
@@ -1111,6 +1121,24 @@ HWTEST_F(HgmContextTest, RegisterHgmRefreshRateModeChangeCallbackTest001, TestSi
     pid_t pid = 0;
     sptr<RSIHgmConfigChangeCallback> callback = nullptr;
     EXPECT_EQ(hgmContext->RegisterHgmRefreshRateModeChangeCallback(pid, callback), StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: RegisterHgmRefreshRateModeChangeCallbackTest002
+ * @tc.desc: test RegisterHgmRefreshRateModeChangeCallback when callback is not nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, RegisterHgmRefreshRateModeChangeCallbackTest002, TestSize.Level1)
+{
+    auto hgmContext = std::make_shared<HgmContext>(nullptr, nullptr, nullptr, nullptr, nullptr);
+    ASSERT_NE(hgmContext, nullptr);
+
+    pid_t pid = 0;
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIHgmConfigChangeCallback> callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
+    EXPECT_EQ(hgmContext->RegisterHgmRefreshRateModeChangeCallback(pid, callback), StatusCode::SUCCESS);
 }
 
 /**
