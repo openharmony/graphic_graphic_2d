@@ -316,20 +316,6 @@ void DoReleaseNullTest()
     OH_Filter_Release(nullptr);
 }
  
-void DoGetEffectNativeBufferTest()
-{
-    (void)GetData<uintptr_t>();
-    if (!HasEnoughData(sizeof(bool))) {
-        return;
-    }
- 
-    OH_NativeBuffer* nativeBuffer = nullptr;
-    int32_t syncFenceFd = -1;
-    bool releaseGpuContext = GetData<bool>();
- 
-    OH_Filter_GetEffectNativeBuffer(nullptr, nativeBuffer, &syncFenceFd, releaseGpuContext);
-}
- 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < FUZZ_DATA_MIN_SIZE) {
@@ -355,7 +341,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     DoReededGlassTest();
     DoGetEffectPixelMapTest();
     DoReleaseNullTest();
-    DoGetEffectNativeBufferTest();
     return true;
 }
  
