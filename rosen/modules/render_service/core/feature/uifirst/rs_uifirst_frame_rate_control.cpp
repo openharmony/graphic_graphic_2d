@@ -25,11 +25,9 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
         return;
     }
     auto sceneId = GetSceneId(eventInfo.sceneId);
-
     if (!IsSceneEnabled(sceneId)) {
         return;
     }
-
     switch (sceneId) {
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
@@ -64,11 +62,9 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
         return;
     }
     auto sceneId = GetSceneId(eventInfo.sceneId);
-
     if (!IsSceneEnabled(sceneId)) {
         return;
     }
-
     switch (sceneId) {
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
