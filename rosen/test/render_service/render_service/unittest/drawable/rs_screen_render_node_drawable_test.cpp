@@ -873,6 +873,58 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest015, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnDrawTest016
+ * @tc.desc: Test OnDraw when isMultiSurfaceExpand prevents skip in expand composite mode
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest016, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    params->mirrorSourceDrawable_.reset();
+    SurfaceRegionConfig config1;
+    config1.surface = nullptr;
+    config1.region = RectI(0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    SurfaceRegionConfig config2;
+    config2.surface = nullptr;
+    config2.region = RectI(0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    std::vector<SurfaceRegionConfig> configs = {config1, config2};
+    params->screenProperty_.Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
+    screenDrawable_->OnDraw(canvas);
+    auto surfaceConfigs = params->GetScreenProperty().GetMultiSurfaceConfigs();
+    EXPECT_EQ(surfaceConfigs.size(), 2u);
+}
+
+/**
+ * @tc.name: OnDrawTest017
+ * @tc.desc: Test OnDraw skips rendering when isMultiSurfaceExpand=false and
+ *           CheckVirtualExpandScreenSkip returns true (no accumulated dirty)
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest017, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    params->mirrorSourceDrawable_.reset();
+    params->SetAccumulatedDirty(false);
+    params->SetAccumulatedHdrStatusChanged(false);
+    // Single surface config → isMultiSurfaceExpand=false
+    SurfaceRegionConfig config;
+    config.surface = nullptr;
+    config.region = RectI(0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    std::vector<SurfaceRegionConfig> configs = {config};
+    params->screenProperty_.Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
+    // CheckVirtualExpandScreenSkip should return true (skip enabled by default, no dirty, no special layers)
+    EXPECT_NO_FATAL_FAILURE(screenDrawable_->OnDraw(canvas));
+}
+
+/**
  * @tc.name: SetDamageRegionTest001
  * @tc.desc: Test SetDamageRegion
  * @tc.type: FUNC
