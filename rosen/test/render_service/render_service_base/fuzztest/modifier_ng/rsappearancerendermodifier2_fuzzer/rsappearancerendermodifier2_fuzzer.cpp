@@ -33,10 +33,9 @@ constexpr uint8_t DO_MASK = 0;
 constexpr uint8_t DO_OUTLINE = 1;
 constexpr uint8_t DO_PARTICLE_EFFECT = 2;
 constexpr uint8_t DO_PIXEL_STRETCH = 3;
-constexpr uint8_t DO_SHADOW = 4;
-constexpr uint8_t DO_USE_EFFECT = 5;
-constexpr uint8_t DO_VISIBILITY = 6;
-constexpr uint8_t TARGET_SIZE = 7;
+constexpr uint8_t DO_USE_EFFECT = 4;
+constexpr uint8_t DO_VISIBILITY = 5;
+constexpr uint8_t TARGET_SIZE = 6;
 } // namespace
 
 void DoMask(FuzzedDataProvider& fdp)
@@ -73,14 +72,6 @@ void DoPixelStretch(FuzzedDataProvider& fdp)
     modifier->ResetProperties(properties);
 }
 
-void DoShadow(FuzzedDataProvider& fdp)
-{
-    (void)fdp;
-    auto modifier = std::make_shared<ModifierNG::RSShadowRenderModifier>();
-    RSProperties properties;
-    modifier->ResetProperties(properties);
-}
-
 void DoUseEffect(FuzzedDataProvider& fdp)
 {
     auto modifier = std::make_shared<ModifierNG::RSUseEffectRenderModifier>();
@@ -113,9 +104,6 @@ void FuzzBody(FuzzedDataProvider& fdp)
             break;
         case DO_PIXEL_STRETCH:
             DoPixelStretch(fdp);
-            break;
-        case DO_SHADOW:
-            DoShadow(fdp);
             break;
         case DO_USE_EFFECT:
             DoUseEffect(fdp);
