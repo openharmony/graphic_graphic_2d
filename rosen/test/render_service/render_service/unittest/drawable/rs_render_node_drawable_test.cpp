@@ -781,6 +781,30 @@ HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipTest, Tes
 }
 
 /**
+ * @tc.name: TraverseSubTreeAndDrawFilterWithClipWithDrawBackground
+ * @tc.desc: Test If TraverseSubTreeAndDrawFilterWithClip Can Run With drawBackground
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipWithDrawBackground, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+ 
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    drawable->TraverseSubTreeAndDrawFilterWithClip(canvas, params, true);
+    auto& filterInfoVec = drawable->GetFilterInfoVec();
+    
+    ASSERT_TRUE(filterInfoVec.empty());
+ 
+    Drawing::RectI rect;
+    Drawing::Matrix matrix;
+    filterInfoVec.emplace_back(FilterNodeInfo(0, matrix, { rect }));
+    drawable->TraverseSubTreeAndDrawFilterWithClip(canvas, params, true);
+    ASSERT_FALSE(filterInfoVec.empty());
+}
+
+/**
  * @tc.name: ClearDrawingCacheDataMapTest
  * @tc.desc: Test If ClearDrawingCacheDataMap Can Run
  * @tc.type: FUNC

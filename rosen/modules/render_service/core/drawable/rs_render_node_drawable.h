@@ -196,7 +196,8 @@ protected:
     bool BufferNeedUpdate(std::shared_ptr<Drawing::Surface>& cacheSurface,
         bool isNeedFP16, GraphicColorGamut colorGamut) const;
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
-    void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void TraverseSubTreeAndDrawFilterWithClip(
+        Drawing::Canvas& canvas, const RSRenderParams& params, bool includeProperty = false);
     bool UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params);
     bool IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const;
     bool SkipDrawByWhiteList(Drawing::Canvas& canvas);
