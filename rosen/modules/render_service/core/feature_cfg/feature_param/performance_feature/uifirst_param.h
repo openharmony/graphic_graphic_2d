@@ -60,7 +60,7 @@ private:
     inline static float sizeChangedThreshold_ = 0.1f;
     inline static bool isOcclusionEnabled_ = true;
     inline static bool isUIFirstLeashAllEnable_ = false;
-    inline static uint32_t subThreadFrameRateControlByScene_ = 0xFF;
+    inline static std::atomic<uint32_t> subThreadFrameRateControlByScene_ = 0xFF;
 
     friend class UIFirstParamParse;
 };
