@@ -15,6 +15,7 @@
 
 #include "feature/uifirst/rs_frame_control.h"
 #include "rs_uifirst_frame_rate_control.h"
+#include "feature_param/performance_feature/uifirst_param.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,6 +25,10 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
         return;
     }
     auto sceneId = GetSceneId(eventInfo.sceneId);
+
+    if (!IsSceneEnabled(sceneId)) {
+        return;
+    }
 
     switch (sceneId) {
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
@@ -59,6 +64,10 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
         return;
     }
     auto sceneId = GetSceneId(eventInfo.sceneId);
+
+    if (!IsSceneEnabled(sceneId)) {
+        return;
+    }
 
     switch (sceneId) {
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
@@ -114,6 +123,42 @@ bool RSUifirstFrameRateControl::SubThreadFrameDropDecision(const RSSurfaceRender
 bool RSUifirstFrameRateControl::NeedRSUifirstControlFrameDrop(const RSSurfaceRenderNode& node)
 {
     return SubThreadFrameDropDecision(node);
+}
+
+uint32_t RSUifirstFrameRateControl::GetSceneIdBit(SceneId sceneId)
+{
+    switch (sceneId) {
+        case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
+            return SCENE_APP_LAUNCH_FROM_ICON;
+        case SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
+            return SCENE_APP_LAUNCH_FROM_DOCK;
+        case SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
+            return SCENE_APP_SWIPE_TO_HOME;
+        case SceneId::GESTURE_TO_RECENTS:
+            return SCENE_GESTURE_TO_RECENTS;
+        case SceneId::EXIT_RECENT_2_HOME_ANI:
+        case SceneId::CLEAR_1_RECENT_ANI:
+        case SceneId::CLEAR_ALL_RECENT_ANI:
+            return SCENE_EXIT_RECENT;
+        case SceneId::AOD_TO_LAUNCHER:
+            return SCENE_AOD_TO_LAUNCHER;
+        case SceneId::LOCKSCREEN_TO_LAUNCHER:
+            return SCENE_LOCKSCREEN_TO_LAUNCHER;
+        default:
+            return 0;
+    }
+}
+ 
+uint32_t RSUifirstFrameRateControl::GetFrameControlScenesMask() const
+{
+    return UIFirstParam::GetSubThreadFrameRateControlByScene();
+}
+ 
+bool RSUifirstFrameRateControl::IsSceneEnabled(SceneId sceneId) const
+{
+    uint32_t scenesMask = GetFrameControlScenesMask();
+    uint32_t sceneBit = GetSceneIdBit(sceneId);
+    return (scenesMask & sceneBit) != 0;
 }
 }
 }
