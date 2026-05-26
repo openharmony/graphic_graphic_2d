@@ -714,6 +714,14 @@ ohos_source_set("render_service_base_src") {
     include_dirs += [ "$graphic_2d_ext_root/subtree" ]
   }
 
+  if (graphic_2d_feature_enable_primitive) {
+    include_dirs += graphic_2d_subtree_configs.librender_service_primitive_include
+    sources += graphic_2d_subtree_configs.librender_service_primitive_sources
+    sources += [
+      "src/drawable/rs_drawable_primitive.cpp",
+    ]
+  }
+
   if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable
       && defined(graphic_2d_hetero_hdr_configs)) {
     include_dirs += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_include

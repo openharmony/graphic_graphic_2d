@@ -185,6 +185,25 @@ public:
     static void UpdateSaveRestore(RSRenderNode& node, Vec& drawableVec, uint8_t& drawableVecStatus);
     static void ResetPixelStretchSlot(const RSRenderNode &node, Vec &drawableVec);
     static bool CanFusePixelStretch(Vec &drawableVec);
+
+#ifdef USE_PRIMITIVE
+    virtual void OnDrawPrimitive(Drawing::Canvas* canvas, const Drawing::Rect* rect);
+    void SetDirty()
+    {
+        stagingIsDirty_ = true;
+    }
+    void OnPrimitiveSync();
+
+protected:
+    virtual bool UsePrimList() const
+    {
+        return false;
+    }
+
+    std::shared_ptr<Drawing::PrimList> primList_;
+    bool isDirty_ = false;
+    bool stagingIsDirty_ = true;
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_DRAWABLE_H

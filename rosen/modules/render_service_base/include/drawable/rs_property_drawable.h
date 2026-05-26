@@ -114,6 +114,7 @@ private:
     bool needSync_ = false;
     std::shared_ptr<Drawing::GEVisualEffectContainer> stagingGeContainer_ = nullptr;
     std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
+
     Drawing::Rect sdfDrawRect_;
     Drawing::Rect stagingSdfDrawRect_;
 };

@@ -418,6 +418,7 @@ public:
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
 
     static bool GetReleaseImageOneByOneFlag();
+    static bool GetUsePrimList();
 
 private:
     RSSystemProperties() = default;

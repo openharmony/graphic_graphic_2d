@@ -42,6 +42,9 @@
 #include "rs_parallel_manager.h"
 #include "rs_parallel_misc.h"
 #endif
+#ifdef USE_PRIMITIVE
+#include "primitive/primitive_adapter.h"
+#endif
 
 #include "rs_profiler.h"
 
@@ -99,6 +102,23 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
     if (UNLIKELY(RSUniRenderThread::IsInCaptureProcess())) {
         OnCapture(canvas);
     } else {
+#ifdef USE_PRIMITIVE
+        auto& paintFilterCanvas = static_cast<RSPaintFilterCanvas &>(canvas);
+        auto primListAdapter = paintFilterCanvas.primListAdapter_;
+        AutoDirtyTypesRestore autoDirtyTypesRestore(primListAdapter, *this);
+#ifdef PRIMITIVE_PROFILER
+        if (selfPrimDirtyBitmap_.none()) {
+            RS_TRACE_NAME_FMT("[PrimitiveProfiler] this node is clean");
+        } else {
+            bool infectious = infectiousPrimDirtyBitmap_.any();
+            if (!infectious) {
+                RS_TRACE_NAME("[PrimitiveProfiler] this node is dirty and non-infectious");
+            } else {
+                RS_TRACE_NAME_FMT("[PrimitiveProfiler] this node is dirty and infectious");
+            }
+        }
+#endif
+#endif
         OnDraw(canvas);
     }
 }

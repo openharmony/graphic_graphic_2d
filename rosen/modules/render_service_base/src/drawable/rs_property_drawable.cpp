@@ -128,7 +128,11 @@ RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 {
     auto ret = std::make_shared<RSClipToBoundsDrawable>();
     ret->OnUpdate(node);
+#ifdef USE_PRIMITIVE
+    ret->OnPrimitiveSync();
+#else
     ret->OnSync();
+#endif
     return std::move(ret);
 };
 

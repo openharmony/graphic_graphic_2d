@@ -25,6 +25,7 @@ group("unittest") {
     ":RSDirtyRectsDFXTest",
     ":RSEffectRenderNodeDrawableTest",
     ":RSLogicalDisplayRenderNodeDrawableTest",
+    ":RSRenderNodeDrawableAdapterPrimitiveTest",
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableTest",
     ":RSRootRenderNodeDrawableTest",
@@ -153,7 +154,10 @@ ohos_unittest("RSEffectRenderNodeDrawableTest") {
 ohos_unittest("RSRenderNodeDrawableAdapterTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_node_drawable_adapter_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -168,6 +172,21 @@ ohos_unittest("RSRenderNodeDrawableAdapterTest") {
     && defined(graphic_2d_subtree_configs.subtree_root)) {
       defines += ["SUBTREE_PARALLEL_ENABLE"]
     }
+}
+
+## Build RSRenderNodeDrawableAdapterPrimitiveTest
+ohos_unittest("RSRenderNodeDrawableAdapterPrimitiveTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_render_node_drawable_adapter_primitive_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
 }
 
 ## Build RSRenderNodeDrawableTest
