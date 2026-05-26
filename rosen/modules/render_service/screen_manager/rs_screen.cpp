@@ -673,6 +673,12 @@ void RSScreen::AddSurfaceConfigs(const MultiSurfaceConfigs& configs)
 {
     auto prop = property_.AddSurfaceConfigs(configs);
     NotifyScreenPropertyChange(prop);
+    auto current = property_.GetMultiSurfaceConfigs();
+    if (configs.empty()) {
+        UPDATE_PROPERTY(State, ScreenState::DISABLED);
+    } else {
+        UPDATE_PROPERTY(State, ScreenState::PRODUCER_SURFACE_ENABLE);
+    }
 }
 
 void RSScreen::RemoveSurfaceConfigs(const std::unordered_set<uint64_t>& surfaceIds)
