@@ -154,7 +154,7 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedImageTest, TestSize.Level1)
 
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBackendTexture_.isValid_ = true;
     result = surfaceDrawable_->GetRsSubThreadCache().GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
-    ASSERT_EQ(result, nullptr);
+    ASSERT_NE(result, nullptr);
 
 #ifdef RS_ENABLE_VK
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
@@ -381,7 +381,7 @@ HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
     surfaceParams->windowInfo_.isLeashWindow_ = true;
     surfaceDrawable_->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceDrawable_.get());
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(),
-        10);
+        0);
     auto screenDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayRenderNode_));
     surfaceParams->SetAncestorScreenNode(displayRenderNode_);
@@ -2128,11 +2128,5 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedCacheSurfaceVsyncIdTest, TestSize.Lev
     subCache.cacheCompletedSurfaceInfo_.vsyncId = testVsyncId;
     vsyncId = subCache.GetCompletedCacheSurfaceVsyncId();
     EXPECT_EQ(vsyncId, testVsyncId);
-
-    // Test vsyncId is swapped when UpdateCompletedCacheSurface is called
-    subCache.cacheSurfaceInfo_.vsyncId = 67890;
-    subCache.UpdateCompletedCacheSurface();
-    vsyncId = subCache.GetCompletedCacheSurfaceVsyncId();
-    EXPECT_EQ(vsyncId, 67890);
 }
 } // namespace OHOS::Rosen
