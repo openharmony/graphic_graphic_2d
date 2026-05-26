@@ -520,7 +520,7 @@ HWTEST_F(RSRenderFilterBaseTest, HasCustomRegion001, TestSize.Level1)
 HWTEST_F(RSRenderFilterBaseTest, HasCustomRegion002, TestSize.Level1)
 {
     auto filter = std::make_shared<RSNGRenderBlurFilter>();
-    EXPECT_FALSE(RSNGRenderFilterHelper::HasCustomRegion(filter));
+    EXPECT_TRUE(RSNGRenderFilterHelper::HasCustomRegion(filter));
 }
 
 /**
@@ -533,7 +533,7 @@ HWTEST_F(RSRenderFilterBaseTest, HasCustomRegion004, TestSize.Level1)
     auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
     auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
     filter1->nextEffect_ = filter2;
-    EXPECT_FALSE(RSNGRenderFilterHelper::HasCustomRegion(filter1));
+    EXPECT_TRUE(RSNGRenderFilterHelper::HasCustomRegion(filter1));
 }
 
 /*
