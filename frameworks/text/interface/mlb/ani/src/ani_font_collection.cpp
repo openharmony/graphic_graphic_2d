@@ -25,6 +25,7 @@
 #include "ani_transfer_util.h"
 #include "fontcollection_napi/js_fontcollection.h"
 #include "font_collection_mgr.h"
+#include "utils/text_histogram.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -226,7 +227,8 @@ AniTextResult AniFontCollection::OnLoadFontSync(
 
 void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path)
 {
-    OnLoadFontSync(env, obj, name, path);
+    auto result = OnLoadFontSync(env, obj, name, path);
+    TEXT_HISTOGRAM_BOOLEAN_NAME("loadFontSync", result.success);
 }
 
 void AniFontCollection::LoadFontSyncWithCheck(
@@ -238,6 +240,7 @@ void AniFontCollection::LoadFontSyncWithCheck(
         env->Object_CallMethod_Int(index, AniGlobalMethod::GetInstance().intGet, &nativeIndex);
     }
     auto result = OnLoadFontSync(env, obj, name, path, nativeIndex);
+    TEXT_HISTOGRAM_BOOLEAN_NAME("loadFontSyncWithCheck", result.success);
     if (!result.success) {
         AniTextUtils::ThrowBusinessError(env, static_cast<TextErrorCode>(result.errorCode), result.ToString().c_str());
     }
@@ -280,21 +283,25 @@ void AniFontCollection::UnloadFontSync(ani_env* env, ani_object obj, ani_string 
     std::string familyName;
     ani_status ret = AniTextUtils::AniToStdStringUtf8(env, name, familyName);
     if (ret != ANI_OK) {
+        TEXT_HISTOGRAM_BOOLEAN_NAME("unloadFontSync", false);
         return;
     }
     auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(
         env, obj, AniGlobalMethod::GetInstance().fontCollectionGetNative);
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
+        TEXT_HISTOGRAM_BOOLEAN_NAME("unloadFontSync", false);
         return;
     }
     uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
     if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, aniFontCollection->fontCollection_)) {
         TEXT_LOGE("Failed to check local instance, familyName %{public}s", familyName.c_str());
+        TEXT_HISTOGRAM_BOOLEAN_NAME("unloadFontSync", false);
         return;
     }
 
     aniFontCollection->fontCollection_->UnloadFont(familyName);
+    TEXT_HISTOGRAM_BOOLEAN_NAME("unloadFontSync", true);
 }
 
 std::shared_ptr<FontCollection> AniFontCollection::GetFontCollection()
