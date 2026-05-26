@@ -324,6 +324,7 @@ DrawingError EffectImageRender::RenderNativeBuffer(const std::shared_ptr<Media::
     auto ret = DrawingError::ERR_OK;
     do {
         auto effectImage = std::make_shared<EffectImageChain>();
+        effectImage->SetForceReleaseGpuContext(releaseGpuContext);
         ret = effectImage->PrepareNativeBuffer(srcPixelMap, dstNativeBuffer);
         if (ret != DrawingError::ERR_OK) {
             EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Failed to prepare image, ret=%{public}d.", ret);
@@ -345,24 +346,19 @@ DrawingError EffectImageRender::RenderNativeBuffer(const std::shared_ptr<Media::
             EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Break on filter");
             break;
         }
-        ret = effectImage->DrawNativeBuffer();
+
         if (syncFenceFd == nullptr) {
             ret = DrawingError::ERR_ILLEGAL_INPUT;
             EFFECT_LOG_E("syncFenceFd is an empty pointer.");
             break;
         }
-        *syncFenceFd = effectImage->GetfenceId();
-        effectImage->SetForceReleaseGpuContext(releaseGpuContext);
-        if (syncFenceFd == nullptr) {
-            ret = DrawingError::ERR_ILLEGAL_INPUT;
-            EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: syncFenceFd is an empty pointer.");
-            break;
-        }
-        
+        ret = effectImage->DrawNativeBuffer();
+
         if (ret != DrawingError::ERR_OK) {
             EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Failed to draw image, ret=%{public}d.", ret);
             break;
         }
+        *syncFenceFd = effectImage->GetfenceId();
     } while (false);
  
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
