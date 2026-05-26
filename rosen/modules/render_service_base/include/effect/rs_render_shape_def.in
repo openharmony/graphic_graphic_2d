@@ -25,6 +25,17 @@ DECLARE_SHAPE(SDFSmoothUnionOpShape, SDF_SMOOTH_UNION_OP_SHAPE,
     ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY)
 );
 
+DECLARE_SHAPE(SDFSubOpShape, SDF_SUB_OP_SHAPE,
+    ADD_PROPERTY_TAG(SDFSubOpShape, ShapeX),
+    ADD_PROPERTY_TAG(SDFSubOpShape, ShapeY)
+);
+
+DECLARE_SHAPE(SDFSmoothSubOpShape, SDF_SMOOTH_SUB_OP_SHAPE,
+    ADD_PROPERTY_TAG(SDFSmoothSubOpShape, Spacing),
+    ADD_PROPERTY_TAG(SDFSmoothSubOpShape, ShapeX),
+    ADD_PROPERTY_TAG(SDFSmoothSubOpShape, ShapeY)
+);
+
 DECLARE_SHAPE(SDFDistortOpShape, SDF_DISTORT_OP_SHAPE,
     ADD_PROPERTY_TAG(SDFDistortOpShape, LUCorner),
     ADD_PROPERTY_TAG(SDFDistortOpShape, RUCorner),
