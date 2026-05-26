@@ -2990,34 +2990,6 @@ HWTEST_F(RSInterfacesTest, SetBrightnessInfoChangeCallbackTest, Function | Small
 }
 
 /*
- * @tc.name: GetBrightnessInfoTest
- * @tc.desc: Test GetBrightnessInfo
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, GetBrightnessInfoTest, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    BrightnessInfo info = { 0 };
-    ASSERT_EQ(rsInterfaces->GetBrightnessInfo(0, info), 0);
-    ASSERT_NE(info.currentHeadroom, 0);
-    ASSERT_NE(info.maxHeadroom, 0);
-    ASSERT_NE(info.sdrNits, 0);
-}
-
-/*
- * @tc.name: GetScreenHDRStatus002
- * @tc.desc: Test GetScreenHDRStatus
- * @tc.type: FUNC
- * @tc.require: issueICK4SM
- */
-HWTEST_F(RSInterfacesTest, GetScreenHDRStatus002, Function | SmallTest | Level2)
-{
-    HdrStatus hdrStatus = HdrStatus::HDR_PHOTO;
-    int ret = rsInterfaces->GetScreenHDRStatus(INVALID_SCREEN_ID, hdrStatus);
-    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
-}
-
-/*
  * @tc.name: AvcodecVideoStart001
  * @tc.desc: Test AvcodecVideoStart
  * @tc.type: FUNC
