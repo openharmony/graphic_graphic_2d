@@ -116,7 +116,7 @@ void RSVsyncRateReduceManager::FrameDurationEnd()
         return;
     }
     if (oneFramePeriod_ > 0) {
-        float val = static_cast<float>(Now() - curTime_) / static_cast<float>(framePeriod);
+        float val = static_cast<float>(Now() - curTime_) / static_cast<float>(oneFramePeriod_);
         EnqueueFrameDuration(val);
     }
     curTime_ = 0;
