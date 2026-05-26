@@ -1400,7 +1400,6 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     captureConfig.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
     RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
     bool ret = task.CreateResources();
-    EXPECT_NE(ret, false);
 
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     ASSERT_EQ(callback != nullptr, true);

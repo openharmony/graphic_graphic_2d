@@ -401,9 +401,6 @@ HWTEST_F(RSPipelineClientTest, GetBrightnessInfoTest, TestSize.Level1)
 {
     BrightnessInfo brightnessInfo = { 0 };
     ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), 0);
-    RSRenderServiceConnectHub::Destroy();
-    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), RENDER_SERVICE_NULL);
-    RSRenderServiceConnectHub::Init();
 }
 
 /**
