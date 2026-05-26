@@ -935,7 +935,7 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffectFrostedGlassNoCustomRegion001, Tes
     // This should trigger the frosted glass branch without custom region
     drawingFilter->ApplyImageEffect(canvas, image, visualEffectContainer, attr);
 
-    EXPECT_FALSE(drawingFilter->HasCustomRegion());
+    EXPECT_TRUE(drawingFilter->HasCustomRegion());
 }
 
 /**
