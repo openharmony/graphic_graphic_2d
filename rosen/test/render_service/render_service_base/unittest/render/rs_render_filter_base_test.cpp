@@ -508,8 +508,8 @@ HWTEST_F(RSRenderFilterBaseTest, CalculatePropTagHashImplInt, TestSize.Level1)
  */
 HWTEST_F(RSRenderFilterBaseTest, HasCustomRegion001, TestSize.Level1)
 {
-    std::shared_ptr<RSNGRenderFilterBase> filter = nullptr;	 
-     EXPECT_FALSE(RSNGRenderFilterHelper::HasCustomRegion(filter));
+    std::shared_ptr<RSNGRenderFilterBase> filter = nullptr;
+    EXPECT_FALSE(RSNGRenderFilterHelper::HasCustomRegion(filter));
 }
 
 /**
