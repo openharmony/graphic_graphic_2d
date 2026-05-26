@@ -18,6 +18,7 @@
 #include "feature/opinc/rs_opinc_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_render_node_allocator.h"
 #include "memory/rs_memory_snapshot.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -52,6 +53,54 @@ HWTEST(RSCanvasRenderNodeDrawableTest, CreateCanvasRenderNodeDrawable, TestSize.
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
     auto drawable = RSCanvasRenderNodeDrawable::OnGenerate(canvasNode);
     ASSERT_NE(drawable, nullptr);
+}
+
+/**
+ * @tc.name: CreateCanvasRenderNodeDrawableTest002
+ * @tc.desc: Test If CanvasRenderNodeDrawable Can Be Created
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, CreateCanvasRenderNodeDrawableTest002, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto drawable = RSCanvasRenderNodeDrawable::OnGenerate(canvasNode);
+    ASSERT_NE(drawable, nullptr);
+
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto ret = allocator.AddDrawableToAllocator(drawable);
+    ASSERT_TRUE(ret);
+    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(2);
+    auto drawable2 = RSCanvasRenderNodeDrawable::OnGenerate(canvasNode2);
+    ASSERT_NE(drawable2, nullptr);
+}
+
+/**
+ * @tc.name: AddDrawableToAllocatorTest002
+ * @tc.desc: Test AddDrawableToAllocator
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AddDrawableToAllocatorTest002, TestSize.Level1)
+{
+    auto& nodeAllocator = RSRenderNodeAllocator::Instance();
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = RSCanvasRenderNodeDrawable::OnGenerate(node);
+    EXPECT_FALSE(nodeAllocator.AddDrawableToAllocator(drawable));
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
+    auto canvasDrawable = RSCanvasRenderNodeDrawable::OnGenerate(canvasNode);
+    EXPECT_TRUE(nodeAllocator.AddDrawableToAllocator(canvasDrawable));
+
+    auto newCanvasNode = std::make_shared<RSCanvasRenderNode>(1);
+    auto newDrawable = RSCanvasRenderNodeDrawable::OnGenerate(newCanvasNode);
+    for (int i = 2; i < 514; i++) {
+        auto nodePtr = std::make_shared<RSCanvasRenderNode>(i);
+        auto ptr = new RSCanvasRenderNodeDrawable(nodePtr);
+        nodeAllocator.AddDrawableToAllocator(ptr);
+    }
+    EXPECT_FALSE(nodeAllocator.AddDrawableToAllocator(newDrawable));
 }
 
 /**
