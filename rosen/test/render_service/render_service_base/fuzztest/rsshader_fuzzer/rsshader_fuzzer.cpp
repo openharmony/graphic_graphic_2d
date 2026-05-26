@@ -169,7 +169,7 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    OHOS::Rosen::g_data = data;
+    OHOS::Rosen::DATA = data;
     OHOS::Rosen::g_size = size;
     OHOS::Rosen::g_pos = 0;
     
