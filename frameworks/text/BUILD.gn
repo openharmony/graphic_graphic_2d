@@ -25,10 +25,13 @@ config("rosen_text_config") {
     defines += [
       "ENABLE_OHOS_ENHANCE",
       "HM_SYMBOL_TXT_ENABLE",
-      "BUILD_NON_SDK_VER",
     ]
   } else {
     defines += [ "MODULE_TEXTING" ]
+  }
+
+  if (platform_is_ohos || is_arkui_x) {
+    defines += [ "BUILD_NON_SDK_VER" ]
   }
 
   if (is_arkui_x) {
