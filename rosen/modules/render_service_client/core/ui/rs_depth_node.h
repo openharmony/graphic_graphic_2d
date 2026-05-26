@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_DEPTH_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_DEPTH_NODE_H
 
+#include "common/rs_matrix3.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_image.h"
 #include "ui/rs_node.h"
@@ -41,6 +42,7 @@ public:
     void SetDepthImage(const std::shared_ptr<RSImage>& depthImage);
     void SetDepthCameraPara(const DepthCameraPara& cameraPara);
     void SetDepthLightPara(const DepthLightPara& lightPara);
+    void SetDepthImageMatrix(const Matrix3f& imageMatrix);
 
 protected:
     RSDepthNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext);

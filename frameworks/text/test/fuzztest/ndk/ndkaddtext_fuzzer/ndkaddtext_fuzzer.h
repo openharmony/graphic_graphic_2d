@@ -22,7 +22,6 @@
 
 #include "drawing_font_collection.h"
 #include "drawing_text_typography.h"
-#include "get_object.h"
 
 #define FUZZ_PROJECT_NAME "ndkaddtext_fuzzer"
 

@@ -229,6 +229,7 @@ std::shared_ptr<RenderContext> RSUiCaptureTaskParallelTest::renderContext_ = nul
 RSDisplayNodeConfig RSUiCaptureTaskParallelTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
 std::shared_ptr<RSDisplayNode> RSUiCaptureTaskParallelTest::displayNode_ = nullptr;
 
+#ifdef RS_ENABLE_UNI_RENDER
 /*
  * @tc.name: TakeSurfaceCaptureForUiInvalidSurface
  * @tc.desc: Test TakeSurfaceCaptureForUI with invalid surface
@@ -1214,5 +1215,6 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateClientPixelMap, Function | SmallTest
         EXPECT_EQ(pixelMap->GetHeight(), specifiAreaRect.GetHeight());
     }
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -39,7 +39,6 @@
 #include "foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform/ohos/rs_surface_frame_ohos.h"
 #include "foundation/graphic/graphic_2d/rosen/modules/render_service_base/src/platform/ohos/rs_surface_ohos.h"
 #include "image/bitmap.h"
-#include "pipeline/rs_render_result.h"
 #include "pipeline/rs_render_thread.h"
 #include "rosen_text/properties/text_style.h"
 #include "rosen_text/properties/typography_properties.h"

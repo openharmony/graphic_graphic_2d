@@ -143,8 +143,8 @@ bool DoOpincSetCacheChangeFlag()
     RSDrawingCacheType cacheType = RSDrawingCacheType::FORCED_CACHE;
     rsRenderParams.SetDrawingCacheType(cacheType);
     rsRenderParams.GetDrawingCacheType();
-    rsRenderParams.SetDrawingCacheIncludeProperty(false);
-    rsRenderParams.GetDrawingCacheIncludeProperty();
+    rsRenderParams.SetRenderGroupIncludeProperty(false);
+    rsRenderParams.IsRenderGroupIncludeProperty();
     return true;
 }
 } // namespace Rosen

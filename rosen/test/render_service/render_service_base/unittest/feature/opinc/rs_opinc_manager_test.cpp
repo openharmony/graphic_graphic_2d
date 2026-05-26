@@ -123,9 +123,9 @@ HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag, Function | SmallTest
 
     auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
 
-    property.GetEffect().isSpherizeValid_ = true;
+    property.SetSpherize(1.0f);
     EXPECT_FALSE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
-    property.GetEffect().isSpherizeValid_ = false;
+    property.SetSpherize(0.0f);
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 
     property.GetEffect().isAttractionValid_ = true;
@@ -427,9 +427,9 @@ HWTEST_F(RSOpincManagerTest, GetUnsupportReason, Function | SmallTest | Level1)
 
     auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
 
-    property.GetEffect().isSpherizeValid_ = true;
+    property.SetSpherize(1.0f);
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::SPHERIZE);
-    property.GetEffect().isSpherizeValid_ = false;
+    property.SetSpherize(0.0f);
 
     property.GetEffect().isAttractionValid_ = true;
     ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::ATTRACTION);

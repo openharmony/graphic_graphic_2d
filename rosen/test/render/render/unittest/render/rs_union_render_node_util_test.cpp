@@ -110,7 +110,7 @@ HWTEST_F(RSUnionRenderNodeUtilTest, GetOrCreateChildSDFShape002, TestSize.Level1
 {
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
     auto child = std::make_shared<RSRenderNode>(id + 1, context);
-    child->renderProperties_.clipRRect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child->renderProperties_.clipRRect_ = std::make_unique<RRect>(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
 
     auto ret = unionNode->GetOrCreateChildSDFShape(child);
     ASSERT_NE(ret, nullptr);
@@ -126,7 +126,7 @@ HWTEST_F(RSUnionRenderNodeUtilTest, GetOrCreateChildSDFShape003, TestSize.Level1
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
     auto child = std::make_shared<RSRenderNode>(id + 1, context);
     child->renderProperties_.cornerRadius_ = Vector4f(3.f);
-    child->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
 
     auto ret = unionNode->GetOrCreateChildSDFShape(child);
     ASSERT_NE(ret, nullptr);
@@ -448,7 +448,7 @@ HWTEST_F(RSUnionRenderNodeUtilTest, GenerateSDFLeaf007, TestSize.Level1)
     child1->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+        SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
     auto ret = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(ret, nullptr);
 
@@ -482,7 +482,7 @@ HWTEST_F(RSUnionRenderNodeUtilTest, GenerateSDFLeaf008, TestSize.Level1)
     child1->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+        SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
     auto ret = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(ret, nullptr);
 
@@ -524,8 +524,8 @@ HWTEST_F(RSUnionRenderNodeUtilTest, GenerateSDFLeaf009, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+        SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+        SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
 
@@ -569,8 +569,8 @@ HWTEST_F(RSUnionRenderNodeUtilTest, GenerateSDFLeaf010, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+        SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+        SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
 
@@ -630,11 +630,11 @@ HWTEST_F(RSUnionRenderNodeUtilTest, ProcessSDFShape002, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+        SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+        SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
-    unionNode->renderProperties_.unionSpacing_ = 0.5f;
+    unionNode->renderProperties_.SetUnionSpacing(0.5f);
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     ASSERT_NE(stagingRenderParams, nullptr);
     unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
@@ -675,11 +675,11 @@ HWTEST_F(RSUnionRenderNodeUtilTest, ProcessSDFShape003, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+        SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+        SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
-    unionNode->renderProperties_.unionSpacing_ = 0.f;
+    unionNode->renderProperties_.SetUnionSpacing(0.f);
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     ASSERT_NE(stagingRenderParams, nullptr);
     unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
@@ -796,10 +796,10 @@ HWTEST_F(RSUnionRenderNodeUtilTest, ProcessUnionInfoAfterApplyModifiers001, Test
 HWTEST_F(RSUnionRenderNodeUtilTest, ProcessUnionInfoOnTreeStateChanged001, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
-    node->renderProperties_.useUnion_ = false;
+    node->renderProperties_.SetUseUnion(false);
 
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -810,10 +810,10 @@ HWTEST_F(RSUnionRenderNodeUtilTest, ProcessUnionInfoOnTreeStateChanged001, TestS
 HWTEST_F(RSUnionRenderNodeUtilTest, ProcessUnionInfoOnTreeStateChanged002, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
-    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.SetUseUnion(true);
 
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
-    ASSERT_TRUE(node->renderProperties_.useUnion_);
+    ASSERT_TRUE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -828,7 +828,7 @@ HWTEST_F(RSUnionRenderNodeUtilTest, ProcessUnionInfoOnTreeStateChanged003, TestS
     std::shared_ptr<RSUnionRenderNode> unionNode = std::make_shared<RSUnionRenderNode>(2);
     node->parent_ = parent;
     parent->parent_ = unionNode;
-    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.SetUseUnion(true);
     node->isOnTheTree_ = true;
 
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
@@ -848,7 +848,7 @@ HWTEST_F(RSUnionRenderNodeUtilTest, ProcessUnionInfoAfterApplyModifiers003, Test
     node->parent_ = parent;
     parent->parent_ = unionNode;
     node->AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
-    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.SetUseUnion(true);
     node->isOnTheTree_ = true;
 
     RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(node);

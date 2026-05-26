@@ -2022,7 +2022,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetHdrPqColorSpace_002, TestSize.Level2)
  * @tc.desc: Test GetColorTypeFromBufferFormat with GRAPHIC_PIXEL_FMT_RGBA_1010108
  *           Covers branch: GRAPHIC_PIXEL_FMT_RGBA_1010108 -> COLORTYPE_RGBA_1010108
  * @tc.type: FUNC
- * @tc.require: issue41
+ * @tc.require: issue23488
  */
 HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_RGBA_1010108Test001, TestSize.Level2)
 {
@@ -2035,7 +2035,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_RGBA_1010108Test001,
  * @tc.desc: Test GetColorTypeFromBufferFormat with GRAPHIC_PIXEL_FMT_RGBA16_FLOAT
  *           Covers branch: GRAPHIC_PIXEL_FMT_RGBA16_FLOAT -> COLORTYPE_RGBA_F16
  * @tc.type: FUNC
- * @tc.require: issue41
+ * @tc.require: issue23488
  */
 HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_RGBA16_FLOATTest001, TestSize.Level2)
 {
@@ -2048,7 +2048,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_RGBA16_FLOATTest001,
  * @tc.desc: Test GetColorTypeFromBufferFormat with GRAPHIC_PIXEL_FMT_YCBCR_P010
  *           Covers branch: GRAPHIC_PIXEL_FMT_YCBCR_P010 -> COLORTYPE_RGBA_1010102
  * @tc.type: FUNC
- * @tc.require: issue41
+ * @tc.require: issue23488
  */
 HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_YCBCR_P010Test001, TestSize.Level2)
 {
@@ -2061,7 +2061,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_YCBCR_P010Test001, T
  * @tc.desc: Test GetColorTypeFromBufferFormat with GRAPHIC_PIXEL_FMT_YCRCB_P010
  *           Covers branch: GRAPHIC_PIXEL_FMT_YCRCB_P010 -> COLORTYPE_RGBA_1010102
  * @tc.type: FUNC
- * @tc.require: issue41
+ * @tc.require: issue23488
  */
 HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_YCRCB_P010Test001, TestSize.Level2)
 {
@@ -2074,7 +2074,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_YCRCB_P010Test001, T
  * @tc.desc: Test GetColorTypeFromBufferFormat with unknown pixel format (default branch)
  *           Covers branch: default -> COLORTYPE_RGBA_8888
  * @tc.type: FUNC
- * @tc.require: issue41
+ * @tc.require: issue23488
  */
 HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_DefaultTest001, TestSize.Level2)
 {
@@ -2088,7 +2088,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_DefaultTest001, Test
  * @tc.desc: Test GetColorTypeFromBufferFormat with all valid pixel formats
  *           Covers all branches in the switch statement
  * @tc.type: FUNC
- * @tc.require: issue41
+ * @tc.require: issue23488
  */
 HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormat_AllBranchesCoveredTest001, TestSize.Level2)
 {

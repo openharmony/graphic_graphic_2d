@@ -12,6 +12,8 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 # Config path
 rosen_text_root = "//foundation/graphic/graphic_2d/frameworks/text"
@@ -21,6 +23,11 @@ text_fuzz_out_path = "graphic_2d/graphic_2d"
 rosen_is_ohos = current_os == "ohos"
 platform_is_ohos = rosen_is_ohos || current_os == "ohos_ng"
 
+platform = current_os
+if (platform == "mingw") {
+  platform = "windows"
+}
+
 declare_args() {
   text_histogram_enable = true
   if (defined(global_parts_info) &&
@@ -29,7 +36,61 @@ declare_args() {
   }
 }
 
-platform = current_os
-if (platform == "mingw") {
-  platform = "windows"
+# Shared cflags for fuzztest targets
+text_fuzztest_cflags = [
+  "-g",
+  "-O0",
+  "-Wno-unused-variable",
+  "-fno-omit-frame-pointer",
+  "-std=c++17",
+]
+
+# Shared cflags for unittest targets
+text_unittest_cflags = [
+  "-std=c++17",
+  "-Dprivate=public",
+  "-Dprotected=public",
+]
+
+template("text_fuzztest") {
+  ohos_fuzztest(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "sources",
+                             "include_dirs",
+                             "external_deps",
+                             "defines",
+                           ])
+    module_out_path = text_fuzz_out_path
+    fuzz_config_file = "."
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+    configs = [ "$rosen_text_root:rosen_text_config" ]
+    cflags = text_fuzztest_cflags
+    deps = [ "$rosen_text_root:rosen_text" ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+  }
+}
+
+template("text_unittest") {
+  ohos_unittest(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "sources",
+                             "include_dirs",
+                             "external_deps",
+                             "defines",
+                           ])
+    module_out_path = text_ut_out_path
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+    configs = [ "$rosen_text_root:rosen_text_config" ]
+    cflags_cc = text_unittest_cflags
+    deps = [ "$rosen_text_root:rosen_text" ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+  }
 }

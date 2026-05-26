@@ -160,10 +160,14 @@ void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOu
     const PipelineParam& pipelineParam)
 {
     RS_TRACE_NAME_FMT("%s: rate:%u", __func__, pipelineParam.pendingScreenRefreshRate);
+    ScreenId screenId = hdiOutput->GetScreenId();
+    AddRefreshRateCount(screenId);
     if (pipelineParam.pendingScreenRefreshRate == 0) {
         return;
     }
-    ScreenId screenId = hdiOutput->GetScreenId();
+    if (auto frameRateMgr = hgmCore_.GetFrameRateMgr()) {
+        frameRateMgr->HandleRsFrame();
+    }
     if (auto screen = hgmCore_.GetScreen(screenId); !screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
     }
@@ -181,18 +185,14 @@ void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOu
     RecordTimestampForAS(timestamp);
     ExecuteSwitchRefreshRate(screenId);
     PerformSetActiveMode(hdiOutput);
-    AddRefreshRateCount(screenId);
 }
 
 void HgmHardwareUtils::AddRefreshRateCount(ScreenId screenId)
 {
-    uint32_t currentRefreshRate = hgmCore_.GetScreenCurrentRefreshRate(screenId);
+    uint32_t currentRefreshRate = hgmCore_.GetScreenActiveRefreshRate(screenId);
     auto [iter, success] = refreshRateCounts_.try_emplace(currentRefreshRate, 1);
     if (!success) {
         iter->second++;
-    }
-    if (auto frameRateMgr = hgmCore_.GetFrameRateMgr()) {
-        frameRateMgr->HandleRsFrame();
     }
 }
 

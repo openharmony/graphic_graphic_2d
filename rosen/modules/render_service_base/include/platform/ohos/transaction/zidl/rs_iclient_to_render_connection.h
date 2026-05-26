@@ -29,8 +29,6 @@
 #include "vsync_iconnection_token.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 
-#include "command/rs_command.h"
-#include "command/rs_node_showing_command.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"

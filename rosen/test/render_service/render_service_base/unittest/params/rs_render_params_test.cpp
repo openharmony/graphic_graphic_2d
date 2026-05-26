@@ -614,40 +614,35 @@ HWTEST_F(RSRenderParamsTest, SetNodeGroupHasChildInBlacklistTest, TestSize.Level
     RSRenderParams params(id);
     auto renderParams = static_cast<RSRenderParams*>(target.get());
 
-    // Test initial state
     EXPECT_FALSE(renderParams->NodeGroupHasChildInBlacklist());
     ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
 
-    // Test setting to true
     renderParams->SetNodeGroupHasChildInBlacklist(true);
     EXPECT_TRUE(renderParams->NodeGroupHasChildInBlacklist());
     ASSERT_NE(renderParams->renderGroupCache_, nullptr);
     EXPECT_TRUE(renderParams->needSync_);
 
-    // Test setting to false
     renderParams->SetNodeGroupHasChildInBlacklist(false);
     EXPECT_FALSE(renderParams->NodeGroupHasChildInBlacklist());
     EXPECT_TRUE(renderParams->needSync_);
 
-    // Test setting same value (should not need sync)
     renderParams->needSync_ = false;
     renderParams->SetNodeGroupHasChildInBlacklist(false);
     EXPECT_FALSE(renderParams->NodeGroupHasChildInBlacklist());
     EXPECT_FALSE(renderParams->needSync_);
 
-    // Test setting to true again
     renderParams->SetNodeGroupHasChildInBlacklist(true);
     EXPECT_TRUE(renderParams->NodeGroupHasChildInBlacklist());
     EXPECT_TRUE(renderParams->needSync_);
 }
 
 /**
- * @tc.name: SetDrawingCacheIncludeProperty_001
- * @tc.desc: Test function SetDrawingCacheIncludeProperty
+ * @tc.name: SetRenderGroupIncludeProperty_001
+ * @tc.desc: Test function SetRenderGroupIncludeProperty
  * @tc.type:FUNC
  * @tc.require:issueIB1KXV
  */
-HWTEST_F(RSRenderParamsTest, SetDrawingCacheIncludeProperty_001, TestSize.Level2)
+HWTEST_F(RSRenderParamsTest, SetRenderGroupIncludeProperty_001, TestSize.Level2)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
     std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
@@ -655,11 +650,11 @@ HWTEST_F(RSRenderParamsTest, SetDrawingCacheIncludeProperty_001, TestSize.Level2
     auto renderParams = static_cast<RSRenderParams*>(target.get());
 
     bool includeProperty = false;
-    renderParams->drawingCacheIncludeProperty_  = true;
+    renderParams->SetRenderGroupIncludeProperty(true);
     renderParams->needSync_ = false;
 
-    EXPECT_NE(renderParams->drawingCacheIncludeProperty_, includeProperty);
-    renderParams->SetDrawingCacheIncludeProperty(includeProperty);
+    EXPECT_NE(renderParams->IsRenderGroupIncludeProperty(), includeProperty);
+    renderParams->SetRenderGroupIncludeProperty(includeProperty);
     EXPECT_TRUE(renderParams->needSync_);
 }
 

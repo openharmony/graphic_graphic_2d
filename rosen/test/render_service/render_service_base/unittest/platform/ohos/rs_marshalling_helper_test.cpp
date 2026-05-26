@@ -50,6 +50,8 @@
 #include "render/rs_shader.h"
 #include "recording/record_cmd.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "screen_manager/screen_types.h"
+#include "display_engine/rs_luminance_control.h"
 
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
@@ -2482,6 +2484,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectCreationFailureT
  */
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     constexpr int32_t TEST_FD_COUNT = 29001;
     constexpr int32_t TEST_PID = 10001;
     constexpr uint64_t TEST_UNIQUE_ID = static_cast<uint64_t>(TEST_PID) << 32;
@@ -2514,6 +2517,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, T
     for (int32_t i = 0; i < TEST_FD_COUNT; i++) {
         MemoryTrack::Instance().RemovePictureRecord(reinterpret_cast<const void*>(i));
     }
+#endif
 }
 
 /**
@@ -2530,6 +2534,80 @@ HWTEST_F(RSMarshallingHelperTest, TransactionVersionCheckTest, TestSize.Level1)
         parcel.WriteInt64(0);
     }
     ASSERT_FALSE(RSMarshallingHelper::TransactionVersionCheck(parcel, 0));
+}
+
+/**
+ * @tc.name: RsScreenBrightnessDataMarshallingTest
+ * @tc.desc: Verify RSMarshallingHelper for RsScreenBrightnessData (POD struct)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RsScreenBrightnessDataMarshallingTest, TestSize.Level1)
+{
+    Parcel parcel;
+    RsScreenBrightnessData data(1, 100, 0.5f);
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, data));
+
+    RsScreenBrightnessData data2;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, data2));
+    ASSERT_EQ(data.screenId, data2.screenId);
+    ASSERT_EQ(data.level, data2.level);
+    ASSERT_EQ(data.brightnessPosition, data2.brightnessPosition);
+}
+
+/**
+ * @tc.name: RsScreenBrightnessDataUnmarshallingFailTest
+ * @tc.desc: Verify RSMarshallingHelper Unmarshalling fails for insufficient data
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RsScreenBrightnessDataUnmarshallingFailTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteUint64(1);
+    parcel.WriteUint32(100);
+    RsScreenBrightnessData data;
+    ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, data));
+}
+
+/**
+ * @tc.name: BrightnessInfoMarshallingTest
+ * @tc.desc: Verify RSMarshallingHelper for BrightnessInfo (POD struct)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, BrightnessInfoMarshallingTest, TestSize.Level1)
+{
+    Parcel parcel;
+    BrightnessInfo info;
+    info.currentHeadroom = 1.0f;
+    info.maxHeadroom = 2.0f;
+    info.sdrNits = 500.0f;
+    info.brightnessPosition = 0.8f;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, info));
+
+    BrightnessInfo info2;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, info2));
+    ASSERT_EQ(info.currentHeadroom, info2.currentHeadroom);
+    ASSERT_EQ(info.maxHeadroom, info2.maxHeadroom);
+    ASSERT_EQ(info.sdrNits, info2.sdrNits);
+    ASSERT_EQ(info.brightnessPosition, info2.brightnessPosition);
+}
+
+/**
+ * @tc.name: BrightnessInfoUnmarshallingFailTest
+ * @tc.desc: Verify RSMarshallingHelper Unmarshalling fails for insufficient data
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, BrightnessInfoUnmarshallingFailTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(2.0f);
+    parcel.WriteFloat(500.0f);
+    BrightnessInfo info;
+    ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, info));
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -56,6 +56,9 @@ public:
     void UpdateWindowStatus(bool active);
 
     int32_t GetTid();
+#ifdef ROSEN_IOS
+    bool IsCurrentRenderThread() const;
+#endif
 
     std::string DumpRenderTree() const;
 #ifdef RS_ENABLE_GPU
@@ -169,6 +172,9 @@ private:
     uint64_t prevTimestamp_ = 0;
     uint64_t lastAnimateTimestamp_ = 0;
     int32_t tid_ = -1;
+#ifdef ROSEN_IOS
+    std::thread::id renderThreadId_{};
+#endif
     uint64_t mValue = 0;
 
     uint64_t uiTimestamp_ = 0;

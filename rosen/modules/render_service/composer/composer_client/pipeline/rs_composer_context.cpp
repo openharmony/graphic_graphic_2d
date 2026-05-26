@@ -233,5 +233,15 @@ void RSComposerContext::SetScreenBacklight(uint32_t level)
     }
     rsComposerConnection_->SetScreenBacklight(level);
 }
+
+void RSComposerContext::SetScreenLinearMatrix(const std::vector<float>& matrix)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (rsComposerConnection_ == nullptr) {
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
+        return;
+    }
+    rsComposerConnection_->SetScreenLinearMatrix(matrix);
+}
 } // namespace Rosen
 } // namespace OHOS

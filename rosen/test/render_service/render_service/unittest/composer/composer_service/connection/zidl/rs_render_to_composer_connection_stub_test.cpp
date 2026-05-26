@@ -275,7 +275,41 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetBacklightLevel
         int ret = conn.OnRemoteRequest(
             IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_BACKLIGHT_LEVEL,
             data, reply, opt);
+        EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+    }
+}
+
+/**
+ * Function: OnRemoteRequest_SetScreenLinearMatrix_SuccessAndFail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. success: write token + linear matrix
+ *                  2. fail: write token only (linear matrix read fails)
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetScreenLinearMatrix_SuccessAndFail, TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel reply;
+    MessageOption opt;
+    {
+        MessageParcel data;
+        data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+        std::vector<float> matrix = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+        data.WriteFloatVector(matrix);
+        int ret = conn.OnRemoteRequest(
+            IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_LINEAR_MATRIX,
+            data, reply, opt);
         EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    }
+    {
+        MessageParcel data;
+        data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+        data.WriteUint32(0xFFFFFFFF);
+        int ret = conn.OnRemoteRequest(
+            IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_LINEAR_MATRIX,
+            data, reply, opt);
+        EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
     }
 }
 

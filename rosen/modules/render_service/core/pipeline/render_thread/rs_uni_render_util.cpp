@@ -105,7 +105,8 @@ void RSUniRenderUtil::ExpandDamageRegionToSingleRect(Occlusion::Region& damageRe
         auto bound = damageRegion.GetBound();
         // Multi-rects damage region will lead to clip path, which is performance-affecting.
         // Within reasonable threshold, consider expanding multi-rects into one single rect for performance improvement.
-        if (damageRegion.GetSize() > 1 && !bound.IsEmpty() && damageRegion.Area() > bound.Area() * clipRectThreshold) {
+        if (damageRegion.GetSize() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD &&
+            !bound.IsEmpty() && damageRegion.Area() > bound.Area() * clipRectThreshold) {
             RS_OPTIONAL_TRACE_NAME_FMT("dirty expand: %s to %s",
                 damageRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
             damageRegion = Occlusion::Region { bound };
@@ -151,7 +152,8 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSScreenRender
             RS_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory unsupported advanced dirty region type");
             break;
     }
-    if (!uniParam->IsDirtyAlignEnabled()) {
+    bool isDirtyAlignEnabled = uniParam->IsDirtyAlignEnabled() && RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid();
+    if (!isDirtyAlignEnabled) {
         ExpandDamageRegionToSingleRect(damageRegion);
     }
     // [Attention]: Filter dirty must be the last. If sampling is needed, sample after filter dirty processing.
@@ -159,15 +161,26 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSScreenRender
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
         RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
             damageRegion, drawnRegion, screenDrawable, std::nullopt, false);
-        GetSampledDamageAndDrawnRegion(screenInfo, damageRegion, uniParam->IsDirtyAlignEnabled(),
+        GetSampledDamageAndDrawnRegion(screenInfo, damageRegion,
+            isDirtyAlignEnabled && damageRegion.GetSize() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD,
             damageRegion, drawnRegion);
     } else {
-        if (uniParam->IsDirtyAlignEnabled()) {
-            damageRegion = damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
+        if (!isDirtyAlignEnabled || damageRegion.GetSize() <= RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD) {
+            drawnRegion = damageRegion;
+            RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+                damageRegion, drawnRegion, screenDrawable, std::nullopt, false);
         }
-        drawnRegion = damageRegion;
-        RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
-            damageRegion, drawnRegion, screenDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
+        if (isDirtyAlignEnabled && damageRegion.GetSize() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD) {
+            RS_TRACE_NAME_FMT("%s, dirty align enabled with gpu tile(%d, %d)", __func__,
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first,
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
+            damageRegion = damageRegion.GetAlignedRegion(
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first,
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
+            drawnRegion = damageRegion;
+            RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+                damageRegion, drawnRegion, screenDrawable, std::nullopt, true);
+        }
     }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // overlay display expand dirty region
@@ -1416,8 +1429,10 @@ void RSUniRenderUtil::GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInf
         sampledDamageRegion.OrSelf(mappedAndExpandedRegion);
     }
 
-    if (isDirtyAlignEnabled) {
-        sampledDamageRegion = sampledDamageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
+    if (isDirtyAlignEnabled && RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid()) {
+        sampledDamageRegion = sampledDamageRegion.GetAlignedRegion(
+            RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first,
+            RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
     }
     Occlusion::Region drawnRegion = sampledDamageRegion;
 

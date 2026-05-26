@@ -2430,6 +2430,27 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest002, TestS
 }
 
 /**
+ * @tc.name: SetScreenPowerStatusTest003
+ * @tc.desc: Test SetScreenPowerStatus when hgm is disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest003, TestSize.Level1)
+{
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr())->screenManagerAgent_ = screenManagerAgent_;
+    auto preRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    auto preHgmContext_ = connection->hgmContext_;
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+    ASSERT_NE(connection->renderServiceAgent_, nullptr);
+    connection->hgmContext_ = nullptr;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::INVALID_POWER_STATUS);
+    RSUniRenderJudgement::uniRenderEnabledType_ = preRenderType;
+    connection->hgmContext_ = preHgmContext_;
+}
+
+/**
  * @tc.name: SetRogScreenResolutionTest001
  * @tc.desc: Test SetRogScreenResolution
  * @tc.type: FUNC
@@ -3787,6 +3808,35 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenTypeBlackListTest0
 }
 
 /**
+ * @tc.name: SetScreenActiveRectTest002
+ * @tc.desc: Test SetScreenActiveRect when hgmContext is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenActiveRectTest002, TestSize.Level1)
+{
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT);
+    MessageParcel data;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(0);
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+ 
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    auto orgHgmContext = connection->hgmContext_;
+    connection->hgmContext_ = nullptr;
+ 
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+ 
+    connection->hgmContext_ = orgHgmContext;
+}
+
+/**
  * @tc.name: NotifyAppStrategyConfigChangeEvent001
  * @tc.desc: Test NotifyAppStrategyConfigChangeEvent001
  * @tc.type: FUNC
@@ -4599,6 +4649,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
         renderService_.vsyncManager_->GetVsyncManagerAgent());
     ASSERT_NE(connection, nullptr);
 
+    HgmCore::Instance().hgmAbilityEnabled_ = true;
     auto renderProcessManagerAgent = connection->renderProcessManagerAgent_;
     auto hgmContext = connection->hgmContext_;
     auto screenManagerAgent = connection->screenManagerAgent_;

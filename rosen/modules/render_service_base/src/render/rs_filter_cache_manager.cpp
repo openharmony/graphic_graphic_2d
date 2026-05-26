@@ -155,7 +155,7 @@ bool RSFilterCacheManager::CanDiscardCanvas(RSPaintFilterCanvas& canvas, const D
 }
 
 bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas,
-    const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& src, const Drawing::RectI& dst,
+    const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dst,
     bool shouldClearFilteredCache)
 {
     if (!RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled() || !shouldClearFilteredCache ||
@@ -223,7 +223,8 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
 #endif
 
     const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect);
-    if (src.IsEmpty() || dst.IsEmpty()) {
+    bool needNewSnapshotAndSrcIsEmpty = (!IsCacheValid() && src.IsEmpty());
+    if (needNewSnapshotAndSrcIsEmpty || dst.IsEmpty()) {
         return;
     }
 
@@ -243,12 +244,13 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
         }
     }
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
-        if (manuallyHandleFilterCache ? DrawFilterWithoutSnapshot(canvas, filter, src, dst, shouldClearFilteredCache)
-            :DrawFilterWithoutSnapshot(canvas, filter, src, dst, renderClearFilteredCacheAfterDrawing_)) {
+        bool drawWithoutSnapshotSuccess =
+            manuallyHandleFilterCache ? DrawFilterWithoutSnapshot(canvas, filter, dst, shouldClearFilteredCache) :
+            DrawFilterWithoutSnapshot(canvas, filter, dst, renderClearFilteredCacheAfterDrawing_);
+        if (drawWithoutSnapshotSuccess) {
             return;
-        } else {
-            GenerateFilteredSnapshot(canvas, filter, dst);
         }
+        GenerateFilteredSnapshot(canvas, filter, dst);
     }
     DrawCachedFilteredSnapshot(canvas, dst, filter);
 }
@@ -260,7 +262,8 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     takeNewSnapshot_ = false;
     RS_OPTIONAL_TRACE_FUNC();
     const auto& [src, dst] = ValidateParams(canvas, srcRect, dstRect);
-    if (src.IsEmpty() || dst.IsEmpty()) {
+    bool needNewSnapshotAndSrcIsEmpty = ((!IsCacheValid() || snapshotNeedUpdate_) && src.IsEmpty());
+    if (needNewSnapshotAndSrcIsEmpty || dst.IsEmpty()) {
         return nullptr;
     }
     RS_TRACE_NAME_FMT("RSFilterCacheManager::GeneratedCachedEffectData status: %s", GetCacheState().c_str());

@@ -20,7 +20,6 @@
 #include <securec.h>
 
 #include "animation/rs_render_animation.h"
-#include "pipeline/rs_render_result.h"
 #include "modifier/rs_modifier_manager.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"

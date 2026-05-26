@@ -26,6 +26,7 @@ namespace {
 const std::string ADDITIONAL_TOUCH_RATE_CONFIG = "additional_touch_rate_config";
 const std::string SOURCE_TUNING_FOR_YUV420 = "source_tuning_for_yuv420";
 const std::string RS_SOLID_COLOR_LAYER_CONFIG = "rs_solid_color_layer_config";
+const std::string HGM_ABILITY_ENABLE = "ability_enable";
 }
 
 RPHgmXMLParser::~RPHgmXMLParser()
@@ -68,6 +69,9 @@ int32_t RPHgmXMLParser::Parse()
             setResult = ParseNode(*currNode, sourceTuningConfig_);
         } else if (paramName == RS_SOLID_COLOR_LAYER_CONFIG) {
             setResult = ParseNode(*currNode, solidLayerConfig_);
+        } else if (paramName == HGM_ABILITY_ENABLE) {
+            hgmAbilityEnabled_ = ExtractPropertyValue("value", *currNode) == "1";
+            setResult = EXEC_SUCCESS;
         }
         if (setResult != EXEC_SUCCESS) {
             return XML_PARSE_INTERNAL_FAIL;

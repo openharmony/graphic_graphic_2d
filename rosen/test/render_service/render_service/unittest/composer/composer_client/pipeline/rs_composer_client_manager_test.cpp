@@ -37,12 +37,43 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
+class MockRSRenderToComposerConnection : public IRSRenderToComposerConnection {
+public:
+    MockRSRenderToComposerConnection() = default;
+    ~MockRSRenderToComposerConnection() override = default;
+
+    bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData)
+    {
+        return true;
+    }
+    void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override {}
+    int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId, const sptr<SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence) override { return GRAPHIC_DISPLAY_SUCCESS; }
+    void ClearFrameBuffers() override {}
+    void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) override {}
+    void SetScreenBacklight(uint32_t level) override {}
+    void SetScreenLinearMatrix(const std::vector<float>& matirx) override {}
+    void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
+    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
+
+    sptr<IRemoteObject> AsObject() override
+    {
+        return nullptr;
+    }
+};
+
 class RSComposerClientManagerTest : public Test {};
 
 static std::shared_ptr<RSComposerClient> MakeClient()
 {
     sptr<IRSRenderToComposerConnection> conn = nullptr; // keep nullptr to avoid remote interactions
     return RSComposerClient::Create(conn, nullptr);
+}
+
+static std::shared_ptr<RSComposerClient> MakeClientWithMock()
+{
+    sptr<IRSRenderToComposerConnection> conn = sptr<MockRSRenderToComposerConnection>::MakeSptr();
+    return std::make_shared<RSComposerClient>(conn);
 }
 
 namespace {
@@ -69,6 +100,7 @@ public:
     void ClearFrameBuffers() override {}
     void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) override {}
     void SetScreenBacklight(uint32_t level) override {}
+    void SetScreenLinearMatrix(const std::vector<float>& matirx) override {}
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
 
@@ -259,6 +291,29 @@ HWTEST_F(RSComposerClientManagerTest, SetScreenBacklight_WithClientAndNoClient_N
     mgr.SetScreenBacklight(RsScreenBrightnessData(1, 90)); // with client path
     EXPECT_EQ(mgr.GetComposerClient(9999), nullptr);
     EXPECT_NE(mgr.GetComposerClient(1), nullptr);
+}
+
+ /**
+ * Function: SetScreenLinearMatrix_WithClientAndNoClient_NoCrash
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. Call SetScreenLinearMatrix without client
+ *                  2. Add client then call again
+ *                  3. Ensure both paths run
+ */
+HWTEST_F(RSComposerClientManagerTest, SetScreenLinearMatrix_WithClientAndNoClient_NoCrash, TestSize.Level1)
+{
+    RSComposerClientManager mgr;
+    std::vector<float> matrix = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    mgr.SetScreenLinearMatrix(9999, matrix); // no client path
+    mgr.AddComposerClient(1, MakeClient());
+    mgr.SetScreenLinearMatrix(1, matrix); // with client but nullptr connection path
+    mgr.AddComposerClient(2, MakeClientWithMock());
+    mgr.SetScreenLinearMatrix(2, matrix); // with client and valid connection path
+    EXPECT_EQ(mgr.GetComposerClient(9999), nullptr);
+    EXPECT_NE(mgr.GetComposerClient(1), nullptr);
+    EXPECT_NE(mgr.GetComposerClient(2), nullptr);
 }
 
 /**

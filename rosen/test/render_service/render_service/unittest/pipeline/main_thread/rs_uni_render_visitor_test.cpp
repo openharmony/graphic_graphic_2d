@@ -1070,7 +1070,7 @@ HWTEST_F(RSUniRenderVisitorTest, GetSurfaceTransparentFilterRegion, TestSize.Lev
     ASSERT_FALSE(rsUniRenderVisitor->GetSurfaceTransparentFilterRegion(*surfaceNode).IsEmpty());
     // if non-transparent, get empty region.
     surfaceNode->abilityBgAlpha_ = 255;
-    surfaceNode->globalAlpha_ = 1.f;
+    surfaceNode->SetGlobalAlpha(1.f);
     ASSERT_TRUE(rsUniRenderVisitor->GetSurfaceTransparentFilterRegion(*surfaceNode).IsEmpty());
 }
 
@@ -3007,7 +3007,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckSkipAndUpdateForegroundSurfaceRenderNode00
     ASSERT_NE(surfaceNode, nullptr);
     const_cast<SurfaceWindowType&>(surfaceNode->surfaceWindowType_) = SurfaceWindowType::SYSTEM_SCB_WINDOW;
     surfaceNode->abilityBgAlpha_ = 255;
-    surfaceNode->globalAlpha_ = 1.0f;
+    surfaceNode->SetGlobalAlpha(1.0f);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     auto isQuickSkip = rsUniRenderVisitor->CheckSkipAndUpdateForegroundSurfaceRenderNode(*surfaceNode);
@@ -4254,7 +4254,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInCrossDisplayWindow_001, TestSize
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     // set surface node fully opaque.
-    rsSurfaceRenderNode->globalAlpha_ = 1.f;
+    rsSurfaceRenderNode->SetGlobalAlpha(1.f);
     rsSurfaceRenderNode->abilityBgAlpha_ = MAX_ALPHA;
     NodeId id = 1;
     auto rsContext = std::make_shared<RSContext>();
@@ -4302,7 +4302,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectFilterInCrossDisplayWindow_002, TestSize
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     // set surface node transparent.
-    rsSurfaceRenderNode->globalAlpha_ = 0.f;
+    rsSurfaceRenderNode->SetGlobalAlpha(0.f);
     rsSurfaceRenderNode->abilityBgAlpha_ = 0;
     NodeId id = 1;
     auto rsContext = std::make_shared<RSContext>();

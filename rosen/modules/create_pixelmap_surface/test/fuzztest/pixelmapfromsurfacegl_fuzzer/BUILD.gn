@@ -60,8 +60,8 @@ ohos_fuzztest("PixelMapFromSurfaceGLFuzzTest") {
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface_src",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
   ]
-  public_deps = [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",

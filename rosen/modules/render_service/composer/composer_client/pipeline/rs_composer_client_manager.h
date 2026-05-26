@@ -20,7 +20,6 @@
 
 #include "common/rs_common_def.h"
 #include "rs_composer_client.h"
-#include "screen_manager/screen_types.h"
 #include "surface_buffer.h"
 #include "sync_fence.h"
 
@@ -46,6 +45,7 @@ public:
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId, NodeId nodeId);
     int32_t CommitTunnelLayerBySurfaceId(const TunnelLayerCommitInfo& commitInfo, sptr<SyncFence>& releaseFence);
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
+    void SetScreenLinearMatrix(ScreenId screenId, const std::vector<float>& matrix);
     PipelineParam GetPipelineParam(ScreenId screenId);
     void UpdatePipelineParam(ScreenId screenId, const PipelineParam& pipelineParam);
     void PreAllocProtectedFrameBuffers(ScreenId screenId, const sptr<SurfaceBuffer>& buffer);

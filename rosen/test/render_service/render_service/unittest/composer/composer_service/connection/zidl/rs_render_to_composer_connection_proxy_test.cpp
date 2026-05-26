@@ -59,6 +59,7 @@ public:
     void ClearFrameBuffers() override {}
     void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) override {}
     void SetScreenBacklight(uint32_t level) override {}
+    void SetScreenLinearMatrix(const std::vector<float>& matirx) override {}
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
 
@@ -100,6 +101,7 @@ sptr<SurfaceBuffer> CreateTunnelTestBuffer()
  *                  4. call CleanLayerBufferBySurfaceId and verify forwarded id
  *                  5. call ClearRedrawGPUCompositionCache and verify ids count
  *                  6. call SetScreenBacklight and verify level
+ *                  7. call SetScreenLinearMatrix and verify matrix
  */
 HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.Level1)
 {
@@ -121,6 +123,9 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.
     proxy.ClearRedrawGPUCompositionCache(ids);
 
     proxy.SetScreenBacklight(88u);
+
+    std::vector<float> matrix1 = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    proxy.SetScreenLinearMatrix(matrix1);
     EXPECT_EQ(ids.size(), 2u);
 }
 
@@ -131,7 +136,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.
  * EnvConditions: N/A
  * CaseDescription: 1. construct proxy with nullptr remote
  *                  2. call ClearFrameBuffers/CleanLayerBufferBySurfaceId
- *                  3. call ClearRedrawGPUCompositionCache/SetScreenBacklight
+ *                  3. call ClearRedrawGPUCompositionCache/SetScreenBacklight/SetScreenLinearMatrix
  *                  4. ensure functions execute without crash to hit SendRequest error branch
  */
 HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendRequest_RemoteNull_ErrorPaths, TestSize.Level1)
@@ -144,6 +149,8 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendRequest_RemoteNull_Err
     std::unordered_set<uint64_t> ids { 1u };
     proxy.ClearRedrawGPUCompositionCache(ids);
     proxy.SetScreenBacklight(1u);
+    std::vector<float> matrix2 = { 1.0f, 2.0f };
+    proxy.SetScreenLinearMatrix(matrix2);
     EXPECT_EQ(ids.count(1u), 1u);
 }
 

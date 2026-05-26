@@ -252,6 +252,18 @@ void RSRenderServiceListener::OnTransformChange()
     });
 }
 
+void RSRenderServiceListener::OnDropBuffer()
+{
+    auto node = surfaceRenderNode_.lock();
+    if (node == nullptr) {
+        RS_LOGD("RSRenderServiceListener::OnDropBuffer node is nullptr");
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderServiceListener::OnDropBuffer node id:%{public}" PRIu64, node->GetId());
+    RS_LOGD("RsDebug RSRenderServiceListener::OnDropBuffer node id:%{public}" PRIu64, node->GetId());
+    node->GetRSSurfaceHandler()->SetBufferDropped(true);
+}
+
 bool RSRenderServiceListener::ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node)
 {
     if (node->IsLayerTop() && node->IsTopLayerForceRefresh()) {

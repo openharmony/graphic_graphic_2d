@@ -59,6 +59,7 @@
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
 #include "vsync_iconnection_token.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -70,7 +71,7 @@ RSRenderPipelineClient::RSRenderPipelineClient()
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
-    if (isUniRender) {
+    if (isUniRender && RSSystemProperties::IsSceneBoardEnabled()) {
         auto conn = iface_cast<RSIConnectToRenderProcess>(connectToRenderRemote);
         if (conn == nullptr) {
             RS_LOGE("RSRenderPipelineClient::%{public}s, iface_cast failed", __func__);

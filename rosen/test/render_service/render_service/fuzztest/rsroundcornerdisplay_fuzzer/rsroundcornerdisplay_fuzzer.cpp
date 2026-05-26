@@ -22,6 +22,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <fuzzer/FuzzedDataProvider.h>
+
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_config.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -130,8 +132,9 @@ bool RSRoundCornerDisplayPrintParseRogFuzzTest(const uint8_t* data, size_t size)
     rog.width = GetData<int>();
     rog.height = GetData<int>();
 
-    auto keya = std::string(reinterpret_cast<const char*>(data), size / 2);
-    auto keyb = std::string(reinterpret_cast<const char*>(data), size / 3);
+    FuzzedDataProvider fdp(data, size);
+    auto keya = fdp.ConsumeRandomLengthString();
+    auto keyb = fdp.ConsumeRandomLengthString();
 
     OHOS::Rosen::rs_rcd::RogPortrait rp {};
     OHOS::Rosen::rs_rcd::RogLandscape rl {};

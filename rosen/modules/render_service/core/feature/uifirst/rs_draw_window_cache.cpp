@@ -130,7 +130,7 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
         return false;
     }
     // Non-CrosNode not cache for uifirst need clear cache,
-    // and if node not execute prepre process in the second frame, cache type will still be MultiThreadCacheType::NONE,
+    // and if node not execute prepare process in the second frame, cache type will still be MultiThreadCacheType::NONE,
     // we should avoid clear cache by checking GetNeedCacheSurface
     if (!surfaceParams.IsCrossNode() && surfaceParams.GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE
         && !surfaceParams.ClonedSourceNode() && !surfaceParams.GetNeedCacheSurface()) {

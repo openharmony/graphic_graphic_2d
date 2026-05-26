@@ -223,7 +223,7 @@ void RSProfiler::DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out
     if (node.GetBootAnimation()) {
         out["GetBootAnimation"] = true;
     }
-    if (node.isContainBootAnimation_) {
+    if (node.IsContainBootAnimation()) {
         out["isContainBootAnimation_"] = true;
     }
     if (node.dirtyStatus_ != RSRenderNode::NodeDirty::CLEAN) {
@@ -268,9 +268,9 @@ void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& 
         modifiersJson["type"] = type;
         auto& modifierDesc = modifiersJson["modifiers"];
         modifierDesc.PushArray();
-        for (auto modifier : slot) {
-            if (modifier != nullptr) {
-                DumpNodeDrawCmdModifier(node, modifierDesc, modifier);
+        for (const auto& modifier : slot) {
+            if (modifier) {
+                DumpNodeDrawCmdModifier(*modifier, modifierDesc);
             }
         }
         modifiersJson.PopArray();
@@ -279,41 +279,46 @@ void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& 
     modifiersJson.PopArray();
 }
 
-void RSProfiler::DumpNodeDrawCmdModifier(
-    const RSRenderNode& node, JsonWriter& out, std::shared_ptr<ModifierNG::RSRenderModifier> modifier)
+void DumpDrawCmdList(const SimpleDrawCmdListPtr& cmdList, JsonWriter& out)
 {
-    if (modifier->IsCustom()) {
-        auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier->GetType());
-        auto drawCmdList = modifier->Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
-        auto propertyStr = drawCmdList ? drawCmdList->GetOpsWithDesc() : "";
-        size_t pos = 0;
-        size_t oldpos = 0;
-        out.PushObject();
-        auto& property = out["drawCmdList"];
-        property.PushArray();
-        while ((pos = propertyStr.find('\n', oldpos)) != std::string::npos) {
-            property.Append(propertyStr.substr(oldpos, pos - oldpos));
-            oldpos = pos + 1;
+    if (!cmdList || cmdList->IsEmpty()) {
+        return;
+    }
+
+    out.PushObject();
+    auto& property = out["drawCmdList"];
+    property.PushArray();
+    for (const auto& drawOp : cmdList->GetDrawOpItems()) {
+        if (drawOp) {
+            property.Append(drawOp->GetOpDesc());
         }
-        property.PopArray();
-        out.PopObject();
-    } else if (modifier->GetType() == ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR) {
-        if (modifier->HasProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR)) {
-            auto value = modifier->Getter(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR, Color());
+    }
+    property.PopArray();
+    out.PopObject();
+}
+
+void RSProfiler::DumpNodeDrawCmdModifier(const ModifierNG::RSRenderModifier& modifier, JsonWriter& out)
+{
+    if (modifier.IsCustom()) {
+        DumpDrawCmdList(modifier.GetPropertySimpleDrawCmdList(), out);
+    } else if (modifier.GetType() == ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR) {
+        if (modifier.HasProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR)) {
+            auto value = modifier.Getter(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR, Color());
             out.PushObject();
             out["ENV_FOREGROUND_COLOR"] = "#" + Hex(value.AsRgbaInt()) + " (RGBA)";
             out.PopObject();
         }
-        if (modifier->HasProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY)) {
+        if (modifier.HasProperty(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY)) {
             out.PushObject();
             out["ENV_FOREGROUND_COLOR_STRATEGY"] =
-                modifier->Getter(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY, 0);
+                modifier.Getter(ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY, 0);
             out.PopObject();
         }
-    } else if (modifier->GetType() == ModifierNG::RSModifierType::CLIP_TO_FRAME) {
-        if (modifier->HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
-            auto property = modifier->GetProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME);
-            if (property != nullptr) {
+    } else if (modifier.GetType() == ModifierNG::RSModifierType::CLIP_TO_FRAME) {
+        if (modifier.HasProperty(ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME)) {
+            const auto property = const_cast<ModifierNG::RSRenderModifier&>(modifier).GetProperty(
+                ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME);
+            if (property) {
                 std::string str;
                 property->Dump(str);
                 out.PushObject();
@@ -321,10 +326,10 @@ void RSProfiler::DumpNodeDrawCmdModifier(
                 out.PopObject();
             }
         }
-    } else if (modifier->GetType() == ModifierNG::RSModifierType::HDR_BRIGHTNESS) {
-        if (modifier->HasProperty(ModifierNG::RSPropertyType::HDR_BRIGHTNESS)) {
+    } else if (modifier.GetType() == ModifierNG::RSModifierType::HDR_BRIGHTNESS) {
+        if (modifier.HasProperty(ModifierNG::RSPropertyType::HDR_BRIGHTNESS)) {
             out.PushObject();
-            out["HDR_BRIGHTNESS"] = modifier->Getter(ModifierNG::RSPropertyType::HDR_BRIGHTNESS, 1.f);
+            out["HDR_BRIGHTNESS"] = modifier.Getter(ModifierNG::RSPropertyType::HDR_BRIGHTNESS, 1.f);
             out.PopObject();
         }
     }
@@ -409,13 +414,13 @@ void RSProfiler::DumpNodePropertiesDecoration(const RSProperties& properties, Js
             properties.GetCornerRadius().z_, properties.GetCornerRadius().w_ };
     }
     const auto& propPixelStretch = properties.GetPixelStretch();
-    if (propPixelStretch.has_value()) {
+    if (!propPixelStretch.IsZero()) {
         auto& pixelStretch = out["PixelStretch"];
         pixelStretch.PushObject();
-        pixelStretch["left"] = propPixelStretch->x_;
-        pixelStretch["top"] = propPixelStretch->y_;
-        pixelStretch["right"] = propPixelStretch->z_;
-        pixelStretch["bottom"] = propPixelStretch->w_;
+        pixelStretch["left"] = propPixelStretch.x_;
+        pixelStretch["top"] = propPixelStretch.y_;
+        pixelStretch["right"] = propPixelStretch.z_;
+        pixelStretch["bottom"] = propPixelStretch.w_;
         pixelStretch.PopObject();
     }
     if (!ROSEN_EQ(properties.GetAlpha(), 1.f)) {
@@ -498,13 +503,11 @@ void RSProfiler::DumpNodePropertiesEffects(const RSProperties& properties, JsonW
     if (!ROSEN_EQ(properties.GetLightUpEffect(), 1.f)) {
         out["LightUpEffect"] = properties.GetLightUpEffect();
     }
-    auto dynamicLightUpRate = properties.GetDynamicLightUpRate();
-    if (dynamicLightUpRate.has_value() && !ROSEN_EQ(*dynamicLightUpRate, 0.f)) {
-        out["DynamicLightUpRate"] = *dynamicLightUpRate;
+    if (!ROSEN_EQ(properties.GetDynamicLightUpRate(), 0.f)) {
+        out["DynamicLightUpRate"] = properties.GetDynamicLightUpRate();
     }
-    auto dynamicLightUpDegree = properties.GetDynamicLightUpDegree();
-    if (dynamicLightUpDegree.has_value() && !ROSEN_EQ(*dynamicLightUpDegree, 0.f)) {
-        out["DynamicLightUpDegree"] = *dynamicLightUpDegree;
+    if (!ROSEN_EQ(properties.GetDynamicLightUpDegree(), 0.f)) {
+        out["DynamicLightUpDegree"] = properties.GetDynamicLightUpDegree();
     }
 }
 

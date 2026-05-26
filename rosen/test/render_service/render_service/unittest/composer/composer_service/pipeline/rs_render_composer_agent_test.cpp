@@ -261,6 +261,27 @@ HWTEST_F(RsRenderComposerAgentTest, SetScreenBacklight_Branches, TestSize.Level1
 }
 
 /**
+ * Function: SetScreenLinearMatrix_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. null composer → early return
+ *                  2. non-null composer → forward task
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetScreenLinearMatrix_Branches, TestSize.Level1)
+{
+    std::vector<float> matrix = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+
+    auto nullAgent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    nullAgent->SetScreenLinearMatrix(matrix);
+
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    agent->SetScreenLinearMatrix(matrix);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+/**
  * Function: MiscForwarding_WithNonNull_Composer
  * Type: Function
  * Rank: Important(2)

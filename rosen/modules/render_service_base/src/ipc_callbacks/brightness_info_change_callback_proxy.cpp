@@ -17,24 +17,13 @@
 
 #include <message_option.h>
 #include <message_parcel.h>
+#include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
 RSBrightnessInfoChangeCallbackProxy::RSBrightnessInfoChangeCallbackProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIBrightnessInfoChangeCallback>(impl)
 {
-}
-
-bool RSBrightnessInfoChangeCallbackProxy::WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data)
-{
-    if (!data.WriteFloat(brightnessInfo.currentHeadroom) ||
-        !data.WriteFloat(brightnessInfo.maxHeadroom) ||
-        !data.WriteFloat(brightnessInfo.sdrNits) ||
-        !data.WriteFloat(brightnessInfo.brightnessPosition)) {
-        ROSEN_LOGE("RSScreenChangeCallbackProxy::WriteBrightnessInfo write brightnessInfo failed");
-        return false;
-    }
-    return true;
 }
 
 void RSBrightnessInfoChangeCallbackProxy::OnBrightnessInfoChange(ScreenId screenId,
@@ -52,8 +41,8 @@ void RSBrightnessInfoChangeCallbackProxy::OnBrightnessInfoChange(ScreenId screen
         ROSEN_LOGE("RSBrightnessInfoChangeCallbackProxy::OnBrightnessInfoChange WriteUint64 failed");
         return;
     }
-    if (!WriteBrightnessInfo(brightnessInfo, data)) {
-        ROSEN_LOGE("RSBrightnessInfoChangeCallbackProxy::OnBrightnessInfoChange WriteBrightnessInfo failed");
+    if (!RSMarshallingHelper::Marshalling(data, brightnessInfo)) {
+        ROSEN_LOGE("RSBrightnessInfoChangeCallbackProxy::OnBrightnessInfoChange write brightnessInfo failed");
         return;
     }
 

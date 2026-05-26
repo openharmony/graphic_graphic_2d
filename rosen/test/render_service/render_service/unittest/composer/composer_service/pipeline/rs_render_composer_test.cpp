@@ -356,6 +356,14 @@ public:
     {
         return cornerRadiusInfo_;
     }
+    void SetVcldInfo(const RSVcldParam& vcldInfo) override
+    {
+        vcldInfo_ = vcldInfo;
+    }
+    const RSVcldParam& GetVcldInfo() const override
+    {
+        return vcldInfo_;
+    }
     void SetColorTransform(const std::vector<float>& matrix) override
     {
         colorTransform_ = matrix;
@@ -690,6 +698,7 @@ private:
     GraphicLayerColor layerColor_ {};
     GraphicLayerColor backgroundColor_ {};
     std::vector<float> cornerRadiusInfo_;
+    RSVcldParam vcldInfo_{};
     std::vector<float> colorTransform_;
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
@@ -3267,6 +3276,31 @@ HWTEST_F(RsRenderComposerTest, SetScreenBacklight_Branches, TestSize.Level1)
     auto backup = rsRenderComposer_->hdiOutput_;
     rsRenderComposer_->hdiOutput_ = nullptr;
     rsRenderComposer_->SetScreenBacklight(0);
+    rsRenderComposer_->hdiOutput_ = backup;
+}
+
+/**
+ * Function: SetScreenLinearMatrix_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call with valid hdiOutput_
+ *                  2. call with null hdiOutput_
+ */
+HWTEST_F(RsRenderComposerTest, SetScreenLinearMatrix_Branches, TestSize.Level1)
+{
+    std::vector<float> matrix = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+
+    // Verify initial hdiOutput_ is not null
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+
+    // Call with valid hdiOutput_
+    rsRenderComposer_->SetScreenLinearMatrix(matrix);
+
+    // Call with null hdiOutput_
+    auto backup = rsRenderComposer_->hdiOutput_;
+    rsRenderComposer_->hdiOutput_ = nullptr;
+    rsRenderComposer_->SetScreenLinearMatrix(matrix);
     rsRenderComposer_->hdiOutput_ = backup;
 }
 

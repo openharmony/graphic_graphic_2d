@@ -45,6 +45,9 @@ config("render_service_link_config") {
           "-Wl,--no-warn-symbol-ordering",
         ]
       }
+      if (graphic_2d_feature_enable_func_arg_specialization) {
+        ldflags += [ "-Wl,-mllvm,-enable-func-arg-specialization=true" ]
+      }
     }
     if (target_cpu == "arm64" && defined(build_ext_path)) {
       render_service_version_script =
@@ -118,6 +121,12 @@ ohos_shared_library("librender_service") {
           "-mllvm",
           "-enable-partial-inlining",
         ]
+        if (graphic_2d_feature_enable_func_arg_specialization) {
+          cflags += [
+            "-mllvm",
+            "-enable-func-arg-specialization=true",
+          ]
+        }
         inputs = [ "${graphic_2d_feature_pgo_path}/librender_service.profdata" ]
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
@@ -545,7 +554,10 @@ ohos_shared_library("librender_service") {
     ]
   }
 
-  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
+  include_dirs += [ 
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
+    "$graphic_2d_root/rosen/modules/render_service_profiler/trace3dapi",
+    ]
 
   public_external_deps = [ "skia:skia_canvaskit" ]
 

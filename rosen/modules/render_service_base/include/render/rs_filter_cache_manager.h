@@ -156,7 +156,7 @@ private:
     void GenerateFilteredSnapshot(
         RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& dstRect);
     bool DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        const Drawing::RectI& src, const Drawing::RectI& dst, bool shouldClearFilteredCache);
+        const Drawing::RectI& dst, bool shouldClearFilteredCache);
     void DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect,
         const std::shared_ptr<RSDrawingFilter>& filter) const;
     bool CanDiscardCanvas(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect) const;

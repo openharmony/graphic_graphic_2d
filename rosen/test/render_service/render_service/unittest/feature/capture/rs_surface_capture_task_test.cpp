@@ -799,12 +799,12 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessCanvasRenderNode, Function | SmallTest
     id = 2;
     RSCanvasRenderNode node2(id);
     node2.shouldPaint_ = true;
-    node2.GetMutableRenderProperties().GetEffect().isSpherizeValid_ = true;
+    node2.GetMutableRenderProperties().SetSpherize(1.0f);
     visitor_->ProcessCanvasRenderNode(node2);
     id = 3;
     RSCanvasRenderNode node3(id);
     node3.shouldPaint_ = true;
-    node3.GetMutableRenderProperties().GetEffect().isSpherizeValid_ = false;
+    node3.GetMutableRenderProperties().SetSpherize(0.0f);
     node3.SetCacheType(CacheType::CONTENT);
     visitor_->ProcessCanvasRenderNode(node3);
     visitor_->isUniRender_ = isUniRender;
@@ -901,6 +901,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessScreenRenderNode005, Function | SmallT
     RSMainThread::Instance()->SetCurtainScreenUsingStatus(false);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /*
  * @tc.name: TakeSurfaceCaptureWithBlurTest
  * @tc.desc: Test RSSurfaceCaptureTaskTest.TakeSurfaceCaptureWithBlur
@@ -1082,5 +1083,6 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureTest, Function | SmallTest 
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

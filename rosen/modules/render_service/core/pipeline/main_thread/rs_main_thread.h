@@ -131,7 +131,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
-    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect);
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect);
 
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
@@ -257,7 +257,7 @@ public:
 
     bool IsWatermarkFlagChanged() const
     {
-        return lastWatermarkFlag_ != watermarkFlag_;
+        return lastWatermarkFlag_ != watermarkFlag_ || lastWatermarkImg_ != watermarkImg_;
     }
 
     uint64_t GetFrameCount() const
@@ -540,8 +540,6 @@ private:
     void TraverseCanvasDrawingNodes();
 
     void SetFocusLeashWindowId();
-    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
-        const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
 #ifdef RES_SCHED_ENABLE
@@ -628,6 +626,7 @@ private:
     bool isNeedResetClearMemoryTask_ = false;
     bool watermarkFlag_ = false;
     bool lastWatermarkFlag_ = false;
+    std::shared_ptr<Drawing::Image> lastWatermarkImg_ = nullptr;
     bool hasProtectedLayer_ = false;
     bool hasSurfaceLockLayer_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;

@@ -109,8 +109,15 @@ HWTEST_F(RSNetlinkManagerTest, RSNetlinkManagerStart001, TestSize.Level1)
     g_logNMMsg.clear();
     LOG_SetCallback(NetlinkManagerLogCallback);
     RSNetlinkManager& manager = RSNetlinkManager::Instance();
+    MEMParam memParam;
+    memParam.SetKernelReportEnabled(false);
     bool result = manager.Start();
+    EXPECT_FALSE(result);
+
+    memParam.SetKernelReportEnabled(true);
+    result = manager.Start();
     EXPECT_TRUE(result);
+
     manager.Stop();
     EXPECT_TRUE(g_logNMMsg.find("netlink socket failed") == std::string::npos);
 }

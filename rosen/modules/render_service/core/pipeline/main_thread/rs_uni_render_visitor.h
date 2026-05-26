@@ -162,8 +162,6 @@ private:
     Occlusion::Region GetSurfaceTransparentFilterRegion(const RSSurfaceRenderNode& surfaceNode) const;
     void CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion);
     void PartialRenderOptionInit();
-    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
-        const Occlusion::Region& selfDrawRegion);
     void UpdateSurfaceOcclusionInfo();
     enum class RSPaintStyle {
         FILL,
@@ -226,6 +224,8 @@ private:
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
         bool& hasVisibleHwcNodes, bool& needForceUpdateHwcNodes);
     void PrevalidateHwcNode();
+    void UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, RequestCompositionType> &strategy,
+        const RSRenderNodeMap& nodeMap);
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
     bool IsSourceNodeDirty(RSSurfaceRenderNode& node);

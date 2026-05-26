@@ -16,6 +16,7 @@ declare_args() {
   graphic_2d_feature_product = "default"
   graphic_2d_feature_enable_pgo = false
   graphic_2d_feature_enable_codemerge = false
+  graphic_2d_feature_enable_func_arg_specialization = false
   graphic_2d_feature_pgo_path = ""
   graphic_2d_feature_bootanimation_enable = true
   graphic_2d_feature_ace_enable_gpu = true
@@ -60,6 +61,7 @@ declare_args() {
   graphic_2d_feature_enable_mediacommon = false
   graphic_2d_feature_enable_image_detail_enhancer = false
   graphic_2d_feature_rs_modifiers_draw_enable = false
+  graphic_2d_feature_enable_rs_proxy = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -82,10 +84,6 @@ if (graphic_2d_feature_product == "phone" ||
     graphic_2d_feature_product == "wearable") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_stack_culling = true
-}
-
-if (is_ios && is_arkui_x) {
-  graphic_2d_feature_enable_vulkan = false
 }
 
 if (graphic_2d_feature_product == "phone" ||

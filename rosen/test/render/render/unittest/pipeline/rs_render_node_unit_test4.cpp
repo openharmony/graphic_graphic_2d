@@ -568,7 +568,7 @@ HWTEST_F(RSRenderNodeUnitTest4, ClearDrawableVec2Test001, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     EXPECT_NE(node, nullptr);
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
@@ -576,24 +576,24 @@ HWTEST_F(RSRenderNodeUnitTest4, ClearDrawableVec2Test001, TestSize.Level1)
 
     auto backgroundColorDrawable =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::TRANSITION)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::TRANSITION)], nullptr);
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)], nullptr);
 
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)], nullptr);
 
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
@@ -921,7 +921,7 @@ HWTEST_F(RSRenderNodeUnitTest4, ApplyModifiersProcessUnionInfoAfterApplyModifier
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -937,7 +937,7 @@ HWTEST_F(RSRenderNodeUnitTest4, ApplyModifiersProcessUnionInfoAfterApplyModifier
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -1831,21 +1831,20 @@ HWTEST_F(RSRenderNodeUnitTest4, GenerateFullChildrenListTest02, TestSize.Level1)
     node->GenerateFullChildrenList();
     EXPECT_TRUE(node->children_.empty());
     std::shared_ptr<RSRenderNode> sNode1 = std::make_shared<RSRenderNode>(id, context);
-    sNode1->isBootAnimation_ = false;
     wNode1 = sNode1;
     node->children_.emplace_back(wNode1); // wNode1 isn't nullptr
 
-    node->isContainBootAnimation_ = false;
+    node->SetContainBootAnimation(false);
     node->GenerateFullChildrenList();
 
-    node->isContainBootAnimation_ = true;
+    node->SetContainBootAnimation(true);
     node->GenerateFullChildrenList();
 
     // disappearingChildren_ isn't empty
     node->disappearingChildren_.emplace_back(sNode1, id);
     node->GenerateFullChildrenList();
 
-    node->isContainBootAnimation_ = false;
+    node->SetContainBootAnimation(false);
     node->GenerateFullChildrenList();
 }
 

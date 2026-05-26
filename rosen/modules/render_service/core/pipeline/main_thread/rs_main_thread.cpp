@@ -56,6 +56,7 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/frame_stability/rs_frame_stability_manager.h"
@@ -211,7 +212,6 @@ constexpr uint32_t VSYNC_LOG_ENABLED_STEP_TIMES = 100;
 constexpr uint32_t REQUEST_VSYNC_NUMBER_LIMIT = 20;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr int32_t PERF_MULTI_WINDOW_REQUESTED_CODE = 10026;
-constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
 constexpr uint64_t PERF_PERIOD = 250000000;
 constexpr uint64_t CLEAN_CACHE_FREQ = 60;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
@@ -1837,6 +1837,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         "buffer consumed and not HardwareEnabledType",
                         surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
+                if (surfaceHandler->GetSourceTypeChanged()) {
+                    doDirectComposition_ = false;
+                    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by "
+                        "sourceType changed", surfaceNode->GetName().c_str(), surfaceNode->GetId());
+                }
                 if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
 #ifdef RS_ENABLE_GPU
                     auto buffer = surfaceHandler->GetBuffer();
@@ -2185,7 +2190,7 @@ uint32_t RSMainThread::GetDynamicRefreshRate() const
     return refreshRate;
 }
 
-void RSMainThread::AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect)
+void RSMainThread::AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect)
 {
     if (renderThreadParams_ == nullptr) {
         return;
@@ -2654,6 +2659,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by needTraverseNodeTree");
         uniVisitor->SetAnimateState(doWindowAnimate_);
+        RS_OPTIONAL_TRACE_FMT("%s SetDirtyFlagToUniVisitor, isMainThreadDirty:%d, isAccessibilityConfigChanged:%d, "
+            "forceUIFirstChanged:%d", __func__, isDirty_.load(), isAccessibilityConfigChanged_, forceUIFirstChanged_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_ || forceUIFirstChanged_);
         forceUIFirstChanged_ = false;
         SetFocusLeashWindowId();
@@ -2704,6 +2711,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isCurtainScreenUsingStatusChanged_ = false;
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
         lastWatermarkFlag_ = watermarkFlag_;
+        lastWatermarkImg_ = watermarkImg_;
         isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
         isDrawingCacheDfxEnabledOfLastFrame_ = isDrawingCacheDfxEnabledOfCurFrame_;
         // set params used in render thread
@@ -3197,20 +3205,6 @@ bool RSMainThread::CheckSurfaceNeedProcess(OcclusionRectISet& occlusionSurfaces,
     return needProcess;
 }
 
-RSVisibleLevel RSMainThread::GetRegionVisibleLevel(const Occlusion::Region& curRegion,
-    const Occlusion::Region& visibleRegion)
-{
-    if (visibleRegion.IsEmpty()) {
-        return RSVisibleLevel::RS_INVISIBLE;
-    } else if (visibleRegion.Area() == curRegion.Area()) {
-        return RSVisibleLevel::RS_ALL_VISIBLE;
-    } else if (static_cast<uint>(visibleRegion.Area()) <
-        (static_cast<uint>(curRegion.Area()) >> VISIBLEAREARATIO_FORQOS)) {
-        return RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
-    }
-    return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;
-}
-
 RSVisibleLevel RSMainThread::CalcSurfaceNodeVisibleRegion(const std::shared_ptr<RSScreenRenderNode>& screenNode,
     const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
     Occlusion::Region& accumulatedRegion, Occlusion::Region& curRegion, Occlusion::Region& totalRegion)
@@ -3229,7 +3223,7 @@ RSVisibleLevel RSMainThread::CalcSurfaceNodeVisibleRegion(const std::shared_ptr<
     curRegion = Occlusion::Region { occlusionRect };
     Occlusion::Region subRegion = curRegion.Sub(accumulatedRegion);
 
-    RSVisibleLevel visibleLevel = GetRegionVisibleLevel(curRegion, subRegion);
+    RSVisibleLevel visibleLevel = RSUniDirtyComputeUtil::GetRegionVisibleLevel(curRegion, subRegion);
 
     if (!isUniRender_) {
         Occlusion::Region visSurface = surfaceNode->GetVisibleRegion();
@@ -4562,6 +4556,8 @@ void RSMainThread::AddTransactionDataPidInfo(pid_t remotePid)
 
 void RSMainThread::SetDirtyFlag(bool isDirty)
 {
+    RS_OPTIONAL_TRACE_FMT("RSMainThread::%s, srcDirty:%d, dstDirty:%d",
+        __func__, isDirty_.load(), isDirty);
     isDirty_ = isDirty;
 }
 
@@ -5393,6 +5389,7 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
         if (rsColorTemperature.IsDimmingOn(screenId)) {
             std::vector<float> matrix = rsColorTemperature.GetNewLinearCct(screenId);
             rsColorTemperature.DimmingIncrease(screenId);
+            composerClientManager_->SetScreenLinearMatrix(screenId, matrix);
             isNeedRefreshAll = true;
         }
         RSHdrUtil::CheckNotifyCallback(GetContext(), screenId);
@@ -5598,6 +5595,7 @@ void RSMainThread::CreateScreenNode(const sptr<RSScreenProperty>& property)
 static bool NeedForceRefreshOneFrame(ScreenPropertyType type)
 {
     switch (type) {
+        case ScreenPropertyType::ACTIVE_RECT_OPTION:
         case ScreenPropertyType::GAMUT_MAP:
         case ScreenPropertyType::PRODUCER_SURFACE:
         case ScreenPropertyType::RENDER_RESOLUTION:
@@ -5624,6 +5622,9 @@ void RSMainThread::HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenProper
             node->SetScreenDirtyFlag(true);
             if (type == ScreenPropertyType::PRODUCER_SURFACE) {
                 node->SetVirtualSurfaceChanged(true);
+            }
+            if (type == ScreenPropertyType::ACTIVE_RECT_OPTION) {
+                node->SetActiveRectChanged(true);
             }
         });
 

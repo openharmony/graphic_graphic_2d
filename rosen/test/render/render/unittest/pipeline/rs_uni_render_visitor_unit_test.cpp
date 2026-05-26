@@ -934,7 +934,7 @@ HWTEST_F(RSUniRenderVisitorUnitTest, GetSurfaceTransparentFilterRegion, TestSize
     ASSERT_FALSE(rsUniRenderVisitor->GetSurfaceTransparentFilterRegion(*surfaceNode).IsEmpty());
     // if non-transparent, get empty region.
     surfaceNode->abilityBgAlpha_ = 255;
-    surfaceNode->globalAlpha_ = 1.f;
+    surfaceNode->SetGlobalAlpha(1.f);
     ASSERT_TRUE(rsUniRenderVisitor->GetSurfaceTransparentFilterRegion(*surfaceNode).IsEmpty());
 }
 

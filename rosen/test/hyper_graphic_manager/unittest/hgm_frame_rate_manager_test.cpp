@@ -876,6 +876,48 @@ HWTEST_F(HgmFrameRateMgrTest, FrameRateReportTest, Function | SmallTest | Level0
 }
 
 /**
+ * @tc.name: FrameRateReportTest2
+ * @tc.desc: Verify FrameRateReport with schedulePreferredFps <= OLED_60_HZ condition
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, FrameRateReportTest2, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager mgr;
+    // Test: schedulePreferredFps_ <= OLED_60_HZ && currRefreshRate_ <= OLED_60_HZ
+    // When both are <= 60Hz, UNI_APP_PID should be set to OLED_60_HZ
+    mgr.schedulePreferredFpsChange_ = true;
+    mgr.curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
+    mgr.schedulePreferredFps_ = OLED_60_HZ;  // <= 60HZ
+    mgr.currRefreshRate_ = OLED_60_HZ; // <= 60HZ
+    mgr.FrameRateReport();
+    EXPECT_EQ(mgr.schedulePreferredFpsChange_, false);
+
+    // Test: schedulePreferredFps_ > OLED_60_HZ || currRefreshRate_ <= OLED_60_HZ
+    // Should set UNI_APP_PID to OLED_120_HZ
+    mgr.schedulePreferredFpsChange_ = true;
+    mgr.schedulePreferredFps_ = OLED_90_HZ;
+    mgr.currRefreshRate_ = OLED_60_HZ;
+    mgr.FrameRateReport();
+    EXPECT_EQ(mgr.schedulePreferredFpsChange_, false);
+
+    // Test: schedulePreferredFps_ <= OLED_60_HZ || currRefreshRate_ > OLED_60_HZ
+    // Should set UNI_APP_PID to OLED_120_HZ
+    mgr.schedulePreferredFpsChange_ = true;
+    mgr.schedulePreferredFps_ = OLED_60_HZ;
+    mgr.currRefreshRate_ = OLED_90_HZ;
+    mgr.FrameRateReport();
+    EXPECT_EQ(mgr.schedulePreferredFpsChange_, false);
+
+    // Test: Both > 60Hz case
+    mgr.schedulePreferredFpsChange_ = true;
+    mgr.schedulePreferredFps_ = OLED_90_HZ;
+    mgr.currRefreshRate_ = OLED_90_HZ;
+    mgr.FrameRateReport();
+    EXPECT_EQ(mgr.schedulePreferredFpsChange_, false);
+}
+
+/**
  * @tc.name: HandleFrameRateChangeForLTPO
  * @tc.desc: Verify the result of HandleFrameRateChangeForLTPO
  * @tc.type: FUNC

@@ -537,21 +537,22 @@ HWTEST(RSRenderNodeDrawableAdapterTest, UpdateFilterInfoForNodeGroupTest, TestSi
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
     const auto clipBounds = canvas.GetDeviceClipBounds();
+    auto& filterInfoVec = rootDrawable->GetFilterInfoVec();
 
     RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
     childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
-    EXPECT_TRUE(rootDrawable->filterInfoVec_.empty());
+    EXPECT_TRUE(filterInfoVec.empty());
 
     RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = rootDrawable.get();
     childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
-    ASSERT_EQ(rootDrawable->filterInfoVec_.size(), 1u);
-    EXPECT_EQ(rootDrawable->filterInfoVec_[0].nodeId_, childDrawable->GetId());
-    EXPECT_EQ(rootDrawable->filterInfoVec_[0].rectVec_.size(), 1u);
+    ASSERT_EQ(filterInfoVec.size(), 1u);
+    EXPECT_EQ(filterInfoVec[0].nodeId_, childDrawable->GetId());
+    EXPECT_EQ(filterInfoVec[0].rectVec_.size(), 1u);
     EXPECT_TRUE(rootDrawable->IntersectsWithUnifiedRegion(clipBounds));
 
     childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
-    ASSERT_EQ(rootDrawable->filterInfoVec_.size(), 1u);
-    EXPECT_EQ(rootDrawable->filterInfoVec_[0].rectVec_.size(), 2u);
+    ASSERT_EQ(filterInfoVec.size(), 1u);
+    EXPECT_EQ(filterInfoVec[0].rectVec_.size(), 2u);
     RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
 }
 
@@ -1047,6 +1048,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawQuickImplTest, TestSize.Level1)
 HWTEST(RSRenderNodeDrawableAdapterTest, OnTreeStateChangedTest, TestSize.Level1)
 {
     auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    canvasDrawingNode->InitRenderParams();
     canvasDrawingNode->isNeverOnTree_ = false;
     canvasDrawingNode->OnTreeStateChanged();
     EXPECT_FALSE(canvasDrawingNode->isNeverOnTree_);

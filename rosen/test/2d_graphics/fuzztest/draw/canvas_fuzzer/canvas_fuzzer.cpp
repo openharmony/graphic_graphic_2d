@@ -19,6 +19,7 @@
 #include "get_object.h"
 #include "draw/canvas.h"
 #include "draw/color.h"
+#include "draw/ui_color.h"
 #include "effect/particle_builder.h"
 #include "text/font.h"
 #include "text/glyph_cache.h"
@@ -255,9 +256,13 @@ bool CanvasFuzzTestParticle(const uint8_t* data, size_t size)
     }
     dataText[length - 1] = '\0';
     builder->SetUpdateCode(std::string(dataText));
-    uint32_t maxParticleCount = GetObject<uint32_t>();
+    uint32_t maxParticleCount = GetObject<uint32_t>() % 100000;
     auto effect = builder->MakeParticleEffect(maxParticleCount);
     if (!effect) {
+        if (dataText != nullptr) {
+            delete [] dataText;
+            dataText = nullptr;
+        }
         return false;
     }
     canvas.DrawParticle(effect);
@@ -268,6 +273,23 @@ bool CanvasFuzzTestParticle(const uint8_t* data, size_t size)
         dataText = nullptr;
     }
 
+    return true;
+}
+
+bool CanvasFuzzTestUIColor(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+ 
+    Canvas canvas;
+    float red = GetObject<float>();
+    float green = GetObject<float>();
+    float blue = GetObject<float>();
+    float alpha = GetObject<float>();
+    float headroom = GetObject<float>();
+    UIColor uiColor(red, green, blue, alpha, headroom);
+    canvas.DrawUIColor(uiColor, BlendMode::SRC_IN);
     return true;
 }
 
@@ -333,13 +355,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::g_pos = 0;
 
     /* Run your code on data */
+    OHOS::Rosen::Drawing::CanvasFuzzTestParticle(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestUIColor(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest003(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestHpsEdgeLight(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestInsertOpaqueRegion(data, size);
-    OHOS::Rosen::Drawing::CanvasFuzzTestParticle(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestDrawSingleCharacterWithFeatures(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestGlyphCache(data, size);
     return 0;

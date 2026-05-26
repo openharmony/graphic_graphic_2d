@@ -48,7 +48,7 @@ void RSTimingCurveAnimationTest::TearDown() {}
 HWTEST_F(RSTimingCurveAnimationTest, StartAnimationTest, Level1)
 {
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto property = std::make_shared<RSProperty<float>>();
     auto value = std::make_shared<RSProperty<float>>();
     RSCurveAnimation curveAnimation(rsUIContext, property, value);

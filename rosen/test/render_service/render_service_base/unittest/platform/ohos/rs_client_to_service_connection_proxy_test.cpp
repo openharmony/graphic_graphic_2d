@@ -864,6 +864,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetTotalAppMemSize, TestSize.Leve
     ASSERT_EQ(proxy->GetTotalAppMemSize(cpuMemSize, gpuMemSize), ERR_INVALID_VALUE);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: GetScreenPowerStatus Test
  * @tc.desc: GetScreenPowerStatus Test
@@ -887,6 +888,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenPowerStatus, TestSize.Le
     ASSERT_EQ(proxy->GetScreenPowerStatus(id, status), ERR_INVALID_VALUE);
     proxy->GetScreenPowerStatus(0, status);
 }
+#endif
 
 /**
  * @tc.name: GetPanelPowerStatus Test
@@ -1335,6 +1337,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Le
     ASSERT_TRUE(proxy);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: NotifyLightFactorStatus Test
  * @tc.desc: NotifyLightFactorStatus Test
@@ -1348,6 +1351,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, ReportGameStateData, TestSize.Lev
     proxy->NotifyLightFactorStatus(1);
     ASSERT_EQ(proxy->transactionDataIndex_, 5);
 }
+#endif
 
 /**
  * @tc.name: NotifyXComponentExpectedFrameRate Test
@@ -1494,8 +1498,9 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
 
 /**
  * @tc.name: SetHdrForceHwcEnabled_Normal_Success
- * @tc.desc: Test SetHdrForceHwcEnabled when normal case
+ * @tc.desc: Test SetHdrForceHwcEnabled with normal case
  * @tc.type: FUNC
+ *
  * @tc.require:
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_Normal_Success, TestSize.Level1)
@@ -1513,6 +1518,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_Normal_Succ
  * @tc.name: SetHdrForceHwcEnabled_SendRequestFail
  * @tc.desc: Test SetHdrForceHwcEnabled when SendRequest fails
  * @tc.type: FUNC
+ *
  * @tc.require:
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, SetHdrForceHwcEnabled_SendRequestFail, TestSize.Level1)

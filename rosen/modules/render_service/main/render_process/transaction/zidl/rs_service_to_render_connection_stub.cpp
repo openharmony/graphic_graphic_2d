@@ -21,6 +21,7 @@
 #include "rs_profiler.h"
 #include "common/rs_xcollie.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "gfx/dump/rs_dump_manager.h"
 #include "rs_profiler.h"
 
@@ -1022,18 +1023,8 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BACKLIGHT_LEVEL): {
             RsScreenBrightnessData brightnessData;
-            if (!data.ReadUint64(brightnessData.screenId)) {
-                RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read ScreenId failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (!data.ReadUint32(brightnessData.level)) {
-                RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read level failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (!data.ReadFloat(brightnessData.brightnessPosition)) {
-                RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read brightnessPosition failed!");
+            if (!RSMarshallingHelper::Unmarshalling(data, brightnessData)) {
+                RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Unmarshalling failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }

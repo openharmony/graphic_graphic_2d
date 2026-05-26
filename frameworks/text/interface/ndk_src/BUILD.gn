@@ -14,7 +14,6 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
-import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_source_set("text_ndk") {
   sanitize = {
@@ -25,9 +24,8 @@ ohos_source_set("text_ndk") {
   }
 
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "$graphic_2d_root/frameworks/text/service/global_config",
+    "$rosen_root/modules/render_service_base/include",
+    "$rosen_root/modules/render_service_base/src",
     "$rosen_root/modules/2d_graphics/drawing_ndk/include",
     "$rosen_text_root",
     "$rosen_text_root/adapter",
@@ -35,6 +33,8 @@ ohos_source_set("text_ndk") {
     "$rosen_text_root/interface/export/ndk_include",
     "$rosen_text_root/service",
     "$rosen_text_root/service/texgine/src",
+    "$rosen_text_root/service/global_config",
+    "$rosen_text_root/adapter/skia",
   ]
   deps = [
     "$rosen_root/modules/2d_graphics:2d_graphics",
@@ -61,28 +61,17 @@ ohos_source_set("text_ndk") {
     include_dirs +=
         [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
   }
-  defines = []
-  if (use_skia_txt) {
-    defines += [ "USE_SKIA_TXT" ]
-    include_dirs += [ "$rosen_text_root/adapter/skia" ]
-  }
-  if (is_arkui_x) {
-    defines += [ "CROSS_PLATFORM" ]
-  }
-  if (rs_enable_gpu) {
-    defines += [ "RS_ENABLE_GPU" ]
-  }
-
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "ipc:ipc_single",
   ]
 
+  configs = [ "$rosen_text_root:rosen_text_config" ]
+
   if (platform_is_ohos) {
-    defines += [ "ENABLE_OHOS_ENHANCE" ]
     if (text_histogram_enable) {
       external_deps += [ "api_metrics:histogrammanager" ]
-      defines += [ "HISTOGRAM_MANAGEMENT_ENABLE" ]
+      defines = [ "HISTOGRAM_MANAGEMENT_ENABLE" ]
     }
     external_deps += [
       "c_utils:utils",
@@ -91,9 +80,8 @@ ohos_source_set("text_ndk") {
       "image_framework:image_native",
     ]
   } else {
-    cflags_cc = [ "-std=c++17" ]
     deps += [ "$rosen_root/modules/platform:hilog" ]
-    defines += [ "MODULE_DRAWING" ]
+    defines = [ "MODULE_DRAWING" ]
     external_deps += [ "skia:skia_canvaskit" ]
   }
   part_name = "graphic_2d"

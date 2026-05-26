@@ -54,6 +54,7 @@
 #include "monitor/aps_monitor_impl.h"
 #endif
 #include "transaction/rs_render_pipeline_client.h"
+#include "feature/vcld/rs_vcld_param.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -130,10 +131,20 @@ public:
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
 
+    void SetClean() override
+    {
+        isNewOnTree_ = false;
+        RSRenderNode::SetClean();
+    }
+
+    void SetNewOnTree(bool isNewOnTree) override
+    {
+        isNewOnTree_ = isNewOnTree;
+    }
+
     void SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId screenNodeId = INVALID_NODEID,
-        NodeId logicalDisplayNodeId = INVALID_NODEID) override;
+        NodeId firstLevelNodeId = INVALID_NODEID, NodeId uifirstRootNodeId = INVALID_NODEID,
+        NodeId screenNodeId = INVALID_NODEID, NodeId logicalDisplayNodeId = INVALID_NODEID) override;
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -703,7 +714,7 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer);
-    void UpdateVirtualScreenWhiteListInfo();
+    void UpdateVirtualScreenWhiteListInfo(const std::unordered_set<ScreenId>& screenIds);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const
@@ -1140,6 +1151,11 @@ public:
         return IsAppWindow() && (GetChildrenCount() == 0 || HasOnlyOneRootNode());
     }
 
+    inline bool IsNewOnTree() const
+    {
+        return isNewOnTree_;
+    }
+
     // Due to the BehindWindowFilter enabling ui-first, the condition is excluded.
     // This condition is now only used by ui-first
     inline bool IsAlphaTransparent() const
@@ -1473,6 +1489,22 @@ public:
         return isForeground_;
     }
     bool GetNodeIsSingleFrameComposer() const override;
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0) override;
+    std::shared_ptr<RSSingleFrameComposer> GetSingleFrameComposer() const override
+    {
+        if (!singleFrameComposer_) {
+            singleFrameComposer_ = std::make_shared<RSSingleFrameComposer>();
+        }
+        return singleFrameComposer_;
+    }
+    bool HasSurfaceBuffer() const override
+    {
+        return hasSurfaceBuffer_;
+    }
+    void SetHasSurfaceBuffer(bool hasSurfaceBuffer) override
+    {
+        hasSurfaceBuffer_ = hasSurfaceBuffer;
+    }
 
     void SetAncestorScreenNode(const RSBaseRenderNode::WeakPtr& ancestorScreenNode)
     {
@@ -1674,6 +1706,13 @@ public:
         return drmCornerRadiusInfo_;
     }
 
+    void SetVcldInfo(const RSVcldParam& vcldInfo);
+    void ResetVcldInfo();
+    const RSVcldParam& GetVcldInfo() const
+    {
+        return vcldInfo_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     NodeId GetClonedNodeId() const
     {
@@ -1695,6 +1734,8 @@ public:
         if (!containerDirty || !IsLeashOrMainWindow()) {
             return;
         }
+        RS_OPTIONAL_TRACE_FMT("%s: %s[%" PRIu64"] set dirty by container dirty",
+            __func__, GetName().c_str(), GetId());
         dirtyStatus_ = NodeDirty::DIRTY;
         containerDirty = false;
     }
@@ -2045,8 +2086,12 @@ private:
     bool isLastHardCursor_ = false;
     bool needDrawFocusChange_ = false;
     bool hasTransparentSurface_ = false;
+    bool hasSurfaceBuffer_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
+    bool isSelfAddedForSubSurface_ = false;
+    bool isNodeSingleFrameComposer_ = false;
+    mutable std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_;
     bool isNodeToBeCaptured_ = false;
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
@@ -2169,6 +2214,7 @@ private:
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;
     std::vector<float> drmCornerRadiusInfo_;
+    RSVcldParam vcldInfo_;
 
     std::string name_;
     std::string bundleName_;
@@ -2289,11 +2335,16 @@ private:
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
+    bool isBootAnimation_ = false;
+
     bool isFrameGravityNewVersionEnabled_ = false;
 
     bool isSurfaceBufferOpaque_ = false;
 
     uint32_t hdrType_ = 0;
+    RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
+
+    bool isNewOnTree_ = false;
 
     // Used for control-level occlusion culling scene info and culled nodes transmission.
     std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;

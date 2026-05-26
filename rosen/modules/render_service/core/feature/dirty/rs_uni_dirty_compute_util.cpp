@@ -48,6 +48,9 @@
 namespace OHOS {
 namespace Rosen {
 
+bool RSUniDirtyComputeUtil::damageRegionGpuTileInited_{false};
+std::pair<int, int> RSUniDirtyComputeUtil::damageRegionGpuTile_{0, 0};
+
 std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
     DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, ScreenInfo& screenInfo, RSScreenRenderParams& params)
 {
@@ -135,7 +138,7 @@ std::vector<RectI> RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(
             rect.right_ - rect.left_, rect.bottom_ - rect.top_));
 #endif
     }
-    RS_LOGD("ScreenIntersectDirtyRects size %{public}d %{public}s", region.GetSize(), region.GetRegionInfo().c_str());
+    RS_LOGD("ScreenIntersectDirtyRects size %{public}zu %{public}s", region.GetSize(), region.GetRegionInfo().c_str());
     return retRects;
 }
 
@@ -285,12 +288,18 @@ bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damag
             info.id_, drawRegion.GetRegionInfo().c_str(), info.filterDirty_.GetRegionInfo().c_str());
         Occlusion::Region dirtyRegion = matrix.has_value() ?
             RSObjAbsGeometry::MapRegion(info.filterDirty_, matrix.value()) : info.filterDirty_;
-        Occlusion::Region alignedDirtyRegion = matrix.has_value() ?
-            RSObjAbsGeometry::MapRegion(info.alignedFilterDirty_, matrix.value()) : info.alignedFilterDirty_;
         collector.AddPureCleanFilterDirtyRegion(dirtyRegion);
-        // When dirty region alignment is enabled, both damageRegion and drawRegion require alignment
-        damageRegion.OrSelf(dirtyAlignEnabled_ ? alignedDirtyRegion : dirtyRegion);
-        drawRegion.OrSelf(dirtyAlignEnabled_ ? alignedDirtyRegion : dirtyRegion);
+        if (dirtyAlignEnabled_ && RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid()) {
+            Occlusion::Region alignedDirtyRegion = dirtyRegion.GetAlignedRegion(
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first,
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
+            // When dirty region alignment is enabled, both damageRegion and drawRegion require alignment
+            damageRegion.OrSelf(alignedDirtyRegion);
+            drawRegion.OrSelf(alignedDirtyRegion);
+        } else {
+            damageRegion.OrSelf(dirtyRegion);
+            drawRegion.OrSelf(dirtyRegion);
+        }
         info.addToDirty_ = true;
         return true;
     };
@@ -336,7 +345,6 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
         .id_ = filterNode.GetId(),
         .intersectRegion_ = filterRegion,
         .filterDirty_ = filterRegion,
-        .alignedFilterDirty_ = filterRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
         .isBackgroundFilterClean_ =
             (filterProperties.GetBackgroundFilter() || filterProperties.GetNeedDrawBehindWindow()) &&
@@ -679,6 +687,25 @@ void RSUniDirtyComputeUtil::ClipRegion(Drawing::Canvas& canvas, Drawing::Region&
     if (clear && !region.IsEmpty()) {
         canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
+}
+
+RSVisibleLevel RSUniDirtyComputeUtil::GetRegionVisibleLevel(const Occlusion::Region& selfDrawRegion,
+    const Occlusion::Region& visibleRegion)
+{
+    if (visibleRegion.IsEmpty()) {
+        return RSVisibleLevel::RS_INVISIBLE;
+    }
+    const auto visibleRegionArea = visibleRegion.Area();
+    const auto selfDrawRegionArea = selfDrawRegion.Area();
+    if (visibleRegionArea == selfDrawRegionArea) {
+        return RSVisibleLevel::RS_ALL_VISIBLE;
+    }
+    constexpr int32_t visibleAreaRatioForQos = 3;
+    if (static_cast<uint64_t>(visibleRegionArea) <
+        (static_cast<uint64_t>(selfDrawRegionArea) >> visibleAreaRatioForQos)) {
+        return RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
+    }
+    return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;
 }
 } // namespace Rosen
 } // namespace OHOS

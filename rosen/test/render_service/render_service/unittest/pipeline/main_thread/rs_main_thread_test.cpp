@@ -53,6 +53,7 @@
 #include "string_utils.h"
 #include "v2_2/cm_color_space.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "pipeline/mock/mock_rs_color_temperature.h"
 #include "pipeline/mock/mock_rs_luminance_control.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
@@ -2725,54 +2726,6 @@ HWTEST_F(RSMainThreadTest, CheckSurfaceNeedProcess, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetRegionVisibleLevel001
- * @tc.desc: GetRegionVisibleLevel test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, GetRegionVisibleLevel001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    // empty region
-    Occlusion::Region occRegion;
-    mainThread->GetRegionVisibleLevel(occRegion, occRegion);
-}
-
-/**
- * @tc.name: GetRegionVisibleLevel002
- * @tc.desc: GetRegionVisibleLevel test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, GetRegionVisibleLevel002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    // equal region
-    Occlusion::Region occRegion;
-    occRegion.rects_.emplace_back(Occlusion::Rect(0, 1, 1, 0));
-    mainThread->GetRegionVisibleLevel(occRegion, occRegion);
-}
-
-/**
- * @tc.name: GetRegionVisibleLevel003
- * @tc.desc: GetRegionVisibleLevel test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, GetRegionVisibleLevel003, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    Occlusion::Region occRegion1;
-    occRegion1.rects_.emplace_back(Occlusion::Rect(0, 1, 1, 0));
-    Occlusion::Region occRegion2;
-    occRegion2.rects_.emplace_back(Occlusion::Rect(0, 2, 2, 0));
-    mainThread->GetRegionVisibleLevel(occRegion1, occRegion2);
-}
-
-/**
  * @tc.name: CalcOcclusionImplementation
  * @tc.desc: CalcOcclusionImplementation test
  * @tc.type: FUNC
@@ -4660,6 +4613,28 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HandleScreenPropertyRefreshOneFrameTest
+ * @tc.desc: Test HandleScreenPropertyRefreshOneFrame
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSMainThreadTest, HandleScreenPropertyRefreshOneFrameTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto& nodeMap = mainThread->context_->GetMutableNodeMap();
+    ScreenId screenId = 0;
+
+    auto node = std::make_shared<RSScreenRenderNode>(GenerateUniqueNodeIdForRS(),
+        screenId, mainThread->context_->weak_from_this());
+    ASSERT_NE(node, nullptr);
+    nodeMap.RegisterRenderNode(node);
+    mainThread->context_->GetGlobalRootRenderNode()->AddChild(node);
+
+    mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::ACTIVE_RECT_OPTION);
+    mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::PRODUCER_SURFACE);
+}
+
+/**
  * @tc.name: UpdateFocusNodeId001
  * @tc.desc: test UpdateFocusNodeId while focusNodeId don't change
  * @tc.type: FUNC
@@ -4848,6 +4823,7 @@ HWTEST_F(RSMainThreadTest, UpdateLuminanceAndColorTempTest, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    mainThread->composerClientManager_ = std::make_shared<RSComposerClientManager>();
 
     auto backUpNode = mainThread->context_->globalRootRenderNode_;
     NodeId id = 1;
@@ -4865,8 +4841,17 @@ HWTEST_F(RSMainThreadTest, UpdateLuminanceAndColorTempTest, TestSize.Level2)
     node1->GenerateFullChildrenList();
     mainThread->context_->globalRootRenderNode_ = node1;
 
+    auto& colorTemp = RSColorTemperature::Get();
+    auto mockColorTemp = std::make_shared<OHOS::Rosen::Mock::RSColorTemperatureInterfaceMock>();
+    auto backupInterface = colorTemp.rSColorTemperatureInterface_;
+    colorTemp.rSColorTemperatureInterface_ = mockColorTemp.get();
+    EXPECT_CALL(*mockColorTemp, IsDimmingOn(_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(*mockColorTemp, GetNewLinearCct(_)).WillRepeatedly(Return(std::vector<float>(9, 0.0f)));
+    EXPECT_CALL(*mockColorTemp, DimmingIncrease(_)).WillRepeatedly(Return());
+
     mainThread->UpdateLuminanceAndColorTemp();
 
+    colorTemp.rSColorTemperatureInterface_ = backupInterface;
     mainThread->context_->globalRootRenderNode_ = backUpNode;
 }
 
@@ -5621,7 +5606,7 @@ HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt002, TestSize.Level2)
 
     mainThread->UpdateSubSurfaceCnt();
     // cnt + 2: rootNode contain 2 subSurfaceNodes(leash and app)
-    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
+    ASSERT_EQ(rootNode->GetSubSurfaceCnt(), cnt + 2);
 }
 
 /**
@@ -5656,7 +5641,7 @@ HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt003, TestSize.Level2)
     context->nodeMap.RegisterRenderNode(appNode);
 
     mainThread->UpdateSubSurfaceCnt();
-    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt);
+    ASSERT_EQ(rootNode->GetSubSurfaceCnt(), cnt);
 }
 
 /**

@@ -62,33 +62,6 @@
 
 namespace OHOS::Rosen {
 
-Drawing::Image TestTreeBuilder::GenerateRandomImage(int width, int height)
-{
-    const auto& bitmapFormat = Drawing::BitmapFormat {
-        .colorType = Drawing::COLORTYPE_RGBA_8888,
-        .alphaType = Drawing::ALPHATYPE_OPAQUE,
-    };
-    auto bitmap = Drawing::Bitmap();
-    bitmap.Build(width, height, bitmapFormat);
-    auto pixelsPtr = static_cast<uint8_t*>(bitmap.GetPixels());
-    if (pixelsPtr) {
-        const auto& imageInfo = bitmap.GetImageInfo();
-        size_t bytesPerPixel = static_cast<size_t>(imageInfo.GetBytesPerPixel());
-        int heightImage = bitmap.GetHeight();
-        int rowBytes = bitmap.GetRowBytes();
-
-        for (int i = 0; i < heightImage; ++i) {
-            for (int j = 0; j < rowBytes; ++j) {
-                *pixelsPtr = distribution_(mt_);
-                pixelsPtr += 1;
-            }
-        }
-    }
-    auto image = Drawing::Image();
-    image.BuildFromBitmap(bitmap);
-    return image;
-}
-
 TestTreeBuilder::TestTreeBuilder()
     : mt_(std::random_device()()), insideId_(0), withDisplay_(false), withScreenNode_(false),
       withPatchedGlobalRoot_(false)

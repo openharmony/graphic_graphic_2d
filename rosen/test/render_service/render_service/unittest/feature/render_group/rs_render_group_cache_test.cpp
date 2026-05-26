@@ -227,7 +227,7 @@ HWTEST_F(RSRenderGroupCacheTest, SetNeedClipHoleForFilterTest002, TestSize.Level
  * @tc.name: SetNodeGroupHasChildInBlacklistTest
  * @tc.desc: Test SetNodeGroupHasChildInBlacklist
  * @tc.type: FUNC
- * @tc.require: issues/20738
+ * @tc.require:
  */
 HWTEST_F(RSRenderGroupCacheTest, SetNodeGroupHasChildInBlacklistTest, TestSize.Level1)
 {

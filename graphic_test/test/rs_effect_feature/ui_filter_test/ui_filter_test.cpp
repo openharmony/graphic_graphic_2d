@@ -1310,4 +1310,39 @@ GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_Combined_Content_Light_Two
     }
 }
 
+GRAPHIC_TEST(UIFilterTest, EFFECT_TEST, Set_UI_Filter_With_Rotation_Test)
+{
+    int columnCount = 3;
+    int rowCount = filterParaTypeCount;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = 0 * sizeX;
+        int y = i * sizeY;
+        vector<FilterPara::ParaType> testParaVec = {
+            static_cast<FilterPara::ParaType>(i + 1)
+        };
+        auto combinedFilter = UIFilterTestDataManager::GetCombinedFilter(testParaVec, TestDataGroupType::VALID_DATA2);
+        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        foregroundTestNode->SetRotation(45.0f);
+        foregroundTestNode->SetUIForegroundFilter(combinedFilter);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
+        x = 1 * sizeX;
+        y = i * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        backgroundTestNode->SetRotation(45.0f);
+        backgroundTestNode->SetUIBackgroundFilter(combinedFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        x = 2 * sizeX;
+        y = i * sizeY;
+        auto compositingTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        compositingTestNode->SetRotation(45.0f);
+        compositingTestNode->SetUICompositingFilter(combinedFilter);
+        GetRootNode()->AddChild(compositingTestNode);
+        RegisterNode(compositingTestNode);
+    }
+}
+
 } // namespace OHOS::Rosen

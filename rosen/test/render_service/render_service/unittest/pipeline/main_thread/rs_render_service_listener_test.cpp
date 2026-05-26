@@ -172,4 +172,35 @@ HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level
     rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), false);
     ASSERT_EQ(node->GetAncoFlags(), 0);
 }
+
+/**
+ * @tc.name: OnDropBuffer001
+ * @tc.desc: Test OnDropBuffer when node is nullptr, should early return without crash.
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnDropBuffer001, TestSize.Level1)
+{
+    std::weak_ptr<RSSurfaceRenderNode> wp;
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
+    rsListener->OnDropBuffer();
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: OnDropBuffer002
+ * @tc.desc: Test OnDropBuffer when node is valid, should set BufferDropped to true.
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnDropBuffer002, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(node, nullptr);
+    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
+    node->GetRSSurfaceHandler()->SetBufferDropped(false);
+    ASSERT_FALSE(node->GetRSSurfaceHandler()->GetBufferDropped());
+    rsListener->OnDropBuffer();
+    ASSERT_TRUE(node->GetRSSurfaceHandler()->GetBufferDropped());
+}
 } // namespace OHOS::Rosen

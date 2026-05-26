@@ -665,6 +665,15 @@ const GraphicIRect& RSRenderSurfaceLayer::GetAncoSrcRect() const
     return ancoSrcRect_;
 }
 
+void RSRenderSurfaceLayer::SetVcldInfo(const RSVcldParam& vcldInfo)
+{
+    vcldInfo_ = vcldInfo;
+}
+const RSVcldParam& RSRenderSurfaceLayer::GetVcldInfo() const
+{
+    return vcldInfo_;
+}
+
 void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer)
 {
     rsLayerId_ = rsLayer->GetRSLayerId();
@@ -724,6 +733,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     useDeviceOffline_ = rsLayer->GetUseDeviceOffline();
     ignoreAlpha_ = rsLayer->GetIgnoreAlpha();
     ancoSrcRect_ = rsLayer->GetAncoSrcRect();
+    vcldInfo_ = rsLayer->GetVcldInfo();
 }
 
 void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command)

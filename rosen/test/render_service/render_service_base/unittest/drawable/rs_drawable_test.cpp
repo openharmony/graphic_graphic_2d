@@ -155,7 +155,7 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore001, TestSize.Level1)
     auto& properties = node.GetMutableRenderProperties();
     properties.clipToBounds_ = true;
     RectF rect = {1.0, 2.0, 3.0, 4.0};
-    properties.clipRRect_ = std::make_optional<RRect>(rect, 1.0, 2.0);
+    properties.clipRRect_ = std::make_unique<RRect>(rect, 1.0, 2.0);
     auto path = std::make_shared<RSPath>();
     properties.SetClipBounds(path);
     properties.GetEffect().colorBlendMode_ = 1;

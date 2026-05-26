@@ -35,7 +35,7 @@ public:
 
     bool IsOtaUpdate() const;
 
-    void GetConnectToRenderMap(int count, uint32_t timeoutMs = 0);
+    void GetConnectToRenderMap(int count);
 
     void SubscribeActiveScreenIdChanged();
 
@@ -46,10 +46,13 @@ public:
     std::string configPath_;
     std::mutex connectToRenderMapMtx_;
     std::map<Rosen::ScreenId, sptr<IRemoteObject>> connectToRenderMap_;
+    std::atomic<bool> noScreen_ = false;
     std::mutex activeScreenIdMtx_;
     Rosen::ScreenId activeScreenId_ = Rosen::INVALID_SCREEN_ID;
 
 private:
+    void OnScreenChanged(Rosen::ScreenId rsScreenId, Rosen::ScreenEvent screenEvent, Rosen::ScreenChangeReason reason,
+                         sptr<IRemoteObject> connectToRender);
     bool isAnimationEnd_ = false;
 
 #ifdef FEATURE_CHECK_EXIT_ANIMATION_EXT

@@ -2186,6 +2186,25 @@ HWTEST_F(HdiOutputTest, SetScreenBacklight_And_PowerOnChanged, Function | Medium
     hdiOutput_->SetScreenBacklight(80u);
 }
 
+ /*
+ * Function: SetScreenLinearMatrix_ValidArgs_And_InvalidArgs
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: SetScreenLinearMatrix with validArgs and invalidArgs
+ */
+HWTEST_F(HdiOutputTest, SetScreenLinearMatrix_ValidArgs_And_InvalidArgs, Function | MediumTest | Level1)
+{
+    auto out = HdiOutput::CreateHdiOutput(0);
+    out->device_ = hdiDeviceMock_;
+    std::vector<float> matrix1 = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    EXPECT_CALL(*hdiDeviceMock_, SetDisplayPerFrameParameterSmq(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    out->SetScreenLinearMatrix(matrix1);
+    std::vector<float> matrix2 = { 1.0f, 2.0f };
+    out->SetScreenLinearMatrix(matrix2);
+}
+
 /*
  * Function: SetHdiOutputDevice_Nullptr_InvalidArgs
  * Type: Function

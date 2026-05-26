@@ -16,20 +16,20 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H
 
-#include "command/rs_node_showing_command.h"
 #include <iremote_proxy.h>
 #include <memory>
 #include <platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h>
 #include <platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code.h>
+#ifndef ENABLE_RS_PROXY
 #include "sandbox_utils.h"
-
+#endif
 namespace OHOS {
 namespace Rosen {
 class RSClientToServiceConnectionProxy : public IRemoteProxy<RSIClientToServiceConnection> {
 public:
     explicit RSClientToServiceConnectionProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSClientToServiceConnectionProxy() noexcept = default;
-
+#ifndef ENABLE_RS_PROXY
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     ErrCode GetUniRenderEnabled(bool& enable) override;
@@ -259,9 +259,9 @@ public:
     ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
 
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) override;
-
+#endif
     ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType) override;
-
+#ifndef ENABLE_RS_PROXY
     void NotifyDynamicModeEvent(bool enableDynamicMode) override;
 
     ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
@@ -280,11 +280,11 @@ public:
     ErrCode ReportRsSceneJankEnd(AppInfo info) override;
 
     ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
-
+#endif
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
     void RunOnRemoteDiedCallback() override;
-
+#ifndef ENABLE_RS_PROXY
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
@@ -357,9 +357,9 @@ private:
     void WriteAppInfo(MessageParcel& data, MessageParcel& reply, MessageOption& option, AppInfo info);
 
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
-
+#endif
     int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
-
+#ifndef ENABLE_RS_PROXY
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled) override;
@@ -380,6 +380,7 @@ private:
 
     pid_t pid_ = GetRealPid();
     std::atomic<uint32_t> transactionDataIndex_ = 0;
+#endif
     OnRemoteDiedCallback OnRemoteDiedCallback_;
 };
 } // namespace Rosen

@@ -67,6 +67,7 @@ public:
 private:
     void HandleAdaptiveVsyncCondition(const std::shared_ptr<RSContext>& rsContext);
 
+    bool hgmAbilityEnabled_ = true;
     const sptr<RSIRenderToServiceConnection> renderToServiceConnection_;
     std::unordered_set<ScreenId> screenIds_; // Accessed ONLY on main thread
 

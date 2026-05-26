@@ -40,6 +40,7 @@ class RSRenderToComposerConnectionTest : public Test {};
  *                  5. call OnScreenVBlankIdleCallback
  *                  6. call ClearRedrawGPUCompositionCache
  *                  7. call SetScreenBacklight; ensure no crash
+ *                  8. call SetScreenLinearMatrix; ensure no crash
  */
 HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgent, TestSize.Level1)
 {
@@ -62,6 +63,9 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgent, TestSize.
     conn.ClearRedrawGPUCompositionCache(ids);
 
     conn.SetScreenBacklight(10u);
+
+    std::vector<float> matrix1 = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    conn.SetScreenLinearMatrix(matrix1);
     std::unordered_set<uint64_t> expectIds { 1u };
     EXPECT_EQ(ids, expectIds);
 }
@@ -87,6 +91,8 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgentPtr, TestSi
     std::unordered_set<uint64_t> ids { 2u };
     conn.ClearRedrawGPUCompositionCache(ids);
     conn.SetScreenBacklight(20u);
+    std::vector<float> matrix2 = { 1.0f, 2.0f };
+    conn.SetScreenLinearMatrix(matrix2);
     ASSERT_EQ(agent, nullptr);
 }
 

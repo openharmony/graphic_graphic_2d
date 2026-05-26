@@ -73,6 +73,12 @@ void RSScreenCallbackManager::NotifyScreenDisconnected(ScreenId screenId)
     }
 }
 
+void RSScreenCallbackManager::NotifyNoScreen(ScreenChangeReason reason)
+{
+    RS_LOGI("%{public}s: no screen after init.", __func__);
+    NotifyScreenConnectedToAgentListeners(INVALID_SCREEN_ID, reason);
+}
+
 void RSScreenCallbackManager::NotifyPhysicalScreenProcessDisconnected(ScreenId screenId)
 {
     if (coreListener_) {

@@ -137,6 +137,14 @@ int32_t UIFirstParamParse::ParseUIFirstSingleParam(const std::string& name, cons
         } else {
             RS_LOGE("UIFirstParamParse invalid SizeChangedThreshold: %{public}s", value.c_str());
         }
+    } else if (name == "SubThreadFrameRateControlByScene" && IsNumber(value)) {
+        unsigned int num;
+        std::istringstream iss(value);
+        if (iss >> num) {
+            UIFirstParam::SetSubThreadFrameRateControlByScene(num);
+            RS_LOGI("UIFirstParamParse parse SubThreadFrameRateControlByScene %{public}u",
+                UIFirstParam::GetSubThreadFrameRateControlByScene());
+        }
     }
     return PARSE_EXEC_SUCCESS;
 }

@@ -79,12 +79,13 @@ void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
     }
     if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
         bool needSkip = false;
-        if (nodePtr->GetNodeIsSingleFrameComposer() && nodePtr->singleFrameComposer_ != nullptr) {
-            needSkip = nodePtr->singleFrameComposer_->SingleFrameModifierAddToListNG(modifierTypeNG_, modifiers);
+        auto singleFrameComposer = nodePtr->GetSingleFrameComposer();
+        if (nodePtr->GetNodeIsSingleFrameComposer() && singleFrameComposer != nullptr) {
+            needSkip = singleFrameComposer->SingleFrameModifierAddToListNG(modifierTypeNG_, modifiers);
         }
         for (const auto& modifier : modifiers) {
-            if (nodePtr->singleFrameComposer_ != nullptr &&
-                nodePtr->singleFrameComposer_->SingleFrameIsNeedSkipNG(needSkip, modifier)) {
+            if (singleFrameComposer != nullptr &&
+                singleFrameComposer->SingleFrameIsNeedSkipNG(needSkip, modifier)) {
                 continue;
             }
             modifier->Apply(&canvas, const_cast<RSRenderContent&>(content).renderProperties_);

@@ -304,6 +304,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->forceFreeze_ = forceFreeze_;
     targetScreenParams->hasMirroredScreenChanged_ = hasMirroredScreenChanged_;
     targetScreenParams->isVirtualSurfaceChanged_ = std::exchange(isVirtualSurfaceChanged_, false);
+    targetScreenParams->isActiveRectChanged_ = std::exchange(isActiveRectChanged_, false);
     targetScreenParams->logicalCameraRotationCorrection_ = logicalCameraRotationCorrection_;
     targetScreenParams->layerSkipContext_ = layerSkipContext_;
     targetScreenParams->hasForceHwcHdrSurface_ = hasForceHwcHdrSurface_;

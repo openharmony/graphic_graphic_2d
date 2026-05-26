@@ -180,7 +180,6 @@ HWTEST_F(RSRenderNodeTest2, InternalRemoveSelfFromDisappearingChildren, TestSize
 HWTEST_F(RSRenderNodeTest2, DestroyRSRenderNode, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    node.appPid_ = 1;
     ASSERT_TRUE(true);
 }
 
@@ -473,6 +472,77 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateBufferDirtyRegion006
+ * @tc.desc: test UpdateBufferDirtyRegion when bufferDropped is true and bufferSizeChanged is false
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion006, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
+    surfaceNode->GetRSSurfaceHandler()->bufferSizeChanged_ = false;
+    surfaceNode->GetRSSurfaceHandler()->bufferDropped_ = true;
+    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
+    surfaceNode->UpdateBufferDirtyRegion();
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBufferDropped() == false);
+}
+
+/**
+ * @tc.name: UpdateBufferDirtyRegion007
+ * @tc.desc: test UpdateBufferDirtyRegion when both bufferSizeChanged and bufferDropped are true
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion007, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
+    surfaceNode->GetRSSurfaceHandler()->bufferSizeChanged_ = true;
+    surfaceNode->GetRSSurfaceHandler()->bufferDropped_ = true;
+    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
+    surfaceNode->UpdateBufferDirtyRegion();
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBufferDropped() == false);
+}
+
+/**
+ * @tc.name: UpdateBufferDirtyRegion008
+ * @tc.desc: test UpdateBufferDirtyRegion when both bufferSizeChanged and bufferDropped are false
+ *           should not reset dirty rect, should fall through to damageRegion logic
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion008, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
+    auto buffer = SurfaceBuffer::Create();
+    auto ret = buffer->Alloc(requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
+    surfaceNode->GetRSSurfaceHandler()->bufferSizeChanged_ = false;
+    surfaceNode->GetRSSurfaceHandler()->bufferDropped_ = false;
+    surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
+    surfaceNode->selfDrawRect_ = DEFAULT_SELF_DRAW_RECT;
+    surfaceNode->UpdateBufferDirtyRegion();
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBufferDropped() == false);
+}
+
+/**
  * @tc.name: UpdateSelfDrawRect
  * @tc.desc: test
  * @tc.type: FUNC
@@ -553,7 +623,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion002, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    node.isSelfDrawingNode_ = true;
+    node.SetHasSurfaceBuffer(true);
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
@@ -571,7 +641,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion003, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    node.isSelfDrawingNode_ = true;
+    node.SetHasSurfaceBuffer(true);
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = false;
@@ -591,7 +661,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateAbsDirtyRegion004, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    node.isSelfDrawingNode_ = true;
+    node.SetHasSurfaceBuffer(true);
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = true;
@@ -634,7 +704,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRectAndDirtyRegion002, TestSize.Level1)
     properties.clipToFrame_ = true;
     properties.geoDirty_ = true;
     node.dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
-    node.isSelfDrawingNode_ = true;
+    node.SetHasSurfaceBuffer(true);
     node.srcOrClipedAbsDrawRectChangeFlag_ = true;
     node.shouldPaint_ = true;
     node.isLastVisible_ = true;
@@ -760,7 +830,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion001, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, IsSelfDrawingNodeAndDirty, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    node.IsSelfDrawingNode();
+    node.HasSurfaceBuffer();
     node.IsDirty();
     ASSERT_TRUE(true);
 }
@@ -2635,21 +2705,20 @@ HWTEST_F(RSRenderNodeTest2, GenerateFullChildrenListTest02, TestSize.Level1)
     node->GenerateFullChildrenList();
     EXPECT_TRUE(node->children_.empty());
     std::shared_ptr<RSRenderNode> sNode1 = std::make_shared<RSRenderNode>(id, context);
-    sNode1->isBootAnimation_ = false;
     wNode1 = sNode1;
     node->children_.emplace_back(wNode1); // wNode1 isn't nullptr
 
-    node->isContainBootAnimation_ = false;
+    node->SetContainBootAnimation(false);
     node->GenerateFullChildrenList();
 
-    node->isContainBootAnimation_ = true;
+    node->SetContainBootAnimation(true);
     node->GenerateFullChildrenList();
 
     // disappearingChildren_ isn't empty
     node->disappearingChildren_.emplace_back(sNode1, id);
     node->GenerateFullChildrenList();
 
-    node->isContainBootAnimation_ = false;
+    node->SetContainBootAnimation(false);
     node->GenerateFullChildrenList();
 }
 
@@ -3159,7 +3228,7 @@ HWTEST_F(RSRenderNodeTest2, ClearDrawableVec2Test001, TestSize.Level1)
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     EXPECT_NE(node, nullptr);
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
@@ -3167,24 +3236,24 @@ HWTEST_F(RSRenderNodeTest2, ClearDrawableVec2Test001, TestSize.Level1)
 
     auto backgroundColorDrawable =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::TRANSITION)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::TRANSITION)], nullptr);
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)], nullptr);
 
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)], nullptr);
 
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
@@ -3512,7 +3581,7 @@ HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers001
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -3528,7 +3597,7 @@ HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers002
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**

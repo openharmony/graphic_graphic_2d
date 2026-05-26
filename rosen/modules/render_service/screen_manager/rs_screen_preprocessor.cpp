@@ -129,9 +129,26 @@ bool RSScreenPreprocessor::Init() noexcept
     if (composer_->RegScreenVBlankIdleCallback(&RSScreenPreprocessor::OnScreenVBlankIdle, this) != 0) {
         RS_LOGW("%{public}s: Not support register OnScreenVBlankIdle Func to composer", __func__);
     }
+    ScheduleTask([this]() {
+        // Note: When RegHwcEventCallback() returns, the OnHotPlug callback has already been synchronously
+        // invoked for all currently connected screens by the HDI backend.
+        // This implicit synchronous behavior ensures default screen connections are
+        // processed before we check for 'no screen' scenarios here.
+        ProcessNoScreenAfterRegHwcEventCallback();
+    });
 
     RS_LOGI("Init RSScreenPreprocessor succeed");
     return true;
+}
+
+void RSScreenPreprocessor::ProcessNoScreenAfterRegHwcEventCallback()
+{
+    screenManager_.noScreenProcessed_ = true;
+    if (!screenManager_.HasPhysicalScreen()) {
+        callbackMgr_.NotifyNoScreen(isHwcDead_.load() ? ScreenChangeReason::HWCDEAD : ScreenChangeReason::DEFAULT);
+        isHwcDead_ = false;
+        RS_LOGI("%{public}s: no screen after init.", __func__);
+    }
 }
 
 void RSScreenPreprocessor::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bool connected)

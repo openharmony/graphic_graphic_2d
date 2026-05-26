@@ -20,7 +20,11 @@ module_output_path = "graphic_2d/graphic_2d/render_service/render_server"
 ###############################################################################
 ohos_unittest("RSRenderServiceAgentTest") {
     module_out_path = module_output_path
-
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      debug = true
+    }
     sources = [ "rs_render_service_agent_test.cpp" ]
 
     cflags = [

@@ -366,6 +366,20 @@ HWTEST_F(RSScreenCallbackManagerTest, GetClientToRenderConnectionTest, TestSize.
 }
 
 /*
+ * @tc.name: NotifyNoScreenTest
+ * @tc.desc: Test NotifyNoScreen
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenCallbackManagerTest, NotifyNoScreenTest, TestSize.Level0)
+{
+    auto screenManagerAgentListener = sptr<RSScreenManagerAgentListener>::MakeSptr();
+    callbackMgr_->AddAgentListener(screenManagerAgentListener);
+    ASSERT_NE(callbackMgr_->agentListeners_.size(), 0);
+    callbackMgr_->NotifyNoScreen(ScreenChangeReason::DEFAULT);
+    callbackMgr_->RemoveAgentListener(screenManagerAgentListener);
+}
+
+/*
  * @tc.name: NotifyScreenConnectedToAgentListenersTest
  * @tc.desc: Test NotifyScreenConnectedToAgentListeners
  * @tc.type: FUNC

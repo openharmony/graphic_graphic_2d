@@ -75,6 +75,7 @@ protected:
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
     void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
+    void SetScreenLinearMatrix(const std::vector<float>& matrix);
 
 private:
     mutable std::recursive_mutex rsLayerTransMutex_;

@@ -83,6 +83,9 @@ DECLARE_RSLAYER_CMD(SolidColorLayerProperty, GraphicSolidColorLayerProperty, SOL
 DECLARE_RSLAYER_CMD(WindowsName, std::vector<std::string>, WINDOWS_NAME)
 DECLARE_RSLAYER_CMD(SurfaceName, std::string, SURFACE_NAME)
 
+// vcld command
+DECLARE_RSLAYER_CMD(VcldInfo, RSVcldParam, VCLD_INFO)
+
 // spec command
 DECLARE_RSLAYER_CMD(TunnelHandle, sptr<SurfaceTunnelHandle>, TUNNEL_HANDLE)
 DECLARE_RSLAYER_CMD(LayerMaskInfo, LayerMask, LAYER_MASK_INFO)

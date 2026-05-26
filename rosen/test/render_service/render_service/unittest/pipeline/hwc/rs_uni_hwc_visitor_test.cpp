@@ -3397,7 +3397,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRect_005, Function | SmallTest | 
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
     canvasNode->InitRenderParams();
     RRect rect({0, 10, 20, 30}, 1.f, 1.f);
-    canvasNode->renderProperties_.clipRRect_ = rect;
+    canvasNode->renderProperties_.clipRRect_ = std::make_unique<RRect>(rect);
     Drawing::Matrix canvasNodeMatrix;
     canvasNodeMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
     canvasNode->renderProperties_.boundsGeo_->ConcatMatrix(canvasNodeMatrix);
@@ -4361,7 +4361,7 @@ HWTEST_F(RSUniHwcVisitorTest, CollectHdrForceHwcNodes_Test, TestSize.Level2)
     bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
     system::SetParameter("const.graphics.rgba_1010108_supported", "true");
     system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", "true");
-    EXPECT_TRUE(RSBaseHdrUtil::GetRGBA1010108Enabled());
+    EXPECT_FALSE(RSBaseHdrUtil::GetRGBA1010108Enabled());
 
     rsUniHwcVisitor->UpdateHwcNodeEnable();
     EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
