@@ -161,7 +161,11 @@ ohos_unittest("RSScreenCallbackManagerTest") {
 ##############################  RSScreenManagerAgentTest  ##################################
 ohos_unittest("RSScreenManagerAgentTest") {
   module_out_path = module_output_path
-
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [
     "rs_screen_manager_agent_test.cpp",
   ]
