@@ -48,13 +48,12 @@ void RSInterfacesFrameStabilityTest::TearDown() {}
  */
 HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection001, Function | SmallTest | Level2)
 {
-    RSInterfaces& instance = RSInterfaces::GetInstance();
     FrameStabilityConfig config = {
         .stableDuration = 200,
         .changePercent = 0.1f
     };
     FrameStabilityCallback callback = [](bool isStable) {};
-    int32_t ret = instance.RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
+    int32_t ret = rsRenderInterface_->RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
     EXPECT_EQ(ret, 0);
 }
 
@@ -66,17 +65,16 @@ HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection001, Fun
  */
 HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection002, Function | SmallTest | Level2)
 {
-    RSInterfaces& instance = RSInterfaces::GetInstance();
     FrameStabilityConfig config = {
         .stableDuration = MIN_STABLE_DURATION - 1,
         .changePercent = 0.5f
     };
     FrameStabilityCallback callback = [](bool isStable) {};
-    int32_t ret = instance.RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
+    int32_t ret = rsRenderInterface_->RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
     EXPECT_NE(ret, 0);
 
     config.stableDuration = MAX_STABLE_DURATION + 1;
-    ret = instance.RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
+    ret = rsRenderInterface_->RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
     EXPECT_NE(ret, 0);
 }
 
@@ -88,17 +86,16 @@ HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection002, Fun
  */
 HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection003, Function | SmallTest | Level2)
 {
-    RSInterfaces& instance = RSInterfaces::GetInstance();
     FrameStabilityConfig config = {
         .stableDuration = 200,
         .changePercent = MIN_CHANGE_PERCENT -0.1f
     };
     FrameStabilityCallback callback = [](bool isStable) {};
-    int32_t ret = instance.RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
+    int32_t ret = rsRenderInterface_->RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
     EXPECT_NE(ret, 0);
 
     config.changePercent = MAX_CHANGE_PERCENT + 0.1f;
-    ret = instance.RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
+    ret = rsRenderInterface_->RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
     EXPECT_NE(ret, 0);
 }
 
@@ -110,8 +107,7 @@ HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection003, Fun
  */
 HWTEST_F(RSInterfacesFrameStabilityTest, UnregisterFrameStabilityDetection001, Function | SmallTest | Level2)
 {
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    int32_t ret = instance.UnregisterFrameStabilityDetection(DEFAULT_TARGET);
+    int32_t ret = rsRenderInterface_->UnregisterFrameStabilityDetection(DEFAULT_TARGET);
     EXPECT_EQ(ret, 0);
 }
 
@@ -123,12 +119,11 @@ HWTEST_F(RSInterfacesFrameStabilityTest, UnregisterFrameStabilityDetection001, F
  */
 HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection001, Function | SmallTest | Level2)
 {
-    RSInterfaces& instance = RSInterfaces::GetInstance();
     FrameStabilityConfig config = {
         .stableDuration = 200,
         .changePercent = 0.1f
     };
-    int32_t ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
+    int32_t ret = rsRenderInterface_->StartFrameStabilityCollection(DEFAULT_TARGET, config);
     EXPECT_EQ(ret, 0);
 }
 
@@ -140,16 +135,15 @@ HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection001, Funct
  */
 HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection002, Function | SmallTest | Level2)
 {
-    RSInterfaces& instance = RSInterfaces::GetInstance();
     FrameStabilityConfig config = {
         .stableDuration = MIN_STABLE_DURATION - 1,
         .changePercent = 0.5f
     };
-    int32_t ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
+    int32_t ret = rsRenderInterface_->StartFrameStabilityCollection(DEFAULT_TARGET, config);
     EXPECT_NE(ret, 0);
 
     config.stableDuration = MAX_STABLE_DURATION + 1;
-    ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
+    ret = rsRenderInterface_->StartFrameStabilityCollection(DEFAULT_TARGET, config);
     EXPECT_NE(ret, 0);
 }
 
@@ -161,16 +155,15 @@ HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection002, Funct
  */
 HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection003, Function | SmallTest | Level2)
 {
-    RSInterfaces& instance = RSInterfaces::GetInstance();
     FrameStabilityConfig config = {
         .stableDuration = 100,
         .changePercent = MIN_CHANGE_PERCENT - 0.1f
     };
-    int32_t ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
+    int32_t ret = rsRenderInterface_->StartFrameStabilityCollection(DEFAULT_TARGET, config);
     EXPECT_NE(ret, 0);
 
     config.changePercent = MAX_CHANGE_PERCENT + 0.1f;
-    ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
+    ret = rsRenderInterface_->StartFrameStabilityCollection(DEFAULT_TARGET, config);
     EXPECT_NE(ret, 0);
 }
 
@@ -182,10 +175,11 @@ HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection003, Funct
  */
 HWTEST_F(RSInterfacesFrameStabilityTest, GetFrameStabilityResult001, Function | SmallTest | Level2)
 {
-    RSInterfaces& instance = RSInterfaces::GetInstance();
+    FrameStabilityTarget target = { .id = DEFAULT_ID + 1, .type = FrameStabilityTargetType::SCREEN };
     bool result = false;
-    int32_t ret = instance.GetFrameStabilityResult(DEFAULT_TARGET, result);
-    EXPECT_EQ(ret, 0);
+    int32_t ret = rsRenderInterface_->GetFrameStabilityResult(target, result);
+    EXPECT_NE(ret, 0);
+    EXPECT_EQ(result, false);
 }
 
 /**
