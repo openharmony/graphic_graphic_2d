@@ -29,7 +29,7 @@ static constexpr uint8_t COLOR_MAX_COUNTS = 5; // The colors max counts of mapCo
 static constexpr uint8_t COLOR_MIN_COUNTS = 1; // The colors min counts of mapColorByBrightness
 static constexpr uint8_t FRACTION_STOPS_LENGTH_MIN = 2;
 static constexpr uint8_t FRACTION_STOPS_LENGTH_MAX = 12;
-static constexpr float LINEAR_GRADIENT_MASK_POSITION_MAX = 10.0f;
+static constexpr float LINEAR_GRADIENT_MASK_POSITION_MAX = 10000.0f;
 static constexpr float RADIAL_GRADIENT_MASK_RADIUS_MAX = 10.0f;
 static constexpr float WATER_DROPLET_RADIUS_MAX = 10.0f;
 }
@@ -191,18 +191,16 @@ EffectErrorCode LinearGradientMaskTransition(Filter* effectFilter,
             std::clamp(linearGradientMask->fractionStops[i].y, 0.0f, 1.0f) });
     }
  
-    int32_t width = effectFilter->GetSrcPixelMap()->GetWidth();
-    int32_t height = effectFilter->GetSrcPixelMap()->GetHeight();
     auto startPosition = Drawing::Point(
         std::clamp(linearGradientMask->startPosition.x,
-        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX) * width,
+        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX),
         std::clamp(linearGradientMask->startPosition.y,
-        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX) * height);
+        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX));
     auto endPosition = Drawing::Point(
         std::clamp(linearGradientMask->endPosition.x,
-        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX) * width,
+        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX),
         std::clamp(linearGradientMask->endPosition.y,
-        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX) * height);
+        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX));
     Drawing::GELinearGradientShaderMaskParams geLinearGradientMaskParams{
         fractionStops, startPosition, endPosition};
     auto transitionMask = std::static_pointer_cast<Drawing::GEShaderMask>(
@@ -298,7 +296,7 @@ EffectErrorCode OH_Filter_WaterDropletTransition(OH_Filter* filter,
     geWaterDropletParams->radius = std::clamp(geWaterDropletParams->radius, 0.0f, WATER_DROPLET_RADIUS_MAX);
     geWaterDropletParams->position.x_ = std::clamp(geWaterDropletParams->position.x_,
         -WATER_DROPLET_RADIUS_MAX, WATER_DROPLET_RADIUS_MAX);
-        geWaterDropletParams->position.y_ = std::clamp(geWaterDropletParams->position.y_,
+    geWaterDropletParams->position.y_ = std::clamp(geWaterDropletParams->position.y_,
         -WATER_DROPLET_RADIUS_MAX, WATER_DROPLET_RADIUS_MAX);
     geWaterDropletParams->transitionFadeWidth = std::clamp(geWaterDropletParams->transitionFadeWidth, 0.0f, 1.0f);
     geWaterDropletParams->distortionIntensity = std::clamp(geWaterDropletParams->distortionIntensity, 0.0f, 1.0f);
@@ -401,12 +399,13 @@ EffectErrorCode OH_Filter_ReededGlass(OH_Filter* filter, OH_Filter_ReededGlassDa
     return EFFECT_SUCCESS;
 }
 
-EffectErrorCode OH_Filter_GetEffectNativeBuffer(OH_Filter* filter, OH_NativeBuffer* dstNativeBuffer)
+EffectErrorCode OH_Filter_GetEffectNativeBuffer(
+    OH_Filter *filter, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext)
 {
     if (!dstNativeBuffer || !filter) {
         return EFFECT_BAD_PARAMETER;
     }
-    CastToFilter(filter)->RenderNativeBuffer(false, dstNativeBuffer);
+    CastToFilter(filter)->RenderNativeBuffer(false, dstNativeBuffer, syncFenceFd, releaseGpuContext);
     if (dstNativeBuffer == nullptr) {
         return EFFECT_BAD_PARAMETER;
     }

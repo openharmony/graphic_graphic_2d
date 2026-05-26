@@ -36,15 +36,20 @@ bool Filter::Render(bool forceCPU)
     auto error = imageRender.Render(srcPixelMap_, effectFilters_, forceCPU, dstPixelMap_);
     return error == DrawingError::ERR_OK;
 }
- 
-bool Filter::RenderNativeBuffer(bool forceCPU, OH_NativeBuffer* dstNativeBuffer)
+
+bool Filter::RenderNativeBuffer(
+    bool forceCPU, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext)
 {
+    if (dstNativeBuffer == nullptr) {
+        return false;
+    }
     if (srcPixelMap_ == nullptr) {
         return false;
     }
     EffectImageRender imageRender;
     auto dstNativeBufferSharedPtr = std::shared_ptr<OH_NativeBuffer>(dstNativeBuffer, [](OH_NativeBuffer* p) {});
-    auto error = imageRender.RenderDstNative(srcPixelMap_, dstNativeBufferSharedPtr, effectFilters_, forceCPU);
+    auto error = imageRender.RenderNativeBuffer(
+        srcPixelMap_, dstNativeBufferSharedPtr, effectFilters_, syncFenceFd, releaseGpuContext);
     return error == DrawingError::ERR_OK;
 }
 
@@ -151,28 +156,6 @@ bool Filter::SetColorMatrix(const Drawing::ColorMatrix& matrix)
     return true;
 }
 
-bool Filter::MaskTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
-    const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
-{
-    auto filter = EffectImageFilter::MaskTransition(topLayer, mask, factor, inverse);
-    if (!filter) {
-        return false;
-    }
-    AddNextFilter(filter);
-    return true;
-}
-
-bool Filter::WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
-    const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams)
-{
-    auto filter = EffectImageFilter::WaterDropletTransition(topLayer, geWaterDropletParams);
-    if (!filter) {
-        return false;
-    }
-    AddNextFilter(filter);
-    return true;
-}
-
 bool Filter::WaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
 {
     auto glass = EffectImageFilter::WaterGlass(params);
@@ -187,6 +170,28 @@ bool Filter::ReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>
 
     AddNextFilter(glass);
 
+    return true;
+}
+
+bool Filter::MaskTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
+    const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
+{
+    auto filter = EffectImageFilter::MaskTransition(topLayer, mask, factor, inverse);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
+    return true;
+}
+ 
+bool Filter::WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
+    const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams)
+{
+    auto filter = EffectImageFilter::WaterDropletTransition(topLayer, geWaterDropletParams);
+    if (!filter) {
+        return false;
+    }
+    AddNextFilter(filter);
     return true;
 }
 } // namespace Rosen
