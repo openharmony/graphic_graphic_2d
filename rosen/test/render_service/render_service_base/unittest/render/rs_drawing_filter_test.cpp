@@ -877,7 +877,7 @@ HWTEST_F(RSDrawingFilterTest, HasCustomRegion001, TestSize.Level1)
  */
 HWTEST_F(RSDrawingFilterTest, OnSyncSetHasCustomRegion001, TestSize.Level1)
 {
-    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::MOTION_BLUR);
     auto drawingFilter = std::make_shared<RSDrawingFilter>();
     drawingFilter->SetNGRenderFilter(renderFilter);
 
