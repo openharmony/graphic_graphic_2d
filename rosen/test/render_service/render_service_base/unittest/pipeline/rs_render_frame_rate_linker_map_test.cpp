@@ -207,7 +207,7 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, UnRegisterExpectedFpsUpdateCallbackByLi
 HWTEST_F(RSRenderFrameRateLinkerMapTest, UnRegisterExpectedFpsUpdateCallbackByListenerTest002, TestSize.Level1)
 {
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
-    FrameRateLinkerId id1 = 1;
+    FrameRateLinkerId id1 = 0;
     auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id1);
     ASSERT_NE(frameRateLinker, nullptr);
 

@@ -364,9 +364,9 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate002, TestSize.Level1)
     ASSERT_FALSE(instance.collectEnabled_);
 
     instance.screenRefreshRateMap_.clear();
-    instance.realtimeFrameCountMap_.clear();
+    instance.currRealtimeRefreshRateMap_.clear();
     ASSERT_TRUE(instance.screenRefreshRateMap_.empty());
-    ASSERT_TRUE(instance.realtimeFrameCountMap_.empty());
+    ASSERT_TRUE(instance.currRealtimeRefreshRateMap_.empty());
 
     auto [currentRefreshRate1, realtimeRefreshRate1] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate1, instance.DEFAULT_SCREEN_REFRESH_RATE);
@@ -375,7 +375,7 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate002, TestSize.Level1)
     ASSERT_EQ(realtimeRefreshRateByScreenId1, instance.DEFAULT_REALTIME_REFRESH_RATE);
 
     instance.screenRefreshRateMap_.emplace(0, 120);
-    instance.realtimeFrameCountMap_.emplace(0, 90);
+    instance.currRealtimeRefreshRateMap_.emplace(0, 90);
     auto [currentRefreshRate2, realtimeRefreshRate2] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate2, 120);
     ASSERT_EQ(realtimeRefreshRate2, 90);
@@ -383,12 +383,12 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate002, TestSize.Level1)
     ASSERT_EQ(realtimeRefreshRateByScreenId2, 90);
 
     instance.screenRefreshRateMap_.clear();
-    instance.realtimeFrameCountMap_.clear();
+    instance.currRealtimeRefreshRateMap_.clear();
     ASSERT_TRUE(instance.screenRefreshRateMap_.empty());
-    ASSERT_TRUE(instance.realtimeFrameCountMap_.empty());
+    ASSERT_TRUE(instance.currRealtimeRefreshRateMap_.empty());
 
     instance.screenRefreshRateMap_.emplace(0, 90);
-    instance.realtimeFrameCountMap_.emplace(0, 120);
+    instance.currRealtimeRefreshRateMap_.emplace(0, 120);
     auto [currentRefreshRate3, realtimeRefreshRate3] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate3, 90);
     ASSERT_EQ(realtimeRefreshRate3, 90);
@@ -412,9 +412,9 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate003, TestSize.Level1)
     ASSERT_TRUE(instance.collectEnabled_);
 
     instance.screenRefreshRateMap_.clear();
-    instance.realtimeFrameCountMap_.clear();
+    instance.currRealtimeRefreshRateMap_.clear();
     ASSERT_TRUE(instance.screenRefreshRateMap_.empty());
-    ASSERT_TRUE(instance.realtimeFrameCountMap_.empty());
+    ASSERT_TRUE(instance.currRealtimeRefreshRateMap_.empty());
 
     auto [currentRefreshRate1, realtimeRefreshRate1] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate1, instance.DEFAULT_SCREEN_REFRESH_RATE);
@@ -423,7 +423,7 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate003, TestSize.Level1)
     ASSERT_EQ(realtimeRefreshRateByScreenId1, instance.DEFAULT_REALTIME_REFRESH_RATE);
 
     instance.screenRefreshRateMap_.emplace(0, 120);
-    instance.realtimeFrameCountMap_.emplace(0, 90);
+    instance.currRealtimeRefreshRateMap_.emplace(0, 90);
     auto [currentRefreshRate2, realtimeRefreshRate2] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate2, 120);
     ASSERT_EQ(realtimeRefreshRate2, 90);
@@ -431,12 +431,12 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate003, TestSize.Level1)
     ASSERT_EQ(realtimeRefreshRateByScreenId2, 90);
 
     instance.screenRefreshRateMap_.clear();
-    instance.realtimeFrameCountMap_.clear();
+    instance.currRealtimeRefreshRateMap_.clear();
     ASSERT_TRUE(instance.screenRefreshRateMap_.empty());
-    ASSERT_TRUE(instance.realtimeFrameCountMap_.empty());
+    ASSERT_TRUE(instance.currRealtimeRefreshRateMap_.empty());
 
     instance.screenRefreshRateMap_.emplace(0, 90);
-    instance.realtimeFrameCountMap_.emplace(0, 120);
+    instance.currRealtimeRefreshRateMap_.emplace(0, 120);
     auto [currentRefreshRate3, realtimeRefreshRate3] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate3, 90);
     ASSERT_EQ(realtimeRefreshRate3, 90);
@@ -454,15 +454,15 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate004, TestSize.Level1)
 {
     auto& instance = RSRealtimeRefreshRateManager::Instance();
 
-    instance.SetShowRefreshRateEnabled(false, 1);
+    instance.SetShowRefreshRateEnabled(true, 1);
     instance.SetShowRefreshRateEnabled(true, 0);
     ASSERT_TRUE(instance.GetShowRefreshRateEnabled());
     ASSERT_TRUE(instance.collectEnabled_);
 
     instance.screenRefreshRateMap_.clear();
-    instance.realtimeFrameCountMap_.clear();
     ASSERT_TRUE(instance.screenRefreshRateMap_.empty());
-    ASSERT_TRUE(instance.realtimeFrameCountMap_.empty());
+    instance.currRealtimeRefreshRateMap_.clear();
+    ASSERT_TRUE(instance.currRealtimeRefreshRateMap_.empty());
 
     auto [currentRefreshRate1, realtimeRefreshRate1] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate1, instance.DEFAULT_SCREEN_REFRESH_RATE);
@@ -471,7 +471,7 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate004, TestSize.Level1)
     ASSERT_EQ(realtimeRefreshRateByScreenId1, instance.DEFAULT_REALTIME_REFRESH_RATE);
 
     instance.screenRefreshRateMap_.emplace(0, 120);
-    instance.realtimeFrameCountMap_.emplace(0, 90);
+    instance.currRealtimeRefreshRateMap_.emplace(0, 90);
     auto [currentRefreshRate2, realtimeRefreshRate2] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate2, 120);
     ASSERT_EQ(realtimeRefreshRate2, 90);
@@ -479,12 +479,12 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetRefreshRate004, TestSize.Level1)
     ASSERT_EQ(realtimeRefreshRateByScreenId2, 90);
 
     instance.screenRefreshRateMap_.clear();
-    instance.realtimeFrameCountMap_.clear();
+    instance.currRealtimeRefreshRateMap_.clear();
     ASSERT_TRUE(instance.screenRefreshRateMap_.empty());
-    ASSERT_TRUE(instance.realtimeFrameCountMap_.empty());
+    ASSERT_TRUE(instance.currRealtimeRefreshRateMap_.empty());
 
     instance.screenRefreshRateMap_.emplace(0, 90);
-    instance.realtimeFrameCountMap_.emplace(0, 120);
+    instance.currRealtimeRefreshRateMap_.emplace(0, 120);
     auto [currentRefreshRate3, realtimeRefreshRate3] = instance.GetRefreshRateByScreenId(0);
     ASSERT_EQ(currentRefreshRate3, 90);
     ASSERT_EQ(realtimeRefreshRate3, 90);
