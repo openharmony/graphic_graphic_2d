@@ -35,6 +35,7 @@ namespace Media {
 namespace VideoProcessingEngine {
 
 bool g_isProductSupportReset = false;
+bool g_isSurfaceSupport = false;
 VPEAlgoErrCode g_setParameterResult = VPE_ALGO_ERR_OK;
 
 class MockVpeVideo : public VpeVideo {
@@ -52,6 +53,7 @@ public:
     MOCK_METHOD(VPEAlgoErrCode, NotifyEos, (), (override));
     MOCK_METHOD(VPEAlgoErrCode, ReleaseOutputBuffer, (uint32_t index, bool render), (override));
     MOCK_METHOD(VPEAlgoErrCode, IsSupported, (uint32_t type, const Format& parameter));
+    MOCK_METHOD(VPEAlgoErrCode, IsSurfaceSupported, (uint32_t type, const sptr<Surface>& surface));
 
     virtual ~MockVpeVideo()
     {}
@@ -61,6 +63,11 @@ bool VpeVideo::IsSupported(uint32_t type, [[maybe_unused]] const Format& paramet
 {
     (void) type;
     return IsSupportReset;
+}
+bool VpeVideo::IsSurfaceSupported(uint32_t type, const sptr<Surface>& surface))
+{
+    (void) type;
+    return g_isSurfaceSupport;
 }
 bool VpeVideo::IsSupported()
 {
@@ -187,6 +194,34 @@ HWTEST_F(RSVpeManagerTest, GetVpeVideoSurface003, TestSize.Level1)
     sptr<Surface> result = RSVpeManager::GetInstance().GetVpeVideoSurface(type, RSSurface, config);
     RSVpeManager::GetInstance().ReleaseVpeVideo(config.id);
     EXPECT_NE(result, RSSurface);
+}
+
+HWTEST_F(RSVpeManagerTest, GetVpeVideoSurface004, TestSize.Level1)
+{
+    RSVpeManager manager;
+    OHOS::sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
+    OHOS::sptr<IBufferProducer> producer = consumer->GetProducer();
+    OHOS::sptr<OHOS::Surface> RSSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
+ 
+    RSSurfaceRenderNodeConfig config;
+    config.nodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
+    g_isSurfaceSupport = true;
+    sptr<Surface> result = manager.GetVpeVideoSurface(0, RSSurface, config);
+    EXPECT_NE(result, RSSurface);
+}
+ 
+HWTEST_F(RSVpeManagerTest, GetVpeVideoSurface005, TestSize.Level1)
+{
+    RSVpeManager manager;
+    OHOS::sptr<IConsumerSurface> consumer = IConsumerSurface::Create("DisplayNode");
+    OHOS::sptr<IBufferProducer> producer = consumer->GetProducer();
+    OHOS::sptr<OHOS::Surface> RSSurface = OHOS::Surface::CreateSurfaceAsProducer(producer);
+ 
+    RSSurfaceRenderNodeConfig config;
+    config.nodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE;
+    g_isSurfaceSupport = false;
+    sptr<Surface> result = manager.GetVpeVideoSurface(0, RSSurface, config);
+    EXPECT_EQ(result, RSSurface);
 }
 
 HWTEST_F(RSVpeManagerTest, CheckAndGetSurface001, TestSize.Level1)
