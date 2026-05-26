@@ -18,14 +18,17 @@
 #include "draw/color.h"
 #include "text_config.h"
 #include "txt/paint_record.h"
+#include "utils/text_histogram.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace AdapterTxt {
+namespace {
 const std::string WGHT_AXIS = "wght";
 constexpr float FONT_WEIGHT_MULTIPLE = 100.0;
 const std::string SUPS{"sups"};
 const std::string SUBS{"subs"};
+}
 
 std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> Convert(
     const std::shared_ptr<OHOS::Rosen::FontCollection>& fontCollection)
@@ -196,9 +199,13 @@ void SplitTextStyleConvert(SPText::TextStyle& textStyle, const TextStyle& style)
     textStyle.fontVariations.SetAxisValue(WGHT_AXIS,
         (static_cast<float>(style.fontWeight) + 1.0) * FONT_WEIGHT_MULTIPLE);
 
-    for (const auto& [axis, pairInfo] : style.fontVariations.GetAxisValues()) {
+    const auto& axisValues = style.fontVariations.GetAxisValues();
+    for (const auto& [axis, pairInfo] : axisValues) {
         auto [value, isNormalization] = pairInfo;
         textStyle.fontVariations.SetAxisValue(axis, value, isNormalization);
+    }
+    if (!axisValues.empty()) {
+        TEXT_HISTOGRAM_BOOLEAN_NAME("FontVariationAxis", true);
     }
 }
 
