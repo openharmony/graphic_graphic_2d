@@ -920,6 +920,7 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffectFrostedGlassNoCustomRegion001, Tes
     auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
     auto drawingFilter = std::make_shared<RSDrawingFilter>();
     drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->SetHasCustomRegion(false);
     drawingFilter->OnSync();
     EXPECT_TRUE(drawingFilter->HasCustomRegion());
 
