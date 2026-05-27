@@ -2266,8 +2266,6 @@ HWTEST_F(RSInterfacesTest, SetScreenCorrection, Function | SmallTest | Level2)
     ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
 
-
-
 /*
  * @tc.name: SetVirtualScreenBlackList
  * @tc.desc: Test SetVirtualScreenBlackList
