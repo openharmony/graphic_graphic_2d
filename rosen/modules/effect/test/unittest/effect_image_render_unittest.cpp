@@ -776,7 +776,7 @@ HWTEST_F(EffectImageFilterUnittest, ScaleFilterWithValidScales003, TestSize.Leve
     EXPECT_NE(filter, nullptr);
 }
 
-/** 
+/**
 * @tc.name: ScaleFilterWithDifferentFilterModes001
 * @tc.desc: Test EffectImageFilter::Scale with different filter modes
 * @tc.type: FUNC
@@ -784,7 +784,7 @@ HWTEST_F(EffectImageFilterUnittest, ScaleFilterWithValidScales003, TestSize.Leve
 HWTEST_F(EffectImageFilterUnittest, ScaleFilterWithDifferentFilterModes001, TestSize.Level1)
 {
     auto filter1 = EffectImageFilter::Scale(1.0f, 1.0f,
-        Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE); 
+        Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
         EXPECT_NE(filter1, nullptr);
 
     auto filter2 = EffectImageFilter::Scale(1.0f, 1.0f,

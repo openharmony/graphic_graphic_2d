@@ -15,6 +15,7 @@
 
 #ifndef EFFECT_IMAGE_CHAIN_H
 #define EFFECT_IMAGE_CHAIN_H
+#endif
 
 #include <memory>
 #include <mutex>

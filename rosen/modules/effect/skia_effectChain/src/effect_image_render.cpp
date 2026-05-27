@@ -347,18 +347,18 @@ DrawingError EffectImageRender::RenderNativeBuffer(const std::shared_ptr<Media::
             break;
         }
 
+        *syncFenceFd = effectImage->GetfenceId();
+        effectImage->SetForceReleaseGpuContext(releaseGpuContext);
         if (syncFenceFd == nullptr) {
+            EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: syncFenceFd is an empty pointer.");
             ret = DrawingError::ERR_ILLEGAL_INPUT;
-            EFFECT_LOG_E("syncFenceFd is an empty pointer.");
             break;
         }
         ret = effectImage->DrawNativeBuffer();
-
         if (ret != DrawingError::ERR_OK) {
             EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Failed to draw image, ret=%{public}d.", ret);
             break;
         }
-        *syncFenceFd = effectImage->GetfenceId();
     } while (false);
  
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
