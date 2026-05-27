@@ -112,6 +112,8 @@ enum class RSNGEffectType : int16_t {
     SDF_TRANSFORM_SHAPE,
     SDF_EMPTY_SHAPE,
     SDF_DISTORT_OP_SHAPE,
+    SDF_SUB_OP_SHAPE,
+    SDF_SMOOTH_SUB_OP_SHAPE,
     // shader type
     CONTOUR_DIAGONAL_FLOW_LIGHT,
     DOT_MATRIX_SHADER,
@@ -141,8 +143,6 @@ enum class RSNGEffectType : int16_t {
     SPATIAL_POINT_LIGHT,
     SPATIAL_GLASS_EFFECT,
     MOTION_BLUR,
-    SDF_SUB_OP_SHAPE,
-    SDF_SMOOTH_SUB_OP_SHAPE,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

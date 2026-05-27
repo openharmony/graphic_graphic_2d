@@ -69,12 +69,17 @@ const std::vector<MixedShapeParam> mixedSubParams = {
 };
 
 const std::vector<RRectPairParam> edgeSubParams = {
-    { RRect { RectT<float> { 80, 90, 0, 180 }, 20.0f, 20.0f },
-        RRect { RectT<float> { 180, 110, 160, 140 }, 20.0f, 20.0f }, 0.0f },
     { RRect { RectT<float> { 90, 90, 350, 260 }, 45.0f, 45.0f },
-        RRect { RectT<float> { 20, 20, 560, 360 }, 60.0f, 60.0f }, -30.0f },
+        RRect { RectT<float> { 20, 20, 560, 360 }, 60.0f, 60.0f }, SMOOTH_SPACING_SMALL },
     { RRect { RectT<float> { 80, 90, 210, 170 }, 25.0f, 25.0f },
-        RRect { RectT<float> { 380, 110, 170, 150 }, 25.0f, 25.0f }, 300.0f },
+        RRect { RectT<float> { 380, 110, 170, 150 }, 25.0f, 25.0f }, SMOOTH_SPACING_MEDIUM },
+};
+
+const std::vector<RRectPairParam> smoothSpacingEdgeParams = {
+    { RRect { RectT<float> { 80, 90, 360, 260 }, 40.0f, 40.0f },
+        RRect { RectT<float> { 220, 120, 180, 160 }, 30.0f, 30.0f }, 0.0f },
+    { RRect { RectT<float> { 90, 90, 350, 260 }, 45.0f, 45.0f },
+        RRect { RectT<float> { 210, 120, 180, 160 }, 30.0f, 30.0f }, -30.0f },
 };
 } // namespace
 
@@ -241,8 +246,14 @@ GRAPHIC_TEST(NGSDFSubOpShapeTest, EFFECT_TEST, Set_SDF_SmoothSubOpShape_Normal_T
 GRAPHIC_TEST(NGSDFSubOpShapeTest, EFFECT_TEST, Set_SDF_SubOpShape_EdgeCase_Test_1)
 {
     int index = 0;
-    int rowCount = static_cast<int>(edgeSubParams.size() + 3);
+    int rowCount = static_cast<int>(edgeSubParams.size() + smoothSpacingEdgeParams.size() + 6);
     for (const auto& param : edgeSubParams) {
+        auto left = CreateRRectShape(param.left);
+        auto right = CreateRRectShape(param.right);
+        AddCaseNode(this, CreateSubOpShape(left, right), index++, rowCount);
+    }
+
+    for (const auto& param : smoothSpacingEdgeParams) {
         auto left = CreateRRectShape(param.left);
         auto right = CreateRRectShape(param.right);
         AddCaseNode(this, CreateSmoothSubOpShape(left, right, param.spacing), index++, rowCount);
@@ -252,5 +263,8 @@ GRAPHIC_TEST(NGSDFSubOpShapeTest, EFFECT_TEST, Set_SDF_SubOpShape_EdgeCase_Test_
     AddCaseNode(this, CreateSubOpShape(nullptr, validShape), index++, rowCount);
     AddCaseNode(this, CreateSubOpShape(validShape, nullptr), index++, rowCount);
     AddCaseNode(this, CreateSubOpShape(nullptr, nullptr), index++, rowCount);
+    AddCaseNode(this, CreateSmoothSubOpShape(nullptr, validShape, SMOOTH_SPACING_MEDIUM), index++, rowCount);
+    AddCaseNode(this, CreateSmoothSubOpShape(validShape, nullptr, SMOOTH_SPACING_MEDIUM), index++, rowCount);
+    AddCaseNode(this, CreateSmoothSubOpShape(nullptr, nullptr, SMOOTH_SPACING_MEDIUM), index++, rowCount);
 }
 } // namespace OHOS::Rosen
