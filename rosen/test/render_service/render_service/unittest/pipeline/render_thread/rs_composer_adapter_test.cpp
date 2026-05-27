@@ -73,7 +73,11 @@ void RSComposerAdapterTest::SetUpTestCase()
 
 void RSComposerAdapterTest::TearDownTestCase()
 {
-    rsRenderComposerManager->rsRenderComposerAgentMap_[screenId_]->rsRenderComposer_->uniRenderEngine_ = nullptr;
+    auto iter = rsRenderComposerManager->rsRenderComposerAgentMap_.find(screenId_);
+    if (iter != rsRenderComposerManager->rsRenderComposerAgentMap_.end() && iter->second != nullptr &&
+        iter->second->rsRenderComposer_ != nullptr) {
+        iter->second->rsRenderComposer_->uniRenderEngine_ = nullptr;
+    }
     hdiOutput_ = nullptr;
     composerAdapter_ = nullptr;
     hdiDeviceMock_ = nullptr;
