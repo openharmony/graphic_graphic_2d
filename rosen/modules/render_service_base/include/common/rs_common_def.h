@@ -53,6 +53,7 @@ constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
 constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
+constexpr int32_t INSTANCE_ID_UNDEFINED_TASK_RUNNER = 0;
 constexpr uint32_t RGBA_MAX = 255;
 constexpr uint64_t INVALID_LEASH_PERSISTENTID = 0;
 constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
