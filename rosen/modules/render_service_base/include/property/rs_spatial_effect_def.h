@@ -18,6 +18,7 @@
 
 #include <variant>
 
+#include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 
@@ -35,6 +36,7 @@ struct DepthCameraPara {
     float yFov = 0.f;
     float zNear = 0.1f;
     float zFar = 100.f;
+    Vector2f offset;
 };
 
 struct DepthLightPara {

@@ -311,6 +311,9 @@ private:
     friend class OHOS::Rosen::DrawableV2::RSEnvFGColorDrawable;
     friend class OHOS::Rosen::DrawableV2::RSEnvFGColorStrategyDrawable;
     friend class OHOS::Rosen::RSRenderNode;
+#ifdef RS_PROFILER_ENABLED
+    friend class OHOS::Rosen::RSProfiler;
+#endif
 };
 
 // =============================================

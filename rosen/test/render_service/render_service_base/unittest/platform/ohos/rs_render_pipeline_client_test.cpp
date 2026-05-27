@@ -96,6 +96,27 @@ public:
     bool isOnCallBack_ = false;
 };
 
+class TestSurfaceBufferCallback : public SurfaceBufferCallback {
+public:
+    TestSurfaceBufferCallback() = default;
+    ~TestSurfaceBufferCallback() override = default;
+    void OnFinish(const FinishCallbackRet& ret) override
+    {
+        isOnFinishCalled_ = true;
+        finishRet_ = ret;
+    }
+    void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override
+    {
+        isOnAfterAcquireBufferCalled_ = true;
+        afterAcquireBufferRet_ = ret;
+    }
+ 
+    bool isOnFinishCalled_ = false;
+    bool isOnAfterAcquireBufferCalled_ = false;
+    FinishCallbackRet finishRet_;
+    AfterAcquireBufferRet afterAcquireBufferRet_;
+};
+
 /**
  * @tc.name: TakeSurfaceCapture_Test
  * @tc.desc: Test capture twice with same id
@@ -816,6 +837,81 @@ HWTEST_F(RSPipelineClientTest, UpdateFrameStabilityDetection002, TestSize.Level1
     EXPECT_EQ(ret, 0);
 
     RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
+}
+
+/**
+ * @tc.name: TriggerOnFinish001
+ * @tc.desc: Test TriggerOnFinish with callback found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, TriggerOnFinish001, TestSize.Level1)
+{
+    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    auto callback = std::make_shared<TestSurfaceBufferCallback>();
+    uint64_t testUid = 999;
+    rsRenderPipelineClient->surfaceBufferCallbacks_[testUid] = callback;
+ 
+    FinishCallbackRet ret;
+    ret.uid = testUid;
+    rsRenderPipelineClient->TriggerOnFinish(ret);
+    EXPECT_TRUE(callback->isOnFinishCalled_);
+    EXPECT_EQ(callback->finishRet_.uid, testUid);
+ 
+    rsRenderPipelineClient->surfaceBufferCallbacks_.erase(testUid);
+}
+ 
+/**
+ * @tc.name: TriggerOnFinish002
+ * @tc.desc: Test TriggerOnFinish with callback not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, TriggerOnFinish002, TestSize.Level1)
+{
+    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    FinishCallbackRet ret;
+    ret.uid = 12345;
+    rsRenderPipelineClient->TriggerOnFinish(ret);
+}
+ 
+/**
+ * @tc.name: TriggerOnAfterAcquireBuffer001
+ * @tc.desc: Test TriggerOnAfterAcquireBuffer with callback found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, TriggerOnAfterAcquireBuffer001, TestSize.Level1)
+{
+    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    auto callback = std::make_shared<TestSurfaceBufferCallback>();
+    uint64_t testUid = 888;
+    rsRenderPipelineClient->surfaceBufferCallbacks_[testUid] = callback;
+ 
+    AfterAcquireBufferRet ret;
+    ret.uid = testUid;
+    ret.isUniRender = true;
+    rsRenderPipelineClient->TriggerOnAfterAcquireBuffer(ret);
+    EXPECT_TRUE(callback->isOnAfterAcquireBufferCalled_);
+    EXPECT_EQ(callback->afterAcquireBufferRet_.uid, testUid);
+    EXPECT_EQ(callback->afterAcquireBufferRet_.isUniRender, true);
+ 
+    rsRenderPipelineClient->surfaceBufferCallbacks_.erase(testUid);
+}
+ 
+/**
+ * @tc.name: TriggerOnAfterAcquireBuffer002
+ * @tc.desc: Test TriggerOnAfterAcquireBuffer with callback not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, TriggerOnAfterAcquireBuffer002, TestSize.Level1)
+{
+    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    AfterAcquireBufferRet ret;
+    ret.uid = 54321;
+    ret.isUniRender = false;
+    rsRenderPipelineClient->TriggerOnAfterAcquireBuffer(ret);
 }
 #endif
 } // namespace Rosen

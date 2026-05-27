@@ -501,7 +501,7 @@ void RSUifirstManager::ProcessDoneNode()
             drawable->GetName().c_str(), id, static_cast<int>(cacheStatus));
         RS_TRACE_NAME_FMT("erase processingNode. name:%s, id:%" PRIu64 ", state:%d",
             drawable->GetName().c_str(), id, static_cast<int>(cacheStatus));
-        pendingPostNodes_.erase(it->first); // dele doing node in pendingpostlist
+        pendingPostNodes_.erase(it->first); // delete doing node in pendingpostlist
         pendingPostCardNodes_.erase(it->first);
         // skipped by doing, need update cache because the doing cache is too old
         RSUifirstManager::Instance().AddProcessSkippedNode(it->first);
@@ -892,7 +892,7 @@ void RSUifirstManager::PostSubTask(NodeId id)
         return;
     }
 
-    // 1.find in cache list(done to dele) 2.find in global list
+    // 1.find in cache list(done to delete) 2.find in global list
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
     if (drawable) {
         auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
@@ -933,7 +933,7 @@ void RSUifirstManager::PostReleaseCacheSurfaceSubTask(NodeId id)
         return;
     }
 
-    // 1.find in cache list(done to dele) 2.find in global list
+    // 1.find in cache list(done to delete) 2.find in global list
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
     if (drawable) {
         // post task
@@ -956,7 +956,7 @@ void RSUifirstManager::UpdateSkipSyncNode()
         return;
     }
     for (auto it = subthreadProcessingNode_.begin(); it != subthreadProcessingNode_.end(); it++) {
-        RS_OPTIONAL_TRACE_NAME_FMT("doning%" PRIu64"", it->first);
+        RS_OPTIONAL_TRACE_NAME_FMT("doing%" PRIu64"", it->first);
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(it->first);
         if (!node) {
             continue;
@@ -1292,13 +1292,13 @@ void RSUifirstManager::MarkPostNodesPriority()
 }
 
 // post in drawframe sync time
-void RSUifirstManager::PostUifistSubTasks()
+void RSUifirstManager::PostUifirstSubTasks()
 {
     PurgePendingPostNodes();
     SortSubThreadNodesPriority();
     MarkPostNodesPriority();
     if (sortedSubThreadNodeIds_.size() > 0) {
-        RS_TRACE_NAME_FMT("PostUifistSubTasks %zu", sortedSubThreadNodeIds_.size());
+        RS_TRACE_NAME_FMT("PostUifirstSubTasks %zu", sortedSubThreadNodeIds_.size());
         for (auto& id : sortedSubThreadNodeIds_) {
             PostSubTask(id);
         }

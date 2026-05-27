@@ -68,7 +68,24 @@ public:
         Vector2f delta = point - regionPosition_;
         float hw = regionSize_.x_ / 2.0f;
         float hh = regionSize_.y_ / 2.0f;
-        return (std::abs(delta.x_) <= hw && std::abs(delta.y_) <= hh);
+        if (regionShape_ == ShapeType::RECT) {
+            return (std::abs(delta.x_) <= hw && std::abs(delta.y_) <= hh);
+        }
+        if (regionShape_ == ShapeType::CIRCLE) {
+            if (ROSEN_EQ(hw, 0.0f)) {
+                return false;
+            }
+            return (delta.x_ * delta.x_ + delta.y_ * delta.y_) <= (hw * hw);
+        }
+        if (regionShape_ == ShapeType::ELLIPSE) {
+            if (ROSEN_EQ(hw, 0.0f) || ROSEN_EQ(hh, 0.0f)) {
+                return false;
+            }
+            double nx = static_cast<double>(delta.x_) / hw;
+            double ny = static_cast<double>(delta.y_) / hh;
+            return (nx * nx + ny * ny) <= 1.0;
+        }
+        return false;
     }
 
     void Dump(std::string& out) const override

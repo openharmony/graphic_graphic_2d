@@ -36,6 +36,7 @@
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
@@ -463,13 +464,9 @@ void DoSetScreenBacklight()
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    ScreenId id = GetData<uint64_t>();
-    uint32_t level = GetData<uint32_t>();
-    float brightnessPosition = GetData<float>();
+    RsScreenBrightnessData brightnessData(GetData<uint64_t>(), GetData<uint32_t>(), GetData<float>());
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint64(id);
-    dataParcel.WriteUint32(level);
-    dataParcel.WriteFloat(brightnessPosition);
+    RSMarshallingHelper::Marshalling(dataParcel, brightnessData);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 

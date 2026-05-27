@@ -65,7 +65,7 @@ struct BrightnessInfo {
     float currentHeadroom = 1.0f;
     float maxHeadroom = 1.0f;
     float sdrNits = 500.0f;
-    float brightnessPosition = -1.0f;
+    float brightnessPosition = 0.0f;
 
     bool operator==(const BrightnessInfo& other) const
     {

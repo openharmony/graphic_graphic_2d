@@ -43,6 +43,8 @@
 #include "rs_parallel_misc.h"
 #endif
 
+#include "rs_profiler.h"
+
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
@@ -128,6 +130,9 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (SkipCulledNodeOrEntireSubtree(canvas, bounds)) {
         return;
     }
+
+    std::shared_ptr<::trace3d::api::DebugScope> dbgScope =
+        RS_PROFILER_TRACE3D_DEBUG_SCOPE(static_cast<uint64_t>(GetId()));
 
 #ifdef SUBTREE_PARALLEL_ENABLE
     if (RSParallelManager::Singleton().OnDrawNodeDrawable(canvas, bounds, this)) {

@@ -105,7 +105,7 @@ void RSDrawFrame::RenderFrame()
 #ifdef MHC_ENABLE
     RSMhcManager::Instance().UpdateFrameId();
 #endif
-    RSUifirstManager::Instance().PostUifistSubTasks();
+    RSUifirstManager::Instance().PostUifirstSubTasks();
     RSMainThread::Instance()->CheckWindowCapTasks();
     RSMainThread::Instance()->ProcessWindowCapTasks();
     UnblockMainThread();
@@ -189,7 +189,7 @@ void RSDrawFrame::PostAndWait()
         case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
             unirenderInstance_.PostSyncTask([this, renderFrameNumber]() {
                 unirenderInstance_.SetMainLooping(true);
-                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
+                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber);
                 RenderFrame();
                 unirenderInstance_.ClearResource();
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
@@ -208,7 +208,7 @@ void RSDrawFrame::PostAndWait()
             canUnblockMainThread = false;
             unirenderInstance_.PostTask([this, renderFrameNumber]() {
                 unirenderInstance_.SetMainLooping(true);
-                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
+                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber);
                 RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationBegin();
                 RenderFrame();
                 unirenderInstance_.ClearResource();

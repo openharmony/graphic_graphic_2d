@@ -34,6 +34,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "render/rs_typeface_cache.h"
 #include "rs_trace.h"
@@ -1441,9 +1442,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT): {
             RsScreenBrightnessData brightnessData;
-            if (!data.ReadUint64(brightnessData.screenId) || !data.ReadUint32(brightnessData.level) ||
-                !data.ReadFloat(brightnessData.brightnessPosition)) {
-                ROSEN_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_BACK_LIGHT Read parcel failed!");
+            if (!RSMarshallingHelper::Unmarshalling(data, brightnessData)) {
+                ROSEN_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_BACK_LIGHT Unmarshalling failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }

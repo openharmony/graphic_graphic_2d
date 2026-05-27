@@ -185,4 +185,34 @@ HWTEST_F(UIFirstParamParseTest, GetUIFirstSwitchTypeOcclusionEnabledTest, TestSi
     auto res = uifirstParamParse.GetUIFirstSwitchType("OcclusionEnabled");
     ASSERT_EQ(res, UIFirstSwitchType::OCCLUSION_ENABLED);
 }
+
+/**
+ * @tc.name: ParseSubThreadFrameRateControlBySceneTest
+ * @tc.desc: Test parse SubThreadFrameRateControlByScene param
+ * @tc.type: FUNC
+ * @tc.require:#23839
+ */
+HWTEST_F(UIFirstParamParseTest, ParseSubThreadFrameRateControlBySceneTest, TestSize.Level1)
+{
+    UIFirstParamParse uifirstParamParse;
+    string name = "SubThreadFrameRateControlByScene";
+    string value = "test";
+ 
+    UIFirstParam::SetSubThreadFrameRateControlByScene(0xFF);
+    auto res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
+    ASSERT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 0xFFu);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+ 
+    value = "0";
+    UIFirstParam::SetSubThreadFrameRateControlByScene(0xFF);
+    res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
+    ASSERT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 0u);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+ 
+    value = "252";
+    UIFirstParam::SetSubThreadFrameRateControlByScene(0xFF);
+    res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
+    ASSERT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 252u);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+}
 }

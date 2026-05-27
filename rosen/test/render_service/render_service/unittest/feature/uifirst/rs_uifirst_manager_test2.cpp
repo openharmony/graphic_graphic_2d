@@ -697,12 +697,12 @@ HWTEST_F(RSUifirstManagerTest2, UpdateCompletedSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: PostUifistSubTasks
+ * @tc.name: PostUifirstSubTasks
  * @tc.desc: Test post task to subthread
  * @tc.type: FUNC
  * @tc.require: issueIBVHE7
  */
-HWTEST_F(RSUifirstManagerTest2, PostUifistSubTasks, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest2, PostUifirstSubTasks, TestSize.Level1)
 {
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.pendingPostNodes_.clear();
@@ -718,7 +718,7 @@ HWTEST_F(RSUifirstManagerTest2, PostUifistSubTasks, TestSize.Level1)
     uifirstManager_.pendingPostNodes_.insert(std::make_pair(surfaceNode3->GetId(), surfaceNode3));
     auto surfaceNode4 = RSTestUtil::CreateSurfaceNode();
     uifirstManager_.pendingPostNodes_.insert(std::make_pair(surfaceNode4->GetId(), surfaceNode4));
-    uifirstManager_.PostUifistSubTasks();
+    uifirstManager_.PostUifirstSubTasks();
     ASSERT_TRUE(uifirstManager_.sortedSubThreadNodeIds_.empty());
 }
 

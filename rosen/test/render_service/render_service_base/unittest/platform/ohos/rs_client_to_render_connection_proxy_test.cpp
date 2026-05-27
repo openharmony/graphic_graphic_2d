@@ -423,47 +423,6 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, GetBrightnessInfoTest, TestSize.Le
 }
 
 /**
- * @tc.name: ReadBrightnessInfoTest
- * @tc.desc: test results of ReadBrightnessInfo
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToRenderConnectionProxyTest, ReadBrightnessInfoTest, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-    BrightnessInfo brightnessInfo = { 0 };
-
-    // case 1: valid data
-    {
-        MessageParcel data;
-        data.WriteFloat(1.0f);
-        data.WriteFloat(1.0f);
-        data.WriteFloat(1.0f);
-        ASSERT_TRUE(proxy->ReadBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 2: invalid data
-    {
-        MessageParcel data;
-        data.WriteFloat(1.0f);
-        data.WriteFloat(1.0f);
-        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 3: invalid data
-    {
-        MessageParcel data;
-        data.WriteFloat(1.0f);
-        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 4: invalid data
-    {
-        MessageParcel data;
-        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
-    }
-}
-
-/**
  * @tc.name: TakeSurfaceCaptureSoloNode Test
  * @tc.desc: TakeSurfaceCaptureSoloNode Test
  * @tc.type:FUNC

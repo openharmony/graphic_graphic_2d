@@ -99,8 +99,6 @@ public:
     
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
 
-    bool ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data);
-    
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
 
     ErrCode DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0) override;

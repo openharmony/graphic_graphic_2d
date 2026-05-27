@@ -1100,23 +1100,11 @@ int32_t RSClientToRenderConnectionProxy::GetBrightnessInfo(ScreenId screenId, Br
         ROSEN_LOGE("RSClientToRenderConnectionProxy::GetBrightnessInfo Read result failed");
         return READ_PARCEL_ERR;
     }
-    if (!ReadBrightnessInfo(brightnessInfo, reply)) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::ReadBrightnessInfo ReadBrightnessInfo failed!");
+    if (!RSMarshallingHelper::Unmarshalling(reply, brightnessInfo)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetBrightnessInfo read brightnessInfo failed!");
         return READ_PARCEL_ERR;
     }
     return result;
-}
-
-bool RSClientToRenderConnectionProxy::ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data)
-{
-    if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
-        !data.ReadFloat(brightnessInfo.maxHeadroom) ||
-        !data.ReadFloat(brightnessInfo.sdrNits) ||
-        !data.ReadFloat(brightnessInfo.brightnessPosition)) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::ReadBrightnessInfo read parcel failed!");
-        return false;
-    }
-    return true;
 }
 
 ErrCode RSClientToRenderConnectionProxy::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode)

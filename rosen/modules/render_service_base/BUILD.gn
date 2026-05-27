@@ -836,7 +836,11 @@ ohos_source_set("render_service_base_src") {
       defines += [ "RS_PROFILER_SUPPORTS_PIXELMAP_YUV_EXT" ]
     }
   }
-  include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
+
+  include_dirs += [ 
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
+    "$graphic_2d_root/rosen/modules/render_service_profiler/trace3dapi",
+  ]
 
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {

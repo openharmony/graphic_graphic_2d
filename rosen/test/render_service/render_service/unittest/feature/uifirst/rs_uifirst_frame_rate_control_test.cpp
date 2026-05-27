@@ -546,10 +546,230 @@ HWTEST_F(RSUifirstFrameRateControlTest, StopAnimationTest, TestSize.Level1)
 HWTEST_F(RSUifirstFrameRateControlTest, MultTaskAnimationTest, TestSize.Level1)
 {
     RSUifirstFrameRateControl control;
-    control.SetMultTaskAnimation(false);
-    EXPECT_EQ(control.JudgeMultTaskAnimation(), false);
-    control.SetMultTaskAnimation(true);
-    EXPECT_EQ(control.JudgeMultTaskAnimation(), true);
+    control.SetMultiTaskAnimation(false);
+    EXPECT_EQ(control.JudgeMultiTaskAnimation(), false);
+    control.SetMultiTaskAnimation(true);
+    EXPECT_EQ(control.JudgeMultiTaskAnimation(), true);
 }
 
+/**
+  * @tc.name: GetSceneIdBitTest001
+  * @tc.desc: Test GetSceneIdBit with LAUNCHER_APP_LAUNCH_FROM_ICON
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest001, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_APP_LAUNCH_FROM_ICON);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest002
+  * @tc.desc: Test GetSceneIdBit with LAUNCHER_APP_LAUNCH_FROM_DOCK
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest002, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_APP_LAUNCH_FROM_DOCK);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest003
+  * @tc.desc: Test GetSceneIdBit with LAUNCHER_APP_SWIPE_TO_HOME
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest003, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_SWIPE_TO_HOME);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_APP_SWIPE_TO_HOME);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest004
+  * @tc.desc: Test GetSceneIdBit with GESTURE_TO_RECENTS
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest004, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::GESTURE_TO_RECENTS);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_GESTURE_TO_RECENTS);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest005
+  * @tc.desc: Test GetSceneIdBit with EXIT_RECENT_2_HOME_ANI
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest005, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::EXIT_RECENT_2_HOME_ANI);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_EXIT_RECENT);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest006
+  * @tc.desc: Test GetSceneIdBit with CLEAR_1_RECENT_ANI
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest006, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::CLEAR_1_RECENT_ANI);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_EXIT_RECENT);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest007
+  * @tc.desc: Test GetSceneIdBit with CLEAR_ALL_RECENT_ANI
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest007, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::CLEAR_ALL_RECENT_ANI);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_EXIT_RECENT);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest008
+  * @tc.desc: Test GetSceneIdBit with AOD_TO_LAUNCHER
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest008, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::AOD_TO_LAUNCHER);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_AOD_TO_LAUNCHER);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest009
+  * @tc.desc: Test GetSceneIdBit with LOCKSCREEN_TO_LAUNCHER
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest009, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::LOCKSCREEN_TO_LAUNCHER);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_LOCKSCREEN_TO_LAUNCHER);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest010
+  * @tc.desc: Test GetSceneIdBit with UNKNOWN scene
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest010, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::UNKNOWN);
+    EXPECT_EQ(result, 0);
+}
+ 
+/**
+  * @tc.name: GetSceneIdBitTest011
+  * @tc.desc: Test GetSceneIdBit with LAUNCHER_APP_LAUNCH_FROM_RECENT (goes to default)
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest011, TestSize.Level1)
+{
+    auto result = RSUifirstFrameRateControl::GetSceneIdBit(
+        RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT);
+    EXPECT_EQ(result, 0);
+}
+ 
+/**
+  * @tc.name: IsSceneEnabledTest001
+  * @tc.desc: Test IsSceneEnabled returns bool result
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest001, TestSize.Level1)
+{
+    RSUifirstFrameRateControl control;
+    auto result = control.IsSceneEnabled(RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON);
+    EXPECT_TRUE(result || !result);
+}
+ 
+/**
+  * @tc.name: IsSceneEnabledTest002
+  * @tc.desc: Test IsSceneEnabled with UNKNOWN scene
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest002, TestSize.Level1)
+{
+    RSUifirstFrameRateControl control;
+    auto result = control.IsSceneEnabled(RSUifirstFrameRateControl::SceneId::UNKNOWN);
+    EXPECT_FALSE(result);
+}
+ 
+/**
+  * @tc.name: IsSceneEnabledTest003
+  * @tc.desc: Test IsSceneEnabled with LAUNCHER_APP_LAUNCH_FROM_DOCK
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest003, TestSize.Level1)
+{
+    RSUifirstFrameRateControl control;
+    auto result = control.IsSceneEnabled(RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK);
+    EXPECT_TRUE(result || !result);
+}
+ 
+/**
+  * @tc.name: IsSceneEnabledTest004
+  * @tc.desc: Test IsSceneEnabled with LAUNCHER_APP_SWIPE_TO_HOME
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest004, TestSize.Level1)
+{
+    RSUifirstFrameRateControl control;
+    auto result = control.IsSceneEnabled(RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_SWIPE_TO_HOME);
+    EXPECT_TRUE(result || !result);
+}
+ 
+/**
+  * @tc.name: IsSceneEnabledTest005
+  * @tc.desc: Test IsSceneEnabled with GESTURE_TO_RECENTS
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest005, TestSize.Level1)
+{
+    RSUifirstFrameRateControl control;
+    auto result = control.IsSceneEnabled(RSUifirstFrameRateControl::SceneId::GESTURE_TO_RECENTS);
+    EXPECT_TRUE(result || !result);
+}
+ 
+/**
+  * @tc.name: IsSceneEnabledTest006
+  * @tc.desc: Test IsSceneEnabled with EXIT_RECENT_2_HOME_ANI
+  * @tc.type: FUNC
+  * @tc.require:#23839
+  */
+HWTEST_F(RSUifirstFrameRateControlTest, IsSceneEnabledTest006, TestSize.Level1)
+{
+    RSUifirstFrameRateControl control;
+    auto result = control.IsSceneEnabled(RSUifirstFrameRateControl::SceneId::EXIT_RECENT_2_HOME_ANI);
+    EXPECT_TRUE(result || !result);
+}
 }

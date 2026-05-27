@@ -239,11 +239,11 @@ napi_value JsFontCollection::LoadFontSync(napi_env env, napi_callback_info info)
 {
     JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
     if (me == nullptr) {
-        TEXT_HISTOGRAM_BOOLEAN(false);
+        TEXT_HISTOGRAM_BOOLEAN_NAME("loadFontSync", false);
         return nullptr;
     }
     auto result = me->OnLoadFont(env, info);
-    TEXT_HISTOGRAM_BOOLEAN(result.success);
+    TEXT_HISTOGRAM_BOOLEAN_NAME("loadFontSync", result.success);
     return result.result;
 }
 
@@ -252,11 +252,11 @@ napi_value JsFontCollection::LoadFontSyncWithCheck(napi_env env, napi_callback_i
 {
     JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
     if (me == nullptr) {
-        TEXT_HISTOGRAM_BOOLEAN(false);
+        TEXT_HISTOGRAM_BOOLEAN_NAME("loadFontSyncWithCheck", false);
         return NapiThrowError(env, MLB::ERROR_INVALID_PARAM, "invalid param");
     }
     auto result = me->OnLoadFont(env, info);
-    TEXT_HISTOGRAM_BOOLEAN(result.success);
+    TEXT_HISTOGRAM_BOOLEAN_NAME("loadFontSyncWithCheck", result.success);
     if (result.success) {
         return NapiGetUndefined(env);
     }
@@ -507,9 +507,9 @@ NapiTextResult JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_inf
     auto executor = [this, context, withCheck]() {
         OnLoadFontAsyncExecutor(context);
         if (withCheck) {
-            TEXT_HISTOGRAM_BOOLEAN_NAME("LoadFontWithCheck", context->result.success);
+            TEXT_HISTOGRAM_BOOLEAN_NAME("loadFontWithCheck", context->result.success);
         } else {
-            TEXT_HISTOGRAM_BOOLEAN_NAME("LoadFont", context->result.success);
+            TEXT_HISTOGRAM_BOOLEAN_NAME("loadFont", context->result.success);
         }
     };
     auto complete = [env, context, withCheck](napi_value& output) {
@@ -525,7 +525,7 @@ NapiTextResult JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_inf
 
 napi_value JsFontCollection::UnloadFontAsync(napi_env env, napi_callback_info info)
 {
-    TEXT_HISTOGRAM_BOOLEAN(true);
+    TEXT_HISTOGRAM_BOOLEAN_NAME("unloadFont", true);
     JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
     return (me != nullptr) ? me->OnUnloadFontAsync(env, info).result : nullptr;
 }
@@ -534,11 +534,11 @@ napi_value JsFontCollection::UnloadFontSync(napi_env env, napi_callback_info inf
 {
     JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
     if (me == nullptr) {
-        TEXT_HISTOGRAM_BOOLEAN(false);
+        TEXT_HISTOGRAM_BOOLEAN_NAME("unloadFontSync", false);
         return nullptr;
     }
     auto result = me->OnUnloadFont(env, info);
-    TEXT_HISTOGRAM_BOOLEAN(result.success);
+    TEXT_HISTOGRAM_BOOLEAN_NAME("unloadFontSync", result.success);
     return result.result;
 }
 
