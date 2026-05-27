@@ -42,7 +42,7 @@ void OHDrawingTextFontFullDescriptorTest(const uint8_t* data, size_t size)
 
     auto random = fdp.ConsumeRandomLengthString();
     auto streamArray = OH_Drawing_GetFontFullDescriptorsFromStream(random.data(), random.size());
-    OH_Drawing_GetFontFullDescriptorsFromPath(random.data());
+    auto randomPathArray = OH_Drawing_GetFontFullDescriptorsFromPath(random.data());
     auto pathArray = OH_Drawing_GetFontFullDescriptorsFromPath("/system/fonts/NotoSansCJK-Regular.ttc");
 
     auto streamDesc = OH_Drawing_GetFontFullDescriptorByIndex(streamArray, fdp.ConsumeIntegral<size_t>());
@@ -64,6 +64,7 @@ void OHDrawingTextFontFullDescriptorTest(const uint8_t* data, size_t size)
     OH_Drawing_GetFontFullDescriptorAttributeBool(pathDesc, id, &boolAttr);
 
     OH_Drawing_DestroyFontFullDescriptors(streamArray);
+    OH_Drawing_DestroyFontFullDescriptors(randomPathArray);
     OH_Drawing_DestroyFontFullDescriptors(pathArray);
 }
 
@@ -140,6 +141,154 @@ void OHDrawingTextFontPathTest(const uint8_t* data, size_t size)
     free(pathArray);
 }
 
+void OHDrawingFontDescriptorNullParamTest(const uint8_t* data, size_t size)
+{
+    FuzzedDataProvider fdp(data, size);
+
+    // Branch: OH_Drawing_MatchFontDescriptors with null desc
+    size_t count = 0;
+    OH_Drawing_MatchFontDescriptors(nullptr, &count);
+
+    // Branch: OH_Drawing_MatchFontDescriptors with null num
+    OH_Drawing_FontDescriptor desc = {};
+    OH_Drawing_MatchFontDescriptors(&desc, nullptr);
+
+    // Branch: OH_Drawing_DestroyFontDescriptors with null
+    OH_Drawing_DestroyFontDescriptors(nullptr, 0);
+    OH_Drawing_DestroyFontDescriptors(nullptr, fdp.ConsumeIntegral<size_t>());
+
+    // Branch: OH_Drawing_GetFontDescriptorByFullName with null fullName
+    OH_Drawing_GetFontDescriptorByFullName(nullptr, OH_Drawing_SystemFontType::ALL);
+
+    // Branch: OH_Drawing_DestroyFontDescriptor with null
+    OH_Drawing_DestroyFontDescriptor(nullptr);
+
+    // Branch: OH_Drawing_GetSystemFontFullNamesByType with fuzzed type
+    OH_Drawing_Array* descs =
+        OH_Drawing_GetSystemFontFullNamesByType(static_cast<OH_Drawing_SystemFontType>(fdp.ConsumeIntegral<uint8_t>()));
+
+    // Branch: OH_Drawing_GetSystemFontFullNameByIndex with null array
+    OH_Drawing_GetSystemFontFullNameByIndex(nullptr, 0);
+
+    // Branch: OH_Drawing_GetSystemFontFullNameByIndex with fuzzed out-of-bounds index
+    OH_Drawing_GetSystemFontFullNameByIndex(descs, fdp.ConsumeIntegral<size_t>());
+
+    OH_Drawing_DestroySystemFontFullNames(descs);
+
+    // Branch: OH_Drawing_DestroySystemFontFullNames with null
+    OH_Drawing_DestroySystemFontFullNames(nullptr);
+
+    // Branch: OH_Drawing_GetFontFullDescriptorByIndex with null array
+    OH_Drawing_GetFontFullDescriptorByIndex(nullptr, 0);
+
+    // Branch: OH_Drawing_GetFontFullDescriptorsFromPath with null path
+    OH_Drawing_GetFontFullDescriptorsFromPath(nullptr);
+
+    // Branch: OH_Drawing_GetFontFullDescriptorsFromStream with null data
+    OH_Drawing_GetFontFullDescriptorsFromStream(nullptr, 0);
+
+    // Branch: OH_Drawing_GetFontFullDescriptorsFromStream with size == 0
+    uint8_t dummy = 0;
+    OH_Drawing_GetFontFullDescriptorsFromStream(&dummy, 0);
+
+    // Branch: OH_Drawing_DestroyFontFullDescriptors with null
+    OH_Drawing_DestroyFontFullDescriptors(nullptr);
+
+    // Branch: OH_Drawing_DestroyFontFullDescriptor with null
+    OH_Drawing_DestroyFontFullDescriptor(nullptr);
+}
+
+void OHDrawingFontUnicodeAndCountTest(const uint8_t* data, size_t size)
+{
+    FuzzedDataProvider fdp(data, size);
+    std::vector<uint8_t> buffer = fdp.ConsumeRemainingBytes<uint8_t>();
+
+    // Branch: OH_Drawing_GetFontUnicodeArrayFromFile with null params
+    int32_t* unicodeArray = nullptr;
+    int32_t arrayLength = 0;
+    OH_Drawing_GetFontUnicodeArrayFromFile(nullptr, 0, &unicodeArray, &arrayLength);
+    OH_Drawing_GetFontUnicodeArrayFromFile("/system/fonts/NotoSansCJK-Regular.ttc", 0, nullptr, &arrayLength);
+    OH_Drawing_GetFontUnicodeArrayFromFile("/system/fonts/NotoSansCJK-Regular.ttc", 0, &unicodeArray, nullptr);
+
+    // Branch: OH_Drawing_GetFontUnicodeArrayFromBuffer with null params
+    OH_Drawing_GetFontUnicodeArrayFromBuffer(nullptr, buffer.size(), 0, &unicodeArray, &arrayLength);
+    OH_Drawing_GetFontUnicodeArrayFromBuffer(buffer.data(), 0, 0, &unicodeArray, &arrayLength);
+    OH_Drawing_GetFontUnicodeArrayFromBuffer(buffer.data(), buffer.size(), 0, nullptr, &arrayLength);
+    OH_Drawing_GetFontUnicodeArrayFromBuffer(buffer.data(), buffer.size(), 0, &unicodeArray, nullptr);
+
+    // Branch: OH_Drawing_GetFontCountFromFile with null
+    OH_Drawing_GetFontCountFromFile(nullptr);
+    // Branch: OH_Drawing_GetFontCountFromFile with valid path
+    OH_Drawing_GetFontCountFromFile("/system/fonts/NotoSansCJK-Regular.ttc");
+
+    // Branch: OH_Drawing_GetFontCountFromBuffer with null
+    OH_Drawing_GetFontCountFromBuffer(nullptr, 0);
+    // Branch: OH_Drawing_GetFontCountFromBuffer with zero length
+    OH_Drawing_GetFontCountFromBuffer(buffer.data(), 0);
+    // Branch: OH_Drawing_GetFontCountFromBuffer with valid buffer
+    if (buffer.size() > 0) {
+        OH_Drawing_GetFontCountFromBuffer(buffer.data(), buffer.size());
+    }
+
+    free(unicodeArray);
+}
+
+void OHDrawingFontPathNullTest(const uint8_t* data, size_t size)
+{
+    FuzzedDataProvider fdp(data, size);
+
+    // Branch: OH_Drawing_GetFontPathsByType with null num
+    auto pathArrayNull =
+        OH_Drawing_GetFontPathsByType(static_cast<OH_Drawing_SystemFontType>(fdp.ConsumeIntegral<uint8_t>()), nullptr);
+    free(pathArrayNull);
+
+    // Branch: OH_Drawing_GetFontFullDescriptorAttributeArray with null descriptor
+    OH_Drawing_GetFontFullDescriptorAttributeArray(nullptr, FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS);
+
+    // Branch: OH_Drawing_GetFontFullDescriptorAttributeArray with fuzzed unknown id
+    auto pathArray = OH_Drawing_GetFontFullDescriptorsFromPath("/system/fonts/NotoSansCJK-Regular.ttc");
+    auto desc = OH_Drawing_GetFontFullDescriptorByIndex(pathArray, 0);
+    auto array = OH_Drawing_GetFontFullDescriptorAttributeArray(
+        desc, static_cast<OH_Drawing_FontFullDescriptorAttributeId>(fdp.ConsumeIntegral<uint8_t>()));
+    OH_Drawing_DestroyFontVariationInstance(array);
+
+    // Branch: OH_Drawing_DestroyFontVariationAxis with null
+    OH_Drawing_DestroyFontVariationAxis(nullptr);
+
+    // Branch: OH_Drawing_GetFontVariationAxisByIndex with null array
+    OH_Drawing_GetFontVariationAxisByIndex(nullptr, 0);
+
+    // Branch: OH_Drawing_GetFontVariationInstanceByIndex with null array
+    OH_Drawing_GetFontVariationInstanceByIndex(nullptr, 0);
+
+    // Branch: OH_Drawing_GetFontVariationInstanceCoordinate with null
+    size_t coordLen = 0;
+    OH_Drawing_GetFontVariationInstanceCoordinate(nullptr, &coordLen);
+
+    // Branch: OH_Drawing_GetFontFullDescriptorByFullName (full descriptor) with null fullName
+    OH_Drawing_GetFontFullDescriptorByFullName(nullptr, OH_Drawing_SystemFontType::ALL);
+
+    OH_Drawing_DestroyFontFullDescriptors(pathArray);
+}
+
+void OHDrawingTextFontDescriptorByFullNameTest(const uint8_t* data, size_t size)
+{
+    FuzzedDataProvider fdp(data, size);
+
+    // Branch: OH_Drawing_GetFontFullDescriptorByFullName (full descriptor version)
+    auto fullNames =
+        OH_Drawing_GetSystemFontFullNamesByType(static_cast<OH_Drawing_SystemFontType>(fdp.ConsumeIntegral<uint8_t>()));
+    size_t length = OH_Drawing_GetDrawingArraySize(fullNames);
+    if (length > 0) {
+        const OH_Drawing_String* fullName = OH_Drawing_GetSystemFontFullNameByIndex(fullNames, 0);
+        if (fullName != nullptr) {
+            auto fullDesc = OH_Drawing_GetFontFullDescriptorByFullName(fullName, OH_Drawing_SystemFontType::ALL);
+            OH_Drawing_DestroyFontFullDescriptor(fullDesc);
+        }
+    }
+    OH_Drawing_DestroySystemFontFullNames(fullNames);
+}
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -148,6 +297,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::OHDrawingTextFontFullDescriptorTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTextFontVariationAxisAttrsTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTextFontPathTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingFontDescriptorNullParamTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingFontUnicodeAndCountTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingFontPathNullTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingTextFontDescriptorByFullNameTest(data, size);
     return 0;
 }
 } // namespace OHOS::Rosen::Drawing

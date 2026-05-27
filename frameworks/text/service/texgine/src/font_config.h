@@ -32,7 +32,6 @@ class FontConfig {
 public:
     explicit FontConfig(const char* fname = nullptr);
     virtual ~FontConfig() = default;
-    virtual void Dump() const;
     std::vector<std::string> GetFontSet() const;
 
 protected:
@@ -103,8 +102,6 @@ public:
     {
         return fontFileMap;
     }
-    // for test
-    void Dump() const override;
 
 private:
     int ParseConfigList(const char* fname);
@@ -116,12 +113,6 @@ private:
     static int ParseInstallFont(const cJSON* root, std::vector<std::string>& fontPathList);
     static int ParseInstallFont(const cJSON* root, FullNameToPath& fontPathList);
     static void ParseFullName(const cJSON* root, std::vector<std::string>& fullNameList);
-    void DumpFontDir() const;
-    void DumpGeneric() const;
-    void DumpForbak() const;
-    void DumpAlias(const AliasSet &aliasSet) const;
-    void DumpAjdust(const AdjustSet &adjustSet) const;
-    void DumpFontFileMap() const;
     struct FontJson {
         int type = 0;
         int weight = 0;
