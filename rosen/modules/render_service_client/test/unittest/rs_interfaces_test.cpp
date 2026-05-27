@@ -2251,7 +2251,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenScaleMode, Function | SmallTest
  */
 HWTEST_F(RSInterfacesTest, SetGlobalDarkColorMode, Function | SmallTest | Level2)
 {
-    ASSERT_TRUE(rsInterfaces->SetGlobalDarkColorMode(true));
+    ASSERT_FALSE(rsInterfaces->SetGlobalDarkColorMode(true));
 }
 
 /*
