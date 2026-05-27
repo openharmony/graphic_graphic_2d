@@ -15,7 +15,6 @@
 
 #ifndef EFFECT_IMAGE_CHAIN_H
 #define EFFECT_IMAGE_CHAIN_H
-#endif
 
 #include <memory>
 #include <mutex>
@@ -137,3 +136,4 @@ private:
     Drawing::MipmapMode mipmapMode_ = Drawing::MipmapMode::LINEAR;
 };
 } // namespace OHOS::Rosen
+#endif /* EFFECT_IMAGE_CHAIN_H */
