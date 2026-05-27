@@ -156,23 +156,6 @@ bool Filter::SetColorMatrix(const Drawing::ColorMatrix& matrix)
     return true;
 }
 
-bool Filter::WaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
-{
-    auto glass = EffectImageFilter::WaterGlass(params);
-    AddNextFilter(glass);
-
-    return true;
-}
-
-bool Filter::ReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
-{
-    auto glass = EffectImageFilter::ReededGlass(params);
-
-    AddNextFilter(glass);
-
-    return true;
-}
-
 bool Filter::MaskTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
     const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
 {
@@ -194,5 +177,23 @@ bool Filter::WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>
     AddNextFilter(filter);
     return true;
 }
+
+bool Filter::WaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params)
+{
+    auto glass = EffectImageFilter::WaterGlass(params);
+    AddNextFilter(glass);
+
+    return true;
+}
+
+bool Filter::ReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& params)
+{
+    auto glass = EffectImageFilter::ReededGlass(params);
+
+    AddNextFilter(glass);
+
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
