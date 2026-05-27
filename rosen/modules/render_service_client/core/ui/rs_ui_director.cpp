@@ -741,6 +741,7 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
             int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
             if (instanceId == INSTANCE_ID_UNDEFINED) {
                 instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
+                instanceId = (instanceId == INSTANCE_ID_UNDEFINED) ? INSTANCE_ID_UNDEFINED_TASK_RUNNER : instanceId;
             }
             instanceCmdMap[instanceId].push_back(std::move(cmd));
         }
