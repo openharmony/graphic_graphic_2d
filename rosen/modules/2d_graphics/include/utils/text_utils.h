@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-size_t GetStrLength(const void* text, size_t byteLength, TextEncoding encoding);
+size_t GetByteLength(const void* text, size_t byteLength, TextEncoding encoding);
 
 bool DecodeTextToCodepoints(const void* text, size_t byteLength, TextEncoding encoding, std::vector<int32_t>& out);
 
