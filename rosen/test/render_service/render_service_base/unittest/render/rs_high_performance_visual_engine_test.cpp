@@ -192,16 +192,22 @@ HWTEST_F(RSHveFilterTest, SampleLayerTest, TestSize.Level1)
     auto outImage = filter.SampleLayer(paintFilterCanvas, srcRect, filterId);
     EXPECT_EQ(outImage, nullptr);
 
-    NodeId surfaceId = 2;
+    Drawing::ImageInfo imageInfo {canvasWidth, canvasHeight, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    paintFilterCanvas.surface_ = surface.get();
+    
     Drawing::Rect dstRect = {0, 0, canvasWidth, canvasHeight};
     Drawing::Matrix rotateMatrix = paintFilterCanvas.GetTotalMatrix();
     auto surfaceNodeImage = std::make_shared<Drawing::Image>();
-    SurfaceNodeInfo surfaceNodeInfo1 = {surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Transparent(),
-        surfaceId};
-    filter.PushSurfaceNodeInfo(surfaceNodeInfo1);
-    SurfaceNodeInfo surfaceNodeInfo2 = {surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Black(), 3};
-    filter.PushSurfaceNodeInfo(surfaceNodeInfo2);
-    filter.PushHveFilterSurfaceNodeMapping(filterId, surfaceId);
+    SurfaceNodeInfo info1 = {surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Transparent(), 2};
+    SurfaceNodeInfo info2 = {surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Black(), 3};
+    filter.PushHveFilterSurfaceNodeMapping(filterId, 2);
+    filter.PushHveFilterSurfaceNodeMapping(filterId, 3);
+    filter.PushHveFilterSurfaceNodeMapping(filterId, 4);
+    filter.Sync();
+    filter.PushSurfaceNodeInfo(info1);
+    filter.PushSurfaceNodeInfo(info2);
+    
     outImage = filter.SampleLayer(paintFilterCanvas, srcRect, filterId);
     EXPECT_NE(outImage, nullptr);
 }
