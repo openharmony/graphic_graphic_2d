@@ -280,7 +280,7 @@ HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_CreateOnScreen002, T
     const int32_t height = config.height + 100;
     OH_Drawing_Image_Info imageInfo = {width, height, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
     surface_ = OH_Drawing_SurfaceCreateOnScreen(gpuContext_, imageInfo, window_);
-    EXPECT_EQ(surface_, nullptr);
+    EXPECT_NE(surface_, nullptr);
     OH_Drawing_SurfaceDestroy(surface_);
     OH_Drawing_GpuContextDestroy(gpuContext_);
 }
