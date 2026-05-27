@@ -46,7 +46,9 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(ScreenId screenId, uint64_t 
 
     ScreenId curScreenId = frameRateMgr->GetCurScreenId();
     if (screenId != curScreenId) {
-        HGM_LOGW("screenId:%{public}" PRIu64 " curScreenId:%{public}" PRIu64, screenId, curScreenId);
+        if (!HgmCore::Instance().GetMultiSelfOwnedScreenEnable()) {
+            HGM_LOGW("screenId:%{public}" PRIu64 " curScreenId:%{public}" PRIu64, screenId, curScreenId);
+        }
         return;
     }
 

@@ -63,6 +63,8 @@ void HgmSoftVSyncManager::DeliverSoftVote(FrameRateLinkerId linkerId, const Vote
     }
     RS_TRACE_NAME_FMT("DeliverSoftVote linkerId=%" PRIu64 " min=%d max=%d status=%d extInfo=%s",
         linkerId, voteInfo.min, voteInfo.max, eventStatus, voteInfo.extInfo.c_str());
+    HGM_LOGI("linkerId=%{public}" PRIu64 " min=%{public}d max=%{public}d status=%{public}d extInfo=%{public}s",
+        linkerId, voteInfo.min, voteInfo.max, eventStatus, voteInfo.extInfo.c_str());
     if (auto hgmVoter = linkerVoteMap_[linkerId]; hgmVoter && hgmVoter->DeliverVote(voteInfo, eventStatus)) {
         if (std::optional<VoteInfo> resultVoteInfo = hgmVoter->ProcessVote()) {
             bool isForceUseAppVSync = eventStatus ? hgmVoter->CheckForceUseAppVSync() : false;

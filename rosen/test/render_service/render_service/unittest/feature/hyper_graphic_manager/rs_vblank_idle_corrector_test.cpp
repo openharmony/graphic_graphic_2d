@@ -86,6 +86,9 @@ HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintTest, TestSize.Level1
     uint64_t timestamp = 10;
     uint64_t constraintTime = 10;
     rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
+    hgmCore.multiSelfOwnedScreenEnable_.store(true);
+    rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
+    hgmCore.multiSelfOwnedScreenEnable_.store(false);
 
     hgmCore.vBlankIdleCorrectSwitch_ = false;
     id = frameRateMgr->GetCurScreenId();
