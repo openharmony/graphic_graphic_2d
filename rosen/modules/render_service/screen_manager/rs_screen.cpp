@@ -722,6 +722,10 @@ void RSScreen::CapabilityTypeDump(GraphicInterfaceType capabilityType, std::stri
             dumpString += "DISP_INTF_GPMI, ";
             break;
         }
+        case GRAPHIC_DISP_INTF_VGA: {
+            dumpString += "DISP_INTF_VGA, ";
+            break;
+        }
         default:
             dumpString += "INVALID_DISP_INTF, ";
             break;
