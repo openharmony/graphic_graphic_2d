@@ -63,6 +63,7 @@ public:
     using FailureCallback = std::function<void()>;
     void SetProfilerFailureCallback(FailureCallback callback);
     void Reset();
+    std::shared_ptr<RSUIContext> GetRSUIContext() const;
 private:
     void InitProfilerThread();
     ScreenId screenId_ = 0;

@@ -458,5 +458,9 @@ void RSGraphicTestDirector::Reset()
     handler_.reset();
 }
 
+std::shared_ptr<RSUIContext> RSGraphicTestDirector::GetRSUIContext() const
+{
+    return rsUiDirector_ ? rsUiDirector_->GetRSUIContext() : nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS
