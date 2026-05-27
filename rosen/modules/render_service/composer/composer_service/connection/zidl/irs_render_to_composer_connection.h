@@ -29,9 +29,12 @@ class RSB_EXPORT IRSRenderToComposerConnection : public IRemoteBroker {
 public:
     virtual bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) = 0;
     virtual void CleanLayerBufferBySurfaceId(uint64_t surfaceId) = 0;
+    virtual int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence) = 0;
     virtual void ClearFrameBuffers() = 0;
     virtual void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) = 0;
     virtual void SetScreenBacklight(uint32_t level) = 0;
+    virtual void SetScreenLinearMatrix(const std::vector<float>& matrix) = 0;
     virtual void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) = 0;
     virtual void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) = 0;
     DECLARE_INTERFACE_DESCRIPTOR(u"IRSRenderToComposerConnection");
@@ -40,9 +43,11 @@ protected:
     enum {
         IRENDER_TO_COMPOSER_CONNECTION_COMMIT_LAYERS,
         IRENDER_TO_COMPOSER_CONNECTION_CLEAN_LAYER_BUFFER_BY_SURFACE_ID,
+        IRENDER_TO_COMPOSER_CONNECTION_COMMIT_TUNNEL_LAYER_BY_SURFACE_ID,
         IRENDER_TO_COMPOSER_CONNECTION_CLEAR_FRAME_BUFFERS,
         IRENDER_TO_COMPOSER_CONNECTION_CLEAR_REDRAW_GPU_COMPOSITION_CACHE,
         IRENDER_TO_COMPOSER_CONNECTION_SET_BACKLIGHT_LEVEL,
+        IRENDER_TO_COMPOSER_CONNECTION_SET_LINEAR_MATRIX,
         IRENDER_TO_COMPOSER_CONNECTION_SET_COMPOSER_TO_RENDER_CONNECTION,
         IRENDER_TO_COMPOSER_CONNECTION_PREALLOC_PROTECTED_FRAME_BUFFERS,
     };

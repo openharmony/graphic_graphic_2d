@@ -103,6 +103,14 @@ public:
         return 0;
     }
 
+    // Returns the target node id of this command.
+    // For tree hierarchy commands (e.g., AddChild), it typically returns the child node id.
+    // For commands with only one NodeId param, it falls back to GetNodeId().
+    virtual NodeId GetTargetNodeId() const
+    {
+        return GetNodeId();
+    }
+
     virtual uint64_t GetToken() const
     {
         return 0;

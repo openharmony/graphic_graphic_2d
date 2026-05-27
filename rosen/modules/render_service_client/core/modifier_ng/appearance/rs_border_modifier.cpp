@@ -65,4 +65,14 @@ Vector4f RSBorderModifier::GetBorderDashGap() const
 {
     return Getter<Vector4f>(RSPropertyType::BORDER_DASH_GAP, {});
 }
+
+void RSBorderModifier::SetBorderSDFShader(const std::shared_ptr<RSNGShaderBase>& shader)
+{
+    Setter<RSProperty, std::shared_ptr<RSNGShaderBase>>(RSPropertyType::BORDER_SDF_SHADER, shader);
+}
+
+std::shared_ptr<RSNGShaderBase> RSBorderModifier::GetBorderSDFShader() const
+{
+    return Getter<std::shared_ptr<RSNGShaderBase>>(RSPropertyType::BORDER_SDF_SHADER, nullptr);
+}
 } // namespace OHOS::Rosen::ModifierNG

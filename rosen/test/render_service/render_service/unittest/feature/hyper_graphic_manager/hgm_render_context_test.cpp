@@ -36,12 +36,34 @@ namespace {
 constexpr uint32_t delay_110Ms = 110;
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 std::string g_testStr = HGM_CONFIG_PATH;
+std::string g_customTestXmlPath;
+
+// Helper func to create test XML file
+bool CreateTestXml(const std::string& path, const char* content)
+{
+    FILE* fp = fopen(path.c_str(), "w");
+    if (fp == nullptr) {
+        return false;
+    }
+    int written = fprintf(fp, "%s", content);
+    if (written < 0) {
+        fclose(fp);
+        return false;
+    }
+    if (fclose(fp) != 0) {
+        return false;
+    }
+    return true;
+}
 }
 
 std::string GetHgmXmlPath()
 {
     if (g_testStr == HGM_CONFIG_PATH) {
         return HGM_CONFIG_PATH;
+    }
+    if (!g_customTestXmlPath.empty()) {
+        return g_customTestXmlPath;
     }
     return "";
 }
@@ -103,7 +125,13 @@ HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     auto rsDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "rs");
     auto appDistributor = sptr<VSyncDistributor>::MakeSptr(nullptr, "app");
     renderService.hgmContext_ = std::make_shared<HgmContext>(nullptr, mgr, nullptr, appDistributor, rsDistributor);
+    auto hgmProcessCallback = [hgmContext = renderService.hgmContext_](uint64_t timestamp, uint64_t vsyncId,
+        const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
+        const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo) {
+        hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    };
     auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
+    renderServiceAgent->RegisterHgmProcessCallback(hgmProcessCallback);
     auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
     auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService.screenManager_);
     auto renderToServiceConnection =
@@ -141,6 +169,12 @@ HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
     EXPECT_EQ(renderService.hgmContext_->rsCurrRange_.preferred_, 60);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     mgr->rsFrameRateLinker_ = nullptr;
+
+    FrameRateRange range = {60, 90, 90};
+    hgmRenderContext.rsCurrRange_ = range;
+    hgmRenderContext.hgmAbilityEnabled_ = false;
+    hgmRenderContext.NotifyRpHgmFrameRate(100, rsContext, vRateMap, true, pipelineParam);
+    EXPECT_EQ(hgmRenderContext.rsCurrRange_, range);
 }
 
 /**
@@ -331,5 +365,95 @@ HWTEST_F(HgmRenderContextTest, UpdateSurfaceData001, TestSize.Level1)
     EXPECT_EQ(hgmRenderContext.surfaceData_.size(), 2);
     const auto& [surfaceName2, id2] = hgmRenderContext.surfaceData_[hgmRenderContext.surfaceData_.size() - 1];
     EXPECT_EQ(surfaceName2, frameworkType);
+}
+
+/**
+ * @tc.name: NotifyRpHgmFrameRateTest002
+ * @tc.desc: test HgmRenderContext.NotifyRpHgmFrameRate when hgmAbilityEnabled_ is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, NotifyRpHgmFrameRateTest002, TestSize.Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto rsContext = std::make_shared<RSContext>();
+    PipelineParam pipelineParam;
+    std::unordered_map<NodeId, int> vRateMap = { { 1, 60 }, { 2, 120 } };
+    
+    // Set hgmAbilityEnabled_ to false
+    hgmRenderContext.hgmAbilityEnabled_ = false;
+    
+    // This should return early without processing
+    hgmRenderContext.NotifyRpHgmFrameRate(100, rsContext, vRateMap, true, pipelineParam);
+    
+    // Verify that the function returns early by checking that rsCurrRange_ is not modified
+    FrameRateRange originalRange = {0, 0, 0};
+    hgmRenderContext.rsCurrRange_ = originalRange;
+    hgmRenderContext.NotifyRpHgmFrameRate(101, rsContext, vRateMap, true, pipelineParam);
+    EXPECT_EQ(hgmRenderContext.rsCurrRange_, originalRange);
+}
+
+/**
+ * @tc.name: InitHgmConfigTest002
+ * @tc.desc: test HgmRenderContext.InitHgmConfig with hgmAbilityEnabled_ parsing
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, InitHgmConfigTest002, TestSize.Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    std::unordered_map<std::string, std::string> sourceTuningConfig;
+    std::unordered_map<std::string, std::string> solidLayerConfig;
+    std::vector<std::string> appBufferList;
+
+    // Test Case 1: ability_enable value="1" -> hgmAbilityEnabled_ should be true
+    const char* xmlContentEnabled = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                                    "<root>\n"
+                                    "    <param name=\"ability_enable\" value=\"1\"/>\n"
+                                    "</root>\n";
+    std::string testXmlPath1 = "/data/test/hgm_test_enabled.xml";
+    ASSERT_TRUE(CreateTestXml(testXmlPath1, xmlContentEnabled)) << "Failed to create test XML file: "
+        << testXmlPath1;
+ 
+    g_customTestXmlPath = testXmlPath1;
+    HgmRenderContext hgmRenderContext1(renderToServiceConnection);
+    EXPECT_EQ(hgmRenderContext1.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
+    EXPECT_TRUE(hgmRenderContext1.hgmAbilityEnabled_) <<
+        "hgmAbilityEnabled_ should be true when ability_enable value='1'";
+    g_customTestXmlPath.clear();
+    std::remove(testXmlPath1.c_str());
+ 
+    // Test Case 2: ability_enable value="0" -> hgmAbilityEnabled_ should be false
+    const char* xmlContentDisabled = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                                     "<root>\n"
+                                     "    <param name=\"ability_enable\" value=\"0\"/>\n"
+                                     "</root>\n";
+    std::string testXmlPath2 = "/data/test/hgm_test_disabled.xml";
+    ASSERT_TRUE(CreateTestXml(testXmlPath2, xmlContentDisabled)) << "Failed to create test XML file: "
+        << testXmlPath2;
+ 
+    g_customTestXmlPath = testXmlPath2;
+    HgmRenderContext hgmRenderContext2(renderToServiceConnection);
+    EXPECT_EQ(hgmRenderContext2.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
+    EXPECT_FALSE(hgmRenderContext2.hgmAbilityEnabled_) <<
+        "hgmAbilityEnabled_ should be false when ability_enable value='0'";
+    g_customTestXmlPath.clear();
+    std::remove(testXmlPath2.c_str());
+ 
+    // Test Case 3: No ability_enable node -> hgmAbilityEnabled_ should be true (default)
+    const char* xmlContentNoNode = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                                   "<root>\n"
+                                   "</root>\n";
+    std::string testXmlPath3 = "/data/test/hgm_test_default.xml";
+    ASSERT_TRUE(CreateTestXml(testXmlPath3, xmlContentNoNode)) << "Failed to create test XML file: " << testXmlPath3;
+ 
+    g_customTestXmlPath = testXmlPath3;
+    HgmRenderContext hgmRenderContext3(renderToServiceConnection);
+    EXPECT_EQ(hgmRenderContext3.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
+    EXPECT_TRUE(hgmRenderContext3.hgmAbilityEnabled_)
+        << "hgmAbilityEnabled_ should be true (default) when ability_enable node is absent";
+    g_customTestXmlPath.clear();
+    std::remove(testXmlPath3.c_str());
 }
 } // namespace OHOS::Rosen

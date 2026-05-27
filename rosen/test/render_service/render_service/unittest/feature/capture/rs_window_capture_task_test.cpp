@@ -291,6 +291,7 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForNullCallback, Function | Sm
     EXPECT_EQ(ret, false);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /*
  * @tc.name: RSSurfaceCaptureForInvalidScale
  * @tc.desc: test surface capture when scale is invalid
@@ -385,5 +386,6 @@ HWTEST_F(RSWindowCaptureTaskTest, RSSurfaceCaptureForPixelMap, Function | SmallT
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

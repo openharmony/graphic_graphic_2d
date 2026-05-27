@@ -23,6 +23,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "rs_screen_manager.h"
 #include "rs_screen.h"
+#include "screen_manager/public/rs_screen_manager_agent.h"
 #include "hdi_output.h"
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
@@ -343,6 +344,52 @@ HWTEST_F(RSScreenManagerTest, SetDualScreenState_002, TestSize.Level1)
 
     // unmount rsScreen
     screenManager_->screens_.erase(mockScreenId_);
+}
+
+/*
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen with invalid ScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSScreenManagerTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+    int32_t result = screenManager_->SetAsMainScreen(INVALID_SCREEN_ID, true);
+    EXPECT_NE(result, StatusCode::SUCCESS);
+
+    ScreenId id = 0;
+    screenManager_->screens_[id] = std::make_shared<RSScreen>(id);
+    result = screenManager_->SetAsMainScreen(id, false);
+    EXPECT_EQ(result, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId returns INVALID_SCREEN_ID when no screen is set as main
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSScreenManagerTest, GetMainScreenIdTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+
+    screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
+    int32_t ret = screenManager_->SetAsMainScreen(0, true);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+    ScreenId result = screenManager_->GetMainScreenId();
+    EXPECT_EQ(result, 0);
+
+    // Ensure no screen is set as main
+    for (auto& [screenId, screen] : screenManager_->screens_) {
+        if (screen) {
+            screen->SetAsMainScreen(false);
+        }
+    }
+
+    // Should return INVALID_SCREEN_ID when no main screen exists
+    result = screenManager_->GetMainScreenId();
+    EXPECT_EQ(result, INVALID_SCREEN_ID);
 }
 
 /*
@@ -841,6 +888,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_002, TestSize.Level1)
     ASSERT_EQ(screenData.GetActivityModeInfo().GetScreenModeId(), -1);  // virtual screen not support active mode.
     ASSERT_EQ(screenData.GetSupportModeInfo().size(), 0);
     ASSERT_EQ(screenData.GetPowerStatus(), INVALID_POWER_STATUS);
+    ASSERT_EQ(screenData.GetScreenConnectionType(), INVALID_DISPLAY_CONNECTION_TYPE);
 }
 
 /*
@@ -860,6 +908,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_003, TestSize.Level1)
     screenManager_->SetScreenPowerStatus(screenId, POWER_STATUS_ON_ADVANCED);
     RSScreenData screenData = screenManager_->GetScreenData(screenId);
     ASSERT_EQ(screenData.GetPowerStatus(), POWER_STATUS_ON_ADVANCED);
+    ASSERT_EQ(screenData.GetScreenConnectionType(), INVALID_DISPLAY_CONNECTION_TYPE);
 }
 
 /*
@@ -946,6 +995,120 @@ HWTEST_F(RSScreenManagerTest, GetScreenCapability_002, TestSize.Level1)
     screenCapability.GetProps();
     screenCapability = screenManager_->GetScreenCapability(virtualScreenId);
     ASSERT_EQ(screenCapability.GetName(), "virtualScreen01");
+}
+
+/*
+ * @tc.name: GetScreenCapability_003_DP
+ * @tc.desc: Test GetScreenCapability with DISP_INTF_DP type
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenCapability_003_DP, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    ScreenId screenId = mockScreenId_;
+
+    GraphicDisplayCapability dpCapability = {
+        .name = "DP_Screen",
+        .type = GRAPHIC_DISP_INTF_DP,
+        .phyWidth = 1920,
+        .phyHeight = 1080,
+        .supportLayers = 0,
+        .virtualDispCount = 0,
+        .supportWriteBack = true,
+        .propertyCount = 0
+    };
+    // Mock GetScreenCapability return DP capability
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCapability(screenId, _))
+        .WillOnce(DoAll(SetArgReferee<1>(dpCapability), testing::Return(0)));
+
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    rsScreen->ScreenCapabilityInit();
+    screenManager_->screens_[screenId] = rsScreen;
+
+    RSScreenCapability screenCapability = screenManager_->GetScreenCapability(screenId);
+    ASSERT_EQ(screenCapability.GetType(), DISP_INTF_DP);
+
+    screenManager_->screens_.erase(screenId);
+}
+
+/*
+ * @tc.name: GetScreenCapability_004_EDP
+ * @tc.desc: Test GetScreenCapability with DISP_INTF_EDP type
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenCapability_004_EDP, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    ScreenId screenId = mockScreenId_;
+
+    GraphicDisplayCapability edpCapability = {
+        .name = "EDP_Screen",
+        .type = GRAPHIC_DISP_INTF_EDP,
+        .phyWidth = 1920,
+        .phyHeight = 1080,
+        .supportLayers = 0,
+        .virtualDispCount = 0,
+        .supportWriteBack = true,
+        .propertyCount = 0
+    };
+    // Mock GetScreenCapability return EDP capability
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCapability(screenId, _))
+        .WillOnce(DoAll(SetArgReferee<1>(edpCapability), testing::Return(0)));
+
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    rsScreen->ScreenCapabilityInit();
+    screenManager_->screens_[screenId] = rsScreen;
+
+    RSScreenCapability screenCapability = screenManager_->GetScreenCapability(screenId);
+    ASSERT_EQ(screenCapability.GetType(), DISP_INTF_EDP);
+
+    screenManager_->screens_.erase(screenId);
+}
+
+/*
+ * @tc.name: GetScreenCapability_005_GPMI
+ * @tc.desc: Test GetScreenCapability with DISP_INTF_GPMI type
+ * @tc.type: FUNC
+ * @tc.require: issueI7AABN
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenCapability_005_GPMI, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    ScreenId screenId = mockScreenId_;
+
+    GraphicDisplayCapability gpmiCapability = {
+        .name = "GPMI_Screen",
+        .type = GRAPHIC_DISP_INTF_GPMI,
+        .phyWidth = 1920,
+        .phyHeight = 1080,
+        .supportLayers = 0,
+        .virtualDispCount = 0,
+        .supportWriteBack = true,
+        .propertyCount = 0
+    };
+    // Mock GetScreenCapability return GPMI capability
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCapability(screenId, _))
+        .WillOnce(DoAll(SetArgReferee<1>(gpmiCapability), testing::Return(0)));
+
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    rsScreen->ScreenCapabilityInit();
+    screenManager_->screens_[screenId] = rsScreen;
+
+    RSScreenCapability screenCapability = screenManager_->GetScreenCapability(screenId);
+    ASSERT_EQ(screenCapability.GetType(), DISP_INTF_GPMI);
+
+    screenManager_->screens_.erase(screenId);
 }
 
 /*
@@ -1261,7 +1424,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenBacklight_001, TestSize.Level1)
 {
     ASSERT_NE(screenManager_, nullptr);
     ScreenId screenId = INVALID_SCREEN_ID;
-    screenManager_->SetScreenBacklight(screenId, LIGHT_LEVEL);
+    screenManager_->SetScreenBacklight(RsScreenBrightnessData(screenId, LIGHT_LEVEL));
 }
 
 /*
@@ -1280,7 +1443,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenBacklight_002, TestSize.Level1)
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     screenManager_->MockHdiScreenConnected(rsScreen);
 
-    screenManager_->SetScreenBacklight(screenId, LIGHT_LEVEL);
+    screenManager_->SetScreenBacklight(RsScreenBrightnessData(screenId, LIGHT_LEVEL));
     auto ret = screenManager_->GetScreenBacklight(screenId);
     ASSERT_EQ(ret, LIGHT_LEVEL);
 
@@ -3205,34 +3368,6 @@ HWTEST_F(RSScreenManagerTest, SetScreenFrameGravityTest, TestSize.Level1)
 }
 
 /*
- * @tc.name: ExecuteCallbackTest
- * @tc.desc: Test ExecuteCallbackTest
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenManagerTest, ExecuteCallbackTest, TestSize.Level1)
-{
-    ASSERT_NE(screenManager_, nullptr);
-    const auto callback = sptr<RSIScreenChangeCallbackConfig>::MakeSptr();
-    ASSERT_NE(callback, nullptr);
-    screenManager_->screens_.clear();
-    screenManager_->ExecuteCallback(callback);
-    screenManager_->screens_[0] = nullptr;
-    screenManager_->ExecuteCallback(callback);
-    {
-        ScreenId screenId = 1;
-        VirtualScreenConfigs cfgVirtual;
-        cfgVirtual.id = screenId;
-        auto rsScreen = std::make_shared<RSScreen>(cfgVirtual);
-        rsScreen->property_.SetIsVirtual(true);
-        screenManager_->screens_[screenId] = rsScreen;
-    }
-    screenManager_->ExecuteCallback(callback);
-    screenManager_->screens_[2] = std::make_shared<RSScreen>(0);
-    screenManager_->ExecuteCallback(callback);
-    screenManager_->screens_.clear();
-}
-
-/*
  * @tc.name: ProcessScreenDisConnectedTest
  * @tc.desc: Test ProcessScreenDisConnected
  * @tc.type: FUNC
@@ -3414,6 +3549,171 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenWhiteList002, TestSize.Level2)
 }
 
 /*
+ * @tc.name: OnScreenChangeCallbackChangedTest001
+ * @tc.desc: Test OnScreenChangeCallbackChanged - noScreenProcessed=true, noPhysicalScreen=true, empty screens
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, OnScreenChangeCallbackChangedTest001, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->noScreenProcessed_ = true;
+    screenManager_->screens_.clear();
+    auto callbackMgr = std::make_unique<RSScreenCallbackManager>();
+    RSScreenPreprocessor preprocessor(*screenManager_, *callbackMgr, nullptr, false);
+    auto agentListener = sptr<RSScreenManagerAgentListener>::MakeSptr();
+    screenManager_->OnScreenChangeCallbackChanged(agentListener);
+}
+
+/*
+ * @tc.name: OnScreenChangeCallbackChangedTest002
+ * @tc.desc: Test OnScreenChangeCallbackChanged - noScreenProcessed=false, noPhysicalScreen=true (virtual only)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, OnScreenChangeCallbackChangedTest002, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->noScreenProcessed_ = false;
+    screenManager_->screens_.clear();
+    auto callbackMgr = std::make_unique<RSScreenCallbackManager>();
+    RSScreenPreprocessor preprocessor(*screenManager_, *callbackMgr, nullptr, false);
+    auto agentListener = sptr<RSScreenManagerAgentListener>::MakeSptr();
+    auto virtualScreen = std::make_shared<RSScreen>(100);
+    virtualScreen->property_.SetIsVirtual(true);
+    screenManager_->screens_[100] = virtualScreen;
+    screenManager_->OnScreenChangeCallbackChanged(agentListener);
+}
+
+/*
+ * @tc.name: OnScreenChangeCallbackChangedTest003
+ * @tc.desc: Test OnScreenChangeCallbackChanged - noScreenProcessed=true, noPhysicalScreen=false (physical present)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, OnScreenChangeCallbackChangedTest003, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->noScreenProcessed_ = true;
+    screenManager_->screens_.clear();
+    auto callbackMgr = std::make_unique<RSScreenCallbackManager>();
+    RSScreenPreprocessor preprocessor(*screenManager_, *callbackMgr, nullptr, false);
+    auto agentListener = sptr<RSScreenManagerAgentListener>::MakeSptr();
+    auto physicalScreen = std::make_shared<RSScreen>(100);
+    physicalScreen->property_.SetIsVirtual(false);
+    screenManager_->screens_[100] = physicalScreen;
+    screenManager_->OnScreenChangeCallbackChanged(agentListener);
+}
+
+/*
+ * @tc.name: OnScreenChangeCallbackChangedTest004
+ * @tc.desc: Test OnScreenChangeCallbackChanged - noScreenProcessed=false, noPhysicalScreen=false (physical present)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, OnScreenChangeCallbackChangedTest004, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->noScreenProcessed_ = false;
+    screenManager_->screens_.clear();
+    auto callbackMgr = std::make_unique<RSScreenCallbackManager>();
+    RSScreenPreprocessor preprocessor(*screenManager_, *callbackMgr, nullptr, false);
+    auto agentListener = sptr<RSScreenManagerAgentListener>::MakeSptr();
+    auto physicalScreen = std::make_shared<RSScreen>(100);
+    physicalScreen->property_.SetIsVirtual(false);
+    screenManager_->screens_[100] = physicalScreen;
+    screenManager_->OnScreenChangeCallbackChanged(agentListener);
+}
+
+/*
+ * @tc.name: OnScreenChangeCallbackChangedTest005
+ * @tc.desc: Test OnScreenChangeCallbackChanged - nullptr screen in map, both flags true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, OnScreenChangeCallbackChangedTest005, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->noScreenProcessed_ = true;
+    screenManager_->screens_.clear();
+    auto callbackMgr = std::make_unique<RSScreenCallbackManager>();
+    RSScreenPreprocessor preprocessor(*screenManager_, *callbackMgr, nullptr, false);
+    auto agentListener = sptr<RSScreenManagerAgentListener>::MakeSptr();
+    screenManager_->screens_[100] = nullptr;
+    screenManager_->OnScreenChangeCallbackChanged(agentListener);
+}
+
+/*
+ * @tc.name: HasPhysicalScreen_001
+ * @tc.desc: Test HasPhysicalScreen - empty screens map
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, HasPhysicalScreen_001, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->screens_.clear();
+    EXPECT_FALSE(screenManager_->HasPhysicalScreen());
+}
+
+/*
+ * @tc.name: HasPhysicalScreen_002
+ * @tc.desc: Test HasPhysicalScreen - all screens are virtual
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, HasPhysicalScreen_002, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->screens_.clear();
+    auto virtualScreen = std::make_shared<RSScreen>(100);
+    virtualScreen->property_.SetIsVirtual(true);
+    screenManager_->screens_[100] = virtualScreen;
+    EXPECT_FALSE(screenManager_->HasPhysicalScreen());
+}
+
+/*
+ * @tc.name: HasPhysicalScreen_003
+ * @tc.desc: Test HasPhysicalScreen - physical screen exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, HasPhysicalScreen_003, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->screens_.clear();
+    auto physicalScreen = std::make_shared<RSScreen>(100);
+    physicalScreen->property_.SetIsVirtual(false);
+    screenManager_->screens_[100] = physicalScreen;
+    EXPECT_TRUE(screenManager_->HasPhysicalScreen());
+}
+
+/*
+ * @tc.name: HasPhysicalScreen_004
+ * @tc.desc: Test HasPhysicalScreen - emixed physical and virtual screens
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, HasPhysicalScreen_004, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->screens_.clear();
+    auto physicalScreen = std::make_shared<RSScreen>(100);
+    physicalScreen->property_.SetIsVirtual(false);
+    auto virtualScreen = std::make_shared<RSScreen>(200);
+    virtualScreen->property_.SetIsVirtual(true);
+    screenManager_->screens_[100] = physicalScreen;
+    screenManager_->screens_[200] = virtualScreen;
+    EXPECT_TRUE(screenManager_->HasPhysicalScreen());
+}
+
+
+/*
+ * @tc.name: HasPhysicalScreen_005
+ * @tc.desc: Test HasPhysicalScreen - nullptr screen in map
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, HasPhysicalScreen_005, TestSize.Level1)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->screens_.clear();
+    screenManager_->screens_[100] = nullptr;
+    EXPECT_FALSE(screenManager_->HasPhysicalScreen());
+    screenManager_->screens_.clear();
+}
+
+/*
  * @tc.name: RemoveVirtualScreenWhiteList001
  * @tc.desc: check if whitelist change after RemoveVirtualScreenWhiteList
  * @tc.type: FUNC
@@ -3434,5 +3734,134 @@ HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenWhiteList001, TestSize.Level2)
 
     // restore
     screenManager_->RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: OnProcessDisconnectedTest001
+ * @tc.desc: Test OnProcessDisconnected with empty screens list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, OnProcessDisconnectedTest001, TestSize.Level2)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>> screens;
+    screenManager_->OnProcessDisconnected(screens);
+}
+
+/*
+ * @tc.name: OnProcessDisconnectedTest002
+ * @tc.desc: Test OnProcessDisconnected with screen not in screenMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, OnProcessDisconnectedTest002, TestSize.Level2)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>> screens;
+    ScreenId notExistId = 99999;
+    auto output = std::make_shared<HdiOutput>(static_cast<uint32_t>(notExistId));
+    screens.push_back({notExistId, output});
+    screenManager_->OnProcessDisconnected(screens);
+}
+
+/*
+ * @tc.name: OnProcessDisconnectedTest003
+ * @tc.desc: Test OnProcessDisconnected with screen in map but null RSScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, OnProcessDisconnectedTest003, TestSize.Level2)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    uint32_t screenId = 1050;
+    {
+        std::lock_guard<std::mutex> lock(screenManager_->screenMapMutex_);
+        screenManager_->screens_[screenId] = nullptr;
+    }
+    auto output = std::make_shared<HdiOutput>(screenId);
+    std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>> screens;
+    screens.push_back({static_cast<ScreenId>(screenId), output});
+    screenManager_->OnProcessDisconnected(screens);
+    {
+        std::lock_guard<std::mutex> lock(screenManager_->screenMapMutex_);
+        screenManager_->screens_.erase(screenId);
+    }
+}
+
+/*
+ * @tc.name: OnProcessDisconnectedTest004
+ * @tc.desc: Test OnProcessDisconnected with physical screen and null output
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, OnProcessDisconnectedTest004, TestSize.Level2)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    uint32_t screenId = 1100;
+    screenManager_->MockHdiScreenConnected(std::make_shared<RSScreen>(screenId));
+    std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>> screens;
+    screens.push_back({static_cast<ScreenId>(screenId), nullptr});
+    screenManager_->OnProcessDisconnected(screens);
+}
+
+/*
+ * @tc.name: OnProcessDisconnectedTest005
+ * @tc.desc: Test OnProcessDisconnected with physical screen and valid output
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, OnProcessDisconnectedTest005, TestSize.Level2)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    uint32_t screenId = 1200;
+    screenManager_->MockHdiScreenConnected(std::make_shared<RSScreen>(screenId));
+    auto output = std::make_shared<HdiOutput>(screenId);
+    std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>> screens;
+    screens.push_back({static_cast<ScreenId>(screenId), output});
+    screenManager_->OnProcessDisconnected(screens);
+    usleep(SLEEP_TIME_US);
+}
+
+/*
+ * @tc.name: OnProcessDisconnectedTest006
+ * @tc.desc: Test OnProcessDisconnected with virtual screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, OnProcessDisconnectedTest006, TestSize.Level2)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    auto virtualScreenId =
+        screenManager_->CreateVirtualScreen("virtual_ut", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, nullptr);
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>> screens;
+    screens.push_back({virtualScreenId, nullptr});
+    screenManager_->OnProcessDisconnected(screens);
+    usleep(SLEEP_TIME_US);
+}
+
+/*
+ * @tc.name: OnProcessDisconnectedTest007
+ * @tc.desc: Test OnProcessDisconnected with mixed physical and virtual screens
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, OnProcessDisconnectedTest007, TestSize.Level2)
+{
+    ASSERT_NE(nullptr, screenManager_);
+    // Setup physical screen
+    uint32_t physicalScreenId = 1300;
+    screenManager_->MockHdiScreenConnected(std::make_shared<RSScreen>(physicalScreenId));
+    auto physicalOutput = std::make_shared<HdiOutput>(physicalScreenId);
+    // Setup virtual screen
+    auto virtualScreenId =
+        screenManager_->CreateVirtualScreen("virtual_mixed", VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT, nullptr);
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>> screens;
+    screens.push_back({static_cast<ScreenId>(physicalScreenId), physicalOutput});
+    screens.push_back({virtualScreenId, nullptr});
+    screenManager_->OnProcessDisconnected(screens);
+    usleep(SLEEP_TIME_US);
 }
 } // namespace OHOS::Rosen

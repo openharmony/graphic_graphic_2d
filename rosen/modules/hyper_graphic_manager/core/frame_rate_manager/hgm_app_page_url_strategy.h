@@ -30,6 +30,7 @@ public:
     void RegisterPageUrlVoterCallback(const PageUrlVoterCallback& callback);
     void NotifyScreenSettingChange();
     void CleanPageUrlVote(pid_t pid);
+
 private:
     struct VoterInfo {
         bool hasVoter = false;

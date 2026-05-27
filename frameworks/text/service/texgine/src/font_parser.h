@@ -125,6 +125,8 @@ public:
         int32_t index{0};
         std::vector<FontVariationAxis> variationAxisRecords;
         std::vector<FontVariationInstance> variationInstanceRecords;
+        std::vector<std::string> languages;
+        std::vector<std::string> fontFeatures;
         FontDescriptor() = default;
         FontDescriptor(const FontDescriptor&) = default;
         FontDescriptor& operator=(const FontDescriptor& other) = default;
@@ -168,6 +170,8 @@ private:
     static void FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc);
     static void FillFontDescriptorWithVariationInfo(std::shared_ptr<Drawing::Typeface> typeface,
         FontDescriptor& desc, const std::vector<std::string>& bcpTagList);
+    static void FillFontDescriptorWithLanguageAndFeatures(std::shared_ptr<Drawing::Typeface> typeface,
+        FontDescriptor& desc);
     static void FillFontDescriptorWithFallback(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc);
     static std::vector<std::string> GetBcpTagList();
     bool SetFontDescriptor(const unsigned int languageId);

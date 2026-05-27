@@ -154,5 +154,23 @@ HWTEST_F(UIFirstParamTest, SetOcclusionEnabled, Function | SmallTest | Level1)
     UIFirstParam::SetOcclusionEnabled(false);
     EXPECT_EQ(UIFirstParam::IsOcclusionEnabled(), false);
 }
+
+/**
+ * @tc.name: SetSubThreadFrameRateControlByScene
+ * @tc.desc: Verify the SetSubThreadFrameRateControlByScene and GetSubThreadFrameRateControlByScene functions
+ * @tc.type: FUNC
+ * @tc.require:#23839
+ */
+HWTEST_F(UIFirstParamTest, SetSubThreadFrameRateControlByScene, Function | SmallTest | Level1)
+{
+    UIFirstParam::SetSubThreadFrameRateControlByScene(0);
+    EXPECT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 0u);
+ 
+    UIFirstParam::SetSubThreadFrameRateControlByScene(0xFF);
+    EXPECT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 0xFFu);
+ 
+    UIFirstParam::SetSubThreadFrameRateControlByScene(252);
+    EXPECT_EQ(UIFirstParam::GetSubThreadFrameRateControlByScene(), 252u);
+}
 } // namespace Rosen
 } // namespace OHOS

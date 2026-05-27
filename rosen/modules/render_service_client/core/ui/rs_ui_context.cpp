@@ -15,6 +15,7 @@
 
 #include "ui/rs_ui_context.h"
 
+#include "animation/rs_interactive_implict_animator.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier_manager_map.h"
@@ -23,15 +24,15 @@
 
 namespace OHOS {
 namespace Rosen {
-RSUIContext::RSUIContext(uint64_t token) : token_(token)
+RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRemote) : token_(token)
 {
-    RS_LOGI("RSUIContext ctor: Token:%{public}" PRIu64, token);
-    rsTransactionHandler_ = std::make_shared<RSTransactionHandler>(token);
+    connectToRenderRemote_ = connectToRenderRemote;
+    rsRenderInterface_ = std::shared_ptr<RSRenderInterface>(new RSRenderInterface(connectToRenderRemote));
+    rsTransactionHandler_ =
+        std::make_shared<RSTransactionHandler>(token, rsRenderInterface_->GetRSRenderPipelineClient());
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
     rsSyncTransactionHandler_->SetTransactionHandler(rsTransactionHandler_);
 }
-
-RSUIContext::RSUIContext() : RSUIContext(0) {}
 
 RSUIContext::~RSUIContext()
 {
@@ -57,10 +58,29 @@ const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
 
 const std::shared_ptr<RSModifierManager> RSUIContext::GetRSModifierManager()
 {
-    if (rsModifierManager_ == nullptr) {
-        rsModifierManager_ = std::make_shared<RSModifierManager>();
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+    if (isUniRender) {
+        if (rsModifierManager_ == nullptr) {
+            rsModifierManager_ = std::make_shared<RSModifierManager>();
+            rsModifierManager_->SetRSUIContext(weak_from_this());
+        }
+        return rsModifierManager_;
+    } else {
+        std::lock_guard<std::mutex> lock(rsModifierManagerMutex_);
+        auto it = rsModifierManagerMap_.find(gettid());
+        if (it != rsModifierManagerMap_.end()) {
+            return it->second;
+        }
+
+        if (!rsModifierManagerMap_.empty()) {
+            RS_LOGI_LIMIT("Too many threads are using the same ModifierManagerMap");
+        }
+
+        auto rsModifierManager = std::make_shared<RSModifierManager>();
+        rsModifierManager->SetRSUIContext(weak_from_this());
+        rsModifierManagerMap_.emplace(gettid(), rsModifierManager);
+        return rsModifierManager;
     }
-    return rsModifierManager_;
 }
 
 bool RSUIContext::AnimationCallback(AnimationId animationId, AnimationCallbackEvent event)
@@ -233,6 +253,22 @@ void RSUIContext::MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId
     if (auto dstModifierManager = dstUIContext->GetRSModifierManager()) {
         rsModifierManager_->MoveModifier(dstModifierManager, nodeId);
     }
+}
+
+void RSUIContext::AddInteractiveImplictAnimator(const std::shared_ptr<RSInteractiveImplictAnimator>& animator)
+{
+    if (!animator) {
+        ROSEN_LOGE("RSUIContext::AddInteractiveImplictAnimator - animator is null");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(interactiveImplictAnimatorMutex_);
+    interactiveImplictAnimators_.emplace(animator->GetId(), animator);
+}
+
+void RSUIContext::RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId id)
+{
+    std::lock_guard<std::mutex> lock(interactiveImplictAnimatorMutex_);
+    interactiveImplictAnimators_.erase(id);
 }
 } // namespace Rosen
 } // namespace OHOS

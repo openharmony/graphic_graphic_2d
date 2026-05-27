@@ -339,6 +339,13 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetFrameGravity(
     return { ScreenPropertyType::SCREEN_FRAME_GRAVITY, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetAsMainScreen(bool isMainScreen)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::IS_MAIN_SCREEN>(isMainScreen);
+    return { ScreenPropertyType::IS_MAIN_SCREEN, prop };
+}
+
 ScreenId RSScreenThreadSafeProperty::GetId() const
 {
     return property_->GetScreenId();
@@ -606,6 +613,12 @@ bool RSScreenThreadSafeProperty::GetIsHardCursorSupport() const
 std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamuts() const
 {
     return property_->GetScreenSupportedColorGamuts();
+}
+
+bool RSScreenThreadSafeProperty::IsMainScreen() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->IsMainScreen();
 }
 
 ScreenInfo RSScreenThreadSafeProperty::GetScreenInfo() const

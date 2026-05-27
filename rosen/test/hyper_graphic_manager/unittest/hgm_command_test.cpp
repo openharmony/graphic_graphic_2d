@@ -31,12 +31,12 @@ using namespace testing::ext;
 extern "C" {
 #endif
 #endif // __cplusplus
- 
+
 #define MAX_CFG_POLICY_DIRS_CNT 32
 #define MAX_PATH_LEN    256  // max length of a filepath
- 
+
 char* GetOneCfgFile(const char* pathSuffix, char* buf, unsigned int bufLength);
- 
+
 #ifdef __cplusplus
 #if __cplusplus
 }
@@ -49,7 +49,7 @@ namespace {
 constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 std::string g_mockStr = {CONFIG_FILE_PRODUCT};
 }
- 
+
 extern "C" char* GetOneCfgFile(const char* pathSuffix, char* buf, unsigned int bufLength)
 {
     if (g_mockStr.empty()) {
@@ -386,7 +386,7 @@ HWTEST_F(HgmCommandTest, GetScreenSetting, Function | SmallTest | Level0)
 {
     visitor_->screenConfigType_ = "unknown";
     EXPECT_TRUE(visitor_->GetScreenSetting().appList.empty());
-    
+
     visitor_->screenConfigType_ = "LTPO-DEFAULT";
     visitor_->xmlModeId_ = "5"; // id dont existed
     EXPECT_TRUE(visitor_->GetScreenSetting().appList.empty());
@@ -546,6 +546,87 @@ HWTEST_F(HgmCommandTest, SettingModeId2XmlModeId, Function | SmallTest | Level0)
         auto ret = visitor_->SettingModeId2XmlModeId(p.first);
         EXPECT_EQ(ret, p.second);
     }
+}
+
+/**
+ * @tc.name: HgmAbilityEnabledTest001
+ * @tc.desc: Verify the result of HgmAbilityEnabled function when enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, HgmAbilityEnabledTest001, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    ASSERT_NE(hgmCore.mPolicyConfigData_, nullptr);
+ 
+    // test when hgm policy is enabled (default)
+    EXPECT_TRUE(hgmCore.HgmAbilityEnabled());
+}
+
+/**
+ * @tc.name: HgmAbilityEnabledTest002
+ * @tc.desc: Verify the result of HgmAbilityEnabled function when disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, HgmAbilityEnabledTest002, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    ASSERT_NE(hgmCore.mPolicyConfigData_, nullptr);
+ 
+    // test when hgm policy is disabled
+    auto originalValue = hgmCore.hgmAbilityEnabled_;
+    hgmCore.hgmAbilityEnabled_ = false;
+    EXPECT_FALSE(hgmCore.HgmAbilityEnabled());
+    hgmCore.hgmAbilityEnabled_ = originalValue;
+}
+
+/**
+ * @tc.name: GetScreenActiveRefreshRateTest
+ * @tc.desc: Verify the result of GetScreenActiveRefreshRate function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, GetScreenActiveRefreshRateTest, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    uint32_t testNum = 60;
+    ScreenId testId = 0;
+    auto oriCb = hgmCore.getScreenActiveRefreshRateCb_;
+ 
+    HgmCore::GetScreenActiveRefreshRateCallback testFunc = [testNum](ScreenId id) -> uint32_t {
+        return testNum;
+    };
+    hgmCore.getScreenActiveRefreshRateCb_ = testFunc;
+    EXPECT_EQ(hgmCore.GetScreenActiveRefreshRate(testId), testNum);
+ 
+    hgmCore.getScreenActiveRefreshRateCb_ = nullptr;
+    EXPECT_EQ(hgmCore.GetScreenActiveRefreshRate(testId), 0);
+ 
+    hgmCore.getScreenActiveRefreshRateCb_ = oriCb;
+}
+
+/**
+ * @tc.name: HgmCoreInit001
+ * @tc.desc: Verify the result of HgmCore.Init
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, HgmCoreInit001, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+
+    // test init when mPolicyConfigData_ is null
+    auto oriData = std::move(hgmCore.mPolicyConfigData_);
+    hgmCore.mPolicyConfigData_ = nullptr;
+    hgmCore.Init();
+    hgmCore.mPolicyConfigData_ = std::move(oriData);
+    EXPECT_NE(hgmCore.mPolicyConfigData_, nullptr);
+    hgmCore.Init();
 }
 } // namespace Rosen
 } // namespace OHOS

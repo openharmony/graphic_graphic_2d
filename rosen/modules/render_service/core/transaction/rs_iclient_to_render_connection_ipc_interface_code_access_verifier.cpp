@@ -142,6 +142,14 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_FRAME_STABILITY_RESULT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UPDATE_FRAME_STABILITY_DETECTION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::UPDATE_FRAME_STABILITY_DETECTION");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FREE_MULTI_WINDOW_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FREE_MULTI_WINDOW_STATUS");
+            break;
+        }
         default: {
             break;
         }

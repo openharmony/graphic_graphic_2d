@@ -24,7 +24,7 @@ RSConnectToRenderProcessProxy::RSConnectToRenderProcessProxy(const sptr<IRemoteO
     : IRemoteProxy<RSIConnectToRenderProcess>(impl) {}
 
 sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderConnection(
-    const sptr<RSIConnectionToken>& token)
+    const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -41,19 +41,30 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection WriteRemoteObject callback->AsObject() err.");
         return nullptr;
     }
+    if (!data.WriteBool(needRefresh)) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection needRefresh err.");
+        return nullptr;
+    }
     uint32_t code = static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::CREATE_CONNECTION);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: Send Request err.");
         return nullptr;
     }
-    sptr<RSIClientToRenderConnection> newConn;
     bool hasRemoteObj = false;
-    if (reply.ReadBool(hasRemoteObj)) {
-        if (hasRemoteObj) {
-            auto obj = reply.ReadRemoteObject();
-            newConn = iface_cast<RSIClientToRenderConnection>(obj);
-        }
+    if (!reply.ReadBool(hasRemoteObj) || !hasRemoteObj) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: hasRemoteObj err.");
+        return nullptr;
+    }
+    auto obj = reply.ReadRemoteObject();
+    if (obj == nullptr) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: ReadRemoteObject err.");
+        return nullptr;
+    }
+    sptr<RSIClientToRenderConnection> newConn = iface_cast<RSIClientToRenderConnection>(obj);
+    if (newConn == nullptr) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: RSIClientToRenderConnection err.");
+        return nullptr;
     }
     return newConn;
 }
@@ -65,6 +76,40 @@ int32_t RSConnectToRenderProcessProxy::SendRequest(uint32_t code, MessageParcel&
         return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
     }
     return Remote()->SendRequest(code, data, reply, option);
+}
+
+bool RSConnectToRenderProcessProxy::RemoveConnection(const sptr<RSIConnectionToken>& token)
+{
+    if (token == nullptr) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection: token is null.");
+        return false;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIConnectToRenderProcess::GetDescriptor())) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection WriteInterfaceToken failed.");
+        return false;
+    }
+    if (!data.WriteRemoteObject(token->AsObject())) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection WriteRemoteObject failed.");
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::REMOVE_CONNECTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection SendRequest failed, err is %{public}d.", err);
+        return false;
+    }
+    bool result = false;
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection ReadBool failed");
+        return false;
+    }
+    return result;
 }
 } // namespace Rosen
 } // namespace OHOS

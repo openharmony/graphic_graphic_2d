@@ -903,6 +903,8 @@ Drawing::ColorType RSBaseRenderUtil::GetColorTypeFromBufferFormat(int32_t pixelF
             return Drawing::ColorType::COLORTYPE_RGBA_1010102;
         case GRAPHIC_PIXEL_FMT_RGBA_1010108:
             return Drawing::ColorType::COLORTYPE_RGBA_1010108;
+        case GRAPHIC_PIXEL_FMT_RGBA16_FLOAT:
+            return Drawing::ColorType::COLORTYPE_RGBA_F16;
         default:
             return Drawing::ColorType::COLORTYPE_RGBA_8888;
     }
@@ -1148,11 +1150,7 @@ void RSBaseRenderUtil::GetRotationLockParam(RSSurfaceRenderNode& node,
     int32_t logicalDegree = static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(logicalRotationCorrection));
     int32_t appDegree = static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(appRotationCorrection));
 
-    if (logicalDegree == 0) {
-        totalRotationCorrectionDegree = screenDegree;
-    } else {
-        totalRotationCorrectionDegree = (screenDegree + logicalDegree + appDegree) % ROUND_ANGLE;
-    }
+    totalRotationCorrectionDegree = (screenDegree + logicalDegree + appDegree) % ROUND_ANGLE;
 
     RS_LOGD("RSBaseRenderUtil::GetRotationLockParam NodeId:%" PRIu64 ", screenCorrectionDegree:%{public}d"
         ", logicalCorrectionDegree:%{public}d, appCorrectionDegree:%{public}d, totalCorrectionDegree:%{public}d",

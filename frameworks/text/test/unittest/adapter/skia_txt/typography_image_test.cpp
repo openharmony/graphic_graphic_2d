@@ -428,5 +428,66 @@ HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest009, T
     auto result = typography_->GetTextPathsByIndex();
     EXPECT_EQ(result.size(), 0);
 }
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexFakeBoldTest001
+ * @tc.desc: test that fake bold enabled preserves path point count (same topology)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexFakeBoldTest001, TestSize.Level0)
+{
+    std::u16string text = u"ABCDEFGH";
+    double maxWidth = 500;
+
+    // Fake bold ON: fontWeight W900 requests bold but wght axis loads weight-400 typeface.
+    // Condition: wantedWeight(900) >= 600 and 900 - 400 >= 200 → embolden applied.
+    OHOS::Rosen::TextStyle boldStyle;
+    boldStyle.fontSize = TEST_FONT_SIZE;
+    boldStyle.color = TEST_FONT_COLOR;
+    boldStyle.fontWeight = FontWeight::W900;
+    boldStyle.fontVariations.SetAxisValue("wght", 400);
+    typographyCreate_->PushStyle(boldStyle);
+    typographyCreate_->AppendText(text);
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    typography_->Layout(maxWidth);
+    auto fakeBoldOnPaths = typography_->GetTextPathsByIndex();
+    ASSERT_FALSE(fakeBoldOnPaths.empty());
+
+    // Fake bold OFF: fontWeight W400 matches wght axis 400, no delta → embolden skipped.
+    // Condition: wantedWeight(400) < 600 → fake bold not triggered.
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    auto normalBuilder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(normalBuilder, nullptr);
+    OHOS::Rosen::TextStyle normalStyle;
+    normalStyle.fontSize = TEST_FONT_SIZE;
+    normalStyle.color = TEST_FONT_COLOR;
+    normalStyle.fontWeight = FontWeight::W400;
+    normalStyle.fontVariations.SetAxisValue("wght", 400);
+    normalBuilder->PushStyle(normalStyle);
+    normalBuilder->AppendText(text);
+    auto normalTypography = normalBuilder->CreateTypography();
+    ASSERT_NE(normalTypography, nullptr);
+    normalTypography->Layout(maxWidth);
+    auto fakeBoldOffPaths = normalTypography->GetTextPathsByIndex();
+    ASSERT_FALSE(fakeBoldOffPaths.empty());
+
+    // Embolden thickens outlines but must not change path topology.
+    ASSERT_EQ(fakeBoldOnPaths.size(), fakeBoldOffPaths.size());
+    for (size_t i = 0; i < fakeBoldOnPaths.size() && i < fakeBoldOffPaths.size(); i++) {
+        EXPECT_EQ(fakeBoldOnPaths[i].path.CountPoints(), fakeBoldOffPaths[i].path.CountPoints())
+            << "Point count differs at glyph " << i;
+        EXPECT_EQ(fakeBoldOnPaths[i].path.CountVerbs(), fakeBoldOffPaths[i].path.CountVerbs())
+            << "Verb count differs at glyph " << i;
+        for (int j = 0; j < fakeBoldOnPaths[i].path.CountPoints() && j < fakeBoldOffPaths[i].path.CountPoints(); j++) {
+            EXPECT_DOUBLE_EQ(fakeBoldOnPaths[i].path.GetPoint(j).GetX(), fakeBoldOffPaths[i].path.GetPoint(j).GetX())
+                << "X coordinate differs at glyph " << i << ", point " << j;
+            EXPECT_DOUBLE_EQ(fakeBoldOnPaths[i].path.GetPoint(j).GetY(), fakeBoldOffPaths[i].path.GetPoint(j).GetY())
+                << "Y coordinate differs at glyph " << i << ", point " << j;
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

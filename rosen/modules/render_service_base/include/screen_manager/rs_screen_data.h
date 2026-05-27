@@ -34,7 +34,8 @@ class RSB_EXPORT RSScreenData : public Parcelable {
 public:
     RSScreenData() = default;
     RSScreenData(RSScreenCapability capability, RSScreenModeInfo activityModeInfo,
-        const std::vector<RSScreenModeInfo>& supportModeInfo, ScreenPowerStatus powerStatus);
+        const std::vector<RSScreenModeInfo>& supportModeInfo, ScreenPowerStatus powerStatus,
+        ScreenConnectionType connectionType);
     ~RSScreenData() = default;
     [[nodiscard]] static RSScreenData* Unmarshalling(Parcel &parcel);
     bool Marshalling(Parcel &parcel) const override;
@@ -43,11 +44,13 @@ public:
     void SetActivityModeInfo(const RSScreenModeInfo& activityModeInfo);
     void SetSupportModeInfo(const std::vector<RSScreenModeInfo>& supportModeInfo);
     void SetPowerStatus(ScreenPowerStatus powerStatus);
+    void SetScreenConnectionType(ScreenConnectionType connectionType);
 
     RSScreenCapability GetCapability() const;
     RSScreenModeInfo GetActivityModeInfo() const;
     const std::vector<RSScreenModeInfo>& GetSupportModeInfo() const;
     ScreenPowerStatus GetPowerStatus() const;
+    ScreenConnectionType GetScreenConnectionType() const;
 
 private:
     bool WriteVector(const std::vector<RSScreenModeInfo> &supportModes, Parcel &parcel) const;
@@ -56,6 +59,7 @@ private:
     RSScreenModeInfo activityModeInfo_;
     std::vector<RSScreenModeInfo> supportModeInfo_;
     ScreenPowerStatus powerStatus_ = INVALID_POWER_STATUS;
+    ScreenConnectionType connectionType_ = INVALID_DISPLAY_CONNECTION_TYPE;
 };
 } // namespace Rosen
 } // namespace OHOS

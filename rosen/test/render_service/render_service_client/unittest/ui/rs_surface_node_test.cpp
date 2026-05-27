@@ -1128,6 +1128,22 @@ HWTEST_F(RSSurfaceNodeTest, SetContainerWindow001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetWindowId001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI5J8R1
+ */
+HWTEST_F(RSSurfaceNodeTest, SetWindowId001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    uint32_t windowId = 1;
+    surfaceNode->SetWindowId(windowId);
+    ASSERT_EQ(surfaceNode->windowId_, 1);
+}
+
+/**
  * @tc.name: SetIsNotifyUIBufferAvailable001
  * @tc.desc:
  * @tc.type: FUNC
@@ -1792,6 +1808,27 @@ HWTEST_F(RSSurfaceNodeTest, GetSkipDraw, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     EXPECT_FALSE(surfaceNode->GetSkipDraw());
+}
+
+/**
+ * @tc.name: SetDarkColorMode
+ * @tc.desc: Test function SetDarkColorMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetDarkColorMode, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    surfaceNode->SetDarkColorMode(true);
+    EXPECT_TRUE(surfaceNode->GetDarkColorMode());
+
+    surfaceNode->SetDarkColorMode(false);
+    EXPECT_FALSE(surfaceNode->GetDarkColorMode());
+
+    surfaceNode->SetDarkColorMode(false);
+    EXPECT_FALSE(surfaceNode->GetDarkColorMode());
 }
 
 /**

@@ -86,8 +86,9 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
     }
     success_ = (property_ != nullptr);
     if (success_) {
-        auto& animationManager = node->GetAnimationManager();
-        animationManager.CancelAnimationByPropertyId(property_->GetId());
+        if (auto animationManager = node->GetAnimationManager()) {
+            animationManager->CancelAnimationByPropertyId(property_->GetId());
+        }
     }
 }
 
@@ -107,10 +108,11 @@ bool RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid(pid_t calling
 bool RSNodeGetShowingPropertiesAndCancelAnimation::Marshalling(Parcel& parcel) const
 {
     bool result = RSMarshallingHelper::Marshalling(parcel, commandType) &&
-           RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
-           RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
-           RSMarshallingHelper::Marshalling(parcel, success_) &&
-           RSMarshallingHelper::Marshalling(parcel, propertiesMap_);
+                  RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
+                  RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
+                  RSMarshallingHelper::Marshalling(parcel, success_) &&
+                  RSMarshallingHelper::Marshalling(parcel, propertiesMap_) &&
+                  RSMarshallingHelper::Marshalling(parcel, nodeNotFound_);
     return result;
 }
 
@@ -148,6 +150,9 @@ bool RSNodeGetShowingPropertiesAndCancelAnimation::ReadFromParcel(Parcel& parcel
     if (!RSMarshallingHelper::Unmarshalling(parcel, propertiesMap_)) {
         return false;
     }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, nodeNotFound_)) {
+        return false;
+    }
     return true;
 }
 
@@ -163,12 +168,15 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
         if (!node) {
             ROSEN_LOGE("RSNodeGetShowingPropertiesAndCancelAnimation::Process, "
                 "node [%{public}" PRIu64 "] is null!", nodeId);
+            nodeNotFound_ = true;
             continue;
         }
         if (auto prop = node->GetProperty(propertyId)) {
             property = prop;
         }
-        node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
+        if (auto animationManager = node->GetAnimationManager()) {
+            animationManager->AttemptCancelAnimationByAnimationId(animations);
+        }
     }
 }
 
@@ -245,7 +253,12 @@ void RSNodeGetAnimationsValueFraction::Process(RSContext& context)
         ROSEN_LOGE("RSNodeGetAnimationsValueFraction::Process, node is null!");
         return;
     }
-    auto animation = node->GetAnimationManager().GetAnimation(animationId_);
+    auto animationManager = node->GetAnimationManager();
+    if (!animationManager) {
+        ROSEN_LOGE("%{public}s: animationManager is null!", __func__);
+        return;
+    }
+    auto animation = animationManager->GetAnimation(animationId_);
     if (animation == nullptr) {
         ROSEN_LOGE("RSNodeGetAnimationsValueFraction::Process, animation is null!");
         return;

@@ -19,7 +19,7 @@
 #include <mutex>
 #include "platform/common/rs_log.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
-
+#include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 namespace OHOS {
 namespace Rosen {
 using OnConnectCallback = std::function<void(sptr<RSIClientToRenderConnection>&)>;
@@ -46,7 +46,9 @@ public:
     {
         return token_.GetRefPtr();
     }
-
+    void AddRenderProcessConnectionToken(sptr<RSIConnectionToken> token,
+        sptr<RSIConnectToRenderProcess> renderPrecess);
+    void RemoveRenderProcessConnectionToken(sptr<RSIConnectionToken> token);
 private:
     static sptr<RSRenderServiceConnectHub> GetInstance();
     static void Init();
@@ -70,6 +72,7 @@ private:
     };
 
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderServiceConnection();
+    void CleanConnectRenderProcess();
     bool Connect();
     void ConnectDied();
 
@@ -79,10 +82,12 @@ private:
     sptr<RSIClientToServiceConnection> conn_;
     sptr<RSIClientToRenderConnection> renderConn_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
-
+    std::mutex renderPipelineClientMutex_;
+    std::map<sptr<RSIConnectionToken>, sptr<RSIConnectToRenderProcess>> connRenderProcesses_;
     static std::once_flag flag_;
     static sptr<RSRenderServiceConnectHub> instance_;
     static OnConnectCallback onConnectCallback_;
+    friend class RSRenderPipelineClient;
 };
 } // namespace Rosen
 } // namespace OHOS

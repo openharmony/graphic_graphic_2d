@@ -1,0 +1,94 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{
+    global:
+        *;
+    local:
+        # libc++
+        _ZNSt3__h13basic_filebufIcNS_11char_traitsIcEEE*;
+        _ZTVNSt3__h13basic_filebufIcNS_11char_traitsIcEEEE*;
+        _ZNSt3__h14basic_ofstreamIcNS_11char_traitsIcEEE*;
+        _ZTCNSt3__h14basic_ofstreamIcNS_11char_traitsIcEEEE*;
+        _ZTTNSt3__h14basic_ofstreamIcNS_11char_traitsIcEEEE*;
+        _ZTVNSt3__h14basic_ofstreamIcNS_11char_traitsIcEEEE*;
+        _ZTCNSt3__h14basic_ifstreamIcNS_11char_traitsIcEEEE*;
+        _ZTTNSt3__h14basic_ifstreamIcNS_11char_traitsIcEEEE*;
+        _ZTVNSt3__h14basic_ifstreamIcNS_11char_traitsIcEEEE*;
+        _ZNKSt3__h15basic_stringbufIcNS_11char_traitsIcEENS*;
+        _ZNSt3__h15basic_stringbufIcNS_11char_traitsIcEENS*;
+        _ZTVNSt3__h15basic_stringbufIcNS_11char_traitsIcEENS*;
+        _ZTCNSt3__h18basic_stringstreamIcNS_11char_traitsIcEENS*;
+        _ZTTNSt3__h18basic_stringstreamIcNS_11char_traitsIcEENS*;
+        _ZTVNSt3__h18basic_stringstreamIcNS_11char_traitsIcEENS*;
+        _ZTCNSt3__h19basic_istringstreamIcNS_11char_traitsIcEENS*;
+        _ZTTNSt3__h19basic_istringstreamIcNS_11char_traitsIcEENS*;
+        _ZTVNSt3__h19basic_istringstreamIcNS_11char_traitsIcEENS*;
+        _ZTVNSt3__h19basic_ostringstreamIcNS_11char_traitsIcEENS*;
+        _ZTCNSt3__h19basic_ostringstreamIcNS_11char_traitsIcEENS*;
+        _ZTTNSt3__h19basic_ostringstreamIcNS_11char_traitsIcEENS*;
+        _ZN4ffrt21exec_function_wrapperINSt3__h8functionIFvvEEEEEvPv;
+        _ZN4ffrt24destroy_function_wrapperINSt3__h8functionIFvvEEEEEvPv;
+
+        _ZNKSt3__h10__function6__funcIPFPvPKciENS_9allocatorIS6_EES5_E7__cloneEPNS0_6__baseIS5_EE;
+        _ZNKSt3__h10__function6__funcIPFPvPKciENS_9allocatorIS6_EES5_E7__cloneEv;
+        _ZNKSt3__h10__function6__funcIPFPvS2_PKcENS_9allocatorIS6_EES5_E7__cloneEPNS0_6__baseIS5_EE;
+        _ZNKSt3__h10__function6__funcIPFPvS2_PKcENS_9allocatorIS6_EES5_E7__cloneEv;
+        _ZNSt3__h10__function6__funcIPFPvPKciENS_9allocatorIS6_EES5_E18destroy_deallocateEv;
+        _ZNSt3__h10__function6__funcIPFPvPKciENS_9allocatorIS6_EES5_E7destroyEv;
+        _ZNSt3__h10__function6__funcIPFPvPKciENS_9allocatorIS6_EES5_EclEOS4_Oi;
+        _ZNSt3__h10__function6__funcIPFPvS2_PKcENS_9allocatorIS6_EES5_E18destroy_deallocateEv;
+        _ZNSt3__h10__function6__funcIPFPvS2_PKcENS_9allocatorIS6_EES5_E7destroyEv;
+        _ZNSt3__h10__function6__funcIPFPvS2_PKcENS_9allocatorIS6_EES5_EclEOS2_OS4_;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeIiiEENS_22__unordered_map_hasherIiS2_NS_4hashIiEENS_8equal_toIiEELb1EEENS_21__unordered_map_equalIiS2_S7_S5_Lb1EEENS_9allocatorIS2_EEE11__do_rehashILb1EEEvm;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeIiiEENS_22__unordered_map_hasherIiS2_NS_4hashIiEENS_8equal_toIiEELb1EEENS_21__unordered_map_equalIiS2_S7_S5_Lb1EEENS_9allocatorIS2_EEE25__emplace_unique_key_argsIiJRKNS_21piecewise_construct_tENS_5tupleIJRKiEEENSI_IJEEEEEENS_4pairINS_15__hash_iteratorIPNS_11__hash_nodeIS2_PvEEEEbEERKT_DpOT0_;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeIiiEENS_22__unordered_map_hasherIiS2_NS_4hashIiEENS_8equal_toIiEELb1EEENS_21__unordered_map_equalIiS2_S7_S5_Lb1EEENS_9allocatorIS2_EEE6removeENS_21__hash_const_iteratorIPNS_11__hash_nodeIS2_PvEEEE;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeIiiEENS_22__unordered_map_hasherIiS2_NS_4hashIiEENS_8equal_toIiEELb1EEENS_21__unordered_map_equalIiS2_S7_S5_Lb1EEENS_9allocatorIS2_EEE8__rehashILb1EEEvm;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeIiiEENS_22__unordered_map_hasherIiS2_NS_4hashIiEENS_8equal_toIiEELb1EEENS_21__unordered_map_equalIiS2_S7_S5_Lb1EEENS_9allocatorIS2_EEED2Ev;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeImjEENS_22__unordered_map_hasherImS2_NS_4hashImEENS_8equal_toImEELb1EEENS_21__unordered_map_equalImS2_S7_S5_Lb1EEENS_9allocatorIS2_EEE11__do_rehashILb1EEEvm;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeImjEENS_22__unordered_map_hasherImS2_NS_4hashImEENS_8equal_toImEELb1EEENS_21__unordered_map_equalImS2_S7_S5_Lb1EEENS_9allocatorIS2_EEE8__rehashILb1EEEvm;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeImjEENS_22__unordered_map_hasherImS2_NS_4hashImEENS_8equal_toImEELb1EEENS_21__unordered_map_equalImS2_S7_S5_Lb1EEENS_9allocatorIS2_EEED2Ev;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEES7_EENS_22__unordered_map_hasherIS7_S8_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_S8_SD_SB_Lb1EEENS5_IS8_EEE11__do_rehashILb1EEEvm;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEES7_EENS_22__unordered_map_hasherIS7_S8_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_S8_SD_SB_Lb1EEENS5_IS8_EEE21__emplace_unique_implIJRA9_KcS7_EEENS_4pairINS_15__hash_iteratorIPNS_11__hash_nodeIS8_PvEEEEbEEDpOT_;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEES7_EENS_22__unordered_map_hasherIS7_S8_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_S8_SD_SB_Lb1EEENS5_IS8_EEE21__emplace_unique_implIJRA12_KcS7_EEENS_4pairINS_15__hash_iteratorIPNS_11__hash_nodeIS8_PvEEEEbEEDpOT_;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEES7_EENS_22__unordered_map_hasherIS7_S8_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_S8_SD_SB_Lb1EEENS5_IS8_EEE25__emplace_unique_key_argsIS7_JRKNS_4pairIKS7_S7_EEEEENSK_INS_15__hash_iteratorIPNS_11__hash_nodeIS8_PvEEEEbEERKT_DpOT0_;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEES7_EENS_22__unordered_map_hasherIS7_S8_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_S8_SD_SB_Lb1EEENS5_IS8_EEE25__emplace_unique_key_argsIS7_JRKNS_21piecewise_construct_tENS_5tupleIJOS7_EEENSN_IJEEEEEENS_4pairINS_15__hash_iteratorIPNS_11__hash_nodeIS8_PvEEEEbEERKT_DpOT0_;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEES7_EENS_22__unordered_map_hasherIS7_S8_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_S8_SD_SB_Lb1EEENS5_IS8_EEE4findIS7_EENS_15__hash_iteratorIPNS_11__hash_nodeIS8_PvEEEERKT_;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEES7_EENS_22__unordered_map_hasherIS7_S8_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_S8_SD_SB_Lb1EEENS5_IS8_EEE8__rehashILb1EEEvm;
+        _ZNSt3__h12__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEES7_EENS_22__unordered_map_hasherIS7_S8_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_S8_SD_SB_Lb1EEENS5_IS8_EEED2Ev;
+        _ZNSt3__h12basic_stringIDsNS_11char_traitsIDsEENS_9allocatorIDsEEE17__assign_no_aliasILb0EEERS5_PKDsm;
+        _ZNSt3__h12basic_stringIDsNS_11char_traitsIDsEENS_9allocatorIDsEEE17__assign_no_aliasILb1EEERS5_PKDsm;
+        _ZNSt3__h12basic_stringIDsNS_11char_traitsIDsEENS_9allocatorIDsEEE21__grow_by_and_replaceEmmmmmmPKDs;
+        _ZNSt3__h12basic_stringIDsNS_11char_traitsIDsEENS_9allocatorIDsEEEaSERKS5_;
+        _ZNSt3__h13__tree_removeIPNS_16__tree_node_baseIPvEEEEvT_S5_;
+        _ZNSt3__h13unordered_mapINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEES6_NS_4hashIS6_EENS_8equal_toIS6_EENS4_INS_4pairIKS6_S6_EEEEEC2ERKSF_;
+        _ZNSt3__h14__copy_alignedINS_6vectorIbNS_9allocatorIbEEEELb1EEENS_14__bit_iteratorIT_Lb0ELi0EEENS5_IS6_XT0_ELi0EEES8_S7_;
+        _ZNSt3__h16__copy_unalignedINS_6vectorIbNS_9allocatorIbEEEELb1EEENS_14__bit_iteratorIT_Lb0ELi0EEENS5_IS6_XT0_ELi0EEES8_S7_;
+        _ZNSt3__h27__tree_balance_after_insertIPNS_16__tree_node_baseIPvEEEEvT_S5_;
+        _ZNSt3__h6__itoa7__tableIvE10__pow10_32E;
+        _ZNSt3__h6__treeIlNS_4lessIlEENS_9allocatorIlEEE7destroyEPNS_11__tree_nodeIlPvEE;
+        _ZNSt3__h6__treeINS_12__value_typeIjPFiPN4OHOS29SystemAbilityStatusChangeStubERNS2_13MessageParcelES6_EEENS_19__map_value_compareIjS9_NS_4lessIjEELb1EEENS_9allocatorIS9_EEE7destroyEPNS_11__tree_nodeIS9_PvEE;
+        _ZNSt3__h6vectorIbNS_9allocatorIbEEE18__construct_at_endINS_14__bit_iteratorIS3_Lb1ELm0EEEEENS_9enable_ifIXsr27__is_cpp17_forward_iteratorIT_EE5valueEvE4typeES8_S8_;
+        _ZNSt3__h6vectorIjNS_9allocatorIjEEEC2ERKS3_;
+        _ZNSt3__h7getlineIcNS_11char_traitsIcEENS_9allocatorIcEEEERNS_13basic_istreamIT_T0_EES9_RNS_12basic_stringIS6_S7_T1_EES6_;
+        _ZNSt3__h8functionIFPvPKciEED2Ev;
+        _ZNSt3__h8functionIFPvS1_PKcEED2Ev;
+        _ZNSt3__h8functionIFvvEEaSERKS2_;
+        _ZTVN4OHOS19BrokerDelegatorBaseE;
+        _ZTVNSt3__h10__function6__funcIPFPvPKciENS_9allocatorIS6_EES5_EE;
+        _ZTVNSt3__h10__function6__funcIPFPvS2_PKcENS_9allocatorIS6_EES5_EE;
+        _ZTVNSt3__h20__shared_ptr_emplaceIN4OHOS10AppExecFwk12EventHandlerENS_9allocatorIS3_EEEE;
+        _ZN4OHOS11IRemoteStubINS_26ISystemAbilityStatusChangeEE8AsObjectEv;
+        _ZThn120_N4OHOS11IRemoteStubINS_26ISystemAbilityStatusChangeEE8AsObjectEv;
+        _ZN4OHOS11IRemoteStubINS_26ISystemAbilityStatusChangeEE11AsInterfaceEv;
+};

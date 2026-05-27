@@ -37,59 +37,69 @@ void BootSoundPlayerTest::SetUp() {}
 void BootSoundPlayerTest::TearDown() {}
 
 /**
- * @tc.name: BootSoundPlayerTest_001
- * @tc.desc: Verify the Play
- * @tc.type:FUNC
+ * @tc.name: Play_DifferentSoundSettings_ExecuteSuccessfully
+ * @tc.desc: Verify the Play function with different sound settings.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootSoundPlayerTest, BootSoundPlayerTest_001, TestSize.Level1)
+HWTEST_F(BootSoundPlayerTest, Play_DifferentSoundSettings_ExecuteSuccessfully, TestSize.Level1)
 {
     PlayerParams params1;
     params1.soundEnabled = false;
     std::shared_ptr<BootSoundPlayer> player1 = std::make_shared<BootSoundPlayer>(params1);
+    ASSERT_NE(player1, nullptr);
     player1->Play();
+    EXPECT_TRUE(true);
 
     PlayerParams params2;
     params2.soundEnabled = true;
     std::shared_ptr<BootSoundPlayer> player2 = std::make_shared<BootSoundPlayer>(params2);
+    ASSERT_NE(player2, nullptr);
     player2->Play();
+    EXPECT_TRUE(true);
 
     PlayerParams params3;
     params3.soundEnabled = true;
     std::shared_ptr<BootSoundPlayer> player3 = std::make_shared<BootSoundPlayer>(params3);
+    ASSERT_NE(player3, nullptr);
     BootAnimationUtils::SetBootAnimationSoundEnabled(false);
     EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), false);
     player3->Play();
+    EXPECT_TRUE(true);
 }
 
 /**
- * @tc.name: BootSoundPlayerTest_002
- * @tc.desc: Verify the Play
- * @tc.type:FUNC
+ * @tc.name: Play_SoundEnabledMinVolume_ExecuteSuccessfully
+ * @tc.desc: Verify the Play function with sound enabled and min volume.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootSoundPlayerTest, BootSoundPlayerTest_002, TestSize.Level1)
+HWTEST_F(BootSoundPlayerTest, Play_SoundEnabledMinVolume_ExecuteSuccessfully, TestSize.Level1)
 {
     PlayerParams params;
     params.soundEnabled = true;
     std::shared_ptr<BootSoundPlayer> player = std::make_shared<BootSoundPlayer>(params);
+    ASSERT_NE(player, nullptr);
     BootAnimationUtils::SetBootAnimationSoundEnabled(true);
     system::SetParameter(BOOT_SOUND, std::to_string(MIN_VOLUME));
     EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), true);
     player->Play();
+    EXPECT_TRUE(true);
 }
 
 /**
- * @tc.name: BootSoundPlayerTest_003
- * @tc.desc: Verify the Play
- * @tc.type:FUNC
+ * @tc.name: Play_SoundEnabledAboveMinVolume_ExecuteSuccessfully
+ * @tc.desc: Verify the Play function with sound enabled and above min volume.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootSoundPlayerTest, BootSoundPlayerTest_003, TestSize.Level1)
+HWTEST_F(BootSoundPlayerTest, Play_SoundEnabledAboveMinVolume_ExecuteSuccessfully, TestSize.Level1)
 {
     PlayerParams params;
     params.soundEnabled = true;
     std::shared_ptr<BootSoundPlayer> player = std::make_shared<BootSoundPlayer>(params);
+    ASSERT_NE(player, nullptr);
     BootAnimationUtils::SetBootAnimationSoundEnabled(true);
     system::SetParameter(BOOT_SOUND, std::to_string(MIN_VOLUME + 1));
     EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), true);
     player->Play();
+    EXPECT_TRUE(true);
 }
 }

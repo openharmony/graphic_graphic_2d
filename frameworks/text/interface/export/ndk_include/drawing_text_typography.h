@@ -662,7 +662,68 @@ typedef enum OH_Drawing_TypographyStyleAttributeId {
      * @since 24
      */
     TYPOGRAPHY_STYLE_ATTR_I_ELLIPSIS_MODAL = 8,
+    /**
+     * Line head indent array
+     * @since 26.0.0
+     */
+    TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT = 9,
+    /**
+     * First line head indent
+     * @since 26.0.0
+     */
+    TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT = 10,
+    /**
+     * Line tail indent array
+     * @since 26.0.0
+     */
+    TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT = 11,
 } OH_Drawing_TypographyStyleAttributeId;
+
+/**
+ * @brief Enumerates typography attribute.
+ *
+ * @since 26.0.0
+ */
+typedef enum OH_Drawing_TypographyAttributeId {
+    /**
+     * Whether to force reuse the rasterization result.
+     * True means to force reuse of the rasterization result. False means to allow updates to the rasterization result.
+     * The default value is false.
+     * @since 26.0.0
+     */
+    TYPOGRAPH_ATTR_B_FORCE_REUSE_RASTER_RESULT = 0,
+} OH_Drawing_TypographyAttributeId;
+
+/**
+ * @brief Gets the bool type property's value from the typography.
+ *
+ * @param typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param id Indicates the attribute id.
+ * @param value Indicates the return value of the interface.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the typography or value is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetTypographyAttributeBool(const OH_Drawing_Typography* typography,
+    OH_Drawing_TypographyAttributeId id, bool* value);
+
+/**
+ * @brief Sets bool value to the typography attribute.
+ *
+ * @param typography Indicates the pointer to an <b>OH_Drawing_Typography</b> object.
+ * @param id Indicates the attribute id.
+ * @param value Indicates the value to set.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the typography is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_SetTypographyAttributeBool(OH_Drawing_Typography* typography,
+    OH_Drawing_TypographyAttributeId id, bool value);
+
 
 /**
  * @brief Sets double value to the text style attribute.
@@ -821,6 +882,40 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeBool(OH_Drawing_Typog
  */
 OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeBool(OH_Drawing_TypographyStyle* style,
     OH_Drawing_TypographyStyleAttributeId id, bool* value);
+
+/**
+ * @brief Sets the double array value for the typographic style attribute.
+ *
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param id Indicates the attribute id.
+ * @param arrayValue Indicates the array value to set.
+ * @param arrayLength Indicates the array length.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the parameter style or arrayValue is a null pointer
+ *         or arrayLength is 0.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeDoubleArray(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, double* arrayValue, size_t arrayLength);
+
+/**
+ * @brief Gets the double array value for the typographic style attribute.
+ *
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param id Indicates the attribute id.
+ * @param arrayValue Output parameter to receive the array value.
+ * @param arrayLength Output parameter to receive the length of the array.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the parameter style or arrayValue is a null pointer
+ *         or arrayLength is a null pointer.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeDoubleArray(const OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, double** arrayValue, size_t* arrayLength);
 
 /**
  * @brief Type of badge.

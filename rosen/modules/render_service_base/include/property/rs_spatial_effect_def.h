@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef RENDER_SERVICE_BASE_PROPERTY_RS_SPATIAL_EFFECT_DEF_H
+#define RENDER_SERVICE_BASE_PROPERTY_RS_SPATIAL_EFFECT_DEF_H
+
+#include <variant>
+
+#include "common/rs_vector2.h"
+#include "common/rs_vector3.h"
+#include "common/rs_vector4.h"
+
+namespace OHOS {
+namespace Rosen {
+
+enum class DepthSpaceType : int16_t {
+    INSTANCE = 0,
+    GLOBAL = 1
+};
+
+struct DepthCameraPara {
+    Vector3f position;
+    Vector4f quaternion;
+    float yFov = 0.f;
+    float zNear = 0.1f;
+    float zFar = 100.f;
+    Vector2f offset;
+};
+
+struct DepthLightPara {
+    Vector3f direction;
+    Vector3f color;
+    float intensity = 1.f;
+};
+
+struct SpatialEffectPara {
+    static constexpr uint8_t LEFT_TOP_INDEX = 0;
+    static constexpr uint8_t RIGHT_TOP_INDEX = 1;
+    static constexpr uint8_t LEFT_BOTTOM_INDEX = 2;
+    static constexpr uint8_t RIGHT_BOTTOM_INDEX = 3;
+    static constexpr uint8_t CORNER_NUMBER = 4;
+
+    using CornerPositions = std::array<Vector3f, CORNER_NUMBER>;
+
+    union {
+        struct {
+            Vector3f leftTop;
+            Vector3f rightTop;
+            Vector3f leftBottom;
+            Vector3f rightBottom;
+        };
+        CornerPositions corners;
+    };
+
+    float occlusionWeight = 0.f;
+
+    SpatialEffectPara() {};
+    ~SpatialEffectPara() {};
+};
+
+struct SpatialEffectVariantPara {
+    std::variant<float, SpatialEffectPara::CornerPositions> position;
+    float occlusionWeight = 0.0f;
+};
+
+} // namespace Rosen
+} // namespace OHOS
+
+#endif // RENDER_SERVICE_BASE_PROPERTY_RS_SPATIAL_EFFECT_DEF_H

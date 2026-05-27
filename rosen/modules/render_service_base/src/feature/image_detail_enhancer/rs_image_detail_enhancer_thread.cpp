@@ -50,6 +50,7 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
 constexpr int IMAGE_DIFF_VALUE = 200; // Image size difference
 constexpr int CHANNELS_CNT = 4; // Number of channels
 constexpr float MEMUNIT_RATE = 1024.0f; // Mem unit rate
@@ -72,7 +73,7 @@ RSImageDetailEnhancerThread::RSImageDetailEnhancerThread()
     if (!isParamValidate_) {
         return;
     }
-    ifReleaseAllScaledImage_ = false;
+    ifReleaseAllScaledImage_.store(false);
     params_ = RsCommonHook::Instance().GetImageEnhanceParams();
     slrParams_ = RsCommonHook::Instance().GetImageEnhanceAlgoParams("SLR");
     esrParams_ = RsCommonHook::Instance().GetImageEnhanceAlgoParams("ESR");
@@ -515,13 +516,13 @@ bool RSImageDetailEnhancerThread::GetEnabled()
         RSSystemProperties::GetScaleImageAsyncEnabled() &&
         RSSystemProperties::GetMemoryWatermarkEnabled() &&
         isParamValidate_) {
-        ifReleaseAllScaledImage_ = true;
+        ifReleaseAllScaledImage_.store(true);
         return true;
     }
-    if (ifReleaseAllScaledImage_) {
+    if (ifReleaseAllScaledImage_.load()) {
         ReleaseAllScaledImage();
     }
-    ifReleaseAllScaledImage_ = false;
+    ifReleaseAllScaledImage_.store(false);
     return false;
 #endif
     return false;
@@ -730,5 +731,6 @@ long long DetailEnhancerUtils::GetCurTime() const
     auto ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
     return ms.time_since_epoch().count();
 }
+#endif
 } // OHOS
 } // Rosen

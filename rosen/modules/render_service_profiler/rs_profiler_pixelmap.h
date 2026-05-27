@@ -63,14 +63,14 @@ struct RSB_EXPORT ImageProperties {
 };
 
 struct TextureHeader {
-    int32_t magicNumber;
+    int32_t magicNumber = 0;
     ImageProperties properties;
 
-    int32_t totalOriginalSize;
-    int32_t rgbEncodedSize;
+    int32_t totalOriginalSize = 0;
+    int32_t rgbEncodedSize = 0;
 
-    int32_t alphaOriginalSize;
-    int32_t alphaEncodedSize;
+    int32_t alphaOriginalSize = 0;
+    int32_t alphaEncodedSize = 0;
 };
 
 enum class EncodedType : int {

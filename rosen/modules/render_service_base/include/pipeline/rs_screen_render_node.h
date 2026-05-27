@@ -30,6 +30,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/dynamic_layer_skip/rs_dynamic_layer_skip_controller.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
@@ -40,6 +41,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceRenderNode;
+class RSDynamicLayerSkipController;
 typedef void (*ReleaseDmaBufferTask)(uint64_t);
 
 class RSB_EXPORT RSScreenRenderNode : public RSRenderNode {
@@ -50,8 +52,7 @@ public:
     explicit RSScreenRenderNode(
         NodeId id, ScreenId screenId, const std::weak_ptr<RSContext>& context = {});
     ~RSScreenRenderNode() override;
-    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
+    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID, NodeId firstLevelNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID, NodeId screenNodeId = INVALID_NODEID,
         NodeId logicalDisplayNodeId = INVALID_NODEID) override;
 
@@ -182,6 +183,7 @@ public:
     void ResetMirrorSource();
     void SetIsMirrorScreen(bool isMirror);
     void SetDisplayGlobalZOrder(float zOrder);
+    float GetDisplayGlobalZOrder() const;
     bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval) override;
     WeakPtr GetMirrorSource() const
     {
@@ -332,6 +334,22 @@ public:
         return pixelFormat_;
     }
 
+    void SetSdrNits(float sdrNits)
+    {
+        lastSdrNits_ = sdrNits_;
+        sdrNits_ = sdrNits;
+    }
+
+    float GetSdrNits() const
+    {
+        return sdrNits_;
+    }
+
+    float GetLastSdrNits() const
+    {
+        return lastSdrNits_;
+    }
+
     bool GetFirstFrameVirtualScreenInit() const
     {
         return isFirstFrameVirtualScreenInit_;
@@ -443,7 +461,9 @@ public:
     }
     void HandleCurMainAndLeashSurfaceNodes();
 
-    void CollectHdrStatus(HdrStatus hdrStatus);
+    void CollectHdrStatus(NodeId id, HdrStatus hdrStatus);
+
+    const std::unordered_map<NodeId, HdrStatus>& GetDisplayHdrStatusMap() const;
 
     void ResetDisplayHdrStatus();
 
@@ -487,6 +507,11 @@ public:
         return targetSurfaceRenderNodeId_;
     }
 
+    std::shared_ptr<RSDynamicLayerSkipController> GetDynamicLayerSkipController()
+    {
+        return dynamicLayerSkipController_;
+    }
+
     void SetHasMirrorScreen(bool hasMirrorScreen);
 
     void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
@@ -500,6 +525,7 @@ public:
     void SetScreenDirtyFlag(bool flag) { screenDirtyFlag_ = flag; }
     bool GetAndResetScreenDirtyFlag() { return std::exchange(screenDirtyFlag_, false); }
     void SetVirtualSurfaceChanged(bool isChanged);
+    void SetActiveRectChanged(bool isChanged);
 
     using HeadroomMap = std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
     const HeadroomMap& GetHeadroomMap() const {
@@ -510,6 +536,11 @@ public:
     void ResetVideoHeadroomInfo();
     
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
+    void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
+    bool GetHasForceHwcHdrSurface() const;
+
+    void SetBootAnimation(bool isBootAnimation) override;
+    bool GetBootAnimation() const override;
 
 protected:
     void OnSync() override;
@@ -530,6 +561,7 @@ private:
     bool isLuminanceStatusChange_ = false;
     bool hasFingerprint_ = false;
     bool isGeometryInitialized_ = false;
+    bool isBootAnimation_ = false;
 
     bool forceFreeze_ = false;
 
@@ -537,6 +569,8 @@ private:
     bool isParallelDisplayNode_ = false;
     bool curZoomState_ = false;
     bool preZoomState_ = false;
+    float sdrNits_ = 500.0f;
+    float lastSdrNits_ = 500.0f;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     mutable HdrStatus lastDisplayTotalHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
@@ -546,6 +580,8 @@ private:
     int64_t lastRefreshTime_ = 0;
     static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+    std::shared_ptr<RSDynamicLayerSkipController> dynamicLayerSkipController_ =
+        std::make_shared<RSDynamicLayerSkipController>();
     // Use in screen recording optimization
     std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
     WeakPtr mirrorSource_;
@@ -589,6 +625,8 @@ private:
 
     // Enable HWCompose
     RSHwcDisplayRecorder hwcDisplayRecorder_;
+
+    bool hasForceHwcHdrSurface_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

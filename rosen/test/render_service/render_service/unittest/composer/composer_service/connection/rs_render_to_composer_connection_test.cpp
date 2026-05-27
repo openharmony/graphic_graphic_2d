@@ -17,7 +17,6 @@
 #include <memory>
 #include <set>
 
-#ifdef ENABLE_SERVER_CONN_UT
 #include "rs_render_to_composer_connection.h"
 #include "rs_render_composer_agent.h"
 #include "rs_composer_to_render_connection.h"
@@ -41,6 +40,7 @@ class RSRenderToComposerConnectionTest : public Test {};
  *                  5. call OnScreenVBlankIdleCallback
  *                  6. call ClearRedrawGPUCompositionCache
  *                  7. call SetScreenBacklight; ensure no crash
+ *                  8. call SetScreenLinearMatrix; ensure no crash
  */
 HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgent, TestSize.Level1)
 {
@@ -50,7 +50,7 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgent, TestSize.
     RSRenderToComposerConnection conn("conn", 1u, agent);
 
     std::unique_ptr<RSLayerTransactionData> tx(nullptr);
-    conn.CommitLayers(tx);
+    EXPECT_FALSE(conn.CommitLayers(tx));
 
     conn.ClearFrameBuffers();
 
@@ -63,6 +63,9 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgent, TestSize.
     conn.ClearRedrawGPUCompositionCache(ids);
 
     conn.SetScreenBacklight(10u);
+
+    std::vector<float> matrix1 = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    conn.SetScreenLinearMatrix(matrix1);
     std::unordered_set<uint64_t> expectIds { 1u };
     EXPECT_EQ(ids, expectIds);
 }
@@ -80,14 +83,16 @@ HWTEST_F(RSRenderToComposerConnectionTest, Methods_Call_WithNullAgentPtr, TestSi
     std::shared_ptr<RSRenderComposerAgent> agent = nullptr;
     RSRenderToComposerConnection conn("conn", 2u, agent);
 
-    std::unique_ptr<RSLayerTransactionData> tx = std::make_unique<RSLayerTransactionData>();
-    conn.CommitLayers(tx);
+    std::unique_ptr<RSLayerTransactionData> tx(nullptr);
+    EXPECT_FALSE(conn.CommitLayers(tx));
     conn.ClearFrameBuffers();
     conn.CleanLayerBufferBySurfaceId(1u);
     conn.OnScreenVBlankIdleCallback(2u, 0u);
     std::unordered_set<uint64_t> ids { 2u };
     conn.ClearRedrawGPUCompositionCache(ids);
     conn.SetScreenBacklight(20u);
+    std::vector<float> matrix2 = { 1.0f, 2.0f };
+    conn.SetScreenLinearMatrix(matrix2);
     ASSERT_EQ(agent, nullptr);
 }
 
@@ -122,5 +127,54 @@ HWTEST_F(RSRenderToComposerConnectionTest, Connection_PreAllocProtectedFrameBuff
     conn.PreAllocProtectedFrameBuffers(sb);
     ASSERT_NE(sb, nullptr);
 }
+
+/**
+ * Function: Connection_CleanLayerBufferBySurfaceId_ZeroId
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. create connection with valid agent object
+ *                  2. call CleanLayerBufferBySurfaceId with zero id
+ *                  3. verify early-return path without crash
+ */
+HWTEST_F(RSRenderToComposerConnectionTest, Connection_CleanLayerBufferBySurfaceId_ZeroId, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(std::shared_ptr<RSRenderComposer>(nullptr));
+    RSRenderToComposerConnection conn("conn", 5u, agent);
+    conn.CleanLayerBufferBySurfaceId(0u);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_EQ(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: Connection_CommitLayers_WithTransactionAndNullComposer
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. create connection with agent that has null composer
+ *                  2. call CommitLayers with non-null transaction
+ *                  3. verify false is returned
+ */
+HWTEST_F(RSRenderToComposerConnectionTest, Connection_CommitLayers_WithTransactionAndNullComposer, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(std::shared_ptr<RSRenderComposer>(nullptr));
+    RSRenderToComposerConnection conn("conn", 6u, agent);
+    std::unique_ptr<RSLayerTransactionData> tx = std::make_unique<RSLayerTransactionData>();
+    EXPECT_FALSE(conn.CommitLayers(tx));
+}
+
+/**
+ * Function: Connection_CleanLayerBufferBySurfaceId_ValidSurfaceId
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. create connection with agent that has null composer
+ *                  2. call CleanLayerBufferBySurfaceId with non-zero id
+ *                  3. verify call path executes without crash
+ */
+HWTEST_F(RSRenderToComposerConnectionTest, Connection_CleanLayerBufferBySurfaceId_ValidSurfaceId, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(std::shared_ptr<RSRenderComposer>(nullptr));
+    RSRenderToComposerConnection conn("conn", 7u, agent);
+    conn.CleanLayerBufferBySurfaceId(123u);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_EQ(agent->rsRenderComposer_, nullptr);
+}
 } // namespace OHOS::Rosen
-#endif // ENABLE_SERVER_CONN_UT

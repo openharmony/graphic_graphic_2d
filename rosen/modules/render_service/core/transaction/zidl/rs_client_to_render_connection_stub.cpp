@@ -38,6 +38,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_render_service_client_info.h"
@@ -60,6 +61,7 @@ static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemp
 const uint32_t MAX_VOTER_SIZE = 100;
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+constexpr size_t MAX_NODE_ID_LIST_SIZE = 100000;
 
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
@@ -90,7 +92,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_CONTAINER),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_UIFIRST_CACHE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FREEZE_SCREEN),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE),
@@ -110,10 +114,13 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -196,10 +203,12 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     int32_t data{0};
     if (!parcelCopied->ReadInt32(data)) {
         RS_LOGE("RSClientToRenderConnectionStub::CopyParcelIfNeed parcel data Read failed");
+        free(base);
         return nullptr;
     }
     if (data != 0) {
         RS_LOGE("RSClientToRenderConnectionStub::CopyParcelIfNeed parcel data not match");
+        free(base);
         return nullptr;
     }
     return parcelCopied;
@@ -486,7 +495,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .mirrorSourceRotation = mirrorSourceRotation,
             };
             bool success;
-            if (CreateNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
+            if (CreateDisplayNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -522,14 +531,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool needGetBundleName = (type == static_cast<uint8_t>(RSSurfaceNodeType::SELF_DRAWING_NODE));
             RSSurfaceRenderNodeConfig config = { .id = nodeId,
                 .name = surfaceName,
                 .nodeType = static_cast<RSSurfaceNodeType>(type),
                 .isTextureExportNode = isTextureExportNode,
                 .isSync = isSync,
                 .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType),
-                .bundleName = needGetBundleName ? GetBundleName(ExtractPid(nodeId)) : "" };
+                .bundleName = GetBundleName(ExtractPid(nodeId)) };
             sptr<Surface> surface = nullptr;
             ErrCode err = CreateNodeAndSurface(config, surface, unobscured);
             if ((err != ERR_OK) || (surface == nullptr)) {
@@ -763,13 +771,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE) : {
-            bool highContrast = GetHighContrastTextState();
-            if (!reply.WriteBool(highContrast)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO): {
             int32_t pid{0};
             if (!data.ReadInt32(pid)) {
@@ -795,8 +796,8 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .abilityName = abilityName,
                 .focusNodeId = focusNodeId};
             int32_t repCode;
-            if (SetFocusAppInfo(info, repCode) != ERR_OK || !reply.WriteInt32(repCode)) {
-                RS_LOGE("RSClientToRenderConnectionStub::SET_FOCUS_APP_INFO Write status failed!");
+            if (SetFocusAppInfo(info, repCode) != ERR_OK) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_FOCUS_APP_INFO failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1084,7 +1085,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (!WriteBrightnessInfo(brightnessInfo, reply)) {
+            if (!RSMarshallingHelper::Marshalling(reply, brightnessInfo)) {
                 RS_LOGE("RSClientToRenderConnectionStub::GET_BRIGHTNESS_INFO Write brightnessInfo failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -1357,6 +1358,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (nodeIdList.size() > MAX_NODE_ID_LIST_SIZE) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK nodeIdList size exceeds limit!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool invalidWatermarkType = (!data.ReadUint8(watermarkType) || watermarkType >=
                 static_cast<uint8_t>(SurfaceWatermarkType::INVALID_WATER_MARK));
             if (invalidWatermarkType) {
@@ -1364,8 +1370,20 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            uint32_t rowCount = 0;
+            uint32_t colCount = 0;
+            if (!data.ReadUint32(rowCount)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read rowCount failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadUint32(colCount)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read colCount failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto errCode = SetSurfaceWatermark(pid, name, watermark, nodeIdList,
-                static_cast<SurfaceWatermarkType>(watermarkType));
+                static_cast<SurfaceWatermarkType>(watermarkType), rowCount, colCount);
             if (!reply.WriteUint32(errCode)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK write errCode failed!");
                 ret = ERR_INVALID_DATA;
@@ -1673,6 +1691,53 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION): {
+            FrameStabilityTarget oldTarget;
+            if (!data.ReadUint64(oldTarget.id)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read oldId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t oldTypeValue;
+            if (!data.ReadUint32(oldTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            oldTarget.type = static_cast<FrameStabilityTargetType>(oldTypeValue);
+
+            FrameStabilityTarget newTarget;
+            if (!data.ReadUint64(newTarget.id)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read newId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t newTypeValue;
+            if (!data.ReadUint32(newTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            newTarget.type = static_cast<FrameStabilityTargetType>(newTypeValue);
+            int32_t repCode = UpdateFrameStabilityDetection(oldTarget, newTarget);
+            if (repCode != 0) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Write repCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS): {
+            bool enable{false};
+            if (!data.ReadBool(enable)) {
+                RS_LOGE("SET_FREE_MULTI_WINDOW_STATUS Read enable failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetFreeMultiWindowStatus(enable);
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -1697,25 +1762,16 @@ bool RSClientToRenderConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessagePar
     return true;
 }
 
-bool RSClientToRenderConnectionStub::WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data)
-{
-    if (!data.WriteFloat(brightnessInfo.currentHeadroom) ||
-        !data.WriteFloat(brightnessInfo.maxHeadroom) ||
-        !data.WriteFloat(brightnessInfo.sdrNits)) {
-        RS_LOGE("RSClientToRenderConnectionStub::WriteBrightnessInfo write brightnessInfo failed!");
-        return false;
-    }
-    return true;
-}
-
 bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig,
     MessageParcel& data)
 {
     uint8_t captureType { 0 };
+    uint32_t displayIntent { 0 };
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
         !data.ReadBool(captureConfig.isHdrCapture) ||
+        !data.ReadUint32(displayIntent) ||
         !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.ReadBool(captureConfig.needErrorCode) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
@@ -1734,7 +1790,8 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         !data.ReadBool(captureConfig.colorSpace.second) ||
         !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
         !data.ReadBool(captureConfig.dynamicRangeMode.second) ||
-        !data.ReadBool(captureConfig.isSyncRender)) {
+        !data.ReadBool(captureConfig.isSyncRender) ||
+        !data.ReadBool(captureConfig.windowSync)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
         return false;
     }
@@ -1743,6 +1800,11 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         return false;
     }
     captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
+    if (displayIntent >= static_cast<uint32_t>(DisplayIntent::DISPLAY_INTENT_BUTT)) {
+        RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read displayIntent failed!");
+        return false;
+    }
+    captureConfig.displayIntent = static_cast<DisplayIntent>(displayIntent);
     return true;
 }
 

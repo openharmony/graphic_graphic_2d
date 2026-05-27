@@ -40,7 +40,8 @@ void RSPowerOffRenderController::CheckScreenPowerRenderControlStatus(const RSRen
                 return;
             }
             bool isPowerOff =
-                (status == ScreenPowerStatus::POWER_STATUS_OFF || status == ScreenPowerStatus::POWER_STATUS_SUSPEND);
+                (status == ScreenPowerStatus::POWER_STATUS_OFF || status == ScreenPowerStatus::POWER_STATUS_SUSPEND
+                || status == ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED);
             if (!isPowerOff) {
                 curScreenStatus[screenId] = RenderSkipStatus::SCREEN_RENDER;
             } else {

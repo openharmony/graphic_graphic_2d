@@ -20,6 +20,7 @@
 #include <string>
 #include <unordered_map>
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#include <shared_mutex>
 #include "vulkan/vulkan.h"
 #include "vulkan/vulkan_xeg.h"
 #endif
@@ -54,17 +55,33 @@ public:
     static void ReportDelScreenId(const int screenId);
     static bool IsInitSchedCompleted();
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
-    static void ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp, const char* firstFrontBundleName);
+    static void ReportWindowInfo(bool isSingleFullScreenApp, const char* firstFrontBundleName);
 #endif
 private:
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     struct VkHandleDeleter {
         void operator()(void* ptr) const;
     };
-    static bool InitializeVulkanExtensions(VkDevice device);
+    static bool GetVulkanFunctionPointersByLibrary();
+    static bool GetVulkanFunctionPointersByInstance();
+    static bool CreateVulkanInstance();
+    static bool CreateVulkanDevice();
+    static bool GetSetFrontWindowStatusHUAWEI();
+    static bool InitializeVulkanExtensions();
+    static uint32_t FindQueueFamilyIndex(VkPhysicalDevice physicalDevice);
     static std::atomic<bool> isInit;
+    static VkDevice device_;
+    static VkInstance instance_;
+    static std::shared_mutex initMutex_;
     static PFN_vkSetFrontWindowStatusHUAWEI mSetFrontWindowStatusHUAWEI;
+    static PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
     static PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+    static PFN_vkCreateInstance vkCreateInstance;
+    static PFN_vkDestroyInstance vkDestroyInstance;
+    static PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
+    static PFN_vkCreateDevice vkCreateDevice;
+    static PFN_vkDestroyDevice vkDestroyDevice;
+    static PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
     static std::unique_ptr<void, VkHandleDeleter> vkhandle;
     static std::function<void*(const char*, int)> dlopenFunc;
     static std::function<void*(void*, const char*)> dlsymFunc;

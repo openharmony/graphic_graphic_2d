@@ -15,6 +15,9 @@
 
 #include "gtest/gtest.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ui_effect/filter/include/filter_heat_distortion_para.h"
+#include "ui_effect/filter/include/filter_blur_bubbles_rise_para.h"
+#include "ui_effect/filter/include/filter_motion_blur_para.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -50,6 +53,38 @@ HWTEST_F(RSUIFilterBaseTest, CreateNGBlurFilter, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateNGBlurFilterWithExpandDrawRegion
+ * @tc.desc: test for RSNGFilterHelper::CreateNGBlurFilter with expandDrawRegion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGBlurFilterWithExpandDrawRegion, TestSize.Level1)
+{
+    auto blurFilter = std::static_pointer_cast<RSNGBlurFilter>(
+        RSNGFilterHelper::CreateNGBlurFilter(20.f, 20.f, false));
+    EXPECT_NE(blurFilter, nullptr);
+    float blurRadiusX = blurFilter->Getter<BlurRadiusXTag>()->Get();
+    float blurRadiusY = blurFilter->Getter<BlurRadiusYTag>()->Get();
+    bool expandDrawRegion = blurFilter->Getter<BlurExpandDrawRegionTag>()->Get();
+    EXPECT_FLOAT_EQ(blurRadiusX, 20.f);
+    EXPECT_FLOAT_EQ(blurRadiusY, 20.f);
+    EXPECT_EQ(expandDrawRegion, false);
+}
+
+/**
+ * @tc.name: CreateNGBlurFilterExpandDrawRegionDefault
+ * @tc.desc: test for expandDrawRegion default value is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGBlurFilterExpandDrawRegionDefault, TestSize.Level1)
+{
+    auto blurFilter = std::static_pointer_cast<RSNGBlurFilter>(
+        RSNGFilterHelper::CreateNGBlurFilter(10.f, 10.f));
+    EXPECT_NE(blurFilter, nullptr);
+    bool expandDrawRegion = blurFilter->Getter<BlurExpandDrawRegionTag>()->Get();
+    EXPECT_EQ(expandDrawRegion, false);
+}
+
+/**
  * @tc.name: CreateNGMaterialBlurFilter
  * @tc.desc: test for RSNGFilterHelper::CreateNGMaterialBlurFilter
  * @tc.type: FUNC
@@ -67,4 +102,258 @@ HWTEST_F(RSUIFilterBaseTest, CreateNGMaterialBlurFilter, TestSize.Level1)
     EXPECT_FLOAT_EQ(saturation, -0.5);
     EXPECT_FLOAT_EQ(brightness, -0.5);
 }
+
+/**
+ * @tc.name: CreateHeatDistortionFilter001
+ * @tc.desc: test creating HEAT_DISTORTION filter via RSNGFilterBase::Create
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateHeatDistortionFilter001, TestSize.Level1)
+{
+    auto heatDistortionFilter = RSNGFilterBase::Create(RSNGEffectType::HEAT_DISTORTION);
+    EXPECT_NE(heatDistortionFilter, nullptr);
+    EXPECT_EQ(heatDistortionFilter->GetType(), RSNGEffectType::HEAT_DISTORTION);
+}
+
+/**
+ * @tc.name: CreateBlurBubblesRiseFilter001
+ * @tc.desc: test creating BLUR_BUBBLES_RISE filter via RSNGFilterBase::Create
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateBlurBubblesRiseFilter001, TestSize.Level1)
+{
+    auto blurBubblesRiseFilter = RSNGFilterBase::Create(RSNGEffectType::BLUR_BUBBLES_RISE);
+    EXPECT_NE(blurBubblesRiseFilter, nullptr);
+    EXPECT_EQ(blurBubblesRiseFilter->GetType(), RSNGEffectType::BLUR_BUBBLES_RISE);
+}
+
+/**
+ * @tc.name: CreateHeatDistortionFilterFromPara001
+ * @tc.desc: test creating HEAT_DISTORTION filter from FilterPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateHeatDistortionFilterFromPara001, TestSize.Level1)
+{
+    auto heatDistortionPara = std::make_shared<HeatDistortionPara>();
+    heatDistortionPara->SetIntensity(0.8f);
+    heatDistortionPara->SetNoiseScale(1.5f);
+    heatDistortionPara->SetRiseWeight(0.7f);
+    heatDistortionPara->SetProgress(0.5f);
+
+    auto heatDistortionFilter = RSNGFilterBase::Create(heatDistortionPara);
+    EXPECT_NE(heatDistortionFilter, nullptr);
+    EXPECT_EQ(heatDistortionFilter->GetType(), RSNGEffectType::HEAT_DISTORTION);
+}
+
+/**
+ * @tc.name: CreateHeatDistortionFilterFromPara002
+ * @tc.desc: test creating HEAT_DISTORTION filter with nullptr FilterPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateHeatDistortionFilterFromPara002, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> nullptrPara = nullptr;
+    auto heatDistortionFilter = RSNGFilterBase::Create(nullptrPara);
+    EXPECT_EQ(heatDistortionFilter, nullptr);
+}
+
+/**
+ * @tc.name: CreateBlurBubblesRiseFilterFromPara001
+ * @tc.desc: test creating BLUR_BUBBLES_RISE filter from FilterPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateBlurBubblesRiseFilterFromPara001, TestSize.Level1)
+{
+    auto blurBubblesRisePara = std::make_shared<BlurBubblesRisePara>();
+    blurBubblesRisePara->SetBlurIntensity(0.6f);
+    blurBubblesRisePara->SetMixStrength(1.0f);
+    blurBubblesRisePara->SetProgress(0.3f);
+
+    auto blurBubblesRiseFilter = RSNGFilterBase::Create(blurBubblesRisePara);
+    EXPECT_NE(blurBubblesRiseFilter, nullptr);
+    EXPECT_EQ(blurBubblesRiseFilter->GetType(), RSNGEffectType::BLUR_BUBBLES_RISE);
+}
+
+/**
+ * @tc.name: CreateBlurBubblesRiseFilterFromPara002
+ * @tc.desc: test creating BLUR_BUBBLES_RISE filter with nullptr FilterPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateBlurBubblesRiseFilterFromPara002, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> nullptrPara = nullptr;
+    auto blurBubblesRiseFilter = RSNGFilterBase::Create(nullptrPara);
+    EXPECT_EQ(blurBubblesRiseFilter, nullptr);
+}
+
+/**
+ * @tc.name: HeatDistortionFilterParameterVerification
+ * @tc.desc: test that HeatDistortionPara parameters are correctly set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, HeatDistortionFilterParameterVerification, TestSize.Level1)
+{
+    auto heatDistortionPara = std::make_shared<HeatDistortionPara>();
+    float testIntensity = 0.9f;
+    float testNoiseScale = 2.0f;
+    float testRiseWeight = 0.8f;
+    float testProgress = 0.6f;
+
+    heatDistortionPara->SetIntensity(testIntensity);
+    heatDistortionPara->SetNoiseScale(testNoiseScale);
+    heatDistortionPara->SetRiseWeight(testRiseWeight);
+    heatDistortionPara->SetProgress(testProgress);
+
+    auto heatDistortionFilter = RSNGFilterBase::Create(heatDistortionPara);
+    EXPECT_NE(heatDistortionFilter, nullptr);
+
+    auto retrievedIntensity = heatDistortionPara->GetIntensity();
+    auto retrievedNoiseScale = heatDistortionPara->GetNoiseScale();
+    auto retrievedRiseWeight = heatDistortionPara->GetRiseWeight();
+    auto retrievedProgress = heatDistortionPara->GetProgress();
+
+    EXPECT_FLOAT_EQ(retrievedIntensity, testIntensity);
+    EXPECT_FLOAT_EQ(retrievedNoiseScale, testNoiseScale);
+    EXPECT_FLOAT_EQ(retrievedRiseWeight, testRiseWeight);
+    EXPECT_FLOAT_EQ(retrievedProgress, testProgress);
+}
+
+/**
+ * @tc.name: BlurBubblesRiseFilterParameterVerification
+ * @tc.desc: test that BlurBubblesRisePara parameters are correctly set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, BlurBubblesRiseFilterParameterVerification, TestSize.Level1)
+{
+    auto blurBubblesRisePara = std::make_shared<BlurBubblesRisePara>();
+    float testBlurIntensity = 0.7f;
+    float testMixStrength = 0.9f;
+    float testProgress = 0.4f;
+
+    blurBubblesRisePara->SetBlurIntensity(testBlurIntensity);
+    blurBubblesRisePara->SetMixStrength(testMixStrength);
+    blurBubblesRisePara->SetProgress(testProgress);
+
+    auto blurBubblesRiseFilter = RSNGFilterBase::Create(blurBubblesRisePara);
+    EXPECT_NE(blurBubblesRiseFilter, nullptr);
+
+    auto retrievedBlurIntensity = blurBubblesRisePara->GetBlurIntensity();
+    auto retrievedMixStrength = blurBubblesRisePara->GetMixStrength();
+    auto retrievedProgress = blurBubblesRisePara->GetProgress();
+
+    EXPECT_FLOAT_EQ(retrievedBlurIntensity, testBlurIntensity);
+    EXPECT_FLOAT_EQ(retrievedMixStrength, testMixStrength);
+    EXPECT_FLOAT_EQ(retrievedProgress, testProgress);
+}
+
+/**
+ * @tc.name: HeatDistortionParaDefaultValues
+ * @tc.desc: test HeatDistortionPara default values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, HeatDistortionParaDefaultValues, TestSize.Level1)
+{
+    auto heatDistortionPara = std::make_shared<HeatDistortionPara>();
+
+    EXPECT_FLOAT_EQ(heatDistortionPara->GetIntensity(), 1.0f);
+    EXPECT_FLOAT_EQ(heatDistortionPara->GetNoiseScale(), 1.0f);
+    EXPECT_FLOAT_EQ(heatDistortionPara->GetRiseWeight(), 0.2f);
+    EXPECT_FLOAT_EQ(heatDistortionPara->GetProgress(), 0.0f);
+
+    EXPECT_EQ(heatDistortionPara->GetParaType(), FilterPara::ParaType::HEAT_DISTORTION);
+}
+
+/**
+ * @tc.name: BlurBubblesRiseParaDefaultValues
+ * @tc.desc: test BlurBubblesRisePara default values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, BlurBubblesRiseParaDefaultValues, TestSize.Level1)
+{
+    auto blurBubblesRisePara = std::make_shared<BlurBubblesRisePara>();
+
+    EXPECT_FLOAT_EQ(blurBubblesRisePara->GetBlurIntensity(), 0.3f);
+    EXPECT_FLOAT_EQ(blurBubblesRisePara->GetMixStrength(), 1.0f);
+    EXPECT_FLOAT_EQ(blurBubblesRisePara->GetProgress(), 0.0f);
+    EXPECT_EQ(blurBubblesRisePara->GetMaskImage(), nullptr);
+
+    EXPECT_EQ(blurBubblesRisePara->GetParaType(), FilterPara::ParaType::BLUR_BUBBLES_RISE);
+}
+
+/**
+ * @tc.name: CreateMotionBlurFilter001
+ * @tc.desc: test creating MOTION_BLUR filter via RSNGFilterBase::Create
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateMotionBlurFilter001, TestSize.Level1)
+{
+    auto motionBlurFilter = RSNGFilterBase::Create(RSNGEffectType::MOTION_BLUR);
+    EXPECT_NE(motionBlurFilter, nullptr);
+    EXPECT_EQ(motionBlurFilter->GetType(), RSNGEffectType::MOTION_BLUR);
+}
+
+/**
+ * @tc.name: CreateMotionBlurFilterFromPara001
+ * @tc.desc: test creating MOTION_BLUR filter from MotionBlurPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateMotionBlurFilterFromPara001, TestSize.Level1)
+{
+    auto motionBlurPara = std::make_shared<MotionBlurPara>();
+    motionBlurPara->SetRadius(20.0f);
+    motionBlurPara->SetSampleCount(16);
+
+    auto motionBlurFilter = RSNGFilterBase::Create(motionBlurPara);
+    EXPECT_NE(motionBlurFilter, nullptr);
+    EXPECT_EQ(motionBlurFilter->GetType(), RSNGEffectType::MOTION_BLUR);
+}
+
+/**
+ * @tc.name: MotionBlurParaDefaultValues
+ * @tc.desc: test MotionBlurPara default values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, MotionBlurParaDefaultValues, TestSize.Level1)
+{
+    auto motionBlurPara = std::make_shared<MotionBlurPara>();
+
+    EXPECT_FLOAT_EQ(motionBlurPara->GetRadius(), 0.0f);
+    EXPECT_EQ(motionBlurPara->GetAnchor(), Vector2f(0.5f, 0.5f));
+    EXPECT_EQ(motionBlurPara->GetSampleCount(), 8);
+    EXPECT_EQ(motionBlurPara->GetParaType(), FilterPara::ParaType::MOTION_BLUR);
+}
+
+/**
+ * @tc.name: MotionBlurParaParameterVerification
+ * @tc.desc: test that MotionBlurPara parameters are correctly set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, MotionBlurParaParameterVerification, TestSize.Level1)
+{
+    auto motionBlurPara = std::make_shared<MotionBlurPara>();
+    float testRadius = 25.0f;
+    Vector2f testAnchor = Vector2f(0.3f, 0.7f);
+    int32_t testSampleCount = 32;
+
+    motionBlurPara->SetRadius(testRadius);
+    motionBlurPara->SetAnchor(testAnchor);
+    motionBlurPara->SetSampleCount(testSampleCount);
+
+    EXPECT_FLOAT_EQ(motionBlurPara->GetRadius(), testRadius);
+    EXPECT_EQ(motionBlurPara->GetAnchor(), testAnchor);
+    EXPECT_EQ(motionBlurPara->GetSampleCount(), testSampleCount);
+}
+
+/**
+ * @tc.name: CreateMotionBlurFilterFromPara002
+ * @tc.desc: test creating MOTION_BLUR filter with nullptr MotionBlurPara
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateMotionBlurFilterFromPara002, TestSize.Level1)
+{
+    std::shared_ptr<MotionBlurPara> nullptrPara = nullptr;
+    auto motionBlurFilter = RSNGFilterBase::Create(nullptrPara);
+    EXPECT_EQ(motionBlurFilter, nullptr);
+}
+
 } // namespace OHOS::Rosen

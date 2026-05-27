@@ -39,7 +39,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
+constexpr int32_t IDLE_TIMER_EXPIRED = 300; // ms
 constexpr int32_t CHANGE_GENERATOR_RATE_VALID_TIMEOUT = 20; // ms
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
@@ -175,8 +175,8 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
             if (RSUniRenderJudgement::IsUniRender()) {
                 auto& hgmCore = HgmCore::Instance();
                 int64_t offset = hgmCore.IsDelayMode() ? UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
-                rsController->SetPhaseOffset(hgmCore.GetRsPhaseOffset(offset));
-                appController->SetPhaseOffset(hgmCore.GetAppPhaseOffset(offset));
+                rsController->SetPhaseOffset(offset);
+                appController->SetPhaseOffset(offset);
             }
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
@@ -490,8 +490,8 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
         currRefreshRate_.store(refreshRate);
         schedulePreferredFpsChange_ = true;
         needChangeDssRefreshRate = true;
-        FrameRateReport();
     }
+    FrameRateReport();
     bool frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange, rsFrameRateLinker_,
         appFrameRateLinkers_, currRefreshRate_);
     CheckRefreshRateChange(followRs, frameRateChanged, refreshRate, needChangeDssRefreshRate);
@@ -530,7 +530,7 @@ void HgmFrameRateManager::FrameRateReport()
     rates[GetRealPid()] = currRefreshRate_;
     if (curRefreshRateMode_ != HGM_REFRESHRATE_MODE_AUTO) {
         rates[UNI_APP_PID] = currRefreshRate_;
-    } else if (schedulePreferredFps_ == OLED_60_HZ && currRefreshRate_ == OLED_60_HZ) {
+    } else if (schedulePreferredFps_ <= OLED_60_HZ && currRefreshRate_ <= OLED_60_HZ) {
         rates[UNI_APP_PID] = OLED_60_HZ;
     } else {
         rates[UNI_APP_PID] = OLED_120_HZ;
@@ -542,7 +542,7 @@ void HgmFrameRateManager::FrameRateReport()
 
     HGM_LOGD("RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
-    RS_TRACE_NAME_FMT("%s: RS(%d) RP(%d) = %d, APP(%d) = %d",
+    RS_TRACE_NAME_FMT("%s: RS(%d) = %d, APP(%d) = %d",
         __func__, GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
@@ -954,17 +954,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         return;
     }
 
-    auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
-    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
-
-    isLtpo_.store(isLtpo);
-    lastCurScreenId_.store(curScreenId_.load());
-    curScreenId_.store(id);
-    hgmCore.SetActiveScreenId(curScreenId_.load());
-    HGM_LOGD("curScreen change:%{public}d", static_cast<int>(curScreenId_.load()));
-
-    HandleScreenFrameRate(curScreenName);
+    HandleScreenLtpoConfig(id);
     HandlePageUrlEvent();
 }
 
@@ -972,18 +962,39 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& act
 {
     RS_TRACE_NAME_FMT("%s: screenId:%d activeRect(%d, %d, %d, %d)",
         __func__, id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-    if (auto screen = HgmCore::Instance().GetScreen(id); !screen || !screen->GetSelfOwnedScreenFlag()) {
+    auto& hgmCore = HgmCore::Instance();
+    if (auto screen = hgmCore.GetScreen(id);
+        !screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
     }
-    auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
+    if (hgmCore.GetPolicyConfigData() == nullptr) {
+        return;
+    }
+    activeRectScreenId_ = id;
+    activeRect_ = activeRect;
+    HandleScreenLtpoConfig(id);
+}
 
-    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
-    curScreenName += "_" + std::to_string(activeRect.x);
-    curScreenName += "_" + std::to_string(activeRect.y);
-    curScreenName += "_" + std::to_string(activeRect.w);
-    curScreenName += "_" + std::to_string(activeRect.h);
+void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
+{
+    if (curScreenId_.load() != id) {
+        auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
+        auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
+        isLtpo_.store(isLtpo);
+        lastCurScreenId_.store(curScreenId_.load());
+        curScreenId_.store(id);
+        auto& hgmCore = HgmCore::Instance();
+        hgmCore.SetActiveScreenId(curScreenId_.load());
+    }
 
+    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
+    if (id == activeRectScreenId_) {
+        curScreenName += "_" + std::to_string(activeRect_.x);
+        curScreenName += "_" + std::to_string(activeRect_.y);
+        curScreenName += "_" + std::to_string(activeRect_.w);
+        curScreenName += "_" + std::to_string(activeRect_.h);
+    }
+    HGM_LOGD("curScreen id:%{public}d name:%{public}s", static_cast<int>(curScreenId_.load()), curScreenName.c_str());
     HandleScreenFrameRate(curScreenName);
 }
 
@@ -1234,7 +1245,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     bool needChangeDssRefreshRate = currRefreshRate_.load() != refreshRate;
     RS_TRACE_NAME_FMT("%s: %d %d", __func__, currRefreshRate_.load(), refreshRate);
     currRefreshRate_.store(refreshRate);
-    schedulePreferredFpsChange_ = needChangeDssRefreshRate;
+    schedulePreferredFpsChange_ |= needChangeDssRefreshRate;
     FrameRateReport();
 
     bool frameRateChanged = false;

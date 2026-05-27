@@ -320,6 +320,21 @@ void RecordingCanvasFuzzTest006(const uint8_t* data, size_t size)
     recordcanvas1.GetSaveCount();
 }
 
+void RecordingCanvasFuzzTest019(const uint8_t* data, size_t size)
+{
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    RecordingCanvas recordcanvas = RecordingCanvas(width, height);
+    scalar x = GetObject<scalar>();
+    scalar y = GetObject<scalar>();
+    std::vector<Point> pts = { { x, y }, { x, y } };
+    uint16_t glyphs[] = {GetObject<int>(), GetObject<int>()};
+    Font font;
+    Point point;
+    int glyphCount = 2; // 2 is for test
+    recordcanvas.DrawGlyphs(glyphCount, glyphs, pts.data(), point, &font);
+}
+
 void RecordingCanvasFuzzTest007(const uint8_t* data, size_t size)
 {
     int32_t width = GetObject<int32_t>();

@@ -28,7 +28,6 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
-#include "property/rs_properties_def.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
 #include "render/rs_particles_drawable.h"
@@ -239,11 +238,8 @@ bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     if (!shader) {
         return false;
     }
-    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, node.GetId());
     needSync_ = true;
     stagingShader_ = shader;
-    auto bounds = node.GetRenderProperties().GetBoundsRect();
-    stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(shader, bounds);
     PostUpdate(node);
     return true;
 }
@@ -255,7 +251,6 @@ void RSForegroundShaderDrawable::OnSync()
         stagingShader_->AppendToGEContainer(visualEffectContainer);
         visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
         visualEffectContainer_ = visualEffectContainer;
-        drawRect_ = stagingDrawRect_;
         needSync_ = false;
     }
 }
@@ -266,8 +261,7 @@ void RSForegroundShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::
     if (canvas == nullptr || visualEffectContainer_ == nullptr || rect == nullptr) {
         return;
     }
-    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_,
-        drawRect_.IsEmpty() ? *rect : RSPropertyDrawableUtils::Rect2DrawingRect(drawRect_));
+    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
 }
 
 RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node)
@@ -372,6 +366,19 @@ bool RSForegroundFilterRestoreDrawable::OnUpdate(const RSRenderNode& node)
     }
     needSync_ = true;
     stagingForegroundFilter_ = rsFilter;
+    stagingDrawRect_ = nullptr;
+
+    if (rsFilter->IsDrawingFilter()) {
+        auto rsDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+        if (RSNGRenderFilterHelper::HasCustomRegion(rsDrawingFilter->GetNGRenderFilter())) {
+            auto boundsRect = node.GetRenderProperties().GetBoundsRect();
+            // consistent with RSForegroundFilterDrawable's logic for creating offscreenSurface
+            // (directly passing the bounds width and height to the MakeSurface()).
+            boundsRect.width_ = int(boundsRect.GetWidth());
+            boundsRect.height_ = int(boundsRect.GetHeight());
+            stagingDrawRect_ = std::make_unique<RectF>(rsFilter->GetRect(boundsRect, EffectRectType::DRAW));
+        }
+    }
     return true;
 }
 
@@ -389,7 +396,8 @@ void RSForegroundFilterRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Dr
         RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE);
 #endif
     RS_TRACE_NAME_FMT("RSForegroundFilterRestoreDrawable::OnDraw node[%llu] ", renderNodeId_);
-    RSPropertyDrawableUtils::DrawForegroundFilter(*paintFilterCanvas, foregroundFilter_);
+    std::optional<RectF> drawRect = drawRect_ == nullptr ? std::nullopt : std::optional<RectF>(*drawRect_);
+    RSPropertyDrawableUtils::DrawForegroundFilter(*paintFilterCanvas, foregroundFilter_, drawRect);
 }
 
 void RSForegroundFilterRestoreDrawable::OnSync()
@@ -402,6 +410,8 @@ void RSForegroundFilterRestoreDrawable::OnSync()
     if (foregroundFilter_) {
         foregroundFilter_->OnSync();
     }
+    drawRect_ = stagingDrawRect_ != nullptr ?
+        std::make_unique<RectF>(*stagingDrawRect_) : nullptr;
     needSync_ = false;
 }
 
@@ -416,7 +426,7 @@ RSDrawable::Ptr RSPixelStretchDrawable::OnGenerate(const RSRenderNode& node)
 bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto& pixelStretch = node.GetRenderProperties().GetPixelStretch();
-    if (!pixelStretch.has_value()) {
+    if (pixelStretch.IsZero()) {
         return false;
     }
     needSync_ = true;
@@ -485,9 +495,50 @@ bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+namespace {
+bool PreprocessBorderSDFShader(Drawing::Rect& rect, bool isOutline, std::shared_ptr<RSNGRenderShapeBase> shape,
+    std::shared_ptr<RSNGRenderShaderBase> shader)
+{
+    switch (shader->GetType()) {
+        case RSNGEffectType::BORDER_SDF_SHADER:
+            std::static_pointer_cast<RSNGRenderBorderSDFShader>(shader)->
+                Setter<BorderSDFShaderShapeRenderTag>(shape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+            std::static_pointer_cast<RSNGRenderBorderSDFShader>(shader)->
+                Setter<BorderSDFShaderIsOutlineRenderTag>(isOutline);
+            if (isOutline) {
+                float width = std::static_pointer_cast<RSNGRenderBorderSDFShader>(shader)->
+                    Getter<BorderSDFShaderWidthRenderTag>()->Get();
+                rect.MakeOutset(width, width);
+            }
+            return true;
+        default:
+            return false;
+    }
+}
+}
+
+void RSBorderDrawable::DrawBorderSDFShader(Drawing::Canvas& canvas, Drawing::Rect& rect, const bool& isOutline,
+    std::shared_ptr<RSNGRenderShapeBase> shape, std::shared_ptr<RSNGRenderShaderBase> shader)
+{
+    if (!PreprocessBorderSDFShader(rect, isOutline, shape, shader)) {
+        RS_LOGE("RSBorderDrawable::DrawBorderSDFShader PreprocessBorderSDFShader fail");
+        return;
+    }
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    shader->AppendToGEContainer(visualEffectContainer);
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    geRender->DrawShaderEffect(canvas, *visualEffectContainer, rect);
+}
+
 void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
+    if (properties.GetSDFShape() && border->GetSDFShader()) {
+        Drawing::Rect sdfShaderRect(0.f, 0.f, properties.GetFrameWidth(), properties.GetFrameHeight());
+        RSBorderDrawable::DrawBorderSDFShader(canvas, sdfShaderRect, isOutline,
+            properties.GetSDFShape(), border->GetSDFShader());
+        return;
+    }
     Drawing::Brush brush;
     Drawing::Pen pen;
     brush.SetAntiAlias(true);

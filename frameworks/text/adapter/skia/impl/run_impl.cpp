@@ -17,6 +17,7 @@
 #include "drawing_painter_impl.h"
 #include "typography_types.h"
 #include "text/font.h"
+#include "txt/sp_convert.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -152,6 +153,20 @@ float RunImpl::GetTypographicBounds(float* ascent, float* descent, float* leadin
         return 0.0;
     }
     return runBase_->getTypographicBounds(ascent, descent, leading);
+}
+
+TextStyle RunImpl::GetTextStyle() const
+{
+    if (runBase_ == nullptr) {
+        return {};
+    }
+
+    const skt::TextStyle* textStyle = runBase_->GetTextStyle();
+    if (textStyle == nullptr) {
+        return {};
+    }
+
+    return SkStyleToSPTextStyle(*textStyle, paints_);
 }
 } // namespace SPText
 } // namespace Rosen

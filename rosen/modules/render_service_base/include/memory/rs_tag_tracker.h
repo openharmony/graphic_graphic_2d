@@ -32,13 +32,17 @@ public:
         TAG_ACQUIRE_SURFACE,
         TAG_FILTER,
         TAG_FILTER_CACHE,
+        TAG_FILTER_MATERIAL_CACHE,
         TAG_RENDER_FRAME,
         TAG_RENDER_GROUP,
         TAG_OPINC,
         TAG_SUBTREE_PARALLEL,
         TAG_CANVAS_DRAWING_NODE,
+        TAG_FROSTEDGLASS_GEN_FILTERED_SNAPSHOT,
+        TAG_FROSTEDGLASS_EFFECT,
         TAG_UNTAGGED,
         TAG_CAPTURE,
+        TAG_COLOR_PICKER_SNAPSHOT,
     };
     enum SOURCETYPE : uint32_t {
         SOURCE_OTHER,
@@ -75,6 +79,7 @@ public:
     ~RSTagTracker();
     static void UpdateReleaseResourceEnabled(bool releaseResEnabled);
     static std::string TagType2String(TAGTYPE type);
+    static Drawing::GPUResourceTag GetCurrentGpuResourceTag(Drawing::GPUContext* gpuContext);
 private:
     bool isSetTagEnd_ = false;
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;

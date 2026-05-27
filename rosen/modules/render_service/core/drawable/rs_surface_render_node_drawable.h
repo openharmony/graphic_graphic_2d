@@ -81,6 +81,16 @@ public:
         return subThreadCache_;
     }
 
+    const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const
+    {
+        return uifirstRenderParams_;
+    }
+
+    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    void DrawAllUifirst(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+
+    void SyncUifirstDrawCmds() override;
+
     Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 
     const Occlusion::Region& GetVisibleDirtyRegion() const;
@@ -178,15 +188,11 @@ private:
         RSSurfaceRenderParams& surfaceParams, std::shared_ptr<RSSurfaceRenderNodeDrawable> clonedNodeRenderDrawable,
         bool isCapture = false);
     // Draw cloneNode source isRelated
-    bool DrawRelatedSourceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    bool DrawRelatedSourceNode(RSPaintFilterCanvas& canvas,
+        RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams);
     void ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
     void DrawRectWithColor(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams,
         const Drawing::Color& color, bool applyCrossScreenOffset = false);
-
-    // Watermark
-    void DrawCommSurfaceWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params);
-    void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams,
-        const SurfaceWatermarkType& watermarkType);
 
     /* draw local magnification region */
     void DrawMagnificationRegion(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
@@ -207,7 +213,9 @@ private:
                 surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
                 surfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
-    void UpdatePipelineParamForSelfDraw(SurfaceFpsOpType surfaceFpsOpType);
+
+    static void AddSurfaceFpsOpStatic(
+        SurfaceFpsOpType surfaceFpsOpType, NodeId id, const std::string& name, uint64_t uniqueId);
 
     void TryResumeLastBuffer(sptr<SurfaceBuffer> buffer);
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -248,6 +256,10 @@ private:
     bool lastGlobalPositionEnabled_ = false;
     RsSubThreadCache subThreadCache_;
     friend class RsSubThreadCache;
+
+    DrawCmdIndex uifirstDrawCmdIndex_;
+    std::unique_ptr<RSRenderParams> uifirstRenderParams_;
+    RSDrawable::DrawList uifirstDrawCmdList_;
 
     Drawing::Region curSurfaceDrawRegion_ {};
     mutable std::mutex drawRegionMutex_;

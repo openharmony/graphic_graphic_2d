@@ -72,7 +72,7 @@ void SkiaColorFilter::InitWithCompose(const ColorFilter& f1, const ColorFilter& 
     auto outer = f1.GetImpl<SkiaColorFilter>();
     auto inner = f2.GetImpl<SkiaColorFilter>();
     if (outer != nullptr && inner != nullptr) {
-        filter_ = SkColorFilters::Compose(outer->GetColorFilter(), inner->GetColorFilter());
+        filter_ = SkColorFilters::Compose(outer->GetSkColorFilter(), inner->GetSkColorFilter());
     }
 }
 
@@ -80,7 +80,7 @@ void SkiaColorFilter::Compose(const ColorFilter& f)
 {
     auto skColorFilterImpl = f.GetImpl<SkiaColorFilter>();
     if (filter_ != nullptr && skColorFilterImpl != nullptr) {
-        filter_ = filter_->makeComposed(skColorFilterImpl->GetColorFilter());
+        filter_ = filter_->makeComposed(skColorFilterImpl->GetSkColorFilter());
     }
 }
 
@@ -105,7 +105,7 @@ void SkiaColorFilter::InitWithLuma()
     filter_ = SkLumaColorFilter::Make();
 }
 
-sk_sp<SkColorFilter> SkiaColorFilter::GetColorFilter() const
+sk_sp<SkColorFilter> SkiaColorFilter::GetSkColorFilter() const
 {
     return filter_;
 }

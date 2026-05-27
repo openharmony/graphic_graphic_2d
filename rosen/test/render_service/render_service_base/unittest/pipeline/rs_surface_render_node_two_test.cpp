@@ -569,9 +569,9 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetForceUIFirstTest, TestSize.Level1)
 {
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     renderNode->SetForceUIFirst(false);
-    EXPECT_FALSE(renderNode->forceUIFirst_);
+    EXPECT_FALSE(renderNode->uifirstState_.forceUIFirst);
     renderNode->SetForceUIFirst(true);
-    EXPECT_TRUE(renderNode->forceUIFirstChanged_);
+    EXPECT_TRUE(renderNode->uifirstState_.forceStateChanged);
 }
 
 /**
@@ -954,7 +954,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, GetNodeIsSingleFrameComposer, TestSize.Leve
     ASSERT_FALSE(res);
     system::SetParameter("persist.sys.graphic.singleFrame", "1");
     ASSERT_FALSE(node->GetNodeIsSingleFrameComposer());
-    node->isNodeSingleFrameComposer_ = true;
+    node->MarkNodeSingleFrameComposer(true);
     node->name_ = "hwstylusfeature";
     EXPECT_TRUE(node->GetNodeIsSingleFrameComposer());
 }

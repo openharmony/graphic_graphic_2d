@@ -31,6 +31,7 @@ ohos_unittest("VsyncManagerTest") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/vsync",
     "$graphic_2d_root/rosen/modules/render_service/screen_manager",
@@ -131,6 +132,7 @@ ohos_unittest("VSyncManagerAgentTest") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/vsync",
     "$graphic_2d_root/rosen/modules/render_service/screen_manager",

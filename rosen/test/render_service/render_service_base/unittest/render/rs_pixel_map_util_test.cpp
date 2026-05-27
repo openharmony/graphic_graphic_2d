@@ -20,6 +20,7 @@
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Media;
 namespace OHOS {
 namespace Rosen {
 
@@ -36,11 +37,13 @@ void RSPixelMapUtilTest::TearDownTestCase() {}
 void RSPixelMapUtilTest::SetUp() {}
 void RSPixelMapUtilTest::TearDown() {}
 
-static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
+static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height,
+                                                       AllocatorType allocatorType = AllocatorType::SHARE_MEM_ALLOC)
 {
     Media::InitializationOptions opts;
     opts.size.width = width;
     opts.size.height = height;
+    opts.allocatorType = allocatorType;
     auto pixelmap = Media::PixelMap::Create(opts);
     auto address = const_cast<uint32_t*>(pixelmap->GetPixel32(0, 0));
     if (address == nullptr) {

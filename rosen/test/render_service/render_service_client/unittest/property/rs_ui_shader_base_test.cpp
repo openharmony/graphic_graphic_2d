@@ -98,4 +98,17 @@ HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreateAIBarRectHalo, TestSize.Level1)
     EXPECT_NE(shader, nullptr);
     EXPECT_EQ(shader->GetType(), RSNGEffectType::AIBAR_RECT_HALO);
 }
+
+/**
+ * @tc.name: RSNGShaderBaseCreateBorderSDFShader
+ * @tc.desc: Calling Create(RSNGEffectType::BORDER_SDF_SHADER)
+ *           should return a non-null RSNGBorderSDFShader instance
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreateBorderSDFShader, TestSize.Level1)
+{
+    auto shader = RSNGShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    EXPECT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::BORDER_SDF_SHADER);
+}
 } // namespace OHOS::Rosen

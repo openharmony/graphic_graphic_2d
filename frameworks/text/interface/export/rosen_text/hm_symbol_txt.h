@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "draw/color.h"
+#include "draw/ui_color.h"
 #include "symbol_constants.h"
 #include "symbol_gradient.h"
 #include "text/hm_symbol.h"
@@ -137,6 +138,10 @@ public:
     void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow);
 
     const std::optional<SymbolShadow>& GetSymbolShadow() const;
+
+    void SetRenderUIColor(const std::vector<Drawing::UIColor>& uiColors,
+        const std::vector<SymbolColorSpace>& colorSpace);
+
 private:
     SymbolColor symbolColor_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;

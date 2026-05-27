@@ -383,4 +383,134 @@ HWTEST_F(RSScreenPreprocessorTest, ScheduleTaskTest001, TestSize.Level1)
     preprocessor_->mainHandler_ = handler;
     preprocessor_->ScheduleTask(task);
 }
+
+/*
+ * @tc.name: OnPhysicalScreenProcessDisconnectedTest001
+ * @tc.desc: Test OnPhysicalScreenProcessDisconnected with screenId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPreprocessorTest, OnPhysicalScreenProcessDisconnectedTest001, TestSize.Level1)
+{
+    ASSERT_NE(preprocessor_, nullptr);
+    ScreenId screenId = 1000;
+    preprocessor_->OnPhysicalScreenProcessDisconnected(screenId);
+}
+
+/*
+ * @tc.name: OnVirtualScreenProcessDisconnectedTest001
+ * @tc.desc: Test OnVirtualScreenProcessDisconnected with valid screenId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPreprocessorTest, OnVirtualScreenProcessDisconnectedTest001, TestSize.Level1)
+{
+    ASSERT_NE(preprocessor_, nullptr);
+    ScreenId screenId = 1000;
+    preprocessor_->OnVirtualScreenProcessDisconnected(screenId);
+}
+
+/*
+ * @tc.name: ReconnectProcessTest001
+ * @tc.desc: Test ReconnectProcess with null output
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPreprocessorTest, ReconnectProcessTest001, TestSize.Level1)
+{
+    ASSERT_NE(preprocessor_, nullptr);
+    std::shared_ptr<HdiOutput> output = nullptr;
+    preprocessor_->ReconnectProcess(output);
+}
+
+/*
+ * @tc.name: ReconnectProcessTest002
+ * @tc.desc: Test ReconnectProcess with valid output
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPreprocessorTest, ReconnectProcessTest002, TestSize.Level1)
+{
+    ASSERT_NE(preprocessor_, nullptr);
+    uint32_t screenId = 1000;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    preprocessor_->ReconnectProcess(output);
+}
+
+/*
+ * @tc.name: ProcessNoScreenAfterRegHwcEventCallbackTest001
+ * @tc.desc: Test ProcessNoScreenAfterRegHwcEventCallback - no physical screen, isHwcDead=false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenPreprocessorTest, ProcessNoScreenAfterRegHwcEventCallbackTest001, TestSize.Level1)
+{
+    ASSERT_NE(preprocessor_, nullptr);
+    {
+        std::lock_guard<std::mutex> lock(preprocessor_->hotPlugMutex_);
+        preprocessor_->pendingHotPlugEvents_.clear();
+    }
+    preprocessor_->isHwcDead_ = false;
+    screenManager_->screens_.clear();
+    preprocessor_->ProcessNoScreenAfterRegHwcEventCallback();
+}
+
+/*
+ * @tc.name: ProcessNoScreenAfterRegHwcEventCallbackTest002
+ * @tc.desc: Test ProcessNoScreenAfterRegHwcEventCallback - no physical screen, isHwcDead=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenPreprocessorTest, ProcessNoScreenAfterRegHwcEventCallbackTest002, TestSize.Level1)
+{
+    ASSERT_NE(preprocessor_, nullptr);
+    {
+        std::lock_guard<std::mutex> lock(preprocessor_->hotPlugMutex_);
+        preprocessor_->pendingHotPlugEvents_.clear();
+    }
+    preprocessor_->isHwcDead_ = true;
+    screenManager_->screens_.clear();
+    preprocessor_->ProcessNoScreenAfterRegHwcEventCallback();
+    ASSERT_FALSE(preprocessor_->isHwcDead_);
+}
+
+/*
+ * @tc.name: ProcessNoScreenAfterRegHwcEventCallbackTest003
+ * @tc.desc: Test ProcessNoScreenAfterRegHwcEventCallback - has physical screen, no need notify
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenPreprocessorTest, ProcessNoScreenAfterRegHwcEventCallbackTest003, TestSize.Level1)
+{
+    ASSERT_NE(preprocessor_, nullptr);
+    {
+        std::lock_guard<std::mutex> lock(preprocessor_->hotPlugMutex_);
+        preprocessor_->pendingHotPlugEvents_.clear();
+    }
+    preprocessor_->isHwcDead_ = true;
+    screenManager_->screens_.clear();
+    auto physicalScreen = std::make_shared<RSScreen>(100);
+    physicalScreen->property_.SetIsVirtual(false);
+    screenManager_->screens_[100] = physicalScreen;
+    preprocessor_->ProcessNoScreenAfterRegHwcEventCallback();
+}
+
+/*
+ * @tc.name: ProcessNoScreenAfterRegHwcEventCallbackTest004
+ * @tc.desc: Test ProcessNoScreenAfterRegHwcEventCallback - pendingHotPlugEvents has events, no physical screen
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenPreprocessorTest, ProcessNoScreenAfterRegHwcEventCallbackTest004, TestSize.Level1)
+{
+    ASSERT_NE(preprocessor_, nullptr);
+    uint32_t screenId = 1000;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    ScreenHotPlugEvent screenHotPlugEvent;
+    screenHotPlugEvent.output = output;
+    screenHotPlugEvent.connected = true;
+    {
+        std::lock_guard<std::mutex> lock(preprocessor_->hotPlugMutex_);
+        preprocessor_->pendingHotPlugEvents_.emplace(screenId, screenHotPlugEvent);
+    }
+    preprocessor_->isHwcDead_ = false;
+    screenManager_->screens_.clear();
+    preprocessor_->ProcessNoScreenAfterRegHwcEventCallback();
+}
 } // namespace OHOS::Rosen

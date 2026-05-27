@@ -1435,17 +1435,22 @@ void VSyncDistributor::SetBufferInfo(const BufferInfo& bufferInfo)
         RS_TRACE_NAME("SetBufferInfo, app is not requested");
         return;
     }
+    bool needPreexecute = false;
     sptr<VSyncConnection> connection = nullptr;
-    DVSyncLibManager::Instance().GetVSyncConnectionApp(connection);
-    if (connection == nullptr) {
-        RS_TRACE_NAME("SetBufferInfo, connection is nullptr");
-        return;
-    }
     int64_t timestamp = 0;
     int64_t period = 0;
     int64_t vsyncCount = 0;
-    bool needPreexecute = DVSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
-    RS_TRACE_NAME_FMT("SetBufferInfo, needPreexecute:%d", needPreexecute);
+    {
+        std::lock_guard<std::mutex> locker(mutex_);
+        
+        DVSyncLibManager::Instance().GetVSyncConnectionApp(connection);
+        if (connection == nullptr) {
+            RS_TRACE_NAME("SetBufferInfo, connection is nullptr");
+            return;
+        }
+        needPreexecute = DVSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
+        RS_TRACE_NAME_FMT("SetBufferInfo, needPreexecute:%d", needPreexecute);
+    }
     if (needPreexecute) {
         ConnPostEvent(connection, timestamp, period, vsyncCount);
     }

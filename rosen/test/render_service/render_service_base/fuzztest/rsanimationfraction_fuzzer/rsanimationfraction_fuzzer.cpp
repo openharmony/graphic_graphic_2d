@@ -70,6 +70,7 @@ void RSAnimationFractionFuzzerTest()
     ForwardDirection direction = GetData<ForwardDirection>();
     int64_t lastFrameTime = GetData<int64_t>();
     bool isCustom = GetData<bool>();
+    bool isOnTree = GetData<bool>();
 
     // test
     RSAnimationFraction::Init();
@@ -77,7 +78,7 @@ void RSAnimationFractionFuzzerTest()
     RSAnimationFraction::SetAnimationScale(animationScale);
     auto animationFraction = std::make_shared<RSAnimationFraction>();
     std::tie(fraction, isInStartDelay, isFinished, isRepeatFinished) =
-        animationFraction->GetAnimationFraction(time, delaytime, isCustom);
+        animationFraction->GetAnimationFraction(time, delaytime, isCustom, isOnTree);
     animationFraction->UpdateRemainTimeFraction(fraction, remainTime);
     animationFraction->GetRemainingRepeatCount();
     animationFraction->GetStartFraction();
@@ -101,6 +102,7 @@ void RSAnimationFractionFuzzerTest1()
     int64_t delayTime = GetData<int64_t>();
     int64_t startDelayNs = GetData<int64_t>();
     bool isCustom = GetData<bool>();
+    bool isOnTree = GetData<bool>();
 
     // test
     RSAnimationFraction::Init();
@@ -108,7 +110,7 @@ void RSAnimationFractionFuzzerTest1()
     RSAnimationFraction::SetAnimationScale(animationScale);
     RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "0", nullptr);
     RSAnimationFraction fraction;
-    fraction.GetAnimationFraction(time, delayTime, isCustom);
+    fraction.GetAnimationFraction(time, delayTime, isCustom, isOnTree);
     fraction.UpdateRemainTimeFraction(animationScale);
     fraction.GetStartFraction();
     fraction.GetEndFraction();
@@ -125,6 +127,8 @@ void RSAnimationFractionFuzzerTest1()
     fraction.UpdateReverseState(true);
     fraction.IsStartRunning(time, startDelayNs, isCustom);
     fraction.CalculateLeftDelayTime(startDelayNs, isCustom);
+    fraction.FlipDirection();
+    fraction.UpdateGroupWaitingTime(time, isCustom);
 }
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)

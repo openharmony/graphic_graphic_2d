@@ -31,6 +31,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
+#include "transaction/rs_service_to_render_connection.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -52,9 +53,9 @@ public:
         return true;
     }
 
-    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
+    SimpleDrawCmdListPtr GetPropertyDrawCmdList() const
     {
-        return Getter<Drawing::DrawCmdListPtr>(RSPropertyType::CONTENT_STYLE, nullptr);
+        return Getter<SimpleDrawCmdListPtr>(RSPropertyType::CONTENT_STYLE, nullptr);
     }
 
 protected:
@@ -81,7 +82,7 @@ public:
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override {}
     void OnTreeStateChanged() override {}
     void UpdateNodeColorSpace() override {}
-    void MarkNodeColorSpace(bool isP3Color) override {}
+    void MarkNodeColorSpace(int8_t colorSpace) override {}
 };
 
 class RSProfilerTest : public testing::Test {
@@ -99,23 +100,30 @@ public:
     };
 };
 
-RSRenderService* GetAndInitRenderService()
+void InitProfiler()
 {
     MemoryTrack::Instance();
     MemorySnapshot::Instance();
     RSRenderNodeGC::Instance();
 
-    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto mainThread = RSMainThread::Instance();
-    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    mainThread->handler_->eventRunner_->Run();
+    if (mainThread) {
+        const auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+        mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+        mainThread->handler_->eventRunner_->Run();
+    }
 
     auto pipeline = std::make_shared<RSRenderPipeline>();
     pipeline->mainThread_ = mainThread;
 
-    auto renderService = new RSRenderService();
-    renderService->renderPipeline_ = pipeline;
-    return renderService;
+    const auto serviceToRenderConnection =
+        sptr<RSServiceToRenderConnection>::MakeSptr(new RSRenderPipelineAgent(pipeline));
+    RSProfiler::Init(pipeline, serviceToRenderConnection);
+}
+
+void ShutdownProfiler()
+{
+    RSProfiler::Init(nullptr, nullptr);
 }
 
 void GenerateFullChildrenListForAll(const RSContext& context)
@@ -135,7 +143,7 @@ HWTEST_F(RSProfilerTest, InterfaceTest, testing::ext::TestSize.Level1)
 {
     RSProfiler::testing_ = true;
     EXPECT_NO_THROW({
-        RSProfiler::Init(nullptr);
+        ShutdownProfiler();
         RSProfiler::OnFrameBegin();
         RSProfiler::OnRenderBegin();
         RSProfiler::OnRenderEnd();
@@ -145,7 +153,7 @@ HWTEST_F(RSProfilerTest, InterfaceTest, testing::ext::TestSize.Level1)
     });
     RSProfiler::testing_ = false;
     EXPECT_NO_THROW({
-        RSProfiler::Init(nullptr);
+        ShutdownProfiler();
         RSProfiler::OnFrameBegin();
         RSProfiler::OnRenderBegin();
         RSProfiler::OnRenderEnd();
@@ -187,7 +195,7 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
         "rstree_save_frame 1", "rstree_load_frame 1",
     };
     EXPECT_NO_THROW({
-        RSProfiler::Init(nullptr);
+        ShutdownProfiler();
         Network::PushCommand(cmds);
         for (auto cmd : cmds) {
             RSProfiler::ProcessCommands();
@@ -243,25 +251,18 @@ HWTEST_F(RSProfilerTest, UnmarshalSelfDrawingBuffersTest, Level1)
 }
 
 class RSProfilerTestWithContext : public testing::Test {
-    static RSRenderService* renderService;
-
 public:
     static void SetUpTestCase()
     {
-        renderService = GetAndInitRenderService();
-        RSProfiler::Init(renderService);
+        InitProfiler();
     };
     static void TearDownTestCase()
     {
-        delete renderService;
-        renderService = nullptr;
-        RSProfiler::Init(nullptr);
+        ShutdownProfiler();
     };
     void SetUp() override {};
     void TearDown() override {};
 };
-
-RSRenderService* RSProfilerTestWithContext::renderService;
 
 void checkTree(std::shared_ptr<RSBaseRenderNode> rootNode, NodeId topNodeId, bool isPatched = false)
 {
@@ -295,8 +296,7 @@ void checkTree(std::shared_ptr<RSBaseRenderNode> rootNode, NodeId topNodeId, boo
 HWTEST_F(RSProfilerTest, LogEventStart, testing::ext::TestSize.Level1)
 {
     RSProfiler::testing_ = true;
-    sptr<RSRenderService> renderService = GetAndInitRenderService();
-    RSProfiler::Init(renderService);
+    InitProfiler();
 
     std::vector<std::string> args = { "WAITFORFINISH" };
     ArgList argList(args);
@@ -318,6 +318,7 @@ HWTEST_F(RSProfilerTest, LogEventStart, testing::ext::TestSize.Level1)
 
     RSProfiler::RecordStop(argList);
     RSProfiler::SetMode(Mode::NONE);
+    ShutdownProfiler();
 
     EXPECT_DOUBLE_EQ(static_cast<double>(readTime), timeSinceRecordStart);
     EXPECT_EQ(readProperty, RSCaptureData::VAL_EVENT_TYPE_VSYNC);
@@ -344,8 +345,7 @@ HWTEST_F(RSProfilerTestWithContext, SecureScreen, testing::ext::TestSize.Level1)
 HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
 {
     RSProfiler::testing_ = true;
-    sptr<RSRenderService> renderService = GetAndInitRenderService();
-    RSProfiler::Init(renderService);
+    InitProfiler();
 
     std::vector<std::string> args = { "WAITFORFINISH" };
     ArgList argList(args);
@@ -364,7 +364,7 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
     RSFile testFile;
 
     std::string error;
-    testFile.Open("RECORD_IN_MEMORY", error);
+    ASSERT_TRUE(testFile.Open("RECORD_IN_MEMORY", error)) << "Reason: " << error;
 
     EXPECT_TRUE(testFile.IsOpen());
     EXPECT_TRUE(error.empty());
@@ -388,6 +388,7 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
     EXPECT_NEAR(readCDTime, 1.f, 1e-2);
 
     RSProfiler::SetMode(Mode::NONE);
+    ShutdownProfiler();
 }
 
 /*
@@ -398,11 +399,9 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
  */
 HWTEST_F(RSProfilerTest, UnmarshalNodeModifiersTest, testing::ext::TestSize.Level1)
 {
-    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(100); // DrawCmdList width for test is 100
-    drawCmdList->SetHeight(100); // DrawCmdList height for test is 100
+    auto drawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
     auto modifier = std::make_shared<ModifierNG::TestCustomRenderModifier>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     std::shared_ptr<RSContext> context = nullptr;
@@ -502,8 +501,8 @@ HWTEST_F(RSProfilerFileTest, ReadAnimationStartTimeTest, TestSize.Level1)
     rsFile.WriteAnimationStartTime();
     rsFile.Close();
 
-    std::string error = "";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    std::string error;
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(rsFile.ReadAnimationStartTime());
     rsFile.Close();
 }
@@ -524,7 +523,7 @@ HWTEST_F(RSProfilerFileTest, ReadHeaderTest, TestSize.Level1)
     rsFile.Close();
 
     std::string error = "HasError";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(error.empty());
     error = rsFile.ReadHeader();
     EXPECT_TRUE(error.empty());
@@ -551,7 +550,7 @@ HWTEST_F(RSProfilerFileTest, GetEOFTimeTest, TestSize.Level1)
     rsFile.Close();
 
     std::string error = "HasError";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(error.empty());
     EXPECT_EQ(rsFile.GetEOFTime(), time);
     rsFile.Close();
@@ -579,7 +578,7 @@ HWTEST_F(RSProfilerFileTest, WriteTrace3DMetricsTest, TestSize.Level1)
     rsFile.Close();
 
     std::string error = "HasError";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(error.empty());
     std::vector<uint8_t> rData = {};
     double readTime = 0;

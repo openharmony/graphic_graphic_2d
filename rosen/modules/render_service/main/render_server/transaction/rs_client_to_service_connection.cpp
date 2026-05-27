@@ -76,6 +76,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats_helper.h"
 #include "render/rs_typeface_cache.h"
+#include "rs_ipc_persistence_data.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
@@ -92,6 +93,7 @@
 #define LOG_TAG "RSClientToServiceConnection"
 
 #include "app_mgr_client.h"
+#include "surface_utils.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 
 namespace OHOS {
@@ -115,17 +117,22 @@ RSClientToServiceConnection::RSClientToServiceConnection(
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
     sptr<RSScreenManagerAgent> screenManagerAgent,
     sptr<IRemoteObject> token,
-    sptr<RSVsyncManagerAgent> vsyncManagerAgent)
+    sptr<RSVsyncManagerAgent> vsyncManagerAgent,
+    bool needRefresh)
     : remotePid_(remotePid),
       renderServiceAgent_(renderServiceAgent),
       renderProcessManagerAgent_(renderProcessManagerAgent),
       screenManagerAgent_(screenManagerAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
-      vsyncManagerAgent_(vsyncManagerAgent)
+      vsyncManagerAgent_(vsyncManagerAgent),
+      needRefresh_(needRefresh)
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToServiceConnection: Failed to set death recipient.");
+    }
+    if (needRefresh_) {
+        RegisterRemoteRefreshCallback();
     }
     if (renderServiceAgent_ == nullptr) {
         RS_LOGE("RSClientToServiceConnection: renderServiceAgent_ is nullptr");
@@ -149,6 +156,17 @@ RSClientToServiceConnection::~RSClientToServiceConnection() noexcept
     CleanAll();
 }
 
+void RSClientToServiceConnection::RegisterRemoteRefreshCallback()
+{
+    RS_LOGI("RSClientToServiceConnection::RegisterRemoteRefreshCallback");
+    if (!connRefreshRecipient_) {
+        connRefreshRecipient_ = new RSConnectionRefreshRecipient(this);
+    }
+    if (token_ == nullptr || !token_->AddRefreshRecipient(connRefreshRecipient_)) {
+        RS_LOGE("RSClientToServiceConnection: Failed to set refresh recipient");
+    }
+}
+
 void RSClientToServiceConnection::CleanVirtualScreens() noexcept
 {
     if (!screenManagerAgent_) {
@@ -158,19 +176,13 @@ void RSClientToServiceConnection::CleanVirtualScreens() noexcept
     screenManagerAgent_->CleanVirtualScreens();
 }
 
-void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
+void RSClientToServiceConnection::CleanForRefresh() noexcept
 {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (cleanDone_) {
-            return;
-        }
-    }
     if (!renderServiceAgent_) {
         return;
     }
-    RS_LOGD("CleanAll() start.");
-    RS_TRACE_NAME("RSClientToServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
+    RS_LOGD("CleanForRefresh() start.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanForRefresh begin, remotePid: " + std::to_string(remotePid_));
     renderServiceAgent_->ScheduleTask(
         [weakThis = wptr<RSClientToServiceConnection>(this)]() {
             sptr<RSClientToServiceConnection> connection = weakThis.promote();
@@ -184,6 +196,32 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
     if (hgmContext_ != nullptr) {
         hgmContext_->CleanAllWhenServiceConnectionDie(remotePid_);
     }
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
+
+    {
+        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+        pidToBundleName_.clear();
+    }
+    RS_LOGD("CleanForRefresh() end.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanForRefresh end, remotePid: " + std::to_string(remotePid_));
+}
+
+void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
+{
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (cleanDone_) {
+            return;
+        }
+    }
+    if (!renderServiceAgent_) {
+        return;
+    }
+
+    RS_LOGD("CleanAll() start.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
+
+    CleanForRefresh();
 
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -197,10 +235,6 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
 
     RS_LOGD("CleanAll() end.");
     RS_TRACE_NAME("RSClientToServiceConnection CleanAll end, remotePid: " + std::to_string(remotePid_));
-    {
-        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
-        pidToBundleName_.clear();
-    }
 }
 
 RSClientToServiceConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
@@ -228,6 +262,34 @@ void RSClientToServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(const
     }
 
     rsConn->CleanAll(true);
+}
+
+RSClientToServiceConnection::RSConnectionRefreshRecipient::RSConnectionRefreshRecipient(
+    wptr<RSClientToServiceConnection> conn) : conn_(conn)
+{
+}
+
+void RSClientToServiceConnection::RSConnectionRefreshRecipient::OnRemoteRefreshed(const wptr<IRemoteObject>& token)
+{
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        RS_LOGW("RSClientToServiceConnection::RSConnectionRefreshRecipient: can't promote remote object");
+        return;
+    }
+
+    auto rsConn = conn_.promote();
+    if (rsConn == nullptr) {
+        RS_LOGW("RSConnectionRefreshRecipient::OnRemoteRefreshed: RSClientToServiceConnection was dead, do not hing");
+        return;
+    }
+
+    if (rsConn->GetToken() != tokenSptr) {
+        RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: token  doesn't match, ignore it");
+        return;
+    }
+    RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: call CleanForRefresh");
+
+    rsConn->CleanForRefresh();
 }
 
 ErrCode RSClientToServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
@@ -365,7 +427,8 @@ ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> sur
 }
 
 ErrCode RSClientToServiceConnection::SetWatermark(
-    const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success)
+    const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success,
+    uint32_t rowCount, uint32_t colCount)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
@@ -379,9 +442,14 @@ ErrCode RSClientToServiceConnection::SetWatermark(
         return ERR_INVALID_VALUE;
     }
     auto callingPid = GetCallingPid();
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<SetWatermarkPersistenceData>(callingPid, name, watermark, success);
+        ipcPersistenceManager->RegisterWithCallingPid(data);
+    }
     for (auto conn : serviceToRenderConns) {
         bool successTmp = true;
-        if (conn->SetWatermark(callingPid, name, watermark, successTmp) != ERR_OK || successTmp != true) {
+        if (conn->SetWatermark(callingPid, name, watermark, successTmp, rowCount, colCount) != ERR_OK ||
+            successTmp != true) {
             RS_LOGE("RSClientToServiceConnection::SetWatermark a connection failed!");
             success = false;
             return ERR_INVALID_VALUE;
@@ -398,6 +466,15 @@ ErrCode RSClientToServiceConnection::GetDefaultScreenId(uint64_t& screenId)
         return ERR_INVALID_OPERATION;
     }
     return screenManagerAgent_->GetDefaultScreenId(screenId);
+}
+
+sptr<IRemoteObject> RSClientToServiceConnection::GetConnectToRenderToken(ScreenId screenId)
+{
+    if (renderServiceAgent_ == nullptr) {
+        RS_LOGE("RSClientToServiceConnection::GetConnectToRenderToken is nullptr");
+        return nullptr;
+    }
+    return renderServiceAgent_->GetConnectToRenderToken(screenId);
 }
 
 ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
@@ -576,7 +653,11 @@ int32_t RSClientToServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChang
     }
 
     // update
-    return screenManagerAgent_->SetScreenChangeCallback(callback);
+    int32_t status;
+    renderServiceAgent_->ScheduleTask([this, callback, &status]() {
+        status = screenManagerAgent_->SetScreenChangeCallback(callback);
+    }).wait();
+    return status;
 }
 
 int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
@@ -588,6 +669,15 @@ int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSISc
 
     // update
     return screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
+}
+
+int32_t RSClientToServiceConnection::SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s: screenManagerAgent_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetActiveScreenIdChangedCallback(callback);
 }
 
 int32_t RSClientToServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback)
@@ -620,7 +710,7 @@ uint32_t RSClientToServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t 
 void RSClientToServiceConnection::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return;
     }
     hgmContext_->SetScreenRefreshRate(id, sceneId, rate);
@@ -629,7 +719,7 @@ void RSClientToServiceConnection::SetScreenRefreshRate(ScreenId id, int32_t scen
 void RSClientToServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return;
     }
     hgmContext_->SetRefreshRateMode(refreshRateMode);
@@ -650,7 +740,7 @@ void RSClientToServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
 void RSClientToServiceConnection::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return;
     }
     renderServiceAgent_->ScheduleTask([hgmContext = hgmContext_, id] {
@@ -661,7 +751,7 @@ void RSClientToServiceConnection::UnregisterFrameRateLinker(FrameRateLinkerId id
 uint32_t RSClientToServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return 0;
     }
     return hgmContext_->GetScreenCurrentRefreshRate(id);
@@ -670,7 +760,7 @@ uint32_t RSClientToServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
 std::vector<int32_t> RSClientToServiceConnection::GetScreenSupportedRefreshRates(ScreenId id)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return {};
     }
     return hgmContext_->GetScreenSupportedRefreshRates(id);
@@ -700,6 +790,10 @@ void RSClientToServiceConnection::SetShowRefreshRateEnabled(bool enabled, int32_
     if (serviceToRenderConns.empty()) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return;
+    }
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<SetShowRefreshRateEnabledPersistenceData>(enabled, type);
+        ipcPersistenceManager->RegisterWithoutCallingPid(data);
     }
     for (auto conn : serviceToRenderConns) {
         conn->SetShowRefreshRateEnabled(enabled, type);
@@ -782,7 +876,7 @@ ErrCode RSClientToServiceConnection::GetRefreshInfoByPidAndUniqueId(pid_t pid, u
 int32_t RSClientToServiceConnection::GetCurrentRefreshRateMode()
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return HGM_REFRESHRATE_MODE_AUTO;
     }
     return hgmContext_->GetCurrentRefreshRateMode();
@@ -883,9 +977,11 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
 #ifdef RS_ENABLE_GPU
         screenManagerAgent_->SetScreenPowerStatus(id, status);
         renderServiceAgent_->HandlePowerStatus(id, status);
-        HgmTaskHandleThread::Instance().PostTask([id, status]() {
-            HgmCore::Instance().NotifyScreenPowerStatus(id, status);
-        });
+        if (hgmContext_ != nullptr) {
+            HgmTaskHandleThread::Instance().PostTask([id, status]() {
+                HgmCore::Instance().NotifyScreenPowerStatus(id, status);
+            });
+        }
 #endif
     } else {
         renderServiceAgent_->ScheduleTask(
@@ -900,6 +996,24 @@ int32_t RSClientToServiceConnection::SetDualScreenState(ScreenId id, DualScreenS
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetDualScreenState(id, status);
+}
+
+int32_t RSClientToServiceConnection::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s screenManagerAgent is null, screenId: %{public}" PRIu64, __func__, screenId);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSClientToServiceConnection::GetMainScreenId()
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s screenManagerAgent is null", __func__);
+        return INVALID_SCREEN_ID;
+    }
+    return screenManagerAgent_->GetMainScreenId();
 }
 
 RSVirtualScreenResolution RSClientToServiceConnection::GetVirtualScreenResolution(ScreenId id)
@@ -1050,13 +1164,13 @@ ErrCode RSClientToServiceConnection::GetScreenBacklight(uint64_t screenId, int32
     return ERR_OK;
 }
 
-void RSClientToServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSClientToServiceConnection::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
     if (!screenManagerAgent_) {
         RS_LOGE("%{public}s screenManagerAgent_ is nullptr.", __func__);
         return;
     }
-    screenManagerAgent_->SetScreenBacklight(id, level);
+    screenManagerAgent_->SetScreenBacklight(brightnessData);
 }
 
 ErrCode RSClientToServiceConnection::GetPanelPowerStatus(ScreenId screenId, PanelPowerStatus& status)
@@ -1161,94 +1275,70 @@ int32_t RSClientToServiceConnection::GetScreenHDRCapability(ScreenId id, RSScree
     return screenManagerAgent_->GetScreenHDRCapability(id, screenHdrCapability);
 }
 
-ErrCode RSClientToServiceConnection::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat, int32_t& resCode)
+int32_t RSClientToServiceConnection::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    resCode = screenManagerAgent_->GetPixelFormat(id, pixelFormat);
-    return ERR_OK;
+    return screenManagerAgent_->GetPixelFormat(id, pixelFormat);
 }
 
-
-ErrCode RSClientToServiceConnection::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode)
+int32_t RSClientToServiceConnection::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    if (pixelFormat < 0 ||
-        (pixelFormat >= GRAPHIC_PIXEL_FMT_END_OF_VALID && pixelFormat != GRAPHIC_PIXEL_FMT_VENDER_MASK)) {
-        resCode = StatusCode::INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
-    }
-    resCode = screenManagerAgent_->SetPixelFormat(id, pixelFormat);
-    return ERR_OK;
+    return screenManagerAgent_->SetPixelFormat(id, pixelFormat);
 }
 
-ErrCode RSClientToServiceConnection::GetScreenSupportedHDRFormats(ScreenId id,
-    std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback)
+int32_t RSClientToServiceConnection::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+    sptr<RSIScreenSupportedHdrFormatsCallback> callback)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    resCode = screenManagerAgent_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
-    return ERR_OK;
+    return screenManagerAgent_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
 }
 
-ErrCode RSClientToServiceConnection::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode)
+int32_t RSClientToServiceConnection::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    resCode = screenManagerAgent_->GetScreenHDRFormat(id, hdrFormat);
-    return ERR_OK;
+    return screenManagerAgent_->GetScreenHDRFormat(id, hdrFormat);
 }
 
-ErrCode RSClientToServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode)
+int32_t RSClientToServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    resCode = screenManagerAgent_->SetScreenHDRFormat(id, modeIdx);
-    return ERR_OK;
+    return screenManagerAgent_->SetScreenHDRFormat(id, modeIdx);
 }
 
-ErrCode RSClientToServiceConnection::GetScreenSupportedColorSpaces(
-    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode)
+int32_t RSClientToServiceConnection::GetScreenSupportedColorSpaces(
+    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    resCode = screenManagerAgent_->GetScreenSupportedColorSpaces(id, colorSpaces);
-    return ERR_OK;
+    return screenManagerAgent_->GetScreenSupportedColorSpaces(id, colorSpaces);
 }
 
-ErrCode RSClientToServiceConnection::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace,
-    int32_t& resCode)
+int32_t RSClientToServiceConnection::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    resCode = screenManagerAgent_->GetScreenColorSpace(id, colorSpace);
-    return ERR_OK;
+    return screenManagerAgent_->GetScreenColorSpace(id, colorSpace);
 }
 
-ErrCode RSClientToServiceConnection::SetScreenColorSpace(
-    ScreenId id, GraphicCM_ColorSpaceType colorSpace, int32_t& resCode)
+int32_t RSClientToServiceConnection::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    resCode = screenManagerAgent_->SetScreenColorSpace(id, colorSpace);
-    return ERR_OK;
+    return screenManagerAgent_->SetScreenColorSpace(id, colorSpace);
 }
 
 int32_t RSClientToServiceConnection::GetScreenType(ScreenId id, RSScreenType& screenType)
@@ -1282,63 +1372,123 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
 int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
 {
     if (sharedTypeface.originId_ > 0) {
-        ::close(sharedTypeface.fd_);
-        needUpdate = -1;
-        return RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+        return RegisterVariationTypeface(sharedTypeface, needUpdate);
     }
+    return RegisterAshmemTypeface(sharedTypeface, needUpdate);
+}
+
+int32_t RSClientToServiceConnection::RegisterVariationTypeface(
+    Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
+{
+    needUpdate = 0;
+    RS_LOGI_LIMIT("RegisterTypeface(var): %{public}s", sharedTypeface.ToString().c_str());
+    int32_t result = RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+    if (result >= 0) {
+        bool forwardSuccess = ForwardToRenderServers(
+            [&](sptr<RSIServiceToRenderConnection>& conn) -> bool { return conn->RegisterTypeface(sharedTypeface); });
+        if (!forwardSuccess) {
+            RS_LOGE("RegisterTypeface(var): failed to forward to rp %{public}s", sharedTypeface.ToString().c_str());
+            result = -1;
+            needUpdate = -1;
+        }
+    }
+    return result;
+}
+
+int32_t RSClientToServiceConnection::RegisterAshmemTypeface(
+    Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
+{
     if (sharedTypeface.fd_ < 0 || sharedTypeface.size_ == 0) {
-        RS_LOGE("RegisterTypeface: invalid parameters");
-        ::close(sharedTypeface.fd_);
+        RS_LOGE("RegisterTypeface(ashmem): invalid parameters, %{public}s", sharedTypeface.ToString().c_str());
         needUpdate = -1;
         return -1;
     }
     int realSize = AshmemGetSize(sharedTypeface.fd_);
     if (realSize < 0 || static_cast<uint32_t>(realSize) < sharedTypeface.size_) {
-        RS_LOGE("RegisterTypeface, realSize < 0 or realSize < given size");
+        RS_LOGE("RegisterTypeface(ashmem), invalid ashmem size, %{public}s", sharedTypeface.ToString().c_str());
         ::close(sharedTypeface.fd_);
         needUpdate = -1;
         return -1;
     }
+
+    // Try to reuse cached typeface
     auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
     if (tf != nullptr) {
         ::close(sharedTypeface.fd_);
-        sharedTypeface.fd_ = -1;
         needUpdate = 1;
-        RS_LOGI("RegisterTypeface: Find same typeface in cache, use existed typeface.");
+        RS_LOGI("RegisterTypeface(reuse): %{public}s", sharedTypeface.ToString().c_str());
+        Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
+        bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
+            return conn->RegisterTypeface(sharedTfForForward);
+        });
+        if (!forwardSuccess) {
+            RS_LOGE("RegisterTypeface(reuse): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
+        }
         return tf->GetFd();
     }
-    RS_LOGI("RegisterTypeface: Failed to find typeface in cache, create a new typeface.");
+
+    // Create new typeface from ashmem
     needUpdate = 0;
     tf = Drawing::Typeface::MakeFromAshmem(sharedTypeface);
-    if (tf != nullptr) {
-        RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
-        sharedTypeface.fd_ = -1;
-        return tf->GetFd();
+    if (tf == nullptr) {
+        ::close(sharedTypeface.fd_);
+        needUpdate = -1;
+        RS_LOGE("RegisterTypeface(new): failed to register typeface, %{public}s", sharedTypeface.ToString().c_str());
+        return -1;
     }
-    ::close(sharedTypeface.fd_);
+    RS_LOGI("RegisterTypeface(new): %{public}s", sharedTypeface.ToString().c_str());
+    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
     sharedTypeface.fd_ = -1;
-    needUpdate = -1;
-    RS_LOGE("RegisterTypeface: failed to register typeface");
-    return -1;
+    Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
+    bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
+        return conn->RegisterTypeface(sharedTfForForward);
+    });
+    if (!forwardSuccess) {
+        RS_LOGE("RegisterTypeface(new): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
+        needUpdate = -1;
+        return -1;
+    }
+    return tf->GetFd();
 }
-    
-bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
+
+bool RSClientToServiceConnection::ForwardToRenderServers(
+    const std::function<bool(sptr<RSIServiceToRenderConnection>&)>& action)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
         return false;
     }
-
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.size() == 0) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return false;
-    }
-    bool result = true;
+    bool allSuccess = true;
     for (auto conn : serviceToRenderConns) {
-        result &= conn->UnRegisterTypeface(globalUniqueId);
+        allSuccess &= action(conn);
     }
-    return result;
+    return allSuccess;
+}
+
+bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
+{
+    RS_LOGI("UnRegisterTypeface, pid[%{public}d], uniqueid:%{public}u", RSTypefaceCache::GetTypefacePid(globalUniqueId),
+        RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    auto typeface = RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
+    if (typeface == nullptr) {
+        return true;
+    }
+    uint32_t uniqueId = typeface->GetUniqueID();
+    // Free cpu cache, this only valid in skia path. When deprecating skia, this can be removed.
+    auto task = [uniqueId]() {
+        auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (context) {
+            context->FreeCpuCache(uniqueId);
+            context->PurgeUnlockAndSafeCacheGpuResources();
+        }
+    };
+    RSUniRenderThread::Instance().PostTask(task);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(globalUniqueId);
+    return ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
+        return conn->UnRegisterTypeface(globalUniqueId);
+    });
 }
 
 int32_t RSClientToServiceConnection::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
@@ -1380,9 +1530,11 @@ ErrCode RSClientToServiceConnection::SetScreenActiveRect(ScreenId id, const Rect
         return ERR_INVALID_VALUE;
     }
     screenManagerAgent_->SetScreenActiveRect(id, activeRect);
-    HgmTaskHandleThread::Instance().PostTask([id, activeRect]() {
-        HgmCore::Instance().NotifyScreenRectFrameRateChange(id, activeRect);
-    });
+    if (hgmContext_ != nullptr) {
+        HgmTaskHandleThread::Instance().PostTask([id, activeRect]() {
+            HgmCore::Instance().NotifyScreenRectFrameRateChange(id, activeRect);
+        });
+    }
     repCode = StatusCode::SUCCESS;
     return ERR_OK;
 }
@@ -1406,7 +1558,7 @@ void RSClientToServiceConnection::SetScreenFrameGravity(ScreenId id, int32_t gra
 int32_t RSClientToServiceConnection::RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return StatusCode::INVALID_ARGUMENTS;
     }
     return hgmContext_->RegisterHgmConfigChangeCallback(remotePid_, callback);
@@ -1416,7 +1568,7 @@ int32_t RSClientToServiceConnection::RegisterHgmRefreshRateModeChangeCallback(
     sptr<RSIHgmConfigChangeCallback> callback)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return StatusCode::INVALID_ARGUMENTS;
     }
     return hgmContext_->RegisterHgmRefreshRateModeChangeCallback(remotePid_, callback);
@@ -1426,7 +1578,7 @@ int32_t RSClientToServiceConnection::RegisterHgmRefreshRateUpdateCallback(
     sptr<RSIHgmConfigChangeCallback> callback)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return StatusCode::INVALID_ARGUMENTS;
     }
     return hgmContext_->RegisterHgmRefreshRateUpdateCallback(remotePid_, callback);
@@ -1440,11 +1592,22 @@ int32_t RSClientToServiceConnection::RegisterFirstFrameCommitCallback(
     return StatusCode::SUCCESS;
 }
 
+int32_t RSClientToServiceConnection::RegisterExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback)
+{
+    if (screenManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s: screenManagerAgent_ is nullptr", __func__);
+        return SCREEN_NOT_FOUND;
+    }
+
+    return screenManagerAgent_->SetExposedEventCallback(type, callback);
+}
+
 int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return StatusCode::INVALID_ARGUMENTS;
     }
     return hgmContext_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(remotePid_, dstPid, callback);
@@ -1460,6 +1623,10 @@ void RSClientToServiceConnection::ShowWatermark(const std::shared_ptr<Media::Pix
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return;
+    }
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<ShowWatermarkPersistenceData>(watermarkImg, isShow);
+        ipcPersistenceManager->RegisterWithoutCallingPid(data);
     }
     for (auto conn : serviceToRenderConns) {
         conn->ShowWatermark(watermarkImg, isShow);
@@ -1496,7 +1663,7 @@ ErrCode RSClientToServiceConnection::ReportJankStats()
 ErrCode RSClientToServiceConnection::NotifyLightFactorStatus(int32_t lightFactorStatus)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
     return hgmContext_->NotifyLightFactorStatus(remotePid_, lightFactorStatus);
@@ -1519,7 +1686,7 @@ ErrCode RSClientToServiceConnection::NotifyAppStrategyConfigChangeEvent(const st
     const std::vector<std::pair<std::string, std::string>>& newConfig)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
     return hgmContext_->NotifyAppStrategyConfigChangeEvent(remotePid_, pkgName, newConfig);
@@ -1527,11 +1694,32 @@ ErrCode RSClientToServiceConnection::NotifyAppStrategyConfigChangeEvent(const st
 
 void RSClientToServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+    if (VOTER_SCENE_BLUR == eventInfo.eventName) {
+        RsFrameBlurPredict::GetInstance().TakeEffectBlurScene(eventInfo);
+        return;
+    }
+    if (VOTER_SCENE_GPU == eventInfo.eventName) {
+        RsFrameReport::ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
+        return;
+    }
+#ifdef RS_ENABLE_VK
+    if (GPU_FREQ_PREF == eventInfo.eventName) {
+        RS_LOGE("GPU frequency adjustment event occurs, isFullScreen=%{public}d focusBundleName=%{public}s",
+            eventInfo.eventStatus, eventInfo.description.c_str());
+        RsFrameReport::ReportWindowInfo(eventInfo.eventStatus, eventInfo.description.c_str());
+        return;
+    }
+#endif
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return;
     }
     hgmContext_->NotifyRefreshRateEvent(remotePid_, eventInfo);
+    if (VIDEO_TUNNEL == eventInfo.eventName) {
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s add config=%s", __func__, eventInfo.description.c_str());
+        SurfaceUtils::GetInstance()->AddTunnelLayerConfig(eventInfo.description);
+        RS_LOGD("TUNNEL_DEBUG %s add config:%{public}s", __func__, eventInfo.description.c_str());
+    }
 }
 
 
@@ -1539,7 +1727,7 @@ void RSClientToServiceConnection::SetWindowExpectedRefreshRate(
     const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return;
     }
     hgmContext_->SetWindowExpectedRefreshRate(remotePid_, eventInfos);
@@ -1549,7 +1737,7 @@ void RSClientToServiceConnection::SetWindowExpectedRefreshRate(
     const std::unordered_map<std::string, EventInfo>& eventInfos)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return;
     }
     hgmContext_->SetWindowExpectedRefreshRate(remotePid_, eventInfos);
@@ -1567,7 +1755,7 @@ bool RSClientToServiceConnection::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
     const std::string &name, uint32_t rateDiscount)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return false;
     }
     return hgmContext_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
@@ -1589,7 +1777,7 @@ ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32
 void RSClientToServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return;
     }
     hgmContext_->NotifyDynamicModeEvent(enableDynamicModeEvent);
@@ -1598,7 +1786,7 @@ void RSClientToServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeE
 ErrCode RSClientToServiceConnection::NotifyHgmConfigEvent(const std::string& eventName, bool state)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
     hgmContext_->NotifyHgmConfigEvent(eventName, state);
@@ -1608,7 +1796,7 @@ ErrCode RSClientToServiceConnection::NotifyHgmConfigEvent(const std::string& eve
 ErrCode RSClientToServiceConnection::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
     
@@ -1725,13 +1913,32 @@ void RSClientToServiceConnection::ReportGameStateData(GameStateData info)
     for (auto conn : serviceToRenderConns) {
         conn->ReportGameStateData(info);
     }
+    if (renderServiceAgent_ != nullptr) {
+        renderServiceAgent_->HandleGameSceneChanged();
+    }
 }
 
 
 ErrCode RSClientToServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
+    if (RSSystemProperties::GetCacheEnabledForRotation() == isEnabled) {
+        return ERR_OK;
+    }
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.size() == 0) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    for (auto& conn : serviceToRenderConns) {
+        if (conn != nullptr) {
+            conn->SetCacheEnabledForRotation(isEnabled);
+        }
+    }
     return ERR_OK;
 }
 
@@ -1986,6 +2193,25 @@ ErrCode RSClientToServiceConnection::SetLayerTop(const std::string& nodeIdStr, b
     return ret;
 }
 
+ErrCode RSClientToServiceConnection::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.empty()) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    ErrCode ret = ERR_OK;
+    for (auto conn : serviceToRenderConns) {
+        ErrCode retTmp = conn->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+        ret = (ret != ERR_OK) ? ret : retTmp;
+    }
+    return ret;
+}
+
 ErrCode RSClientToServiceConnection::SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh)
 {
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
@@ -1999,22 +2225,6 @@ ErrCode RSClientToServiceConnection::SetForceRefresh(const std::string& nodeIdSt
         ret = (ret != ERR_OK) ? ret : tmpRet;
     }
     return ret;
-}
-
-void RSClientToServiceConnection::SetFreeMultiWindowStatus(bool enable)
-{
-    if (renderProcessManagerAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
-        return;
-    }
-    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.size() == 0) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return;
-    }
-    for (auto conn : serviceToRenderConns) {
-        conn->SetFreeMultiWindowStatus(enable);
-    }
 }
 
 void RSClientToServiceConnection::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
@@ -2058,7 +2268,12 @@ int32_t RSClientToServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
-
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<SelfDrawingNodeRectChangeCallbackPersistenceData>(remotePid_,
+                                                                                       constraint,
+                                                                                       callback);
+        ipcPersistenceManager->RegisterWithCallingPid(data);
+    }
     int32_t result = StatusCode::SUCCESS;
     for (auto conn : serviceToRenderConns) {
         int32_t ret = conn->RegisterSelfDrawingNodeRectChangeCallback(remotePid_, constraint, callback);
@@ -2082,6 +2297,9 @@ int32_t RSClientToServiceConnection::UnRegisterSelfDrawingNodeRectChangeCallback
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        ipcPersistenceManager->UnregisterByType(RSIpcPersistenceType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+    }
     int32_t result = StatusCode::SUCCESS;
     for (auto conn : serviceToRenderConns) {
         int32_t ret = conn->UnRegisterSelfDrawingNodeRectChangeCallback(remotePid_);
@@ -2097,7 +2315,7 @@ ErrCode RSClientToServiceConnection::NotifyPageName(const std::string& packageNa
     const std::string& pageName, bool isEnter)
 {
     if (hgmContext_ == nullptr) {
-        RS_LOGE("%{public}s hgmContext is nullptr", __func__);
+        RS_LOGD("%{public}s hgmContext is nullptr", __func__);
         return StatusCode::INVALID_ARGUMENTS;
     }
     hgmContext_->NotifyPageName(remotePid_, packageName, pageName, isEnter);
@@ -2215,6 +2433,10 @@ ErrCode RSClientToServiceConnection::SetBehindWindowFilterEnabled(bool enabled)
     if (serviceToRenderConns.empty()) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
+    }
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<SetBehindWindowFilterEnabledPersistenceData>(enabled);
+        ipcPersistenceManager->RegisterWithoutCallingPid(data);
     }
     for (auto& conn : serviceToRenderConns) {
         conn->SetBehindWindowFilterEnabled(enabled);

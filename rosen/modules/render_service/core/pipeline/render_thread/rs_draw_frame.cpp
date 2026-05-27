@@ -21,6 +21,7 @@
 #include "rs_trace.h"
 
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/layer/rs_layer_cache_manager_base.h"
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
@@ -104,7 +105,9 @@ void RSDrawFrame::RenderFrame()
 #ifdef MHC_ENABLE
     RSMhcManager::Instance().UpdateFrameId();
 #endif
-    RSUifirstManager::Instance().PostUifistSubTasks();
+    RSUifirstManager::Instance().PostUifirstSubTasks();
+    RSMainThread::Instance()->CheckWindowCapTasks();
+    RSMainThread::Instance()->ProcessWindowCapTasks();
     UnblockMainThread();
     RsFrameReport::CheckUnblockMainThreadPoint();
     Render();
@@ -186,7 +189,7 @@ void RSDrawFrame::PostAndWait()
         case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
             unirenderInstance_.PostSyncTask([this, renderFrameNumber]() {
                 unirenderInstance_.SetMainLooping(true);
-                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
+                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber);
                 RenderFrame();
                 unirenderInstance_.ClearResource();
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
@@ -205,7 +208,7 @@ void RSDrawFrame::PostAndWait()
             canUnblockMainThread = false;
             unirenderInstance_.PostTask([this, renderFrameNumber]() {
                 unirenderInstance_.SetMainLooping(true);
-                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
+                RS_PROFILER_ON_PARALLEL_RENDER_BEGIN(renderFrameNumber);
                 RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationBegin();
                 RenderFrame();
                 unirenderInstance_.ClearResource();
@@ -233,6 +236,30 @@ void RSDrawFrame::ClearDrawableResource()
         case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
         default: {
             unirenderInstance_.PostTask([]() { DrawableV2::RSRenderNodeDrawableAdapter::ClearResource(); });
+        }
+    }
+}
+
+void RSDrawFrame::ClearDrawableMemory(bool highPriority)
+{
+    switch (rsParallelType_) {
+        case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
+            auto task = [highPriority]() {
+                RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            };
+            unirenderInstance_.PostSyncTask(task);
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD: { // render in main thread
+            RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
+        default: {
+            auto task = [highPriority]() {
+                RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            };
+            unirenderInstance_.PostTask(task);
         }
     }
 }
@@ -294,6 +321,7 @@ void RSDrawFrame::Sync()
         pendingSyncNodes.emplace(id, weakPtr);
     }
     stagingSyncCanvasDrawingNodes_.clear();
+    RSLayerCacheManagerBase::layerDrawables_.clear();
     for (auto& [id, weakPtr] : pendingSyncNodes) {
         if (auto node = weakPtr.lock()) {
             if (!CheckCanvasSkipSync(node)) {
@@ -308,7 +336,7 @@ void RSDrawFrame::Sync()
         }
     }
     pendingSyncNodes.clear();
-    HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
+    HveFilter::GetHveFilter().Sync();
 
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
 #ifdef SUBTREE_PARALLEL_ENABLE

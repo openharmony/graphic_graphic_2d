@@ -49,21 +49,6 @@ void BrightnessInfoChangeCallbackStubTest::SetUp() {}
 void BrightnessInfoChangeCallbackStubTest::TearDown() {}
 
 /**
- * @tc.name: WriteBrightnessInfoTest
- * @tc.desc: Verify function WriteBrightnessInfo
- * @tc.type: FUNC
- */
-HWTEST_F(BrightnessInfoChangeCallbackStubTest, WriteBrightnessInfoTest, TestSize.Level1)
-{
-    sptr<RSBrightnessInfoChangeCallbackProxy> callback = new RSBrightnessInfoChangeCallbackProxy(nullptr);
-    ASSERT_NE(callback, nullptr);
-    BrightnessInfo brightnessInfo;
-    MessageParcel data;
-    callback->OnBrightnessInfoChange(0, brightnessInfo);
-    ASSERT_TRUE(callback->WriteBrightnessInfo(brightnessInfo, data));
-}
-
-/**
  * @tc.name: OnRemoteRequestTest001
  * @tc.desc: Verify function OnRemoteRequest
  * @tc.type: FUNC
@@ -109,6 +94,7 @@ HWTEST_F(BrightnessInfoChangeCallbackStubTest, OnRemoteRequestTest001, TestSize.
         MessageParcel data;
         data.WriteInterfaceToken(RSIBrightnessInfoChangeCallback::GetDescriptor());
         data.WriteUint64(0);
+        data.WriteFloat(1.0f);
         data.WriteFloat(1.0f);
         data.WriteFloat(1.0f);
         data.WriteFloat(1.0f);

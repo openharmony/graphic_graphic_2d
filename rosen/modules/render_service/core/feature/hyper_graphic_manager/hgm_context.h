@@ -114,7 +114,7 @@ private:
     std::shared_ptr<RPHgmConfigData> rpHgmConfigData_ = nullptr;
 
     bool isAdaptive_ = false;
-    std::string gameNodeName_ = "";
+    std::string gameNodeName_;
 };
 } // namespace OHOS
 } // namespace Rosen

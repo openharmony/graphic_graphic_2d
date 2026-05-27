@@ -231,7 +231,7 @@ HWTEST_F(RSRenderProcessManagerTest, OnHwcEventTest, TestSize.Level1)
 HWTEST_F(RSRenderProcessManagerTest, OnScreenBacklightChangedTest, TestSize.Level1)
 {
     uint32_t level = 100;
-    renderService_.renderProcessManager_->OnScreenBacklightChanged(screenId_, level);
+    renderService_.renderProcessManager_->OnScreenBacklightChanged(RsScreenBrightnessData(screenId_, level));
     ASSERT_TRUE(renderService_.renderProcessManager_);
 }
 

@@ -17,6 +17,8 @@
 #include <fcntl.h>
 
 #include "animation/rs_particle_noise_field.h"
+#include "animation/rs_particle_ripple_field.h"
+#include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
@@ -48,6 +50,8 @@
 #include "render/rs_shader.h"
 #include "recording/record_cmd.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "screen_manager/screen_types.h"
+#include "display_engine/rs_luminance_control.h"
 
 #ifdef ROSEN_OHOS
 #include "buffer_utils.h"
@@ -264,6 +268,50 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest002, TestSize.Lev
     EXPECT_EQ(sharedTypeface.coords_[1].value, newSharedTypeface.coords_[1].value);
     ::close(sharedTypeface.fd_);
     sharedTypeface.fd_ = -1;
+}
+
+/**
+ * @tc.name: MarshallingSharedTypefaceTest003
+ * @tc.desc: Verify Marshalling/Unmarshalling with originId_ > 0 (variation typeface skips fd)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest003, TestSize.Level1)
+{
+    MessageParcel parcel;
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.originId_ = 12345;
+    sharedTypeface.fd_ = -1;
+    sharedTypeface.hasFontArgs_ = false;
+    // originId_ > 0: fd should NOT be marshalled, so fd_ = -1 is OK
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, sharedTypeface));
+
+    Drawing::SharedTypeface newSharedTypeface;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, newSharedTypeface));
+    EXPECT_EQ(sharedTypeface.originId_, newSharedTypeface.originId_);
+    EXPECT_EQ(sharedTypeface.hasFontArgs_, newSharedTypeface.hasFontArgs_);
+}
+
+/**
+ * @tc.name: MarshallingSharedTypefaceTest004
+ * @tc.desc: Verify Marshalling/Unmarshalling with originId_ > 0 and font args
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest004, TestSize.Level1)
+{
+    MessageParcel parcel;
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.originId_ = 999;
+    sharedTypeface.fd_ = -1;
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { { 2003265652, 100.0 } };
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, sharedTypeface));
+
+    Drawing::SharedTypeface newSharedTypeface;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, newSharedTypeface));
+    EXPECT_EQ(sharedTypeface.originId_, newSharedTypeface.originId_);
+    EXPECT_EQ(sharedTypeface.hasFontArgs_, newSharedTypeface.hasFontArgs_);
+    EXPECT_EQ(sharedTypeface.coords_.size(), newSharedTypeface.coords_.size());
+    EXPECT_EQ(sharedTypeface.coords_[0].axis, newSharedTypeface.coords_[0].axis);
 }
 
 /**
@@ -703,9 +751,317 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest013, TestSize.Level1)
 {
     Parcel parcel;
     std::shared_ptr<ParticleNoiseFields> val;
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
     parcel.WriteInt32(RSMarshallingHelper::MAX_DATA_SIZE);
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleNoiseFieldsNullMarker
+ * @tc.desc: When parcel carries null marker (-1), Unmarshalling should succeed and output nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleNoiseFieldsNullMarker, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    std::shared_ptr<ParticleNoiseFields> val = std::make_shared<ParticleNoiseFields>();
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleNoiseFieldsMissingSize
+ * @tc.desc: Valid flag but no size bytes in parcel: ReadUint32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleNoiseFieldsMissingSize, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    std::shared_ptr<ParticleNoiseFields> val = std::make_shared<ParticleNoiseFields>();
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleNoiseFieldsOversizedSize
+ * @tc.desc: Size exceeds PARTICLE_EMMITER_UPPER_LIMIT: Unmarshalling returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleNoiseFieldsOversizedSize, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    parcel.WriteUint32(PARTICLE_EMMITER_UPPER_LIMIT + 1);
+    std::shared_ptr<ParticleNoiseFields> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+}
+
+/**
+ * @tc.name: UnmarshallingParticleRippleFieldsEmptyParcel
+ * @tc.desc: Empty parcel: ReadInt32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleRippleFieldsEmptyParcel, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<ParticleRippleFields> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleRippleFieldsNullMarker
+ * @tc.desc: When parcel carries null marker (-1), Unmarshalling should succeed and output nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleRippleFieldsNullMarker, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    std::shared_ptr<ParticleRippleFields> val = std::make_shared<ParticleRippleFields>();
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleRippleFieldsMissingSize
+ * @tc.desc: Valid flag but no size bytes in parcel: ReadUint32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleRippleFieldsMissingSize, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    std::shared_ptr<ParticleRippleFields> val = std::make_shared<ParticleRippleFields>();
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleRippleFieldsOversizedSize
+ * @tc.desc: Size exceeds PARTICLE_EMMITER_UPPER_LIMIT: Unmarshalling returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleRippleFieldsOversizedSize, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    parcel.WriteUint32(PARTICLE_EMMITER_UPPER_LIMIT + 1);
+    std::shared_ptr<ParticleRippleFields> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+}
+
+/**
+ * @tc.name: UnmarshallingParticleVelocityFieldsEmptyParcel
+ * @tc.desc: Empty parcel: ReadInt32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleVelocityFieldsEmptyParcel, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<ParticleVelocityFields> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleVelocityFieldsNullMarker
+ * @tc.desc: When parcel carries null marker (-1), Unmarshalling should succeed and output nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleVelocityFieldsNullMarker, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    std::shared_ptr<ParticleVelocityFields> val = std::make_shared<ParticleVelocityFields>();
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleVelocityFieldsMissingSize
+ * @tc.desc: Valid flag but no size bytes in parcel: ReadUint32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleVelocityFieldsMissingSize, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    std::shared_ptr<ParticleVelocityFields> val = std::make_shared<ParticleVelocityFields>();
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleVelocityFieldsOversizedSize
+ * @tc.desc: Size exceeds PARTICLE_EMMITER_UPPER_LIMIT: Unmarshalling returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleVelocityFieldsOversizedSize, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(1);
+    parcel.WriteUint32(PARTICLE_EMMITER_UPPER_LIMIT + 1);
+    std::shared_ptr<ParticleVelocityFields> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+}
+
+/**
+ * @tc.name: UnmarshallingEmitterUpdaterEmptyParcel
+ * @tc.desc: Empty parcel: ReadInt32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingEmitterUpdaterEmptyParcel, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<EmitterUpdater> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingEmitterUpdaterNullMarker
+ * @tc.desc: When parcel carries null marker (-1), Unmarshalling should succeed and output nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingEmitterUpdaterNullMarker, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    std::shared_ptr<EmitterUpdater> val;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleNoiseFieldEmptyParcel
+ * @tc.desc: Empty parcel: ReadInt32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleNoiseFieldEmptyParcel, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<ParticleNoiseField> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleNoiseFieldNullMarker
+ * @tc.desc: When parcel carries null marker (-1), Unmarshalling should succeed and output nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleNoiseFieldNullMarker, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    std::shared_ptr<ParticleNoiseField> val;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleRippleFieldEmptyParcel
+ * @tc.desc: Empty parcel: ReadInt32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleRippleFieldEmptyParcel, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<ParticleRippleField> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleRippleFieldNullMarker
+ * @tc.desc: When parcel carries null marker (-1), Unmarshalling should succeed and output nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleRippleFieldNullMarker, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    std::shared_ptr<ParticleRippleField> val;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleVelocityFieldEmptyParcel
+ * @tc.desc: Empty parcel: ReadInt32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleVelocityFieldEmptyParcel, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<ParticleVelocityField> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleVelocityFieldNullMarker
+ * @tc.desc: When parcel carries null marker (-1), Unmarshalling should succeed and output nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleVelocityFieldNullMarker, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    std::shared_ptr<ParticleVelocityField> val;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleRenderParamsEmptyParcel
+ * @tc.desc: Empty parcel: ReadInt32 fails, Unmarshalling returns false and resets val.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleRenderParamsEmptyParcel, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<ParticleRenderParams> val = std::make_shared<ParticleRenderParams>();
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingParticleRenderParamsNullMarker
+ * @tc.desc: When parcel carries null marker (-1), Unmarshalling should succeed and output nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingParticleRenderParamsNullMarker, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    std::shared_ptr<ParticleRenderParams> val = std::make_shared<ParticleRenderParams>();
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    EXPECT_EQ(val, nullptr);
+}
+
+/**
+ * @tc.name: UnmarshallingRenderParticleParaTypeCurveMissingSize
+ * @tc.desc: CURVE updator but no size bytes in parcel: ReadUint32 fails, Unmarshalling returns false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingRenderParticleParaTypeCurveMissingSize, TestSize.Level1)
+{
+    Parcel parcel;
+    float valueStart = 0.f;
+    float valueEnd = 1.f;
+    ParticleUpdator updator = ParticleUpdator::CURVE;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, valueStart));
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, valueEnd));
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, updator));
+    // Intentionally do not write valChangeOverLifeSize so ReadUint32 fails.
+    RenderParticleParaType<float> val;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
 
 #ifdef RS_ENABLE_UNI_RENDER
@@ -2121,6 +2477,50 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectCreationFailureT
 }
 
 /**
+ * @tc.name: UnmarshallingPixelMapFdCountExceedLimitTest
+ * @tc.desc: Verify function Unmarshalling PixelMap when fd count exceeds limit
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, TestSize.Level1)
+{
+#ifdef RS_ENABLE_UNI_RENDER
+    constexpr int32_t TEST_FD_COUNT = 29001;
+    constexpr int32_t TEST_PID = 10001;
+    constexpr uint64_t TEST_UNIQUE_ID = static_cast<uint64_t>(TEST_PID) << 32;
+
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
+
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+
+    Parcel parcel;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, pixelMap));
+
+    MemoryInfo memInfo = {
+        pixelMap->GetByteCount(), TEST_PID, 0, pixelMap->GetUniqueId(),
+        MEMORY_TYPE::MEM_PIXELMAP, Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::RGBA_8888
+    };
+
+    for (int32_t i = 0; i < TEST_FD_COUNT; i++) {
+        MemoryTrack::Instance().AddPictureRecord(reinterpret_cast<const void*>(i), memInfo);
+    }
+
+    std::shared_ptr<Media::PixelMap> unmarshalledVal;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalledVal, TEST_UNIQUE_ID));
+
+    for (int32_t i = 0; i < TEST_FD_COUNT; i++) {
+        MemoryTrack::Instance().RemovePictureRecord(reinterpret_cast<const void*>(i));
+    }
+#endif
+}
+
+/**
  * @tc.name: TransactionVersionCheckTest
  * @tc.desc: Verify function TransactionVersionCheck
  * @tc.type: FUNC
@@ -2134,6 +2534,80 @@ HWTEST_F(RSMarshallingHelperTest, TransactionVersionCheckTest, TestSize.Level1)
         parcel.WriteInt64(0);
     }
     ASSERT_FALSE(RSMarshallingHelper::TransactionVersionCheck(parcel, 0));
+}
+
+/**
+ * @tc.name: RsScreenBrightnessDataMarshallingTest
+ * @tc.desc: Verify RSMarshallingHelper for RsScreenBrightnessData (POD struct)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RsScreenBrightnessDataMarshallingTest, TestSize.Level1)
+{
+    Parcel parcel;
+    RsScreenBrightnessData data(1, 100, 0.5f);
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, data));
+
+    RsScreenBrightnessData data2;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, data2));
+    ASSERT_EQ(data.screenId, data2.screenId);
+    ASSERT_EQ(data.level, data2.level);
+    ASSERT_EQ(data.brightnessPosition, data2.brightnessPosition);
+}
+
+/**
+ * @tc.name: RsScreenBrightnessDataUnmarshallingFailTest
+ * @tc.desc: Verify RSMarshallingHelper Unmarshalling fails for insufficient data
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, RsScreenBrightnessDataUnmarshallingFailTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteUint64(1);
+    parcel.WriteUint32(100);
+    RsScreenBrightnessData data;
+    ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, data));
+}
+
+/**
+ * @tc.name: BrightnessInfoMarshallingTest
+ * @tc.desc: Verify RSMarshallingHelper for BrightnessInfo (POD struct)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, BrightnessInfoMarshallingTest, TestSize.Level1)
+{
+    Parcel parcel;
+    BrightnessInfo info;
+    info.currentHeadroom = 1.0f;
+    info.maxHeadroom = 2.0f;
+    info.sdrNits = 500.0f;
+    info.brightnessPosition = 0.8f;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, info));
+
+    BrightnessInfo info2;
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, info2));
+    ASSERT_EQ(info.currentHeadroom, info2.currentHeadroom);
+    ASSERT_EQ(info.maxHeadroom, info2.maxHeadroom);
+    ASSERT_EQ(info.sdrNits, info2.sdrNits);
+    ASSERT_EQ(info.brightnessPosition, info2.brightnessPosition);
+}
+
+/**
+ * @tc.name: BrightnessInfoUnmarshallingFailTest
+ * @tc.desc: Verify RSMarshallingHelper Unmarshalling fails for insufficient data
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMarshallingHelperTest, BrightnessInfoUnmarshallingFailTest, TestSize.Level1)
+{
+    Parcel parcel;
+    parcel.WriteFloat(1.0f);
+    parcel.WriteFloat(2.0f);
+    parcel.WriteFloat(500.0f);
+    BrightnessInfo info;
+    ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, info));
 }
 } // namespace Rosen
 } // namespace OHOS

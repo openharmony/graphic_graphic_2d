@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,10 +30,21 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-enum class TextContrast {
+enum class TextContrast : uint8_t {
     FOLLOW_SYSTEM, // Follow the system configuration.
     DISABLE_CONTRAST, // Do not follow the system, APP prohibits high contrast.
     ENABLE_CONTRAST // Do not follow the system, APP enables high contrast.
+};
+
+union TextBlobRenderOption {
+    uint32_t rawData = 0;
+    struct {
+        uint32_t textContrast : 31;
+        uint32_t preferSpeedOverQuality : 1;
+    } bits;
+
+    TextBlobRenderOption() : bits{static_cast<uint32_t>(TextContrast::FOLLOW_SYSTEM), false} {}
+    TextBlobRenderOption(TextContrast tc, bool enable) : bits{static_cast<uint32_t>(tc), enable} {}
 };
 
 class DRAWING_API ProcessTextConstrast {
@@ -115,12 +126,20 @@ public:
         this->isEmoji = emoji;
     }
 
+    bool IsSpeedOverQualityPreferred() const {
+        return options_.bits.preferSpeedOverQuality;
+    }
+
+    void SetSpeedOverQualityPreferred(bool enable) {
+        options_.bits.preferSpeedOverQuality = enable;
+    }
+
     void SetTextContrast(TextContrast contrast) {
-        textContrast_ = contrast;
+        options_.bits.textContrast = static_cast<uint32_t>(contrast);
     }
 
     TextContrast GetTextContrast() const {
-        return textContrast_;
+        return static_cast<TextContrast>(options_.bits.textContrast);
     }
 
     class Context {
@@ -155,7 +174,7 @@ public:
 private:
     std::shared_ptr<TextBlobImpl> textBlobImpl_;
     bool isEmoji = false;
-    TextContrast textContrast_ = TextContrast::FOLLOW_SYSTEM;
+    TextBlobRenderOption options_ = TextBlobRenderOption();
 };
 } // namespace Drawing
 } // namespace Rosen

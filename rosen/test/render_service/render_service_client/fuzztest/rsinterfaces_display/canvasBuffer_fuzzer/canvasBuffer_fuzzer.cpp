@@ -18,13 +18,13 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "transaction/rs_render_interface.h"
-
+#include "transaction/rs_interfaces.h"
 #include "platform/drawing/rs_surface.h"
 
 namespace OHOS {
 namespace Rosen {
 
-static RSRenderInterface* g_renderInterface = nullptr;
+std::shared_ptr<RSRenderInterface> g_rsRenderInterfaces = nullptr;
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 namespace {
@@ -53,11 +53,11 @@ void DoRegisterCanvasCallback(FuzzedDataProvider& fdp)
     if (!shouldRegister) {
         // Test case: don't register callback (pass nullptr)
         sptr<RSICanvasSurfaceBufferCallback> callback = nullptr;
-        g_renderInterface->RegisterCanvasCallback(callback);
+        g_rsRenderInterfaces->RegisterCanvasCallback(callback);
     } else {
         // Test case: register callback
         sptr<RSICanvasSurfaceBufferCallback> callback = new TestRSCanvasSurfaceBufferCallback();
-        g_renderInterface->RegisterCanvasCallback(callback);
+        g_rsRenderInterfaces->RegisterCanvasCallback(callback);
     }
 }
 
@@ -66,14 +66,17 @@ void DoSubmitCanvasPreAllocatedBuffer(FuzzedDataProvider& fdp)
     NodeId nodeId = fdp.ConsumeIntegral<uint64_t>();
     uint32_t resetSurfaceIndex = fdp.ConsumeIntegral<uint32_t>();
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-    g_renderInterface->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+    g_rsRenderInterfaces->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif
 
 /* Fuzzer environment initialization */
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    g_renderInterface = new RSRenderInterface();
+    auto screenId = OHOS::Rosen::RSInterfaces::GetInstance().GetDefaultScreenId();
+    auto connectToRender =
+        OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    OHOS::Rosen::g_rsRenderInterfaces = std::make_shared<OHOS::Rosen::RSRenderInterface>(connectToRender);
     return 0;
 }
 
@@ -86,7 +89,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     FuzzedDataProvider fdp(data, size);
 
-    if (g_renderInterface == nullptr) {
+    if (g_rsRenderInterfaces == nullptr) {
         return 0;
     }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

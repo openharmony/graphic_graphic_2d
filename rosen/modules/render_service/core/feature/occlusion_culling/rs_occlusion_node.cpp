@@ -17,6 +17,7 @@
 
 #include <sstream>
 #include "common/rs_optional_trace.h"
+#include "feature/opinc/rs_opinc_manager.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -117,7 +118,7 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
 {
     if (node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE ||
         node.GetIsTextureExportNode() || node.GetSharedTransitionParam() != nullptr ||
-        const_cast<RSRenderNode&>(node).GetOpincCache().IsSuggestOpincNode()) {
+        RSOpincManager::IsSuggestOpincNode(const_cast<RSRenderNode&>(node))) {
         return true;
     }
 
@@ -158,7 +159,7 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
     auto foregroundFilter = RSUniRenderJudgement::IsUniRender() ? renderProperties.GetForegroundFilterCache()
         : renderProperties.GetForegroundFilter();
     const bool hasOutBoundsProp = (drawRegion && !drawRegion->IsInsideOf(drawRect)) ||
-        renderProperties.IsShadowValid() || outline || pixelStretch.has_value() ||
+        renderProperties.IsShadowValid() || outline || !pixelStretch.IsZero() ||
         foregroundFilter || (distortionK.has_value() && *distortionK > 0);
 
     return hasOutBoundsProp;
@@ -355,7 +356,7 @@ void OcclusionNode::UpdateCoverageInfo(OcclusionCoverageInfo& globalCoverage, Oc
         selfCoverage.rect_ = innerRect_;
         selfCoverage.id_ = id_;
         if (selfCoverage.area_ > globalCoverage.area_) {
-            RS_OPTIONAL_TRACE_FMT("opaque node %" PRIu64 " became the largest coverage. rect: [%d, %d, %d, %d]",
+            RS_TRACE_NAME_FMT("opaque node %" PRIu64 " became the largest coverage. rect: [%d, %d, %d, %d]",
                 id_, innerRect_.GetLeft(), innerRect_.GetTop(), innerRect_.GetWidth(), innerRect_.GetHeight());
             globalCoverage = selfCoverage;
         }
@@ -364,7 +365,7 @@ void OcclusionNode::UpdateCoverageInfo(OcclusionCoverageInfo& globalCoverage, Oc
         // When the node is a filter node that intersects but is not contained by the global coverage,
         // clip global coverage rect by filter rect.
         auto maxSubRect = FindMaxDisjointSubRect(globalCoverage.rect_, outerRect_);
-        RS_OPTIONAL_TRACE_FMT("coverage clipped by filter node %" PRIu64 ". src Rect: [%d, %d, %d, %d], "
+        RS_TRACE_NAME_FMT("coverage clipped by filter node %" PRIu64 ". src Rect: [%d, %d, %d, %d], "
             "filter Rect: [%d, %d, %d, %d], dst Rect: [%d, %d, %d, %d]", id_, globalCoverage.rect_.GetLeft(),
             globalCoverage.rect_.GetTop(), globalCoverage.rect_.GetWidth(), globalCoverage.rect_.GetHeight(),
             outerRect_.GetLeft(), outerRect_.GetTop(), outerRect_.GetWidth(), outerRect_.GetHeight(),

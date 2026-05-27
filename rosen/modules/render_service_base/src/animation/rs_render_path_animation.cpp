@@ -183,8 +183,12 @@ void RSRenderPathAnimation::OnAttach()
     }
     // check if any other path animation running on this property
     auto propertyId = GetPropertyId();
-    auto prevAnimation = target->GetAnimationManager().QueryPathAnimation(propertyId);
-    target->GetAnimationManager().RegisterPathAnimation(propertyId, GetAnimationId());
+    auto animationManager = target->GetAnimationManager();
+    if (!animationManager) {
+        return;
+    }
+    auto prevAnimation = animationManager->QueryPathAnimation(propertyId);
+    animationManager->RegisterPathAnimation(propertyId, GetAnimationId());
 
     // return if no other path animation(s) running
     if (prevAnimation == nullptr) {
@@ -204,7 +208,9 @@ void RSRenderPathAnimation::OnDetach()
     }
     auto propertyId = GetPropertyId();
     auto id = GetAnimationId();
-    target->GetAnimationManager().UnregisterPathAnimation(propertyId, id);
+    if (auto animationManager = target->GetAnimationManager()) {
+        animationManager->UnregisterPathAnimation(propertyId, id);
+    }
 }
 
 void RSRenderPathAnimation::SetPathValue(const Vector2f& value, float tangent)

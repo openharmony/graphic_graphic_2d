@@ -15,10 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-ohos_unittest("text_ndk_test") {
-  module_out_path = text_ut_out_path
-
-  defines = []
+text_unittest("text_ndk_test") {
   sources = [
     "add_text_test.cpp",
     "font_collection_test.cpp",
@@ -36,34 +33,39 @@ ohos_unittest("text_ndk_test") {
     "text_run_test.cpp",
     "text_style_copy_test.cpp",
     "text_style_font_edging_test.cpp",
+    "text_text_style_test.cpp",
+    "text_typography_advanced_test.cpp",
     "text_typography_alignment_test.cpp",
+    "text_typography_attribute_test.cpp",
+    "text_typography_brush_pen_test.cpp",
     "text_typography_character_index_test.cpp",
+    "text_typography_font_parser_test.cpp",
     "text_typography_layout_constraints_test.cpp",
+    "text_typography_layout_test.cpp",
     "text_typography_line_layout_test.cpp",
+    "text_typography_line_style_test.cpp",
     "text_typography_paint_attribute_test.cpp",
+    "text_typography_shadow_test.cpp",
     "text_typography_strut_style_test.cpp",
+    "text_typography_style_auto_space_test.cpp",
+    "text_typography_style_compress_punc_test.cpp",
     "text_typography_style_ellipsis_test.cpp",
+    "text_typography_style_fallback_test.cpp",
+    "text_typography_style_font_padding_test.cpp",
+    "text_typography_style_property_test.cpp",
     "text_typography_style_test.cpp",
-    "text_typography_test.cpp",
+    "text_typography_tab_test.cpp",
+    "text_typography_test_common.cpp",
+    "text_typography_variation_test.cpp",
     "undefined_glyph_display_test.cpp",
   ]
 
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/drawing_utils",
-    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/src",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src",
-  ]
-
-  cflags_cc = [
-    "-std=c++17",
-    "-Dprivate=public",
-    "-Dprotected=public",
-  ]
-
-  include_dirs += [
-    "$rosen_text_root/interface/export",
     "$rosen_text_root/adapter/skia",
+    "$rosen_root/modules/2d_graphics/drawing_ndk/drawing_utils",
+    "$rosen_root/modules/2d_graphics/drawing_ndk/include",
+    "$rosen_root/modules/2d_graphics/drawing_ndk/src",
+    "$rosen_root/modules/2d_graphics/src",
     "$rosen_text_root/service/texgine/src",
   ]
 
@@ -73,12 +75,10 @@ ohos_unittest("text_ndk_test") {
   }
 
   deps = [
-    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
-    "$rosen_text_root:rosen_text",
+    "$rosen_root/modules/2d_graphics:2d_graphics",
+    "$rosen_root/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
   ]
 
-  subsystem_name = "graphic"
   external_deps = [
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
@@ -88,11 +88,6 @@ ohos_unittest("text_ndk_test") {
     "image_framework:image_native",
     "ipc:ipc_single",
   ]
-
-  platform = current_os
-  if (platform == "ohos" || platform == "ohos_ng") {
-    defines += [ "ENABLE_OHOS_ENHANCE" ]
-  }
 }
 
 group("unittest") {

@@ -45,7 +45,7 @@ void RSFoldScreenManagerTest::SetUpTestCase()
     rsScreenManager_ = new RSScreenManager();
     rsScreenPreprocessor_ = new RSScreenPreprocessor(*rsScreenManager_, *rsScreenManager_->callbackMgr_, nullptr,
                                                      rsScreenManager_->isFoldScreenFlag_);
-    foldScreenManager_ = new RSFoldScreenManager(*rsScreenPreprocessor_);
+    foldScreenManager_ = new RSFoldScreenManager(*rsScreenPreprocessor_, nullptr);
 }
 
 void RSFoldScreenManagerTest::TearDownTestCase()
@@ -70,19 +70,19 @@ HWTEST_F(RSFoldScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
     foldScreenManager_->HandleSensorData(0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
-    foldScreenManager_->isPostureSensorDataHandled_ = false;
     foldScreenManager_->HandleSensorData(0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
     foldScreenManager_->HandleSensorData(180.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->innerScreenId_);
     foldScreenManager_->HandleSensorData(180.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->innerScreenId_);
-    foldScreenManager_->isPostureSensorDataHandled_ = false;
     foldScreenManager_->HandleSensorData(180.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->innerScreenId_);
     foldScreenManager_->HandleSensorData(0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
     foldScreenManager_->activeScreenId_ = 0;
+    foldScreenManager_->HandleSensorData(-1.f);
+    foldScreenManager_->HandleSensorData(200.f);
 }
 
 /*
@@ -95,15 +95,7 @@ HWTEST_F(RSFoldScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
 {
     ASSERT_NE(nullptr, foldScreenManager_);
     auto activeScreenId = foldScreenManager_->GetActiveScreenId();
-    bool isFoldScreenFlag = false;
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    isFoldScreenFlag = system::GetParameter("const.window.foldscreen.type", "") != "";
-#endif
-    if (isFoldScreenFlag) {
-        ASSERT_NE(INVALID_SCREEN_ID, activeScreenId);
-    } else {
-        ASSERT_EQ(INVALID_SCREEN_ID, activeScreenId);
-    }
+    ASSERT_NE(INVALID_SCREEN_ID, activeScreenId);
 }
 
 /*
@@ -279,7 +271,7 @@ HWTEST_F(RSFoldScreenManagerTest, HandlePostureDataTest004, TestSize.Level1)
     auto data = std::make_shared<uint8_t>(1000);
     auto event = std::make_shared<SensorEvent>();
     event->data = data.get();
-    event->dataLen = sizeof(PostureData);
+    event->dataLen = sizeof(data);
     foldScreenManager_->HandlePostureData(event.get());
     ASSERT_NE(foldScreenManager_, nullptr);
 }

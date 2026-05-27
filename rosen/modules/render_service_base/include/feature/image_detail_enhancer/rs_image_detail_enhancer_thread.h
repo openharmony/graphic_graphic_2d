@@ -16,6 +16,7 @@
 #ifndef RS_IMAGE_DETAIL_ENHANCER_THREAD_H
 #define RS_IMAGE_DETAIL_ENHANCER_THREAD_H
 
+#include <atomic>
 #include <functional>
 #include <list>
 #include <mutex>
@@ -34,6 +35,7 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
 struct RSImageParams {
     std::shared_ptr<Media::PixelMap> mPixelMap;
     uint64_t mNodeId;
@@ -94,7 +96,7 @@ private:
 #endif
 
     bool isParamValidate_ = false;
-    bool ifReleaseAllScaledImage_ = false;
+    std::atomic<bool> ifReleaseAllScaledImage_{false};
     RSImageDetailEnhanceParams params_ = {};
     RSImageDetailEnhanceAlgoParams slrParams_{};
     RSImageDetailEnhanceAlgoParams esrParams_{};
@@ -129,6 +131,7 @@ public:
     float GetImageSize(const std::shared_ptr<Drawing::Image>& image) const;
     long long GetCurTime() const;
 };
+#endif
 } // OHOS
 } // Rosen
 #endif

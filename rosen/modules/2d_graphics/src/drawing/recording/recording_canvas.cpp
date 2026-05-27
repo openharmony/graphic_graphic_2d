@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,6 +30,7 @@
 #include "effect/shader_effect.h"
 #include "utils/log.h"
 #include "sandbox_utils.h"
+#include "text/text_blob_builder.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -301,6 +302,19 @@ void RecordingCanvas::DrawUIColor(UIColor color, BlendMode mode)
     cmdList_->AddDrawOp<DrawUIColorOpItem::ConstructorHandle>(color, mode);
 }
 
+void RecordingCanvas::DrawParticle(std::shared_ptr<ParticleEffect> particle)
+{
+    if (!particle) {
+        return;
+    }
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<DrawParticleOpItem>(particle));
+        return;
+    }
+    auto effectHandle = CmdListHelper::AddParticleEffectToCmdList(*cmdList_, particle);
+    cmdList_->AddDrawOp<DrawParticleOpItem::ConstructorHandle>(effectHandle);
+}
+
 void RecordingCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
     int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
 {
@@ -417,6 +431,24 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
     cmdList_->AddDrawOp<DrawPictureOpItem::ConstructorHandle>(pictureHandle);
 }
 
+void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point pts[],
+                                 Point origin, const Font* font)
+{
+    if (!font) {
+        return;
+    }
+    auto builder = TextBlobBuilder();
+    auto buffer = builder.AllocRunPos(*font, count);
+    int pointSize = 2; // x, y occupies 2 unit
+    for (int i = 0; i < count; i++) {
+        buffer.glyphs[i] = glyphs[i];
+        buffer.pos[i * pointSize] = pts[i].GetX();
+        buffer.pos[i * pointSize + 1] = pts[i].GetY();
+    }
+    std::shared_ptr<TextBlob> textBlob = builder.Make();
+    DrawTextBlob(textBlob.get(), origin.GetX(), origin.GetY());
+}
+
 void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
 {
     static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
@@ -440,8 +472,9 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
     if (ctx.GetTypeface() != nullptr) {
         globalUniqueId = (shiftedPid | ctx.GetTypeface()->GetUniqueID());
     }
-    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle,
-        globalUniqueId, blob->GetTextContrast(), x, y);
+    TextBlobRenderOption opt = TextBlobRenderOption(blob->GetTextContrast(),
+                                                    blob->IsSpeedOverQualityPreferred());
+    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, globalUniqueId, opt, x, y);
 }
 
 void RecordingCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)

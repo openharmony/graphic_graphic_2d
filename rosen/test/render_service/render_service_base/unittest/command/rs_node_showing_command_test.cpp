@@ -209,6 +209,49 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process001, TestSize.
 }
 
 /**
+ * @tc.name: Process_WithNodeNotFound
+ * @tc.desc: test results of Process with nodeNotFound
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process_WithNodeNotFound, TestSize.Level1)
+{
+    RSContext context;
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    NodeId nodeId = 100;
+    PropertyId propertyId = 1;
+    auto renderProperty = std::make_shared<RSRenderProperty<bool>>();
+    std::vector<AnimationId> animationIds = { 0 };
+
+    std::pair<std::pair<NodeId, PropertyId>, std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>
+        entry(std::make_pair(nodeId, propertyId), std::make_pair(renderProperty, animationIds));
+    animation.propertiesMap_.insert(entry);
+
+    animation.Process(context);
+
+    EXPECT_TRUE(animation.HasNodeNotFound());
+    EXPECT_TRUE(animation.IsSuccess());
+}
+
+/**
+ * @tc.name: HasNodeNotFound_ReturnsCorrectValue
+ * @tc.desc: test HasNodeNotFound returns correct value
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, HasNodeNotFound_ReturnsCorrectValue, TestSize.Level1)
+{
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+
+    EXPECT_FALSE(animation.HasNodeNotFound());
+
+    animation.nodeNotFound_ = true;
+    EXPECT_TRUE(animation.HasNodeNotFound());
+}
+
+/**
  * @tc.name: Process003
  * @tc.desc: test results of Process
  * @tc.type: FUNC
@@ -224,10 +267,13 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process003, TestSize.
 
     std::shared_ptr<RSBaseRenderNode> renderNode = std::make_shared<RSBaseRenderNode>(0);
     EXPECT_NE(renderNode, nullptr);
-    renderNode->animationManager_.animations_.clear();
+    renderNode->animationManager_ = std::make_shared<RSAnimationManager>();
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->animations_.clear();
     std::shared_ptr<RSRenderAnimation> animationTest = std::make_shared<RSRenderAnimation>(0);
     EXPECT_NE(animationTest, nullptr);
-    renderNode->animationManager_.animations_.emplace(0, animationTest);
+    animationManager->animations_.emplace(0, animationTest);
     context.nodeMap.renderNodeMap_[0][0] = renderNode;
     animation.Process(context);
 

@@ -118,7 +118,7 @@ HWTEST_F(RSUnionRenderNodeTest, GetOrCreateChildSDFShape002, TestSize.Level1)
 {
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
     auto child = std::make_shared<RSRenderNode>(id + 1, context);
-    child->renderProperties_.clipRRect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child->renderProperties_.clipRRect_ = std::make_unique<RRect>(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
 
     auto ret = unionNode->GetOrCreateChildSDFShape(child);
     ASSERT_NE(ret, nullptr);
@@ -134,7 +134,7 @@ HWTEST_F(RSUnionRenderNodeTest, GetOrCreateChildSDFShape003, TestSize.Level1)
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
     auto child = std::make_shared<RSRenderNode>(id + 1, context);
     child->renderProperties_.cornerRadius_ = Vector4f(3.f);
-    child->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
 
     auto ret = unionNode->GetOrCreateChildSDFShape(child);
     ASSERT_NE(ret, nullptr);
@@ -456,7 +456,7 @@ HWTEST_F(RSUnionRenderNodeTest, GenerateSDFLeaf007, TestSize.Level1)
     child1->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
     auto ret = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(ret, nullptr);
 
@@ -490,7 +490,7 @@ HWTEST_F(RSUnionRenderNodeTest, GenerateSDFLeaf008, TestSize.Level1)
     child1->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
     auto ret = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(ret, nullptr);
 
@@ -532,8 +532,8 @@ HWTEST_F(RSUnionRenderNodeTest, GenerateSDFLeaf009, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
 
@@ -577,8 +577,8 @@ HWTEST_F(RSUnionRenderNodeTest, GenerateSDFLeaf010, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
 
@@ -638,11 +638,11 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape002, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
-    unionNode->renderProperties_.unionSpacing_ = 0.5f;
+    unionNode->renderProperties_.SetUnionSpacing(0.5f);
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     ASSERT_NE(stagingRenderParams, nullptr);
     unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
@@ -683,11 +683,11 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape003, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
-    unionNode->renderProperties_.unionSpacing_ = 0.f;
+    unionNode->renderProperties_.SetUnionSpacing(0.f);
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     ASSERT_NE(stagingRenderParams, nullptr);
     unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
@@ -758,11 +758,11 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape006, TestSize.Level1)
     child2->parent_ = unionNode;
     Drawing::Matrix matrix;
     EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
-    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
-    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    child2->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f));
     auto shape = unionNode->GetOrCreateChildSDFShape(child1);
     EXPECT_NE(shape, nullptr);
-    unionNode->renderProperties_.unionSpacing_ = 0.5f;
+    unionNode->renderProperties_.SetUnionSpacing(0.5f);
     unionNode->renderProperties_.SetSDFUnionMode(1);
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     ASSERT_NE(stagingRenderParams, nullptr);
@@ -791,7 +791,7 @@ HWTEST_F(RSUnionRenderNodeTest, CreateChildToContainerSDFTransformShape001, Test
     auto childShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
     EXPECT_NE(childShape, nullptr);
     
-    unionNode->renderProperties_.unionSpacing_ = 0.5f;
+    unionNode->renderProperties_.SetUnionSpacing(0.5f);
     unionNode->unionMode_ = 1;
     unionNode->gravityCenter_ = Vector2f(10.0f, 20.0f);
     
@@ -918,10 +918,10 @@ HWTEST_F(RSUnionRenderNodeTest, FindClosestUnionAncestor002, TestSize.Level1)
 HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoOnTreeStateChanged001, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
-    node->renderProperties_.useUnion_ = false;
+    node->renderProperties_.SetUseUnion(false);
 
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -932,10 +932,10 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoOnTreeStateChanged001, TestSize.
 HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoOnTreeStateChanged002, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
-    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.SetUseUnion(true);
 
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
-    ASSERT_TRUE(node->renderProperties_.useUnion_);
+    ASSERT_TRUE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -950,7 +950,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoOnTreeStateChanged003, TestSize.
     std::shared_ptr<RSUnionRenderNode> unionNode = std::make_shared<RSUnionRenderNode>(2);
     node->parent_ = parent;
     parent->parent_ = unionNode;
-    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.SetUseUnion(true);
     node->isOnTheTree_ = true;
 
     RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
@@ -998,7 +998,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoAfterApplyModifiers003, TestSize
     node->parent_ = parent;
     parent->parent_ = unionNode;
     node->AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
-    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.SetUseUnion(true);
     node->isOnTheTree_ = true;
 
     RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(node);
@@ -1100,10 +1100,131 @@ HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter006, TestSize.Level1)
     unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
     child->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
     child->parent_ = unionNode;
-    child->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 0.f, 0.f);
+    child->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 0.f, 0.f));
     auto ret = unionNode->GetGravityCenter();
     ASSERT_EQ(ret[0], 0.0f);
     ASSERT_EQ(ret[1], 0.0f);
+}
+
+/**
+ * @tc.name: ProcessSDFShape007
+ * @tc.desc: test ProcessSDFShape with hash check - same hash should skip update
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape007, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
+    sContext->nodeMap.RegisterRenderNode(child1);
+    auto child2 = std::make_shared<RSRenderNode>(id + 2, context);
+    sContext->nodeMap.RegisterRenderNode(child2);
+    unionNode->unionChildren_.emplace(id + 1);
+    unionNode->unionChildren_.emplace(id + 2);
+    unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child1->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child2->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child1->parent_ = unionNode;
+    child2->parent_ = unionNode;
+    child1->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    child2->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
+    unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
+
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
+
+    auto firstShape = unionNode->renderProperties_.renderSDFShape_;
+    ASSERT_NE(firstShape, nullptr);
+    auto firstHash = firstShape->CalculateHash();
+
+    unionNode->ProcessSDFShape(dirtyManager);
+
+    auto secondShape = unionNode->renderProperties_.renderSDFShape_;
+    ASSERT_NE(secondShape, nullptr);
+    auto secondHash = secondShape->CalculateHash();
+
+    ASSERT_EQ(firstHash, secondHash);
+}
+
+/**
+ * @tc.name: ProcessSDFShape008
+ * @tc.desc: test ProcessSDFShape with hash check - different hash should trigger update
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape008, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
+    sContext->nodeMap.RegisterRenderNode(child1);
+    unionNode->unionChildren_.emplace(id + 1);
+    unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child1->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child1->parent_ = unionNode;
+    child1->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
+    unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
+
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
+
+    auto firstShape = unionNode->renderProperties_.renderSDFShape_;
+    ASSERT_NE(firstShape, nullptr);
+    auto firstHash = firstShape->CalculateHash();
+
+    child1->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+    unionNode->ProcessSDFShape(dirtyManager);
+
+    auto secondShape = unionNode->renderProperties_.renderSDFShape_;
+    ASSERT_NE(secondShape, nullptr);
+    auto secondHash = secondShape->CalculateHash();
+
+    ASSERT_NE(firstHash, secondHash);
+}
+
+/**
+ * @tc.name: ProcessSDFShape009
+ * @tc.desc: test ProcessSDFShape with hash check - null existing shape should trigger update
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape009, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
+    sContext->nodeMap.RegisterRenderNode(child1);
+    unionNode->unionChildren_.emplace(id + 1);
+    unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child1->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child1->parent_ = unionNode;
+    child1->renderProperties_.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f));
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
+    unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
+
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
+
+    ASSERT_NE(unionNode->renderProperties_.renderSDFShape_, nullptr);
+}
+
+/**
+ * @tc.name: ProcessSDFShape010
+ * @tc.desc: test ProcessSDFShape with hash check - empty children with existing empty shape
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape010, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    auto emptyShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
+    unionNode->renderProperties_.SetSDFShape(emptyShape);
+
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
+
+    ASSERT_NE(unionNode->renderProperties_.renderSDFShape_, nullptr);
+    ASSERT_EQ(unionNode->renderProperties_.renderSDFShape_->GetType(), RSNGEffectType::SDF_EMPTY_SHAPE);
 }
 } // namespace Rosen
 } // namespace OHOS

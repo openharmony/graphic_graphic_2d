@@ -59,7 +59,9 @@ bool TypographyStyle::operator==(const TypographyStyle &rhs) const
         this->isEndAddParagraphSpacing == rhs.isEndAddParagraphSpacing &&
         this->isTrailingSpaceOptimized == rhs.isTrailingSpaceOptimized &&
         this->compressHeadPunctuation == rhs.compressHeadPunctuation &&
-        this->enableAutoSpace == rhs.enableAutoSpace;
+        this->punctuationOverflow == rhs.punctuationOverflow &&
+        this->enableAutoSpace == rhs.enableAutoSpace &&
+        this->useLocaleForTextBreak == rhs.useLocaleForTextBreak;
 }
 
 TextStyle TypographyStyle::GetTextStyle() const

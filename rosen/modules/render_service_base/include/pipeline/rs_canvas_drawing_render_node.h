@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 
 using ThreadInfo = std::pair<uint32_t, std::function<void(std::shared_ptr<Drawing::Surface>)>>;
-using ModifierCmdList = std::list<Drawing::DrawCmdListPtr>;
+using ModifierCmdList = std::list<SimpleDrawCmdListPtr>;
 class RSRecordingCanvas;
 
 class RSB_EXPORT RSCanvasDrawingRenderNode : public RSCanvasRenderNode {
@@ -73,8 +73,12 @@ public:
     bool CheckCachedOp();
     bool HasCachedOp() const;
 
+    void SetWaitSync(bool waitSync)
+    {
+        waitSync_ = waitSync;
+    }
+
 protected:
-    void OnSync() override;
     void OnApplyModifiers() override;
 
 private:
@@ -86,9 +90,10 @@ private:
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
     void InitRenderParams() override;
-    void ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const;
-    void SplitDrawCmdList(size_t firstOpCount, Drawing::DrawCmdListPtr drawCmdList, bool splitOrigin);
+    void ReportOpCount(const std::list<SimpleDrawCmdListPtr>& cmdLists) const;
+    void SplitDrawCmdList(size_t firstOpCount, SimpleDrawCmdListPtr drawCmdList, bool splitOrigin);
     size_t ApplyCachedCmdList();
+    void AfterSync();
     void ClearResource();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
@@ -101,11 +106,12 @@ private:
     bool isPostPlaybacked_ = false;
     bool lastOverflowStatus_ = false;
     std::atomic<bool> isNeedProcess_ = false;
+    bool waitSync_ = false;
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;
-    std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
+    std::unique_ptr<ExtendRecordingCanvas> recordingCanvas_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     std::mutex imageMutex_;
     std::mutex taskMutex_;

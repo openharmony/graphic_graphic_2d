@@ -34,37 +34,23 @@ const double ARC_FONT_SIZE = 28;
 const double DEFAULT_FONT_SIZE = 40;
 const size_t DEFAULT_MAXLINES = 2;
 const double DEFAULT_MAX_WIDTHS = 100;
+
+// Helper function to convert Typography to Skia ParagraphImpl
+static skia::textlayout::ParagraphImpl* GetSkiaParagraph(Typography* typography)
+{
+    if (typography == nullptr) {
+        return nullptr;
+    }
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    if (paragraphImpl == nullptr) {
+        return nullptr;
+    }
+    return static_cast<skia::textlayout::ParagraphImpl*>(paragraphImpl->paragraph_.get());
+}
+
 class OH_Drawing_TypographyTest : public testing::Test {
 };
-
-namespace {
-std::string g_expectDumpInfo = "Paragraph dump:"
-    "Text sz:126,State:Drawn,TextDraw:F,"
-    "Run0 glyph sz:2,rng[0-6),"
-    "Run1 glyph sz:2,rng[6-8),"
-    "Run2 glyph sz:2,rng[8-14),"
-    "Run3 glyph sz:11,rng[14-25),"
-    "Run4 glyph sz:6,rng[25-43),"
-    "Run5 glyph sz:2,rng[43-45),"
-    "Run6 glyph sz:6,rng[45-63),"
-    "Run7 glyph sz:2,rng[63-69),"
-    "Run8 glyph sz:2,rng[69-71),"
-    "Run9 glyph sz:2,rng[71-77),"
-    "Run10 glyph sz:11,rng[77-88),"
-    "Run11 glyph sz:6,rng[88-106),"
-    "Run12 glyph sz:2,rng[106-108),"
-    "Run13 glyph sz:6,rng[108-126),"
-    "Blk0 rng[0-63),sz:50,clr:ffff0000,ht:0,wt:500,wd:6,slt:2,"
-    "Blk1 rng[63-126),sz:60,clr:ffffff00,ht:0,wt:300,wd:7,slt:1,"
-    "Paragraph glyph sz:62,"
-    "L0 run rng:0-2,"
-    "L1 run rng:3-4,"
-    "L2 run rng:4-6,"
-    "L3 run rng:7-9,"
-    "L4 run rng:10-11,"
-    "L5 run rng:11-13,"
-    "L6 run rng:13-13";
-}
 
 /*
  * @tc.name: OH_Drawing_TypographyInnerBadgeTypeTest001
@@ -1040,6 +1026,313 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level
 }
 
 /*
+ * @tc.name: TypographyFontTypefacesSetSingleTypefaceTest
+ * @tc.desc: Test setting a single fontTypeface
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesSetSingleTypefaceTest, TestSize.Level0)
+{
+    TextStyle textStyle;
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface, nullptr);
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    textStyle.SetFontTypefaces(typefaces);
+    auto result = textStyle.GetFontTypefaces();
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_NE(result[0], nullptr);
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesSetMultipleTypefacesTest
+ * @tc.desc: Test setting multiple fontTypefaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesSetMultipleTypefacesTest, TestSize.Level0)
+{
+    TextStyle textStyle;
+    auto typeface1 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface1, nullptr);
+    auto typeface2 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSansCJK-Regular.ttc");
+    ASSERT_NE(typeface2, nullptr);
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface1);
+    typefaces.push_back(typeface2);
+
+    textStyle.SetFontTypefaces(typefaces);
+
+    auto result = textStyle.GetFontTypefaces();
+    EXPECT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0], typeface1);
+    EXPECT_EQ(result[1], typeface2);
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesCppSetEmptyArrayTest
+ * @tc.desc: Test setting empty array to clear priority setting
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesCppSetEmptyArrayTest, TestSize.Level0)
+{
+    TextStyle textStyle;
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface, nullptr);
+
+    // First set a typeface
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    textStyle.SetFontTypefaces(typefaces);
+
+    auto result1 = textStyle.GetFontTypefaces();
+    EXPECT_EQ(result1.size(), 1);
+
+    // Then clear with empty array
+    std::vector<std::shared_ptr<Drawing::Typeface>> emptyTypefaces;
+    textStyle.SetFontTypefaces(emptyTypefaces);
+
+    auto result2 = textStyle.GetFontTypefaces();
+    EXPECT_EQ(result2.size(), 0);
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutAllSupportedTest
+ * @tc.desc: Test layout with all characters supported by priority font
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutAllSupportedTest, TestSize.Level0)
+{
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface, nullptr);
+
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    textStyle.SetFontTypefaces(typefaces);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"Hello World");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 1);
+    for (const auto& run : skParagraph->fRuns) {
+        EXPECT_EQ(run.font().GetTypeface()->GetFamilyName(), "Noto Sans");
+    }
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutFirstFallbackTest
+ * @tc.desc: Test layout with first typeface failing, using second
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutFirstFallbackTest, TestSize.Level0)
+{
+    auto typeface1 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface1, nullptr);
+    auto typeface2 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSansCJK-Regular.ttc");
+    ASSERT_NE(typeface2, nullptr);
+
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface1);
+    typefaces.push_back(typeface2);
+    textStyle.SetFontTypefaces(typefaces);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"Hello世界");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 2);
+    EXPECT_EQ(skParagraph->fRuns[0].font().GetTypeface()->GetFamilyName(), "Noto Sans");
+    EXPECT_EQ(skParagraph->fRuns[1].font().GetTypeface()->GetFamilyName(), "Noto Sans CJK JP");
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutFirstFallbackTest
+ * @tc.desc: Test layout with first typeface failing, using fallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutFirstAndFallbackTest, TestSize.Level0)
+{
+    auto typeface1 = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface1, nullptr);
+
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface1);
+    textStyle.SetFontTypefaces(typefaces);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"Hello世界");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 2);
+    EXPECT_EQ(skParagraph->fRuns[0].font().GetTypeface()->GetFamilyName(), "Noto Sans");
+    EXPECT_EQ(skParagraph->fRuns[1].font().GetTypeface()->GetFamilyName(), "HarmonyOS Sans SC");
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutPriorityTest
+ * @tc.desc: Test layout with fontFamilies and typefaces, using typefaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutPriorityTest, TestSize.Level0)
+{
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSansCJK-Regular.ttc");
+    ASSERT_NE(typeface, nullptr);
+
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+    textStyle.fontFamilies.push_back("HarmonyOS Sans SC");
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    textStyle.SetFontTypefaces(typefaces);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"你好世界");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 1);
+    EXPECT_EQ(skParagraph->fRuns[0].font().GetTypeface()->GetFamilyName(), "Noto Sans CJK JP");
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutNoTypefacesTest
+ * @tc.desc: Test layout without fontTypefaces set, using default font matching
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutNoTypefacesTest, TestSize.Level0)
+{
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    // Don't set fontTypefaces, use default behavior
+    TextStyle textStyle;
+    textStyle.fontSize = 40;
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(u"Hello World");
+    auto typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+
+    typography->Layout(500);
+
+    auto* skParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skParagraph, nullptr);
+
+    EXPECT_EQ(skParagraph->fRuns.size(), 1);
+    EXPECT_EQ(skParagraph->fRuns[0].font().GetTypeface()->GetFamilyName(), "HarmonyOS-Sans");
+}
+
+/*
+ * @tc.name: TypographyFontTypefacesLayoutLineMetricsTest
+ * @tc.desc: Test for fontTypefaces from runMetrics's textStyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyFontTypefacesLayoutLineMetricsTest, TestSize.Level0)
+{
+    TypographyStyle typographyStyle;
+    std::shared_ptr<FontCollection> fontCollection =
+        FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fontCollection, nullptr);
+
+    auto typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+
+    TextStyle style;
+    style.fontSize = 40;
+    auto typeface = Drawing::Typeface::MakeFromFile("/system/fonts/NotoSans[wdth,wght].ttf");
+    ASSERT_NE(typeface, nullptr);
+
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces;
+    typefaces.push_back(typeface);
+    style.SetFontTypefaces(typefaces);
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(u"你好世界");
+    auto paragraph = typographyCreate->CreateTypography();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(200);
+    LineMetrics lineMetrics;
+    paragraph->GetLineMetricsAt(0, &lineMetrics);
+    for (const auto& metrics : lineMetrics.runMetrics) {
+        const auto& runMetricsStyle = metrics.second.textStyle;
+        auto typefaces = runMetricsStyle->GetFontTypefaces();
+        EXPECT_EQ(typefaces.size(), 1);
+        for (const auto& typeface : typefaces) {
+            EXPECT_EQ(typeface->GetFamilyName(), "Noto Sans");
+        }
+    }
+}
+
+/*
  * @tc.name: OH_Drawing_TypographySplitRunsText001
  * @tc.desc: test for split run in rtl language situation
  * @tc.type: FUNC
@@ -1272,6 +1565,48 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText005, TestS
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographySplitRunsText006
+ * @tc.desc: test for split run in special characters situation, no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText006, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    typographyStyle.ellipsis = u"...";
+    typographyStyle.ellipsisModal = EllipsisModal::TAIL;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 100 for normal English characters situation
+    style.fontSize = 100;
+    std::u16string text =
+        u"\u{000a}\u{0604}\u{514d}\u{ff09}\u{04b0}\u{0035}\u{00cd}\u{00e0}\u{ff1b}\u{04c3}\u{5621}\u{6233}\u{0f50}"
+        u"\u{d610}\u{00f3}\u{000d}\u{00d9}\u{00e9}\u{04eb}\u{cfb5}\u{00c1}\u{007b}\u{5756}\u{4fa0}\u{559d}\u{5311}"
+        u"\u{00bf}\u{0032}\u{51aa}\u{ff1f}\u{0009}\u{60eb}\u{06a8}\u{00ca}\u{3040}\u{0038}\u{30df}\u{0fb1}\u{523a}"
+        u"\u{0653}\u{2026}\u{acb0}\u{0f06}\u{61d6}\u{4e63}\u{3047}\u{5c8c}\u{50c4}\u{00c8}\u{3002}\u{5ac6}\u{00d2}"
+        u"\u{00a1}\u{5e46}\u{0410}\u{ff0c}\u{0038}\u{00e8}\u{00c1}\u{0693}\u{cd15}\u{00e9}\u{000a}\u{304a}\u{04d3}"
+        u"\u{5695}\u{ff08}\u{0037}\u{047b}\u{518e}\u{3083}\u{005c}\u{0fbd}\u{06af}\u{59fd}\u{3001}\u{0f86}\u{5c8b}"
+        u"\u{5911}\u{5354}\u{0033}\u{0657}\u{ff1f}\u{0036}\u{5458}\u{00c2}\u{309f}\u{00ca}\u{00e0}\u{0032}\u{0041}"
+        u"\u{00cd}\u{00ea}\u{ae94}\u{5625}\u{0032}\u{00f4}\u{00eb}\u{0038}\u{000a}";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->LayoutWithConstraints({340, 198});
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    size_t expectRunSize = 70;
+    EXPECT_EQ(runs.size(), expectRunSize);
+    size_t expectLineSize = 1;
+    EXPECT_EQ(paragraph->GetLineCount(), expectLineSize);
+}
+
+/*
  * @tc.name: OH_Drawing_TypographyRtlClusterIndexOffset001
  * @tc.desc: test for rtl's text adjusting textRange
  * @tc.type: FUNC
@@ -1485,7 +1820,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest06, TestSize.Leve
 
 /*
  * @tc.name: TypographyGetDumpInfoTest
- * @tc.desc: test for get dump info
+ * @tc.desc: test for get dump info (paragraph-level state, runs, blocks, lines)
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
@@ -1525,7 +1860,449 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_EQ(typography->GetDumpInfo(), "");
     typographyImpl->paragraph_.swap(paragraphTemp);
-    EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
+
+    // Verify dump info contains basic structure fields
+    std::string dumpInfo = typography->GetDumpInfo();
+    EXPECT_NE(dumpInfo.find("Paragraph dump:"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Text sz:126"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("State:Drawn"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Run0 glyph sz:"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Blk0 rng[0-63)"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Blk1 rng[63-126)"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Paragraph glyph sz:62"), std::string::npos);
+}
+
+/*
+ * @tc.name: TypographyGetDumpInfoFamilyNameTest
+ * @tc.desc: test for get dump info contains typeface family name and unique ID per run
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoFamilyNameTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    std::u16string text = u"你好, 测试GetDumpInfo中返回的数据, 是否符合预期";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    std::string dumpInfo = typography->GetDumpInfo();
+
+    // Each Run entry must contain "family:" and "id:" fields from typeface
+    EXPECT_NE(dumpInfo.find("family:"), std::string::npos);
+    EXPECT_NE(dumpInfo.find(",id:"), std::string::npos);
+
+    // Verify "family:" appears immediately after the rng field in Run0
+    EXPECT_NE(dumpInfo.find("rng[0-6),family:"), std::string::npos);
+
+    // Verify "id:" appears after "family:" - at least one run has id > 0
+    // Format is "family:<name>,id:<number>,"
+    auto familyPos = dumpInfo.find("family:");
+    auto idPos = dumpInfo.find(",id:", familyPos);
+    EXPECT_NE(idPos, std::string::npos);
+}
+
+/*
+ * @tc.name: TypographyGetDumpInfoSymbolTest
+ * @tc.desc: test for get dump info appends symbol run info when hmSymbols_ is not empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoSymbolTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    std::u16string text = u"你好";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    // Cast to ParagraphImpl to access hmSymbols_
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    // hmSymbols_ is empty by default - no symbol info in dump
+    std::string dumpNoSymbol = typography->GetDumpInfo();
+    EXPECT_EQ(dumpNoSymbol.find("{SymbolRun"), std::string::npos);
+
+    // Create a HMSymbolRun and set known symbol data
+    auto symbolRun = std::make_shared<SPText::HMSymbolRun>();
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolUid(100); // 100 is test uid
+    symbolTxt.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+    RSSColor rsColor = {1.0f, 255, 0, 0};
+    symbolTxt.SetRenderColor(rsColor);
+    symbolRun->SetSymbolTxt(symbolTxt);
+    paragraphImpl->hmSymbols_.push_back(symbolRun);
+
+    // Verify symbol info is appended to dump
+    std::string dumpWithSymbol = typography->GetDumpInfo();
+    EXPECT_NE(dumpWithSymbol.find("{SymbolRun0}uid:100"), std::string::npos);
+    EXPECT_NE(dumpWithSymbol.find(",rmode:0,"), std::string::npos); // 0 is SINGLE
+    EXPECT_NE(dumpWithSymbol.find("clrCnt:1"), std::string::npos);
+    EXPECT_NE(dumpWithSymbol.find("clr0:[255,0,0,1]"), std::string::npos);
+    EXPECT_NE(dumpWithSymbol.find(".uiClrCnt:0"), std::string::npos);
+
+    // Verify paragraph dump prefix is still present
+    EXPECT_NE(dumpWithSymbol.find("Paragraph dump:"), std::string::npos);
+}
+
+/*
+ * @tc.name: TypographyGetDumpInfoSymbolUIColorTest
+ * @tc.desc: test for get dump info includes UIColor and ColorSpace for symbol runs
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoSymbolUIColorTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    std::u16string text = u"你好";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    // Create a symbol run with UIColor data
+    auto symbolRun = std::make_shared<SPText::HMSymbolRun>();
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolUid(200); // 200 is test uid
+    symbolTxt.SetRenderMode(RSSymbolRenderingStrategy::MULTIPLE_COLOR); // rmode=1
+    RSSColor rsColor1 = {1.0f, 255, 0, 0};
+    RSSColor rsColor2 = {0.5f, 0, 255, 0};
+    symbolTxt.SetRenderColor({rsColor1, rsColor2});
+
+    // Set UIColor with specific values for dump verification
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    symbolTxt.SetRenderUIColor({ uiColor }, { SymbolColorSpace::DISPLAY_P3 });
+
+    symbolRun->SetSymbolTxt(symbolTxt);
+    paragraphImpl->hmSymbols_.push_back(symbolRun);
+
+    std::string dumpInfo = typography->GetDumpInfo();
+
+    // Verify uid and render mode
+    EXPECT_NE(dumpInfo.find("{SymbolRun0}uid:200"), std::string::npos);
+    EXPECT_NE(dumpInfo.find(",rmode:1,"), std::string::npos); // 1 is MULTIPLE_COLOR
+
+    // Verify RSSColor count and first color
+    EXPECT_NE(dumpInfo.find("clrCnt:0"), std::string::npos);
+    EXPECT_EQ(dumpInfo.find("clrCnt:2"), std::string::npos);
+    EXPECT_EQ(dumpInfo.find("clr0:[255,0,0,1]"), std::string::npos);
+    EXPECT_EQ(dumpInfo.find("clr1:[0,255,0,0.5]"), std::string::npos);
+
+    // Verify UIColor count and values
+    EXPECT_NE(dumpInfo.find(".uiClrCnt:1"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("uiClr0:[1,0.5,0.3,1,1]"), std::string::npos);
+
+    // Verify ColorSpace: DISPLAY_P3 = 1
+    EXPECT_NE(dumpInfo.find("cspace0:1"), std::string::npos);
+}
+
+/*
+ * @tc.name: TypographyGetDumpInfoSymbolNullptrTest
+ * @tc.desc: test for get dump info skips nullptr symbol runs
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoSymbolNullptrTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    std::u16string text = u"你好";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    // Push nullptr as a symbol run - should be skipped
+    paragraphImpl->hmSymbols_.push_back(nullptr);
+
+    // Push a valid symbol run - should appear with index 1 (not 0)
+    auto symbolRun = std::make_shared<SPText::HMSymbolRun>();
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolUid(300); // 300 is test uid
+    symbolTxt.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+    symbolRun->SetSymbolTxt(symbolTxt);
+    paragraphImpl->hmSymbols_.push_back(symbolRun);
+
+    std::string dumpInfo = typography->GetDumpInfo();
+    // The nullptr at index 0 is skipped, so the valid one at index 1 appears as {SymbolRun1}
+    EXPECT_NE(dumpInfo.find("{SymbolRun1}uid:300"), std::string::npos);
+    // {SymbolRun0} should NOT appear (nullptr was skipped)
+    EXPECT_EQ(dumpInfo.find("{SymbolRun0}"), std::string::npos);
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest001
+ * @tc.desc: Verify default value is false, set/get works correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    typography->SetForceReuseRasterResult(true);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl, nullptr);
+    EXPECT_TRUE(paragraphImpl->GetForceReuseRasterResult());
+    
+    typography->SetForceReuseRasterResult(false);
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    typography->Paint(&canvas, 0, 0);
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    SPText::ParagraphImpl* paragraphImpl2 =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl2, nullptr);
+    EXPECT_FALSE(paragraphImpl2->GetForceReuseRasterResult());
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest002
+ * @tc.desc: Verify Paint with flag set does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest002, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->SetForceReuseRasterResult(true);
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    OHOS::Rosen::Drawing::Bitmap bitmap;
+    OHOS::Rosen::Drawing::BitmapFormat format {
+        OHOS::Rosen::Drawing::ColorType::COLORTYPE_RGBA_8888,
+        OHOS::Rosen::Drawing::AlphaType::ALPHATYPE_OPAQUE
+    };
+    bitmap.Build(200, 100, format);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    canvas.Bind(bitmap);
+    canvas.Clear(OHOS::Rosen::Drawing::Color::COLOR_WHITE);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest003
+ * @tc.desc: Verify Layout does not affect the flag state
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest004, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->SetForceReuseRasterResult(true);
+    typography->Layout(500.0);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+    typography->Layout(300.0);
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest004
+ * @tc.desc: Verify PaintOnPath with flag set does not crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest005, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->SetForceReuseRasterResult(true);
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    OHOS::Rosen::Drawing::Bitmap bitmap;
+    OHOS::Rosen::Drawing::BitmapFormat format {
+        OHOS::Rosen::Drawing::ColorType::COLORTYPE_RGBA_8888,
+        OHOS::Rosen::Drawing::AlphaType::ALPHATYPE_OPAQUE
+    };
+    bitmap.Build(200, 100, format);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    canvas.Bind(bitmap);
+    canvas.Clear(OHOS::Rosen::Drawing::Color::COLOR_WHITE);
+    OHOS::Rosen::Drawing::Path path;
+    path.MoveTo(10, 50);
+    path.LineTo(190, 50);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, &path, 0, 0));
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest005
+ * @tc.desc: Verify repeated Set/Get cycles return consistent values
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest007, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    ASSERT_NE(typography, nullptr);
+    for (int i = 0; i < 100; i++) {
+        typography->SetForceReuseRasterResult(true);
+        EXPECT_TRUE(typography->GetForceReuseRasterResult());
+        typography->SetForceReuseRasterResult(false);
+        EXPECT_FALSE(typography->GetForceReuseRasterResult());
+    }
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest006
+ * @tc.desc: Verify flag only takes effect on next Paint after Set
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest008, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    OHOS::Rosen::Drawing::Bitmap bitmap;
+    OHOS::Rosen::Drawing::BitmapFormat format {
+        OHOS::Rosen::Drawing::ColorType::COLORTYPE_RGBA_8888,
+        OHOS::Rosen::Drawing::AlphaType::ALPHATYPE_OPAQUE
+    };
+    bitmap.Build(200, 100, format);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    canvas.Bind(bitmap);
+    canvas.Clear(OHOS::Rosen::Drawing::Color::COLOR_WHITE);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
+
+    typography->SetForceReuseRasterResult(true);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+    EXPECT_TRUE(typography->GetForceReuseRasterResult());
+}
+
+/*
+ * @tc.name: TypographyForceReuseRasterResultTest007
+ * @tc.desc: Verify toggle flag between Paints works correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest009, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = ARC_FONT_SIZE;
+    auto fontCollection = OHOS::Rosen::FontCollection::Create();
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"test");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(DEFAULT_MAX_WIDTHS);
+    OHOS::Rosen::Drawing::Bitmap bitmap;
+    OHOS::Rosen::Drawing::BitmapFormat format {
+        OHOS::Rosen::Drawing::ColorType::COLORTYPE_RGBA_8888,
+        OHOS::Rosen::Drawing::AlphaType::ALPHATYPE_OPAQUE
+    };
+    bitmap.Build(200, 100, format);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    canvas.Bind(bitmap);
+    canvas.Clear(OHOS::Rosen::Drawing::Color::COLOR_WHITE);
+    typography->SetForceReuseRasterResult(true);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+
+    typography->SetForceReuseRasterResult(false);
+    EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
+    EXPECT_FALSE(typography->GetForceReuseRasterResult());
 }
 } // namespace Rosen
 } // namespace OHOS

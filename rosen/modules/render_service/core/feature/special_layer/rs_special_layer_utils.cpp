@@ -20,7 +20,9 @@
 #include "common/rs_common_def.h"
 #include "common/rs_special_layer_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/common/rs_log.h"
+#include "system/rs_system_parameters.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -171,11 +173,16 @@ bool RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(bool enableVisibleRect, R
 
 bool RSSpecialLayerUtils::HasMirrorDisplay(const RSRenderNodeMap& nodeMap)
 {
+    ScreenSpecialLayerInfo::ClearScreenMirrorSourceMap();
     bool hasMirrorDisplay = false;
     nodeMap.TraverseLogicalDisplayNodes(
-        [&hasMirrorDisplay](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
-            if (displayRenderNode != nullptr && displayRenderNode->GetMirrorSource().lock()) {
+        [&hasMirrorDisplay](const std::shared_ptr<RSLogicalDisplayRenderNode>& node) {
+            if (node == nullptr) {
+                return;
+            }
+            if (auto mirrorSource = node->GetMirrorSource().lock()) {
                 hasMirrorDisplay = true;
+                ScreenSpecialLayerInfo::UpdateScreenMirrorSourceMap(node->GetScreenId(), mirrorSource->GetScreenId());
             }
         }
     );
@@ -270,35 +277,34 @@ void RSSpecialLayerUtils::NotifyScreenSpecialLayerChange()
 void RSSpecialLayerUtils::DealWithSpecialLayer(
     RSSurfaceRenderNode& surfaceNode, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer)
 {
-    UpdateScreenSpecialLayersRecord(surfaceNode, displayNode, needCalcScreenSpecialLayer);
-    if (surfaceNode.IsCloneCrossNode()) {
-        auto sourceNode = surfaceNode.GetSourceCrossNode().lock();
-        auto sourceSurface = sourceNode ? sourceNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
-        if (sourceSurface == nullptr) {
-            return;
-        }
-        UpdateSpecialLayersRecord(*sourceSurface, displayNode);
-    } else {
-        UpdateSpecialLayersRecord(surfaceNode, displayNode);
-    }
+    // Handle the cross-screen node if it exists.
+    auto sourceCrossNode = surfaceNode.IsCloneCrossNode() ? surfaceNode.GetSourceCrossNode().lock() : nullptr;
+    auto sourceNodePtr = sourceCrossNode ? sourceCrossNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+    RSSurfaceRenderNode& sourceNode = sourceNodePtr ? *sourceNodePtr : surfaceNode;
+
+    UpdateSpecialLayersRecord(sourceNode, displayNode);
+    UpdateScreenSpecialLayersRecord(sourceNode, surfaceNode, displayNode, needCalcScreenSpecialLayer);
 }
 
-void RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(
+void RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(RSSurfaceRenderNode& sourceNode,
     RSSurfaceRenderNode& surfaceNode, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer)
 {
-    surfaceNode.GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
+    sourceNode.GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
     if (!needCalcScreenSpecialLayer) {
         return;
     }
     // update whitelist
-    surfaceNode.UpdateVirtualScreenWhiteListInfo();
+    auto whitelistScreenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_WHITE_LIST, {sourceNode.GetId(), sourceNode.GetLeashPersistentId()});
+    surfaceNode.UpdateVirtualScreenWhiteListInfo(whitelistScreenIds);
+      
     // update blacklist
-    auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
-        SpecialLayerType::IS_BLACK_LIST, {surfaceNode.GetId(), surfaceNode.GetLeashPersistentId()});
-    for (const auto screenId : screenIds) {
-        surfaceNode.SetScreenSpecialLayerStatus(screenId, SpecialLayerType::IS_BLACK_LIST, true);
+    auto blacklistScreenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_BLACK_LIST, {sourceNode.GetId(), sourceNode.GetLeashPersistentId()});
+    for (const auto screenId : blacklistScreenIds) {
+        sourceNode.SetScreenSpecialLayerStatus(screenId, SpecialLayerType::IS_BLACK_LIST, true);
         displayNode.GetMultableSpecialLayerMgr().AddIdsWithScreen(
-            screenId, SpecialLayerType::IS_BLACK_LIST, surfaceNode.GetId());
+            screenId, SpecialLayerType::IS_BLACK_LIST, sourceNode.GetId());
     }
 }
 
@@ -365,5 +371,141 @@ DrawType RSSpecialLayerUtils::GetDrawTypeInSnapshot(const RSSurfaceRenderParams&
     }
     return DrawType::NONE;
 }
+
+void RSSpecialLayerUtils::SetWhiteListRectToMetaData(RSPaintFilterCanvas& canvas, const RSRenderThreadParams& uniParam,
+    const RSScreenProperty& mirrorScreenProperty, const RSLogicalDisplayRenderParams& sourceLogicalParam,
+    const std::shared_ptr<RSSLRScaleFunction>& scaleManager)
+{
+    auto processor = uniParam.GetRSProcessor();
+    if (processor == nullptr) {
+        return;
+    }
+    auto virtualProcesser = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
+    if (virtualProcesser == nullptr) {
+        return;
+    }
+
+    // If there is no or more than one whitelist rect, do not set crop rect
+    auto screenId = mirrorScreenProperty.GetScreenId();
+    const auto& whiteListRects = uniParam.GetWhiteListRectByScreenId(screenId);
+    if (whiteListRects.size() != 1) {
+        RS_LOGD("%{public}s: skip crop setting, screen %{public}" PRIu64 " whitelist rect count = %{public}zu",
+            __func__, screenId, whiteListRects.size());
+        return;
+    }
+
+    Drawing::Matrix matrix = (RSSystemProperties::GetSLRScaleEnabled() && scaleManager != nullptr) ?
+        scaleManager->GetScaleMatrix() : canvas.GetTotalMatrix();
+    Drawing::Rect mappedWhiteListRect;
+    matrix.MapRect(mappedWhiteListRect, whiteListRects[0]);
+    RectT<uint32_t> whiteListRectU = ConvertDrawingRectToUint32Rect(mappedWhiteListRect, true);
+    DrawDebugRect(canvas, Drawing::Color::COLOR_WHITE, whiteListRectU);
+
+    // Map screen rect with canvas matrix and convert to RectT<uint32_t>
+    Drawing::Rect screenRect = GetScreenRectOfMirrorSource(mirrorScreenProperty, sourceLogicalParam);
+    Drawing::Rect mappedScreenRect;
+    matrix.MapRect(mappedScreenRect, screenRect);
+    RectT<uint32_t> screenRectU = ConvertDrawingRectToUint32Rect(mappedScreenRect, false);
+    DrawDebugRect(canvas, Drawing::Color::COLOR_BLUE, screenRectU);
+
+    RectT<uint32_t> cropRect = whiteListRectU.IntersectRect(screenRectU);
+    DrawDebugRect(canvas, Drawing::Color::COLOR_YELLOW, cropRect);
+    HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion
+        metaRegion {cropRect.left_, cropRect.top_, cropRect.width_, cropRect.height_};
+    RS_TRACE_NAME_FMT("%s:screen %" PRIu64 " set white list rect[%" PRIu32 ", %" PRIu32 ", %" PRIu32 ", %" PRIu32 "]",
+        __func__, screenId, metaRegion.left, metaRegion.top, metaRegion.width, metaRegion.height);
+    virtualProcesser->SetCropRectForMetadata(metaRegion);
+    RS_LOGD("%{public}s: screen %{public}" PRIu64 " set white list rect"
+        "[%{public}" PRIu32 ", %{public}" PRIu32 ", %{public}" PRIu32 ", %{public}" PRIu32 "]",
+        __func__, screenId, metaRegion.left, metaRegion.top, metaRegion.width, metaRegion.height);
+}
+
+void RSSpecialLayerUtils::DrawDebugRect(RSPaintFilterCanvas& canvas, Drawing::Color color, RectT<uint32_t> rect)
+{
+    if (!RSSystemParameters::GetCropRectDebugOverlayEnabled()) {
+        return;
+    }
+    RSAutoCanvasRestore acr(&canvas);
+    canvas.SetMatrix(Drawing::Matrix());
+    Drawing::Pen debugPen;
+    debugPen.SetColor(color);
+    float width = 4.0f;
+    debugPen.SetWidth(width);
+    canvas.AttachPen(debugPen);
+    Drawing::Rect cropRect(rect.left_, rect.top_, rect.left_ + rect.width_, rect.top_ + rect.height_);
+    canvas.DrawRect(cropRect);
+    canvas.DetachPen();
+}
+
+uint32_t RSSpecialLayerUtils::ConvertFloatToUint32(float value)
+{
+    if (ROSEN_LE(value, 0.f)) {
+        return 0u;
+    }
+    if (ROSEN_GE(value, static_cast<float>(UINT32_MAX))) {
+        return UINT32_MAX;
+    }
+    return static_cast<uint32_t>(value);
+}
+
+void RSSpecialLayerUtils::CollectWhiteListRect(RSSurfaceRenderNode& node, bool hasMirrorDisplay,
+    bool isRotating, RSScreenRenderNode& ancestorScreenNode, bool needConvertMatrix)
+{
+    if (!hasMirrorDisplay || isRotating) {
+        return;
+    }
+    auto boundsGeometry = node.GetRenderProperties().GetBoundsGeometry();
+    if (boundsGeometry == nullptr) {
+        RS_LOGE("%{public}s boundsGeometry is nullptr.", __func__);
+        return;
+    }
+    auto enableScreenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_WHITE_LIST, {node.GetId(), node.GetLeashPersistentId()});
+    for (auto it = enableScreenIds.begin(); it != enableScreenIds.end();) {
+        ScreenId mirrorSourceId = ScreenSpecialLayerInfo::GetMirrorSourceScreenId(*it);
+        if (mirrorSourceId == INVALID_SCREEN_ID || mirrorSourceId != ancestorScreenNode.GetScreenId()) {
+            it = enableScreenIds.erase(it);
+        } else {
+            it++;
+        }
+    }
+    // Process the drawing area of cross-screen nodes
+    auto absRectI = boundsGeometry->GetAbsRect();
+    Drawing::Rect absRect(absRectI.GetLeft(), absRectI.GetTop(), absRectI.GetRight(), absRectI.GetBottom());
+    if (needConvertMatrix) {
+        Drawing::Rect mappedRect;
+        node.GetCrossNodeSkipDisplayConversionMatrix(ancestorScreenNode.GetId()).MapRect(mappedRect, absRect);
+        absRect = mappedRect;
+    }
+    RSMainThread::Instance()->AddWhiteListRect(enableScreenIds, absRect);
+}
+
+RectT<uint32_t> RSSpecialLayerUtils::ConvertDrawingRectToUint32Rect(const Drawing::Rect& rect, bool expandPixels)
+{
+    // When expandPixels is true, the result rect is expanded outward (floor for left/top, ceil for right/bottom).
+    // When expandPixels is false, the result rect is shrunk inward (ceil for left/top, floor for right/bottom).
+    uint32_t left = ConvertFloatToUint32(expandPixels ? std::floor(rect.GetLeft()) : std::ceil(rect.GetLeft()));
+    uint32_t top = ConvertFloatToUint32(expandPixels ? std::floor(rect.GetTop()) : std::ceil(rect.GetTop()));
+    uint32_t right = ConvertFloatToUint32(expandPixels ? std::ceil(rect.GetRight()) : std::floor(rect.GetRight()));
+    uint32_t bottom = ConvertFloatToUint32(expandPixels ? std::ceil(rect.GetBottom()) : std::floor(rect.GetBottom()));
+    uint32_t width = right >= left ? right - left : 0;
+    uint32_t height = bottom >= top ? bottom - top : 0;
+    return RectT<uint32_t>(left, top, width, height);
+}
+
+Drawing::Rect RSSpecialLayerUtils::GetScreenRectOfMirrorSource(
+    const RSScreenProperty& mirrorScreenProperty, const RSLogicalDisplayRenderParams& sourceLogicalParam)
+{
+    Drawing::Rect screenRect(sourceLogicalParam.GetOffsetX(), sourceLogicalParam.GetOffsetY(),
+        sourceLogicalParam.GetOffsetX() + sourceLogicalParam.GetFixedWidth(),
+        sourceLogicalParam.GetOffsetY() + sourceLogicalParam.GetFixedHeight());
+    if (mirrorScreenProperty.GetEnableVisibleRect()) {
+        const auto& rect = mirrorScreenProperty.GetVisibleRect();
+        screenRect = Drawing::Rect(static_cast<float>(rect.x), static_cast<float>(rect.y),
+            static_cast<float>(rect.x + rect.w), static_cast<float>(rect.y + rect.h));
+    }
+    return screenRect;
+}
 } // namespace Rosen
 } // namespace OHOS
+

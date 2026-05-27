@@ -33,6 +33,8 @@ inline const std::string RENDER_NODE_NAME = "ScreenNode";
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
+class RSMultiScreenUtil;
+
 class RSScreenRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSScreenRenderNodeDrawable() override;
@@ -177,7 +179,7 @@ private:
     static Registrar instance_;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_ = nullptr;
-    std::unique_ptr<RSRenderFrame> expandRenderFrame_ = nullptr;
+    std::unique_ptr<RSRenderFrame> wiredMirrorRenderFrame_ = nullptr;
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporarily holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen render
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
@@ -213,6 +215,8 @@ private:
     bool filterCacheOcclusionUpdated_ = false;
 
     bool accumulateDirtyInSkipFrame_ = false;
+
+    friend class RSMultiScreenUtil;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

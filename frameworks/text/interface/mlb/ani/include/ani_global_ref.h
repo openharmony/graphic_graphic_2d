@@ -205,11 +205,15 @@ public:
     ani_method paragraphStyleTrailingSpaceOptimized;
     ani_method paragraphStyleAutoSpace;
     ani_method paragraphStyleCompressHeadPunctuation;
+    ani_method paragraphStylePunctuationOverflow;
     ani_method paragraphStyleVerticalAlign;
     ani_method paragraphStyleIncludeFontPadding;
     ani_method paragraphStyleFallbackLineSpacing;
     ani_method paragraphStyleOrphanCharOptimization;
     ani_method paragraphStyleLineSpacing;
+    ani_method paragraphStyleFirstLineIndent;
+    ani_method paragraphStyleTailIndents;
+    ani_method paragraphStyleHeadIndents;
     ani_method strutStyleFontStyle;
     ani_method strutStyleFontWidth;
     ani_method strutStyleFontWeight;
@@ -230,6 +234,7 @@ public:
     ani_method textStyleFontStyle;
     ani_method textStyleBaseline;
     ani_method textStyleFontFamilies;
+    ani_method textStyleFontTypefaces;
     ani_method textStyleFontSize;
     ani_method textStyleLetterSpacing;
     ani_method textStyleWordSpacing;
@@ -331,6 +336,27 @@ private:
     void InitTextTabMethod(ani_env* env);
     void InitTextRectSizeMethod(ani_env* env);
     void InitParagraphStyleInternalMethod(ani_env* env);
+};
+
+class AniGlobalField {
+public:
+    static AniGlobalField& GetInstance()
+    {
+        static AniGlobalField instance;
+        return instance;
+    }
+
+    void Init(ani_env* env);
+
+    ani_field typefaceNativeObj;
+
+private:
+    AniGlobalField() = default;
+    ~AniGlobalField() = default;
+    AniGlobalField(const AniGlobalField&) = delete;
+    AniGlobalField& operator=(const AniGlobalField&) = delete;
+    AniGlobalField(AniGlobalField&&) = delete;
+    AniGlobalField& operator=(AniGlobalField&&) = delete;
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_GLOBAL_REF_H

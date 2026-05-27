@@ -31,8 +31,21 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class ColorFilterImpl;
+class SkiaColorFilter;
+class DDGRColorFilter;
+class DDGRImageFilter;
+class SkiaImageFilter;
+class DDGRPaint;
+class SkiaPaint;
+
 struct ColorFilterData;
 class DRAWING_API ColorFilter {
+    friend class SkiaColorFilter;
+    friend class DDGRColorFilter;
+    friend class DDGRImageFilter;
+    friend class SkiaImageFilter;
+    friend class DDGRPaint;
+    friend class SkiaPaint;
 public:
     enum class FilterType {
         NO_TYPE,
@@ -80,11 +93,6 @@ public:
      * @param filter  Another ColorFilter to Combine.
      */
     virtual void Compose(const ColorFilter& filter);
-    template<typename T>
-    T* GetImpl() const
-    {
-        return impl_->DowncastingTo<T>();
-    }
 
     ColorFilter(FilterType t, ColorQuad c, BlendMode mode) noexcept;
     ColorFilter(FilterType t, const ColorMatrix& m, Clamp clamp = Clamp::YES_CLAMP) noexcept;
@@ -106,10 +114,17 @@ public:
 
     void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp = Clamp::YES_CLAMP);
 
+    sk_sp<SkColorFilter> GetSkColorFilter() const;
+
 protected:
     ColorFilter() noexcept;
 
 private:
+    template<typename T>
+    T* GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
     FilterType type_;
     std::shared_ptr<ColorFilterImpl> impl_;
 };

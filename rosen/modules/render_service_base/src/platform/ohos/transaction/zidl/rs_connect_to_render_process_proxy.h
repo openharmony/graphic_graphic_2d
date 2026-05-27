@@ -28,9 +28,10 @@ class RSConnectToRenderProcessProxy : public IRemoteProxy<RSIConnectToRenderProc
 public:
     explicit RSConnectToRenderProcessProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSConnectToRenderProcessProxy() noexcept = default;
-    sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token);
+    sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token,
+        bool needRefresh) override;
     int32_t SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option);
-
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 private:
     static inline BrokerDelegator<RSConnectToRenderProcessProxy> delegator_;
 };

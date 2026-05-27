@@ -80,6 +80,7 @@ template("effect_ndk_source_set") {
       external_deps += [
         "bounds_checking_function:libsec_static",
         "image_framework:pixelmap",
+        "napi:ace_napi",
         "image_framework:pixelmap_ndk",
       ]
       deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]

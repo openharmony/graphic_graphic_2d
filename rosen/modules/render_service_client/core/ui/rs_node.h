@@ -325,34 +325,8 @@ public:
     bool IsRenderServiceNode() const;
     void SetTakeSurfaceForUIFlag();
 
-    static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
-        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
-        const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr);
-
-    static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentOptions(
-        const PropertyCallback& callback, const std::function<void()>& finishCallback, bool timingSensitive = true);
-    static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentCallback(
-        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
-        const PropertyCallback& callback);
-
-    static void RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId, const bool isInSameWindow);
-    static void UnregisterTransitionPair(NodeId inNodeId, NodeId outNodeId);
-
-    static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
-        const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
-    static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
-    static bool CloseImplicitCancelAnimation();
-    static bool IsImplicitAnimationOpen();
-
     static void ExecuteWithoutAnimation(const PropertyCallback& callback,
-        const std::shared_ptr<RSUIContext> rsUIContext = nullptr,
-        std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr);
-
-    static void AddKeyFrame(
-        float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
-    static void AddKeyFrame(float fraction, const PropertyCallback& callback);
-    static void AddDurationKeyFrame(
-        int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+        const std::shared_ptr<RSUIContext> rsUIContext, std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr);
 
     // multi-instance
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const std::shared_ptr<RSUIContext> rsUIContext,
@@ -376,9 +350,10 @@ public:
         const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation(
         const std::shared_ptr<RSUIContext> rsUIContext);
-    static bool CloseImplicitCancelAnimation(const std::shared_ptr<RSUIContext> rsUIContext);
+    static bool CloseImplicitCancelAnimation(
+        const std::shared_ptr<RSUIContext> rsUIContext, bool nodeExceptionSensitive = false);
     static CancelAnimationStatus CloseImplicitCancelAnimationReturnStatus(
-        const std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+        const std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool nodeExceptionSensitive = false);
     static bool IsImplicitAnimationOpen(const std::shared_ptr<RSUIContext> rsUIContext);
     static void AddKeyFrame(const std::shared_ptr<RSUIContext> rsUIContext,
         float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
@@ -494,10 +469,13 @@ public:
      * @param isFreeze Freeze state flag
      *                - true: Freeze current frame content
      *                - false: Resume dynamic updates
+     * @param isMarkedByUI Determine whether Freeze is marked by ArkUI
+     *                - true: Disable Freeze when a frozen component or its sub components include Filter or Effect
+     *                - false: Freeze anyway
      * @see RSCanvasNode::SetFreeze(bool isFreeze)
      * @see RSSurfaceNode::SetFreeze(bool isFreeze)
      */
-    virtual void SetFreeze(bool isFreeze);
+    virtual void SetFreeze(bool isFreeze, bool isMarkedByUI = false);
 
     /**
      * @brief Sets the name of the node.
@@ -879,6 +857,7 @@ public:
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para);
     void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
+    void SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para);
 
     /**
      * @brief Sets the foreground color of the node.
@@ -1060,6 +1039,13 @@ public:
     void SetBorderDashGap(const Vector4f& dashGap);
 
     /**
+     * @brief Sets the SDF border shader.
+     *
+     * @param shader Indicates the SDF border shader to be applied.
+     */
+    void SetBorderSDFShader(const std::shared_ptr<RSNGShaderBase>& shader);
+
+    /**
      * @brief Sets the color of the outer border.
      *
      * @param color Indicates outer border color for each side.
@@ -1128,6 +1114,13 @@ public:
      * @param radius Indicates outline radius for each side.
      */
     void SetOutlineRadius(const Vector4f& radius);
+
+    /**
+     * @brief Sets the SDF outline shader.
+     *
+     * @param shader Indicates the SDF outline shader to be applied.
+     */
+    void SetOutlineSDFShader(const std::shared_ptr<RSNGShaderBase>& shader);
 
     /**
      * @brief Sets color picker params of the node.
@@ -1254,6 +1247,13 @@ public:
     void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
 
     /**
+     * @brief Sets the material shader.
+     *
+     * @param materialShader Indicates the material shader to be applied.
+     */
+    void SetMaterialShader(const std::shared_ptr<RSNGShaderBase>& materialShader);
+
+    /**
      * @brief Sets the foreground shader.
      *
      * @param foregroundShader Indicates the foreground shader to be applied.
@@ -1296,13 +1296,6 @@ public:
      * @param anchor Indicates the anchor for motion blur.
      */
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
-
-    /**
-     * @brief Sets the parameters for magnifier.
-     *
-     * @param para Indicates the parameters for magnifier.
-     */
-    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
 
     /**
      * @brief Sets the rate for dynamic light.
@@ -1565,6 +1558,13 @@ public:
     void SetCustomClipToFrame(const Vector4f& clipRect);
 
     /**
+     * @brief Sets whether the node should be double-sided rendered.
+     *
+     * @param isDoubleSided True to enable double-sided rendering; false to enable single-sided rendering.
+     */
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+
+    /**
      * @brief Sets the brightness of HDR (High Dynamic Range).
      *
      * @param hdrBrightness The HDR brightness value to set.
@@ -1664,6 +1664,20 @@ public:
     void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
 
     /**
+     * @brief Sets the strength of gravity pull union node.
+     *
+     * @param gravityPullStrength strength of gravity pull.
+     */
+    void SetGravityPullStrength(float gravityPullStrength);
+
+    /**
+     * @brief Sets the hotZone of gravity pull union node.
+     *
+     * @param hotZone hot zone of gravity pull.
+     */
+    void SetGravityHotZone(float hotZone);
+
+    /**
      * @brief Sets the SDF Shape.
      *
      * @param shape SDF Shape (SDF Union OP Shape, SDF Smooth Union OP Shape, SDF RRect Shape)
@@ -1746,7 +1760,8 @@ public:
 
     void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
 
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
+    virtual void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
+    virtual bool IsNodeSingleFrameComposer() const { return false; }
 
     void MarkRepaintBoundary(const std::string& tag);
     void SetGrayScale(float grayScale);
@@ -1764,6 +1779,8 @@ public:
     void SetIlluminatedType(uint32_t illuminatedType);
 
     void SetBloom(float bloomIntensity);
+
+    void SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader);
 
     void SetBrightness(float brightness);
 
@@ -1951,11 +1968,27 @@ public:
     void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
 
     /**
+     * @brief Set the spatial effect parameters of the node
+     *
+     * @param para spatial effect parameters
+     */
+    void SetSpatialEffectPara(const std::shared_ptr<SpatialEffectVariantPara>& para);
+
+    /**
+     * @brief Set whether the node is a depth background node
+     *
+     * @param isDepthBackground True if the node is a depth background node
+     */
+    void SetIsDepthBackground(bool isDepthBackground);
+
+    /**
      * @brief Mark the node for layer part rendering optimization
      *
      * @param isLayerPartRender true to enable layer part rendering optimization; false to disable
      */
     void MarkLayerPartRender(bool isLayerPartRender);
+
+    void ReSortChildrenByZIndex();
 
 protected:
     explicit RSNode(
@@ -1973,6 +2006,7 @@ protected:
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
+    bool isShadowNode_ = false;
     ExportTypeChangedCallback exportTypeChangedCallback_ = nullptr;
 
     // Used for same layer rendering, to determine whether RT or RS generates renderNode when the type of node switches
@@ -2179,8 +2213,7 @@ private:
     bool FireColorPickerCallback(uint32_t color);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
-    bool FallbackAnimationsToContext();
-    void FallbackAnimationsToRoot();
+    void FallbackAnimationsToContext();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
@@ -2214,6 +2247,8 @@ private:
 
     void AddChildInner(SharedPtr child, int index);
 
+    void RegenerateTreeHierarchyCommands();
+
     bool AddCommandInner(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
         FollowType followType, NodeId nodeId) const;
 
@@ -2231,8 +2266,6 @@ private:
     bool isExcludedFromNodeGroup_ = false;
     bool isRepaintBoundary_ = false;
 
-    bool isNodeSingleFrameComposer_ = false;
-
     bool isSuggestOpincNode_ = false;
     bool isLayer_ = false;
     bool isLayerPartRender_ = false;
@@ -2244,7 +2277,7 @@ private:
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
     bool isUifirstEnable_ = false;
-    bool notSRGBColor_ = false;
+    int8_t collectColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     bool isSkipCheckInMultiInstance_ = true;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::shared_ptr<RSUIContext> rsUIContext_;

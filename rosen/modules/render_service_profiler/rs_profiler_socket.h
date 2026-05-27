@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 
 namespace OHOS::Rosen {
 
@@ -40,7 +41,7 @@ public:
     SocketState GetState() const;
     bool Connected() const;
     void Shutdown();
-    void Open(uint16_t port);
+    void Open(const std::string& name);
     void AcceptClient();
 
     bool SendWhenReady(const void* data, size_t size);

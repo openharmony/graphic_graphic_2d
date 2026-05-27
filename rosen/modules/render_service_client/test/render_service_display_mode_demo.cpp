@@ -21,7 +21,6 @@
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
 
-#include "pipeline/rs_render_result.h"
 #include "pipeline/rs_render_thread.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"

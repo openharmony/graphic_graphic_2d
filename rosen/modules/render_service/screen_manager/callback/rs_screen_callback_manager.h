@@ -41,7 +41,12 @@ public:
     void RemoveAgentListener(const sptr<RSIScreenManagerAgentListener>& listener);
 
     void NotifyScreenConnected(const ScreenPresenceEvent& event);
+    void NotifyScreenConnectedToAgentListener(ScreenId id, ScreenChangeReason reason,
+                                              sptr<RSIScreenManagerAgentListener> agentListener);
     void NotifyScreenDisconnected(ScreenId id);
+    void NotifyNoScreen(ScreenChangeReason reason);
+    void NotifyPhysicalScreenProcessDisconnected(ScreenId screenId);
+    void NotifyVirtualScreenProcessDisconnected(ScreenId screenId);
     void NotifyScreenPropertyUpdated(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void NotifyScreenRefresh(ScreenId id);
     void NotifyHwcRestored(const ScreenPresenceEvent& event);
@@ -51,16 +56,20 @@ public:
     void NotifyVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId, sptr<RSScreenProperty> property);
     void NotifyVirtualScreenDisconnected(ScreenId id);
     void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
-    void NotifyScreenBacklightChanged(ScreenId id, uint32_t level);
+    void NotifyActiveScreenIdChangedToAgentListener(ScreenId activeScreenId,
+                                                    sptr<RSIScreenManagerAgentListener> agentListener);
+    void NotifyScreenBacklightChanged(const RsScreenBrightnessData& brightnessData);
     void NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
     void NotifySwitchingCallback(bool status);
 
     sptr<IRemoteObject> GetClientToRenderConnection(ScreenId id) const;
 
 private:
-    void NotifyScreenConnectedToAgentListeners(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn);
+    void NotifyScreenConnectedToAgentListeners(ScreenId id, ScreenChangeReason reason);
     void NotifyScreenDisconnectedToAgentListeners(ScreenId id, ScreenChangeReason reason);
+    void NotifyHwcEventToAgentListeners(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
 
+    void NotifyActiveScreenIdChangedToAgentListeners(ScreenId activeScreenId);
     std::unordered_map<ScreenId, sptr<IRemoteObject>> clientToRenderConns_;
     sptr<RSIScreenManagerListener> coreListener_;
     std::vector<sptr<RSIScreenManagerAgentListener>> agentListeners_;

@@ -41,6 +41,17 @@ public:
         UNKNOWN
     };
 
+    enum FrameControlSceneBit : uint32_t {
+        SCENE_APP_LAUNCH_FROM_ICON   = (1 << 0),
+        SCENE_APP_LAUNCH_FROM_DOCK   = (1 << 1),
+        SCENE_APP_SWIPE_TO_HOME      = (1 << 2),
+        SCENE_GESTURE_TO_RECENTS     = (1 << 3),
+        SCENE_EXIT_RECENT            = (1 << 4),
+        SCENE_CLEAR_RECENT           = (1 << 5),
+        SCENE_AOD_TO_LAUNCHER        = (1 << 6),
+        SCENE_LOCKSCREEN_TO_LAUNCHER = (1 << 7),
+    };
+
     SceneId GetSceneId(const std::string& sceneId)
     {
         if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_ICON") {
@@ -80,6 +91,9 @@ public:
     bool SubThreadFrameDropDecision(const RSSurfaceRenderNode& node);
     bool NeedRSUifirstControlFrameDrop(const RSSurfaceRenderNode& node);
     bool GetUifirstFrameDropInternal(int frameInterval);
+    bool IsSceneEnabled(SceneId sceneId) const;
+    uint32_t GetFrameControlScenesMask() const;
+    static uint32_t GetSceneIdBit(SceneId sceneId);
     bool JudgeStartAnimation() const
     {
         return startAnimationStatus_.load(std::memory_order_relaxed);
@@ -100,25 +114,25 @@ public:
         stopAnimationStatus_.store(status, std::memory_order_relaxed);
     }
 
-    bool JudgeMultTaskAnimation() const
+    bool JudgeMultiTaskAnimation() const
     {
-        return multTaskAnimationStatus_.load(std::memory_order_relaxed);
+        return multiTaskAnimationStatus_.load(std::memory_order_relaxed);
     }
 
-    void SetMultTaskAnimation(bool status)
+    void SetMultiTaskAnimation(bool status)
     {
-        multTaskAnimationStatus_.store(status, std::memory_order_relaxed);
+        multiTaskAnimationStatus_.store(status, std::memory_order_relaxed);
     }
 
 private:
     RSUifirstFrameRateControl(const RSUifirstFrameRateControl&) = delete;
     RSUifirstFrameRateControl& operator=(const RSUifirstFrameRateControl&) = delete;
     RSUifirstFrameRateControl() : startAnimationStatus_(false),
-        stopAnimationStatus_(false), multTaskAnimationStatus_(false) {}
+        stopAnimationStatus_(false), multiTaskAnimationStatus_(false) {}
     std::atomic<int32_t> callCount_ = 0;
     std::atomic<bool> startAnimationStatus_;
     std::atomic<bool> stopAnimationStatus_;
-    std::atomic<bool> multTaskAnimationStatus_;
+    std::atomic<bool> multiTaskAnimationStatus_;
     bool forceRefreshOnce_ = true;
 };
 }

@@ -125,10 +125,10 @@ void RSLuminanceControl::DimmingIncrease(ScreenId screenId)
     }
 }
 
-void RSLuminanceControl::SetSdrLuminance(ScreenId screenId, uint32_t level)
+void RSLuminanceControl::SetSdrLuminance(const RsScreenBrightnessData& brightnessData)
 {
     if (rSLuminanceControlInterface_ != nullptr) {
-        rSLuminanceControlInterface_->SetSdrLuminance(screenId, level);
+        rSLuminanceControlInterface_->SetSdrLuminance(brightnessData);
     }
 }
 
@@ -265,5 +265,31 @@ void RSLuminanceControl::SetDualScreenStatus(ScreenId screenId, DualScreenStatus
         rSLuminanceControlInterface_->SetDualScreenStatus(screenId, dualScreenStatus);
     }
 }
+
+float RSLuminanceControl::HdrDimmingProcess(ScreenId screenId, uint64_t nodeId)
+{
+    if (rSLuminanceControlInterface_ != nullptr) {
+        return rSLuminanceControlInterface_->HdrDimmingProcess(screenId, nodeId);
+    }
+    return 1.0f;
+}
+
+void RSLuminanceControl::HdrDimmingPostProcess(ScreenId screenId)
+{
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->HdrDimmingPostProcess(screenId);
+    }
+}
+
+#ifndef ROSEN_CROSS_PLATFORM
+int32_t RSLuminanceControl::UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler,
+    HdrStatus hdrStatus)
+{
+    if (rSLuminanceControlInterface_ != nullptr) {
+        return rSLuminanceControlInterface_->UpdateMetadataBasedOnScaler(input, scaler, hdrStatus);
+    }
+    return 0;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

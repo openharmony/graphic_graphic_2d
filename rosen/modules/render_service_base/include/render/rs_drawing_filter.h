@@ -97,6 +97,7 @@ public:
     void SetGeometry(const Drawing::Matrix& matrix, const Drawing::RectF& bound, const Drawing::RectF& materialDst,
         float geoWidth, float geoHeight);
     void SetDisplayHeadroom(float headroom);
+    void SetDisableFilterCache(bool disableFilterCache);
 
     void SetDarkScale(float darkScale);
 
@@ -108,6 +109,16 @@ public:
     void SetSkipFrame(bool canSkipFrame)
     {
         canSkipFrame_ = canSkipFrame;
+    }
+
+    bool HasCustomRegion() const
+    {
+        return hasCustomRegion_;
+    }
+
+    void SetHasCustomRegion(bool hasCustomRegion)
+    {
+        hasCustomRegion_ = hasCustomRegion;
     }
 
     static bool CanSkipFrame(float radius);
@@ -195,6 +206,8 @@ private:
     uint32_t renderFilterHash_ = 0;
     bool canSkipFrame_ = false;
     bool canSkipMaskColor_ = false;
+    // Indicates whether a custom region is set for the filter
+    bool hasCustomRegion_ = false;
     float saturationForHPS_ = 1.f;
     float brightnessForHPS_ = 1.f;
     friend class RSMarshallingHelper;

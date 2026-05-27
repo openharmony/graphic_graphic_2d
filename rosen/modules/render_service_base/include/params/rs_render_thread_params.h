@@ -17,7 +17,9 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
+#include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -44,16 +46,18 @@ struct CaptureParam {
     bool captureFinished_ = false;
     bool needCaptureSpecialLayer_ = false;
     bool hasDirtyContent_ = false;
+    bool hasPrivacyAndSpecialLayer_ = false;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData_ = nullptr;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
         bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false,
         bool isSoloNodeUiCapture = false, NodeId endNodeId = INVALID_NODEID, bool captureFinished = false,
-        bool needCaptureSpecialLayer = false, bool hasDirtyContent = false)
+        bool needCaptureSpecialLayer = false, bool hasDirtyContent = false, bool hasPrivacyAndSpecialLayer = false)
         : isSnapshot_(isSnapshot), isSingleSurface_(isSingleSurface), isMirror_(isMirror), isFirstNode_(isFirstNode),
         isSystemCalling_(isSystemCalling), isSelfCapture_(isSelfCapture), isNeedBlur_(isNeedBlur),
         isSoloNodeUiCapture_(isSoloNodeUiCapture), endNodeId_(endNodeId), captureFinished_(captureFinished),
-        needCaptureSpecialLayer_(needCaptureSpecialLayer), hasDirtyContent_(hasDirtyContent) {}
+        needCaptureSpecialLayer_(needCaptureSpecialLayer), hasDirtyContent_(hasDirtyContent),
+        hasPrivacyAndSpecialLayer_(hasPrivacyAndSpecialLayer) {}
 };
 struct HardCursorInfo {
     NodeId id = INVALID_NODEID;
@@ -175,16 +179,6 @@ public:
     bool GetUIFirstDebugEnabled() const
     {
         return isUIFirstDebugEnable_;
-    }
-
-    void SetUIFirstCurrentFrameCanSkipFirstWait(bool canSkip)
-    {
-        isUIFirstCurrentFrameCanSkipFirstWait_ = canSkip;
-    }
-
-    bool GetUIFirstCurrentFrameCanSkipFirstWait() const
-    {
-        return isUIFirstCurrentFrameCanSkipFirstWait_;
     }
 
     void SetTimestamp(uint64_t timestamp)
@@ -325,13 +319,30 @@ public:
         return watermarkImg_;
     }
 
-    void SetWatermark(bool watermarkFlag, const std::shared_ptr<Drawing::Image>& watermarkImg)
+    void SetWatermark(bool watermarkFlag, const std::shared_ptr<Drawing::Image>& watermarkImg,
+        uint32_t rowCount = 0, uint32_t colCount = 0)
     {
         watermarkFlag_ = watermarkFlag;
         watermarkImg_ = watermarkImg;
+        watermarkRowCount_ = rowCount;
+        watermarkColCount_ = colCount;
     }
 
-    void SetWatermarks(std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>>& watermarks);
+    uint32_t GetWatermarkRowCount() const
+    {
+        return watermarkRowCount_;
+    }
+
+    uint32_t GetWatermarkColCount() const
+    {
+        return watermarkColCount_;
+    }
+
+    uint32_t GetWatermarkRowCount(const std::string& name) const;
+    uint32_t GetWatermarkColCount(const std::string& name) const;
+
+    void SetWatermarks(std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>>& watermarks,
+        std::unordered_map<std::string, std::pair<uint32_t, uint32_t>>& gridCounts);
 
     void SetOcclusionEnabled(bool isOcclusionEnabled)
     {
@@ -423,16 +434,6 @@ public:
         return context_.lock();
     }
 
-    void SetClipRegion(const Drawing::Region& clipRegion)
-    {
-        clipRegion_.Clone(clipRegion);
-    }
-
-    const Drawing::Region& GetClipRegion() const
-    {
-        return clipRegion_;
-    }
-
     void SetForceMirrorScreenDirty(bool flag)
     {
         isMirrorScreenDirty_ = flag;
@@ -481,6 +482,26 @@ public:
     bool GetSecExemption() const
     {
         return isSecurityExemption_;
+    }
+
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect)
+    {
+        for (auto screenId : screenIds) {
+            whiteListRect_[screenId].push_back(rect);
+        }
+    }
+
+    std::vector<Drawing::Rect> GetWhiteListRectByScreenId(ScreenId screenId) const
+    {
+        if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
+            return iter->second;
+        }
+        return {};
+    }
+
+    void ClearWhiteListRect()
+    {
+        whiteListRect_.clear();
     }
 
     bool IsOverDrawEnabled() const
@@ -584,6 +605,11 @@ public:
         return slrManager_;
     }
 
+    const std::unordered_map<NodeId, GraphicColorGamut>& GetSurfaceColorGamutMap() const
+    {
+        return surfaceColorGamutMap_;
+    }
+
 #ifdef RS_ENABLE_TV_PQ_METADATA
     bool GetCachedNodeOnTheTree() const
     {
@@ -605,6 +631,16 @@ public:
         cachedSurfaceNodeId_ = nodeId;
     }
 #endif
+
+    void SetDrawRelated(bool value)
+    {
+        isDrawRelated_ = value;
+    }
+
+    bool IsDrawRelated()
+    {
+        return isDrawRelated_;
+    }
 
 private:
     bool virtualDirtyRefresh_ = false;
@@ -639,7 +675,6 @@ private:
     bool isOcclusionEnabled_ = false;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     bool isUIFirstDebugEnable_ = false;
-    bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
     bool isVirtualExpandScreenDirtyEnabled_ = false;
@@ -657,7 +692,11 @@ private:
     Occlusion::Region accumulatedDirtyRegion_;
     bool watermarkFlag_ = false;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
+    uint32_t watermarkRowCount_ = 0;
+    uint32_t watermarkColCount_ = 0;
     std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> surfaceWatermarks_;
+    std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> surfaceWatermarkGridCounts_;
+    std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
     RSPowerOffRenderController powerOffRenderController_;
     bool isOverDrawEnabled_ = false;
@@ -678,10 +717,10 @@ private:
     bool overlayDisplayEnable_{false};
 #endif
 
-    Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
+    std::map<ScreenId, std::vector<Drawing::Rect>> whiteListRect_;
     bool isSecurityExemption_ = false;
     // use to mark security display
     bool isSecurityDisplay_ = false;
@@ -692,6 +731,7 @@ private:
     bool cachedSurfaceNodeOnTheTree_{false};
     NodeId cachedSurfaceNodeId_{0};
 #endif
+    bool isDrawRelated_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
@@ -707,7 +747,11 @@ public:
     void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams);
     const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const;
 private:
+#ifdef _WIN32
     static inline thread_local std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr;
+#else
+    static thread_local std::unique_ptr<RSRenderThreadParams> renderThreadParams_;
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H

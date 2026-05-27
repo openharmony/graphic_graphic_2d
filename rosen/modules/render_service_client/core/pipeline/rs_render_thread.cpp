@@ -39,7 +39,7 @@
 #include "render/rs_image_cache.h"
 #include "render/rs_typeface_cache.h"
 #include "render_context/shader_cache.h"
-#include "rosen_text/font_collection.h"
+#include "text/font_event_callback.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -54,6 +54,7 @@
 #endif
 #if defined(ROSEN_ARKUI_X)
 #include "render_context/new_render_context/render_context_gl.h"
+#include "platform/common/rs_accessibility.h"
 #endif
 #ifdef OHOS_RSS_CLIENT
 #include "res_sched_client.h"
@@ -115,16 +116,17 @@ RSRenderThread& RSRenderThread::Instance()
 
 RSRenderThread::RSRenderThread()
 {
-    FontCollection::RegisterUnloadFontFinishCallback([](const FontCollection*, const FontEventInfo& info) {
-        std::vector uniqueIds = info.uniqueIds;
-        auto task = [uniqueIds]() {
-            auto context = RSRenderThread::Instance().GetRenderContext()->GetDrGPUContext();
-            for (size_t i = 0; i < uniqueIds.size() && context; i += 1) {
-                context->FreeCpuCache(uniqueIds[i]);
-            }
-        };
-        RSRenderThread::Instance().PostTask(task);
-    });
+    Drawing::FontEventCallbackManager::GetInstance().RegisterUnloadFontFinishCallback(
+        [](const Drawing::FontEventInfo& info) {
+            std::vector<uint32_t> uniqueIds = info.uniqueIds;
+            auto task = [uniqueIds]() {
+                auto context = RSRenderThread::Instance().GetRenderContext()->GetDrGPUContext();
+                for (size_t i = 0; i < uniqueIds.size() && context; i += 1) {
+                    context->FreeCpuCache(uniqueIds[i]);
+                }
+            };
+            RSRenderThread::Instance().PostTask(task);
+        });
     mainFunc_ = [&]() {
         uint64_t renderStartTimeStamp = jankDetector_->GetSysTimeNs();
         RS_TRACE_BEGIN("RSRenderThread DrawFrame: " + std::to_string(timestamp_));
@@ -146,7 +148,7 @@ RSRenderThread::RSRenderThread()
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
         ReleasePixelMapInBackgroundThread();
-#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+#if defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
         ScheduleIdleGpuResourceClean();
 #endif
         context_->pendingSyncNodes_.clear();
@@ -160,7 +162,7 @@ RSRenderThread::RSRenderThread()
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
     jankDetector_ = std::make_shared<RSJankDetector>();
-#ifdef ACCESSIBILITY_ENABLE
+#if defined(ROSEN_ARKUI_X) || defined(ACCESSIBILITY_ENABLE)
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
         std::thread thread(
             [](bool newHighContrast) {
@@ -213,12 +215,12 @@ RSRenderThread::~RSRenderThread()
 #endif
 }
 
-#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+#if defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
 void RSRenderThread::ScheduleIdleGpuResourceClean()
 {
     lastRenderEndTimeNs_ = jankDetector_ ? static_cast<int64_t>(jankDetector_->GetSysTimeNs()) : 0;
     const int64_t scheduledTimeNs = lastRenderEndTimeNs_;
-    constexpr int64_t IDLE_CLEAN_DELAY_MS = 5000;
+    constexpr int64_t IDLE_CLEAN_DELAY_MS = 2500;
     if (!handler_) {
         return;
     }
@@ -230,8 +232,10 @@ void RSRenderThread::ScheduleIdleGpuResourceClean()
         if (!gpuContext) {
             return;
         }
+#ifndef ROSEN_IOS
         gpuContext->FlushAndSubmit(true);
-        gpuContext->PurgeUnlockedResources(true);
+#endif
+        gpuContext->PurgeUnlockedResources(false);
         }, IDLE_CLEAN_DELAY_MS);
 }
 #endif
@@ -277,6 +281,9 @@ void RSRenderThread::Stop()
     }
 
     thread_ = nullptr;
+#ifdef ROSEN_IOS
+    renderThreadId_ = {};
+#endif
     ROSEN_LOGD("RSRenderThread stopped.");
 }
 
@@ -320,6 +327,13 @@ int32_t RSRenderThread::GetTid()
     return tid_;
 }
 
+#ifdef ROSEN_IOS
+bool RSRenderThread::IsCurrentRenderThread() const
+{
+    return std::this_thread::get_id() == renderThreadId_;
+}
+#endif
+
 void RSRenderThread::CreateAndInitRenderContextIfNeed()
 {
 #if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
@@ -339,7 +353,7 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
             renderContext_->SetCleanUpHelper(cleanupTask);
         
 #endif
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RS_TRACE_NAME("Init");
@@ -359,6 +373,9 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 void RSRenderThread::RenderLoop()
 {
     SystemCallSetThreadName("RSRenderThread");
+#ifdef ROSEN_IOS
+    renderThreadId_ = std::this_thread::get_id();
+#endif
 
 #ifdef OHOS_RSS_CLIENT
     std::unordered_map<std::string, std::string> payload;
@@ -561,8 +578,9 @@ void RSRenderThread::Animate(uint64_t timestamp)
             ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
             return true;
         }
+        int64_t unusedNextFrameTime = 0;
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
-            node->Animate(timestamp, minLeftDelayTime);
+            node->Animate(timestamp, minLeftDelayTime, unusedNextFrameTime);
         if (!hasRunningAnimation) {
             ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
         }

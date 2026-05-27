@@ -15,7 +15,7 @@
 #include "gtest/gtest.h"
 
 #include "feature/opinc/rs_opinc_cache.h"
-#include "params/rs_render_params.h"
+#include "pipeline/rs_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -35,330 +35,6 @@ void RSOpincCacheTest::SetUpTestCase() {}
 void RSOpincCacheTest::TearDownTestCase() {}
 void RSOpincCacheTest::SetUp() {}
 void RSOpincCacheTest::TearDown() {}
-
-/**
- * @tc.name: OpincSetInAppStateStart001
- * @tc.desc: test results of OpincSetInAppStateStart
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, OpincSetInAppStateStart001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    bool unchangeMarkInApp = true;
-    opincCache.OpincSetInAppStateStart(unchangeMarkInApp);
-    EXPECT_TRUE(opincCache.isUnchangeMarkInApp_ == false);
-
-    unchangeMarkInApp = false;
-    opincCache.OpincSetInAppStateStart(unchangeMarkInApp);
-    EXPECT_TRUE(opincCache.isUnchangeMarkInApp_);
-}
-
-/**
- * @tc.name: OpincSetInAppStateEnd001
- * @tc.desc: test results of OpincSetInAppStateEnd
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, OpincSetInAppStateEnd001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    bool unchangeMarkInApp = true;
-    opincCache.OpincSetInAppStateEnd(unchangeMarkInApp);
-    EXPECT_TRUE(opincCache.isUnchangeMarkInApp_ == false);
-
-    unchangeMarkInApp = false;
-    opincCache.OpincSetInAppStateEnd(unchangeMarkInApp);
-    EXPECT_TRUE(opincCache.isUnchangeMarkInApp_ == false);
-}
-
-/**
- * @tc.name: OpincQuickMarkStableNode001
- * @tc.desc: test results of OpincQuickMarkStableNode
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, OpincQuickMarkStableNode001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    bool unchangeMarkInApp = false;
-    bool unchangeMarkEnable = true;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isUnchangeMarkInApp_ == false);
-
-    unchangeMarkInApp = true;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isUnchangeMarkInApp_ == false);
-
-    opincCache.isSuggestOpincNode_ = true;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isSuggestOpincNode_);
-
-    unchangeMarkEnable = false;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isUnchangeMarkEnable_);
-
-    unchangeMarkEnable = true;
-    renderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    opincCache.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isUnchangeMarkEnable_);
-
-    renderNode.isSubTreeDirty_ = true;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(renderNode.isSubTreeDirty_);
-}
-
-/**
- * @tc.name: OpincQuickMarkStableNode002
- * @tc.desc: test results of OpincQuickMarkStableNode
- * @tc.type: FUNC
- * @tc.require: issueIB9E9A
- */
-HWTEST_F(RSOpincCacheTest, OpincQuickMarkStableNode002, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    bool unchangeMarkInApp = false;
-    bool unchangeMarkEnable = true;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isUnchangeMarkInApp_ == false);
-
-    unchangeMarkInApp = true;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isUnchangeMarkInApp_ == false);
-
-    opincCache.isSuggestOpincNode_ = true;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isSuggestOpincNode_);
-
-    unchangeMarkEnable = false;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isUnchangeMarkEnable_);
-
-    unchangeMarkEnable = true;
-    renderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    opincCache.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.isUnchangeMarkEnable_);
-
-    opincCache.waitCount_ = 60;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(opincCache.waitCount_ == 59);
-    opincCache.waitCount_ = 0;
-
-    renderNode.isSubTreeDirty_ = true;
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
-    EXPECT_TRUE(renderNode.isSubTreeDirty_);
-
-    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
-    EXPECT_TRUE(opincCache.subTreeSupportFlag_);
-}
-
-/**
- * @tc.name: OpincUpdateRootFlag001
- * @tc.desc: test results of OpincUpdateRootFlag
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, OpincUpdateRootFlag001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    bool unchangeMarkEnable = true;
-    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, true);
-    EXPECT_TRUE(opincCache.isOpincRootFlag_ == false);
-
-    opincCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
-    opincCache.isSuggestOpincNode_ = true;
-    renderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, true);
-    EXPECT_TRUE(opincCache.IsOpincUnchangeState());
-
-    opincCache.isUnchangeMarkEnable_ = true;
-    opincCache.OpincUpdateRootFlag(unchangeMarkEnable, true);
-    EXPECT_TRUE(opincCache.isUnchangeMarkEnable_ == false);
-}
-
-/**
- * @tc.name: IsOpincUnchangeState001
- * @tc.desc: test results of IsOpincUnchangeState
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, IsOpincUnchangeState001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    bool res = opincCache.IsOpincUnchangeState();
-    EXPECT_TRUE(res == false);
-
-    opincCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
-    opincCache.isSuggestOpincNode_ = true;
-    res = opincCache.IsOpincUnchangeState();
-    EXPECT_TRUE(res);
-}
-
-/**
- * @tc.name: IsMarkedRenderGroup001
- * @tc.desc: test results of IsMarkedRenderGroup
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, IsMarkedRenderGroup001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    bool res = opincCache.IsMarkedRenderGroup(renderNode.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE);
-    EXPECT_TRUE(!res);
-
-    renderNode.nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
-    opincCache.isOpincRootFlag_ = true;
-    res = opincCache.IsMarkedRenderGroup(renderNode.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE);
-    EXPECT_TRUE(res);
-}
-
-/**
- * @tc.name: OpincForcePrepareSubTree001
- * @tc.desc: test results of OpincForcePrepareSubTree
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, OpincForcePrepareSubTree001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    bool autoCacheEnable = true;
-    bool res = opincCache.OpincForcePrepareSubTree(autoCacheEnable,
-        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), true);
-    EXPECT_TRUE(!res);
-
-    opincCache.isSuggestOpincNode_ = true;
-    res = opincCache.OpincForcePrepareSubTree(autoCacheEnable,
-        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), true);
-    EXPECT_TRUE(res);
-    autoCacheEnable = false;
-    res = opincCache.OpincForcePrepareSubTree(autoCacheEnable,
-        renderNode.IsSubTreeDirty() || renderNode.IsContentDirty(), true);
-    EXPECT_FALSE(res);
-}
-
-/**
- * @tc.name: OpincGetRootFlag001
- * @tc.desc: test results of OpincGetRootFlag
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, OpincGetRootFlag001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    bool res = opincCache.OpincGetRootFlag();
-    EXPECT_TRUE(!res);
-
-    opincCache.isOpincRootFlag_ = true;
-    res = opincCache.OpincGetRootFlag();
-    EXPECT_TRUE(res);
-}
-
-/**
- * @tc.name: MarkSuggestOpincNode001
- * @tc.desc: test results of MarkSuggestOpincNode
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, MarkSuggestOpincNode001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    opincCache.MarkSuggestOpincNode(true, true);
-    EXPECT_TRUE(opincCache.isSuggestOpincNode_);
-}
-
-/**
- * @tc.name: IsSuggestOpincNode001
- * @tc.desc: test results of IsSuggestOpincNode
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, IsSuggestOpincNode001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    EXPECT_TRUE(!opincCache.IsSuggestOpincNode());
-
-    opincCache.isSuggestOpincNode_ = true;
-    EXPECT_TRUE(opincCache.IsSuggestOpincNode());
-}
-
-/**
- * @tc.name: NodeCacheStateChange001
- * @tc.desc: test results of NodeCacheStateChange
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, NodeCacheStateChange001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    renderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    opincCache.NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
-    opincCache.NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
-    opincCache.NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
-    opincCache.NodeCacheStateChange(NodeChangeType::KEEP_UNCHANGE);
-    EXPECT_TRUE(opincCache.nodeCacheState_ == NodeCacheState::STATE_UNCHANGE);
-
-    opincCache.NodeCacheStateChange(NodeChangeType::SELF_DIRTY);
-    EXPECT_TRUE(opincCache.nodeCacheState_ != NodeCacheState::STATE_UNCHANGE);
-}
-
-/**
- * @tc.name: SetCacheStateByRetrytime001
- * @tc.desc: test results of SetCacheStateByRetrytime
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, SetCacheStateByRetrytime001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    opincCache.SetCacheStateByRetrytime();
-    EXPECT_TRUE(opincCache.unchangeCountUpper_ == 13);
-
-    opincCache.tryCacheTimes_ = 4;
-    opincCache.unchangeCountUpper_ = 3;
-    opincCache.SetCacheStateByRetrytime();
-    EXPECT_TRUE(opincCache.unchangeCountUpper_ == 23);
-
-    opincCache.unchangeCountUpper_ = 200;
-    opincCache.SetCacheStateByRetrytime();
-    EXPECT_TRUE(opincCache.unchangeCountUpper_ == 200);
-}
-
-/**
- * @tc.name: NodeCacheStateReset001
- * @tc.desc: test results of NodeCacheStateReset
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, NodeCacheStateReset001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    renderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    opincCache.NodeCacheStateReset(NodeCacheState::STATE_INIT);
-    EXPECT_TRUE(opincCache.nodeCacheState_ == NodeCacheState::STATE_INIT);
-
-    opincCache.NodeCacheStateReset(NodeCacheState::STATE_CHANGE);
-    EXPECT_TRUE(!opincCache.OpincGetRootFlag());
-
-    opincCache.isOpincRootFlag_ = true;
-    opincCache.NodeCacheStateReset(NodeCacheState::STATE_CHANGE);
-    EXPECT_FALSE(opincCache.isOpincRootFlag_);
-}
 
 /**
  * @tc.name: UpdateSubTreeSupportFlag
@@ -404,50 +80,6 @@ HWTEST_F(RSOpincCacheTest, UpdateSubTreeSupportFlag, TestSize.Level1)
 }
 
 /**
- * @tc.name: OpincSubTreeSkip001
- * @tc.desc: test results of OpincSubTreeSkip
- * @tc.type: FUNC
- * @tc.require: issue22996
- */
-HWTEST_F(RSOpincCacheTest, OpincSubTreeSkip001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    opincCache.unchangeCount_ = 0;
-    opincCache.unchangeCountUpper_ = 3;
-    {
-        opincCache.isSuggestOpincNode_ = false;
-        opincCache.OpincSubTreeSkip();
-        EXPECT_EQ(opincCache.unchangeCount_, 0);
-    }
-
-    {
-        opincCache.isSuggestOpincNode_ = true;
-        opincCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
-        opincCache.OpincSubTreeSkip();
-        EXPECT_EQ(opincCache.unchangeCount_, 0);
-    }
-
-    {
-        opincCache.isSuggestOpincNode_ = true;
-        opincCache.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
-        opincCache.unchangeCount_ = 4;
-        opincCache.unchangeCountUpper_ = 3;
-        opincCache.OpincSubTreeSkip();
-        EXPECT_EQ(opincCache.unchangeCount_, 4);
-    }
-
-    {
-        opincCache.isSuggestOpincNode_ = true;
-        opincCache.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
-        opincCache.unchangeCount_ = 0;
-        opincCache.unchangeCountUpper_ = 3;
-        opincCache.OpincSubTreeSkip();
-        EXPECT_EQ(opincCache.unchangeCount_, opincCache.unchangeCountUpper_);
-    }
-}
-
-/**
  * @tc.name: SetCurNodeTreeSupportFlag
  * @tc.desc: test results of SetCurNodeTreeSupportFlag
  * @tc.type: FUNC
@@ -462,6 +94,55 @@ HWTEST_F(RSOpincCacheTest, SetCurNodeTreeSupportFlag, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OpincSetInAppStateStartEnd001
+ * @tc.desc: test results of OpincSetInAppStateStart/End
+ * @tc.type: FUNC
+ * @tc.require: issueInAppFlagMove
+ */
+HWTEST_F(RSOpincCacheTest, OpincSetInAppStateStartEnd001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    bool unchangeMarkInApp = false;
+    opincCache.OpincSetInAppStateStart(unchangeMarkInApp);
+    ASSERT_TRUE(unchangeMarkInApp);
+
+    opincCache.OpincSetInAppStateEnd(unchangeMarkInApp);
+    ASSERT_FALSE(unchangeMarkInApp);
+
+    opincCache.OpincSetInAppStateEnd(unchangeMarkInApp);
+    ASSERT_FALSE(unchangeMarkInApp);
+}
+
+/**
+ * @tc.name: OpincSetInAppStateStartEndCrossNode001
+ * @tc.desc: verify start/end pairing keeps ownership on the node that started marking
+ * @tc.type: FUNC
+ * @tc.require: issueInAppFlagMove
+ */
+HWTEST_F(RSOpincCacheTest, OpincSetInAppStateStartEndCrossNode001, TestSize.Level1)
+{
+    RSRenderNode renderNodeA(0);
+    RSRenderNode renderNodeB(1);
+    auto& opincCacheA = renderNodeA.GetOpincCache();
+    auto& opincCacheB = renderNodeB.GetOpincCache();
+
+    bool unchangeMarkInApp = false;
+    opincCacheA.OpincSetInAppStateStart(unchangeMarkInApp);
+    ASSERT_TRUE(unchangeMarkInApp);
+
+    opincCacheB.OpincSetInAppStateStart(unchangeMarkInApp);
+    ASSERT_TRUE(unchangeMarkInApp);
+
+    opincCacheB.OpincSetInAppStateEnd(unchangeMarkInApp);
+    ASSERT_TRUE(unchangeMarkInApp);
+
+    opincCacheA.OpincSetInAppStateEnd(unchangeMarkInApp);
+    ASSERT_FALSE(unchangeMarkInApp);
+}
+
+/**
  * @tc.name: MarkSuggestLayerPartRenderNode001
  * @tc.desc: test results of MarkSuggestLayerPartRenderNode
  * @tc.type: FUNC
@@ -470,7 +151,7 @@ HWTEST_F(RSOpincCacheTest, SetCurNodeTreeSupportFlag, TestSize.Level1)
 HWTEST_F(RSOpincCacheTest, MarkSuggestLayerPartRenderNode001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
+    auto& opincCache = renderNode.GetLayerPartRenderCache();
 
     opincCache.MarkSuggestLayerPartRenderNode(true);
     ASSERT_TRUE(opincCache.IsSuggestLayerPartRenderNode());
@@ -488,7 +169,7 @@ HWTEST_F(RSOpincCacheTest, MarkSuggestLayerPartRenderNode001, TestSize.Level1)
 HWTEST_F(RSOpincCacheTest, IsSuggestLayerPartRenderNode001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
+    auto& opincCache = renderNode.GetLayerPartRenderCache();
 
     ASSERT_FALSE(opincCache.IsSuggestLayerPartRenderNode());
 
@@ -505,7 +186,7 @@ HWTEST_F(RSOpincCacheTest, IsSuggestLayerPartRenderNode001, TestSize.Level1)
 HWTEST_F(RSOpincCacheTest, SetLayerPartRender001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
+    auto& opincCache = renderNode.GetLayerPartRenderCache();
 
     opincCache.SetLayerPartRender(true);
     ASSERT_TRUE(opincCache.IsLayerPartRender());
@@ -523,7 +204,7 @@ HWTEST_F(RSOpincCacheTest, SetLayerPartRender001, TestSize.Level1)
 HWTEST_F(RSOpincCacheTest, IsLayerPartRender001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
+    auto& opincCache = renderNode.GetLayerPartRenderCache();
 
     ASSERT_FALSE(opincCache.IsLayerPartRender());
 
@@ -540,7 +221,7 @@ HWTEST_F(RSOpincCacheTest, IsLayerPartRender001, TestSize.Level1)
 HWTEST_F(RSOpincCacheTest, IsLayerPartRenderUnchangeState001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
+    auto& opincCache = renderNode.GetLayerPartRenderCache();
 
     // count=0, 0<=3 -> false, count=1
     ASSERT_FALSE(opincCache.IsLayerPartRenderUnchangeState());
@@ -563,7 +244,7 @@ HWTEST_F(RSOpincCacheTest, IsLayerPartRenderUnchangeState001, TestSize.Level1)
 HWTEST_F(RSOpincCacheTest, IsLayerPartRenderUnchangeState002, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
+    auto& opincCache = renderNode.GetLayerPartRenderCache();
 
     for (int i = 0; i < 5; i++) {
         opincCache.IsLayerPartRenderUnchangeState();
@@ -584,7 +265,7 @@ HWTEST_F(RSOpincCacheTest, IsLayerPartRenderUnchangeState002, TestSize.Level1)
 HWTEST_F(RSOpincCacheTest, ResetLayerPartRenderUnchangeState001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
+    auto& opincCache = renderNode.GetLayerPartRenderCache();
 
     for (int i = 0; i < 5; i++) {
         opincCache.IsLayerPartRenderUnchangeState();
@@ -610,7 +291,7 @@ HWTEST_F(RSOpincCacheTest, ResetLayerPartRenderUnchangeState001, TestSize.Level1
 HWTEST_F(RSOpincCacheTest, GetLayerPartRenderDirtyManager001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
+    auto& opincCache = renderNode.GetLayerPartRenderCache();
 
     auto& dirtyManager = opincCache.GetLayerPartRenderDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
@@ -628,7 +309,7 @@ HWTEST_F(RSOpincCacheTest, GetLayerPartRenderDirtyManager001, TestSize.Level1)
 HWTEST_F(RSOpincCacheTest, GetLayerPartRenderDirtyManager002, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
+    auto& opincCache = renderNode.GetLayerPartRenderCache();
 
     auto& dirtyManager1 = opincCache.GetLayerPartRenderDirtyManager();
     ASSERT_NE(dirtyManager1, nullptr);
@@ -677,52 +358,5 @@ HWTEST_F(RSOpincCacheTest, SetLayerPartRenderOldAbsDrawRect001, TestSize.Level1)
     ASSERT_EQ(opincCache.GetLayerPartRenderOldAbsDrawRect(), absDrawRect);
 }
 
-/**
- * @tc.name: GetCacheChangeFlag001
- * @tc.desc: test results of GetCacheChangeFlag
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, GetCacheChangeFlag001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-
-    ASSERT_FALSE(opincCache.GetCacheChangeFlag());
-
-    opincCache.MarkSuggestOpincNode(true, true);
-    ASSERT_TRUE(opincCache.GetCacheChangeFlag());
-}
-
-/**
- * @tc.name: GetNodeCacheState001
- * @tc.desc: test results of GetNodeCacheState
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, GetNodeCacheState001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-
-    ASSERT_EQ(opincCache.GetNodeCacheState(), NodeCacheState::STATE_INIT);
-
-    opincCache.MarkSuggestOpincNode(true, true);
-    ASSERT_EQ(opincCache.GetNodeCacheState(), NodeCacheState::STATE_CHANGE);
-}
-
-/**
- * @tc.name: GetUnchangeCount001
- * @tc.desc: test results of GetUnchangeCount
- * @tc.type: FUNC
- * @tc.require: issueI9UX8W
- */
-HWTEST_F(RSOpincCacheTest, GetUnchangeCount001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-
-    ASSERT_EQ(opincCache.GetUnchangeCount(), 0);
-}
 } // namespace Rosen
 } // namespace OHOS

@@ -17,11 +17,14 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+#include "drawable/rs_canvas_render_node_drawable.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "drawable/rs_color_picker_drawable.h"
+#include "drawable/rs_property_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "params/rs_surface_render_params.h"
@@ -78,6 +81,15 @@ RSLogicalDisplayRenderNodeDrawable* GenerateLogicalscreenDrawableById(
         return nullptr;
     }
     return static_cast<RSLogicalDisplayRenderNodeDrawable*>(displayAdapter);
+}
+
+std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> GenerateBaseRenderNodeDrawableById(NodeId id)
+{
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(id);
+    if (!renderNode) {
+        return nullptr;
+    }
+    return RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
 }
 
 RSSurfaceRenderNodeDrawable* createDrawableWithDirtyAndParams(NodeId id, bool isSurfaceRenderParamsNotNull,
@@ -489,52 +501,67 @@ HWTEST_F(RSUniDirtyComputeUtilTest, IntersectRect, TestSize.Level2)
 
 /**
  * @tc.name: GenerateFilterDirtyRegionInfo_001
- * @tc.desc: test GenerateFilterDirtyRegionInfo, for effect node, filterRegion and DirtyRegion differs.
+ * @tc.desc: test GenerateFilterDirtyRegionInfo, for effect node
  * @tc.type: FUNC
- * @tc.require: #issuesICA3L1
+ * @tc.require: #issue22993
  */
 HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_001, TestSize.Level1)
 {
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     ASSERT_NE(context, nullptr);
-    auto& nodeMap = context->GetMutableNodeMap();
 
     NodeId id = 1;
     auto effectNode = std::make_shared<RSEffectRenderNode>(id, context->weak_from_this());
     ASSERT_NE(effectNode, nullptr);
-    effectNode->childHasVisibleEffect_ = true;
     effectNode->GetMutableRenderProperties().boundsGeo_->absRect_ = DEFAULT_RECT1;  // mock filter rect.
-
-    auto subNode = std::make_shared<RSBaseRenderNode>(++id, context->weak_from_this());
-    ASSERT_NE(subNode, nullptr);
-    subNode->oldDirtyInSurface_ = DEFAULT_RECT2;  // mock child effect rect.
-    effectNode->visibleEffectChild_.emplace(subNode->GetId());
-    nodeMap.RegisterRenderNode(subNode);
 
     FilterDirtyRegionInfo filterInfo =
         RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*effectNode, std::nullopt, true);
-    ASSERT_TRUE(filterInfo.intersectRegion_.Sub(Occlusion::Region(Occlusion::Rect(DEFAULT_RECT2))).IsEmpty());
     ASSERT_TRUE(filterInfo.filterDirty_.Area() == filterInfo.intersectRegion_.Area());
 }
 
 /**
  * @tc.name: GenerateFilterDirtyRegionInfo_002
- * @tc.desc: test GenerateFilterDirtyRegionInfo, for surface node with side bar, filterRegion and DirtyRegion differs.
+ * @tc.desc: test GenerateFilterDirtyRegionInfo with valid GPU tile uses GPU tile alignment
  * @tc.type: FUNC
- * @tc.require: #issuesICA3L1
+ * @tc.require: issue23778
  */
 HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_002, TestSize.Level1)
 {
+    constexpr int gpuTileWidth = 128;
+    constexpr int gpuTileHeight = 128;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     NodeId id = 1;
-    auto testNode = std::make_shared<MockRSSurfaceRenderNode>(id);
-    ASSERT_NE(testNode, nullptr);
-    EXPECT_CALL(*testNode, GetOldDirtyInSurface()).WillRepeatedly(testing::Return(DEFAULT_RECT1));
-    EXPECT_CALL(*testNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(true));
-    EXPECT_CALL(*testNode, GetFilterRect()).WillRepeatedly(testing::Return(DEFAULT_RECT2));
+    auto effectNode = std::make_shared<RSEffectRenderNode>(id, context->weak_from_this());
+    effectNode->hasEffectChildrenWithoutEmptyRect_ = true;
+    effectNode->GetMutableRenderProperties().boundsGeo_->absRect_ = DEFAULT_RECT1;
 
     FilterDirtyRegionInfo filterInfo =
-        RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*testNode, std::nullopt, true);
-    ASSERT_FALSE(filterInfo.filterDirty_.Sub(Occlusion::Region(Occlusion::Rect(DEFAULT_RECT1))).IsEmpty());
+        RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*effectNode, std::nullopt, true);
+    EXPECT_TRUE(filterInfo.filterDirty_.Area() > 0);
+}
+
+/**
+ * @tc.name: GenerateFilterDirtyRegionInfo_003
+ * @tc.desc: test GenerateFilterDirtyRegionInfo with invalid GPU tile returns original region
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_003, TestSize.Level1)
+{
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(0, 0));
+
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    NodeId id = 1;
+    auto effectNode = std::make_shared<RSEffectRenderNode>(id, context->weak_from_this());
+    effectNode->hasEffectChildrenWithoutEmptyRect_ = true;
+    effectNode->GetMutableRenderProperties().boundsGeo_->absRect_ = DEFAULT_RECT1;
+
+    FilterDirtyRegionInfo filterInfo =
+        RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*effectNode, std::nullopt, true);
+    EXPECT_TRUE(filterInfo.filterDirty_.Area() > 0);
 }
 
 /**
@@ -656,6 +683,16 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_004, TestSize.Leve
         .addToDirty_ = true
     };
     surfaceDrawable->syncDirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo2, true);
+    // filter info3
+    auto drawable = GenerateBaseRenderNodeDrawableById(++nodeId);
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.insert(std::make_pair(nodeId, drawable));
+    FilterDirtyRegionInfo filterInfo3 = {
+        .id_ = nodeId,
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = filterRegion,
+    };
+    surfaceDrawable->syncDirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo3, true);
+    ASSERT_TRUE(RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled(filterInfo3));
     surfaceDrawables.push_back(surfaceDrawable);
 
     Occlusion::Region damageRegion = Occlusion::Region(Occlusion::Rect{0, 0, 1, 1});
@@ -696,45 +733,78 @@ HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_005, TestSize.Leve
 }
 
 /**
- * @tc.name: CheckMergeFilterDirty001
- * @tc.desc: test CheckMergeFilterDirty, if filter can be partially rendered, dirty collection can be skipped.
+ * @tc.name: FilterCachePartialRenderEnabled_001
+ * @tc.desc: test FilterCachePartialRenderEnabled_001, tset for nullptr side cases.
  * @tc.type: FUNC
- * @tc.require: #issuesICMQKE
+ * @tc.require: issue22993
  */
-HWTEST_F(RSUniDirtyComputeUtilTest, CheckMergeFilterDirty001, TestSize.Level1)
+HWTEST_F(RSUniDirtyComputeUtilTest, FilterCachePartialRenderEnabled_001, TestSize.Level1)
 {
-    auto testFunc = [](bool cacheValid, bool partialRender, bool forceDisable, bool expectation) {
-        auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
-        ASSERT_NE(dirtyManager, nullptr);
-        NodeId nodeId = 1;
-        FilterDirtyRegionInfo filterInfo = {
-            .id_ = nodeId,
-            .intersectRegion_ = Occlusion::Rect(DEFAULT_RECT1),
-            .filterDirty_ = Occlusion::Rect(DEFAULT_RECT2),
-            .forceDisablePartialRender_ = forceDisable
-        };
-        dirtyManager->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, true);
-
-        Occlusion::Region damageRegion = Occlusion::Rect(DEFAULT_RECT1);
-        RSFilterDirtyCollector::RecordFilterCacheValidForOcclusion(nodeId, cacheValid);
-        RSFilterDirtyCollector::SetValidCachePartialRender(partialRender);
-
-        RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(
-            damageRegion, damageRegion, *dirtyManager, std::nullopt, std::nullopt);
-        ASSERT_EQ(damageRegion.Area() == DEFAULT_RECT1.GetWidth() * DEFAULT_RECT1.GetHeight(), expectation);
-        RSFilterDirtyCollector::ResetFilterCacheValidForOcclusion();
+    FilterDirtyRegionInfo invalidFilterInfo = {
+        .id_ = INVALID_NODEID,
     };
-    // check cache status, if cache is valid and no particular reson to disable partial render,
-    // dirty collection can be skipped.
-    testFunc(false, false, false, false);
-    testFunc(false, true, false, false);
-    testFunc(true, false, false, false);
-    testFunc(true, true, false, true);
-    // if pixel stretch is valid for this node, dirty region should be expanded.
-    testFunc(false, false, true, false);
-    testFunc(false, true, true, false);
-    testFunc(true, false, true, false);
-    testFunc(true, true, true, false);
+    ASSERT_FALSE(RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled(invalidFilterInfo));
+}
+
+/**
+ * @tc.name: FilterCachePartialRenderEnabled_002
+ * @tc.desc: test FilterCachePartialRenderEnabled_002, tset for nullptr side cases.
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, FilterCachePartialRenderEnabled_002, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = GenerateBaseRenderNodeDrawableById(id);
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.insert(std::make_pair(id, drawable));
+    FilterDirtyRegionInfo canvasInfo = {
+        .id_ = id,
+    };
+    ASSERT_TRUE(RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled(canvasInfo));
+}
+
+/**
+ * @tc.name: FilterCachePartialRenderEnabled_003
+ * @tc.desc: test FilterCachePartialRenderEnabled_003, test with forceDisablePartialRender.
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, FilterCachePartialRenderEnabled_003, TestSize.Level1)
+{
+    NodeId id = 2;
+    auto drawable = GenerateBaseRenderNodeDrawableById(id);
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.insert(std::make_pair(id, drawable));
+    FilterDirtyRegionInfo info = {
+        .id_ = id,
+        .forceDisablePartialRender_ = true,
+    };
+    ASSERT_FALSE(RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled(info));
+}
+
+/**
+ * @tc.name: FilterCachePartialRenderEnabled_004
+ * @tc.desc: test FilterCachePartialRenderEnabled_004, tset for invalid cache.
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, FilterCachePartialRenderEnabled_004, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = GenerateBaseRenderNodeDrawableById(id);
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.insert(std::make_pair(id, drawable));
+    FilterDirtyRegionInfo canvasInfo = {
+        .id_ = id,
+    };
+    auto type = system::GetParameter("rosen.cachedblurpartialrender.enabled", "1");
+    system::SetParameter("rosen.cachedblurpartialrender.enabled", "0");
+    ASSERT_FALSE(RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled(canvasInfo));
+
+    bool defaultValidCachePartialRender = RSFilterDirtyCollector::GetValidCachePartialRender();
+    RSFilterDirtyCollector::SetValidCachePartialRender(false);
+    ASSERT_FALSE(RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled(canvasInfo));
+
+    system::SetParameter("rosen.cachedblurpartialrender.enabled", type);
+    RSFilterDirtyCollector::SetValidCachePartialRender(defaultValidCachePartialRender);
 }
 
 /**
@@ -911,5 +981,179 @@ HWTEST_F(RSUniDirtyComputeUtilTest, HasMirrorDisplay001, TestSize.Level1)
     nodeMap.logicalDisplayNodeMap_.emplace(index, nullptr);
     EXPECT_TRUE(RSUniDirtyComputeUtil::HasMirrorDisplay());
     nodeMap.logicalDisplayNodeMap_.clear();
+}
+
+/**
+ * @tc.name: ClipRegionTest001
+ * @tc.desc: test ClipRegion
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, ClipRegionTest001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    Drawing::Region region;
+    EXPECT_TRUE(region.IsEmpty());
+    RSUniDirtyComputeUtil::ClipRegion(canvas, region, false);
+
+    region.SetRect({0, 0, 100, 100});
+    EXPECT_FALSE(region.IsEmpty());
+    RSUniDirtyComputeUtil::ClipRegion(canvas, region, true);
+
+    EXPECT_TRUE(region.IsRect());
+    RSUniDirtyComputeUtil::ClipRegion(canvas, region);
+
+    region.SetRect({0, 0, -100, 100});
+    EXPECT_FALSE(region.IsRect());
+    RSUniDirtyComputeUtil::ClipRegion(canvas, region);
+}
+
+/**
+ * @tc.name: SetAndGetDamageRegionGpuTile001
+ * @tc.desc: test SetDamageRegionGpuTile and GetDamageRegionGpuTile
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, SetAndGetDamageRegionGpuTile001, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = 128;
+    constexpr int gpuTileHeight = 64;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+    EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileInited());
+    auto gpuTile = RSUniDirtyComputeUtil::GetDamageRegionGpuTile();
+    EXPECT_EQ(gpuTile.first, gpuTileWidth);
+    EXPECT_EQ(gpuTile.second, gpuTileHeight);
+}
+
+/**
+ * @tc.name: IsDamageRegionGpuTileValid001
+ * @tc.desc: test IsDamageRegionGpuTileValid returns true when both values are positive
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, IsDamageRegionGpuTileValid001, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = 128;
+    constexpr int gpuTileHeight = 128;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+    EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+}
+
+/**
+ * @tc.name: IsDamageRegionGpuTileValid002
+ * @tc.desc: test IsDamageRegionGpuTileValid returns false when first value is zero
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, IsDamageRegionGpuTileValid002, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = 0;
+    constexpr int gpuTileHeight = 128;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+    EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+}
+
+/**
+ * @tc.name: IsDamageRegionGpuTileValid003
+ * @tc.desc: test IsDamageRegionGpuTileValid returns false when second value is zero
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, IsDamageRegionGpuTileValid003, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = 128;
+    constexpr int gpuTileHeight = 0;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+    EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+}
+
+/**
+ * @tc.name: IsDamageRegionGpuTileValid004
+ * @tc.desc: test IsDamageRegionGpuTileValid returns false when both values are negative
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, IsDamageRegionGpuTileValid004, TestSize.Level1)
+{
+    constexpr int gpuTileWidth = -1;
+    constexpr int gpuTileHeight = -1;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+    EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+}
+
+/**
+ * @tc.name: GetRegionVisibleLevel001
+ * @tc.desc: Test GetRegionVisibleLevel with empty region, should return RS_INVISIBLE
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GetRegionVisibleLevel001, TestSize.Level1)
+{
+    // empty region
+    Occlusion::Region occRegion;
+    auto result = RSUniDirtyComputeUtil::GetRegionVisibleLevel(occRegion, occRegion);
+    EXPECT_EQ(result, RSVisibleLevel::RS_INVISIBLE);
+}
+
+/**
+ * @tc.name: GetRegionVisibleLevel002
+ * @tc.desc: Test GetRegionVisibleLevel with equal regions, should return RS_ALL_VISIBLE
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GetRegionVisibleLevel002, TestSize.Level1)
+{
+    // equal region
+    Occlusion::Region occRegion{Occlusion::Rect(0, 0, 1, 1)};
+    auto result = RSUniDirtyComputeUtil::GetRegionVisibleLevel(occRegion, occRegion);
+    EXPECT_EQ(result, RSVisibleLevel::RS_ALL_VISIBLE);
+}
+
+/**
+ * @tc.name: GetRegionVisibleLevel003
+ * @tc.desc: Test GetRegionVisibleLevel with uint64_t boundary scenario,
+ *           visible area greater than threshold but not equal to total area,
+ *           should return RS_SEMI_NONDEFAULT_VISIBLE
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GetRegionVisibleLevel003, TestSize.Level1)
+{
+    // Create region with area close to uint32_t boundary
+    // Area = 70000 * 70000 = 4,900,000,000 > UINT_MAX
+    Occlusion::Region boundaryRegion{Occlusion::Rect(0, 0, 70000, 70000)};
+
+    // Create visible region with area slightly above threshold
+    // Threshold = 4,900,000,000 >> 3 = 612,500,000
+    // visibleRegion.Area() = 25000 * 25000 = 625,000,000 > 612,500,000
+    Occlusion::Region mediumVisibleRegion{Occlusion::Rect(0, 0, 25000, 25000)};
+
+    // Should return RS_SEMI_NONDEFAULT_VISIBLE because visible area > (total area >> 3)
+    // but visible area != total area
+    auto result = RSUniDirtyComputeUtil::GetRegionVisibleLevel(boundaryRegion, mediumVisibleRegion);
+    EXPECT_EQ(result, RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE);
+}
+
+/**
+ * @tc.name: GetRegionVisibleLevel004
+ * @tc.desc: Test GetRegionVisibleLevel with large area that would overflow uint32_t,
+ *           visible area less than threshold (total area >> 3), should return RS_SEMI_DEFAULT_VISIBLE
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GetRegionVisibleLevel004, TestSize.Level1)
+{
+    // Create a large region that would overflow uint32_t
+    // Area = 100000 * 100000 = 10,000,000,000 > UINT_MAX (4,294,967,295)
+    Occlusion::Region largeRegion{Occlusion::Rect(0, 0, 100000, 100000)};
+
+    // Create a smaller visible region (less than 1/8 of largeRegion)
+    // VISIBLEAREARATIO_FORQOS = 3, so threshold is largeRegion.Area() >> 3 = 1,250,000,000
+    // visibleRegion.Area() = 1000 * 1000 = 1,000,000 < 1,250,000,000
+    Occlusion::Region smallVisibleRegion{Occlusion::Rect(0, 0, 1000, 1000)};
+
+    // Should return RS_SEMI_DEFAULT_VISIBLE because visible area < (total area >> 3)
+    auto result = RSUniDirtyComputeUtil::GetRegionVisibleLevel(largeRegion, smallVisibleRegion);
+    EXPECT_EQ(result, RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE);
 }
 } // namespace OHOS::Rosen

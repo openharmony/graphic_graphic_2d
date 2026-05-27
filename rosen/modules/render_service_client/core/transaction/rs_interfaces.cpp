@@ -39,6 +39,7 @@ constexpr uint32_t WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT = 6 * 1024 * 1024;
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
 constexpr int32_t SECURITYMASK_IMAGE_WIDTH_LIMIT = 4096;
 constexpr int32_t SECURITYMASK_IMAGE_HEIGHT_LIMIT = 4096;
+constexpr uint32_t MAX_WATERMARK_GRID_COUNT = 255;
 }
 #endif
 RSInterfaces &RSInterfaces::GetInstance()
@@ -47,8 +48,8 @@ RSInterfaces &RSInterfaces::GetInstance()
     return instance;
 }
 
-RSInterfaces::RSInterfaces() : renderServiceClient_(std::make_unique<RSRenderServiceClient>()),
-    renderInterface_(std::make_unique<RSRenderInterface>())
+// ToDo:应该把所有的RSRenderInterface接口都移走，为了开机暂时保留
+RSInterfaces::RSInterfaces() : renderServiceClient_(std::make_unique<RSRenderServiceClient>())
 {
 }
 
@@ -58,7 +59,7 @@ RSInterfaces::~RSInterfaces() noexcept
 
 int32_t RSInterfaces::SetFocusAppInfo(const FocusAppInfo& info)
 {
-    return renderInterface_->SetFocusAppInfo(info);
+    return 0;
 }
 
 ScreenId RSInterfaces::GetDefaultScreenId()
@@ -164,7 +165,7 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 }
 
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
-    SaSurfaceWatermarkMaxSize maxSizeEnum)
+    SaSurfaceWatermarkMaxSize maxSizeEnum, uint32_t rowCount, uint32_t colCount)
 {
 #ifdef ROSEN_OHOS
     if (renderServiceClient_ == nullptr) {
@@ -174,6 +175,11 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
         ROSEN_LOGE("SetWatermark failed, name[%{public}s] is error.", name.c_str());
         return false;
     }
+    if (rowCount > MAX_WATERMARK_GRID_COUNT || colCount > MAX_WATERMARK_GRID_COUNT) {
+        ROSEN_LOGE("SetSurfaceWatermark failed, rowCount[%{public}u] or colCount[%{public}u] out of range",
+            rowCount, colCount);
+        return false;
+    }
     uint32_t limitMaxSize = ((maxSizeEnum == SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE) ?
         WATERMARK_PIXELMAP_SIZE_LIMIT : WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT);
     if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > limitMaxSize)) {
@@ -181,7 +187,7 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
             watermark->IsAstc(), watermark->GetCapacity(), limitMaxSize, static_cast<uint32_t>(maxSizeEnum));
         return false;
     }
-    return renderServiceClient_->SetWatermark(name, watermark);
+    return renderServiceClient_->SetWatermark(name, watermark, rowCount, colCount);
 #else
     return false;
 #endif
@@ -189,20 +195,20 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
 
 uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string& name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount, uint32_t colCount)
 {
-    return renderInterface_->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
+    return 0;
 }
 
 void RSInterfaces::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
     const std::vector<NodeId>& nodeIdList)
 {
-    renderInterface_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+    return;
 }
 
 void RSInterfaces::ClearSurfaceWatermark(pid_t pid, const std::string& name)
 {
-    renderInterface_->ClearSurfaceWatermark(pid, name);
 }
 
 int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
@@ -211,10 +217,22 @@ int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callba
     return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
+sptr<IRemoteObject> RSInterfaces::GetConnectToRenderToken(ScreenId screenId)
+{
+    ROSEN_LOGI("ccc: RSInterfaces::%{public}s, %{public}" PRIu64, __func__, screenId);
+    return renderServiceClient_->GetConnectToRenderToken(screenId);
+}
+
 int32_t RSInterfaces::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback)
 {
     ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
     return renderServiceClient_->SetScreenSwitchingNotifyCallback(callback);
+}
+
+int32_t RSInterfaces::SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback &callback)
+{
+    ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
+    return renderServiceClient_->SetActiveScreenIdChangedCallback(callback);
 }
 
 int32_t RSInterfaces::SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback)
@@ -225,7 +243,7 @@ int32_t RSInterfaces::SetBrightnessInfoChangeCallback(const BrightnessInfoChange
 
 int32_t RSInterfaces::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
 {
-    return renderInterface_->GetBrightnessInfo(screenId, brightnessInfo);
+    return 0;
 }
 
 int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
@@ -236,57 +254,55 @@ int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMap
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return renderInterface_->TakeSurfaceCapture(node, callback, captureConfig);
+    return false;
 }
 
 bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
 {
-    return renderInterface_->TakeSurfaceCaptureWithBlur(node, callback, captureConfig, blurRadius);
+    return false;
 }
 
 bool RSInterfaces::TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return renderInterface_->TakeSelfSurfaceCapture(node, callback, captureConfig);
+    return false;
 }
 
 bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
 {
-    return renderInterface_->SetWindowFreezeImmediately(
-        node, isFreeze, callback, captureConfig, blurRadius);
+    return false;
 }
 
 bool RSInterfaces::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
     bool checkDrmAndSurfaceLock)
 {
-    return renderInterface_->TakeSurfaceCaptureWithAllWindows(
-        node, callback, captureConfig, checkDrmAndSurfaceLock);
+    return false;
 }
 
 bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze, bool needSync)
 {
-    return renderInterface_->FreezeScreen(node, isFreeze, needSync);
+    return false;
 }
 
-bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+bool RSInterfaces::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
-    return renderInterface_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
+    return false;
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return renderInterface_->TakeSurfaceCapture(node, callback, captureConfig);
+    return false;
 }
 
 bool RSInterfaces::TakeSurfaceCapture(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return renderInterface_->TakeSurfaceCapture(id, callback, captureConfig);
+    return false;
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -361,34 +377,32 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
     bool isSync, const Drawing::Rect& specifiedAreaRect)
 {
-    return renderInterface_->TakeSurfaceCaptureForUI(node, callback, scaleX, scaleY,
-        isSync, specifiedAreaRect);
+    return false;
 }
 
 bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return renderInterface_->TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
+    return false;
 }
 
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
     RSInterfaces::TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node)
 {
-    return renderInterface_->TakeSurfaceCaptureSoloNodeList(node);
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    return pixelMapIdPairVector;
 }
 
 bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
     bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
 {
-    return renderInterface_->TakeUICaptureInRange(
-        beginNode, endNode, useBeginNodeSize, callback, scaleX, scaleY, isSync);
+    return false;
 }
 
 bool RSInterfaces::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
     bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return renderInterface_->TakeUICaptureInRangeWithConfig(beginNode, endNode,
-        useBeginNodeSize, callback, captureConfig);
+    return false;
 }
 
 int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
@@ -408,7 +422,7 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
             result = renderServiceClient_->RegisterTypeface(tf, tf->GetIndex());
         }
         if (result != INVALID_FD) {
-            TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+            Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
         } else {
             RS_LOGE("RSInterfaces: Failed to register typeface, name: %{public}s hash: %{public}u",
                 tf->GetFamilyName().c_str(), tf->GetHash());
@@ -418,7 +432,7 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
         tf->GetFamilyName().c_str(), tf->GetUniqueID());
-    TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+    Drawing::TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
     return tf->GetFd();
 }
 
@@ -434,7 +448,7 @@ bool RSInterfaces::UnRegisterTypeface(uint32_t uniqueId)
 
 bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
 {
-    return renderInterface_->SetGlobalDarkColorMode(isDark);
+    return false;
 }
 
 int32_t RSInterfaces::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -520,11 +534,23 @@ int32_t RSInterfaces::SetDualScreenState(ScreenId id, DualScreenStatus status)
     return renderServiceClient_->SetDualScreenState(id, status);
 }
 
+int32_t RSInterfaces::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    ROSEN_LOGI("RSInterfaces::SetAsMainScreen. screenId[%{public}" PRIu64 "] isMainScreen[%{public}d]",
+               screenId, isMainScreen);
+    return renderServiceClient_->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSInterfaces::GetMainScreenId()
+{
+    return renderServiceClient_->GetMainScreenId();
+}
+
 #endif // !ROSEN_ARKUI_X
 bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
-    return renderInterface_->TakeSurfaceCaptureForUIWithoutUni(id, callback,  scaleX, scaleY);
+    return false;
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -563,10 +589,12 @@ int32_t RSInterfaces::GetScreenBacklight(ScreenId id)
     return renderServiceClient_->GetScreenBacklight(id);
 }
 
-void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
+void RSInterfaces::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
-    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
-    renderServiceClient_->SetScreenBacklight(id, level);
+    RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64
+        ", level: %{public}u, brightnessPosition: %{public}.4f",
+        brightnessData.screenId, brightnessData.level, brightnessData.brightnessPosition);
+    renderServiceClient_->SetScreenBacklight(brightnessData);
 }
 
 int32_t RSInterfaces::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
@@ -655,7 +683,7 @@ int32_t RSInterfaces::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat
 
 int32_t RSInterfaces::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
-    return renderInterface_->GetScreenHDRStatus(id, hdrStatus);
+    return 0;
 }
 
 int32_t RSInterfaces::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
@@ -715,23 +743,23 @@ int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefre
 
 bool RSInterfaces::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
-    return renderInterface_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
+    return false;
 }
 
 int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
-    return renderInterface_->RegisterOcclusionChangeCallback(callback);
+    return 0;
 }
 
 int32_t RSInterfaces::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
 {
-    return renderInterface_->RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
+    return 0;
 }
 
 int32_t RSInterfaces::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
 {
-    return renderInterface_->UnRegisterSurfaceOcclusionChangeCallback(id);
+    return 0;
 }
 
 int32_t RSInterfaces::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
@@ -764,6 +792,17 @@ int32_t RSInterfaces::UnRegisterFirstFrameCommitCallback()
     return renderServiceClient_->RegisterFirstFrameCommitCallback(nullptr);
 }
 
+int32_t RSInterfaces::RegisterExposedEventCallback(
+    const RSExposedEventType type, const RSExposedEventCallback& callback)
+{
+    return renderServiceClient_->RegisterExposedEventCallback(type, callback);
+}
+
+int32_t RSInterfaces::UnRegisterExposedEventCallback(const RSExposedEventType type)
+{
+    return renderServiceClient_->RegisterExposedEventCallback(type, nullptr);
+}
+
 int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
@@ -782,13 +821,12 @@ int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderInterface::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
-    renderInterface_->RegisterCanvasCallback(callback);
 }
 
 int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
-    return renderInterface_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+    return 0;
 }
 #endif
 
@@ -989,7 +1027,6 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSInterfaces::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
-    renderInterface_->DropFrameByPid(pidList, dropFrameLevel);
 }
 
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured)
@@ -999,7 +1036,7 @@ int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExten
 
 bool RSInterfaces::SetAncoForceDoDirect(bool direct)
 {
-    return renderInterface_->SetAncoForceDoDirect(direct);
+    return false;
 }
 
 bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
@@ -1009,33 +1046,37 @@ bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus scree
 
 void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
 {
-    renderServiceClient_->SetFreeMultiWindowStatus(enable);
+    return;
 }
 
 bool RSInterfaces::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback)
 {
-    return renderInterface_->RegisterTransactionDataCallback(token, timeStamp, callback);
+    return false;
 }
 
 bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     std::shared_ptr<SurfaceBufferCallback> callback)
 {
-    return renderInterface_->RegisterSurfaceBufferCallback(pid, uid, callback);
+    return false;
 }
 
 bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
-    return renderInterface_->UnregisterSurfaceBufferCallback(pid, uid);
+    return false;
 }
 
 void RSInterfaces::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
-    renderInterface_->SetLayerTopForHWC(nodeId, isTop, zOrder);
 }
 
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
+
+void RSInterfaces::SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled)
+{
+    renderServiceClient_->SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
 }
 
 void RSInterfaces::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
@@ -1057,7 +1098,6 @@ void RSInterfaces::NotifyScreenSwitched()
 
 void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
 {
-    renderInterface_->SetWindowContainer(nodeId, value);
 }
 
 int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(
@@ -1104,14 +1144,9 @@ int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 int32_t RSInterfaces::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     RS_LOGI("RSInterfaces::GetMaxGpuBufferSize called");
-    return renderInterface_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    return 0;
 }
 
-// LCOV_EXCL_START
-bool RSInterfaces::GetHighContrastTextState()
-{
-    return renderInterface_->GetHighContrastTextState();
-}
 // LCOV_EXCL_STOP
 bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
 {
@@ -1125,7 +1160,6 @@ bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 
 void RSInterfaces::ClearUifirstCache(NodeId id)
 {
-    renderInterface_->ClearUifirstCache(id);
 }
 
 void RSInterfaces::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
@@ -1155,29 +1189,29 @@ int32_t RSInterfaces::RegisterFrameStabilityDetection(
     const FrameStabilityConfig& config,
     const FrameStabilityCallback& callback)
 {
-    return renderInterface_->RegisterFrameStabilityDetection(target, config, callback);
+    return 0;
 }
 
 int32_t RSInterfaces::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
 {
-    return renderInterface_->UnregisterFrameStabilityDetection(target);
+    return 0;
 }
 
 int32_t RSInterfaces::StartFrameStabilityCollection(
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config)
 {
-    return renderInterface_->StartFrameStabilityCollection(target, config);
+    return 0;
 }
 
 int32_t RSInterfaces::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
 {
-    return renderInterface_->GetFrameStabilityResult(target, result);
+    return 0;
 }
 
 int32_t RSInterfaces::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {
-    return renderInterface_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+    return 0;
 }
 } // namespace Rosen
 } // namespace OHOS

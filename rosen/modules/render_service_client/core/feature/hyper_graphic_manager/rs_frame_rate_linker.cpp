@@ -18,8 +18,8 @@
 #include "command/rs_frame_rate_linker_command.h"
 #include "platform/common/rs_log.h"
 #include "sandbox_utils.h"
-#include "transaction/rs_transaction_proxy.h"
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {

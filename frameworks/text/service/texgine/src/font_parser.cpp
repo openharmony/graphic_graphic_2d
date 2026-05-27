@@ -39,7 +39,9 @@
 #ifdef ENABLE_OHOS_ENHANCE
 #include "locale_config.h"
 #endif
+#include "text/font_feature_query.h"
 #include "text/font_filetype.h"
+#include "text/font_language_query.h"
 #include "text/font_metadata.h"
 #include "text/font_unicode_query.h"
 #include "text/font_variation_info.h"
@@ -718,6 +720,13 @@ void FontParser::FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typefa
     FillFontDescriptorWithFallback(typeface, desc);
 }
 
+void FontParser::FillFontDescriptorWithLanguageAndFeatures(std::shared_ptr<Drawing::Typeface> typeface,
+    FontDescriptor& desc)
+{
+    desc.languages = Drawing::FontLanguageQuery::GenerateFontSupportedLanguages(typeface);
+    desc.fontFeatures = Drawing::FontFeatureQuery::GenerateFontSupportedFeatures(typeface);
+}
+
 int32_t FontParser::GetFontCount(const std::string& path)
 {
     int32_t fileCount = 0;
@@ -751,7 +760,7 @@ std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
     }
 
     FillFontDescriptorWithLocalInfo(typeface, desc);
-
+    FillFontDescriptorWithLanguageAndFeatures(typeface, desc);
     return std::make_shared<FontParser::FontDescriptor>(desc);
 }
 

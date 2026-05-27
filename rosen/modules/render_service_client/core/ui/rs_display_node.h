@@ -198,7 +198,7 @@ protected:
     RSDisplayNode& operator=(const RSDisplayNode&&) = delete;
 
 private:
-    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
     void OnBoundsSizeChanged() const override;
     void RegisterNodeMap() override;
     uint64_t screenId_;

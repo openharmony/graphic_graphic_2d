@@ -32,7 +32,6 @@ using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 class RSC_EXPORT RSRenderInterface {
 
 public:
-    RSRenderInterface();
     ~RSRenderInterface() noexcept;
     /**
      * @brief Get snapshot of surfaceNode.
@@ -177,7 +176,7 @@ public:
      * @param scaleY Indicates the scale of Y-axis.
      */
     bool TakeSurfaceCaptureForUIWithoutUni(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX, float scaleY);
+        float scaleX, float scaleY, const Drawing::Rect& specifiedAreaRect = {});
 
     /**
      * @brief Set selfdrawing node to topLayer force use DSS.
@@ -217,12 +216,23 @@ public:
 
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
+    bool RegisterBufferAvailableListener(
+        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
+    
+    bool RegisterBufferClearListener(
+        NodeId id, const BufferClearCallback &callback);
+ 
+    bool UnregisterBufferAvailableListener(NodeId id);
+
     /**
      * @brief Set the focus window information to renderService.
      * @param info Focus window information, Please refer to the definition for the specific content included.
      * @return 0 means success, others failed.
      */
     int32_t SetFocusAppInfo(const FocusAppInfo& info);
+
+    bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
     /**
      * @brief Set the process ID list requiring frame dropping. Next time RS triggers rending,
@@ -288,6 +298,8 @@ public:
      */
     bool SetGlobalDarkColorMode(bool isDark);
 
+    bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
+
     /*
      * @brief Set the system overload Animated Scenes to RS for special load shedding.
      * @param systemAnimatedScenes indicates the system animation scene.
@@ -296,11 +308,6 @@ public:
      */
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
     
-    /**
-     * @brief Get high contrast text state.
-     * @return Return true if high contrast text enabled, otherwise false.
-     */
-    bool GetHighContrastTextState();
     /**
      * @brief Freeze or unfreeze screen.
      * @param node Indicates a display node to freeze or unfreeze.
@@ -319,7 +326,7 @@ public:
      * @param positionW Indicates w coordinate position.
      * @return return true if set success, else return false
      */
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
+    bool SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     /**
@@ -348,7 +355,8 @@ public:
      */
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
         const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
      * @brief Set watermark for surfaceNode.
@@ -388,6 +396,17 @@ public:
      * @return 0 success, else failed.
      */
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
+
+    /**
+     * @brief Update the target ID for an existing frame stability detection.
+     * @param oldTarget Frame stability target (screen or node).
+     * @param newTarget Frame stability target (screen or node).
+     * @return 0 means success, others failed.
+     */
+    int32_t UpdateFrameStabilityDetection(
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    );
 
     /**
      * @brief Set logical camera rotation correction, used to correct logical rotation.
@@ -437,12 +456,33 @@ public:
      */
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result);
 
+    /**
+     * @brief Set free multi window status.
+     * @param enable Indicates whether enable.
+     */
+    void SetFreeMultiWindowStatus(bool enable);
+
 private:
-    std::unique_ptr<RSRenderPipelineClient> renderPipelineClient_;
+    RSRenderInterface();
+    RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
+
+    bool CreateNode(const RSSurfaceRenderNodeConfig& config);
+    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
+    RSInterfaceErrorCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
+    void SetHardwareEnabled(NodeId id, bool isEnabled,
+        SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT, bool dynamicHardwareEnable = true);
+    std::shared_ptr<RSRenderPipelineClient> GetRSRenderPipelineClient() const
+    {
+        return renderPipelineClient_;
+    }
+
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient_;
     friend class RSUIContext;
     friend class RSApplicationAgentImpl;
     friend class RSDisplayNode;
     friend class RSSurfaceNode;
+    friend class RSUIContextManager;
 };
 }
 }

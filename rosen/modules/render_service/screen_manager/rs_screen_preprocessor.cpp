@@ -129,9 +129,26 @@ bool RSScreenPreprocessor::Init() noexcept
     if (composer_->RegScreenVBlankIdleCallback(&RSScreenPreprocessor::OnScreenVBlankIdle, this) != 0) {
         RS_LOGW("%{public}s: Not support register OnScreenVBlankIdle Func to composer", __func__);
     }
-    ProcessScreenHotPlugEvents();
+    ScheduleTask([this]() {
+        // Note: When RegHwcEventCallback() returns, the OnHotPlug callback has already been synchronously
+        // invoked for all currently connected screens by the HDI backend.
+        // This implicit synchronous behavior ensures default screen connections are
+        // processed before we check for 'no screen' scenarios here.
+        ProcessNoScreenAfterRegHwcEventCallback();
+    });
+
     RS_LOGI("Init RSScreenPreprocessor succeed");
     return true;
+}
+
+void RSScreenPreprocessor::ProcessNoScreenAfterRegHwcEventCallback()
+{
+    screenManager_.noScreenProcessed_ = true;
+    if (!screenManager_.HasPhysicalScreen()) {
+        callbackMgr_.NotifyNoScreen(isHwcDead_.load() ? ScreenChangeReason::HWCDEAD : ScreenChangeReason::DEFAULT);
+        isHwcDead_ = false;
+        RS_LOGI("%{public}s: no screen after init.", __func__);
+    }
 }
 
 void RSScreenPreprocessor::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bool connected)
@@ -147,10 +164,7 @@ void RSScreenPreprocessor::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bo
         RS_LOGI("%{public}s: screen %{public}" PRIu64 "is %{public}s, event has been saved", __func__, id,
             connected ? "connected" : "disconnected");
     }
-    if (isHwcDead_) {
-        RS_LOGE("%{public}s: hotPlugEvent should be processed after Init() on hwc dead.", __func__);
-        return;
-    }
+
     ScheduleTask([this]() {
         ProcessScreenHotPlugEvents();
     });
@@ -281,7 +295,10 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
 void RSScreenPreprocessor::OnHwcEventCallback(
     uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
-    callbackMgr_.NotifyHwcEvent(deviceId, eventId, eventData);
+    auto task = [this, deviceId, eventId, eventData] () {
+        callbackMgr_.NotifyHwcEvent(deviceId, eventId, eventData);
+    };
+    ScheduleTask(task);
 }
 
 void RSScreenPreprocessor::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
@@ -297,6 +314,38 @@ void RSScreenPreprocessor::ScheduleTask(std::function<void()> task)
     if (mainHandler_) {
         mainHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
+}
+
+void RSScreenPreprocessor::OnPhysicalScreenProcessDisconnected(ScreenId screenId)
+{
+    RS_LOGW("%{public}s: screen %{public}" PRIu64 " is disconnected due to process disconnected.", __func__, screenId);
+    ScheduleTask([this, screenId]() {
+        callbackMgr_.NotifyPhysicalScreenProcessDisconnected(screenId);
+    });
+}
+
+void RSScreenPreprocessor::OnVirtualScreenProcessDisconnected(ScreenId screenId)
+{
+    RS_LOGW("%{public}s: virtualscreen %{public}" PRIu64 " is disconnected due to process disconnected.",
+        __func__, screenId);
+    ScheduleTask([this, screenId]() {
+        callbackMgr_.NotifyVirtualScreenProcessDisconnected(screenId);
+    });
+}
+
+void RSScreenPreprocessor::ReconnectProcess(std::shared_ptr<HdiOutput> output)
+{
+    if (output == nullptr) {
+        RS_LOGE("%{public}s: output is nullptr", __func__);
+        return;
+    }
+    ScreenId screenId = ToScreenId(output->GetScreenId());
+    RS_LOGW("%{public}s: screen %{public}" PRIu64 " is reconnected due to process reconnected.", __func__, screenId);
+    ScreenPresenceEvent event = {
+        .id = screenId, .output = output, .property = screenManager_.QueryScreenProperty(screenId) };
+    ScheduleTask([this, event]() {
+        callbackMgr_.NotifyScreenConnected(event);
+    });
 }
 } // namespace OHOS
 } // namespace Rosen

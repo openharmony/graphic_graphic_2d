@@ -54,9 +54,10 @@ static bool HasInitializationFinished()
 
 static std::string GetBetaRecordFileName(uint32_t index)
 {
-    constexpr uint32_t ten = 10u;
-    const std::string cacheFile("/data/service/el0/render_service/file");
-    return cacheFile + ((index < ten) ? "0" : "") + std::to_string(index) + ".ohr";
+    const auto process = Utils::GetFileName(Utils::GetCurrentProcessName());
+    return ((process.find("render_service:") == process.npos) || (process == "render_service:0"))
+               ? Utils::Format("/data/service/el0/render_service/file%02d.ohr", index)
+               : Utils::Format("/data/service/el0/render_service/%s-file%02d.ohr", process.data(), index);
 }
 
 void RSProfiler::LaunchBetaRecordFileSplitThread()
@@ -81,9 +82,10 @@ void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
         while (IsBetaRecordStarted()) {
             const DeviceInfo deviceInfo = RSTelemetry::GetDeviceInfo();
 
-            g_deviceInfoMutex.lock();
-            g_deviceInfo = deviceInfo;
-            g_deviceInfoMutex.unlock();
+            {
+                const std::lock_guard<std::mutex> guard(g_deviceInfoMutex);
+                g_deviceInfo = deviceInfo;
+            }
 
             constexpr int32_t sendInterval = 8;
             std::this_thread::sleep_for(std::chrono::milliseconds(sendInterval));

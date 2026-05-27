@@ -39,6 +39,9 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode(const RSSurfa
     csurf = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     rsSurfaceRenderNode->InitRenderParams();
+    if (rsSurfaceRenderNode->renderDrawable_ != nullptr) {
+        rsSurfaceRenderNode->renderDrawable_->renderParams_->renderNodeType_ = rsSurfaceRenderNode->GetType();
+    }
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
     if (uniRenderThread_ == nullptr) {
         uniRenderThread_ = std::make_shared<RSUniRenderThread>();
@@ -66,7 +69,6 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
-    RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     OHOS::sptr<SurfaceBuffer> cbuffer;
     Rect damage;

@@ -31,6 +31,7 @@
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
 #include "feature/uifirst/rs_frame_control.h"
+#include "feature/behind_window_filter/rs_behind_window_filter_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "monitor/self_drawing_node_monitor.h"
@@ -162,7 +163,8 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
-      bundleName_(config.bundleName)
+      bundleName_(config.bundleName),
+      tunnelRuntimeState_(std::make_unique<RSTunnelRuntimeState>())
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -192,12 +194,25 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
 #endif
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
     RsCommandVerifyHelper::GetInstance().SubSurfaceNodeCreateCnt(ExtractPid(GetId()));
+    if (GetNodeIsSingleFrameComposer()) {
+        pid_t pid = ExtractPid(GetId());
+        if (pid != 0) {
+            RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, pid);
+        }
+    }
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 {
-    GetMutableRSSurfaceHandler()->SetConsumer(consumer);
+    auto surfaceHandler = GetMutableRSSurfaceHandler();
+    if (surfaceHandler == nullptr) {
+        return;
+    }
+    if (surfaceHandler->GetConsumer() != consumer && tunnelRuntimeState_ != nullptr) {
+        tunnelRuntimeState_->Clear();
+    }
+    surfaceHandler->SetConsumer(consumer);
 }
 #endif
 
@@ -483,6 +498,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
+        uifirstState_.needSync = true;
     } else if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         FindScreenId();
     }
@@ -722,7 +738,7 @@ void RSSurfaceRenderNode::ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanv
 
 #ifndef ROSEN_CROSS_PLATFORM
     RSPropertiesPainter::DrawBackground(
-        property, canvas, true, IsSelfDrawingNode() && (surfaceHandler_->GetBuffer() != nullptr));
+        property, canvas, true, HasSurfaceBuffer() && (surfaceHandler_->GetBuffer() != nullptr));
 #else
     RSPropertiesPainter::DrawBackground(property, canvas);
 #endif
@@ -851,6 +867,7 @@ void RSSurfaceRenderNode::SetContextClipRegion(const std::optional<Drawing::Rect
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetContextClipRegion>(GetId(), clipRegion);
     SendCommandFromRT(command, GetId());
 }
+
 void RSSurfaceRenderNode::SetBootAnimation(bool isBootAnimation)
 {
     ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 ", isBootAnimation:%{public}d",
@@ -1105,15 +1122,13 @@ void RSSurfaceRenderNode::SetScreenSpecialLayerStatus(ScreenId screenId, uint32_
     }
 }
 
-void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
+void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo(const std::unordered_set<ScreenId>& screenIds)
 {
     if (!IsLeashOrMainWindow()) {
         return;
     }
-    auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
-        SpecialLayerType::IS_WHITE_LIST, {GetId(), GetLeashPersistentId()});
     SetScreensWithSubTreeWhitelist(screenIds);
-    RSRenderNode::SyncWhiteListInfoToParent();
+    SyncWhiteListInfoToParent();
 }
 
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
@@ -1199,14 +1214,24 @@ bool RSSurfaceRenderNode::CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> 
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
 {
     if (forceUIFirst) {
-        forceUIFirstChanged_ = true;
+        uifirstState_.forceStateChanged = true;
     }
-    forceUIFirst_ = forceUIFirst;
+    uifirstState_.forceUIFirst = forceUIFirst;
 }
 
-bool RSSurfaceRenderNode::GetForceDrawWithSkipped() const
+void RSSurfaceRenderNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 {
-    return uifirstForceDrawWithSkipped_;
+    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isForceFlag:%d, isUifirstEnable:%d",
+        GetId(), isForceFlag, isUifirstEnable);
+    ROSEN_LOGI("MarkUifirstNode id:%{public}" PRIu64 " isForceFlag:%{public}d, isUifirstEnable:%{public}d",
+        GetId(), isForceFlag, isUifirstEnable);
+    uifirstState_.isForceMarked = isForceFlag;
+    uifirstState_.isEnabled = isUifirstEnable;
+}
+
+bool RSSurfaceRenderNode::GetUifirstNodeForceFlag() const
+{
+    return uifirstState_.isForceMarked;
 }
 
 void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
@@ -1327,11 +1352,11 @@ bool RSSurfaceRenderNode::HDRColorHeadroomEnabled()
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
 {
-    forceUIFirstChanged_ = forceUIFirstChanged;
+    uifirstState_.forceStateChanged = forceUIFirstChanged;
 }
 bool RSSurfaceRenderNode::GetForceUIFirstChanged()
 {
-    return forceUIFirstChanged_;
+    return uifirstState_.forceStateChanged;
 }
 
 void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
@@ -1402,6 +1427,18 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop, bool isTopLayerForceRefresh)
 #endif
 }
 
+void RSSurfaceRenderNode::SetHdrForceHwcEnabled(bool isHdrForceHwcEnabled)
+{
+    isHdrForceHwcEnabled_ = isHdrForceHwcEnabled;
+    SetContentDirty();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::SetForceRefresh(bool isForceRefresh)
 {
 #ifdef RS_ENABLE_GPU
@@ -1461,6 +1498,9 @@ void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 
 GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
@@ -1658,12 +1698,12 @@ void RSSurfaceRenderNode::SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvaila
     }
 }
 
-void RSSurfaceRenderNode::ConnectToNodeInRenderService()
+void RSSurfaceRenderNode::ConnectToNodeInRenderService(sptr<IRemoteObject> connectToRender)
 {
     ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %{public}" PRIu64, GetId());
-    auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
-    if (renderPipelineClient != nullptr) {
-        renderPipelineClient->RegisterBufferAvailableListener(
+    rsRenderPipelineClient_ = std::make_shared<RSRenderPipelineClient>(connectToRender);
+    if (rsRenderPipelineClient_ != nullptr) {
+        rsRenderPipelineClient_->RegisterBufferAvailableListener(
             GetId(), [weakThis = weak_from_this()]() {
                 auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
                 if (node == nullptr) {
@@ -1671,7 +1711,7 @@ void RSSurfaceRenderNode::ConnectToNodeInRenderService()
                 }
                 node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
             }, true);
-        renderPipelineClient->RegisterBufferClearListener(
+        rsRenderPipelineClient_->RegisterBufferClearListener(
             GetId(), [weakThis = weak_from_this()]() {
                 auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
                 if (node == nullptr) {
@@ -1720,7 +1760,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
 {
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode::NotifyUIBufferAvailable id:%llu bufferAvailable:%d waitUifirst:%d",
         GetId(), IsNotifyUIBufferAvailable(), IsWaitUifirstFirstFrame());
-    if (isNotifyUIBufferAvailable_ || isWaitUifirstFirstFrame_) {
+    if (isNotifyUIBufferAvailable_ || uifirstState_.isWaitFirstFrame) {
         return;
     }
     isNotifyUIBufferAvailable_ = true;
@@ -2169,7 +2209,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     }
     contentStatic = contentStatic && !isAccessibilityChanged;
-    uifirstContentDirty_ = uifirstContentDirty_ || uifirstContentDirty || HasRemovedChild();
+    uifirstState_.contentDirty = uifirstState_.contentDirty || uifirstContentDirty || HasRemovedChild();
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic, lastFrameSynced_);
@@ -2181,7 +2221,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
         "name[%s] Id[%" PRIu64 "], contentStatic[%d] subTreeDirty[%d] contentDirty[%d] forceUpdate[%d] "
         "accessibilityChanged[%d] hasRemovedChild[%d], GetChildrenCount[%d], uifirstContentDirty:%d",
         GetName().c_str(), GetId(), contentStatic, IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst(),
-        isAccessibilityChanged, HasRemovedChild(), GetChildrenCount(), uifirstContentDirty_);
+        isAccessibilityChanged, HasRemovedChild(), GetChildrenCount(), uifirstState_.contentDirty);
 #endif
 }
 
@@ -2440,7 +2480,7 @@ void RSSurfaceRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
-    if (IsMainWindowType() || IsLeashWindow() || GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE) {
+    if (IsMainWindowType() || IsLeashWindow() || GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
         if (surfaceParams == nullptr) {
             RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
@@ -2506,7 +2546,7 @@ void RSSurfaceRenderNode::UpdateLayerPartRenderStatus(std::shared_ptr<RSDirtyReg
     if (dirtyManager == nullptr) {
         return;
     }
-    if (GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE || GetSubThreadAssignable()) {
+    if (GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE || GetSubThreadAssignable()) {
         dirtyManager->SetHasUifirstChild(true);
     }
 }
@@ -2721,7 +2761,7 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
                 continue;
             }
             hwcNodePtr->SetHardwareForcedDisabledState(true);
-            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
+            RS_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
                 hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
         }
     };
@@ -2872,7 +2912,7 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 }
 
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
+    NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
     if (!onTree) {
         screenId_ = INVALID_SCREEN_ID;
@@ -2933,10 +2973,8 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             monitor.EraseCurRectMap(GetId());
         }
     }
-    // if node is marked as cacheRoot, update subtree status when update surface
-    // in case prepare stage upper cacheRoot cannot specify dirty subnode
-    RSBaseRenderNode::SetIsOnTheTree(onTree, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-        INVALID_NODEID, screenNodeId, logicalDisplayNodeId);
+    RSBaseRenderNode::SetIsOnTheTree(
+        onTree, instanceRootNodeId, firstLevelNodeId, INVALID_NODEID, screenNodeId, logicalDisplayNodeId);
 }
 
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
@@ -2999,6 +3037,11 @@ bool RSSurfaceRenderNode::GetNodeIsSingleFrameComposer() const
         }
     }
     return isNodeSingleFrameComposer_ || flag;
+}
+
+void RSSurfaceRenderNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid)
+{
+    isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
 }
 
 bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
@@ -3370,6 +3413,33 @@ void RSSurfaceRenderNode::SetCornerRadiusInfoForDRM(const std::vector<float>& dr
 #endif
 }
 
+void RSSurfaceRenderNode::SetVcldInfo(const RSVcldParam& vcldInfo)
+{
+    if (vcldInfo_ == vcldInfo) {
+        return;
+    }
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        return;
+    }
+    stagingSurfaceParams->SetVcldInfo(vcldInfo);
+    vcldInfo_ = vcldInfo;
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::ResetVcldInfo()
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        return;
+    }
+    vcldInfo_.enable = false;
+    vcldInfo_.radius = 0.f;
+    stagingSurfaceParams->SetVcldInfo(vcldInfo_);
+    stagingSurfaceParams->SetRRectForVCLD(RRect({0, 0, 0, 0}, {0, 0, 0, 0}));
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::SetForceDisableClipHoleForDRM(bool isForceDisable)
 {
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
@@ -3559,15 +3629,15 @@ RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
 
 bool RSSurfaceRenderNode::IsWaitUifirstFirstFrame() const
 {
-    return isWaitUifirstFirstFrame_;
+    return uifirstState_.isWaitFirstFrame.load();
 }
 
 void RSSurfaceRenderNode::SetWaitUifirstFirstFrame(bool wait)
 {
-    if (isWaitUifirstFirstFrame_ == wait) {
+    if (uifirstState_.isWaitFirstFrame.load() == wait) {
         return;
     }
-    isWaitUifirstFirstFrame_ = wait;
+    uifirstState_.isWaitFirstFrame.store(wait);
     RS_TRACE_NAME_FMT("SetWaitUifirstFirstFrame id:%" PRIu64 ", wait:%d", GetId(), wait);
     RS_LOGI("SetWaitUifirstFirstFrame id:%{public}" PRIu64 ", wait:%{public}d", GetId(), wait);
 }
@@ -3603,7 +3673,8 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
     return RSSystemProperties::GetBehindWindowFilterEnabled() && !GetRenderProperties().GetBackgroundFilter() &&
-        !childrenBlurBehindWindow_.empty() && GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER);
+        !childrenBlurBehindWindow_.empty() && GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER) &&
+        RSBehindWindowFilterManager::Instance().IsBehindWindowFilterEnabledByCCM();
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
@@ -3644,10 +3715,10 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
             return;
         }
     }
-
+#ifndef ROSEN_ARKUI_X
     // [Attention] Update behind region for pc window keyframe feature
     RSWindowKeyFrameRenderNode::UpdateKeyFrameBehindWindowRegion(*this, *context, region);
-
+#endif
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %lu, BehindWindowRegion: %s",
         GetId(), region.ToString().c_str());
     RS_LOGD("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %{public}" PRIu64 ", BehindWindowRegion: %{public}s",
@@ -3792,6 +3863,16 @@ bool RSSurfaceRenderNode::GetSurfaceBufferOpaque() const
     return isSurfaceBufferOpaque_;
 }
 
+void RSSurfaceRenderNode::SetHDRType(uint32_t hdrType)
+{
+    hdrType_ = hdrType;
+}
+
+uint32_t RSSurfaceRenderNode::GetHDRType() const
+{
+    return hdrType_;
+}
+
 bool RSSurfaceRenderNode::isForcedClipHole() const
 {
     const std::string& tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();
@@ -3856,6 +3937,9 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetCurGamut() const
 
 GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetFirstLevelNodeGamut() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
@@ -4049,17 +4133,17 @@ void RSSurfaceRenderNode::CountRelatedNode(bool isIncrement)
     relatedNodeNum_ += isIncrement ? 1 : -1;
     SetRelatedSourceNode(relatedNodeNum_ > 0);
     if (!IsRelatedSourceNode()) {
-        ClearRelatedSourceCache();
+        ClearRelatedSourceCache(true);
     }
 }
 
-void RSSurfaceRenderNode::ClearRelatedSourceCache()
+void RSSurfaceRenderNode::ClearRelatedSourceCache(bool value)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetNeedClearRelatedCache(true);
+    surfaceParams->SetNeedClearRelatedCache(value);
     AddToPendingSyncList();
 }
 } // namespace Rosen

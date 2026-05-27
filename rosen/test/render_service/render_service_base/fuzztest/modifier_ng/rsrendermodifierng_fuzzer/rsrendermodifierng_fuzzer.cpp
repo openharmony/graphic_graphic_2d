@@ -15,115 +15,85 @@
 
 #include "rsrendermodifierng_fuzzer.h"
 
+#include <fuzzer/FuzzedDataProvider.h>
+
 #include "pipeline/rs_render_node.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <securec.h>
-
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* DATA = nullptr;
-size_t g_size = 0;
-size_t g_pos;
-} // namespace
-
-/*
- * describe: get data from outside untrusted data(DATA) which size is according to sizeof(T)
- * tips: only support basic type
- */
-template<class T>
-T GetData()
-{
-    T object {};
-    size_t objectSize = sizeof(object);
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
-    if (ret != EOK) {
-        return {};
-    }
-    g_pos += objectSize;
-    return object;
+const uint8_t DO_ATTACH_PROPERTY = 0;
+const uint8_t DO_DETACH_PROPERTY = 1;
+const uint8_t DO_APPLY_LEGACY_PROPERTY = 2;
+const uint8_t DO_FIND_PROPERTY_TYPE = 3;
+const uint8_t TARGET_SIZE = 4;
 }
 
-bool DoAttachPropertyFuzzTest(const uint8_t* data, size_t size)
+void DoAttachPropertyFuzzTest(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // test
-    ModifierId id = GetData<ModifierId>();
+    ModifierId id = fdp.ConsumeIntegral<ModifierId>();
     auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>(id);
-    std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
-    ModifierNG::RSPropertyType type = GetData<ModifierNG::RSPropertyType>();
+    auto property = std::make_shared<RSRenderProperty<bool>>();
+    ModifierNG::RSPropertyType type =
+        static_cast<ModifierNG::RSPropertyType>(fdp.ConsumeIntegral<uint32_t>());
     modifier->AttachProperty(type, property);
-    return true;
 }
 
-bool DoDetachPropertyFuzzTest(const uint8_t* data, size_t size)
+void DoDetachPropertyFuzzTest(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // test
-    ModifierId id = GetData<ModifierId>();
+    ModifierId id = fdp.ConsumeIntegral<ModifierId>();
     auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>(id);
-    ModifierNG::RSPropertyType type = GetData<ModifierNG::RSPropertyType>();
+    ModifierNG::RSPropertyType type =
+        static_cast<ModifierNG::RSPropertyType>(fdp.ConsumeIntegral<uint32_t>());
     modifier->DetachProperty(type);
-    return true;
 }
 
-bool DoApplyLegacyPropertyFuzzTest(const uint8_t* data, size_t size)
+void DoApplyLegacyPropertyFuzzTest(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // test
-    ModifierId id = GetData<ModifierId>();
+    ModifierId id = fdp.ConsumeIntegral<ModifierId>();
     auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>(id);
     RSProperties properties;
-    properties.SetAlpha(GetData<float>());
-    properties.SetAlphaOffscreen(GetData<bool>());
+    properties.SetAlpha(fdp.ConsumeFloatingPoint<float>());
+    properties.SetAlphaOffscreen(fdp.ConsumeBool());
     modifier->ApplyLegacyProperty(properties);
-    return true;
 }
 
-bool DoFindPropertyTypeFuzzTest(const uint8_t* data, size_t size)
+void DoFindPropertyTypeFuzzTest(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // test
-    ModifierId id = GetData<ModifierId>();
+    ModifierId id = fdp.ConsumeIntegral<ModifierId>();
     auto modifier = std::make_shared<ModifierNG::RSAlphaRenderModifier>(id);
-    std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
+    auto property = std::make_shared<RSRenderProperty<bool>>();
     modifier->FindPropertyType(property);
-    return true;
 }
+
 } // namespace Rosen
 } // namespace OHOS
 
-/* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    // initialize
-    OHOS::Rosen::DATA = data;
-    OHOS::Rosen::g_size = size;
-    OHOS::Rosen::g_pos = 0;
+    if (data == nullptr) {
+        return -1;
+    }
 
-    /* Run your code on data */
-    OHOS::Rosen::DoAttachPropertyFuzzTest(data, size);
-    OHOS::Rosen::DoDetachPropertyFuzzTest(data, size);
-    OHOS::Rosen::DoApplyLegacyPropertyFuzzTest(data, size);
-    OHOS::Rosen::DoFindPropertyTypeFuzzTest(data, size);
+    FuzzedDataProvider fdp(data, size);
+    uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_ATTACH_PROPERTY:
+            OHOS::Rosen::DoAttachPropertyFuzzTest(fdp);
+            break;
+        case OHOS::Rosen::DO_DETACH_PROPERTY:
+            OHOS::Rosen::DoDetachPropertyFuzzTest(fdp);
+            break;
+        case OHOS::Rosen::DO_APPLY_LEGACY_PROPERTY:
+            OHOS::Rosen::DoApplyLegacyPropertyFuzzTest(fdp);
+            break;
+        case OHOS::Rosen::DO_FIND_PROPERTY_TYPE:
+            OHOS::Rosen::DoFindPropertyTypeFuzzTest(fdp);
+            break;
+        default:
+            break;
+    }
     return 0;
 }

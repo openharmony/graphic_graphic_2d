@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_render_curve_animation.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -25,6 +26,8 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
     const RectI DEFAULT_RECT = {0, 0, 100, 100};
+    constexpr uint64_t ANIMATION_ID = 12345;
+    constexpr uint64_t PROPERTY_ID = 54321;
 } // namespace
 
 class RSBaseRenderNodeTest : public testing::Test {
@@ -386,7 +389,7 @@ HWTEST_F(RSBaseRenderNodeTest, SetGlobalAlpha, TestSize.Level1)
 
     alpha = 0.7f;
     node->SetGlobalAlpha(alpha);
-    ASSERT_EQ(node->globalAlpha_, alpha);
+    ASSERT_EQ(node->GetGlobalAlpha(), alpha);
 }
 
 /**
@@ -439,7 +442,7 @@ HWTEST_F(RSBaseRenderNodeTest, MarkNodeGroup, TestSize.Level1)
     isNodeGroup = true;
     type = RSRenderNode::NodeGroupType::GROUPED_BY_UI;
     node->MarkNodeGroup(type, isNodeGroup, includeProperty);
-    ASSERT_EQ(node->nodeGroupIncludeProperty_, includeProperty);
+    ASSERT_EQ(node->IsRenderGroupIncludeProperty(), includeProperty);
 }
 
 /**
@@ -488,6 +491,7 @@ HWTEST_F(RSBaseRenderNodeTest, GetFilterRect, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->InitRenderParams();
     node->OnTreeStateChanged();
 
     node->isOnTheTree_ = true;
@@ -643,7 +647,7 @@ HWTEST_F(RSBaseRenderNodeTest, SetContainBootAnimation, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     bool isContainBootAnimation = true;
     node->SetContainBootAnimation(isContainBootAnimation);
-    ASSERT_TRUE(node->isContainBootAnimation_);
+    ASSERT_FALSE(node->IsContainBootAnimation());
 }
 
 /**
@@ -914,23 +918,77 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateDisplaySyncRange, TestSize.Level1)
 }
 
 /**
- * @tc.name: Animate
+ * @tc.name: Animate001
  * @tc.desc: test results of Animate
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9KBCZ
  */
-HWTEST_F(RSBaseRenderNodeTest, Animate, TestSize.Level1)
+HWTEST_F(RSBaseRenderNodeTest, Animate001, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     int64_t timestamp = 4;
     int64_t period = 2;
     bool isDisplaySyncEnabled = true;
     int64_t leftDelayTime = 0;
-    node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
-
+    int64_t nextFrameTime = 0;
+    node->Animate(timestamp, leftDelayTime, nextFrameTime, period, isDisplaySyncEnabled);
+ 
     node->displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
-    node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
+    node->displaySync_->SetExpectedFrameRateRange({0, 120, 60});
+    node->displaySync_->timestamp_ = 1000000000;
+    node->displaySync_->currentPeriod_ = 8333333;
+    node->displaySync_->currentFrameRate_ = 120;
+    node->displaySync_->vsyncTriggerCount_ = 1;
+    node->displaySync_->skipPeriodCount_ = 2;
+    node->displaySync_->skipPeriodCountNeedUpdate_ = false;
+ 
+    timestamp = 1016666666;
+    period = 8333333;
+    leftDelayTime = 1;
+    nextFrameTime = 1;
+    node->Animate(timestamp, leftDelayTime, nextFrameTime, period, isDisplaySyncEnabled);
+    EXPECT_EQ(leftDelayTime, 1);
+ 
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: Animate002
+ * @tc.desc: test results of Animate
+ * @tc.type: FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, Animate002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+ 
+    node->displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
+    ASSERT_NE(node->displaySync_, nullptr);
+ 
+    node->displaySync_->SetExpectedFrameRateRange({0, 120, 5});
+    node->displaySync_->timestamp_ = 1000000000;
+    node->displaySync_->currentPeriod_ = 16666666;
+    node->displaySync_->currentFrameRate_ = 60;
+    node->displaySync_->vsyncTriggerCount_ = 60;
+    node->displaySync_->skipPeriodCount_ = 12;
+    node->displaySync_->skipPeriodCountNeedUpdate_ = true;
+ 
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    node->AddAnimation(renderCurveAnimation);
+ 
+    int64_t timestamp = 1016666666;
+    int64_t period = 16666666;
+    bool isDisplaySyncEnabled = true;
+    int64_t minLeftDelayTime = 1;
+    int64_t nextFrameTime = 0;
+    node->Animate(timestamp, minLeftDelayTime, nextFrameTime, period, isDisplaySyncEnabled);
+ 
+    EXPECT_EQ(minLeftDelayTime, 0);
 }
 
 /**
@@ -989,18 +1047,6 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateDirtyRegion, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsSelfDrawingNode
- * @tc.desc: test results of IsSelfDrawingNode
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, IsSelfDrawingNode, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    ASSERT_FALSE(node->IsSelfDrawingNode());
-}
-
-/**
  * @tc.name: IsDirty
  * @tc.desc: test results of IsDirty
  * @tc.type:FUNC
@@ -1038,8 +1084,7 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateRenderStatus, TestSize.Level1)
     node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
 
     isPartialRenderEnabled = true;
-    node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
-    ASSERT_TRUE(node->isRenderUpdateIgnored_);
+    ASSERT_TRUE(node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled));
 }
 
 /**
@@ -1087,8 +1132,8 @@ HWTEST_F(RSBaseRenderNodeTest, MarkSuggestOpincNode, TestSize.Level1)
     bool isOpincNode = true;
     bool isNeedCalculate = true;
     node->MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
-    ASSERT_TRUE(node->GetOpincCache().IsSuggestOpincNode());
-    ASSERT_TRUE(node->GetOpincCache().isNeedCalculate_);
+    ASSERT_TRUE(node->GetOpincRootCache().IsSuggestOpincNode());
+    ASSERT_TRUE(node->GetOpincRootCache().isNeedCalculate_);
     ASSERT_TRUE(node->IsDirty());
 }
 } // namespace OHOS::Rosen

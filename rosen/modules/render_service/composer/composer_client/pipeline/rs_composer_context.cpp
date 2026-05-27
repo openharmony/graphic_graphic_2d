@@ -22,11 +22,11 @@
 #define LOG_TAG "RSComposerContext"
 namespace OHOS {
 namespace Rosen {
-RSComposerContext::RSComposerContext(const sptr<IRSRenderToComposerConnection>& conn)
+RSComposerContext::RSComposerContext(const sptr<IRSRenderToComposerConnection>& renderToComposerConn)
 {
-    rsComposerConnection_ = conn;
+    rsComposerConnection_ = renderToComposerConn;
     rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
-    rsLayerTransactionHandler_->SetRSComposerConnectionProxy(conn);
+    rsLayerTransactionHandler_->SetRSComposerConnectionProxy(renderToComposerConn);
 }
 
 std::shared_ptr<RSLayerTransactionHandler> RSComposerContext::GetRSLayerTransaction() const
@@ -104,7 +104,6 @@ bool RSComposerContext::CommitLayers(ComposerInfo& composerInfo)
         RS_LOGE("%{public}s rsLayerTransactionHandler is nullptr", __func__);
         return false;
     }
-    RS_LOGD("%{public}s rsLayers_ size: %{public}zu", __func__, rsLayers_.size());
     return rsLayerTransactionHandler_->CommitRSLayerTransaction(composerInfo);
 }
 
@@ -139,7 +138,6 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
             RS_LOGE("LayerPresentTimestamp SetPresentTimestamp failed");
         }
     };
-    RS_LOGD("%{public}s screenId: %{public}" PRIu64, __func__, screenId);
     for (const auto& [id, isGraphicPresentTimestamp, graphicPresentTimestamp] : timestampVec) {
         if (rsLayers.count(id) == 0) {
             RS_LOGE("%{public}s has no id: %{public}" PRIu64 " layer", __func__, id);
@@ -172,6 +170,18 @@ void RSComposerContext::ClearFrameBuffers()
     rsComposerConnection_->ClearFrameBuffers();
 }
 
+void RSComposerContext::NotifyLayerStateChanged(
+    uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (onLayerStateChangedCB_ == nullptr) {
+        RS_LOGD("%{public}s onLayerStateChangedCB_ is nullptr, nodeId:%{public}" PRIu64,
+            __func__, nodeId);
+        return;
+    }
+    onLayerStateChangedCB_(nodeId, state, tunnelLayerGeneration);
+}
+
 void RSComposerContext::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
@@ -180,6 +190,18 @@ void RSComposerContext::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
         return;
     }
     rsComposerConnection_->CleanLayerBufferBySurfaceId(surfaceId);
+}
+
+int32_t RSComposerContext::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (rsComposerConnection_ == nullptr) {
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+    return rsComposerConnection_->CommitTunnelLayerBySurfaceId(surfaceId, tunnelLayerId,
+        buffer, acquireFence, releaseFence);
 }
 
 void RSComposerContext::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
@@ -210,6 +232,16 @@ void RSComposerContext::SetScreenBacklight(uint32_t level)
         return;
     }
     rsComposerConnection_->SetScreenBacklight(level);
+}
+
+void RSComposerContext::SetScreenLinearMatrix(const std::vector<float>& matrix)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (rsComposerConnection_ == nullptr) {
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
+        return;
+    }
+    rsComposerConnection_->SetScreenLinearMatrix(matrix);
 }
 } // namespace Rosen
 } // namespace OHOS

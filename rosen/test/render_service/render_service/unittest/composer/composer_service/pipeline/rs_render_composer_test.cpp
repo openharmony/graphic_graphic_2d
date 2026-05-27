@@ -20,6 +20,7 @@
 #include "../layer_backend/mock_hdi_device.h"
 #include "hdi_output.h"
 #include "rs_layer.h"
+#include "rs_surface_layer.h"
 #include "rs_layer_common_def.h"
 #include "rs_layer_transaction_data.h"
 #include "rs_render_composer.h"
@@ -56,6 +57,9 @@
 #include "screen_manager/rs_screen_property.h"
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
+using testing::_;
+using testing::DoAll;
+using testing::SetArgReferee;
 using namespace testing::ext;
 
 namespace OHOS {
@@ -103,6 +107,53 @@ void RsRenderComposerTest::SetUp() {}
 void RsRenderComposerTest::TearDown() {}
 
 namespace {
+
+constexpr size_t LAYER_ID_ARG = 3;
+
+class TestRSRenderComposer : public RSRenderComposer {
+public:
+    TestRSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
+        : RSRenderComposer(output, property)
+    {}
+
+    using RSRenderComposer::CommitTunnelLayerBySurfaceId;
+    using RSRenderComposer::SetComposerToRenderConnection;
+};
+
+std::shared_ptr<RSSurfaceLayer> CreateTunnelSurfaceLayer(
+    uint64_t surfaceId, uint64_t nodeId, uint64_t tunnelLayerId, uint32_t property)
+{
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    if (rsLayer == nullptr) {
+        return nullptr;
+    }
+    rsLayer->SetSurfaceUniqueId(surfaceId);
+    rsLayer->SetNodeId(nodeId);
+    rsLayer->SetTunnelLayerId(tunnelLayerId);
+    rsLayer->SetTunnelLayerProperty(property);
+    rsLayer->SetTunnelLayerGeneration(tunnelLayerId);
+    return rsLayer;
+}
+
+sptr<SurfaceBuffer> CreateTunnelTestBuffer()
+{
+    constexpr uint32_t testBufferSize = 4;
+    constexpr uint32_t testStrideAlignment = 0x8;
+    BufferRequestConfig requestConfig = {
+        .width = testBufferSize,
+        .height = testBufferSize,
+        .strideAlignment = testStrideAlignment,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    if (buffer == nullptr || buffer->Alloc(requestConfig) != GSERROR_OK) {
+        return nullptr;
+    }
+    return buffer;
+}
 
 // Fake RSLayer for testing
 class FakeRSLayer : public RSLayer {
@@ -305,6 +356,14 @@ public:
     {
         return cornerRadiusInfo_;
     }
+    void SetVcldInfo(const RSVcldParam& vcldInfo) override
+    {
+        vcldInfo_ = vcldInfo;
+    }
+    const RSVcldParam& GetVcldInfo() const override
+    {
+        return vcldInfo_;
+    }
     void SetColorTransform(const std::vector<float>& matrix) override
     {
         colorTransform_ = matrix;
@@ -392,6 +451,14 @@ public:
     uint32_t GetTunnelLayerProperty() const override
     {
         return tunnelLayerProperty_;
+    }
+    void SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration) override
+    {
+        tunnelLayerGeneration_ = tunnelLayerGeneration;
+    }
+    uint64_t GetTunnelLayerGeneration() const override
+    {
+        return tunnelLayerGeneration_;
     }
     void SetIsSupportedPresentTimestamp(bool isSupported) override
     {
@@ -573,14 +640,21 @@ public:
     }
 
     // Provide overrides to avoid undefined reference to base default implementations during linking
-    void SetUseDeviceOffline(bool useOffline) override
-    {
-        useDeviceOffline_ = useOffline;
+    // hpae_offline: Original buffer related for AAE offline
+    void SetUseDeviceOffline(bool useOffline) override { useDeviceOffline_ = useOffline; }
+    bool GetUseDeviceOffline() const override { return useDeviceOffline_; }
+    void SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo) override {
+        hpaeOriginalInfo_ = hpaeOriginalInfo;
     }
-    bool GetUseDeviceOffline() const override
-    {
-        return useDeviceOffline_;
+    const HpaeOriginalInfo& GetHpaeOriginalInfo() const override { return hpaeOriginalInfo_; }
+    void SetOriginalBufferOwnerCount(
+        const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount) override {
+        originalBufferOwnerCount_ = bufferOwnerCount;
     }
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const override {
+        return originalBufferOwnerCount_;
+    }
+    // hpae_offline end
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override
     {
         ancoSrcRect_ = ancoSrcRect;
@@ -624,6 +698,7 @@ private:
     GraphicLayerColor layerColor_ {};
     GraphicLayerColor backgroundColor_ {};
     std::vector<float> cornerRadiusInfo_;
+    RSVcldParam vcldInfo_{};
     std::vector<float> colorTransform_;
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
@@ -635,6 +710,7 @@ private:
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     uint64_t tunnelLayerId_ = 0;
     uint32_t tunnelLayerProperty_ = 0;
+    uint64_t tunnelLayerGeneration_ = 0;
     bool supportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ {};
     float sdrNit_ = 0.0f;
@@ -658,8 +734,11 @@ private:
     sptr<SyncFence> acquireFence_ = nullptr;
     uint32_t cycleBuffersNum_ = 0;
     bool ignoreAlpha_ { false };
-    bool useDeviceOffline_ { false };
     GraphicIRect ancoSrcRect_ { -1, -1, -1, -1 };
+    // hpae_offline: Original buffer related for AAE offline
+    bool useDeviceOffline_ {false};
+    HpaeOriginalInfo hpaeOriginalInfo_;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> originalBufferOwnerCount_;
 };
 }
 
@@ -1315,7 +1394,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_SizeMismatch, 
     layers.push_back(layer);
 
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -1432,7 +1512,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_MultipleLayers_Mixed, TestSize.L
     layers.push_back(layer4);
 
     bool result2 = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result2, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result2, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -1508,7 +1589,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_FirstLayerMismatch, TestSize.Lev
     layers.push_back(layer2);
 
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -1550,7 +1632,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LastLayerMismatch, TestSize.Leve
     layers.push_back(lastLayer);
 
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -2674,7 +2757,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD, TestSize.Level1)
     auto rcdLayer1 = std::static_pointer_cast<RSLayer>(std::make_shared<RSRenderSurfaceRCDLayer>());
     layers.emplace_back(rcdLayer1);
     EXPECT_NE(layers.size(), 0u);
-    rsRenderComposer_->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposer_->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 }
 
 /**
@@ -3197,6 +3280,31 @@ HWTEST_F(RsRenderComposerTest, SetScreenBacklight_Branches, TestSize.Level1)
 }
 
 /**
+ * Function: SetScreenLinearMatrix_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call with valid hdiOutput_
+ *                  2. call with null hdiOutput_
+ */
+HWTEST_F(RsRenderComposerTest, SetScreenLinearMatrix_Branches, TestSize.Level1)
+{
+    std::vector<float> matrix = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+
+    // Verify initial hdiOutput_ is not null
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+
+    // Call with valid hdiOutput_
+    rsRenderComposer_->SetScreenLinearMatrix(matrix);
+
+    // Call with null hdiOutput_
+    auto backup = rsRenderComposer_->hdiOutput_;
+    rsRenderComposer_->hdiOutput_ = nullptr;
+    rsRenderComposer_->SetScreenLinearMatrix(matrix);
+    rsRenderComposer_->hdiOutput_ = backup;
+}
+
+/**
  * Function: CleanLayerBufferBySurfaceId_Normal
  * Type: Function
  * Rank: Important(2)
@@ -3668,6 +3776,7 @@ HWTEST_F(RsRenderComposerTest, ContextRegisterPostTask_Coverage, TestSize.Level1
  */
 HWTEST_F(RsRenderComposerTest, UpdateTransactionData_Coverage, TestSize.Level1)
 {
+    constexpr uint64_t surfaceId = 8302;
     auto output = std::make_shared<HdiOutput>(0u);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
@@ -3690,6 +3799,17 @@ HWTEST_F(RsRenderComposerTest, UpdateTransactionData_Coverage, TestSize.Level1)
     transactionData->payload_.push_back({ id, parcel2 });
     transactionData->payload_.push_back({ id, parcel3 });
     rsRenderComposerTmp->UpdateTransactionData(transactionData);
+
+    auto layer = std::make_shared<RSRenderSurfaceLayer>();
+    ASSERT_NE(layer, nullptr);
+    layer->SetSurfaceUniqueId(surfaceId);
+    rsRenderComposerTmp->rsRenderComposerContext_->AddRSRenderLayer(id, layer);
+    output->MarkTunnelSurfaceInvalid(surfaceId);
+    std::shared_ptr<RSLayerTransactionData> destroyData = std::make_shared<RSLayerTransactionData>();
+    destroyData->payload_.push_back({ id, parcel2 });
+    rsRenderComposerTmp->UpdateTransactionData(destroyData);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) == 0);
+    EXPECT_EQ(rsRenderComposerTmp->rsRenderComposerContext_->GetRSRenderLayer(id), nullptr);
 }
 
 /**
@@ -5748,7 +5868,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_CompositionDevice_Skip, TestSize.
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer with DEVICE composition type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when line 856 condition is true
     // The layer should not be added to rcdLayerInfoList
@@ -5783,7 +5903,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_CompositionDeviceClear_Skip, Test
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer with DEVICE_CLEAR composition type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when line 857 condition is true
     // The layer should not be added to rcdLayerInfoList
@@ -5818,7 +5938,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_CompositionSolidColor_Skip, TestS
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer with SOLID_COLOR composition type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when line 858 condition is true
     // The layer should not be added to rcdLayerInfoList
@@ -5861,7 +5981,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_AllThreeCompositionTypes_Skip, Te
     layers.push_back(layer3);
 
     // Call RedrawScreenRCD - all layers should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when all conditions are true
     // All three layers should be skipped and not added to rcdLayerInfoList
@@ -5899,7 +6019,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_OtherCompositionType_Processed, T
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer should not be skipped (lines 856-858 false)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when all conditions at lines 856-858 are false
     // The layer should NOT be skipped (but won't be added to rcdLayerInfoList if not RCD layer)
@@ -5937,7 +6057,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_RcdLayer_Processed, TestSize.Leve
     layers.push_back(rcdLayer);
 
     // Call RedrawScreenRCD - RCD layer should be added to rcdLayerInfoList (line 862)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify RCD layer properties
     EXPECT_TRUE(rcdLayer->IsScreenRCDLayer());
@@ -5971,7 +6091,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_NullptrLayer_Skipped, TestSize.Le
     layers.push_back(nullptr);
 
     // Call RedrawScreenRCD - nullptr layer should be skipped (line 854 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify the function handles nullptr layers gracefully
     // The test verifies the code path when line 853 condition is true
@@ -6011,7 +6131,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_NullptrLayerAndNormalLayer, TestS
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - nullptr should be skipped, normal layer should be processed
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies mixed handling:
     // - nullptr layer should be skipped (line 854 continue)
@@ -6052,7 +6172,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_DeviceTypeAndNullptr, TestSize.Le
     // Call RedrawScreenRCD
     // - nullptr should be skipped (line 854 continue)
     // - DEVICE type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify both layers should be skipped
 }
@@ -6103,7 +6223,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_AllSkipConditions, TestSize.Level
     // - layer1 (DEVICE): line 859 continue
     // - layer2 (DEVICE_CLEAR): line 859 continue
     // - layer3 (SOLID_COLOR): line 859 continue
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify all skip conditions are covered
     EXPECT_EQ(layers.size(), 4u);
@@ -8964,6 +9084,128 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_CallbackNotNull_TimestampUpd
     EXPECT_EQ(tmpRsRenderComposer->lastActualTime_, 12000);
 
     tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+
+/**
+ * Function: OnScreenDisconnected_WithPendingTask_KeepContext
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. connect to a new screen output
+ *                  2. set unExecuteTaskNum_ to non-zero
+ *                  3. call OnScreenDisconnected and verify output/context are kept
+ */
+HWTEST_F(RsRenderComposerTest, OnScreenDisconnected_WithPendingTask_KeepContext, TestSize.Level1)
+{
+    constexpr uint32_t testScreenId = 5u;
+    constexpr uint32_t pendingTaskNum = 1u;
+
+    auto output = std::make_shared<HdiOutput>(testScreenId);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    rsRenderComposer_->OnScreenConnected(output, property);
+
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    ASSERT_NE(rsRenderComposer_->rsRenderComposerContext_, nullptr);
+
+    rsRenderComposer_->unExecuteTaskNum_ = pendingTaskNum;
+    rsRenderComposer_->OnScreenDisconnected();
+
+    EXPECT_TRUE(rsRenderComposer_->isDisconnected_);
+    EXPECT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    EXPECT_NE(rsRenderComposer_->rsRenderComposerContext_, nullptr);
+
+    rsRenderComposer_->unExecuteTaskNum_ = 0;
+    rsRenderComposer_->OnScreenDisconnected();
+    EXPECT_EQ(rsRenderComposer_->hdiOutput_, nullptr);
+    EXPECT_EQ(rsRenderComposer_->rsRenderComposerContext_, nullptr);
+}
+
+/**
+ * Function: OnScreenConnected_Reconnect_ResetDisconnectedState
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. disconnect composer to set disconnected state
+ *                  2. reconnect with a new output
+ *                  3. verify disconnected flag is reset and context recreated
+ */
+HWTEST_F(RsRenderComposerTest, OnScreenConnected_Reconnect_ResetDisconnectedState, TestSize.Level1)
+{
+    rsRenderComposer_->unExecuteTaskNum_ = 0;
+    rsRenderComposer_->OnScreenDisconnected();
+    ASSERT_TRUE(rsRenderComposer_->isDisconnected_);
+    ASSERT_EQ(rsRenderComposer_->hdiOutput_, nullptr);
+
+    auto output = std::make_shared<HdiOutput>(6u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    rsRenderComposer_->OnScreenConnected(output, property);
+
+    EXPECT_FALSE(rsRenderComposer_->isDisconnected_);
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    EXPECT_EQ(rsRenderComposer_->hdiOutput_->GetScreenId(), 6u);
+    EXPECT_NE(rsRenderComposer_->rsRenderComposerContext_, nullptr);
+}
+
+/**
+ * @tc.name: CommitTunnelLayerBySurfaceId001
+ * @tc.desc: Test direct commit failure is handled by composer service with single UNAVAILABLE callback.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
+{
+    constexpr uint32_t screenId = 0;
+    constexpr uint64_t surfaceId = 8201;
+    constexpr uint64_t nodeId = 8202;
+    constexpr uint64_t tunnelLayerId = 8203;
+    constexpr uint32_t property = TUNNEL_PROP_BUFFER_ADDR;
+    constexpr uint32_t layerId = 8204;
+
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
+    auto composer = std::make_shared<TestRSRenderComposer>(output, screenProperty);
+    sptr<RSComposerToRenderConnection> connection = new RSComposerToRenderConnection();
+    struct CallbackResult {
+        uint64_t nodeId;
+        LayerStateChange state;
+        uint64_t generation;
+    };
+    std::vector<CallbackResult> results;
+    connection->RegisterLayerStateChangedCB([&results](uint64_t callbackNodeId,
+        LayerStateChange state, uint64_t generation) {
+        results.emplace_back(CallbackResult { callbackNodeId, state, generation });
+    });
+    composer->SetComposerToRenderConnection(connection);
+
+    auto rsLayer = CreateTunnelSurfaceLayer(surfaceId, nodeId, tunnelLayerId, property);
+    ASSERT_NE(rsLayer, nullptr);
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(_, _, _, _))
+        .WillOnce(DoAll(SetArgReferee<LAYER_ID_ARG>(layerId), testing::Return(GRAPHIC_DISPLAY_SUCCESS)));
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    output->SetRSLayers({ rsLayer });
+
+    auto buffer = CreateTunnelTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerBuffer(screenId, tunnelLayerId, testing::NotNull(), -1))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_CALL(*hdiDeviceMock_, CommitTunnelLayer(screenId, tunnelLayerId, testing::_)).Times(0);
+    EXPECT_CALL(*hdiDeviceMock_, CloseLayer(screenId, layerId)).WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+
+    EXPECT_EQ(composer->CommitTunnelLayerBySurfaceId(surfaceId, tunnelLayerId, buffer, nullptr, releaseFence),
+        GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) != 0);
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0].nodeId, nodeId);
+    EXPECT_EQ(results[0].state, LayerStateChange::UNAVAILABLE);
+    EXPECT_EQ(results[0].generation, tunnelLayerId);
+
+    composer->uniRenderEngine_ = nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

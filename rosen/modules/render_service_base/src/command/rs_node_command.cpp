@@ -16,6 +16,7 @@
 #include "command/rs_node_command.h"
 
 #include "modifier_ng/rs_render_modifier_ng.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "common/rs_optional_trace.h"
@@ -28,12 +29,36 @@ RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = 
 RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
 }
 
-void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze)
+void RSNodeCommandHelper::UpdatePropertyDrawCmdList(
+    RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList, PropertyId id, PropertyUpdateType type)
+{
+    if (!drawCmdList) {
+        return;
+    }
+
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        return;
+    }
+    if (type == UPDATE_TYPE_FORCE_OVERWRITE) {
+        if (auto animationManager = node->GetAnimationManager()) {
+            node->GetAnimationManager()->CancelAnimationByPropertyId(id);
+        }
+    }
+
+    if (auto property = node->GetProperty(id)) {
+        std::static_pointer_cast<RSRenderProperty<SimpleDrawCmdListPtr>>(property)->Set(
+            RSSimpleDrawCmdList::CreateFromDrawCmdList(drawCmdList), type);
+    }
+}
+
+void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze, bool isMarkedByUI)
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
-        node->SetStaticCached(isFreeze);
+        node->SetStaticCached(isFreeze, isMarkedByUI);
     }
 }
 
@@ -111,7 +136,7 @@ void RSNodeCommandHelper::ForceUifirstNode(RSContext& context, NodeId nodeId, bo
     bool isUifirstEnable)
 {
     auto& nodeMap = context.GetNodeMap();
-    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+    if (auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->MarkUifirstNode(isForceFlag, isUifirstEnable);
     }
 }
@@ -124,11 +149,11 @@ void RSNodeCommandHelper::SetUIFirstSwitch(RSContext& context, NodeId nodeId, RS
     }
 }
 
-void RSNodeCommandHelper::MarkNodeColorSpace(RSContext& context, NodeId nodeId, bool isP3Color)
+void RSNodeCommandHelper::MarkNodeColorSpace(RSContext& context, NodeId nodeId, int8_t colorSpace)
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
-        node->MarkNodeColorSpace(isP3Color);
+        node->MarkNodeColorSpace(colorSpace);
     }
 }
 
@@ -192,9 +217,12 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
     auto& nodeMap = context.GetNodeMap();
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
     auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
-    // Sanity check, if any check failed, RSUniRenderVisitor will auto unregister the pair, we do nothing here.
-    if (inNode && outNode && inNode->GetSharedTransitionParam() == outNode->GetSharedTransitionParam()) {
+    if (auto param = inNode ? inNode->GetSharedTransitionParam() : nullptr;
+        param && param->outNodeId_ == outNodeId) {
         inNode->SetSharedTransitionParam(nullptr);
+    }
+    if (auto param = outNode ? outNode->GetSharedTransitionParam() : nullptr;
+        param && param->inNodeId_ == inNodeId) {
         outNode->SetSharedTransitionParam(nullptr);
     }
 }
@@ -263,12 +291,13 @@ void RSNodeCommandHelper::AddModifierNG(RSContext& context, NodeId nodeId,
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->AddModifier(modifier);
-    } else {
+    if (!node) {
         ROSEN_LOGE("RSNodeCommandHelper::AddModifierNG Invalid NodeId %{public}" PRIu64 ", ModifierId %{public}" PRId64
             ", ModifierType %{public}d", nodeId, modifier ? modifier->GetId() : -1,
             modifier ? static_cast<int>(modifier->GetType()) : -1);
+    } else if (modifier != nullptr) {
+        modifier->ConvertDrawCmdListToSimple();
+        node->AddModifier(modifier);
     }
 }
 
@@ -289,6 +318,9 @@ void RSNodeCommandHelper::ModifierNGAttachProperty(RSContext& context, NodeId no
     ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType,
     std::shared_ptr<RSRenderPropertyBase> prop)
 {
+    if (!prop) {
+        return;
+    }
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (!node) {
@@ -298,7 +330,13 @@ void RSNodeCommandHelper::ModifierNGAttachProperty(RSContext& context, NodeId no
     if (!modifier) {
         return;
     }
-    modifier->AttachProperty(propertyType, prop);
+
+    if (prop->IsDrawCmdListProperty()) {
+        modifier->DetachProperty(propertyType);
+        modifier->AttachProperty(propertyType, prop->CreateSimpleProperty());
+    } else {
+        modifier->AttachProperty(propertyType, prop);
+    }
 }
 
 void RSNodeCommandHelper::UpdateModifierNGDrawCmdList(
@@ -313,10 +351,11 @@ void RSNodeCommandHelper::UpdateModifierNGDrawCmdList(
     if (!baseProperty) {
         return;
     }
-    auto property = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(baseProperty);
-    property->Set(value);
-    if (value) {
-        value->UpdateNodeIdToPicture(nodeId);
+    auto property = std::static_pointer_cast<RSRenderProperty<SimpleDrawCmdListPtr>>(baseProperty);
+    auto simpleDrawCmds = value != nullptr ? RSSimpleDrawCmdList::CreateFromDrawCmdList(value) : nullptr;
+    property->Set(simpleDrawCmds);
+    if (simpleDrawCmds) {
+        simpleDrawCmds->UpdateNodeIdToPicture(nodeId);
     }
 }
 
@@ -362,11 +401,27 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     // only support canvas node mark
-    if (node && (node->GetType() == RSRenderNodeType::CANVAS_NODE)) {
+    bool isCanvasNode = (node != nullptr) && (node->GetType() == RSRenderNodeType::CANVAS_NODE);
+    if (isCanvasNode) {
         RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isLayer:%d id:%llu", isLayer, node->GetId());
         RS_LOGI_IF(
             DEBUG_NODE, "RSRenderNode::MarkLayer isLayer:%{public}d id:%{public}" PRIu64 "", isLayer, node->GetId());
         node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, isLayer, false);
+
+        if (RSSystemProperties::GetLayerDebugEnabled()) {
+            std::vector<NodeId> nodeIds;
+            node->CollectAllChildren(node, nodeIds);
+            RS_OPTIONAL_TRACE_NAME_FMT("Layer node childs number:%zu id:%llu", nodeIds.size(), node->GetId());
+        }
+    }
+}
+
+void RSNodeCommandHelper::ReSortChildrenByZIndex(RSContext& context, NodeId nodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->ReSortChildrenByZIndex();
     }
 }
 } // namespace Rosen

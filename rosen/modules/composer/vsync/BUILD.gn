@@ -48,10 +48,17 @@ config("vsync_config") {
       }
     }
     if (target_cpu == "arm64" && defined(build_ext_path)) {
-      ldflags += [ 
+      libvsync_version_script =
+          rebase_path("//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/libvsync.versionscript",
+                      root_build_dir)
+      ldflags += [
+        "-Wl,--version-script=${libvsync_version_script}",
         "-Wl,--emit-relocs",
-        "-Wl,--no-relax", 
-        "-mno-fix-cortex-a53-843419" 
+        "-Wl,--no-relax",
+        "-mno-fix-cortex-a53-843419",
+        "-Wl,--exclude-libs=libunwind.a",
+        "-Wl,--exclude-libs=libunwind_llvm.a",
+        "-Wl,--exclude-libs=libc++_static.a"
       ]
     }
   }

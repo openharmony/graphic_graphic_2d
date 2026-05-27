@@ -59,13 +59,23 @@ public:
     static DrawType GetDrawTypeInSecurityDisplay(
         const RSSurfaceRenderParams& surfaceParams, const RSRenderThreadParams& uniParams);
     static DrawType GetDrawTypeInSnapshot(const RSSurfaceRenderParams& surfaceParams);
+    static void SetWhiteListRectToMetaData(RSPaintFilterCanvas& canvas, const RSRenderThreadParams& uniParam,
+        const RSScreenProperty& mirrorScreenProperty, const RSLogicalDisplayRenderParams& sourceLogicalParam,
+        const std::shared_ptr<RSSLRScaleFunction>& scaleManager);
+    static void CollectWhiteListRect(RSSurfaceRenderNode& node, bool hasMirrorDisplay,
+        bool isRotating, RSScreenRenderNode& ancestorScreenNode, bool needConvertMatrix = false);
 private:
     static bool CheckCurrentTypeIntersectVisibleRect(const std::unordered_set<NodeId>& nodeIds,
         uint32_t currentType, const RectI& visibleRect);
-    static void UpdateScreenSpecialLayersRecord(
-        RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer);
+    static void UpdateScreenSpecialLayersRecord(RSSurfaceRenderNode& sourceNode,
+        RSSurfaceRenderNode& surfaceNode, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer);
     static void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode);
     static void NotifyScreenSpecialLayerChange();
+    static void DrawDebugRect(RSPaintFilterCanvas& canvas, Drawing::Color color, RectT<uint32_t> rect);
+    static uint32_t ConvertFloatToUint32(float value);
+    static RectT<uint32_t> ConvertDrawingRectToUint32Rect(const Drawing::Rect& srcRect, bool expandPixels = false);
+    static Drawing::Rect GetScreenRectOfMirrorSource(
+        const RSScreenProperty& mirrorScreenProperty, const RSLogicalDisplayRenderParams& sourceLogicalParam);
 };
 } // namespace Rosen
 } // namespace OHOS

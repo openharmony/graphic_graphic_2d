@@ -60,13 +60,6 @@ HWTEST_F(RSBackgroundFilterModifierNGTypeTest, WaterRippleParamsTest, TestSize.L
     EXPECT_TRUE(result.has_value());
 }
 
-HWTEST_F(RSBackgroundFilterModifierNGTypeTest, MagnifierParamsTest, TestSize.Level1)
-{
-    auto magnifierParams = std::make_shared<RSMagnifierParams>();
-    modifier->SetMagnifierParams(magnifierParams);
-    EXPECT_EQ(modifier->GetMagnifierParams(), magnifierParams);
-}
-
 HWTEST_F(RSBackgroundFilterModifierNGTypeTest, BackgroundBlurRadiusTest, TestSize.Level1)
 {
     modifier->SetBackgroundBlurRadius(5.5f);

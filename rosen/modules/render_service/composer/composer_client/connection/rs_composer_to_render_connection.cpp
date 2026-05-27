@@ -26,7 +26,6 @@ namespace OHOS {
 namespace Rosen {
 int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo)
 {
-    RS_LOGD("%{public}s, screenId:%{public}" PRIu64, __func__, releaseLayerInfo.screenId);
     if (releaseLayerBuffersCB_ != nullptr) {
         releaseLayerBuffersCB_(releaseLayerInfo);
     }
@@ -56,6 +55,22 @@ int32_t RSComposerToRenderConnection::NotifyLppLayerToRender(
 void RSComposerToRenderConnection::RegisterJudgeLppLayerCB(JudgeLppLayerCB callback)
 {
     judgeLppLayerCB_ = std::move(callback);
+}
+
+int32_t RSComposerToRenderConnection::NotifyLayerStateChangedToRender(
+    uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration)
+{
+    RS_LOGD("%{public}s, nodeId:%{public}" PRIu64 ", state:%{public}u, generation:%{public}" PRIu64,
+        __func__, nodeId, static_cast<uint32_t>(state), tunnelLayerGeneration);
+    if (layerStateChangedCB_ != nullptr) {
+        layerStateChangedCB_(nodeId, state, tunnelLayerGeneration);
+    }
+    return COMPOSITOR_ERROR_OK;
+}
+
+void RSComposerToRenderConnection::RegisterLayerStateChangedCB(LayerStateChangedCB callback)
+{
+    layerStateChangedCB_ = std::move(callback);
 }
 } // namespace Rosen
 } // namespace OHOS

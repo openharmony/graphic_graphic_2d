@@ -43,7 +43,7 @@ RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
 #endif
 }
 
-void RSApplicationAgentImpl::RegisterRSApplicationAgent()
+void RSApplicationAgentImpl::RegisterRSApplicationAgent(std::shared_ptr<RSUIContext> rsUIContext)
 {
     static bool isRegistered = false;
     if (isRegistered) {
@@ -51,16 +51,16 @@ void RSApplicationAgentImpl::RegisterRSApplicationAgent()
     }
     isRegistered = true;
 #ifdef ROSEN_OHOS
-    RSRenderServiceConnectHub::SetOnConnectCallback(
-        [weakThis = wptr<RSApplicationAgentImpl>(this)](sptr<RSIClientToRenderConnection>& conn) {
-            sptr<IApplicationAgent> appSptr = weakThis.promote();
-            if (appSptr == nullptr) {
-                ROSEN_LOGE("RSApplicationAgentImpl::RegisterRSApplicationAgent appSptr is null");
-                return;
-            }
-            // Not necessory to set pid
-            conn->RegisterApplicationAgent(0, appSptr);
-        });
+     if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSApplicationAgentImpl::RegisterRSApplicationAgent rsUIContext return");
+        return;
+    }
+    if (auto renderInterface = rsUIContext->GetRSRenderInterface()) {
+        if (auto renderPipelineClient = renderInterface->GetRSRenderPipelineClient()) {
+            ROSEN_LOGI("RSApplicationAgentImpl::RegisterRSApplicationAgent!");
+            renderPipelineClient->RegisterApplicationAgent(0, sptr<RSApplicationAgentImpl>(this));
+        }
+    }
 #endif
 }
 

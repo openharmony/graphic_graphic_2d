@@ -887,19 +887,19 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     std::shared_ptr<RSNode> node = RSCanvasNode::Create();
     EXPECT_TRUE(node != nullptr);
     node->SetShadowMask(true);
-    node->IsImplicitAnimationOpen();
+    node->IsImplicitAnimationOpen(nullptr);
     node->GetChildByIndex(1);
     std::string nodeName = "nodeName";
     node->SetNodeName(nodeName);
     PropertyCallback callback;
     callback = []() {
     };
-    node->AddDurationKeyFrame(100, timingCurve, callback); // 100 Set duration is 100ms
+    node->AddDurationKeyFrame(nullptr, 100, timingCurve, callback); // 100 Set duration is 100ms
     NodeId id1 = 0;
     NodeId id2 = 1;
-    node->RegisterTransitionPair(id1, id2, true);
-    node->UnregisterTransitionPair(id1, id2);
-    node->AnimateWithCurrentCallback(timingProtocol, timingCurve, callback);
+    node->RegisterTransitionPair(nullptr, id1, id2, true);
+    node->UnregisterTransitionPair(nullptr, id1, id2);
+    node->AnimateWithCurrentCallback(nullptr, timingProtocol, timingCurve, callback);
     std::optional<Vector2f> vec(Vector2f(1.f, 1.f));
     node->SetSandBox(vec);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 end";
@@ -934,7 +934,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest023, TestSize.Level1)
     node->RemoveChild(child);
     node->ClearChildren();
 
-    auto rsUiDirector = RSUIDirector::Create();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
     rsUiDirector->FlushAnimationStartTime(1);
     rsUiDirector->HasUIRunningAnimation();
 

@@ -54,6 +54,7 @@ GSError RSBaseSurfaceUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, ui
         if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
             RS_TRACE_NAME("DropFrame");
         }
+        surfaceHandler.SetBufferDropped(true);
         IConsumerSurface::AcquireBufferReturnValue returnValue;
         returnValue.fence = SyncFence::InvalidFence();
         int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
@@ -162,7 +163,7 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
             RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
         });
         RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer,
-                                                              SyncFence::InvalidFence());
+            SyncFence::InvalidFence(), surfaceBuffer->bufferOwnerCount_);
         RS_LOGD_IF(DEBUG_PIPELINE,
             "RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",

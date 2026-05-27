@@ -385,7 +385,7 @@ HWTEST(RenderProfilerDumpTest, DumpNodeOptionalFlags, TestSize.Level1)
 
     RSProfiler::DumpNodeOptionalFlags(*node, out);
     std::string expected {
-        "\"GetBootAnimation\":1,\"isContainBootAnimation_\":1,\"isSubTreeDirty\":1,\"IsPureContainer\":1"
+        "\"isSubTreeDirty\":1,\"IsPureContainer\":1"
     };
     expected.append(1, '\0');
     EXPECT_EQ(out.GetDumpString(), expected);
@@ -916,13 +916,13 @@ HWTEST(RenderProfilerDumpTest, DumpNodeChildrenListUpdate, TestSize.Level1)
 HWTEST(RenderProfilerDumpTest, DumpNodeAnimations, TestSize.Level1)
 {
     JsonWriter out;
-    RSAnimationManager anims;
+    auto anims = std::make_shared<RSAnimationManager>();
     AnimationId id = 123;
     PropertyId propertyId = 1;
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f);
     auto anim1 = std::make_shared<RSRenderKeyframeAnimation>(id, propertyId, property);
 
-    anims.AddAnimation(anim1);
+    anims->AddAnimation(anim1);
 
     RSProfiler::DumpNodeAnimations(anims, out);
 

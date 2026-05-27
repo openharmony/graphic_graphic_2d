@@ -20,6 +20,13 @@
 namespace OHOS {
 namespace Rosen {
 
+RSRenderPipelineClient::RSRenderPipelineClient()
+{
+}
+
+RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
+{
+}
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
@@ -33,7 +40,7 @@ void RSRenderPipelineClient::RegisterApplicationAgent(uint32_t pid, sptr<IApplic
 {
 }
 
-bool RSRenderPipelineClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     return {};
 }
@@ -102,24 +109,16 @@ uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHideP
     return {};
 }
 
-bool RSRenderPipelineClient::GetHighContrastTextState()
-{
-    return false;
-}
-
 uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount, uint32_t colCount)
 {
     return 0;
 }
 
 void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
     const std::vector<NodeId> &nodeIdList)
-{
-}
-
-void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
 }
 
@@ -197,7 +196,7 @@ bool RSRenderPipelineClient::TakeUICaptureInRange(
     return true;
 }
 
-bool RSRenderPipelineClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+bool RSRenderPipelineClient::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     return true;
@@ -293,6 +292,17 @@ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
 int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
 {
     return 0;
+}
+
+int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
+    return 0;
+}
+
+void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
+{
 }
 } // namespace Rosen
 } // namespace OHOS

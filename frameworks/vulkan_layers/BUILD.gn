@@ -90,3 +90,61 @@ ohos_prebuilt_etc("vulkan_swapchain_layer_json") {
   }
 }
 ## Build VkLayer_swapchain.json }}}
+
+## Build libVkLayer_Trace3D.so {{{
+ohos_shared_library("VkLayer_Trace3D") {
+  sources = [
+    "trace3d/include/trace3d/api_platform/trace3d_api_platform.h",
+    "trace3d/src/trace3d_api_platform.cpp",
+    "trace3d/src/trace3d_capture.cpp",
+    "trace3d/src/trace3d_helper.h",
+    "trace3d/src/trace3d_layer.cpp",
+  ]
+
+  defines = [ "TRACE_LOADER_OHOS" ]
+  include_dirs = [
+    # render_service_base include
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic_2d/rosen/include",
+    "trace3d/include",
+  ]
+  cflags_cc = [ "-std=c++17" ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "napi:ace_napi",
+    "vulkan-headers:vulkan_headers",
+    "samgr:samgr_proxy",
+    "ipc:ipc_core",
+  ]
+
+  output_name = "VkLayer_Trace3D"
+  output_extension = "so"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  }
+## Build libVkLayer_Trace3D.so }}}
+
+## Build VkLayer_Trace3D.json {{{
+ohos_prebuilt_etc("VkLayer_Trace3D_json") {
+  source = "trace3d/VkLayer_Trace3D.json"
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  module_install_dir = "etc/vulkan/implicit_layer.d"
+}
+## Build VkLayer_Trace3D.json }}}

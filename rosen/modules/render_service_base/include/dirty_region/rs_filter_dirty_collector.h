@@ -48,7 +48,6 @@ struct FilterDirtyRegionInfo {
     NodeId id_ = INVALID_NODEID;
     Occlusion::Region intersectRegion_ = Occlusion::Region();
     Occlusion::Region filterDirty_ = Occlusion::Region();
-    Occlusion::Region alignedFilterDirty_ = Occlusion::Region();
     Occlusion::Region belowDirty_ = Occlusion::Region();
     bool isBackgroundFilterClean_ = false;
     bool addToDirty_ = false;
@@ -92,21 +91,6 @@ public:
     {
         enablePartialRender_ = enable;
     }
-    static void RecordFilterCacheValidForOcclusion(NodeId id, bool isValid)
-    {
-        if (!isValid) {
-            return;
-        }
-        validOcclusionFilterCache_.insert(id);
-    }
-    static bool GetFilterCacheValidForOcclusion(NodeId id)
-    {
-        return validOcclusionFilterCache_.find(id) != validOcclusionFilterCache_.end();
-    }
-    static void ResetFilterCacheValidForOcclusion()
-    {
-        validOcclusionFilterCache_.clear();
-    }
     void AddPendingPurgeFilterRegion(const Occlusion::Region& region);
     const Occlusion::Region& GetPendingPurgeFilterRegion() const;
     void ClearPendingPurgeFilterRegion();
@@ -122,8 +106,6 @@ private:
     // PendingPurge filter add to the current frame below dirty region
     Occlusion::Region pendingPurgeFilterRegion_;
 
-    // if filter cache valid for occlusion, dirty region collection can be skipped.
-    static std::unordered_set<NodeId> validOcclusionFilterCache_;
     static bool enablePartialRender_;
 };
 } // namespace Rosen

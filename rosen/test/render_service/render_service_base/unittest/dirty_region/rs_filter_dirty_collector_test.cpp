@@ -23,7 +23,6 @@ namespace OHOS::Rosen {
 
 namespace {
 const RectI DEFAULT_RECT = {0, 0, 100, 100};
-const RectI DEFAULT_ALIGNED_RECT = {0, 0, 128, 128};
 }
 class RSFilterDirtyCollectorTest : public testing::Test {
 public:
@@ -50,7 +49,6 @@ HWTEST_F(RSFilterDirtyCollectorTest, RSFilterDirtyCollectorTest_001, TestSize.Le
         INVALID_NODEID,
         Occlusion::Region(Occlusion::Rect(DEFAULT_RECT)),
         Occlusion::Region(Occlusion::Rect(DEFAULT_RECT)),
-        Occlusion::Region(Occlusion::Rect(DEFAULT_ALIGNED_RECT)),
         Occlusion::Region()
     };
     // test if filter info can be collected.
@@ -66,32 +64,5 @@ HWTEST_F(RSFilterDirtyCollectorTest, RSFilterDirtyCollectorTest_001, TestSize.Le
     syncFilterCollector.Clear();
     ASSERT_EQ(filterCollector.GetFilterDirtyRegionInfoList(true).size(), 0);
     ASSERT_EQ(syncFilterCollector.GetFilterDirtyRegionInfoList(true).size(), 0);
-}
-
-/**
- * @tc.name: RSFilterDirtyCollectorTest_002
- * @tc.desc: Test validOcclusionFilterCache_ can be collected.
- * @tc.type: FUNC
- * @tc.require: issuesICMQKE
- */
-HWTEST_F(RSFilterDirtyCollectorTest, RSFilterDirtyCollectorTest_002, TestSize.Level1)
-{
-    // test if validOcclusionFilterCache_ info can be collected.
-    RSFilterDirtyCollector filterCollector;
-    NodeId validId = 1;
-    NodeId invalidId = 2;
-    filterCollector.RecordFilterCacheValidForOcclusion(validId, true);
-    ASSERT_TRUE(filterCollector.GetFilterCacheValidForOcclusion(validId));
-    filterCollector.RecordFilterCacheValidForOcclusion(invalidId, false);
-    ASSERT_FALSE(filterCollector.GetFilterCacheValidForOcclusion(invalidId));
-
-    filterCollector.ResetFilterCacheValidForOcclusion();
-    ASSERT_TRUE(RSFilterDirtyCollector::validOcclusionFilterCache_.size() == 0);
-
-    // test if enablePartialRender_ info can be set.
-    filterCollector.SetValidCachePartialRender(false);
-    ASSERT_FALSE(filterCollector.GetValidCachePartialRender());
-    filterCollector.SetValidCachePartialRender(true);
-    ASSERT_TRUE(filterCollector.GetValidCachePartialRender());
 }
 } // namespace OHOS::Rosen

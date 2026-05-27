@@ -261,6 +261,8 @@ public:
      */
     RectF GetCmdlistDrawRegion();
 
+    bool UnmarshallingDrawOpsSimple();
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);

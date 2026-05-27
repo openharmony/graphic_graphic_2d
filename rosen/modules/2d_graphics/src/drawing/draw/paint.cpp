@@ -220,12 +220,20 @@ void Paint::SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> colorSp
 
 void Paint::SetAlpha(uint32_t a)
 {
-    color_.SetAlpha(a);
+    if (isHdrColor_) {
+        hdrColor_.SetAlpha(static_cast<scalar>(a) / Color::RGB_MAX);
+    } else {
+        color_.SetAlpha(a);
+    }
 }
 
 void Paint::SetAlphaF(scalar a)
 {
-    color_.SetAlphaF(a);
+    if (isHdrColor_) {
+        hdrColor_.SetAlpha(a);
+    } else {
+        color_.SetAlphaF(a);
+    }
 }
 
 void Paint::SetWidth(scalar width)

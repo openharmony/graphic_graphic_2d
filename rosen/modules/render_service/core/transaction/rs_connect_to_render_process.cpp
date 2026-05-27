@@ -16,6 +16,7 @@
 #include "rs_connect_to_render_process.h"
 
 #include "transaction/rs_client_to_render_connection.h"
+#include "rs_profiler.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSConnectToRenderProcess"
@@ -23,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnection(
-    const sptr<RSIConnectionToken>& token)
+    const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     if (!token) {
         RS_LOGE("%{public}s: token is nullptr.", __func__);
@@ -34,10 +35,17 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnecti
         return renderConnection;
     }
     pid_t remotePid = GetCallingPid();
-    auto newRenderConn = sptr<RSClientToRenderConnection>::MakeSptr(remotePid, renderPipelineAgent_, tokenObj);
+    RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
+    auto newRenderConn =
+        sptr<RSClientToRenderConnection>::MakeSptr(remotePid, renderPipelineAgent_, tokenObj, needRefresh);
     renderPipelineAgent_->AddTransactionDataPidInfo(remotePid);
     renderPipelineAgent_->AddConnection(tokenObj, newRenderConn);
     return newRenderConn;
+}
+
+bool RSConnectToRenderProcess::RemoveConnection(const sptr<RSIConnectionToken>& token)
+{
+    return renderPipelineAgent_->RemoveConnection(token);
 }
 } // namespace Rosen
 } // namespace OHOS

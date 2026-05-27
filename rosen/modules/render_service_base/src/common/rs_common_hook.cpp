@@ -55,6 +55,16 @@ bool RsCommonHook::IsAdaptiveColorGamutEnabled() const
     return isAdaptiveColorGamutEnable_;
 }
 
+void RsCommonHook::SetForceSRGBOutput(bool isForceSRGBOutput)
+{
+    isForceSRGBOutput_ = isForceSRGBOutput;
+}
+
+bool RsCommonHook::IsForceSRGBOutputEnabled() const
+{
+    return isForceSRGBOutput_;
+}
+
 // skip hwcnode hardware state updating
 void RsCommonHook::SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcnodeSkippedFlag)
 {
@@ -210,5 +220,18 @@ std::string RsCommonHook::GetOverlappedHwcNodeInAppEnabledConfig(const std::stri
         return it->second;
     }
     return "";
+}
+
+void RsCommonHook::SetLayerPartRenderWhiteList(const std::unordered_set<std::string>& whiteList)
+{
+    std::lock_guard<std::mutex> setMutex(mutexLock_);
+    layerPartRenderWhiteList_ = whiteList;
+}
+
+bool RsCommonHook::IsInLayerPartRenderWhiteList(const std::string& bundleName) const
+{
+    std::lock_guard<std::mutex> setMutex(mutexLock_);
+    return layerPartRenderWhiteList_.empty() ||
+        layerPartRenderWhiteList_.find(bundleName) != layerPartRenderWhiteList_.end();
 }
 } // namespace OHOS::Rosen

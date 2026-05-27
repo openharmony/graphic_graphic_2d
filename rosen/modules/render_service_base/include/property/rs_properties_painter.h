@@ -18,10 +18,10 @@
 
 #include "common/rs_macros.h"
 #include "property/rs_properties.h"
-#include "recording/draw_cmd_list.h"
 #include "draw/surface.h"
 #include "effect/runtime_shader_builder.h"
 #include "effect/runtime_blender_builder.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -48,7 +48,6 @@ public:
     static void GetForegroundNGFilterDirtyRect(RectI& dirtyForegroundEffect,
         const RSProperties& properties, const bool isAbsCoordinate = true);
     static void GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect, const RSProperties& properties);
-    static void GetMagnifierEffectDirtyRect(RectI& dirtyMagnifierEffect, const RSProperties& properties);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
     static void GetOutlineDirtyRect(RectI& dirtyOutline,
@@ -64,7 +63,7 @@ public:
     static void DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawOutline(const RSProperties& properties, Drawing::Canvas& canvas);
     static void DrawFrame(
-        const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::DrawCmdListPtr& drawCmdList);
+        const RSProperties& properties, RSPaintFilterCanvas& canvas, SimpleDrawCmdListPtr& drawCmdList);
     static void DrawFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas, FilterType filterType,
         const std::optional<Drawing::Rect>& rect = std::nullopt,
         const std::shared_ptr<RSFilter>& externalFilter = nullptr);

@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include "irs_composer_to_render_connection.h"
 #include "irs_render_to_composer_connection.h"
 #include "rs_layer.h"
 #include "rs_layer_transaction_handler.h"
@@ -29,10 +30,11 @@ namespace Rosen {
 using OnReleaseLayerBuffersCB = std::function<void(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
     std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec,
     uint64_t screenId)>;
+using OnLayerStateChangedCB = std::function<void(uint64_t, LayerStateChange, uint64_t)>;
 
 class RSC_EXPORT RSComposerContext : public std::enable_shared_from_this<RSComposerContext> {
 public:
-    RSComposerContext(const sptr<IRSRenderToComposerConnection>& conn);
+    explicit RSComposerContext(const sptr<IRSRenderToComposerConnection>& renderToComposerConn);
     RSComposerContext(const RSComposerContext&) = delete;
     RSComposerContext(const RSComposerContext&&) = delete;
     RSComposerContext& operator=(const RSComposerContext&) = delete;
@@ -52,6 +54,8 @@ protected:
         std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec);
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+    int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence);
     void ClearFrameBuffers();
     void DumpLayersInfo(std::string& dumpString);
     void DumpCurrentFrameLayers();
@@ -61,9 +65,17 @@ protected:
             onReleaseLayerBuffersCB_ = std::move(onReleaseLayerBuffersCB);
         }
     }
+    void RegisterLayerStateChangedCB(OnLayerStateChangedCB onLayerStateChangedCB)
+    {
+        if (onLayerStateChangedCB_ == nullptr) {
+            onLayerStateChangedCB_ = std::move(onLayerStateChangedCB);
+        }
+    }
+    void NotifyLayerStateChanged(uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration = 0);
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
     void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
+    void SetScreenLinearMatrix(const std::vector<float>& matrix);
 
 private:
     mutable std::recursive_mutex rsLayerTransMutex_;
@@ -74,6 +86,7 @@ private:
     std::vector<RSLayerId> lastCommitLayersId_;
 
     OnReleaseLayerBuffersCB onReleaseLayerBuffersCB_ = nullptr;
+    OnLayerStateChangedCB onLayerStateChangedCB_ = nullptr;
     friend class RSComposerClient;
     friend class RSSurfaceLayer;
     friend class RSSurfaceRCDLayer;

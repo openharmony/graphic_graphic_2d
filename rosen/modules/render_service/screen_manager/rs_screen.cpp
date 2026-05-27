@@ -647,6 +647,19 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
     return StatusCode::SUCCESS;
 }
 
+int32_t RSScreen::SetAsMainScreen(bool isMainScreen)
+{
+    RS_LOGI("RSScreen::SetAsMainScreen screenId:%{public}" PRIu64 " isMainScreen:%{public}d",
+            property_.GetId(), isMainScreen);
+    UPDATE_PROPERTY(AsMainScreen, isMainScreen);
+    return StatusCode::SUCCESS;
+}
+
+bool RSScreen::IsMainScreen() const
+{
+    return property_.IsMainScreen();
+}
+
 sptr<Surface> RSScreen::GetProducerSurface() const
 {
     return property_.GetProducerSurface();
@@ -695,6 +708,18 @@ void RSScreen::CapabilityTypeDump(GraphicInterfaceType capabilityType, std::stri
         }
         case GRAPHIC_DISP_INTF_BT656: {
             dumpString += "DISP_INTF_BT656, ";
+            break;
+        }
+        case GRAPHIC_DISP_INTF_DP: {
+            dumpString += "DISP_INTF_DP, ";
+            break;
+        }
+        case GRAPHIC_DISP_INTF_EDP: {
+            dumpString += "DISP_INTF_EDP, ";
+            break;
+        }
+        case GRAPHIC_DISP_INTF_GPMI: {
+            dumpString += "DISP_INTF_GPMI, ";
             break;
         }
         default:
@@ -858,7 +883,7 @@ void RSScreen::ResizeVirtualScreen(uint32_t width, uint32_t height)
     UPDATE_PROPERTY(Resolution, std::make_pair(width, height));
 }
 
-void RSScreen::SetScreenBacklight(uint32_t level)
+void RSScreen::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
 {
     if (!hdiScreen_) {
         RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
@@ -870,21 +895,23 @@ void RSScreen::SetScreenBacklight(uint32_t level)
     }
     auto id = property_.GetId();
     if (!hasLogBackLightAfterPowerStatusChanged_) {
-        HILOG_COMM_INFO("SetScreenBacklight id: %{public}" PRIu64 ", level is %{public}u, current level is %{public}d",
-                        id, level, backlightLevel_.load());
+        HILOG_COMM_INFO("SetScreenBacklight id: %{public}" PRIu64
+                        ", level is %{public}u, current level %{public}d, brightnessPosition: %{public}.4f",
+                        id, brightnessData.level, backlightLevel_.load(), brightnessData.brightnessPosition);
     }
 
-    RS_LOGD("%{public}s id: %{public}" PRIu64 ", level is %{public}u", __func__, id, level);
+    RS_LOGD("%{public}s id: %{public}" PRIu64 ", level is %{public}u", __func__, id, brightnessData.level);
 
     if (onBackLightChange_) {
-        onBackLightChange_(property_.GetId(), level);
+        onBackLightChange_(brightnessData);
     }
     if (!hasLogBackLightAfterPowerStatusChanged_) {
-        HILOG_COMM_INFO("SetScreenBacklight id: %{public}" PRIu64 ", level %{public}u done, last level is %{public}d",
-            id, level, backlightLevel_.load());
+        HILOG_COMM_INFO("SetScreenBacklight id: %{public}" PRIu64
+            ", level %{public}u done, last level is %{public}d, brightnessPosition: %{public}.4f",
+            id, brightnessData.level, backlightLevel_.load(), brightnessData.brightnessPosition);
         hasLogBackLightAfterPowerStatusChanged_ = true;
     }
-    backlightLevel_.store(static_cast<int32_t>(level));
+    backlightLevel_.store(static_cast<int32_t>(brightnessData.level));
 }
 
 int32_t RSScreen::GetScreenBacklight() const
@@ -1448,7 +1475,7 @@ void RSScreen::SetOnPropertyChangedCallback(OnPropertyChangeCallback callback)
     onPropertyChange_ = std::move(callback);
 }
 
-void RSScreen::SetOnBacklightChangedCallback(std::function<void(ScreenId, uint32_t)> callback)
+void RSScreen::SetOnBacklightChangedCallback(std::function<void(const RsScreenBrightnessData&)> callback)
 {
     onBackLightChange_ = callback;
 }

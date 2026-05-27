@@ -45,7 +45,15 @@ public:
     using GetScreenSupportedModesCallback = std::function<std::vector<RSScreenModeInfo>(ScreenId)>;
     using SetScreenConstraintCallback = std::function<int32_t(ScreenId, uint64_t, ScreenConstraintType)>;
     using SetScreenActiveModeCallback = std::function<uint32_t(ScreenId, uint32_t)>;
-
+    using GetScreenActiveRefreshRateCallback = std::function<uint32_t(ScreenId)>;
+    struct ScreenManagerCallbacks {
+        GetDefaultScreenIdCallback getDefaultScreenIdCb;
+        GetScreenPowerStatusCallback getScreenPowerStatusCb;
+        GetScreenSupportedModesCallback getScreenSupportedModesCb;
+        SetScreenConstraintCallback setScreenConstraintCb;
+        SetScreenActiveModeCallback setScreenActiveModeCb;
+        GetScreenActiveRefreshRateCallback getScreenActiveRefreshRateCb;
+    };
     static void SysModeChangeProcess(const char* key, const char* value, void* context);
     static HgmCore& Instance();
 
@@ -136,19 +144,15 @@ public:
 
     bool IsDelayMode() const { return isDelayMode_; }
 
-    int64_t GetRsPhaseOffset(const int64_t orgValue) const;
-    int64_t GetAppPhaseOffset(const int64_t orgValue) const;
+    int64_t GetRsPhaseOffset() const { return rsPhaseOffset_.load(); }
+    int64_t GetAppPhaseOffset() const { return appPhaseOffset_.load(); }
+    bool IsVsyncOffsetCustomized() const { return isVsyncOffsetCustomized_.load(); }
 
     bool GetMultiSelfOwnedScreenEnable() const { return multiSelfOwnedScreenEnable_.load(); }
     void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable);
 
     // Screen Manager
-    void RegisterScreenManagerCallbacks(
-        const GetDefaultScreenIdCallback& getDefaultScreenIdCb,
-        const GetScreenPowerStatusCallback& getScreenPowerStatusCb,
-        const GetScreenSupportedModesCallback& getScreenSupportedModesCb,
-        const SetScreenConstraintCallback& setScreenConstraintCb,
-        const SetScreenActiveModeCallback& setScreenActiveModeCb);
+    void RegisterScreenManagerCallbacks(const ScreenManagerCallbacks& callbacks);
     ScreenId GetDefaultScreenId() const;
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const;
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) const;
@@ -156,6 +160,8 @@ public:
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId);
     RSScreenManager* GetScreenManager() { return screenManager_; }
     void SetScreenManager(RSScreenManager* screenManager) { screenManager_ = screenManager; }
+    bool HgmAbilityEnabled() const { return hgmAbilityEnabled_; }
+    uint32_t GetScreenActiveRefreshRate(ScreenId id) const;
 
 private:
     HgmCore();
@@ -176,6 +182,7 @@ private:
 
     bool IsEnabled() const;
 
+    bool hgmAbilityEnabled_ = true;
     std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
     std::shared_ptr<PolicyConfigVisitor> mPolicyConfigVisitor_ = nullptr;
@@ -230,6 +237,7 @@ private:
     GetScreenSupportedModesCallback getScreenSupportedModesCb_ = nullptr;
     SetScreenConstraintCallback setScreenConstraintCb_ = nullptr;
     SetScreenActiveModeCallback setScreenActiveModeCb_ = nullptr;
+    GetScreenActiveRefreshRateCallback getScreenActiveRefreshRateCb_ = nullptr;
     RSScreenManager* screenManager_;
 };
 } // namespace OHOS::Rosen

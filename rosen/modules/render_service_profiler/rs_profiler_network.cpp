@@ -53,6 +53,15 @@ static void AwakeRenderServiceThread()
     });
 }
 
+static std::string GetSocketName()
+{
+    auto process = Utils::GetFileName(Utils::GetCurrentProcessName());
+    if (process.empty() || (process == "render_service") || (process == "render_service:0")) {
+        return "render_service_5050";
+    }
+    return process;
+}
+
 bool Network::IsRunning()
 {
     return isRunning_;
@@ -83,8 +92,6 @@ void Network::Ping(const Socket& socket)
 
 void Network::Run()
 {
-    constexpr uint16_t port = 5050;
-
     Socket* socket = nullptr;
 
     isRunning_ = true;
@@ -101,7 +108,7 @@ void Network::Run()
             Shutdown(socket);
             forceShutdown_ = false;
         } else if (state == SocketState::INITIAL) {
-            socket->Open(port);
+            socket->Open(GetSocketName());
         } else if (state == SocketState::CREATE) {
             socket->AcceptClient();
             if (!socket->Connected()) {
@@ -280,12 +287,13 @@ bool Network::PopCommand(std::vector<std::string>& args)
 {
     args.clear();
 
-    incomingMutex_.lock();
-    if (!incoming_.empty()) {
-        args.swap(incoming_.front());
-        incoming_.pop();
+    {
+        const std::lock_guard<std::mutex> guard(incomingMutex_);
+        if (!incoming_.empty()) {
+            args.swap(incoming_.front());
+            incoming_.pop();
+        }
     }
-    incomingMutex_.unlock();
 
     return !args.empty();
 }
@@ -308,12 +316,13 @@ void Network::Send(Socket& socket)
     while (socket.Connected()) {
         data.clear();
 
-        outgoingMutex_.lock();
-        if (!outgoing_.empty()) {
-            data.swap(outgoing_.front());
-            outgoing_.pop();
+        {
+            const std::lock_guard<std::mutex> guard(outgoingMutex_);
+            if (!outgoing_.empty()) {
+                data.swap(outgoing_.front());
+                outgoing_.pop();
+            }
         }
-        outgoingMutex_.unlock();
 
         if (data.empty()) {
             break;

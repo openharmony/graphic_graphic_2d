@@ -15,6 +15,8 @@
 
 #include "feature/color_picker/rs_color_picker_utils.h"
 
+#include <atomic>
+
 #include "feature/color_picker/i_color_picker_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/color_picker/rs_hetero_color_picker.h"
@@ -25,10 +27,12 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "image/gpu_context.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_high_performance_visual_engine.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
@@ -43,6 +47,46 @@ namespace {
 constexpr float RED_LUMINANCE_COEFF = 0.299f;
 constexpr float GREEN_LUMINANCE_COEFF = 0.587f;
 constexpr float BLUE_LUMINANCE_COEFF = 0.114f;
+
+constexpr uint32_t FENCE_DEBUG_LOG_INTERVAL = 100;
+std::atomic<int64_t> g_fenceFdCnt = 0;
+std::atomic<uint64_t> g_fenceDebugEventCount = 0;
+
+void LogFenceDebugEvent(int64_t fenceCount)
+{
+    auto eventCount = g_fenceDebugEventCount.fetch_add(1, std::memory_order_acq_rel) + 1;
+    if (eventCount % FENCE_DEBUG_LOG_INTERVAL == 0) {
+        RS_LOGI("ColorPicker fence debug: liveFence= %{public}" PRId64, fenceCount);
+    }
+}
+
+[[maybe_unused]] void TrackFenceCreate()
+{
+    auto fenceCount = g_fenceFdCnt.fetch_add(1, std::memory_order_acq_rel) + 1;
+    LogFenceDebugEvent(fenceCount);
+}
+
+[[maybe_unused]] void TrackFenceDestroy()
+{
+    auto fenceCount = g_fenceFdCnt.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    LogFenceDebugEvent(fenceCount);
+}
+
+RectI GetColorPickerRect(const RSRenderNode& filterNode)
+{
+    const RectI& nodeAbsRect = filterNode.GetAbsRect();
+    RectI colorPickerRect = nodeAbsRect;
+    auto params = filterNode.GetRenderProperties().GetColorPicker();
+    if (!params || !params->rect.has_value()) {
+        return colorPickerRect;
+    }
+
+    const auto& customRect = params->rect.value();
+    colorPickerRect.SetAll(static_cast<int32_t>(customRect.GetLeft()), static_cast<int32_t>(customRect.GetTop()),
+        static_cast<int32_t>(customRect.GetWidth()), static_cast<int32_t>(customRect.GetHeight()));
+    colorPickerRect.Move(nodeAbsRect.left_, nodeAbsRect.top_);
+    return colorPickerRect;
+}
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 bool WaitFence(const sptr<SyncFence>& fence)
@@ -63,6 +107,7 @@ bool WaitFence(const sptr<SyncFence>& fence)
 bool ExecColorPick(const std::weak_ptr<IColorPickerManager>& weakManager, ColorPickerInfo& info)
 {
     RS_OPTIONAL_TRACE_NAME("ColorPicker::ExecColorPick");
+    sptr<SyncFence> fence = new SyncFence(info.fenceFd_);
     auto manager = weakManager.lock();
     if (!manager) {
         RS_LOGE("ColorPicker: manager is null");
@@ -77,7 +122,6 @@ bool ExecColorPick(const std::weak_ptr<IColorPickerManager>& weakManager, ColorP
     }
 
     // Wait for GPU to finish writing to the texture before accessing it
-    sptr<SyncFence> fence = new SyncFence(info.fenceFd_);
     if (!WaitFence(fence)) {
         RS_LOGE("ColorPicker: fence wait failed");
         return false;
@@ -85,11 +129,13 @@ bool ExecColorPick(const std::weak_ptr<IColorPickerManager>& weakManager, ColorP
 
     auto image = std::make_shared<Drawing::Image>();
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    // clang-format off
     if (!image->BuildFromTexture(
         *gpuCtx, info.backendTexture_.GetTextureInfo(), origin, info.bitmapFormat_, info.colorSpace_)) {
         RS_LOGE("ColorPicker: BuildFromTexture failed");
         return false;
     }
+    // clang-format on
 
     Drawing::ColorQuad colorPicked;
     if (RSPropertyDrawableUtils::PickColor(gpuCtx, image, colorPicked)) {
@@ -162,14 +208,18 @@ void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<ICo
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
         return;
     }
+    TrackFenceCreate();
 
     // Post task directly to ColorPickerThread with fence for GPU synchronization
     auto infoPtr = info.release();
-    RSColorPickerThread::Instance().PostTask([infoPtr, destroyInfo]() {
-        ExecColorPick(infoPtr->manager_, *infoPtr);
-        DestroySemaphoreInfo::DestroySemaphore(destroyInfo); // semaphore inits with ref count = 2
-        delete infoPtr;
-        }, false);
+    RSColorPickerThread::Instance().PostTask(
+        [infoPtr, destroyInfo]() {
+            ExecColorPick(infoPtr->manager_, *infoPtr);
+            TrackFenceDestroy();
+            DestroySemaphoreInfo::DestroySemaphore(destroyInfo); // semaphore inits with ref count = 2
+            delete infoPtr;
+        },
+        0);
 #else
     return;
 #endif
@@ -177,6 +227,7 @@ void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<ICo
 
 std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColorForPlaceholder(ColorPlaceholder placeholder)
 {
+    // clang-format off
     static const std::unordered_map<ColorPlaceholder, std::pair<Drawing::ColorQuad, Drawing::ColorQuad>>
         PLACEHOLDER_TO_COLOR {
 #define COLOR_PLACEHOLDER_ENTRY(name, dark, light) \
@@ -184,6 +235,7 @@ std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColorForPlaceholder(ColorPl
 #include "feature/color_picker/rs_color_placeholder_mapping_def.in"
 #undef COLOR_PLACEHOLDER_ENTRY
         };
+    // clang-format on
     if (auto it = PLACEHOLDER_TO_COLOR.find(placeholder); it != PLACEHOLDER_TO_COLOR.end()) {
         return it->second;
     }
@@ -210,8 +262,8 @@ Drawing::ColorQuad InterpolateColor(Drawing::ColorQuad start, Drawing::ColorQuad
 }
 
 // render thread
-bool ExtractSnapshotAndScheduleColorPick(
-    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const std::shared_ptr<IColorPickerManager>& manager)
+bool ExtractSnapshotAndScheduleColorPick(RSPaintFilterCanvas& canvas,
+    const Drawing::Rect* rect, const std::shared_ptr<IColorPickerManager>& manager, NodeId filterId)
 {
     RS_OPTIONAL_TRACE_NAME("ColorPicker::ExtractSnapshotAndScheduleColorPick");
     if (!rect) {
@@ -230,17 +282,27 @@ bool ExtractSnapshotAndScheduleColorPick(
         return false;
     }
 
-    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tracker(canvas.GetGPUContext(), RSTagTracker::TAG_COLOR_PICKER_SNAPSHOT);
+#endif
+    std::shared_ptr<Drawing::Image> snapshot;
+    if (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0) {
+        snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, snapshotIBounds, filterId);
+    } else {
+        snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
+    }
     if (!snapshot) {
         RS_LOGE("ExtractSnapshotAndScheduleColorPick: snapshot is null");
         return false;
     }
 
+    // clang-format off
     // Try accelerated (hetero) color picker first
     if (RSHeteroColorPicker::Instance().GetColor(
         [manager](Drawing::ColorQuad& newColor) { manager->HandleColorUpdate(newColor); }, canvas, snapshot)) {
         return true;
     }
+    // clang-format on
 
     // Fall back to standard color picker with semaphore
 #ifdef RS_ENABLE_GPU
@@ -278,27 +340,36 @@ std::unordered_set<NodeId> CollectColorPickerNodeIds(
     return colorPickerNodeIds;
 }
 
-bool IsColorPickerDirty(const RSRenderNode& filterNode, const std::vector<std::shared_ptr<RSRenderNode>>& surfaces)
+namespace {
+inline bool InPrepareState(const RSRenderNode& filterNode)
 {
     auto drawable = filterNode.GetColorPickerDrawable();
-    if (!drawable || drawable->GetState() != DrawableV2::ColorPickerState::PREPARING) {
+    return drawable && drawable->GetState() == DrawableV2::ColorPickerState::PREPARING;
+}
+} // namespace
+
+bool DirtyInCurrentSurface(const RSRenderNode& filterNode, const RectI& dirtyRect)
+{
+    if (!InPrepareState(filterNode)) {
         return false;
     }
-    const RectI& nodeAbsRect = filterNode.GetAbsRect();
-    RectI colorPickerRect = nodeAbsRect;
-    // handle custom rect
-    auto params = filterNode.GetRenderProperties().GetColorPicker();
-    if (params && params->rect.has_value()) {
-        const auto& customRect = params->rect.value();
-        colorPickerRect.SetAll(static_cast<int32_t>(customRect.GetLeft()), static_cast<int32_t>(customRect.GetTop()),
-            static_cast<int32_t>(customRect.GetWidth()), static_cast<int32_t>(customRect.GetHeight()));
-        colorPickerRect.Move(nodeAbsRect.left_, nodeAbsRect.top_);
+    return dirtyRect.Intersect(GetColorPickerRect(filterNode));
+}
+
+bool DirtyInSurfacesBelow(const RSRenderNode& filterNode, const std::vector<std::shared_ptr<RSRenderNode>>& surfaces)
+{
+    if (!InPrepareState(filterNode)) {
+        return false;
     }
 
+    RectI colorPickerRect = GetColorPickerRect(filterNode);
     for (auto it = surfaces.rbegin(); it != surfaces.rend(); ++it) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (!surfaceNode) {
             continue;
+        }
+        if (surfaceNode == filterNode.GetInstanceRootNode()) {
+            break;
         }
         auto dirtyManager = surfaceNode->GetDirtyManager();
         if (!dirtyManager) {
@@ -310,9 +381,6 @@ bool IsColorPickerDirty(const RSRenderNode& filterNode, const std::vector<std::s
             RS_OPTIONAL_TRACE_NAME_FMT("color picker rect %s intersects with dirty surface %s, dirty rect = %s",
                 colorPickerRect.ToString().c_str(), surfaceNode->GetName().c_str(), dirtyRegion.ToString().c_str());
             return true;
-        }
-        if (surfaceNode == filterNode.GetInstanceRootNode()) {
-            break; // only check surfaces below the node
         }
     }
     return false;

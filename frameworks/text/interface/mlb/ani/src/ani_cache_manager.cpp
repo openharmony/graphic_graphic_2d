@@ -81,6 +81,21 @@ ani_method AniClassFindMethod(ani_env* env, const ani_class cls, const CacheKey&
     return method;
 }
 
+ani_field AniClassFindField(ani_env* env, const ani_class cls, const char* name)
+{
+    if (cls == nullptr || name == nullptr) {
+        TEXT_LOGE("Invalid params for AniClassFindField");
+        return nullptr;
+    }
+    ani_field field = nullptr;
+    ani_status status = env->Class_FindField(cls, name, &field);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Failed to find field: %{public}s, status %{public}d", name, status);
+        return nullptr;
+    }
+    return field;
+}
+
 ani_function AniNamespaceFindFunction(ani_env* env, const ani_namespace ns, const CacheKey& key)
 {
     ani_function function = nullptr;

@@ -26,6 +26,7 @@
 #include <refbase.h>
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 #include <surface.h>
 #include <utility>
 #endif
@@ -65,9 +66,9 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSIClientToRenderConnection;
 // normal callback functor for client users.
-using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
-using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
+using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason, sptr<IRemoteObject>)>;
 using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;
@@ -84,13 +85,14 @@ using FrameStabilityCallback = std::function<void(bool)>;
 
 class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
 public:
-    RSRenderPipelineClient() = default;
+    RSRenderPipelineClient();
+    RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote);
     ~RSRenderPipelineClient() = default;
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
-    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
 
@@ -123,8 +125,6 @@ public:
 
     uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
 
-    bool GetHighContrastTextState();
-
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
@@ -147,7 +147,7 @@ public:
     bool TakeUICaptureInRange(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
 
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    bool SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
 
     int32_t SetFocusAppInfo(const FocusAppInfo& info);
@@ -164,7 +164,8 @@ public:
 
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount = 0, uint32_t colCount = 0);
 
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
     const std::vector<NodeId> &nodeIdList);
@@ -199,6 +200,8 @@ public:
 
     int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
+    void SetFreeMultiWindowStatus(bool enable);
+
     int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,
         const FrameStabilityConfig& config,
@@ -214,6 +217,10 @@ public:
 
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result);
 
+    int32_t UpdateFrameStabilityDetection(
+        const FrameStabilityTarget& oldTarget,
+        const FrameStabilityTarget& newTarget
+    );
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
@@ -268,7 +275,10 @@ private:
     sptr<RSITransactionDataCallback> transactionDataCbDirector_;
     std::map<std::pair<uint64_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
     std::mutex transactionDataCallbackMutex_;
-
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<RSIClientToRenderConnection> clientToRenderConnection_;
+    sptr<RSIConnectionToken> token_;
+#endif
     friend class SurfaceCaptureCallbackDirector;
     friend class SurfaceBufferCallbackDirector;
     friend class TransactionDataCallbackDirector;

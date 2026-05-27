@@ -15,6 +15,7 @@
 
 #include "rs_render_service_connect_hub.h"
 
+#include "app_image_observer_manager.h"
 #include <if_system_ability_manager.h>
 #include <iremote_stub.h>
 #include <iservice_registry.h>
@@ -75,10 +76,12 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
         ROSEN_LOGI("token_ is deleted");
         return;
     }
-    ROSEN_LOGI("RefCount: %{public}d", token_->GetSptrRefCount());
+    ROSEN_LOGI("RSRenderServiceConnectHub::RefCount: token_:%{public}d, conn_:%{public}d, renderConn_:%{public}d",
+        token_->GetSptrRefCount(), conn_->GetSptrRefCount(), renderConn_->GetSptrRefCount());
     while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
         token_->DecStrongRef(this);
     }
+    CleanConnectRenderProcess();
     renderService_->RemoveConnection(token_);
     token_ = nullptr;
     conn_ = nullptr;
@@ -160,7 +163,9 @@ bool RSRenderServiceConnectHub::Connect()
     if (token_ == nullptr) {
         token_ = new IRemoteStub<RSIConnectionToken>();
     }
-    auto [conn, renderConn] = renderService->CreateConnection(token_);
+    bool needRefresh = AppExecFwk::AppImageObserverManager::GetInstance().IsBeforeImageCreationPoint();
+    ROSEN_LOGI("RSRenderServiceConnectHub call CreateConnection, needRefresh:[%{public}d]", needRefresh);
+    auto [conn, renderConn] = renderService->CreateConnection(token_, needRefresh);
 
     if (conn == nullptr || renderConn == nullptr) {
         ROSEN_LOGD("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
@@ -208,5 +213,59 @@ void RSRenderServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const 
 
     rsConnHub->ConnectDied();
 }
+
+void RSRenderServiceConnectHub::AddRenderProcessConnectionToken(sptr<RSIConnectionToken> token,
+    sptr<RSIConnectToRenderProcess> renderPrecess)
+{
+    if (token == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::AddRenderProcessConnectionToken token is nullptr");
+        return;
+    }
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    if (connRenderProcesses_.find(token) != connRenderProcesses_.end()) {
+        return;
+    }
+    connRenderProcesses_[token] = renderPrecess;
+}
+
+void RSRenderServiceConnectHub::RemoveRenderProcessConnectionToken(sptr<RSIConnectionToken> token)
+{
+    if (token == nullptr) {
+        ROSEN_LOGW("RSRenderServiceConnectHub::RemoveRenderProcessConnectionToken token is nullptr");
+        return;
+    }
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    connRenderProcesses_.erase(token);
+}
+
+void RSRenderServiceConnectHub::CleanConnectRenderProcess()
+{
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    if (connRenderProcesses_.size() == 0) {
+        ROSEN_LOGI("RSRenderServiceConnectHub::CleanConnectRenderProcess connection already release");
+        return;
+    }
+
+    for (auto iter = connRenderProcesses_.begin(); iter != connRenderProcesses_.end();) {
+        sptr<RSIConnectionToken> token = iter->first;
+        sptr<RSIConnectToRenderProcess> renderPrecess = iter->second;
+
+        if (token == nullptr) {
+            ROSEN_LOGE("RSRenderServiceConnectHub::CleanConnectRenderProcess token is nullptr");
+            iter = connRenderProcesses_.erase(iter);
+            continue;
+        }
+
+        while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
+            token_->DecStrongRef(token.GetRefPtr());
+        }
+
+        if (renderPrecess != nullptr) {
+            renderPrecess->RemoveConnection(token);
+        }
+        iter = connRenderProcesses_.erase(iter);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

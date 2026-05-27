@@ -17,14 +17,15 @@
 #define HGM_SOFT_VSYNC_MANAGER_H
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "common/rs_common_def.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 #include "hgm_command.h"
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_voter.h"
 #include "hgm_vsync_generator_controller.h"
-#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "vsync_distributor.h"
 
@@ -86,6 +87,7 @@ private:
     std::unordered_map<WindowId, FrameRateLinkerId> winLinkerMap_;
     std::unordered_map<VsyncName, std::vector<FrameRateLinkerId>> vsyncLinkerMap_;
     std::unordered_map<FrameRateLinkerId, std::pair<uint32_t, bool>> appVoteData_;
+    std::unordered_set<VsyncName> disableAppFrameVsyncNames_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appChangeData_;
     std::weak_ptr<HgmVSyncGeneratorController> controller_;
 

@@ -15,7 +15,6 @@
 
 #include "drawable/rs_effect_render_node_drawable.h"
 
-#include "drawable/rs_color_picker_drawable.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -27,7 +26,9 @@ RSEffectRenderNodeDrawable::Registrar RSEffectRenderNodeDrawable::instance_;
 
 RSEffectRenderNodeDrawable::RSEffectRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawable(std::move(node))
-{}
+{
+    renderNode_ = node;
+}
 
 RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
@@ -55,8 +56,22 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
-    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
+
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    bool isDoubleSided = effectParams->GetDoubleSidedEnabled();
+    if (!isDoubleSided) {
+        Drawing::Matrix baseMatrix = effectParams->HasSandBox()
+            ? RSRenderParams::GetParentSurfaceMatrix()
+            : paintFilterCanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(effectParams->GetMatrix());
+        if (IsBackFace(baseMatrix)) {
+            SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+            RS_TRACE_NAME_FMT("RSEffectRenderNodeDrawable::OnDraw backface skip, id:%" PRIu64, nodeId_);
+            return;
+        }
+    }
+
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kAll);
 
     paintFilterCanvas->SetEffectIntersectWithDRM(effectParams->GetEffectIntersectWithDRM());
@@ -115,12 +130,8 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
         // case 0: No children, skip
         return false;
     }
-    // Draw ColorPickerDrawable slot before processing blur
-    if (auto node = renderNode_.lock()) {
-        if (auto colorPickerDrawable = node->GetColorPickerDrawable()) {
-            colorPickerDrawable->OnDraw(&canvas, &bounds);
-        }
-    }
+    // Draw ColorPickerDrawable slot before processing blur.
+    RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.colorPickerIndex_);
 
     if (IsBlurNotRequired(effectParams, paintFilterCanvas)) {
         // case 1: no blur or no need to blur, do nothing

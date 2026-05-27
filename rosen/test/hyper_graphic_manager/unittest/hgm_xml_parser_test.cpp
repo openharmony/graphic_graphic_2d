@@ -198,7 +198,7 @@ HWTEST_F(HgmXmlParserTest, IsNumber, Function | SmallTest | Level0)
 HWTEST_F(HgmXmlParserTest, StringToVector001, Function | SmallTest | Level0)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
-    std::string emptyInput = "";
+    std::string emptyInput;
     std::vector<uint32_t> result = parser->StringToVector(emptyInput);
     EXPECT_TRUE(result.empty());
 }

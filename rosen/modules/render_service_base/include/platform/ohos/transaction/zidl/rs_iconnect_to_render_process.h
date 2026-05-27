@@ -30,10 +30,12 @@ public:
     RSIConnectToRenderProcess() = default;
     virtual ~RSIConnectToRenderProcess() noexcept = default;
 
-    virtual sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token)
+    virtual sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token, 
+            bool needRefresh)
     {
         return nullptr;
     }
+    virtual bool RemoveConnection(const sptr<RSIConnectionToken>& token) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

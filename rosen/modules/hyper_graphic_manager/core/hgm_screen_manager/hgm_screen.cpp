@@ -16,6 +16,7 @@
 #include "hgm_screen.h"
 
 #include <cmath>
+
 #include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
 

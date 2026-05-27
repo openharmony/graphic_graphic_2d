@@ -243,7 +243,6 @@ ohos_unittest("RSColorfulShadowFilterTest") {
     "rs_fly_out_shader_filter_test.cpp",
     "rs_foreground_effect_filter_test.cpp",
     "rs_hdr_ui_brightness_filter_test.cpp",
-    "rs_image_base_test.cpp",
   ]
 
   cflags = [
@@ -341,6 +340,10 @@ ohos_unittest("RSImageCacheTest") {
         [ "drivers_interface_display:display_commontype_idl_headers" ]
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
+
+  if (graphic_2d_feature_enable_image_detail_enhancer) {
+    defines += [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
   }
 
   subsystem_name = "graphic"
@@ -702,26 +705,26 @@ ohos_unittest("RSLightUpEffectFilterTest") {
 }
 
 ##############################  RSRenderServiceBaseRenderTest  ##################################
-ohos_unittest("RSMagnifierShaderFilterTest") {
+ohos_unittest("RSFlowLightShaderFilterTest") {
   module_out_path = module_output_path
-
+ 
   sources = [
     "rs_flow_light_sweep_shader_test.cpp",
-    "rs_render_magnifier_filter_test.cpp",
     "rs_mask_test.cpp",
+    "rs_render_linear_gradient_blur_filter_test.cpp",
     "rs_render_maskcolor_filter_test.cpp",
   ]
-
+ 
   cflags = [
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-
+ 
   configs = [
     ":render_test",
     "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
-
+ 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
@@ -730,7 +733,7 @@ ohos_unittest("RSMagnifierShaderFilterTest") {
     "$graphic_2d_root/rosen/modules/platform/eventhandler",
     "$graphic_2d_root/utils/log",
   ]
-
+ 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
@@ -746,14 +749,7 @@ ohos_unittest("RSMagnifierShaderFilterTest") {
     "init:libbegetutil",
     "skia:skia_canvaskit",
   ]
-
-  if (use_video_processing_engine) {
-    external_deps +=
-        [ "drivers_interface_display:display_commontype_idl_headers" ]
-    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    external_deps += [ "video_processing_engine:videoprocessingengine" ]
-  }
-
+ 
   subsystem_name = "graphic"
 }
 
@@ -767,6 +763,8 @@ ohos_unittest("RSMaterialFilterTest") {
     "rs_motion_blur_filter_test.cpp",
     "rs_path_test.cpp",
     "rs_pixel_map_shader_test.cpp",
+    "rs_render_blur_bubbles_rise_filter_test.cpp",
+    "rs_render_heat_distortion_filter_test.cpp",
     "rs_render_filter_base_test.cpp",
   ]
 
@@ -1058,7 +1056,7 @@ group("unittest") {
     ":RSLightBlurShaderFilterTest",
     ":RSLightUpEffectFilterTest",
     ":RSMESABlurShaderFilterTest",
-    ":RSMagnifierShaderFilterTest",
+    ":RSFlowLightShaderFilterTest",
     ":RSMaterialFilterTest",
     ":RSParticlesDrawableTest",
     ":RSPixelMapShaderObjTest",

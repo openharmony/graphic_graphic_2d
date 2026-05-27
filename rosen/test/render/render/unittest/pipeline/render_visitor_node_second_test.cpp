@@ -1762,7 +1762,7 @@ HWTEST_F(SecondRenderVisitorTest, CheckSkipAndUpdateForegroundSurfaceRenderNode0
     ASSERT_NE(surfaceNode, nullptr);
     const_cast<SurfaceWindowType&>(surfaceNode->surfaceWindowType_) = SurfaceWindowType::SYSTEM_SCB_WINDOW;
     surfaceNode->abilityBgAlpha_ = 255;
-    surfaceNode->globalAlpha_ = 1.0f;
+    surfaceNode->SetGlobalAlpha(1.0f);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     auto isQuickSkip = rsUniRenderVisitor->CheckSkipAndUpdateForegroundSurfaceRenderNode(*surfaceNode);

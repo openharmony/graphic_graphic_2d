@@ -346,7 +346,7 @@ HWTEST_F(RSFrameStabilityManagerTest, EdgeCases_ZeroAndEmpty, TestSize.Level1)
 
     bool result = false;
     RSFrameStabilityManager::GetInstance().GetFrameStabilityResult(TEST_PID, target, result);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
 }
 
 /**
@@ -527,8 +527,8 @@ HWTEST_F(RSFrameStabilityManagerTest, HandleStabilityTimeout_NoPendingTask, Test
 
     {
         std::lock_guard<std::mutex> lock(RSFrameStabilityManager::GetInstance().detectorMutex_);
-        auto it = RSFrameStabilityManager::GetInstance().screenDetectorContexts_.find(TEST_TARGET_ID_1);
-        if (it != RSFrameStabilityManager::GetInstance().screenDetectorContexts_.end()) {
+        auto it = RSFrameStabilityManager::GetInstance().detectorContexts_.find(TEST_TARGET_ID_1);
+        if (it != RSFrameStabilityManager::GetInstance().detectorContexts_.end()) {
             it->second->hasPendingStabilityTask = false;
         }
     }
@@ -560,8 +560,8 @@ HWTEST_F(RSFrameStabilityManagerTest, HandleStabilityTimeout_StateAlreadyStable,
 
     {
         std::lock_guard<std::mutex> lock(RSFrameStabilityManager::GetInstance().detectorMutex_);
-        auto it = RSFrameStabilityManager::GetInstance().screenDetectorContexts_.find(TEST_TARGET_ID_1);
-        if (it != RSFrameStabilityManager::GetInstance().screenDetectorContexts_.end()) {
+        auto it = RSFrameStabilityManager::GetInstance().detectorContexts_.find(TEST_TARGET_ID_1);
+        if (it != RSFrameStabilityManager::GetInstance().detectorContexts_.end()) {
             it->second->state = DetectionState::STABLE;
         }
     }
@@ -624,8 +624,8 @@ HWTEST_F(RSFrameStabilityManagerTest, TriggerCallback_NullCallback, TestSize.Lev
 
     {
         std::lock_guard<std::mutex> lock(RSFrameStabilityManager::GetInstance().detectorMutex_);
-        auto it = RSFrameStabilityManager::GetInstance().screenDetectorContexts_.find(TEST_TARGET_ID_1);
-        if (it != RSFrameStabilityManager::GetInstance().screenDetectorContexts_.end()) {
+        auto it = RSFrameStabilityManager::GetInstance().detectorContexts_.find(TEST_TARGET_ID_1);
+        if (it != RSFrameStabilityManager::GetInstance().detectorContexts_.end()) {
             it->second->callback = nullptr;
         }
     }
@@ -706,8 +706,8 @@ HWTEST_F(RSFrameStabilityManagerTest, RecordDirtyToDetector_NullCallback, TestSi
 
     {
         std::lock_guard<std::mutex> lock(RSFrameStabilityManager::GetInstance().detectorMutex_);
-        auto it = RSFrameStabilityManager::GetInstance().screenDetectorContexts_.find(TEST_TARGET_ID_1);
-        if (it != RSFrameStabilityManager::GetInstance().screenDetectorContexts_.end()) {
+        auto it = RSFrameStabilityManager::GetInstance().detectorContexts_.find(TEST_TARGET_ID_1);
+        if (it != RSFrameStabilityManager::GetInstance().detectorContexts_.end()) {
             it->second->callback = nullptr;
         }
     }
@@ -797,8 +797,8 @@ HWTEST_F(RSFrameStabilityManagerTest, RecordDirtyToDetector_StateAlreadyNotStabl
 
     {
         std::lock_guard<std::mutex> lock(RSFrameStabilityManager::GetInstance().detectorMutex_);
-        auto it = RSFrameStabilityManager::GetInstance().screenDetectorContexts_.find(TEST_TARGET_ID_1);
-        if (it != RSFrameStabilityManager::GetInstance().screenDetectorContexts_.end()) {
+        auto it = RSFrameStabilityManager::GetInstance().detectorContexts_.find(TEST_TARGET_ID_1);
+        if (it != RSFrameStabilityManager::GetInstance().detectorContexts_.end()) {
             it->second->state = DetectionState::NOTSTABLE;
         }
     }
@@ -833,8 +833,8 @@ HWTEST_F(RSFrameStabilityManagerTest, RecordDirtyToDetector_NoPendingTaskWhenAbo
 
     {
         std::lock_guard<std::mutex> lock(RSFrameStabilityManager::GetInstance().detectorMutex_);
-        auto it = RSFrameStabilityManager::GetInstance().screenDetectorContexts_.find(TEST_TARGET_ID_1);
-        if (it != RSFrameStabilityManager::GetInstance().screenDetectorContexts_.end()) {
+        auto it = RSFrameStabilityManager::GetInstance().detectorContexts_.find(TEST_TARGET_ID_1);
+        if (it != RSFrameStabilityManager::GetInstance().detectorContexts_.end()) {
             it->second->hasPendingStabilityTask = false;
         }
     }
@@ -936,8 +936,8 @@ HWTEST_F(RSFrameStabilityManagerTest, RecordDirtyToDetector_StateAlreadyStableWh
 
     {
         std::lock_guard<std::mutex> lock(RSFrameStabilityManager::GetInstance().detectorMutex_);
-        auto it = RSFrameStabilityManager::GetInstance().screenDetectorContexts_.find(TEST_TARGET_ID_1);
-        if (it != RSFrameStabilityManager::GetInstance().screenDetectorContexts_.end()) {
+        auto it = RSFrameStabilityManager::GetInstance().detectorContexts_.find(TEST_TARGET_ID_1);
+        if (it != RSFrameStabilityManager::GetInstance().detectorContexts_.end()) {
             it->second->state = DetectionState::STABLE;
         }
     }
@@ -1087,5 +1087,26 @@ HWTEST_F(RSFrameStabilityManagerTest, StartFrameStabilityCollection_MaxConnectio
         bool dummyResult = false;
         RSFrameStabilityManager::GetInstance().GetFrameStabilityResult(TEST_PID, regTarget, dummyResult);
     }
+}
+
+/**
+ * @tc.name: UpdateFrameStabilityDetection_Success
+ * @tc.desc: Test successful update of frame stability detection target ID
+ * @tc.type: FUNC
+ * @tc.require: issue23671
+ */
+HWTEST_F(RSFrameStabilityManagerTest, UpdateFrameStabilityDetection_Success, TestSize.Level1)
+{
+    FrameStabilityTarget oldTarget;
+    oldTarget.id = TEST_TARGET_ID_1;
+    oldTarget.type = FrameStabilityTargetType::SCREEN;
+    
+    FrameStabilityTarget newTarget;
+    newTarget.id = TEST_TARGET_ID_2;
+    newTarget.type = FrameStabilityTargetType::WINDOW;
+
+    result = RSFrameStabilityManager::GetInstance().UpdateFrameStabilityDetection(
+        TEST_PID, oldTarget, newTarget);
+    EXPECT_EQ(result, static_cast<int32_t>(FrameStabilityErrorCode::SUCCESS));
 }
 } // namespace OHOS::Rosen

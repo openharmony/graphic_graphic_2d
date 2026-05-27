@@ -213,6 +213,7 @@ private:
     void HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo);
     void HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt);
     void HandlePointerTask(pid_t pid, int32_t pointerStatus, int32_t pointerCnt);
+    void HandleScreenLtpoConfig(ScreenId id);
     void HandleScreenFrameRate(std::string curScreenName);
     void UpdateScreenFrameRate();
     void RegisterUpTimeoutAndDownEvent();
@@ -331,6 +332,9 @@ private:
 
     bool isLowPowerSlide_ = false;
     bool slideModeChange_ = false;
+
+    ScreenId activeRectScreenId_ = INVALID_SCREEN_ID;
+    Rect activeRect_ { 0, 0, 0, 0 };
 
     std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback_ = nullptr;
 };

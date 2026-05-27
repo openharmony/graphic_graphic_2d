@@ -31,6 +31,11 @@ namespace Rosen {
 class RSDirtyRectsDfx;
 class RSUniDirtyComputeUtil {
 public:
+    // Dirty region count threshold:
+    // - Use clipping rect when region count <= this threshold (1 dirty region)
+    // - Switch to GPU tile alignment for better performance when count exceeds threshold
+    static inline constexpr size_t DIRTY_REGION_COUNT_THRESHOLD{1};
+
     static std::vector<RectI> GetCurrentFrameVisibleDirty(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         ScreenInfo& screenInfo, RSScreenRenderParams& params);
     static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, const ScreenInfo& screenInfo);
@@ -48,6 +53,35 @@ public:
     static void ClearVirtualExpandScreenAccumulatedDirtyRegions(
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params);
     static bool HasMirrorDisplay();
+    static Drawing::Region GetFlippedRegion(const std::vector<RectI>& rects, ScreenInfo& screenInfo);
+    static void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region, bool clear = true);
+
+    static bool IsDamageRegionGpuTileInited() noexcept
+    {
+        return damageRegionGpuTileInited_;
+    }
+
+    static bool IsDamageRegionGpuTileValid() noexcept
+    {
+        return damageRegionGpuTile_.first > 0 && damageRegionGpuTile_.second > 0;
+    }
+
+    static void SetDamageRegionGpuTile(std::pair<int, int> damageRegionGpuTile) noexcept
+    {
+        damageRegionGpuTile_ = damageRegionGpuTile;
+        damageRegionGpuTileInited_ = true;
+    }
+
+    static const std::pair<int, int>& GetDamageRegionGpuTile() noexcept
+    {
+        return damageRegionGpuTile_;
+    }
+
+    static RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& selfDrawRegion,
+        const Occlusion::Region& visibleRegion);
+private:
+    static bool damageRegionGpuTileInited_;
+    static std::pair<int, int> damageRegionGpuTile_;
 };
 
 class DirtyStatusAutoUpdate {
@@ -93,6 +127,8 @@ private:
 
     static void ResetFilterInfoStatus(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& surfaceDrawables);
+    
+    static bool FilterCachePartialRenderEnabled(const FilterDirtyRegionInfo& info);
 
     static Occlusion::Region GetVisibleEffectRegion(RSRenderNode& filterNode);
     inline static bool dirtyAlignEnabled_ = false;

@@ -30,6 +30,8 @@
 namespace OHOS::Rosen {
 class RSScreenRenderParams;
 namespace DrawableV2 {
+class RSMultiScreenUtil;
+
 class RSLogicalDisplayRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
     ~RSLogicalDisplayRenderNodeDrawable() override;
@@ -82,9 +84,9 @@ private:
     void DrawWiredMirrorOnDraw(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable,
         RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawMirrorScreen(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    void DrawExpandDisplay(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
+    void DrawExpandDisplay(RSLogicalDisplayRenderParams& params);
     void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false,
-        bool useCanvasSize = true);
+        bool useCanvasSize = true, bool fixFormat = false);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
         bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
     void UpdateSlrScale(const RSScreenProperty& screenProperty, float srcWidth, float srcHeight,
@@ -151,6 +153,8 @@ private:
 
     // mirror display drawing path dfx
     std::optional<bool> mirrorRedraw_;
+
+    friend class RSMultiScreenUtil;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

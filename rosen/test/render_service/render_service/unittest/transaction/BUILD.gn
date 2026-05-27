@@ -84,7 +84,11 @@ ohos_unittest("RSIRenderServiceIpcInterfaceCodeAccessVerifierTest") {
 ## Build RSClientToServiceConnectionStubTest
 ohos_unittest("RSClientToServiceConnectionStubTest") {
   module_out_path = module_output_path
+  include_dirs = [
+    "mock",
+  ]
   sources = [
+    "mock/mock_accesstoken_kit.cpp",
     "../pipeline/mock/mock_hdi_device.cpp",
     "rs_client_to_service_connection_stub_test.cpp",
     "${rosen_root}/modules/render_service_base/src/pipeline/rs_uni_render_judgement.cpp",
@@ -228,6 +232,7 @@ ohos_unittest("RSConnectToRenderProcessStubTest") {
 config("rs_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",

@@ -2958,7 +2958,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor001, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = 0x034123;
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToBT2020ColorSpace();
+    color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(colorValue == color.AsArgbInt());
 #endif
@@ -2974,7 +2974,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor002, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToBT2020ColorSpace();
+    color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(colorValue == color.AsArgbInt());
 }
@@ -2989,7 +2989,7 @@ HWTEST_F(RSCanvasNodeTest, SetandGetBackgroundColor003, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToBT2020ColorSpace();
+    color.ConvertToP3ColorSpace();
     canvasNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(colorValue == color.AsArgbInt());
 }
@@ -3769,7 +3769,7 @@ HWTEST_F(RSCanvasNodeTest, ResetSurface002, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetHybridRenderCanvas(true);
     auto ret = canvasNode->ResetSurface(0, 0);
-#ifdef RS_ENABLE_VK
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     EXPECT_EQ(ret, true);
 #else
     EXPECT_EQ(ret, false);
@@ -3786,10 +3786,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest001, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        uiDirector2->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
+        auto uiDirector2 = RSUIDirector::Create(nullptr, nullptr);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3813,10 +3811,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest002, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        uiDirector2->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
+        auto uiDirector2 = RSUIDirector::Create(nullptr, nullptr);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3839,10 +3835,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest003, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        uiDirector2->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
+        auto uiDirector2 = RSUIDirector::Create(nullptr, nullptr);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3865,10 +3859,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest004, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        uiDirector2->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
+        auto uiDirector2 = RSUIDirector::Create(nullptr, nullptr);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);

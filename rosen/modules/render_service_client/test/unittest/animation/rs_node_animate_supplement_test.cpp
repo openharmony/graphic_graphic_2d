@@ -118,7 +118,8 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest003, TestSize.Level1)
     node->AddAnimation(nullptr);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, endProperty);
     curveAnimation->SetDuration(300);
     node->AddAnimation(curveAnimation);
@@ -142,7 +143,8 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest004, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
     node->AddAnimation(nullptr);
@@ -222,7 +224,8 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest013, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto node = std::make_shared<RSNodeMock>(false);
     EXPECT_TRUE(node != nullptr);
     node->DumpNode(1);
@@ -284,7 +287,8 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest015, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSCurveAnimation> curveAnimation;
@@ -309,7 +313,8 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest016, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto node = std::make_shared<RSNodeMock>(true);
     EXPECT_TRUE(node != nullptr);
     std::shared_ptr<RSCurveAnimation> curveAnimation;
@@ -459,19 +464,81 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest026, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSNodeAnimateSupplementTest028
- * @tc.desc: Verify the RSNode::CloseImplicitCancelAnimation with multi-instance
+ * @tc.name: CloseImplicitCancelAnimation_WithNodeExceptionSensitive
+ * @tc.desc: Verify CloseImplicitCancelAnimation nodeExceptionSensitive parameter
  * @tc.type: FUNC
  */
-HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest028, TestSize.Level1)
+HWTEST_F(RSNodeAnimateTest, CloseImplicitCancelAnimation_WithNodeExceptionSensitive, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest028 start";
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimation_WithNodeExceptionSensitive start";
+    auto rsUIContext = rsUiDirector->GetRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+
     RSAnimationTimingProtocol protocol;
     RSAnimationTimingCurve curve;
-    RSNode::OpenImplicitAnimation(rsUiDirector->GetRSUIContext(), protocol, curve);
-    auto ret = RSNode::CloseImplicitCancelAnimation(rsUiDirector->GetRSUIContext());
+    protocol.SetDuration(0);
+    
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, curve);
+    auto retFalse = RSNode::CloseImplicitCancelAnimation(rsUIContext, false);
+    EXPECT_FALSE(retFalse);
+
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, curve);
+    auto retTrue = RSNode::CloseImplicitCancelAnimation(rsUIContext, true);
+    EXPECT_FALSE(retTrue);
+
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimation_WithNodeExceptionSensitive end";
+}
+
+/**
+ * @tc.name: CloseImplicitCancelAnimation_WithNullContext
+ * @tc.desc: Verify CloseImplicitCancelAnimation with null rsUIContext
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, CloseImplicitCancelAnimation_WithNullContext, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimation_WithNullContext start";
+    auto ret = RSNode::CloseImplicitCancelAnimation(nullptr);
     EXPECT_FALSE(ret);
-    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest028 end";
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimation_WithNullContext end";
+}
+
+/**
+ * @tc.name: CloseImplicitCancelAnimationReturnStatus_WithNullContext
+ * @tc.desc: Verify CloseImplicitCancelAnimationReturnStatus with null rsUIContext
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, CloseImplicitCancelAnimationReturnStatus_WithNullContext, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimationReturnStatus_WithNullContext start";
+    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus(nullptr);
+    EXPECT_EQ(ret, CancelAnimationStatus::NULL_ANIMATOR);
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimationReturnStatus_WithNullContext end";
+}
+
+/**
+ * @tc.name: CloseImplicitCancelAnimationReturnStatus_WithNodeExceptionSensitive
+ * @tc.desc: Verify CloseImplicitCancelAnimationReturnStatus nodeExceptionSensitive scenarios
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, CloseImplicitCancelAnimationReturnStatus_WithNodeExceptionSensitive, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimationReturnStatus_WithNodeExceptionSensitive start";
+    auto rsUIContext = rsUiDirector->GetRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+
+    RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve curve;
+    protocol.SetDuration(0);
+    
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, curve);
+    auto statusFalse = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUIContext, false);
+    EXPECT_EQ(statusFalse, CancelAnimationStatus::EMPTY_PENDING_SYNC_LIST);
+
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, curve);
+    auto statusTrue = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUIContext, true);
+    EXPECT_EQ(statusTrue, CancelAnimationStatus::EMPTY_PENDING_SYNC_LIST);
+
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest CloseImplicitCancelAnimationReturnStatus_WithNodeExceptionSensitive end";
 }
 } // namespace Rosen
 } // namespace OHOS

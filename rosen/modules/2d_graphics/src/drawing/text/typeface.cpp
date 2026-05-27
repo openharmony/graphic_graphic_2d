@@ -403,6 +403,22 @@ bool Typeface::GetItalic() const
     return false;
 }
 
+bool Typeface::GetMonospace() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->GetMonospace();
+    }
+    return false;
+}
+
+bool Typeface::IsColored() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->IsColored();
+    }
+    return false;
+}
+
 uint32_t Typeface::GetUniqueID() const
 {
     if (typefaceImpl_) {
@@ -435,12 +451,26 @@ bool Typeface::IsCustomTypeface() const
     return false;
 }
 
+void Typeface::SetIsCustomTypeface(bool isCustom)
+{
+    if (typefaceImpl_) {
+        typefaceImpl_->SetIsCustomTypeface(isCustom);
+    }
+}
+
 bool Typeface::IsThemeTypeface() const
 {
     if (typefaceImpl_) {
         return typefaceImpl_->IsThemeTypeface();
     }
     return false;
+}
+
+void Typeface::SetIsThemeTypeface(bool isTheme)
+{
+    if (typefaceImpl_) {
+        typefaceImpl_->SetIsThemeTypeface(isTheme);
+    }
 }
 
 std::shared_ptr<Data> Typeface::Serialize() const

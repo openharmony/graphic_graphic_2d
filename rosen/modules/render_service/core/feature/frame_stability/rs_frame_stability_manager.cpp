@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "rs_frame_stability_manager.h"
-#include "rs_frame_stability_state.h"
+#include "frame_stability/rs_frame_stability_manager.h"
+#include "frame_stability/rs_frame_stability_state.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -37,13 +37,13 @@ void RSFrameStabilityManager::CleanResourcesByPid(pid_t pid)
     RS_LOGD("CleanResourcesByPid remove context by pid=%{public}d", pid);
     {
         std::lock_guard<std::mutex> detectorLock(detectorMutex_);
-        EraseIf(screenDetectorContexts_, [pid](const auto& iter) {
+        EraseIf(detectorContexts_, [pid](const auto& iter) {
             return iter.second && iter.second->pid == pid;
         });
     }
     {
         std::lock_guard<std::mutex> collectorLock(collectorMutex_);
-        EraseIf(screenCollectorContexts_, [pid](const auto& iter) {
+        EraseIf(collectorContexts_, [pid](const auto& iter) {
             return iter.second && iter.second->pid == pid;
         });
     }
@@ -54,11 +54,11 @@ void RSFrameStabilityManager::CleanResourcesByScreenId(ScreenId screenId)
     RS_LOGD("CleanResourcesByScreenId remove context by screenId=%{public}" PRIu64 "", screenId);
     {
         std::lock_guard<std::mutex> detectorLock(detectorMutex_);
-        screenDetectorContexts_.erase(static_cast<uint64_t>(screenId));
+        detectorContexts_.erase(static_cast<uint64_t>(screenId));
     }
     {
         std::lock_guard<std::mutex> collectorLock(collectorMutex_);
-        screenCollectorContexts_.erase(static_cast<uint64_t>(screenId));
+        collectorContexts_.erase(static_cast<uint64_t>(screenId));
     }
 }
 
@@ -75,12 +75,12 @@ int32_t RSFrameStabilityManager::RegisterFrameStabilityDetection(
     }
 
     std::lock_guard<std::mutex> lock(detectorMutex_);
-    if (screenDetectorContexts_.find(target.id) != screenDetectorContexts_.end()) {
+    if (detectorContexts_.find(target.id) != detectorContexts_.end()) {
         RS_LOGE("RegisterFrameStabilityDetection id: %{public}" PRIu64 ", "
             "target id is already registered", target.id);
         return static_cast<int32_t>(FrameStabilityErrorCode::TARGET_ID_ALREADY_REGISTERED);
     }
-    if (screenDetectorContexts_.size() >= MAX_FRAME_STABILITY_CONNECTION_NUM) {
+    if (detectorContexts_.size() >= MAX_FRAME_STABILITY_CONNECTION_NUM) {
         RS_LOGE("RegisterFrameStabilityDetection id: %{public}" PRIu64 ", "
             "connections is occupied", target.id);
         return static_cast<int32_t>(FrameStabilityErrorCode::CONNECTIONS_OCCUPIED);
@@ -93,7 +93,7 @@ int32_t RSFrameStabilityManager::RegisterFrameStabilityDetection(
     detectorContext->startTime = std::chrono::steady_clock::now();
     detectorContext->pid = pid;
     detectorContext->targetType = target.type;
-    screenDetectorContexts_[target.id] = detectorContext;
+    detectorContexts_[target.id] = detectorContext;
 
     auto task = [this, id = target.id]() {
         this->HandleStabilityTimeout(id);
@@ -116,8 +116,8 @@ int32_t RSFrameStabilityManager::RegisterFrameStabilityDetection(
 int32_t RSFrameStabilityManager::UnregisterFrameStabilityDetection(pid_t pid, const FrameStabilityTarget& target)
 {
     std::lock_guard<std::mutex> lock(detectorMutex_);
-    auto it = screenDetectorContexts_.find(target.id);
-    if (it == screenDetectorContexts_.end()) {
+    auto it = detectorContexts_.find(target.id);
+    if (it == detectorContexts_.end()) {
         RS_LOGE("UnregisterFrameStabilityDetection id: %{public}" PRIu64 ", "
             "target id is not registered", target.id);
         return static_cast<int32_t>(FrameStabilityErrorCode::TARGET_ID_NOT_REGISTERED);
@@ -126,7 +126,7 @@ int32_t RSFrameStabilityManager::UnregisterFrameStabilityDetection(pid_t pid, co
     if (detectorContext->hasPendingStabilityTask) {
         RSUniRenderThread::Instance().RemoveTask(FRAME_STABILITY_TAG + std::to_string(target.id));
     }
-    screenDetectorContexts_.erase(target.id);
+    detectorContexts_.erase(target.id);
     RS_LOGI("UnregisterFrameStabilityDetection, pid=%{public}d, "
         "type=%{public}d, id=%{public}" PRIu64, pid, target.type, target.id);
     RS_TRACE_NAME_FMT("UnregisterFrameStabilityDetection, pid=%d, type=%d, id=%" PRIu64, pid, target.type, target.id);
@@ -139,12 +139,12 @@ int32_t RSFrameStabilityManager::StartFrameStabilityCollection(
     const FrameStabilityConfig& config)
 {
     std::lock_guard<std::mutex> lock(collectorMutex_);
-    if (screenCollectorContexts_.find(target.id) != screenCollectorContexts_.end()) {
+    if (collectorContexts_.find(target.id) != collectorContexts_.end()) {
         RS_LOGE("StartFrameStabilityCollection id: %{public}" PRIu64 ", "
             "target id is already start", target.id);
         return static_cast<int32_t>(FrameStabilityErrorCode::TARGET_ID_ALREADY_REGISTERED);
     }
-    if (screenCollectorContexts_.size() >= MAX_FRAME_STABILITY_CONNECTION_NUM) {
+    if (collectorContexts_.size() >= MAX_FRAME_STABILITY_CONNECTION_NUM) {
         RS_LOGE("StartFrameStabilityCollection id: %{public}" PRIu64 ", "
             "connections is occupied", target.id);
         return static_cast<int32_t>(FrameStabilityErrorCode::CONNECTIONS_OCCUPIED);
@@ -154,7 +154,7 @@ int32_t RSFrameStabilityManager::StartFrameStabilityCollection(
     collectorContext->collectionDirtyRegion = Occlusion::Region();
     collectorContext->pid = pid;
     collectorContext->targetType = target.type;
-    screenCollectorContexts_[target.id] = collectorContext;
+    collectorContexts_[target.id] = collectorContext;
     RS_LOGI("StartFrameStabilityCollection success, pid=%{public}d, "
         "type=%{public}d, id=%{public}" PRIu64 ", changePercent=%{public}f",
         pid, target.type, target.id, config.changePercent);
@@ -167,8 +167,8 @@ int32_t RSFrameStabilityManager::StartFrameStabilityCollection(
 int32_t RSFrameStabilityManager::GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result)
 {
     std::lock_guard<std::mutex> lock(collectorMutex_);
-    auto it = screenCollectorContexts_.find(target.id);
-    if (it == screenCollectorContexts_.end()) {
+    auto it = collectorContexts_.find(target.id);
+    if (it == collectorContexts_.end()) {
         RS_LOGE("GetFrameStabilityResult target not found, pid=%{public}d, "
             "type=%{public}d, id=%{public}" PRIu64, pid, target.type, target.id);
         return static_cast<int32_t>(FrameStabilityErrorCode::TARGET_ID_NOT_REGISTERED);
@@ -179,13 +179,21 @@ int32_t RSFrameStabilityManager::GetFrameStabilityResult(pid_t pid, const FrameS
         collectorContext->collectionDirtyRegion, collectorContext->screenArea);
     result = ROSEN_LE(percentage, collectorContext->config.changePercent);
 
-    screenCollectorContexts_.erase(target.id);
+    collectorContexts_.erase(target.id);
     RS_LOGI("GetFrameStabilityResult success, pid=%{public}d, "
         "type=%{public}d, id=%{public}" PRIu64 ", percentage=%{public}f, result=%{public}d",
         pid, target.type, target.id, percentage, result);
     RS_TRACE_NAME_FMT("GetFrameStabilityResult success, pid=%d, type=%d, id=%" PRIu64 ", percentage=%f, result=%d",
         pid, target.type, target.id, percentage, result);
 
+    return static_cast<int32_t>(FrameStabilityErrorCode::SUCCESS);
+}
+
+int32_t RSFrameStabilityManager::UpdateFrameStabilityDetection(
+    pid_t pid,
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
     return static_cast<int32_t>(FrameStabilityErrorCode::SUCCESS);
 }
 
@@ -200,8 +208,8 @@ float RSFrameStabilityManager::CalculateRegionPercentage(const Occlusion::Region
 
 void RSFrameStabilityManager::TriggerCallback(uint64_t targetId, bool isStable)
 {
-    auto it = screenDetectorContexts_.find(targetId);
-    if (it == screenDetectorContexts_.end()) {
+    auto it = detectorContexts_.find(targetId);
+    if (it == detectorContexts_.end()) {
         RS_LOGE("TriggerCallback target not found, id=%{public}" PRIu64, targetId);
         return;
     }
@@ -220,8 +228,8 @@ void RSFrameStabilityManager::HandleStabilityTimeout(uint64_t targetId)
 {
     // trigger callback only when there is no vsync and state is init or notstable
     std::lock_guard<std::mutex> lock(detectorMutex_);
-    auto it = screenDetectorContexts_.find(targetId);
-    if (it == screenDetectorContexts_.end()) {
+    auto it = detectorContexts_.find(targetId);
+    if (it == detectorContexts_.end()) {
         return;
     }
 
@@ -249,8 +257,8 @@ void RSFrameStabilityManager::RecordDirtyToDetector(
     uint64_t id, const std::vector<RectI>& damageRegionRects, float screenArea)
 {
     std::lock_guard<std::mutex> lock(detectorMutex_);
-    auto it = screenDetectorContexts_.find(id);
-    if (it == screenDetectorContexts_.end()) {
+    auto it = detectorContexts_.find(id);
+    if (it == detectorContexts_.end()) {
         return;
     }
     auto detectorContext = it->second;
@@ -269,7 +277,7 @@ void RSFrameStabilityManager::RecordDirtyToDetector(
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
         currentTime - detectorContext->startTime).count();
     
-    if (ROSEN_GE(percentage, detectorContext->config.changePercent)) {
+    if (ROSEN_GNE(percentage, detectorContext->config.changePercent)) {
         if (detectorContext->state != DetectionState::NOTSTABLE) {
             TriggerCallback(id, false);
             detectorContext->state = DetectionState::NOTSTABLE;
@@ -300,8 +308,8 @@ void RSFrameStabilityManager::RecordDirtyToCollector(
     uint64_t id, const std::vector<RectI>& damageRegionRects, float screenArea)
 {
     std::lock_guard<std::mutex> lock(collectorMutex_);
-    auto it = screenCollectorContexts_.find(id);
-    if (it == screenCollectorContexts_.end()) {
+    auto it = collectorContexts_.find(id);
+    if (it == collectorContexts_.end()) {
         return;
     }
 

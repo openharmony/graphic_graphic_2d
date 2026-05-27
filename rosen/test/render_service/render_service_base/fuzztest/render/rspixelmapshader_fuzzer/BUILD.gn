@@ -14,6 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
@@ -24,12 +25,12 @@ ohos_fuzztest("RSPixelMapShaderFuzzTest") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
   ]
-  public_external_deps = [
-    "graphic_2d:2d_graphics",
-    "graphic_2d:librender_service_base",
-    "image_framework:image_native",
-    "ipc:ipc_core",
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
+
   cflags = [
     "-g",
     "-O0",
@@ -42,6 +43,8 @@ ohos_fuzztest("RSPixelMapShaderFuzzTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "ipc:ipc_core",
   ]
 }
 

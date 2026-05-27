@@ -114,10 +114,36 @@ void RSComposerClientManager::CleanLayerBufferBySurfaceId(uint64_t surfaceId, No
     }
 }
 
-void RSComposerClientManager::SetScreenBacklight(ScreenId screenId, uint32_t level)
+int32_t RSComposerClientManager::CommitTunnelLayerBySurfaceId(
+    const TunnelLayerCommitInfo& commitInfo, sptr<SyncFence>& releaseFence)
+{
+    std::unordered_map<ScreenId, std::shared_ptr<RSComposerClient>> clientMap;
+    {
+        std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+        clientMap = composerClientMap_;
+    }
+    for (auto& [_, client] : clientMap) {
+        if (client != nullptr && client->IsFindRSLayer(commitInfo.nodeId)) {
+            return client->CommitTunnelLayerBySurfaceId(commitInfo.surfaceId, commitInfo.tunnelLayerId,
+                commitInfo.buffer, commitInfo.acquireFence, releaseFence);
+        }
+    }
+    RS_LOGD("%{public}s can not find composer client, nodeId:%{public}" PRIu64, __func__,
+        commitInfo.nodeId);
+    return GRAPHIC_DISPLAY_FAILURE;
+}
+
+void RSComposerClientManager::SetScreenBacklight(const RsScreenBrightnessData& brightnessData)
+{
+    if (auto client = GetComposerClient(brightnessData.screenId)) {
+        client->SetScreenBacklight(brightnessData.level);
+    }
+}
+
+void RSComposerClientManager::SetScreenLinearMatrix(ScreenId screenId, const std::vector<float>& matrix)
 {
     if (auto client = GetComposerClient(screenId)) {
-        client->SetScreenBacklight(level);
+        client->SetScreenLinearMatrix(matrix);
     }
 }
 

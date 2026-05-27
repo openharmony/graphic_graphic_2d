@@ -44,6 +44,7 @@ public:
     void RemoveUnionChild(NodeId id);
     void ResetUnionChildren();
     void ProcessSDFShape(RSDirtyRegionManager& dirtyManager);
+    RectF CalcBoundingBox() const override;
 
     static void ProcessUnionInfoOnTreeStateChanged(const std::shared_ptr<RSRenderNode> node);
     static void ProcessUnionInfoAfterApplyModifiers(const std::shared_ptr<RSRenderNode> node);
@@ -94,6 +95,7 @@ private:
                 RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, child[%{public}" PRIu64 "] Get fail", childId);
                 continue;
             }
+            boundingBox_ = boundingBox_.JoinRect(GenerateSDFDrawingRect(child));
             auto childShape = GetOrCreateChildSDFShape(child);
             auto transformShape = CreateChildToContainerSDFTransformShape(child, childShape);
             if (shapeQueue.empty()) {
@@ -111,17 +113,21 @@ private:
         }
     }
 
+    RectI GenerateSDFDrawingRect(std::shared_ptr<RSRenderNode>& child);
     bool GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relativeMatrix, std::shared_ptr<RSRenderNode>& child) const;
     std::shared_ptr<RSNGRenderShapeBase> CreateSDFOpShapeWithBaseInitialization(RSNGEffectType type);
     std::shared_ptr<RSNGRenderShapeBase> CreateChildToContainerSDFTransformShape(
         std::shared_ptr<RSRenderNode>& child, std::shared_ptr<RSNGRenderShapeBase>& childShape);
     std::shared_ptr<RSNGRenderShapeBase> GetOrCreateChildSDFShape(std::shared_ptr<RSRenderNode>& child);
-    Vector2f GetGravityCenter() const;
+    Vector2f GetGravityCenter();
     static std::shared_ptr<RSUnionRenderNode> FindClosestUnionAncestor(const std::shared_ptr<RSRenderNode> node);
 
     std::unordered_set<NodeId> unionChildren_;
     int unionMode_ = 0;
     Vector2f gravityCenter_ = Vector2f(0.0f, 0.0f);
+    float gravityStrength_ = 0.0f;
+    float gravityHotZone_ = 0.0f;
+    RectI boundingBox_;
     friend class UnionNodeCommandHelper;
 };
 } // namespace Rosen

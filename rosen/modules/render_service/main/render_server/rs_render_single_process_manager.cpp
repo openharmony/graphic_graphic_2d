@@ -24,6 +24,7 @@
 #include "rs_render_pipeline.h"
 
 #include "rs_render_composer_manager.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_connect_to_render_process.h"
 
@@ -32,7 +33,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& renderService)
+RSSingleRenderProcessManager::RSSingleRenderProcessManager(
+    RSRenderService& renderService, HgmProcessCallback hgmProcessCallback)
     : RSRenderProcessManager(renderService)
 {
     // step1: Create Vsync Connection and Receiver
@@ -41,9 +43,14 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
     renderService_.vsyncManager_->AddRSVsyncConnection(conn);
     auto receiver = std::make_shared<VSyncReceiver>(conn, vsyncToken->AsObject(), renderService.handler_, "rs");
     receiver->Init();
+    auto gcNotifyTaskProxy = [](bool isEnable) {
+        RSRenderNodeGC::Instance().SetGCTaskEnable(isEnable);
+    };
+    conn->SetGCNotifyTask(gcNotifyTaskProxy);
 
     // step2: Create renderPipeline and Following Connections
     auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
+    renderServiceAgent->RegisterHgmProcessCallback(std::move(hgmProcessCallback));
     auto renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
     auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService.screenManager_);
@@ -58,7 +65,7 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
     // step3:
     connectToRenderConnection_ = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);
 
-    RS_PROFILER_INIT(&renderService);
+    RS_PROFILER_INIT(renderService.renderPipeline_, serviceToRenderConnection_);
 }
 
 sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId screenId,

@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_canvas_node_command.h"
+#include "common/rs_common_def.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 
@@ -102,7 +103,7 @@ HWTEST_F(RSCanvasNodeCommandTest, AddCmdToSingleFrameComposer001, TestSize.Level
     NodeId id = static_cast<NodeId>(1);
     RSCanvasNodeCommandHelper::Create(context, id, true);
     auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmds;
+    SimpleDrawCmdListPtr drawCmds = nullptr;
     uint16_t type = 0;
     bool res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, type);
     EXPECT_TRUE(res == false);
@@ -111,15 +112,6 @@ HWTEST_F(RSCanvasNodeCommandTest, AddCmdToSingleFrameComposer001, TestSize.Level
     RSSingleFrameComposer::SetSingleFrameFlag(thisThreadId);
     res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, type);
     EXPECT_TRUE(res);
-
-    node->isNodeSingleFrameComposer_ = true;
-    res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, type);
-    EXPECT_TRUE(res == false);
-
-    std::thread::id threadId = std::this_thread::get_id();
-    RSSingleFrameComposer::SetSingleFrameFlag(threadId);
-    res = RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(node, drawCmds, type);
-    EXPECT_TRUE(res == false);
 }
 
 /**
@@ -219,6 +211,24 @@ HWTEST_F(RSCanvasNodeCommandTest, SetPixelmap, TestSize.Level1)
     EXPECT_NE(node, nullptr);
     RSCanvasNodeCommandHelper::SetPixelmap(context, id, pixelmap);
     context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+
+/**
+ * @tc.name: CreateDOSProtectionTest
+ * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
+{
+    RSContext context;
+    pid_t pid = 1;
+    for (uint32_t i = 0; i <= MAX_NODE_COUNT_PER_PID; i++) {
+        NodeId existId = MakeNodeId(pid, i);
+        RSCanvasNodeCommandHelper::Create(context, existId, false);
+    }
+    NodeId newNodeId = MakeNodeId(pid, MAX_NODE_COUNT_PER_PID + 1);
+    RSCanvasNodeCommandHelper::Create(context, newNodeId, false);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(newNodeId), nullptr);
 }
 
 } // namespace OHOS::Rosen

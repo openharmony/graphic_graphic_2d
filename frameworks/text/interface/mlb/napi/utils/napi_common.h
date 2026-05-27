@@ -77,14 +77,13 @@ enum TextErrorCode : int32_t {
     ERROR_NO_MEMORY = 8800100, // no memory
 };
 
-#define GET_UNWRAP_PARAM(argc, value)                                                                                  \
-    do {                                                                                                               \
-        if ((napi_unwrap(env, argv[argc], reinterpret_cast<void**>(&value)) != napi_ok) || value == nullptr) {         \
-            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,                                          \
-                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");            \
-        }                                                                                                              \
+#define GET_UNWRAP_PARAM(argc, value)                                                                                \
+    do {                                                                                                             \
+        if ((napi_unwrap(env, argv[(argc)], reinterpret_cast<void**>(&(value))) != napi_ok) || (value) == nullptr) { \
+            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,                                           \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " type.");          \
+        }                                                                                                            \
     } while (0)
-
 
 #define NAPI_CHECK_AND_THROW_ERROR(ret, errorCode, errorMessage)   \
     do {                                                           \
@@ -486,6 +485,18 @@ inline napi_value CreateArrayStringJsValue(napi_env env, const std::vector<std::
     return jsArray;
 }
 
+inline napi_value CreateArrayDoubleJsValue(napi_env env, const std::vector<double>& vectorDouble)
+{
+    napi_value jsArray = nullptr;
+    if (napi_create_array_with_length(env, vectorDouble.size(), &jsArray) == napi_ok) {
+        size_t index = 0;
+        for (const auto& value : vectorDouble) {
+            napi_set_element(env, jsArray, index++, CreateJsNumber(env, value));
+        }
+    }
+    return jsArray;
+}
+
 inline napi_value CreateStringJsValue(napi_env env, const std::u16string& u16String)
 {
     napi_value jsStr = nullptr;
@@ -495,11 +506,15 @@ inline napi_value CreateStringJsValue(napi_env env, const std::u16string& u16Str
 
 napi_value CreateFontFeatureArrayJsValue(napi_env env, const FontFeatures& fontFeatures);
 
+napi_value CreateFontVariationArrayJsValue(napi_env env, const FontVariations& fontVariations);
+
 napi_value CreateRectStyleJsValue(napi_env env, RectStyle& rectStyle);
 
 napi_value CreatePointJsValue(napi_env env, const OHOS::Rosen::Drawing::PointF& point);
 
 napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>& textShadows);
+
+napi_value CreateTypefaceArrayJsValue(napi_env env, const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces);
 
 napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle);
 
@@ -595,6 +610,14 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
 void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle);
 
 void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+void ReceiveFontTypefaces(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+// Helper functions for fontTypefaces extraction
+std::shared_ptr<Drawing::Typeface> ExtractTypefaceFromJS(napi_env env, napi_value jsObject);
+
+std::vector<std::shared_ptr<Drawing::Typeface>> ExtractTypefacesFromArray(
+    napi_env env, napi_value typefacesArray, uint32_t arrayLength);
 
 size_t GetParamLen(napi_env env, napi_value param);
 

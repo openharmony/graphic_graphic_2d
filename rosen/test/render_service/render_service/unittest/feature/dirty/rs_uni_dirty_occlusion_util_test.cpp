@@ -66,7 +66,7 @@ HWTEST_F(RSUniDirtyOcclusionUtilTest, CheckResetAccumulatedOcclusionRegion001, T
     rsSurfaceRenderNode->InitRenderParams();
 
     // set surface node trasnparent.
-    rsSurfaceRenderNode->globalAlpha_ = 0.f;
+    rsSurfaceRenderNode->SetGlobalAlpha(0.f);
     rsSurfaceRenderNode->abilityBgAlpha_ = 0;
     RectI screenRect = { 0, 0, 1000, 1000};
 

@@ -38,7 +38,7 @@
 namespace OHOS {
 namespace {
     constexpr const char* OTA_COMPILE_TIME_LIMIT = "persist.bms.optimizing_apps.timing";
-    constexpr int32_t OTA_COMPILE_TIME_LIMIT_DEFAULT = 4 * 60;
+    constexpr int32_t OTA_COMPILE_TIME_LIMIT_DEFAULT = 10 * 60;
     constexpr const char* OTA_COMPILE_DISPLAY_INFO = "const.bms.optimizing_apps.display_info";
     const std::string BOOTEVENT_BMS_MAIN_BUNDLES_READY = "bootevent.bms.main.bundles.ready";
     const std::string UPDATE_FIRMWARE_READY = "update.firmware.ready";
@@ -51,6 +51,9 @@ namespace {
     constexpr const char* FIRMWARE_UPDATE_START = "start";
     constexpr const char* FIRMWARE_UPDATE_END = "end";
     constexpr const int32_t ONE_HUNDRED_PERCENT = 100;
+    constexpr const int32_t NINETY_PERCENT = 90;
+    constexpr const int32_t TEN_PERCENT = 10;
+    constexpr const float HALF_PERCENT = 0.5;
     constexpr const int32_t SEC_MS = 1000;
     constexpr const int32_t CIRCLE_NUM = 3;
     constexpr const float RADIUS = 3.0f;
@@ -89,9 +92,11 @@ BootCompileProgress::~BootCompileProgress()
     }
 }
 
-void BootCompileProgress::Init(const std::string& configPath, const BootAnimationConfig& config)
+void BootCompileProgress::Init(const std::string& configPath, const BootAnimationConfig& config,
+    sptr<IRemoteObject> connectToRender)
 {
     LOGI("ota compile, screenId: " BPUBU64 "", config.screenId);
+    connectToRender_ = connectToRender;
     RecordDeviceType();
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
@@ -131,9 +136,13 @@ bool BootCompileProgress::CreateCanvasNode()
     surfaceNodeConfig.SurfaceNodeName = "BootCompileProgressNode";
     surfaceNodeConfig.isSync = true;
     Rosen::RSSurfaceNodeType surfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create();
-    rsUIDirector_->Init(false, false);
+    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create(connectToRender_);
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
+    if (!rsUIContext) {
+        LOGE("rsUIContext is nullptr");
+        compileRunner_->Stop();
+        return false;
+    }
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType, true, false, rsUIContext);
     if (!rsSurfaceNode_) {
         LOGE("ota compile, SFNode create failed");
@@ -147,9 +156,9 @@ bool BootCompileProgress::CreateCanvasNode()
     rsSurfaceNode_->SetBackgroundColor(SK_ColorTRANSPARENT);
     rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
     rsSurfaceNode_->SetBootAnimation(true);
-    Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
     rsSurfaceNode_->AttachToDisplay(screenId_);
-    Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
 
     rsCanvasNode_ = Rosen::RSCanvasNode::Create(true, false, rsUIContext);
     rsCanvasNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
@@ -226,7 +235,7 @@ void BootCompileProgress::OnVsync()
         compileRunner_->Stop();
         if (rsSurfaceNode_) {
             rsSurfaceNode_->DetachToDisplay(screenId_);
-            OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+            rsUIDirector_->SendMessages();
         }
     }
 }
@@ -280,7 +289,7 @@ void BootCompileProgress::DrawCompileProgress()
     DrawMarginBrush(canvas);
     DrawCircle(canvas);
     rsCanvasNode_->FinishRecording();
-    Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
 
     if (progress_ >= ONE_HUNDRED_PERCENT) {
         isUpdateOptEnd_ = true;
@@ -335,7 +344,13 @@ void BootCompileProgress::UpdateCompileProgress()
         if (!timeLimitSec_) {
             return;
         }
-        progress_ = (int32_t)((now - startTimeMs_) * ONE_HUNDRED_PERCENT / (timeLimitSec_ * SEC_MS));
+        int64_t showTime = now - startTimeMs_;
+        int64_t halfTimeLimitSec_ = timeLimitSec_ * SEC_MS * HALF_PERCENT;
+        if (showTime <= halfTimeLimitSec_) {
+            progress_ = (int32_t)(showTime * NINETY_PERCENT / halfTimeLimitSec_);
+        } else {
+            progress_ = (int32_t)((showTime - halfTimeLimitSec_) * TEN_PERCENT / halfTimeLimitSec_ + NINETY_PERCENT);
+        }
         progress_ = progress_ < 0 ? 0 : progress_ > ONE_HUNDRED_PERCENT ? ONE_HUNDRED_PERCENT: progress_;
     } else {
         progress_++;

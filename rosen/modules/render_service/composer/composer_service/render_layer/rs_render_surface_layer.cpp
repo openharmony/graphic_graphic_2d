@@ -333,6 +333,16 @@ uint32_t RSRenderSurfaceLayer::GetTunnelLayerProperty() const
     return tunnelLayerProperty_;
 }
 
+void RSRenderSurfaceLayer::SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration)
+{
+    tunnelLayerGeneration_ = tunnelLayerGeneration;
+}
+
+uint64_t RSRenderSurfaceLayer::GetTunnelLayerGeneration() const
+{
+    return tunnelLayerGeneration_;
+}
+
 void RSRenderSurfaceLayer::SetIsSupportedPresentTimestamp(bool isSupported)
 {
     isSupportedPresentTimestamp_ = isSupported;
@@ -550,7 +560,6 @@ sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetPreBuffer() const
 {
     auto pbuffer = pbuffer_.promote();
     if (pbuffer == nullptr) {
-        RS_LOGD("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return pbuffer;
@@ -606,15 +615,35 @@ GraphicSolidColorLayerProperty RSRenderSurfaceLayer::GetSolidColorLayerProperty(
     return solidColorLayerProperty_;
 }
 
+// hpae_offline begin
 void RSRenderSurfaceLayer::SetUseDeviceOffline(bool useOffline)
 {
+    if (useDeviceOffline_ && !useOffline) {
+        // offline switch to online, clear original buffer info
+        hpaeOriginalInfo_.originalBuffer = nullptr;
+        hpaeOriginalInfo_.originalPreBuffer = nullptr;
+        hpaeOriginalInfo_.originalAcquireFence = nullptr;
+        hpaeOriginalInfo_.originalTransformType = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+        hpaeOriginalInfo_.originalCropRect = {0, 0, 0, 0};
+    }
     useDeviceOffline_ = useOffline;
 }
-
+ 
 bool RSRenderSurfaceLayer::GetUseDeviceOffline() const
 {
     return useDeviceOffline_;
 }
+ 
+void RSRenderSurfaceLayer::SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo)
+{
+    hpaeOriginalInfo_ = hpaeOriginalInfo;
+}
+ 
+const HpaeOriginalInfo& RSRenderSurfaceLayer::GetHpaeOriginalInfo() const
+{
+    return hpaeOriginalInfo_;
+}
+// hpae_offline end
 
 void RSRenderSurfaceLayer::SetIgnoreAlpha(bool ignoreAlpha)
 {
@@ -636,10 +665,19 @@ const GraphicIRect& RSRenderSurfaceLayer::GetAncoSrcRect() const
     return ancoSrcRect_;
 }
 
+void RSRenderSurfaceLayer::SetVcldInfo(const RSVcldParam& vcldInfo)
+{
+    vcldInfo_ = vcldInfo;
+}
+const RSVcldParam& RSRenderSurfaceLayer::GetVcldInfo() const
+{
+    return vcldInfo_;
+}
+
 void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer)
 {
     rsLayerId_ = rsLayer->GetRSLayerId();
-    zOrder_ = rsLayer->GetZorder();
+    zOrder_ = static_cast<int32_t>(rsLayer->GetZorder());
     layerType_ = rsLayer->GetType();
     layerRect_ = rsLayer->GetLayerSize();
     boundRect_ = rsLayer->GetBoundSize();
@@ -679,6 +717,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     needBilinearInterpolation_ = rsLayer->GetNeedBilinearInterpolation();
     tunnelLayerId_ = rsLayer->GetTunnelLayerId();
     tunnelLayerProperty_ = rsLayer->GetTunnelLayerProperty();
+    tunnelLayerGeneration_ = rsLayer->GetTunnelLayerGeneration();
     isSupportedPresentTimestamp_ = rsLayer->GetIsSupportedPresentTimestamp();
     presentTimestamp_ = rsLayer->GetPresentTimestamp();
     windowsName_ = rsLayer->GetWindowsName();
@@ -694,6 +733,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     useDeviceOffline_ = rsLayer->GetUseDeviceOffline();
     ignoreAlpha_ = rsLayer->GetIgnoreAlpha();
     ancoSrcRect_ = rsLayer->GetAncoSrcRect();
+    vcldInfo_ = rsLayer->GetVcldInfo();
 }
 
 void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command)
@@ -711,7 +751,6 @@ void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerC
     } else {
         ROSEN_LOGE("%{public}s type err:%{public}d", __func__, static_cast<int32_t>(type));
     }
-    ROSEN_LOGD("%{public}s type:%{public}d", __func__, static_cast<int32_t>(type));
 }
 
 // only used for separate rendering

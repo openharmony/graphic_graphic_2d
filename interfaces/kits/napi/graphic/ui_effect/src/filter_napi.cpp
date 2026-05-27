@@ -17,6 +17,10 @@
 #include "js_native_api_types.h"
 #include "ui_effect_napi_utils.h"
 
+#ifdef IMAGE_NAPI_ENABLE
+#include "pixel_map_napi.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 
@@ -43,6 +47,53 @@ std::map<int32_t, GradientDirection> INDEX_TO_DIRECTION = {
 
 static const std::string CLASS_NAME = "Filter";
 static const std::string HDR_BRIGHTNESS_PERMISSION = "ohos.permission.HDR_BRIGHTNESS";
+
+namespace {
+bool ParsePixelMap(napi_env env, napi_value argv, std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+#ifdef IMAGE_NAPI_ENABLE
+    napi_value constructor = nullptr;
+    napi_value global = nullptr;
+    bool isInstance = false;
+    napi_status ret = napi_invalid_arg;
+
+    napi_get_global(env, &global);
+
+    ret = napi_get_named_property(env, global, "PixelMap", &constructor);
+    if (ret != napi_ok) {
+        FILTER_LOG_E("Get PixelMapNapi property failed");
+        return false;
+    }
+
+    napi_valuetype res = napi_undefined;
+    napi_typeof(env, argv, &res);
+    Media::PixelMapNapi* tempPixelMap = nullptr;
+    if (res == napi_object) {
+        if (napi_unwrap(env, argv, reinterpret_cast<void**>(&tempPixelMap)) != napi_ok) {
+            FILTER_LOG_E("Get PixelMapNapi napi_unwrap failed");
+            return false;
+        }
+        if (tempPixelMap == nullptr) {
+            FILTER_LOG_E("Get PixelMapNapi tempPixelMap is nullptr");
+            return false;
+        }
+        pixelMap = tempPixelMap->GetPixelNapiInner();
+        return pixelMap != nullptr;
+    }
+
+    ret = napi_instanceof(env, argv, constructor, &isInstance);
+    if (ret == napi_ok && isInstance) {
+        pixelMap = Media::PixelMapNapi::GetPixelMap(env, argv);
+        return pixelMap != nullptr;
+    }
+
+    FILTER_LOG_E("Invalid PixelMap argument type, ret: %{public}d, isInstance: %{public}d", ret, isInstance);
+#else
+    FILTER_LOG_E("ImageNapi disabled, parse pixel map failed");
+#endif
+    return false;
+}
+} // namespace
 
 FilterNapi::FilterNapi()
 {
@@ -173,10 +224,13 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("maskDispersion", SetMaskDispersion),
         DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRBrightnessRatio),
         DECLARE_NAPI_FUNCTION("contentLight", SetContentLight),
+        DECLARE_NAPI_FUNCTION("heatDistortion", SetHeatDistortion),
+        DECLARE_NAPI_FUNCTION("blurBubblesRise", SetBlurBubblesRise),
         DECLARE_NAPI_FUNCTION("maskTransition", SetMaskTransition),
         DECLARE_NAPI_FUNCTION("variableRadiusBlur", SetVariableRadiusBlur),
         DECLARE_NAPI_FUNCTION("frostedGlass", SetFrostedGlass),
         DECLARE_NAPI_FUNCTION("frostedGlassBlur", SetFrostedGlassBlur),
+        DECLARE_NAPI_FUNCTION("motionBlur", SetMotionBlur),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -211,6 +265,7 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     para->SetRadius(radius);
     filterObj->AddPara(para);
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.blur", 1);
     return _this;
 }
 
@@ -299,6 +354,7 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetPixelStretch napi_unwrap fail"));
     filterObj->AddPara(para);
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.pixelStretch", 1);
     return thisVar;
 }
 
@@ -362,6 +418,7 @@ napi_value FilterNapi::SetBezierWarp(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetBezierWarp napi_unwrap fail"));
     filterObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.bezierWarp", 1);
     return thisVar;
 }
 
@@ -427,6 +484,148 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetContentLight napi_unwrap fail"));
     filterObj->AddPara(para);
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.contentLight", 1);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetHeatDistortion(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetHeatDistortion failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi heatDistortion failed, is not system app");
+        return nullptr;
+    }
+
+    static const size_t expectArgc = NUM_1;
+    size_t argCount = expectArgc;
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && argCount == expectArgc &&
+        UIEffectNapiUtils::GetType(env, argValue[NUM_0]) == napi_object, nullptr,
+        FILTER_LOG_E("FilterNapi SetHeatDistortion parsing input fail"));
+
+    auto para = std::make_shared<HeatDistortionPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetHeatDistortion para is nullptr"));
+
+    // Parse intensity property
+    napi_value intensityValue;
+    float intensity = 1.0f;
+    if (napi_get_named_property(env, argValue[NUM_0], "intensity", &intensityValue) == napi_ok &&
+        UIEffectNapiUtils::GetType(env, intensityValue) == napi_number) {
+        intensity = GetSpecialValue(env, intensityValue);
+    }
+    para->SetIntensity(intensity);
+
+    // Parse noiseScale property
+    napi_value noiseScaleValue;
+    float noiseScale = 1.0f;
+    if (napi_get_named_property(env, argValue[NUM_0], "noiseScale", &noiseScaleValue) == napi_ok &&
+        UIEffectNapiUtils::GetType(env, noiseScaleValue) == napi_number) {
+        noiseScale = GetSpecialValue(env, noiseScaleValue);
+    }
+    para->SetNoiseScale(noiseScale);
+
+    // Parse riseWeight property
+    napi_value riseWeightValue;
+    float riseWeight = 0.2f;
+    if (napi_get_named_property(env, argValue[NUM_0], "riseWeight", &riseWeightValue) == napi_ok &&
+        UIEffectNapiUtils::GetType(env, riseWeightValue) == napi_number) {
+        riseWeight = GetSpecialValue(env, riseWeightValue);
+    }
+    para->SetRiseWeight(riseWeight);
+
+    // Parse progress property
+    napi_value progressValue;
+    float progress = 0.0f;
+    if (napi_get_named_property(env, argValue[NUM_0], "progress", &progressValue) == napi_ok &&
+        UIEffectNapiUtils::GetType(env, progressValue) == napi_number) {
+        progress = GetSpecialValue(env, progressValue);
+    }
+    para->SetProgress(progress);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetHeatDistortion napi_unwrap fail"));
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetBlurBubblesRise(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetBlurBubblesRise failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi blurBubblesRise failed, is not system app");
+        return nullptr;
+    }
+
+    static const size_t expectArgc = NUM_1;
+    size_t argCount = expectArgc;
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && argCount == expectArgc &&
+        UIEffectNapiUtils::GetType(env, argValue[NUM_0]) == napi_object, nullptr,
+        FILTER_LOG_E("FilterNapi SetBlurBubblesRise parsing input fail"));
+
+    auto para = std::make_shared<BlurBubblesRisePara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetBlurBubblesRise para is nullptr"));
+
+    // Parse blurIntensity property
+    napi_value blurIntensityValue;
+    float blurIntensity = 0.3f;
+    if (napi_get_named_property(env, argValue[NUM_0], "blurIntensity", &blurIntensityValue) == napi_ok &&
+        UIEffectNapiUtils::GetType(env, blurIntensityValue) == napi_number) {
+        blurIntensity = GetSpecialValue(env, blurIntensityValue);
+    }
+    para->SetBlurIntensity(blurIntensity);
+
+    // Parse mixStrength property
+    napi_value mixStrengthValue;
+    float mixStrength = 1.0f;
+    if (napi_get_named_property(env, argValue[NUM_0], "mixStrength", &mixStrengthValue) == napi_ok &&
+        UIEffectNapiUtils::GetType(env, mixStrengthValue) == napi_number) {
+        mixStrength = GetSpecialValue(env, mixStrengthValue);
+    }
+    para->SetMixStrength(mixStrength);
+
+    // Parse progress property
+    napi_value progressValue;
+    float progress = 0.0f;
+    if (napi_get_named_property(env, argValue[NUM_0], "progress", &progressValue) == napi_ok &&
+        UIEffectNapiUtils::GetType(env, progressValue) == napi_number) {
+        progress = GetSpecialValue(env, progressValue);
+    }
+    para->SetProgress(progress);
+
+    // Parse maskImage property
+    napi_value maskImageValue;
+    std::shared_ptr<Media::PixelMap> maskImage = nullptr;
+    if (napi_get_named_property(env, argValue[NUM_0], "maskImage", &maskImageValue) == napi_ok) {
+        auto valueType = UIEffectNapiUtils::GetType(env, maskImageValue);
+        if (valueType == napi_null || valueType == napi_undefined) {
+            maskImage = nullptr;
+        } else if (valueType == napi_object) {
+            if (!ParsePixelMap(env, maskImageValue, maskImage)) {
+                FILTER_LOG_E("FilterNapi SetBlurBubblesRise parse mask image failed");
+                return thisVar;
+            }
+        }
+    }
+    para->SetMaskImage(maskImage);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetBlurBubblesRise napi_unwrap fail"));
+    filterObj->AddPara(para);
     return thisVar;
 }
 
@@ -536,6 +735,7 @@ napi_value FilterNapi::SetRadiusGradientBlurPara(napi_env env, napi_callback_inf
         FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara napi_unwrap fail"));
     filterObj->AddPara(para);
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.radiusGradientBlur", 1);
     return thisVar;
 }
 
@@ -619,6 +819,7 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetWaterRipple napi_unwrap fail"));
     filterObj->AddPara(para);
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.waterRipple", 1);
     return thisVar;
 }
 
@@ -659,6 +860,7 @@ napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetWaterRipple napi_unwrap fail"));
     filterObj->AddPara(para);
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.flyInFlyOutEffect", 1);
     return thisVar;
 }
 
@@ -757,6 +959,7 @@ napi_value FilterNapi::SetColorGradient(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetColorGradient napi_unwrap fail"));
     filterObj->AddPara(para);
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.colorGradient", 1);
     return thisVar;
 }
 
@@ -793,6 +996,7 @@ napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr, FILTER_LOG_E("FilterNapi SetDistort para is nullptr"));
     para->SetDistortionK(distortionK);
     filterObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.distort", 1);
     return thisVar;
 }
 
@@ -833,6 +1037,7 @@ napi_value FilterNapi::SetDisplacementDistort(napi_env env, napi_callback_info i
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetDisplacementDistort unwrap filterObj fail"));
     filterObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.displacementDistort", 1);
     return thisVar;
 }
 
@@ -884,6 +1089,7 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetEdgeLight unwrap filterObj fail"));
     filterObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.edgeLight", 1);
     return thisVar;
 }
 
@@ -942,6 +1148,7 @@ napi_value FilterNapi::SetMaskDirectionLight(napi_env env, napi_callback_info in
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, thisVar,
         FILTER_LOG_E("FilterNapi SetMaskDirectionLight unwrap filterObj fail"));
     filterObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.directionLight", 1);
     return thisVar;
 }
 
@@ -990,6 +1197,7 @@ napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info in
         para != nullptr, nullptr, FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio para is nullptr"));
     para->SetBrightnessRatio(static_cast<float>(brightnessRatio));
     filterObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.hdrBrightnessRatio", 1);
     return thisVar;
 }
 
@@ -1044,17 +1252,13 @@ napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetMaskTransition napi_unwrap fail"));
     filterObj->AddPara(para);
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.maskTransition", 1);
     return thisVar;
 }
 
 void FilterNapi::RegisterFilterParaUnmarshallingCallback()
 {
-    ContentLightPara::RegisterUnmarshallingCallback();
-    DispersionPara::RegisterUnmarshallingCallback();
-    DisplacementDistortPara::RegisterUnmarshallingCallback();
-    MaskTransitionPara::RegisterUnmarshallingCallback();
-    WaterRipplePara::RegisterUnmarshallingCallback();
-    DirectionLightPara::RegisterUnmarshallingCallback();
+    Filter::RegisterUnmarshallingCallback();
 }
 
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
@@ -1126,6 +1330,7 @@ napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetMaskDispersion unwrap filterObj fail"));
     filterObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.maskDispersion", 1);
     return thisVar;
 }
 
@@ -1169,6 +1374,7 @@ napi_value FilterNapi::SetVariableRadiusBlur(napi_env env, napi_callback_info in
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetVariableRadiusBlur napi_unwrap fail"));
     filterObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.Filter.variableRadiusBlur", 1);
     return thisVar;
 }
 
@@ -1453,6 +1659,56 @@ napi_value FilterNapi::SetFrostedGlassBlur(napi_env env, napi_callback_info info
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass napi_unwrap fail"));
+
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetMotionBlur(napi_env env, napi_callback_info info)
+{
+    constexpr size_t requireArgc = NUM_3;
+
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argv[requireArgc] = {0};
+    size_t realArgc = requireArgc;
+
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        FILTER_LOG_E("FilterNapi::SetMotionBlur parsing input fail"));
+
+    std::shared_ptr<MotionBlurPara> para = std::make_shared<MotionBlurPara>();
+    
+    float radius = 0.f;
+    radius = GetSpecialValue(env, argv[NUM_0]);
+    para->SetRadius(radius);
+
+    Vector2f anchor(0.5f, 0.5f);
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_1]) == napi_object) {
+        bool isArray = false;
+        if (napi_is_array(env, argv[NUM_1], &isArray) == napi_ok && isArray) {
+            uint32_t arraySize = 0;
+            napi_get_array_length(env, argv[NUM_1], &arraySize);
+            if (arraySize >= NUM_2) {
+                napi_value anchorX = nullptr;
+                napi_value anchorY = nullptr;
+                napi_get_element(env, argv[NUM_1], NUM_0, &anchorX);
+                napi_get_element(env, argv[NUM_1], NUM_1, &anchorY);
+                anchor[0] = GetSpecialValue(env, anchorX);
+                anchor[1] = GetSpecialValue(env, anchorY);
+            }
+        }
+    }
+    para->SetAnchor(anchor);
+
+    int32_t sampleCount = 8;
+    sampleCount = static_cast<int32_t>(GetSpecialIntValue(env, argv[NUM_2]));
+    para->SetSampleCount(sampleCount);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi::SetMotionBlur napi_unwrap fail"));
 
     filterObj->AddPara(para);
     return thisVar;

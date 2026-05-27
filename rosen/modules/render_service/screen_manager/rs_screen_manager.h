@@ -27,6 +27,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <ipc_callbacks/active_screen_id_changed_callback.h>
 #include <ipc_callbacks/screen_change_callback.h>
 #include <ipc_callbacks/screen_supported_hdr_formats_callback.h>
 #include <ipc_callbacks/screen_switching_notify_callback.h>
@@ -62,11 +63,12 @@ public:
     bool Init(const std::shared_ptr<AppExecFwk::EventHandler>& mainHandler) noexcept;
 
     ScreenId GetDefaultScreenId() const;
-    ScreenId GetActiveScreenId();
+    ScreenId GetActiveScreenId() const;
     std::vector<ScreenId> GetAllScreenIds() const;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const;
 
+    void OnActiveScreenIdChangedCallbackChanged(sptr<RSIScreenManagerAgentListener> agentListener) const;
     void DisplayDump(std::string& dumpString);
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
@@ -91,6 +93,8 @@ public:
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+    ScreenId GetMainScreenId();
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const;
@@ -99,7 +103,7 @@ public:
     // used to skip render frame or render only one frame when screen power is off.
     void MarkPowerOffNeedProcessOneFrame();
 
-    void SetScreenBacklight(ScreenId id, uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
     int32_t GetScreenBacklight(ScreenId id) const;
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type);
 
@@ -175,8 +179,7 @@ public:
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
-    void ExecuteCallback(const sptr<RSIScreenChangeCallback>& callback) const;
-
+    void OnScreenChangeCallbackChanged(sptr<RSIScreenManagerAgentListener> agentListener) const;
     bool UpdateVsyncEnabledScreenId(ScreenId screenId);
     uint64_t JudgeVSyncEnabledScreenWhilePowerStatusChanged(
         ScreenId screenId, ScreenPowerStatus status, uint64_t enabledScreenId);
@@ -184,6 +187,8 @@ public:
     void SetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId, ScreenId screenId, bool enabled);
     uint64_t GetScreenVsyncEnableById(ScreenId vsyncEnabledScreenId);
     bool GetIsFoldScreenFlag();
+
+    void OnProcessDisconnected(const std::vector<std::pair<ScreenId, std::shared_ptr<HdiOutput>>>& screens);
 
 private:
     void OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens);
@@ -196,16 +201,18 @@ private:
 
     sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const; // Only for internal use by ScreenManager
     std::shared_ptr<RSScreen> GetScreen(ScreenId id) const;
+    bool HasPhysicalScreen();
 
     // virtual screen
     ScreenId GenerateVirtualScreenId();
 
     mutable std::mutex screenMapMutex_;
     std::map<ScreenId, std::shared_ptr<RSScreen>> screens_;
+    std::atomic<bool> noScreenProcessed_ = false;
     using ScreenNode = decltype(screens_)::value_type;
     bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
 
-    void OnScreenBacklightChanged(ScreenId id, uint32_t level);
+    void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData);
 
     // global blacklist
     int32_t SetGlobalBlackList(const std::unordered_set<NodeId>& blackList);

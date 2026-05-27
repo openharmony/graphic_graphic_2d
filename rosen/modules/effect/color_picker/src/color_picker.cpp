@@ -44,6 +44,10 @@ namespace OHOS {
 namespace Rosen {
 using OHOS::HiviewDFX::HiLog;
 
+namespace {
+constexpr int32_t MAIN_COLOR_SIZE = 1;
+}
+
 std::shared_ptr<Media::PixelMap> ColorPicker::CreateScaledPixelMap(const std::shared_ptr<Media::PixelMap>& pixmap)
 {
     // Create scaled pixelmap
@@ -99,15 +103,41 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
 
 std::shared_ptr<Media::PixelMap> ColorPicker::GetScaledPixelMap()
 {
-    // Create scaled pixelmap
+    if (pixelmap_ == nullptr) {
+        EFFECT_LOG_E("[ColorPicker]failed to create scaled pixelmap with null pixmap.");
+        return nullptr;
+    }
+    if (regionSpecified_ && !hasRegion_) {
+        EFFECT_LOG_E("[ColorPicker]failed to create scaled pixelmap with empty region after scaling.");
+        return nullptr;
+    }
+
+    std::shared_ptr<Media::PixelMap> sourcePixelMap = pixelmap_;
+    if (hasRegion_) {
+        OHOS::Media::InitializationOptions cropOptions;
+        cropOptions.alphaType = pixelmap_->GetAlphaType();
+        cropOptions.pixelFormat = pixelmap_->GetPixelFormat();
+        cropOptions.scaleMode = OHOS::Media::ScaleMode::FIT_TARGET_SIZE;
+        cropOptions.size.width = regionRect_.width;
+        cropOptions.size.height = regionRect_.height;
+        cropOptions.editable = true;
+        std::unique_ptr<Media::PixelMap> croppedPixelMap =
+            Media::PixelMap::Create(*pixelmap_.get(), regionRect_, cropOptions);
+        if (croppedPixelMap == nullptr) {
+            EFFECT_LOG_E("[ColorPicker]failed to crop region pixelmap.");
+            return nullptr;
+        }
+        sourcePixelMap = std::move(croppedPixelMap);
+    }
+
     OHOS::Media::InitializationOptions options;
-    options.alphaType = pixelmap_->GetAlphaType();
-    options.pixelFormat = pixelmap_->GetPixelFormat();
+    options.alphaType = sourcePixelMap->GetAlphaType();
+    options.pixelFormat = sourcePixelMap->GetPixelFormat();
     options.scaleMode = OHOS::Media::ScaleMode::FIT_TARGET_SIZE;
-    options.size.width = 1;
-    options.size.height = 1;
+    options.size.width = MAIN_COLOR_SIZE;
+    options.size.height = MAIN_COLOR_SIZE;
     options.editable = true;
-    std::unique_ptr<Media::PixelMap> newPixelMap = Media::PixelMap::Create(*pixelmap_.get(), options);
+    std::unique_ptr<Media::PixelMap> newPixelMap = Media::PixelMap::Create(*sourcePixelMap.get(), options);
     return std::move(newPixelMap);
 }
 
@@ -145,9 +175,33 @@ uint32_t ColorPicker::GetMainColor(ColorManager::Color &color)
     return SUCCESS;
 }
 
-ColorPicker::ColorPicker(std::shared_ptr<Media::PixelMap> pixmap):ColorExtract(pixmap) {}
+Media::Rect ColorPicker::BuildRegionRect(const std::shared_ptr<Media::PixelMap>& pixmap, const double* coordinates)
+{
+    Media::Rect rect;
+    if (pixmap == nullptr || coordinates == nullptr) {
+        return rect;
+    }
+    int32_t width = pixmap->GetWidth();
+    int32_t height = pixmap->GetHeight();
+    int32_t left = static_cast<int32_t>(width * coordinates[0]);
+    int32_t top = static_cast<int32_t>(height * coordinates[1]);
+    int32_t right = static_cast<int32_t>(width * coordinates[2]);
+    int32_t bottom = static_cast<int32_t>(height * coordinates[3]);
+    rect.left = left;
+    rect.top = top;
+    rect.width = right - left;
+    rect.height = bottom - top;
+    return rect;
+}
+
+ColorPicker::ColorPicker(std::shared_ptr<Media::PixelMap> pixmap) : ColorExtract(pixmap) {}
 ColorPicker::ColorPicker(
-    std::shared_ptr<Media::PixelMap> pixmap, double* coordinates):ColorExtract(pixmap, coordinates) {}
+    std::shared_ptr<Media::PixelMap> pixmap, double* coordinates) : ColorExtract(pixmap, coordinates)
+{
+    regionSpecified_ = true;
+    regionRect_ = BuildRegionRect(pixmap, coordinates);
+    hasRegion_ = regionRect_.width > 0 && regionRect_.height > 0;
+}
 
 uint32_t ColorPicker::GetLargestProportionColor(ColorManager::Color &color) const
 {

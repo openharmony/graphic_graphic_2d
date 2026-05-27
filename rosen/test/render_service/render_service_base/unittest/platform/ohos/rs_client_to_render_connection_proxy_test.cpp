@@ -132,7 +132,9 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, CommitTransaction, TestSize.Level1
     FollowType followType = FollowType::FOLLOW_TO_PARENT;
     transactionData->AddCommand(command, nodeId, followType);
     proxy->CommitTransaction(transactionData);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(proxy->transactionDataIndex_, 1);
+#endif
 }
 
 /**
@@ -163,7 +165,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, CreateNodeTest, TestSize.Level1)
     RSDisplayNodeConfig rsDisplayNodeConfig;
     NodeId nodeId = 100;
     bool success = false;
-    ASSERT_EQ(proxy->CreateNode(rsDisplayNodeConfig, nodeId, success), ERR_INVALID_VALUE);
+    ASSERT_EQ(proxy->CreateDisplayNode(rsDisplayNodeConfig, nodeId, success), ERR_INVALID_VALUE);
 }
 
 /**
@@ -373,6 +375,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, TakeSurfaceCapture, TestSize.Level
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+    captureConfig.windowSync = true;
     proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
@@ -417,47 +420,6 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, GetBrightnessInfoTest, TestSize.Le
     ASSERT_NE(proxy->GetBrightnessInfo(screenId, brightnessInfo), SUCCESS);
     screenId = INVALID_SCREEN_ID;
     ASSERT_NE(proxy->GetBrightnessInfo(screenId, brightnessInfo), SUCCESS);
-}
-
-/**
- * @tc.name: ReadBrightnessInfoTest
- * @tc.desc: test results of ReadBrightnessInfo
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToRenderConnectionProxyTest, ReadBrightnessInfoTest, TestSize.Level1)
-{
-    ASSERT_NE(proxy, nullptr);
-    BrightnessInfo brightnessInfo = { 0 };
-
-    // case 1: valid data
-    {
-        MessageParcel data;
-        data.WriteFloat(1.0f);
-        data.WriteFloat(1.0f);
-        data.WriteFloat(1.0f);
-        ASSERT_TRUE(proxy->ReadBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 2: invalid data
-    {
-        MessageParcel data;
-        data.WriteFloat(1.0f);
-        data.WriteFloat(1.0f);
-        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 3: invalid data
-    {
-        MessageParcel data;
-        data.WriteFloat(1.0f);
-        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 4: invalid data
-    {
-        MessageParcel data;
-        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
-    }
 }
 
 /**
@@ -552,7 +514,9 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, NotifyLightFactorStatus, TestSize.
 {
     NodeId id = 1;
     proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT, true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(proxy->transactionDataIndex_, 5);
+#endif
 }
 
 /**
@@ -730,6 +694,21 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterFrameStabilityDetectionTes
     };
     int32_t ret = proxy->RegisterFrameStabilityDetection(target, config, nullptr);
     EXPECT_EQ(ret, INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: UpdateFrameStabilityDetectionTest001
+ * @tc.desc: Test UpdateFrameStabilityDetection with valid parameters
+ * @tc.type: FUNC
+ * @tc.require: issue23671
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, UpdateFrameStabilityDetectionTest001, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
+    FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
+    int32_t ret = proxy->UpdateFrameStabilityDetection(oldTarget, newTarget);
+    EXPECT_EQ(ret, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

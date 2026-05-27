@@ -15,7 +15,6 @@
 
 #include "modifier_ng/rs_render_modifier_ng.h"
 
-#include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
 
 #include "modifier/rs_render_property.h"
@@ -31,10 +30,11 @@
 #include "modifier_ng/appearance/rs_hdr_brightness_render_modifier.h"
 #include "modifier_ng/appearance/rs_mask_render_modifier.h"
 #include "modifier_ng/appearance/rs_material_filter_render_modifier.h"
+#include "modifier_ng/appearance/rs_material_shader_render_modifier.h"
 #include "modifier_ng/appearance/rs_outline_render_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_render_modifier.h"
-#include "modifier_ng/appearance/rs_point_light_render_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_render_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_render_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_render_modifier.h"
@@ -76,7 +76,7 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::PIXEL_STRETCH,            RSPixelStretchRenderModifier::ResetProperties },
     { RSModifierType::USE_EFFECT,               RSUseEffectRenderModifier::ResetProperties },
     { RSModifierType::BLENDER,                  RSBlendRenderModifier::ResetProperties },
-    { RSModifierType::POINT_LIGHT,              RSPointLightRenderModifier::ResetProperties },
+    { RSModifierType::OVERLAY_NG_SHADER,        RSOverlayNGShaderRenderModifier::ResetProperties },
     { RSModifierType::PARTICLE_EFFECT,          RSParticleEffectRenderModifier::ResetProperties },
     { RSModifierType::COMPOSITING_FILTER,       RSCompositingFilterRenderModifier::ResetProperties },
     { RSModifierType::BACKGROUND_FILTER,        RSBackgroundFilterRenderModifier::ResetProperties },
@@ -86,6 +86,7 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::COLOR_PICKER,             RSColorPickerRenderModifier::ResetProperties },
     { RSModifierType::BOUNDS,                   RSBoundsRenderModifier::ResetProperties },
     { RSModifierType::MATERIAL_FILTER,          RSMaterialFilterRenderModifier::ResetProperties },
+    { RSModifierType::MATERIAL_SHADER,          RSMaterialShaderRenderModifier::ResetProperties },
 };
 
 std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier::ConstructorLUT_ = {
@@ -109,7 +110,7 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier:
     [] { return std::make_shared<RSPixelStretchRenderModifier>(); },                             // PIXEL_STRETCH
     [] { return std::make_shared<RSUseEffectRenderModifier>(); },                                // USE_EFFECT
     [] { return std::make_shared<RSBlendRenderModifier>(); },                                    // BLENDER
-    [] { return std::make_shared<RSPointLightRenderModifier>(); },                               // POINT_LIGHT
+    [] { return std::make_shared<RSOverlayNGShaderRenderModifier>(); },                          // OVERLAY_NG_SHADER
     [] { return std::make_shared<RSParticleEffectRenderModifier>(); },                           // PARTICLE_EFFECT
     [] { return std::make_shared<RSCompositingFilterRenderModifier>(); },                        // COMPOSITING_FILTER
     [] { return std::make_shared<RSBackgroundFilterRenderModifier>(); },                         // BACKGROUND_FILTER
@@ -127,6 +128,7 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier:
     [] { return std::make_shared<RSForegroundShaderRenderModifier>(); },                         // FOREGROUND_SHADER
     [] { return std::make_shared<RSMaterialFilterRenderModifier>(); },                           // MATERIAL_FILTER
     [] { return std::make_shared<RSColorPickerRenderModifier>(); },                              // COLOR_PICKER
+    [] { return std::make_shared<RSMaterialShaderRenderModifier>(); },                           // MATERIAL_SHADER
     nullptr,                                                                                     // CHILDREN
 };
 
@@ -295,7 +297,7 @@ void RSCustomRenderModifier<T>::Apply(RSPaintFilterCanvas* canvas, RSProperties&
 {
     auto propertyType = ModifierTypeConvertor::GetPropertyType(GetType());
     if (HasProperty(propertyType) && canvas) {
-        auto cmds = Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
+        auto cmds = Getter<SimpleDrawCmdListPtr>(propertyType, nullptr);
         RSPropertiesPainter::DrawFrame(properties, *canvas, cmds);
     }
 }
@@ -306,6 +308,23 @@ void RSCustomRenderModifier<T>::OnSetDirty()
     if (auto node = target_.lock()) {
         node->MarkNonGeometryChanged();
         node->SetContentDirty();
+    }
+}
+
+template<RSModifierType T>
+void RSCustomRenderModifier<T>::ConvertDrawCmdListToSimple()
+{
+    if (properties_.empty()) {
+        return;
+    }
+
+    auto properties = properties_;
+    for (auto& [type, property] : properties) {
+        if (!property->IsDrawCmdListProperty()) {
+            continue;
+        }
+        DetachProperty(type);
+        AttachProperty(type, property->CreateSimpleProperty());
     }
 }
 

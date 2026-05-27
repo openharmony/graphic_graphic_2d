@@ -301,6 +301,7 @@ HWTEST_F(RsSubThreadTest, DrawableCache003, TestSize.Level1)
 
     nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeDrawable->GetId());
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(curThread->grContext_);
     curThread->DrawableCache(nodeDrawable);
@@ -392,5 +393,251 @@ HWTEST_F(RsSubThreadTest, SetHighContrastIfEnabledTest, TestSize.Level1)
     RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(false);
     curThread->SetHighContrastIfEnabled(filterCanvas);
     EXPECT_FALSE(filterCanvas.isHighContrastEnabled());
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageColorSpaceChangeTest001
+ * @tc.desc: Test DrawableCacheWithSkImage detects color space change and rebuilds cache
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageColorSpaceChangeTest001, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+
+    bool isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_FALSE(isColorSpaceChanged);
+
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_TRUE(isColorSpaceChanged);
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageColorSpaceChangeTest002
+ * @tc.desc: Test DrawableCacheWithSkImage with same color space - no rebuild needed
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageColorSpaceChangeTest002, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    EXPECT_EQ(subCache.GetTargetColorGamut(), subCache.GetCacheSurfaceColorSpace());
+
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    EXPECT_EQ(subCache.GetTargetColorGamut(), subCache.GetCacheSurfaceColorSpace());
+
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
+    EXPECT_EQ(subCache.GetTargetColorGamut(), subCache.GetCacheSurfaceColorSpace());
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageColorSpaceChangeTest003
+ * @tc.desc: Test color space change detection logic - BT2020 to SRGB
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageColorSpaceChangeTest003, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    
+    bool isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_TRUE(isColorSpaceChanged);
+    EXPECT_EQ(subCache.GetTargetColorGamut(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageColorSpaceChangeTest004
+ * @tc.desc: Test color space change after UpdateCacheSurfaceInfo - should match
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageColorSpaceChangeTest004, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeDrawable->GetId());
+
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
+    
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
+    
+    bool isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_FALSE(isColorSpaceChanged);
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageBufferFormatAndColorSpaceTest
+ * @tc.desc: Test both buffer format and color space change detection
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageBufferFormatAndColorSpaceTest, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    
+    bool bufferColorSpaceChange = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_FALSE(bufferColorSpaceChange);
+    
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    bufferColorSpaceChange = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_TRUE(bufferColorSpaceChange);
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageNullNodeDrawableTest
+ * @tc.desc: Test DrawableCacheWithSkImage handles null nodeDrawable
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageNullNodeDrawableTest, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    curThread->DrawableCacheWithSkImage(nullptr);
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageHDRColorSpaceChangeTest
+ * @tc.desc: Test color space change with HDR scenario
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageHDRColorSpaceChangeTest, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    subCache.SetHDRPresent(true);
+    EXPECT_TRUE(subCache.GetHDRPresent());
+    
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    subCache.cacheSurfaceInfo_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    
+    bool isColorSpaceChanged = (subCache.GetTargetColorGamut() != subCache.GetCacheSurfaceColorSpace());
+    EXPECT_TRUE(isColorSpaceChanged);
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageMultipleColorSpaceChangesTest
+ * @tc.desc: Test multiple color space changes - simulating frame updates
+ * @tc.type: FUNC
+ * @tc.require: issueColorSpace
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageMultipleColorSpaceChangesTest, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeDrawable->GetId());
+
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
+    
+    subCache.isOcclusionEnabled_ = false;
+    
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
+    EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 } // namespace OHOS::Rosen

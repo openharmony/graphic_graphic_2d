@@ -24,6 +24,7 @@
 #include <memory>
 #include <mutex>
 
+#include "common/rs_event_def.h"
 #include "memory/rs_memory_graphic.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
@@ -191,6 +192,8 @@ public:
      */
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
+
     /**
      * @brief Set screen switching status notify callback.
      * on the screen switching status is changed.
@@ -198,6 +201,14 @@ public:
      * @return Returns int32_t, return value == 0 success, otherwise, failed.
      */
     int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback);
+
+    /**
+     * @brief Set active screen id changed callback.
+     * on active screen id is changed.
+     * @param callback Callback of the active screen id changed.
+     * @return Returns int32_t, return value == 0 success, otherwise, failed.
+     */
+    int32_t SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback &callback);
 
     /**
      * @brief Set brightness info change callback.
@@ -220,12 +231,15 @@ public:
      * @param watermark Watermark pixelmap.
      * @param maxSize The maximum supported image size is 6MB. if the maximum image size exceeds 512Kb,
      * the time to draw the watermark will increase. In such cases, consider using DMA mode for pixelMap
+     * @param rowCount Number of rows for grid watermark layout. 0 means no grid (single image).
+     * @param colCount Number of columns for grid watermark layout. 0 means no grid (single image).
      * @attention watermark has a maximum of 1000 images.
      * @attention When not using a watermark, the watermark image should be released.
      * @return set watermark success return true, else return false.
      */
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
-        SaSurfaceWatermarkMaxSize maxSize = SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE);
+        SaSurfaceWatermarkMaxSize maxSize = SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
      * @brief Set watermark for surfaceNode.
@@ -244,7 +258,8 @@ public:
      */
     uint32_t SetSurfaceWatermark(pid_t pid,
         const std::string &name, const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
      * @brief Clear watermark for select surfaceNodes.
@@ -422,7 +437,7 @@ public:
      * @param positionW Indicates w coordinate position.
      * @return return true if set success, else return false.
      */
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
+    bool SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
     /**
      * @brief Register typeface.
@@ -577,6 +592,20 @@ public:
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
 
     /**
+     * @brief Set screen as main screen.
+     * @param screenId Id of the screen to set.
+     * @param isMainScreen True means set as main screen, false means not main screen.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+
+    /**
+     * @brief Get the main screen id.
+     * @return ScreenId of the main screen. Returns INVALID_SCREEN_ID if no main screen is set.
+     */
+    ScreenId GetMainScreenId();
+
+    /**
      * @brief Get active mode of the screen.
      * @param id Id of the screen to get active mode.
      * @return RSScreenModeInfo including the screen width, height, and refresh rates.
@@ -700,10 +729,9 @@ public:
 
     /**
      * @brief Set backlight value of the screen.
-     * @param id Id of the screen to set its backlight value.
-     * @param level The value of backlight.
+     * @param brightnessData The screen brightness data, including screenId, level and brightnessPosition.
      */
-    void SetScreenBacklight(ScreenId id, uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
@@ -977,6 +1005,21 @@ public:
      * @return UnRegister result, 0 success, else failed.
      */
     int32_t UnRegisterFirstFrameCommitCallback();
+
+    /**
+     * @brief Register the exposed event callback function.
+     * @param type Indicates specified event that need to be registered.
+     * @param callback Indicates functions that need to be registered.
+     * @return Register result, 0 success, else failed.
+     */
+    int32_t RegisterExposedEventCallback(const RSExposedEventType type, const RSExposedEventCallback& callback);
+
+    /**
+     * @brief UnRegister the Exposed event Callback function.
+     * @param type Indicates specified event that need to be Unregistered.
+     * @return UnRegister result, 0 success, else failed.
+     */
+    int32_t UnRegisterExposedEventCallback(const RSExposedEventType type);
 
     /**
      * @brief Register FrameRateLinkerExpectedFpsUpdateCallback.
@@ -1292,6 +1335,14 @@ public:
      */
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    // Make this node(nodeIdStr) should do DSS composition. otherwise do GPU composition.
+    /**
+     * @brief Set selfdrawing component of stylus engine force use DSS.
+     * @param nodeIdStr surfaceNode name.
+     * @param isHdrForceHwcEnabled is function switch.
+     */
+    void SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled);
+
     // Make this node(nodeIdStr) should do DSS composition and set the surface force refresh.
     /**
      * @brief Set selfdrawing component of stylus engine force refresh.
@@ -1348,12 +1399,6 @@ public:
      * @param isEnter is whether to enter the pageUrl.
      */
     void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
-
-    /**
-     * @brief Get high contrast text state.
-     * @return Return true if high contrast text enabled, otherwise false.
-     */
-    bool GetHighContrastTextState();
 
     bool SetBehindWindowFilterEnabled(bool enabled);
 
@@ -1446,7 +1491,8 @@ private:
         float scaleX, float scaleY);
 
     std::unique_ptr<RSRenderServiceClient> renderServiceClient_;
-    std::unique_ptr<RSRenderInterface> renderInterface_;
+    // ToDo renderInterface的接口需要从rsInterface中删除
+    // std::unique_ptr<RSRenderInterface> renderInterface_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -42,6 +42,8 @@
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "transaction/rs_render_to_service_connection.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
+#include "rs_composer_to_render_connection.h"
+#include "rs_render_to_composer_connection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -61,7 +63,9 @@ const uint8_t DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK = 3;
 const uint8_t DO_REGISTER_APPLICATION_AGENT = 4;
 const uint8_t DO_SET_BUFFER_AVAILABLE_LISTENER = 5;
 const uint8_t DO_SET_BUFFER_CLEAR_LISTENER = 6;
-const uint8_t TARGET_SIZE = 7;
+const uint8_t DO_NOTIFY_LAYER_STATE_CHANGED_TO_RENDER = 7;
+const uint8_t DO_COMMIT_TUNNEL_LAYER_BY_SURFACE_ID = 8;
+const uint8_t TARGET_SIZE = 9;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -276,6 +280,60 @@ void DoRegisterBufferClearListener()
     toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
+void DoNotifyLayerStateChangedToRender()
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    RSComposerToRenderConnection connection;
+    connection.RegisterLayerStateChangedCB([](uint64_t nodeId, LayerStateChange state, uint64_t generation) {});
+
+    if (!dataParcel.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor())) {
+        return;
+    }
+    if (GetData<bool>()) {
+        dataParcel.WriteUint64(GetData<uint64_t>());
+    }
+    if (GetData<bool>()) {
+        dataParcel.WriteUint64(GetData<uint64_t>());
+    }
+    if (GetData<bool>()) {
+        dataParcel.WriteUint32(GetData<uint32_t>());
+    }
+    dataParcel.RewindRead(0);
+    uint32_t code = IRSComposerToRenderConnection::NOTIFY_LAYER_STATE_CHANGED_TO_RENDER;
+    connection.OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoCommitTunnelLayerBySurfaceId()
+{
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    uint64_t screenId = GetData<uint64_t>();
+    RSRenderToComposerConnection connection("fuzz", screenId, nullptr);
+
+    if (!dataParcel.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor())) {
+        return;
+    }
+    if (GetData<bool>()) {
+        dataParcel.WriteUint64(GetData<uint64_t>());
+    }
+    if (GetData<bool>()) {
+        dataParcel.WriteUint64(GetData<uint64_t>());
+    }
+    if (GetData<bool>()) {
+        dataParcel.WriteUint32(GetData<uint32_t>());
+    }
+    if (GetData<bool>()) {
+        dataParcel.WriteBool(GetData<bool>());
+    }
+    dataParcel.RewindRead(0);
+    uint32_t code = IRSRenderToComposerConnection::
+        IRENDER_TO_COMPOSER_CONNECTION_COMMIT_TUNNEL_LAYER_BY_SURFACE_ID;
+    connection.OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -302,7 +360,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
 
     OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
+            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
+            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
 
     auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
     OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
@@ -363,6 +423,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_BUFFER_CLEAR_LISTENER:
             OHOS::Rosen::DoRegisterBufferClearListener();
+            break;
+        case OHOS::Rosen::DO_NOTIFY_LAYER_STATE_CHANGED_TO_RENDER:
+            OHOS::Rosen::DoNotifyLayerStateChangedToRender();
+            break;
+        case OHOS::Rosen::DO_COMMIT_TUNNEL_LAYER_BY_SURFACE_ID:
+            OHOS::Rosen::DoCommitTunnelLayerBySurfaceId();
             break;
         default:
             return -1;

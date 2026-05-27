@@ -28,6 +28,7 @@
 #include "rosen_text/text_style.h"
 #include "symbol_engine/hm_symbol_txt.h"
 #include "text_types.h"
+#include "text/typeface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -113,6 +114,11 @@ public:
 
     bool operator!=(TextStyle const& other) const;
 
+    // FontTypefaces methods for priority font shaping
+    void SetFontTypefaces(const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces);
+
+    const std::vector<std::shared_ptr<Drawing::Typeface>>& GetFontTypefaces() const;
+
     void SetRelayoutBitMap(const std::bitset<static_cast<size_t>
         (RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> &relayoutChangeBitmap)
     {
@@ -151,6 +157,9 @@ public:
     std::vector<TextShadow> textShadows;
     FontFeatures fontFeatures;
     FontVariations fontVariations;
+
+    // Priority font objects array for text shaping
+    std::vector<std::shared_ptr<Drawing::Typeface>> fontTypefaces;
 
     // symbol glyph
     bool isSymbolGlyph{false};

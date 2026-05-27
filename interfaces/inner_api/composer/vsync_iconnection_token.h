@@ -19,6 +19,12 @@
 #include <iremote_broker.h>
 #include <iremote_proxy.h>
 
+#if defined(__GNUC__) && __GNUC__ >= 4
+    #define VSYNC_ICONNECTION_HIDDEN __attribute__((visibility("hidden")))
+#else
+    #define VSYNC_ICONNECTION_HIDDEN
+#endif
+
 namespace OHOS {
 namespace Rosen {
 class VSyncIConnectionToken : public IRemoteBroker {
@@ -36,7 +42,7 @@ public:
     virtual ~VSyncIConnectionTokenProxy() noexcept = default;
 
 private:
-    static inline BrokerDelegator<VSyncIConnectionTokenProxy> delegator_;
+    static inline VSYNC_ICONNECTION_HIDDEN BrokerDelegator<VSyncIConnectionTokenProxy> delegator_;
 };
 } // namespace Rosen
 } // namespace OHOS

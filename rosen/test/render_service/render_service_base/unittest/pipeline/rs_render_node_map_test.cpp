@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "animation/rs_render_curve_animation.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node_map.h"
@@ -440,5 +441,43 @@ HWTEST_F(RSRenderNodeMapTest, AttachToDisplayTest003, TestSize.Level1)
     ScreenId screenId = 1;
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.AttachToDisplay(node, screenId, true);
+}
+
+/**
+ * @tc.name: FilterNodeByPidWithAnimationManager
+ * @tc.desc: Cover branch: animationManager non-null in FilterNodeByPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeMapTest, FilterNodeByPidWithAnimationManager, TestSize.Level1)
+{
+    RSRenderNodeMap rsRenderNodeMap;
+    pid_t pid = 1;
+    NodeId nodeId = ((NodeId)pid << 32) | 1;
+
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    // Make animationManager_ non-null by adding an animation
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    ASSERT_NE(node->GetAnimationManager(), nullptr);
+
+    rsRenderNodeMap.renderNodeMap_[pid][nodeId] = node;
+
+    // Add fallback node at renderNodeMap_[0][0] with animation to cover second FilterNodeByPid branch
+    constexpr NodeId fallbackNodeId = 0;
+    auto fallbackNode = std::make_shared<RSRenderNode>(fallbackNodeId);
+    auto fallbackProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto fallbackProperty1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto fallbackProperty2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto fallbackAnimation = std::make_shared<RSRenderCurveAnimation>(2, 2, fallbackProperty,
+        fallbackProperty1, fallbackProperty2);
+    fallbackNode->AddAnimation(fallbackAnimation);
+    ASSERT_NE(fallbackNode->GetAnimationManager(), nullptr);
+    rsRenderNodeMap.renderNodeMap_[0][0] = fallbackNode;
+
+    rsRenderNodeMap.FilterNodeByPid(pid);
+    EXPECT_TRUE(true);
 }
 } // namespace OHOS::Rosen

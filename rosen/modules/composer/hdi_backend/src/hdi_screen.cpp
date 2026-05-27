@@ -38,8 +38,6 @@ namespace Rosen {
 using namespace OHOS::HDI::Display::Composer::V1_0;
 using namespace OHOS::HDI::Display::Composer::V1_1;
 using namespace OHOS::HDI::Display::Composer::V1_2;
-constexpr size_t MATRIX_SIZE = 9;
-const std::string GENERIC_METADATA_KEY_DISPLAY_LINEAR_MATRIX = "DisplayLinearMatrix";
 
 std::unique_ptr<HdiScreen> HdiScreen::CreateHdiScreen(uint32_t screenId)
 {
@@ -228,22 +226,6 @@ int32_t HdiScreen::SetScreenColorTransform(const std::vector<float>& matrix) con
 {
     CHECK_DEVICE_NULL(device_);
     return device_->SetScreenColorTransform(screenId_, matrix);
-}
-
-int32_t HdiScreen::SetScreenLinearMatrix(const std::vector<float> &matrix) const
-{
-    CHECK_DEVICE_NULL(device_);
-    if (matrix.size() != MATRIX_SIZE) {
-        HLOGE("[%{public}s]: ScreenLinearMatrix size is invalid.", __func__);
-        return -1;
-    }
-    std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));
-    if (memcpy_s(valueBlob.data(), valueBlob.size(), matrix.data(),
-        MATRIX_SIZE * sizeof(float)) != EOK) {
-        return -1;
-    }
-    return device_->SetDisplayPerFrameParameterSmq(
-        screenId_, GENERIC_METADATA_KEY_DISPLAY_LINEAR_MATRIX, valueBlob);
 }
 
 int32_t HdiScreen::GetHDRCapabilityInfos(GraphicHDRCapability &info) const

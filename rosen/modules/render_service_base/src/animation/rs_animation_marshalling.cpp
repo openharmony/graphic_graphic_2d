@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_interpolator.h"
 #include "animation/rs_render_animation.h"
@@ -324,6 +325,14 @@ bool RSRenderCurveAnimation::ParseParam(Parcel& parcel)
         return false;
     }
 
+    if (startValue_ && startValue_->IsDrawCmdListProperty()) {
+        startValue_ = startValue_->CreateSimpleProperty();
+    }
+
+    if (endValue_ && endValue_->IsDrawCmdListProperty()) {
+        endValue_ = endValue_->CreateSimpleProperty();
+    }
+
     std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
     if (interpolator == nullptr) {
         ROSEN_LOGE("RSRenderCurveAnimation::ParseParam, Unmarshalling interpolator failed");
@@ -382,6 +391,14 @@ bool RSRenderInterpolatingSpringAnimation::ParseParam(Parcel& parcel)
             RSMarshallingHelper::Unmarshalling(parcel, endValue_))) {
         ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::ParseParam, RSRenderPropertyBase Fail");
         return false;
+    }
+   
+    if (startValue_ && startValue_->IsDrawCmdListProperty()) {
+        startValue_ = startValue_->CreateSimpleProperty();
+    }
+
+    if (endValue_ && endValue_->IsDrawCmdListProperty()) {
+        endValue_ = endValue_->CreateSimpleProperty();
     }
 
     if (!(RSMarshallingHelper::Unmarshalling(parcel, response_) &&
@@ -490,6 +507,11 @@ bool RSRenderKeyframeAnimation::ParseParam(Parcel& parcel)
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseParam, Unmarshalling interpolator failed");
             return false;
         }
+        
+        if (tupValue1 && tupValue1->IsDrawCmdListProperty()) {
+            tupValue1 = tupValue1->CreateSimpleProperty();
+        }
+
         keyframes_.emplace_back(std::make_tuple(tupValue0, tupValue1, interpolator));
     }
     return true;
@@ -512,6 +534,10 @@ bool RSRenderKeyframeAnimation::ParseDurationKeyframesParam(Parcel& parcel, int 
         if (interpolator == nullptr) {
             ROSEN_LOGE("RSRenderKeyframeAnimation::ParseDurationParam, Unmarshalling interpolator failed");
             return false;
+        }
+        
+        if (tupValue1 && tupValue1->IsDrawCmdListProperty()) {
+            tupValue1 = tupValue1->CreateSimpleProperty();
         }
         durationKeyframes_.emplace_back(std::make_tuple(startFraction, endFraction, tupValue1, interpolator));
     }
@@ -924,6 +950,41 @@ RSStepsInterpolator* RSStepsInterpolator::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     return new RSStepsInterpolator(id, steps, static_cast<StepsCurvePosition>(position));
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSAnimationTimingProtocol& val)
+{
+    if (!(parcel.WriteInt32(val.GetDuration()) && parcel.WriteInt32(val.GetStartDelay()) &&
+          parcel.WriteFloat(val.GetSpeed()) && parcel.WriteInt32(val.GetRepeatCount()) &&
+          parcel.WriteBool(val.GetAutoReverse()))) {
+        ROSEN_LOGE("RSMarshallingHelper::Marshalling, RSAnimationTimingProtocol failed");
+        return false;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSAnimationTimingProtocol& val)
+{
+    int32_t duration = 0;
+    int32_t startDelay = 0;
+    float speed = 0.f;
+    int32_t repeatCount = 0;
+    bool autoReverse = false;
+
+    if (!(parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
+          parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) &&
+          parcel.ReadBool(autoReverse))) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling, RSAnimationTimingProtocol failed");
+        return false;
+    }
+
+    val.SetDuration(duration);
+    val.SetStartDelay(startDelay);
+    val.SetSpeed(speed);
+    val.SetRepeatCount(repeatCount);
+    val.SetAutoReverse(autoReverse);
+
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -23,6 +23,7 @@
 #include "draw/canvas.h"
 #include "draw/surface.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "feature/opinc/rs_layer_part_draw_cache.h"
 #include "feature/opinc/rs_opinc_draw_cache.h"
 #include "feature/render_group/rs_render_group_cache_drawable.h"
 #include "image/gpu_context.h"
@@ -52,12 +53,6 @@ public:
     void Draw(Drawing::Canvas& canvas) override;
     virtual void OnDraw(Drawing::Canvas& canvas);
     virtual void OnCapture(Drawing::Canvas& canvas);
-
-    // deprecated
-    inline std::shared_ptr<const RSRenderNode> GetRenderNode()
-    {
-        return renderNode_.lock();
-    }
 
     inline bool GetOpDropped() const
     {
@@ -109,7 +104,28 @@ public:
 
     RSOpincDrawCache& GetOpincDrawCache()
     {
-        return opincDrawCache_;
+        if (opincDrawCache_ == nullptr) {
+            opincDrawCache_ = std::make_unique<RSOpincDrawCache>();
+        }
+        return *opincDrawCache_;
+    }
+
+    RSOpincDrawCache* TryGetOpincDrawCachePtr()
+    {
+        return opincDrawCache_.get();
+    }
+
+    RSLayerPartDrawCache& GetLayerPartDrawCache()
+    {
+        if (layerPartDrawCache_ == nullptr) {
+            layerPartDrawCache_ = std::make_unique<RSLayerPartDrawCache>();
+        }
+        return *layerPartDrawCache_;
+    }
+
+    RSLayerPartDrawCache* TryGetLayerPartDrawCachePtr()
+    {
+        return layerPartDrawCache_.get();
     }
 
     RSRenderNodeDrawableType GetDrawableType() const override
@@ -128,9 +144,8 @@ protected:
     static Registrar instance_;
     // indicate whether this drawable is generate from parallel node.
     bool subTreeParallel_ = false;
-    // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
-    float boundsWidth_ = 0.0f;
-    float boundsHeight_ = 0.0f;
+
+    static bool IsBackFace(const Drawing::Matrix& matrix);
 
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
     void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture = false);
@@ -149,9 +164,24 @@ protected:
     static inline ScreenId curDisplayScreenId_ = INVALID_SCREEN_ID;
 
     // used for render group cache
-    void SetCacheType(DrawableCacheType cacheType);
-    DrawableCacheType GetCacheType() const;
+    void SetRenderGroupDrawableCacheType(DrawableCacheType drawableCacheType);
+    DrawableCacheType GetRenderGroupDrawableCacheType() const;
+    std::shared_ptr<Drawing::Surface>& GetRenderGroupCachedSurface();
+    void SetRenderGroupCachedSurface(const std::shared_ptr<Drawing::Surface>& surface);
+    std::shared_ptr<Drawing::Image>& GetRenderGroupCachedImage();
+    void SetRenderGroupCachedImage(const std::shared_ptr<Drawing::Image>& image);
+    pid_t GetRenderGroupCacheThreadId() const;
+    std::atomic<pid_t>& GetMutableRenderGroupCacheThreadId();
+    void ClearRenderGroupResource();
+    std::unique_lock<std::recursive_mutex> RenderGroupCacheLock() const;
+    std::unique_lock<std::recursive_mutex> RenderGroupCacheLock();
     void UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id);
+    void InitRenderGroupCache();
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    void SetCachedBackendTexture(const Drawing::BackendTexture& texture);
+    const Drawing::BackendTexture& GetCachedBackendTexture() const;
+#endif
 
     std::shared_ptr<Drawing::Surface> GetCachedSurface(pid_t threadId) const;
     void InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize, pid_t threadId,
@@ -163,13 +193,16 @@ protected:
     void ClearCachedSurface();
 
     bool CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes);
-    bool BufferNeedUpdate(std::shared_ptr<Drawing::Surface>& cacheSurface, const RSRenderParams& params,
-        bool isNeedFP16) const;
+    bool BufferNeedUpdate(std::shared_ptr<Drawing::Surface>& cacheSurface,
+        bool isNeedFP16, GraphicColorGamut colorGamut) const;
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
-    void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
+    void TraverseSubTreeAndDrawFilterWithClip(
+        Drawing::Canvas& canvas, const RSRenderParams& params, bool includeProperty = false);
     bool UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params);
     bool IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const;
     bool SkipDrawByWhiteList(Drawing::Canvas& canvas);
+    void SetShouldClipHole(bool value) override;
+    bool ShouldClipHole() const override;
     // !used for render group cache
 
     static int GetProcessedNodeCount();
@@ -182,20 +215,13 @@ protected:
     bool SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds);
 
 private:
-    std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
-    mutable std::recursive_mutex cacheMutex_;
+    static constexpr float EPSILON = 1e-6f;
+
     mutable std::mutex freezeByCaptureMutex_;
-    std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
-    std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
     std::shared_ptr<Drawing::Image> cachedImageByCapture_ = nullptr;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::BackendTexture cachedBackendTexture_;
 #ifdef RS_ENABLE_VK
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif
-#endif
-    // surface thread id, cachedImage_ will update context when image can be reused.
-    std::atomic<pid_t> cacheThreadId_;
 
     static inline std::mutex drawingCacheMapMutex_;
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
@@ -221,12 +247,14 @@ private:
     bool IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
         const std::vector<FilterNodeInfo>& filterInfoVec,
         Drawing::RectI& dstRect);
+    bool IsOverlappedWithExistingFilters(Drawing::Canvas& canvas, const RSRenderParams& params) const;
     void ClearDrawingCacheDataMap();
     void ClearDrawingCacheContiUpdateTimeMap();
     friend class RsSubThreadCache;
     friend class OHOS::Rosen::RSLayerCacheManager;
-    RSOpincDrawCache opincDrawCache_;
-    std::unique_ptr<RSRenderGroupCacheDrawable> renderGroupCache_ = nullptr;
+    std::unique_ptr<RSOpincDrawCache> opincDrawCache_ = nullptr;
+    std::unique_ptr<RSLayerPartDrawCache> layerPartDrawCache_ = nullptr;
+    std::unique_ptr<RSRenderGroupCacheDrawable> renderGroupCacheDrawable_ = nullptr;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

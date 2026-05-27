@@ -480,7 +480,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(
 {
     const Path* path = CastToPath(cPath);
     if (path == nullptr || count == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     std::string str = path->ConvertToSVGString();
@@ -492,11 +492,11 @@ OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(
         return OH_DRAWING_SUCCESS;
     }
     if (capacity < requiredSize) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     if (memcpy_s(svgString, capacity, str.c_str(), requiredSize) != EOK) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     return OH_DRAWING_SUCCESS;
 }
@@ -712,7 +712,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetPointData(
 {
     const Path* drawingPath = CastToPath(path);
     if (drawingPath == nullptr || count == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     std::vector<Point> pointData = drawingPath->GetPointData();
@@ -735,7 +735,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetVerbData(
 {
     const Path* drawingPath = CastToPath(path);
     if (drawingPath == nullptr || count == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     std::vector<PathVerb> verbData = drawingPath->GetVerbData();
@@ -757,7 +757,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetConicWeightData(
 {
     const Path* drawingPath = CastToPath(path);
     if (drawingPath == nullptr || count == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     std::vector<float> conicWeightData = drawingPath->GetConicWeightData();
@@ -830,5 +830,37 @@ OH_Drawing_ErrorCode OH_Drawing_PathToggleInverseFillType(OH_Drawing_Path* cPath
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     path->ToggleInverseFillType();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathGetLastPoint(OH_Drawing_Path* cPath, OH_Drawing_Point2D* cPoint)
+{
+    Path* path = CastToPath(cPath);
+    Point* point = CastToPoint(cPoint);
+    if (path == nullptr || point == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+
+    if (path->IsEmpty()) {
+        point->Set(0, 0);
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    
+    path->GetLastPoint(*point);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathIsEqual(OH_Drawing_Path* cPath, OH_Drawing_Path* cOther, bool* equal)
+{
+    if (equal == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    Path* path = CastToPath(cPath);
+    Path* other = CastToPath(cOther);
+    if (path == nullptr || other == nullptr) {
+        *equal = false;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *equal = *path == *other;
     return OH_DRAWING_SUCCESS;
 }

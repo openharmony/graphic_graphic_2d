@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -651,6 +651,23 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetTextPath(const OH_Drawing_Font* cFont, co
         font = themeFont.get();
     }
     font->GetTextPath(text, byteLength, static_cast<TextEncoding>(encoding), x, y, reinterpret_cast<Path*>(path));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetTextPathWithFallback(const OH_Drawing_Font* cFont, const void* text,
+    size_t byteLength, OH_Drawing_TextEncoding encoding, float x, float y, OH_Drawing_Path* path)
+{
+    const Font* font = CastToFont(cFont);
+    if (font == nullptr || text == nullptr || byteLength == 0 || path == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    font->GetTextPathWithFallback(
+        text, byteLength, static_cast<TextEncoding>(encoding), x, y, reinterpret_cast<Path*>(path));
     return OH_DRAWING_SUCCESS;
 }
 

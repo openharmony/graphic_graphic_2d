@@ -80,6 +80,9 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_SURFACE_BUFFER_OPAQUE = 45,
     SURFACE_NODE_SET_CONTAINER_WINDOW_TRANSPARENT = 46,
     SURFACE_NODE_SET_APP_ROTATION_CORRECTION = 47,
+    SURFACE_NODE_SET_HDR_TYPE = 48,
+    SURFACE_NODE_SET_DARK_COLOR_MODE = 49,
+    SURFACE_NODE_SET_SURFACE_CAPTURE_CALLBACK = 50,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -100,7 +103,7 @@ public:
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
     static void SetColorSpace(RSContext& context, NodeId nodeId, GraphicColorGamut colorSpace);
     static void UpdateSurfaceDefaultSize(RSContext& context, NodeId nodeId, float width, float height);
-    static void ConnectToNodeInRenderService(RSContext& context, NodeId id);
+    static void ConnectToNodeInRenderService(RSContext& context, NodeId id, sptr<IRemoteObject> connectToRender);
     static void SetCallbackForRenderThreadRefresh(RSContext& context, NodeId id, bool isRefresh);
     static void SetContextBounds(RSContext& context, NodeId id, Vector4f bounds);
     static void SetIsTextureExportNode(RSContext& context, NodeId id, bool isTextureExportNode);
@@ -117,6 +120,8 @@ public:
     static void SetForceHardwareAndFixRotation(RSContext& context, NodeId nodeId, bool flag);
 #ifdef USE_SURFACE_TEXTURE
     static void CreateSurfaceExt(RSContext& context, NodeId id, const std::shared_ptr<RSSurfaceTexture>& surfaceExt);
+    static void SetSurfaceCaptureCallBack(RSContext& context, NodeId id,
+        std::function<std::shared_ptr<Media::PixelMap>()> callback);
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
@@ -139,6 +144,8 @@ public:
     static void SetSurfaceBufferOpaque(RSContext& context, NodeId nodeId, bool isOpaque);
     static void SetContainerWindowTransparent(RSContext& context, NodeId nodeId, bool isContainerWindowTransparent);
     static void SetAppRotationCorrection(RSContext& context, NodeId nodeId, ScreenRotation appRotationCorrection);
+    static void SetHDRType(RSContext& context, NodeId nodeId, uint32_t hdrType);
+    static void SetDarkColorMode(RSContext& context, NodeId nodeId, bool isDarkColorMode);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -182,7 +189,7 @@ ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize,
         SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize, NodeId, float, float))
 ADD_COMMAND(RSSurfaceNodeConnectToNodeInRenderService,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
-        SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId))
+        SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId, sptr<IRemoteObject>))
 ADD_COMMAND(RSSurfaceNodeSetCallbackForRenderThreadRefresh,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
         SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh, NodeId, bool))
@@ -230,6 +237,9 @@ ADD_COMMAND(RSurfaceNodeSetLeashPersistentId,
 ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_CREATE_SURFACE_EXT,
         SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, std::shared_ptr<RSSurfaceTexture>))
+ADD_COMMAND(RSSurfaceNodeSetSurfaceCaptureCallBack,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SURFACE_CAPTURE_CALLBACK,
+        SurfaceNodeCommandHelper::SetSurfaceCaptureCallBack, NodeId, std::function<std::shared_ptr<Media::PixelMap>()>))
 #endif
 ADD_COMMAND(RSSurfaceNodeSetForeground,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND,
@@ -249,6 +259,9 @@ ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW,
         SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetDarkColorMode,
+    ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_DARK_COLOR_MODE,
+        SurfaceNodeCommandHelper::SetDarkColorMode, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetRegionToBeMagnified,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_REGION_TO_BE_MAGNIFIED,
         SurfaceNodeCommandHelper::SetRegionToBeMagnified, NodeId, Vector4<int>))
@@ -288,6 +301,9 @@ ADD_COMMAND(RSSurfaceNodeSetContainerWindowTransparent,
 ADD_COMMAND(RSSurfaceNodeSetAppRotationCorrection,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_APP_ROTATION_CORRECTION,
         SurfaceNodeCommandHelper::SetAppRotationCorrection, NodeId, ScreenRotation))
+ADD_COMMAND(RSSurfaceNodeSetHDRType,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_HDR_TYPE,
+        SurfaceNodeCommandHelper::SetHDRType, NodeId, uint32_t))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

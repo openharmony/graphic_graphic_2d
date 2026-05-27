@@ -112,18 +112,22 @@ const std::string RSClientToRenderConnection::GPU_FREQ_PREF = "GPU_FREQ_PREF";
 RSClientToRenderConnection::RSClientToRenderConnection(
     pid_t remotePid,
     sptr<RSRenderPipelineAgent> renderPipelineAgent,
-    sptr<IRemoteObject> token)
+    sptr<IRemoteObject> token,
+    bool needRefresh)
     : remotePid_(remotePid),
       renderPipelineAgent_(renderPipelineAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
-      applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this))
+      applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this)),
+      needRefresh_(needRefresh)
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToRenderConnection: Failed to set death recipient.");
         return;
     }
-
+    if (needRefresh_) {
+        RegisterRemoteRefreshCallback();
+    }
     if (renderPipelineAgent_ == nullptr) {
         RS_LOGW("RSClientToRenderConnection: renderPipelineAgent_ is nullptr");
         return;
@@ -140,6 +144,17 @@ RSClientToRenderConnection::~RSClientToRenderConnection() noexcept
     CleanAll();
 }
 
+void RSClientToRenderConnection::RegisterRemoteRefreshCallback()
+{
+    RS_LOGI("RSClientToRenderConnection::RegisterRemoteRefreshCallback");
+    if (!connRefreshRecipient_) {
+        connRefreshRecipient_ = new RSConnectionRefreshRecipient(this);
+    }
+    if (token_ == nullptr || !token_->AddRefreshRecipient(connRefreshRecipient_)) {
+        RS_LOGE("RSClientToRenderConnection: Failed to set refresh recipient");
+    }
+}
+
 void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
 {
     {
@@ -153,7 +168,7 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
         return;
     }
 
-    renderPipelineAgent_->CleanAll(remotePid_);
+    renderPipelineAgent_->Clean(remotePid_, false);
     {
         std::lock_guard<std::mutex> lock(mutex_);
         cleanDone_ = true;
@@ -163,6 +178,15 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
         auto token = iface_cast<RSIConnectionToken>(GetToken());
         renderPipelineAgent_->RemoveConnection(token);
     }
+}
+
+void RSClientToRenderConnection::CleanForRefresh() noexcept
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+
+    renderPipelineAgent_->Clean(remotePid_, true);
 }
 
 RSClientToRenderConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
@@ -190,6 +214,34 @@ void RSClientToRenderConnection::RSConnectionDeathRecipient::OnRemoteDied(const 
     }
 
     rsConn->CleanAll(true);
+}
+
+RSClientToRenderConnection::RSConnectionRefreshRecipient::RSConnectionRefreshRecipient(
+    wptr<RSClientToRenderConnection> conn) : conn_(conn)
+{
+}
+
+void RSClientToRenderConnection::RSConnectionRefreshRecipient::OnRemoteRefreshed(const wptr<IRemoteObject>& token)
+{
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        RS_LOGW("RSClientToRenderConnection::RSConnectionRefreshRecipient: can't promote remote object");
+        return;
+    }
+
+    auto rsConn = conn_.promote();
+    if (rsConn == nullptr) {
+        RS_LOGW("RSConnectionRefreshRecipient::OnRemoteRefreshed: RSClientToRenderConnection was dead, do not hing");
+        return;
+    }
+
+    if (rsConn->GetToken() != tokenSptr) {
+        RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: token  doesn't match, ignore it");
+        return;
+    }
+    RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: call CleanForRefresh");
+
+    rsConn->CleanForRefresh();
 }
 
 RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::RSApplicationRenderThreadDeathRecipient(
@@ -237,13 +289,13 @@ ErrCode RSClientToRenderConnection::ExecuteSynchronousTask(const std::shared_ptr
     return renderPipelineAgent_->ExecuteSynchronousTask(task);
 }
 
-ErrCode RSClientToRenderConnection::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+ErrCode RSClientToRenderConnection::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    return renderPipelineAgent_->CreateNode(displayNodeConfig, nodeId, success);
+    return renderPipelineAgent_->CreateDisplayNode(displayNodeConfig, nodeId, success);
 }
 
 ErrCode RSClientToRenderConnection::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
@@ -346,20 +398,11 @@ ErrCode RSClientToRenderConnection::SetHardwareEnabled(NodeId id, bool isEnabled
 ErrCode RSClientToRenderConnection::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode)
 {
     if (renderPipelineAgent_ == nullptr) {
-        resCode = static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+        resCode = static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
 }
-
-bool RSClientToRenderConnection::GetHighContrastTextState()
-{
-    if (renderPipelineAgent_ == nullptr) {
-        return false;
-    }
-    return renderPipelineAgent_->GetHighContrastTextState();
-}
-
 
 ErrCode RSClientToRenderConnection::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
@@ -444,7 +487,7 @@ void RSClientToRenderConnection::TakeUICaptureInRange(
 }
 
 ErrCode RSClientToRenderConnection::SetHwcNodeBounds(
-    int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW)
+    NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW)
 {
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
@@ -556,7 +599,8 @@ int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
 
 uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount, uint32_t colCount)
 {
     if (renderPipelineAgent_ == nullptr) {
         return WATER_MARK_RS_CONNECTION_ERROR;
@@ -565,7 +609,7 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::SET_SURFACE_WATERMARK");
     return renderPipelineAgent_->SetSurfaceWatermark(pid, name, watermark,
-        nodeIdList, watermarkType, isSystemCalling);
+        nodeIdList, watermarkType, isSystemCalling, rowCount, colCount);
 }
     
 void RSClientToRenderConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
@@ -678,6 +722,24 @@ int32_t RSClientToRenderConnection::GetFrameStabilityResult(const FrameStability
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->GetFrameStabilityResult(remotePid_, target, result);
+}
+
+int32_t RSClientToRenderConnection::UpdateFrameStabilityDetection(
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->UpdateFrameStabilityDetection(remotePid_, oldTarget, newTarget);
+}
+
+void RSClientToRenderConnection::SetFreeMultiWindowStatus(bool enable)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+    renderPipelineAgent_->SetFreeMultiWindowStatus(enable);
 }
 } // namespace Rosen
 } // namespace OHOS

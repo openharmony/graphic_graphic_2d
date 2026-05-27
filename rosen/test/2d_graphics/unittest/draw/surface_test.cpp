@@ -389,6 +389,35 @@ HWTEST_F(SurfaceTest, MakeImageWithCanvas003, TestSize.Level1)
     auto image = builder.MakeImage(*canvas, &localMatrix, imageInfo, false);
     EXPECT_TRUE(image == nullptr);
 }
+
+/**
+ * @tc.name: SurfaceGetSkSurface001
+ * @tc.desc: Test Surface::GetSkSurface
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SurfaceTest, SurfaceGetSkSurface001, TestSize.Level1)
+{
+    Drawing::ImageInfo imageInfo = Drawing::ImageInfo::MakeN32Premul(100, 100);
+    auto surface = Surface::MakeRaster(imageInfo);
+    auto skSurface = surface->GetSkSurface();
+    ASSERT_NE(surface, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderAreaGranularity001
+ * @tc.desc: Test GetRenderAreaGranularity returns {0, 0} when ddgrSurface_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(SurfaceTest, GetRenderAreaGranularity001, TestSize.Level1)
+{
+    auto surface = std::make_unique<Surface>();
+    ASSERT_TRUE(surface != nullptr);
+
+    TileGranularity granularity = surface->GetRenderAreaGranularity();
+    EXPECT_EQ(granularity.width, 0u);
+    EXPECT_EQ(granularity.height, 0u);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -87,6 +87,7 @@ enum class AdvancedDirtyRegionType {
 };
 
 enum class DirtyAlignType {
+    DEFAULT = -1, // follow the ccm configuration
     DISABLED = 0,
     ENABLED = 1,
 };
@@ -192,11 +193,13 @@ public:
     static StencilPixelOcclusionCullingType GetStencilPixelOcclusionCullingEnabled();
     static float GetClipRectThreshold();
     static bool GetAllSurfaceVisibleDebugEnabled();
+    static bool GetVirtualSelfDrawOptEnabled();
     static bool GetVirtualDirtyDebugEnabled();
     static bool GetVirtualDirtyEnabled();
     static bool GetVirtualExpandScreenDirtyEnabled();
     static bool GetVirtualExpandScreenSkipEnabled();
     static bool GetOcclusionEnabled();
+    static bool GetDynamicLayerSkipEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
@@ -270,6 +273,7 @@ public:
     static bool GetAnimationCacheEnabled();
 
     static bool ViewDrawNodeType();
+    static bool GetNewTunnelEnabled();
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();
@@ -325,6 +329,7 @@ public:
     static bool GetOpincCacheMemThresholdEnabled();
     static bool GetLayerPartRenderEnabled();
     static bool GetLayerPartRenderDebugEnabled();
+    static bool GetLayerDebugEnabled();
     static bool GetFilterCacheMemThresholdEnabled();
     static bool GetSkipDisplayIfScreenOffEnabled();
     static bool GetBatchRemovingOnRemoteDiedEnabled();
@@ -383,7 +388,6 @@ public:
 
     static bool GetVKImageUseEnabled();
     static bool GetVKImageAdaptationForWallpaperEnabled();
-
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();
@@ -400,13 +404,15 @@ public:
     static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
     static bool GetPreparePhaseQuickSkipEnabled();
-
+    static bool GetUnmarshalParallelEnabled();
+    static uint32_t GetUnmarshalParallelMinDataSize();
     static bool GetBootCompleted();
     static bool GetClipRRectOptimizationEnabled();
     static bool GetNodeMemClearEnabled();
     static bool GetTransactionDataTraceEnabled();
     static bool GetDefaultMemClearEnabled();
     static bool GetSceneBoardIsPcMode();
+    static bool GetBufferOwnerCountDfxEnabled();
 
     static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
@@ -418,7 +424,7 @@ private:
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
-    inline static bool cacheEnabledForRotation_ = false;
+    inline static std::atomic_bool cacheEnabledForRotation_ = false;
     static inline bool forceHpsBlurDisabled_ = false;
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool animationTestEnable_ = false;

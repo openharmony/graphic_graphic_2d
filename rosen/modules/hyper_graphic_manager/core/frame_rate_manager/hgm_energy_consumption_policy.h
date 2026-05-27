@@ -20,12 +20,11 @@
 #include <string>
 #include <unordered_map>
 
+#include "animation/rs_frame_rate_range.h"
+#include "common/rs_common_def.h"
 #include "hgm_command.h"
 #include "hgm_touch_manager.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
-
-#include "animation/rs_frame_rate_range.h"
-#include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
 
@@ -71,23 +70,23 @@ private:
     // Unit: ms
     int animationIdleDuration_ = 2000;
     int animationIdleFps_ = 60;
-    std::string lastAssuranceLog_ = "";
+    std::string lastAssuranceLog_;
     int32_t currentRefreshMode_ = -1;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
-    std::atomic<pid_t> videoCallPid_ = { DEFAULT_PID };
-    std::string videoCallVsyncName_ = "";
+    std::atomic<pid_t> videoCallPid_{ DEFAULT_PID };
+    std::string videoCallVsyncName_;
     int videoCallMaxFrameRate_ = 0;
-    std::atomic<bool> isEnableVideoCall_ = { false };
-    std::atomic<int32_t> videoBufferCount_ = { 0 };
-    std::atomic<bool> isSubmitDecisionTask_ = { false };
-    std::atomic<bool> isOnlyVideoCallExist_ = { false };
-    std::atomic<bool> isVideoCallVsyncChange_ = { false };
+    std::atomic<bool> isEnableVideoCall_{ false };
+    std::atomic<int32_t> videoBufferCount_{ 0 };
+    std::atomic<bool> isSubmitDecisionTask_{ false };
+    std::atomic<bool> isOnlyVideoCallExist_{ false };
+    std::atomic<bool> isVideoCallVsyncChange_{ false };
     // concurrency protection >>>
     mutable std::mutex videoCallLock_;
-    std::string videoCallLayerName_ = "";
+    std::string videoCallLayerName_;
     // concurrency protection <<<
-    std::atomic<bool> dragSceneEnable_ = { true };
-    std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
+    std::atomic<bool> dragSceneEnable_{ true };
+    std::atomic<pid_t> dragSceneDisablePid_{ 0 };
     const static std::unordered_map<EnergyEvent, HandleRPFunc> commonDataMapFunc_;
 
     HgmEnergyConsumptionPolicy();

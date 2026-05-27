@@ -159,6 +159,7 @@ int32_t HgmCore::InitXmlConfig()
     }
     if (mPolicyConfigData_ != nullptr) {
         mPolicyConfigVisitor_ = std::make_shared<PolicyConfigVisitorImpl>(*mPolicyConfigData_);
+        hgmAbilityEnabled_ = mPolicyConfigData_->hgmAbilityEnabled_;
     }
     return EXEC_SUCCESS;
 }
@@ -219,16 +220,6 @@ ScreenId HgmCore::GetActiveScreenId() const
 void HgmCore::SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum)
 {
     idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
-}
-
-int64_t HgmCore::GetRsPhaseOffset(const int64_t orgValue) const
-{
-    return isVsyncOffsetCustomized_.load() ? rsPhaseOffset_.load() : orgValue;
-}
-
-int64_t HgmCore::GetAppPhaseOffset(const int64_t orgValue) const
-{
-    return isVsyncOffsetCustomized_.load() ? appPhaseOffset_.load() : orgValue;
 }
 
 void HgmCore::SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable)
@@ -607,18 +598,14 @@ int64_t HgmCore::GetIdealPeriod(uint32_t rate)
     return 0;
 }
 
-void HgmCore::RegisterScreenManagerCallbacks(
-    const GetDefaultScreenIdCallback& getDefaultScreenIdCb,
-    const GetScreenPowerStatusCallback& getScreenPowerStatusCb,
-    const GetScreenSupportedModesCallback& getScreenSupportedModesCb,
-    const SetScreenConstraintCallback& setScreenConstraintCb,
-    const SetScreenActiveModeCallback& setScreenActiveModeCb)
+void HgmCore::RegisterScreenManagerCallbacks(const ScreenManagerCallbacks& callbacks)
 {
-    getDefaultScreenIdCb_ = getDefaultScreenIdCb;
-    getScreenPowerStatusCb_ = getScreenPowerStatusCb;
-    getScreenSupportedModesCb_ = getScreenSupportedModesCb;
-    setScreenConstraintCb_ = setScreenConstraintCb;
-    setScreenActiveModeCb_ = setScreenActiveModeCb;
+    getDefaultScreenIdCb_ = callbacks.getDefaultScreenIdCb;
+    getScreenPowerStatusCb_ = callbacks.getScreenPowerStatusCb;
+    getScreenSupportedModesCb_ = callbacks.getScreenSupportedModesCb;
+    setScreenConstraintCb_ = callbacks.setScreenConstraintCb;
+    setScreenActiveModeCb_ = callbacks.setScreenActiveModeCb;
+    getScreenActiveRefreshRateCb_ = callbacks.getScreenActiveRefreshRateCb;
 }
 
 ScreenId HgmCore::GetDefaultScreenId() const
@@ -664,5 +651,14 @@ uint32_t HgmCore::SetScreenActiveMode(ScreenId id, uint32_t modeId)
     }
     HGM_LOGE("setScreenActiveModeCb is null");
     return StatusCode::SCREEN_NOT_FOUND;
+}
+
+uint32_t HgmCore::GetScreenActiveRefreshRate(ScreenId id) const
+{
+    if (LIKELY(getScreenActiveRefreshRateCb_ != nullptr)) {
+        return getScreenActiveRefreshRateCb_(id);
+    }
+    HGM_LOGE("getScreenActiveRefreshRateCb_ is null");
+    return static_cast<uint32_t>(EXEC_SUCCESS);
 }
 } // namespace OHOS::Rosen

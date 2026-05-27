@@ -126,6 +126,32 @@ void BitmapFuzzTest002(const uint8_t* data, size_t size)
     OH_Drawing_BitmapDestroy(bitmap);
     return;
 }
+
+void BitmapFuzzTest003(const uint8_t* data, size_t size)
+{
+    int32_t width = GetObject<int32_t>() % MAX_ARRAY_SIZE;
+    int32_t height = GetObject<int32_t>() % MAX_ARRAY_SIZE;
+    OH_Drawing_Image_Info imageInfo = {width, height,
+        GetObject<OH_Drawing_ColorFormat>(), GetObject<OH_Drawing_AlphaFormat>()};
+
+    uint32_t sizePix = width * height;
+    uint32_t* pixels = new uint32_t[sizePix];
+    for (size_t i = 0; i < sizePix; i++) {
+        pixels[i] = GetObject<uint32_t>();
+    }
+    uint32_t rowBytes = GetObject<uint32_t>();
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    uint32_t bytes = 0;
+    OH_Drawing_BitmapGetRowBytes(nullptr, &bytes);
+    OH_Drawing_BitmapGetRowBytes(bitmap, &bytes);
+
+    OH_Drawing_BitmapDestroy(bitmap);
+    if (pixels != nullptr) {
+        delete[]  pixels;
+        pixels = nullptr;
+    }
+    return;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -142,5 +168,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::BitmapFuzzTest000(data, size);
     OHOS::Rosen::Drawing::BitmapFuzzTest001(data, size);
     OHOS::Rosen::Drawing::BitmapFuzzTest002(data, size);
+    OHOS::Rosen::Drawing::BitmapFuzzTest003(data, size);
     return 0;
 }

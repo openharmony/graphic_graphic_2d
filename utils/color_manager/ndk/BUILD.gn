@@ -57,8 +57,10 @@ ohos_shared_library("libnative_color_space_manager") {
 
   innerapi_tags = [ "ndk" ]
 
-  external_deps = [ "hilog:libhilog" ]
-  public_external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

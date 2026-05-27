@@ -18,6 +18,7 @@
 
 #include "draw/canvas.h"
 #include "text_flip_effect.h"
+#include "txt/font_collection.h"
 #include "typography_mock.h"
 #include "typography.h"
 #include "typography_create.h"

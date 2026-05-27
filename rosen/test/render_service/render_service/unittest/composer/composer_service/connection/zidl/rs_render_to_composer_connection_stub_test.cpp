@@ -129,6 +129,35 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_CommitLayers_Unma
 }
 
 /**
+ * Function: OnRemoteRequest_CommitTunnelLayerBySurfaceId_ReadBufferFail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. write token and tunnel info
+ *                  2. omit surface buffer payload to trigger ReadSurfaceBufferImpl failure
+ *                  3. expect stub replies with GRAPHIC_DISPLAY_FAILURE and no release fence
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_CommitTunnelLayerBySurfaceId_ReadBufferFail,
+    TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+    data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+    data.WriteUint64(123u);
+    data.WriteUint64(456u);
+    // Missing surface buffer marshalled payload on purpose.
+
+    int ret = conn.OnRemoteRequest(
+        IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_COMMIT_TUNNEL_LAYER_BY_SURFACE_ID,
+        data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    EXPECT_EQ(reply.ReadInt32(), GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_FALSE(reply.ReadBool());
+}
+
+/**
  * Function: OnRemoteRequest_ClearFrameBuffers_Success
  * Type: Function
  * Rank: Important(2)
@@ -246,7 +275,41 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetBacklightLevel
         int ret = conn.OnRemoteRequest(
             IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_BACKLIGHT_LEVEL,
             data, reply, opt);
+        EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+    }
+}
+
+/**
+ * Function: OnRemoteRequest_SetScreenLinearMatrix_SuccessAndFail
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. success: write token + linear matrix
+ *                  2. fail: write token only (linear matrix read fails)
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_SetScreenLinearMatrix_SuccessAndFail, TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel reply;
+    MessageOption opt;
+    {
+        MessageParcel data;
+        data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+        std::vector<float> matrix = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+        data.WriteFloatVector(matrix);
+        int ret = conn.OnRemoteRequest(
+            IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_LINEAR_MATRIX,
+            data, reply, opt);
         EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    }
+    {
+        MessageParcel data;
+        data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+        data.WriteUint32(0xFFFFFFFF);
+        int ret = conn.OnRemoteRequest(
+            IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_SET_LINEAR_MATRIX,
+            data, reply, opt);
+        EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
     }
 }
 

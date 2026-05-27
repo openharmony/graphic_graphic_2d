@@ -162,8 +162,6 @@ private:
     Occlusion::Region GetSurfaceTransparentFilterRegion(const RSSurfaceRenderNode& surfaceNode) const;
     void CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion);
     void PartialRenderOptionInit();
-    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
-        const Occlusion::Region& selfDrawRegion);
     void UpdateSurfaceOcclusionInfo();
     enum class RSPaintStyle {
         FILL,
@@ -212,6 +210,7 @@ private:
     void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
     void ProcessAncoNode(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
     void UpdateAncoNodeHWCDisabledState(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
+    void UpdateScreenHdrForceHwcState(const std::unordered_set<pid_t>& hdrForceHwcNodes);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(
         std::shared_ptr<RSSurfaceRenderNode>& node, std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
     void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
@@ -225,8 +224,11 @@ private:
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
         bool& hasVisibleHwcNodes, bool& needForceUpdateHwcNodes);
     void PrevalidateHwcNode();
+    void UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, RequestCompositionType> &strategy,
+        const RSRenderNodeMap& nodeMap);
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
+    bool IsSourceNodeDirty(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -334,6 +336,9 @@ private:
     void SetRenderGroupSubTreeDirtyIfNeed(const RSRenderNode& node);
     bool IsOnRenderGroupExcludedSubTree() const;
     bool HasAncestorRenderGroup(NodeId nodeId) const;
+    bool IsNodeInBlackList(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNodePtr) const;
+    void TraverseRenderGroupCacheRoots(
+        std::function<void(const std::shared_ptr<RSCanvasRenderNode>&)> func) const;
     // !used for renderGroup
 
     /* Check whether gpu overdraw buffer feature can be enabled on the RenderNode
@@ -374,6 +379,7 @@ private:
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
 
     void HandleColorPickerHwcDisable(RSRenderNode& node);
+    void ScheduleColorPickIfCurrentSurfaceDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     /**
      * @brief Prepare color pickers with dirty region intersection checking
      */
@@ -400,6 +406,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curLayerPartRenderDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     std::shared_ptr<RSUnionRenderNode> curUnionNode_;
+    std::shared_ptr<RSDynamicLayerSkipController> dynamicLayerSkipController_;
     RSSpecialLayerManager specialLayerManager_;
 
     bool hasFingerprint_ = false;
@@ -407,6 +414,8 @@ private:
     std::shared_ptr<RSLogicalDisplayRenderNode> curLogicalDisplayNode_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcCleanFilter_;
+    // map of surface node color gamut collected in CheckColorSpace
+    std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcDirtyFilter_;
     // record DRM nodes

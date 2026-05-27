@@ -16,6 +16,7 @@
 #include "render/rs_border.h"
 
 #include "draw/path.h"
+#include "effect/rs_render_shader_base.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -932,17 +933,30 @@ std::string RSBorder::ToString() const
     for (auto style : styles_) {
         ss << static_cast<uint32_t>(style) << ", ";
     }
+    if (sdfShader_) {
+        ss << "sdfShader: " << sdfShader_->Dump() << ", ";
+    }
     std::string output = ss.str();
     return output;
 }
 
 bool RSBorder::HasBorder() const
 {
-    return !colors_.empty() && !widths_.empty() && !styles_.empty() &&
+    return sdfShader_ != nullptr || (!colors_.empty() && !widths_.empty() && !styles_.empty() &&
         !std::all_of(colors_.begin(), colors_.end(), [](const Color& color) { return color.GetAlpha() == 0; }) &&
         !std::all_of(widths_.begin(), widths_.end(), [](const float& width) { return width <= 0.f; }) &&
         !std::all_of(
-            styles_.begin(), styles_.end(), [](const BorderStyle& style) { return style == BorderStyle::NONE; });
+            styles_.begin(), styles_.end(), [](const BorderStyle& style) { return style == BorderStyle::NONE; }));
+}
+
+void RSBorder::SetSDFShader(const std::shared_ptr<RSNGRenderShaderBase>& shader)
+{
+    sdfShader_ = shader;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSBorder::GetSDFShader() const
+{
+    return sdfShader_;
 }
 } // namespace Rosen
 } // namespace OHOS

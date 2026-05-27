@@ -30,10 +30,28 @@ namespace Rosen {
 namespace {
 constexpr size_t RELEASE_LAYER_MAX_SIZE = 1000; // upper bound of parcel capacity
 constexpr int32_t MAX_LPP_LAYER_SIZE = 5;
+
+bool ReadLayerStateChange(MessageParcel& data, LayerStateChange& state)
+{
+    uint32_t stateValue = 0;
+    if (!data.ReadUint32(stateValue)) {
+        return false;
+    }
+    if (stateValue > static_cast<uint32_t>(LayerStateChange::UNAVAILABLE)) {
+        return false;
+    }
+    state = static_cast<LayerStateChange>(stateValue);
+    return true;
+}
 }
 int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    auto interfaceToken = data.ReadInterfaceToken();
+    if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
+        RS_LOGE("Read interfaceToken failed!");
+        return ERR_INVALID_DATA;
+    }
     int ret = COMPOSITOR_ERROR_OK;
     switch (code) {
         case ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS: {
@@ -42,6 +60,10 @@ int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
         }
         case NOTIFY_LPP_LAYER_TO_RENDER: {
             ret = NotifyLppLayerToRenderStub(data, reply, option);
+            break;
+        }
+        case NOTIFY_LAYER_STATE_CHANGED_TO_RENDER: {
+            ret = NotifyLayerStateChangedToRenderStub(data, reply, option);
             break;
         }
 
@@ -55,42 +77,71 @@ int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
 int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel& data,
     MessageParcel& reply, MessageOption& option)
 {
-    auto interfaceToken = data.ReadInterfaceToken();
-    if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
-        RS_LOGE("Read interfaceToken failed!");
-        return ERR_INVALID_DATA;
-    }
     ReleaseLayerBuffersInfo releaseLayerInfo;
-    releaseLayerInfo.screenId = data.ReadUint64();
-    auto vecSize = data.ReadUint32();
+    if (!data.ReadUint64(releaseLayerInfo.screenId)) {
+        RS_LOGE("%{public}s read screenId error", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
+    uint32_t vecSize;
+    if (!data.ReadUint32(vecSize)) {
+        RS_LOGE("%{public}s read vecSize error", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     if (vecSize > RELEASE_LAYER_MAX_SIZE) {
         RS_LOGE("Release layer size invalid: %{public}d", vecSize);
         return ERR_INVALID_DATA;
     }
     for (uint32_t i = 0; i < vecSize; i++) {
-        auto layerId = data.ReadUint64();
-        bool isSupportedPresentTimestamp = data.ReadBool();
+        uint64_t layerId;
+        if (!data.ReadUint64(layerId)) {
+            RS_LOGE("%{public}s read layerId error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
+        bool isSupportedPresentTimestamp;
+        if (!data.ReadBool(isSupportedPresentTimestamp)) {
+            RS_LOGE("%{public}s read isSupportedPresentTimestamp error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
         GraphicPresentTimestamp timestamp;
-        timestamp.type = static_cast<GraphicPresentTimestampType>(data.ReadUint32());
-        timestamp.time = data.ReadInt64();
+        uint32_t presentTimestampType;
+        if (!data.ReadUint32(presentTimestampType)) {
+            RS_LOGE("%{public}s read presentTimestampType error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
+        timestamp.type = static_cast<GraphicPresentTimestampType>(presentTimestampType);
+        if (!data.ReadInt64(timestamp.time)) {
+            RS_LOGE("%{public}s read timestamp.time error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
         releaseLayerInfo.timestampVec.push_back(std::tuple(layerId, isSupportedPresentTimestamp, timestamp));
     }
-    vecSize = data.ReadUint32();
+    if (!data.ReadUint32(vecSize)) {
+        RS_LOGE("%{public}s read vecSize error", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     if (vecSize > RELEASE_LAYER_MAX_SIZE) {
         RS_LOGE("Release layer size invalid: %{public}d", vecSize);
         return ERR_INVALID_DATA;
     }
     for (uint32_t i = 0; i < vecSize; i++) {
-        auto layerId = data.ReadUint64();
-        uint32_t sequence;
+        uint64_t layerId;
+        if (!data.ReadUint64(layerId)) {
+            RS_LOGE("%{public}s read layerId error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
+        bool hasBuffer;
+        if (!data.ReadBool(hasBuffer)) {
+            RS_LOGE("%{public}s read hasBuffer error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
         sptr<SurfaceBuffer> buffer = nullptr;
-        bool hasBuffer = data.ReadBool();
         if (hasBuffer) {
             auto readSafeFdFunc = [](OHOS::MessageParcel& parcel,
                 std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
                 return parcel.ReadFileDescriptor();
             };
-            auto ret = ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc);
+            uint32_t sequence;
+            auto ret = ReadSurfaceBufferImplWithAllProperties(data, sequence, buffer, readSafeFdFunc);
             if (ret != GSERROR_OK) {
                 return ERR_INVALID_DATA;
             }
@@ -107,11 +158,6 @@ int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel&
 int32_t RSComposerToRenderConnectionStub::NotifyLppLayerToRenderStub(MessageParcel& data,
     MessageParcel& reply, MessageOption& option)
 {
-    if (auto interfaceToken = data.ReadInterfaceToken();
-        interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
-        RS_LOGE("%{public}s::CREATE_CONNECTION Read interfaceToken failed!", __func__);
-        return ERR_INVALID_DATA;
-    }
     uint64_t vsyncId;
     if (!data.ReadUint64(vsyncId)) {
         ROSEN_LOGE("%{public}s read vsyncId failed", __func__);
@@ -132,6 +178,29 @@ int32_t RSComposerToRenderConnectionStub::NotifyLppLayerToRenderStub(MessageParc
         lppNodeIds.insert(nodeId);
     }
     auto replyMessage = NotifyLppLayerToRender(vsyncId, lppNodeIds);
+    reply.WriteInt32(replyMessage);
+    return COMPOSITOR_ERROR_OK;
+}
+
+int32_t RSComposerToRenderConnectionStub::NotifyLayerStateChangedToRenderStub(MessageParcel& data,
+    MessageParcel& reply, MessageOption& option)
+{
+    uint64_t nodeId = 0;
+    uint64_t tunnelLayerGeneration = 0;
+    LayerStateChange state = LayerStateChange::AVAILABLE;
+    if (!data.ReadUint64(nodeId)) {
+        ROSEN_LOGE("%{public}s read nodeId failed", __func__);
+        return ERR_INVALID_DATA;
+    }
+    if (!data.ReadUint64(tunnelLayerGeneration)) {
+        ROSEN_LOGE("%{public}s read tunnelLayerGeneration failed", __func__);
+        return ERR_INVALID_DATA;
+    }
+    if (!ReadLayerStateChange(data, state)) {
+        ROSEN_LOGE("%{public}s read state failed", __func__);
+        return ERR_INVALID_DATA;
+    }
+    auto replyMessage = NotifyLayerStateChangedToRender(nodeId, state, tunnelLayerGeneration);
     reply.WriteInt32(replyMessage);
     return COMPOSITOR_ERROR_OK;
 }

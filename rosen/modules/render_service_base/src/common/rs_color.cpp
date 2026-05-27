@@ -77,16 +77,41 @@ RSColor::RSColor(float red, float green, float blue, float alpha,
 
 bool RSColor::operator==(const RSColor& rhs) const
 {
+    if (colorSpace_ != rhs.colorSpace_) {
+        RSColor lhsColor(*this);
+        RSColor rhsColor(rhs);
+        lhsColor.ConvertToBT2020ColorSpace();
+        rhsColor.ConvertToBT2020ColorSpace();
+        return OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetRedF(), rhsColor.GetRedF()) &&
+               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetGreenF(), rhsColor.GetGreenF()) &&
+               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetBlueF(), rhsColor.GetBlueF()) &&
+               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetAlphaF(), rhsColor.GetAlphaF()) &&
+               lhsColor.GetPlaceholder() == rhsColor.GetPlaceholder() &&
+               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetHeadroom(), rhsColor.GetHeadroom());
+    }
     return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ && alpha_ == rhs.alpha_ &&
-           colorSpace_ == rhs.colorSpace_ && placeholder_ == rhs.placeholder_ &&
+           placeholder_ == rhs.placeholder_ &&
            OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), Float16ToFloat32(rhs.headroom_));
 }
 
 bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
 {
+    if (colorSpace_ != other.colorSpace_) {
+        RSColor lhsColor(*this);
+        RSColor rhsColor(other);
+        lhsColor.ConvertToBT2020ColorSpace();
+        rhsColor.ConvertToBT2020ColorSpace();
+        float thresholdF = static_cast<float>(threshold) / static_cast<float>(RGB_MAX_VALUE);
+        return (std::fabs(lhsColor.GetRedF() - rhsColor.GetRedF()) <= thresholdF) &&
+               (std::fabs(lhsColor.GetGreenF() - rhsColor.GetGreenF()) <= thresholdF) &&
+               (std::fabs(lhsColor.GetBlueF() - rhsColor.GetBlueF()) <= thresholdF) &&
+               (std::fabs(lhsColor.GetAlphaF() - rhsColor.GetAlphaF()) <= thresholdF) &&
+               lhsColor.GetPlaceholder() == rhsColor.GetPlaceholder() &&
+               OHOS::ColorManager::FloatNearlyEqual(lhsColor.GetHeadroom(), rhsColor.GetHeadroom());
+    }
     return (std::abs(red_ - other.red_) <= threshold) && (std::abs(green_ - other.green_) <= threshold) &&
            (std::abs(blue_ - other.blue_) <= threshold) && (std::abs(alpha_ - other.alpha_) <= threshold) &&
-           (colorSpace_ == other.colorSpace_) && (placeholder_ == other.placeholder_) &&
+           (placeholder_ == other.placeholder_) &&
            OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), Float16ToFloat32(other.headroom_));
 }
 
@@ -187,7 +212,8 @@ RSColor RSColor::operator*(float scale) const
         return RSColor(GetRedF() * scale, GetGreenF() * scale, GetBlueF() * scale, GetAlphaF() * scale,
             GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, GetHeadroom());
     }
-    RSColor color = RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale));
+    RSColor color = RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale),
+        GetColorSpace());
     color.SetHeadroom(GetHeadroom());
     return color;
 }
@@ -435,6 +461,7 @@ void RSColor::ConvertToP3ColorSpace()
     OHOS::ColorManager::Vector3 rgbInP3 = rgbF;
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
         rgbInP3 = OHOS::ColorManager::ColorSpaceConvertor::ConvertBT2020ToP3ColorSpace(rgbF);
+        alpha_ = GetAlpha();
     } else {
         rgbInP3 = OHOS::ColorManager::ColorSpaceConvertor::ConvertSRGBToP3ColorSpace(rgbF);
     }
@@ -455,6 +482,7 @@ void RSColor::ConvertToSRGBColorSpace()
     OHOS::ColorManager::Vector3 rgbInSRGB = rgbF;
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
         rgbInSRGB = OHOS::ColorManager::ColorSpaceConvertor::ConvertBT2020ToSRGBColorSpace(rgbF);
+        alpha_ = GetAlpha();
     } else {
         rgbInSRGB = OHOS::ColorManager::ColorSpaceConvertor::ConvertP3ToSRGBColorSpace(rgbF);
     }

@@ -193,13 +193,27 @@ GraphicPixelFormat RSScreenRenderParams::GetNewPixelFormat() const
     return newPixelFormat_;
 }
 
-void RSScreenRenderParams::CollectHdrStatus(HdrStatus screenHDRStatus)
+void RSScreenRenderParams::CollectHdrStatus(NodeId id, HdrStatus hdrStatus)
 {
-    if (screenHDRStatus_ == screenHDRStatus) {
-        return;
+    auto iter = screenHDRStatusMap_.find(id);
+    if (iter == screenHDRStatusMap_.end()) {
+        screenHDRStatusMap_.emplace(id, hdrStatus);
+    } else {
+        HdrStatus currentNodeHDRStatus = iter->second;
+        HdrStatus newNodeHDRStatus = static_cast<HdrStatus>(currentNodeHDRStatus | hdrStatus);
+        if (currentNodeHDRStatus == newNodeHDRStatus) {
+            return;
+        }
+        iter->second = newNodeHDRStatus;
     }
     needSync_ = true;
-    screenHDRStatus_ = screenHDRStatus;
+    HdrStatus newHDRStatus = static_cast<HdrStatus>(screenHDRStatus_ | hdrStatus);
+    screenHDRStatus_ = newHDRStatus;
+}
+
+const std::unordered_map<NodeId, HdrStatus>& RSScreenRenderParams::GetScreenHDRStatusMap() const
+{
+    return screenHDRStatusMap_;
 }
 
 void RSScreenRenderParams::ResetDisplayHdrStatus()
@@ -209,6 +223,7 @@ void RSScreenRenderParams::ResetDisplayHdrStatus()
     }
     needSync_ = true;
     screenHDRStatus_ = HdrStatus::NO_HDR;
+    screenHDRStatusMap_.clear();
 }
 
 HdrStatus RSScreenRenderParams::GetScreenHDRStatus() const
@@ -278,6 +293,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->isFixVirtualBuffer10Bit_ = isFixVirtualBuffer10Bit_;
     targetScreenParams->existHWCNode_ = existHWCNode_;
     targetScreenParams->screenHDRStatus_ = screenHDRStatus_;
+    targetScreenParams->screenHDRStatusMap_ = screenHDRStatusMap_;
     targetScreenParams->zOrder_ = zOrder_;
     targetScreenParams->isZoomed_ = isZoomed_;
     targetScreenParams->hasMirrorScreen_ = hasMirrorScreen_;
@@ -288,7 +304,10 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->forceFreeze_ = forceFreeze_;
     targetScreenParams->hasMirroredScreenChanged_ = hasMirroredScreenChanged_;
     targetScreenParams->isVirtualSurfaceChanged_ = std::exchange(isVirtualSurfaceChanged_, false);
+    targetScreenParams->isActiveRectChanged_ = std::exchange(isActiveRectChanged_, false);
     targetScreenParams->logicalCameraRotationCorrection_ = logicalCameraRotationCorrection_;
+    targetScreenParams->layerSkipContext_ = layerSkipContext_;
+    targetScreenParams->hasForceHwcHdrSurface_ = hasForceHwcHdrSurface_;
 
     RSRenderParams::OnSync(target);
 }
@@ -352,6 +371,20 @@ void RSScreenRenderParams::SetForceFreeze(bool forceFreeze)
 bool RSScreenRenderParams::GetForceFreeze() const
 {
     return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
+}
+
+void RSScreenRenderParams::SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface)
+{
+    if (hasForceHwcHdrSurface_ == hasForceHwcHdrSurface) {
+        return;
+    }
+    hasForceHwcHdrSurface_ = hasForceHwcHdrSurface;
+    needSync_ = true;
+}
+
+bool RSScreenRenderParams::GetHasForceHwcHdrSurface() const
+{
+    return hasForceHwcHdrSurface_;
 }
 
 void RSScreenRenderParams::SetHasMirroredScreenChanged(bool hasMirroredScreenChanged)

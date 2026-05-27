@@ -22,6 +22,10 @@
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_core.h"
+#include "hpae_base/rs_hpae_hianimation.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "render_server/rs_render_service.h"
+#include "rs_render_composer_manager.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 
@@ -80,6 +84,11 @@ HWTEST_F(HgmContextTest, InitHgmTaskHandleThreadTest001, TestSize.Level1)
         ASSERT_EQ(frameRateMgr->hgmConfigUpdateCallback_, nullptr);
         ASSERT_EQ(frameRateMgr->adaptiveVsyncUpdateCallback_, nullptr);
 
+        hgmCore.hgmAbilityEnabled_ = false;
+        hgmContext->InitHgmTaskHandleThread(nullptr, nullptr, nullptr);
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+        hgmCore.hgmAbilityEnabled_ = true;
+
         hgmContext->InitHgmTaskHandleThread(nullptr, nullptr, nullptr);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
@@ -127,6 +136,45 @@ HWTEST_F(HgmContextTest, InitHgmTaskHandleThreadTest001, TestSize.Level1)
 
         frameRateMgr->hgmConfigUpdateCallback_ = orgHgmConfigUpdateCallback;
         frameRateMgr->adaptiveVsyncUpdateCallback_ = orgAdaptiveVsyncUpdateCallback;
+    } else {
+        EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
+    }
+}
+
+/**
+ * @tc.name: InitHgmTaskHandleThreadTest002
+ * @tc.desc: test InitHgmTaskHandleThread when hgmPolicyEnabled is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, InitHgmTaskHandleThreadTest002, TestSize.Level1)
+{
+    if (frameRateMgr) {
+        auto runner = AppExecFwk::EventRunner::Create(true);
+        auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+        auto hgmContext = std::make_shared<HgmContext>(handler, frameRateMgr, nullptr, nullptr, nullptr);
+        ASSERT_NE(hgmContext, nullptr);
+ 
+        auto orgHgmConfigUpdateCallback = frameRateMgr->hgmConfigUpdateCallback_;
+        auto orgAdaptiveVsyncUpdateCallback = frameRateMgr->adaptiveVsyncUpdateCallback_;
+        auto orgHgmPolicyEnabled = hgmCore.hgmAbilityEnabled_;
+ 
+        frameRateMgr->hgmConfigUpdateCallback_ = nullptr;
+        frameRateMgr->adaptiveVsyncUpdateCallback_ = nullptr;
+        hgmCore.hgmAbilityEnabled_ = false;
+ 
+        // When hgmPolicyEnabled is false, InitHgmTaskHandleThread should return early
+        hgmContext->InitHgmTaskHandleThread(nullptr, nullptr, nullptr);
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+ 
+        // Callbacks should still be nullptr since InitHgmTaskHandleThread returned early
+        EXPECT_EQ(frameRateMgr->hgmConfigUpdateCallback_, nullptr);
+        EXPECT_EQ(frameRateMgr->adaptiveVsyncUpdateCallback_, nullptr);
+ 
+        // Restore original values
+        frameRateMgr->hgmConfigUpdateCallback_ = orgHgmConfigUpdateCallback;
+        frameRateMgr->adaptiveVsyncUpdateCallback_ = orgAdaptiveVsyncUpdateCallback;
+        hgmCore.hgmAbilityEnabled_ = orgHgmPolicyEnabled;
     } else {
         EXPECT_EQ(hgmCore.mPolicyConfigData_, nullptr);
     }
@@ -1271,13 +1319,14 @@ HWTEST_F(HgmContextTest, RegisterScreenManagerCallbacksAndInvokeAllMethods, Test
     std::atomic<bool> getScreenSupportedModesCalled{false};
     std::atomic<bool> setScreenConstraintCalled{false};
     std::atomic<bool> setScreenActiveModeCalled{false};
+    std::atomic<bool> getScreenActiveRefreshRateCalled{false};
 
     // Define test screen ID
     constexpr ScreenId testScreenId = 100;
     constexpr ScreenId defaultScreenId = 0;
 
     // Register all screen manager callbacks
-    hgmCore.RegisterScreenManagerCallbacks(
+    hgmCore.RegisterScreenManagerCallbacks({
         // GetDefaultScreenIdCallback
         [&getDefaultScreenIdCalled]() -> ScreenId {
             getDefaultScreenIdCalled.store(true);
@@ -1319,8 +1368,16 @@ HWTEST_F(HgmContextTest, RegisterScreenManagerCallbacksAndInvokeAllMethods, Test
                 return ERR_OK;
             }
             return StatusCode::SCREEN_NOT_FOUND;
+        },
+        // GetScreenActiveRefreshRateCallback
+        [&getScreenActiveRefreshRateCalled](ScreenId id) -> uint32_t {
+            if (id == testScreenId) {
+                getScreenActiveRefreshRateCalled.store(true);
+                return 60u;
+            }
+            return 0u;
         }
-    );
+    });
 
     // Test 1: Call GetDefaultScreenId
     ScreenId retrievedDefaultScreenId = hgmCore.GetDefaultScreenId();
@@ -1351,5 +1408,87 @@ HWTEST_F(HgmContextTest, RegisterScreenManagerCallbacksAndInvokeAllMethods, Test
     uint32_t activeModeResult = hgmCore.SetScreenActiveMode(testScreenId, 1);
     EXPECT_TRUE(setScreenActiveModeCalled.load());
     EXPECT_EQ(activeModeResult, ERR_OK);
+
+    // Test 6: Call GetScreenActiveRefreshRate
+    uint32_t activeRefreshRate = hgmCore.GetScreenActiveRefreshRate(testScreenId);
+    EXPECT_TRUE(getScreenActiveRefreshRateCalled.load());
+    EXPECT_EQ(activeRefreshRate, 60u);
+}
+
+/**
+* @tc.name: ScreenManagerListenerOnScreenConnectedTest
+* @tc.desc: Test RSRenderService::ScreenManagerListener::OnScreenConnected
+* @tc.type: FUNC
+*/
+HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenConnectedTest, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    auto runner = AppExecFwk::EventRunner::Create(false);
+    renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    renderService->screenManager_ = sptr<RSScreenManager>::MakeSptr();
+    renderService->vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
+    renderService->vsyncManager_->init(renderService->screenManager_);
+    renderService->InitRenderServerConfig();
+    renderService->RenderProcessManagerInit();
+    renderService->rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(renderService->handler_);
+
+    // Enable HGM to make GetHgmContext() return non-null
+    HgmCore::Instance().hgmAbilityEnabled_ = true;
+    renderService->HgmInit();
+    auto hgmContext = renderService->GetHgmContext();
+    ASSERT_NE(hgmContext, nullptr);
+
+    auto output = std::make_shared<HdiOutput>(0u);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto screenManagerListener = sptr<RSRenderService::ScreenManagerListener>::MakeSptr(*renderService);
+
+    // Call OnScreenConnected with hgmContext enabled
+    screenManagerListener->OnScreenConnected(1, output, property);
+    // Call OnScreenConnected with hgmContext disabled
+    HgmCore::Instance().hgmAbilityEnabled_ = false;
+    EXPECT_EQ(renderService->GetHgmContext(), nullptr);
+    screenManagerListener->OnScreenConnected(1, output, property);
+    // Cleanup
+    HgmCore::Instance().hgmAbilityEnabled_ = true;
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    HianimationManager::GetInstance().hianimationDevice_.closeDevice = nullptr;
+}
+
+/**
+* @tc.name: ScreenManagerListenerOnScreenDisconnectedTest
+* @tc.desc: Test RSRenderService::ScreenManagerListener::OnScreenDisconnected
+* @tc.type: FUNC
+*/
+HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenDisconnectedTest, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    auto runner = AppExecFwk::EventRunner::Create(false);
+    renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    renderService->screenManager_ = sptr<RSScreenManager>::MakeSptr();
+    renderService->vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
+    renderService->vsyncManager_->init(renderService->screenManager_);
+    renderService->InitRenderServerConfig();
+    renderService->rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(renderService->handler_);
+    renderService->RenderProcessManagerInit();
+    // Enable HGM to make GetHgmContext() return non-null
+    HgmCore::Instance().hgmAbilityEnabled_ = true;
+    renderService->HgmInit();
+
+    auto hgmContext = renderService->GetHgmContext();
+    ASSERT_NE(hgmContext, nullptr);
+
+    auto screenManagerListener = sptr<RSRenderService::ScreenManagerListener>::MakeSptr(*renderService);
+    // Call OnScreenDisconnected with hgmContext enabled
+    screenManagerListener->OnScreenDisconnected(1);
+    // Call OnScreenDisconnected with hgmContext disabled
+    HgmCore::Instance().hgmAbilityEnabled_ = false;
+    EXPECT_EQ(renderService->GetHgmContext(), nullptr);
+    screenManagerListener->OnScreenDisconnected(1);
+    // Cleanup
+    HgmCore::Instance().hgmAbilityEnabled_ = true;
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+    HianimationManager::GetInstance().hianimationDevice_.closeDevice = nullptr;
 }
 } // namespace OHOS::Rosen

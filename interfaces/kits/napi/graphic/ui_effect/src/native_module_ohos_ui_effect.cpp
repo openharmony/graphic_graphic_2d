@@ -39,7 +39,7 @@ static napi_module g_module = {
     .nm_filename = nullptr,
     .nm_register_func = Export,
     .nm_modname = "uieffect",
-    .nm_priv = ((void*)0),
+    .nm_priv = nullptr,
     .reserved = {0}
 };
 

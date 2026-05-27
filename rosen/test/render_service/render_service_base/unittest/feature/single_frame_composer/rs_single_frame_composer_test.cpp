@@ -32,7 +32,7 @@ public:
 
 private:
     RSSingleFrameComposer rSSingleFrameComposer_;
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property_;
+    std::shared_ptr<RSRenderProperty<SimpleDrawCmdListPtr>> property_;
 };
 void RSSingleFrameComposerTest::SetUp() {}
 void RSSingleFrameComposerTest::TearDown()

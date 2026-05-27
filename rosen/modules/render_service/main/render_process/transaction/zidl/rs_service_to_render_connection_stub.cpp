@@ -21,6 +21,9 @@
 #include "rs_profiler.h"
 #include "common/rs_xcollie.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_marshalling_helper.h"
+#include "gfx/dump/rs_dump_manager.h"
+#include "rs_profiler.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSServiceToRenderConnectionStub"
@@ -30,7 +33,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_LIST_SIZE = 50;
-}
+} // namespace
 
 static void TypefaceXcollieCallback(void* arg)
 {
@@ -43,6 +46,7 @@ static void TypefaceXcollieCallback(void* arg)
 int RSServiceToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
     int ret = ERR_NONE;
     if (auto interfaceToken = data.ReadInterfaceToken();
         interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
@@ -61,6 +65,87 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
     switch (code) {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER): {
+            auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
+            if (!screenProperty) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER ReadParcelable failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool hasComposerConn = false;
+            if (!data.ReadBool(hasComposerConn)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER ReadBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
+            if (hasComposerConn) {
+                if (auto remoteObj1 = data.ReadRemoteObject()) {
+                    renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                }
+            }
+            bool hasComposerToRenderConn = false;
+            if (!data.ReadBool(hasComposerToRenderConn)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER ReadBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
+            if (hasComposerToRenderConn) {
+                if (auto remoteObj2 = data.ReadRemoteObject()) {
+                    composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                }
+            }
+            auto replyMessage =
+                NotifyScreenConnectInfoToRender(screenProperty, renderToComposerConn, composerToRenderConn);
+            if (!reply.WriteBool(replyMessage)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER WriteBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER): {
+            ScreenId screenId = INVALID_SCREEN_ID;
+            if (!data.ReadUint64(screenId)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER ReadUint64 failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto replyMessage = NotifyScreenDisconnectInfoToRender(screenId);
+            if (!reply.WriteBool(replyMessage)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER WriteBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER): {
+            ScreenId id = INVALID_SCREEN_ID;
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER ReadUint64 id failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t typeValue = 0;
+            if (!data.ReadUint32(typeValue)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER ReadUint32 type failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ScreenPropertyType type = static_cast<ScreenPropertyType>(typeValue);
+            sptr<ScreenPropertyBase> screenProperty = nullptr;
+            if (!ScreenPropertyBase::Unmarshalling(data, type, screenProperty)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER Unmarshalling failed", __func__);
+                return ERR_INVALID_DATA;
+            }
+            auto replyMessage = NotifyScreenPropertyChangedInfoToRender(id, type, screenProperty);
+            if (!reply.WriteBool(replyMessage)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER WriteBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK): {
             pid_t pid;
             if (!data.ReadInt32(pid)) {
@@ -215,6 +300,18 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetLayerTop(nodeIdStr, isTop);
             break;
         }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED): {
+            std::string nodeIdStr;
+            bool isHdrForceHwcEnabled{false};
+            if (!data.ReadString(nodeIdStr) ||
+                !data.ReadBool(isHdrForceHwcEnabled)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_HDR_FORCE_HWC_ENABLED Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE): {
             float cpuMemSize = 0.f;
             float gpuMemSize = 0.f;
@@ -277,8 +374,18 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSServiceToRenderStub::SET_WATERMARK:std::shared_ptr<Media::PixelMap> watermark == nullptr");
                 break;
             }
+            uint32_t rowCount = 0;
+            uint32_t colCount = 0;
+            if (!data.ReadUint32(rowCount)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadUint32(colCount)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool success;
-            if (SetWatermark(callingPid, name, watermark, success) != ERR_OK || !success) {
+            if (SetWatermark(callingPid, name, watermark, success, rowCount, colCount) != ERR_OK || !success) {
                 RS_LOGE("RSServiceToRenderStub::SetWatermark failed");
             }
             break;
@@ -330,6 +437,11 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             std::vector<std::u16string> args;
             if (!data.ReadString16Vector(&args)) {
                 RS_LOGE("RSRenderServiceStub::DFX_DUMP Read args failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (args.size() > cmdMap_.size()) {
+                RS_LOGE("RSRenderServiceStub::DFX_DUMP Read size too big failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -477,6 +589,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
             UnRegisterTypeface(uniqueId);
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIServiceToRenderConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE): {
+            Drawing::SharedTypeface sharedTypeface;
+            if (!RSMarshallingHelper::Unmarshalling(data, sharedTypeface)) {
+                RS_LOGE("RSServiceToRenderStub::REGISTER_SHARED_TYPEFACE Unmarshalling failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool result = RegisterTypeface(sharedTypeface, false);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK): {
@@ -639,16 +765,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             SetColorFollow(nodeIdStr, isColorFollow);
-            break;
-        }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS): {
-            bool enable{false};
-            if (!data.ReadBool(enable)) {
-                RS_LOGE("RSServiceToRenderStub::SET_FREE_MULTI_WINDOW_STATUS read uniqueId failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetFreeMultiWindowStatus(enable);
             break;
         }
         case static_cast<uint32_t>(
@@ -906,19 +1022,13 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BACKLIGHT_LEVEL): {
-            ScreenId id{INVALID_SCREEN_ID};
-            if (!data.ReadUint64(id)) {
-                RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read ScreenId failed!");
+            RsScreenBrightnessData brightnessData;
+            if (!RSMarshallingHelper::Unmarshalling(data, brightnessData)) {
+                RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Unmarshalling failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            uint32_t level{};
-            if (!data.ReadUint32(level)) {
-                RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read level failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            OnScreenBacklightChanged(id, level);
+            OnScreenBacklightChanged(brightnessData);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED) : {
@@ -930,6 +1040,15 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             OnGlobalBlacklistChanged({globalBlackList.begin(), globalBlackList.end()});
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_CACHE_ENABLED_FOR_ROTATION): {
+            bool enabled = false;
+            if (!data.ReadBool(enabled)) {
+                RS_LOGE("%{public}s: ReadBool enabled failed", __func__);
+                return ERR_INVALID_STATE;
+            }
+            SetCacheEnabledForRotation(enabled);
             break;
         }
         default:

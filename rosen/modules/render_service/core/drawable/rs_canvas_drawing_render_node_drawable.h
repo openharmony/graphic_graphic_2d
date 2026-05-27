@@ -57,12 +57,15 @@ public:
     {
         return curThreadInfo_.first;
     }
+
     void ResetSurface();
-    virtual bool IsNeedDraw() const override
+
+    bool IsNeedDraw() const override
     {
         return needDraw_;
     }
-    virtual void SetNeedDraw(bool flag) override
+
+    void SetNeedDraw(bool flag) override
     {
         needDraw_ = flag;
     }
@@ -134,6 +137,7 @@ private:
         std::shared_ptr<Drawing::Image>& image, const uint64_t tid);
 #endif
     static Registrar instance_;
+    std::weak_ptr<const RSRenderNode> renderNode_;
     std::recursive_mutex drawableMutex_;
     std::shared_ptr<Drawing::Surface> surface_;
     std::shared_ptr<Drawing::Image> image_;

@@ -18,8 +18,9 @@
 
 #include <iremote_broker.h>
 #include <string>
+#include "transaction/rs_render_service_client_info.h"
+#ifndef ENABLE_RS_PROXY
 #include <surface.h>
-
 #include "feature/capture/rs_ui_capture.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
@@ -29,9 +30,8 @@
 #include "vsync_iconnection_token.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 
-#include "command/rs_command.h"
-#include "command/rs_node_showing_command.h"
-#include "feature/capture/rs_ui_capture.h"
+#include "common/rs_event_def.h"
+#include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
@@ -42,7 +42,6 @@
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
-#include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -53,14 +52,14 @@
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_virtual_screen_resolution.h"
 #include "transaction/rs_transaction_data.h"
-#include "transaction/rs_render_service_client_info.h"
 #include "ivsync_connection.h"
+#include "ipc_callbacks/rs_iexposed_event_callback.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "ipc_callbacks/rs_ifirst_frame_commit_callback.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_iuiextension_callback.h"
 #include "vsync_iconnection_token.h"
-
+#endif
 namespace OHOS {
 namespace Rosen {
 class RSIClientToServiceConnection : public IRemoteBroker {
@@ -69,7 +68,7 @@ public:
 
     RSIClientToServiceConnection() = default;
     virtual ~RSIClientToServiceConnection() noexcept = default;
-
+#ifndef ENABLE_RS_PROXY
     virtual ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
 
     virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
@@ -117,7 +116,7 @@ public:
         ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) = 0;
 
     virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
-        bool& success) = 0;
+        bool& success, uint32_t rowCount = 0, uint32_t colCount = 0) = 0;
 
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
@@ -137,6 +136,8 @@ public:
     virtual int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) = 0;
 
     virtual int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) = 0;
+
+    virtual int32_t SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback) = 0;
 
     virtual int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) = 0;
 
@@ -186,6 +187,10 @@ public:
 
     virtual int32_t SetDualScreenState(ScreenId id, DualScreenStatus status) = 0;
 
+    virtual int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen) = 0;
+
+    virtual ScreenId GetMainScreenId() = 0;
+
     virtual RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) = 0;
 
     virtual ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& screenModeInfo) = 0;
@@ -208,7 +213,7 @@ public:
 
     virtual ErrCode GetScreenBacklight(uint64_t id, int32_t& level) = 0;
 
-    virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
+    virtual void SetScreenBacklight(const RsScreenBrightnessData& brightnessData) = 0;
 
     virtual int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) = 0;
 
@@ -232,23 +237,22 @@ public:
 
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) = 0;
 
-    virtual ErrCode GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat, int32_t& resCode) = 0;
+    virtual int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) = 0;
 
-    virtual ErrCode SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode) = 0;
+    virtual int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) = 0;
 
-    virtual ErrCode GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
-        int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) = 0;
+    virtual int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) = 0;
 
-    virtual ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) = 0;
+    virtual int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) = 0;
 
-    virtual ErrCode SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode) = 0;
+    virtual int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) = 0;
 
-    virtual ErrCode GetScreenSupportedColorSpaces(
-        ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode) = 0;
+    virtual int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) = 0;
 
-    virtual ErrCode GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace, int32_t& resCode) = 0;
+    virtual int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) = 0;
 
-    virtual ErrCode SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace, int32_t& resCode) = 0;
+    virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
 
@@ -275,7 +279,10 @@ public:
 
     virtual int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) = 0;
 
-    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
+    virtual int32_t RegisterExposedEventCallback(
+        const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback) = 0;
+
+    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
@@ -293,6 +300,8 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) = 0;
+
     virtual void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) = 0;
 
     virtual void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos) = 0;
@@ -300,9 +309,9 @@ public:
     virtual ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
 
     virtual bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) = 0;
-
+#endif
     virtual ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType) = 0;
-
+#ifndef ENABLE_RS_PROXY
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
 
     virtual ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
@@ -322,11 +331,11 @@ public:
     virtual ErrCode ReportRsSceneJankEnd(AppInfo info) = 0;
 
     virtual ErrCode SetCacheEnabledForRotation(bool isEnabled) = 0;
-
+#endif
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 
     virtual void RunOnRemoteDiedCallback() = 0;
-
+#ifndef ENABLE_RS_PROXY
     virtual void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) = 0;
 
     virtual ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
@@ -347,8 +356,6 @@ public:
         bool unobscured = false) = 0;
 
     virtual ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) = 0;
-
-    virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 
     virtual int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) = 0;
 
@@ -394,6 +401,8 @@ public:
 
     virtual ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) = 0;
 
+    virtual ErrCode SetHdrForceHwcEnabled(const std::string &nodeIdStr, bool isHdrForceHwcEnabled) = 0;
+
     virtual ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) = 0;
 
     virtual void SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) = 0;
@@ -402,6 +411,9 @@ public:
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
     virtual void RemoveToken() = 0;
+
+    virtual void RegisterRemoteRefreshCallback() = 0;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

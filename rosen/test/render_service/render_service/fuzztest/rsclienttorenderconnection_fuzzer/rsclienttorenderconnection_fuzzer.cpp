@@ -585,6 +585,7 @@ bool DoTakeSurfaceCaptureWithAllWindows()
     uint8_t captureType = GetData<uint8_t>();
     bool isSync = GetData<bool>();
     bool isHdrCapture = GetData<bool>();
+    bool displayIntent = GetData<uint32_t>();
     bool needF16WindowCaptureForScRGB = GetData<bool>();
     float left = GetData<float>();
     float top = GetData<float>();
@@ -609,6 +610,7 @@ bool DoTakeSurfaceCaptureWithAllWindows()
     dataParcel.WriteUint8(captureType);
     dataParcel.WriteBool(isSync);
     dataParcel.WriteBool(isHdrCapture);
+    dataParcel.WriteUint32(displayIntent);
     dataParcel.WriteBool(needF16WindowCaptureForScRGB);
     dataParcel.WriteFloat(left);
     dataParcel.WriteFloat(top);
@@ -747,7 +749,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
 
     OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
+            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
+            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
 
     auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
     OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =

@@ -29,6 +29,7 @@
 #include "draw/brush.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/watermark/rs_surface_watermark.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
@@ -227,7 +228,7 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
         RS_LOGE("DrawCacheSurface surfaceDrawable is nullptr. id:%{public}" PRIu64, nodeId_);
         return false;
     }
-    if (ROSEN_EQ(surfaceDrawable->boundsWidth_, 0.f) || ROSEN_EQ(surfaceDrawable->boundsHeight_, 0.f)) {
+    if (ROSEN_EQ(boundSize.x_, 0.f) || ROSEN_EQ(boundSize.y_, 0.f)) {
         HILOG_COMM_ERROR("DrawCacheSurface surface bound is 0. id:%{public}" PRIu64, nodeId_);
         return false;
     }
@@ -324,16 +325,13 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     float height = 0.0f;
     if (const auto& params = nodeDrawable->GetUifirstRenderParams()) {
         auto size = params->GetCacheSize();
-        nodeDrawable->boundsWidth_ = params->IsUIFirstLeashAllEnable() ?
+        width = params->IsUIFirstLeashAllEnable() ?
             params->GetLocalDrawRect().GetWidth() : size.x_;
-        nodeDrawable->boundsHeight_ = params->IsUIFirstLeashAllEnable() ?
+        height = params->IsUIFirstLeashAllEnable() ?
             params->GetLocalDrawRect().GetHeight() : size.y_;
     } else {
         RS_LOGE("uifirst cannot get cachesize");
     }
-
-    width = nodeDrawable->boundsWidth_;
-    height = nodeDrawable->boundsHeight_;
 
     auto params = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
     if (params && params->IsUIFirstLeashAllEnable()) {
@@ -389,7 +387,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             return;
         }
         cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
+            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid);
         cacheSurface_ = Drawing::Surface::MakeFromBackendTexture(
             gpuContext, cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
             1, colorType, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
@@ -597,9 +595,9 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
     if (isShouldContainShadow) {
         auto screenNodeDrawable = surfaceParams->GetAncestorScreenDrawable().lock();
         if (screenNodeDrawable) {
-            auto dirtyManger = screenNodeDrawable->GetSyncDirtyManager();
-            if (dirtyManger) {
-                auto globalDirtyRegion = dirtyManger->GetCurrentFrameDirtyRegion();
+            auto dirtyManager = screenNodeDrawable->GetSyncDirtyManager();
+            if (dirtyManager) {
+                auto globalDirtyRegion = dirtyManager->GetCurrentFrameDirtyRegion();
                 syncUifirstDirtyManager_->MergeDirtyRect(globalDirtyRegion);
                 RS_TRACE_NAME_FMT("UpdateUifirstDirtyManager node[%" PRIu64 "] globalDirtyRegion: %s",
                     surfaceDrawable->GetId(), globalDirtyRegion.ToString().c_str());
@@ -993,7 +991,11 @@ void RsSubThreadCache::UpdateCacheSurfaceInfo(RSSurfaceRenderNodeDrawable* surfa
     cacheSurfaceInfo_.processedNodeCount = RSRenderNodeDrawable::GetProcessedNodeCount();
     cacheSurfaceInfo_.alpha = surfaceParams->GetGlobalAlpha();
     cacheSurfaceInfo_.isContainShadow = surfaceParams->IsUIFirstLeashAllEnable();
+    cacheSurfaceInfo_.colorSpace = targetColorGamut_;
     cacheSurfaceInfo_.processedSubSurfaceNodeIds = surfaceParams->GetAllSubSurfaceNodeIds();
+    if (const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
+        cacheSurfaceInfo_.vsyncId = uniParam->GetVsyncId();
+    }
     if (isOcclusionEnabled_) {
         CalculateSurfaceOpaqueRegion(surfaceDrawable, surfaceParams, cacheSurfaceInfo_.opaqueRegion,
             cacheSurfaceInfo_.absDrawRect);
@@ -1132,9 +1134,10 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         return false;
     }
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        HILOG_COMM_INFO("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
-            __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
-            cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
+        HILOG_COMM_INFO("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f" \
+            "vsyncId:%{public}" PRIu64, __func__, surfaceDrawable->GetName().c_str(),
+            cacheCompletedSurfaceInfo_.processedSurfaceCount, cacheCompletedSurfaceInfo_.processedNodeCount,
+            cacheCompletedSurfaceInfo_.alpha, cacheCompletedSurfaceInfo_.vsyncId);
     }
     // if its sub tree has a blacklist, draw empty cache
     const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
@@ -1200,7 +1203,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     if (needDrawInUniRenderThread) {
         surfaceDrawable->DrawForeground(canvas, bounds);
     }
-    surfaceDrawable->DrawCommSurfaceWatermark(canvas, surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(canvas, surfaceParams);
     if (uniParams.GetUIFirstDebugEnabled()) {
         DrawUIFirstDfx(canvas, enableType, surfaceParams, drawCacheSuccess);
     }

@@ -136,7 +136,10 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     stagingGeContainer_ = nullptr;
-    if (auto sdfShape = properties.GetSDFShape()) {
+    if (properties.GetClipBounds() != nullptr) {
+        stagingType_ = RSClipToBoundsType::CLIP_PATH;
+        stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
+    } else if (auto sdfShape = properties.GetSDFShape()) {
         stagingType_ = RSClipToBoundsType::CLIP_SDF;
         std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
         std::shared_ptr<Drawing::GEShaderShape> geShape =
@@ -146,9 +149,10 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
         stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
         stagingGeContainer_->AddToChainedFilter(geFilter);
-    } else if (properties.GetClipBounds() != nullptr) {
-        stagingType_ = RSClipToBoundsType::CLIP_PATH;
-        stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
+        auto bounds = properties.GetBoundsRect();
+        auto shapeRect = sdfShape->GetTransformDrawRect();
+        stagingSdfDrawRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(
+            (bounds == node.CalcBoundingBox() && !shapeRect.IsEmpty()) ? shapeRect : node.CalcBoundingBox());
     } else if (properties.GetClipToRRect()) {
         stagingType_ = RSClipToBoundsType::CLIP_RRECT;
         stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect());
@@ -183,6 +187,7 @@ void RSClipToBoundsDrawable::OnSync()
     isClipRRectOptimization_ = stagingIsClipRRectOptimization_;
     geContainer_ = std::move(stagingGeContainer_);
     needSync_ = false;
+    sdfDrawRect_ = stagingSdfDrawRect_;
 }
 
 void RSClipToBoundsDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect *rect) const
@@ -226,14 +231,15 @@ void RSClipToBoundsDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect
                 ROSEN_LOGE("Clip SDF failed, geContainer or rect is nullptr");
                 return;
             }
-            Drawing::Rect rectRelative { 0.0f, 0.0f, rect->GetWidth(), rect->GetHeight() };
+            geContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
+            Drawing::Rect rectRelative { sdfDrawRect_ };
             RSPaintFilterCanvas::DrawFunc customFunc = [geContainer = geContainer_,
                 rect = rectRelative](Drawing::Canvas& canvas) {
                 auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
                 geRender->DrawShaderEffect(canvas, *geContainer, rect);
             };
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            Drawing::SaveLayerOps slo(rect, nullptr);
+            Drawing::SaveLayerOps slo(&sdfDrawRect_, nullptr);
             paintFilterCanvas->SaveLayer(slo);
             paintFilterCanvas->CustomSaveLayer(customFunc);
             break;
@@ -397,7 +403,7 @@ void RSFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
             std::ceil(absRect.GetRight()), std::ceil(absRect.GetBottom()));
         auto deviceRect = Drawing::RectI(0, 0, canvas->GetSurface()->Width(), canvas->GetSurface()->Height());
         bounds.Intersect(deviceRect);
-        RSPropertyDrawableUtils::DrawBackgroundEffect(paintFilterCanvas, filter_, cacheManager_,
+        RSPropertyDrawableUtils::DrawBackgroundEffect(paintFilterCanvas, filter_, renderNodeId_, cacheManager_,
             bounds, true);
         return;
     }
@@ -627,6 +633,15 @@ bool RSFilterDrawable::IsFilterCacheValidForOcclusion()
         return false;
     }
     return cacheManager_->IsFilterCacheValidForOcclusion();
+}
+
+bool RSFilterDrawable::IsFilterCacheValidForPartialRender() const
+{
+    if (cacheManager_ == nullptr) {
+        ROSEN_LOGD("RSFilterDrawable::IsFilterCacheValidForPartialRender cacheManager not available");
+        return false;
+    }
+    return cacheManager_->IsFilterCacheValidForPartialRender();
 }
 
 bool RSFilterDrawable::IsAIBarFilter() const

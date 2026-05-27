@@ -216,6 +216,7 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender wrap fail"));
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.createBrightnessBlender", 1);
     return nativeObj;
 }
 
@@ -261,6 +262,7 @@ napi_value EffectNapi::CreateHdrBrightnessBlender(napi_env env, napi_callback_in
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateHdrBrightnessBlender wrap fail"));
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.createHdrBrightnessBlender", 1);
     return nativeObj;
 }
 
@@ -307,6 +309,7 @@ napi_value EffectNapi::CreateBorderLight(napi_env env, napi_callback_info info)
         UIEFFECT_LOG_E("EffectNapi CreateBorderLight napi_unwrap fail"));
     visualEffectObj->AddPara(para);
 
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.borderLight", 1);
     return thisVar;
 }
 
@@ -667,26 +670,34 @@ napi_value EffectNapi::CreateShadowBlender(napi_env env, napi_callback_info info
 
 napi_value EffectNapi::CreateHdrDarkenBlender(napi_env env, napi_callback_info info)
 {
-    const size_t requireArgc = NUM_1;
-    size_t realArgc = NUM_1;
-    napi_value argv[NUM_1];
+    size_t realArgc = NUM_2;
+    napi_value argv[NUM_2];
     napi_value thisVar = nullptr;
     napi_status status;
+
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && (realArgc == NUM_1 || realArgc == NUM_2), nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender parsing input fail"));
 
-    napi_value nativeObj = argv[0];
-    UIEFFECT_NAPI_CHECK_RET_D(nativeObj != nullptr, nullptr,
-        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender nativeObj is nullptr"));
-
     HdrDarkenBlender* blender = new(std::nothrow) HdrDarkenBlender();
-    UIEFFECT_NAPI_CHECK_RET_D(blender != nullptr, nullptr,
-        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender blender is nullptr"));
 
-    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(CheckHdrDarkenBlender(env, nativeObj) &&
-        ParseHdrDarkenBlender(env, nativeObj, blender), nullptr, blender,
-        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender parse failed"));
+    float hdrBrightnessRatio = 0.0f;
+    Vector3f grayscaleFactor = {0.299, 0.587, 0.114};
+
+    hdrBrightnessRatio = GetSpecialValue(env, argv[NUM_0]);
+
+    blender->SetGrayscaleFactor(grayscaleFactor);
+
+    if (realArgc == NUM_2) {
+        UIEFFECT_NAPI_CHECK_RET_D(ParsegrayscaleFactor(env, argv[NUM_1], grayscaleFactor), nullptr,
+            UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender parse grayscaleFactor failed"));
+
+        blender->SetGrayscaleFactor(grayscaleFactor);
+    }
+
+    blender->SetHdrBrightnessRatio(hdrBrightnessRatio);
+    napi_value nativeObj = nullptr;
+    status = napi_create_object(env, &nativeObj);
 
     status = napi_wrap(
         env, nativeObj, blender,
@@ -697,48 +708,7 @@ napi_value EffectNapi::CreateHdrDarkenBlender(napi_env env, napi_callback_info i
         nullptr, nullptr);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
         UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender wrap fail"));
-
     return nativeObj;
-}
-
-bool EffectNapi::CheckHdrDarkenBlender(napi_env env, napi_value jsObject)
-{
-    bool result = true;
-    napi_status status = napi_has_named_property(env, jsObject, "hdrBrightnessRatio", &result);
-    if (!((status == napi_ok) && result)) {
-        UIEFFECT_LOG_E("EffectNapi CheckHdrDarkenBlender hdrBrightnessRatio fail");
-        return false;
-    }
-    status = napi_has_named_property(env, jsObject, "grayscaleFactor", &result);
-    if (status != napi_ok) {
-        UIEFFECT_LOG_E("EffectNapi CheckHdrDarkenBlender grayscaleFactor fail");
-        return false;
-    }
-
-    return true;
-}
-
-bool EffectNapi::ParseHdrDarkenBlender(napi_env env, napi_value jsObject, HdrDarkenBlender* blender)
-{
-    double val;
-    bool result = true;
-    Vector3f tmpVector3 = {0.299, 0.587, 0.114}; // default value
-    uint32_t parseTimes = 0;
-
-    if (ParseJsDoubleValue(env, jsObject, "hdrBrightnessRatio", val)) {
-        blender->SetHdrBrightnessRatio(static_cast<float>(val));
-        parseTimes++;
-    }
-    napi_status status = napi_has_named_property(env, jsObject, "grayscaleFactor", &result);
-    if ((status == napi_ok) && !result) { // grayscaleFactor is optional
-        blender->SetGrayscaleFactor(tmpVector3);
-        parseTimes++;
-    } else if (ParseJsVec3Value(env, jsObject, "grayscaleFactor", tmpVector3)) {
-        blender->SetGrayscaleFactor(tmpVector3);
-        parseTimes++;
-    }
-
-    return (parseTimes == NUM_2);
 }
 
 bool EffectNapi::CheckCreateShadowBlender(napi_env env, napi_value jsObject)
@@ -819,6 +789,7 @@ napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_inf
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && effectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi SetBackgroundColorBlender effectObj is nullptr"));
     effectObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.backgroundColorBlender", 1);
     return thisVar;
 }
 
@@ -912,6 +883,7 @@ napi_value EffectNapi::CreateColorGradientEffect(napi_env env, napi_callback_inf
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateColorGradientEffect napi_unwrap fail"));
     visualEffectObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.VisualEffect.colorGradient", 1);
     return thisVar;
 }
 
@@ -1208,6 +1180,7 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect napi_unwrap fail"));
     visualEffectObj->AddPara(para);
+    API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.liquidMaterial", 1);
     return thisVar;
 }
 

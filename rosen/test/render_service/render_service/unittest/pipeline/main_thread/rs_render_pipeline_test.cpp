@@ -21,10 +21,12 @@
 #include "composer/composer_client/pipeline/rs_composer_client_manager.h"
 #include "composer/composer_client/connection/rs_composer_to_render_connection.h"
 #include "composer/composer_service/connection/rs_render_to_composer_connection.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_test_util.h"
 #include "rs_surface_layer.h"
 #include "screen_manager/rs_screen_property.h"
 
@@ -566,63 +568,225 @@ HWTEST_F(RSRenderPipelineTest, OnScreenPropertyChanged_MultipleTypes_NoRemoval, 
 HWTEST_F(RSRenderPipelineTest, OnScreenConnected_CallbackExecuted, TestSize.Level1)
 {
     sptr<RSRenderPipeline> pipeline = new RSRenderPipeline();
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    auto rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
     RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     pipeline->composerClientManager_ = rsComposerClientMgr;
     pipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
     pipeline->mainThread_ = RSMainThread::Instance();
-    ASSERT_NE(pipeline->mainThread_, nullptr);
+
+    auto runner = AppExecFwk::EventRunner::Create(true);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    runner->Run();
 
     auto property = sptr<RSScreenProperty>::MakeSptr();
-    auto virtProp = sptr<ScreenProperty<bool>>::MakeSptr(false);
-    property->Set(ScreenPropertyType::IS_VIRTUAL, virtProp);
-    
+    property->Set(ScreenPropertyType::IS_VIRTUAL, sptr<ScreenProperty<bool>>::MakeSptr(false));
     auto hdiOutput = HdiOutput::CreateHdiOutput(property->GetScreenId());
     hdiOutput->Init();
-
-    std::shared_ptr<RSRenderComposer> rsRenderComposer = std::make_shared<RSRenderComposer>(hdiOutput, property);
-    std::shared_ptr<RSRenderComposerAgent> rsRenderComposerAgent =
-        std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
-
-    sptr<RSRenderToComposerConnection> renderToComposerConn = sptr<RSRenderToComposerConnection>::MakeSptr(
+    auto rsRenderComposerAgent = std::make_shared<RSRenderComposerAgent>(
+        std::make_shared<RSRenderComposer>(hdiOutput, property));
+    auto renderToComposerConn = sptr<RSRenderToComposerConnection>::MakeSptr(
         "conn_callback", property->GetScreenId(), rsRenderComposerAgent);
-    sptr<RSComposerToRenderConnection> composerToRenderConn = new RSComposerToRenderConnection();
-    pipeline->OnScreenConnected(property, renderToComposerConn, composerToRenderConn, hdiOutput);
+    pipeline->OnScreenConnected(property, renderToComposerConn, new RSComposerToRenderConnection(), hdiOutput);
 
     auto client = pipeline->composerClientManager_->GetComposerClient(property->GetScreenId());
-    ASSERT_NE(client, nullptr);
-    auto context = client->GetComposerContext();
-    ASSERT_NE(context, nullptr);
-
-    auto layer = std::make_shared<RSSurfaceLayer>(property->GetScreenId(), context);
+    auto layer = std::make_shared<RSSurfaceLayer>(property->GetScreenId(), client->GetComposerContext());
     layer->SetTunnelHandleChange(true);
 
     SurfaceFpsOp addOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
     SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 2, "test_surface2", 200};
-
     pipeline->mainThread_->AddSurfaceFpsOp(addOp);
     pipeline->mainThread_->AddSurfaceFpsOp(removeOp);
-
     ComposerInfo composerInfo;
     client->CommitLayers(composerInfo);
-
-    auto surfaceFpsOpListBefore = pipeline->mainThread_->GetSurfaceFpsOpList();
-    EXPECT_EQ(surfaceFpsOpListBefore.size(), 2u);
+    RSMainThread::Instance()->PostSyncTask([]() {});
+    EXPECT_EQ(pipeline->mainThread_->GetSurfaceFpsOpList().size(), 2u);
 
     client->pipelineParam_.SurfaceFpsOpList.push_back(addOp);
     client->pipelineParam_.SurfaceFpsOpList.push_back(removeOp);
-
     layer->SetTunnelHandleChange(false);
     client->CommitLayers(composerInfo);
+    RSMainThread::Instance()->PostSyncTask([]() {});
+    EXPECT_EQ(pipeline->mainThread_->GetSurfaceFpsOpList().size(), 0u);
 
-    auto surfaceFpsOpListAfter = pipeline->mainThread_->GetSurfaceFpsOpList();
-    EXPECT_EQ(surfaceFpsOpListAfter.size(), 0u);
-
-    pipeline->composerClientManager_->GetComposerClient(
-        property->GetScreenId())->SetRmvSurfaceFpsOpCallback(nullptr);
+    client->SetRmvSurfaceFpsOpCallback(nullptr);
     layer->SetTunnelHandleChange(true);
     client->CommitLayers(composerInfo);
-    surfaceFpsOpListAfter = pipeline->mainThread_->GetSurfaceFpsOpList();
-    EXPECT_EQ(surfaceFpsOpListAfter.size(), 0u);
+    RSMainThread::Instance()->PostSyncTask([]() {});
+    EXPECT_EQ(pipeline->mainThread_->GetSurfaceFpsOpList().size(), 0u);
+
+    runner->Stop();
+    RSMainThread::Instance()->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: HandleLayerCreated007
+ * @tc.desc: Test RSRenderPipeline forwards composer layer-created callback to RSMainThread.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineTest, HandleLayerCreated007, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto consumer = surfaceHandler->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    sptr<IBufferProducer> producerToken = consumer->GetProducer();
+    auto producer = Surface::CreateSurfaceAsProducer(producerToken);
+    ASSERT_NE(producer, nullptr);
+
+    std::vector<LayerStateChange> results;
+    ASSERT_EQ(producer->RegisterLayerStateChangedListener(
+                  [&results](LayerStateChange state) { results.emplace_back(state); }),
+        GSERROR_OK);
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
+    surfaceNode->SetTunnelLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
+    auto tunnelLayerGeneration = surfaceNode->GetTunnelRuntimeState().GetTunnelLayerGeneration();
+
+    sptr<RSComposerToRenderConnection> composerToRenderConn = new RSComposerToRenderConnection();
+    pipeline->RegisterLayerStateChangedCB(composerToRenderConn);
+
+    ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
+        surfaceNode->GetId(), LayerStateChange::AVAILABLE, tunnelLayerGeneration),
+        COMPOSITOR_ERROR_OK);
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], LayerStateChange::AVAILABLE);
+
+    nodeMap.UnregisterRenderNode(surfaceNode->GetId());
+    RSTestUtil::UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: HandleLayerCreated008
+ * @tc.desc: Test stale tunnel layer-created callback cannot activate direct tunnel state.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto consumer = surfaceHandler->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    sptr<IBufferProducer> producerToken = consumer->GetProducer();
+    auto producer = Surface::CreateSurfaceAsProducer(producerToken);
+    ASSERT_NE(producer, nullptr);
+
+    std::vector<LayerStateChange> results;
+    ASSERT_EQ(producer->RegisterLayerStateChangedListener(
+                  [&results](LayerStateChange state) { results.emplace_back(state); }),
+        GSERROR_OK);
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
+    surfaceNode->SetTunnelLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
+    auto& tunnelRuntime = surfaceNode->GetTunnelRuntimeState();
+    auto staleTunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
+    tunnelRuntime.SetBuilding();
+
+    sptr<RSComposerToRenderConnection> composerToRenderConn = new RSComposerToRenderConnection();
+    pipeline->RegisterLayerStateChangedCB(composerToRenderConn);
+
+    ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
+        surfaceNode->GetId(), LayerStateChange::AVAILABLE, staleTunnelLayerGeneration),
+        COMPOSITOR_ERROR_OK);
+    EXPECT_TRUE(results.empty());
+    EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
+
+    uint64_t currentTunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
+    ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
+        surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration), COMPOSITOR_ERROR_OK);
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0], LayerStateChange::AVAILABLE);
+    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+
+    ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
+        surfaceNode->GetId(), LayerStateChange::UNAVAILABLE, staleTunnelLayerGeneration),
+        COMPOSITOR_ERROR_OK);
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
+    EXPECT_EQ(tunnelRuntime.GetTunnelLayerGeneration(), currentTunnelLayerGeneration);
+    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+
+    ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
+        surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration),
+        COMPOSITOR_ERROR_OK);
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
+    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+
+    ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
+        surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration), COMPOSITOR_ERROR_OK);
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
+    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
+
+    nodeMap.UnregisterRenderNode(surfaceNode->GetId());
+    RSTestUtil::UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: CollectInfoForHardwareComposer001
+ * @tc.desc: Test active tunnel node is collected for hardware composer layer creation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineTest, CollectInfoForHardwareComposer001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->hardwareEnabledDrwawables_.clear();
+    mainThread->ClearSelfDrawingNodes();
+#ifdef RS_ENABLE_GPU
+    mainThread->selfDrawables_.clear();
+#endif
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.surfaceNodeMap_.clear();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    surfaceNode->isHardwareEnabledNode_ = true;
+    auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+    surfaceNode->SetTunnelLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
+    auto& tunnelRuntime = surfaceNode->GetTunnelRuntimeState();
+    tunnelRuntime.SetBuilding();
+    ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
+    mainThread->CollectInfoForHardwareComposer();
+
+    ASSERT_EQ(mainThread->hardwareEnabledNodes_.size(), 1u);
+    EXPECT_EQ(mainThread->hardwareEnabledNodes_[0], surfaceNode);
+    ASSERT_EQ(mainThread->GetSelfDrawingNodes().size(), 1u);
+    EXPECT_EQ(mainThread->GetSelfDrawingNodes()[0], surfaceNode);
+#ifdef RS_ENABLE_GPU
+    ASSERT_EQ(mainThread->selfDrawables_.size(), 1u);
+#endif
+    EXPECT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+    nodeMap.UnregisterRenderNode(surfaceNode->GetId());
+    mainThread->ClearSelfDrawingNodes();
+#ifdef RS_ENABLE_GPU
+    mainThread->selfDrawables_.clear();
+#endif
+    mainThread->isUniRender_ = isUniRender;
+    RSTestUtil::UnregisterConsumerListener();
 }
 } // namespace OHOS::Rosen

@@ -126,6 +126,8 @@ rosen/modules/render_service_base/include/drawable/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/drawable/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/drawable/rs_color_picker_drawable.h @hanamaru
 rosen/modules/render_service_base/src/drawable/rs_color_picker_drawable.cpp @hanamaru
+rosen/modules/render_service_base/include/drawable/rs_overlay_ng_shader_drawable.h @hanamaru
+rosen/modules/render_service_base/src/drawable/rs_overlay_ng_shader_drawable.cpp @hanamaru
 
 [effect]
 rosen/modules/render_service_client/core/ui_effect/ @hanamaru
@@ -179,6 +181,9 @@ rosen/modules/render_service/core/pipeline/hardware_thread/ @conan13234
 rosen/modules/render_service/composer/ @conan13234
 rosen/modules/composer/hdi_backend/ @conan13234
 
+[tunnel]
+rosen/modules/render_service/core/feature/tunnel_layer/ @conan13234
+
 [main_thread]
 rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.h @aslklw
 rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.cpp @aslklw
@@ -218,10 +223,10 @@ rosen/modules/render_service_base/include/common/rs_common_def.h @huang_kaixing
 rosen/modules/render_service_base/include/platform/ohos/rs_iclient_to_service_connection_ipc_interface_code.h @huang_kaixing
 
 [HWC]
-rosen/modules/render_service/core/pipeline/hwc/ @wh_qwe
-rosen/modules/render_service/core/feature/hwc/ @wh_qwe
-rosen/modules/render_service_base/include/hwc/ @wh_qwe
-rosen/modules/render_service_base/src/hwc/ @wh_qwe
+rosen/modules/render_service/core/pipeline/hwc/ @xiaojianfeng_jeffery
+rosen/modules/render_service/core/feature/hwc/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/hwc/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/src/hwc/ @xiaojianfeng_jeffery
 
 [LTPO]
 interfaces/inner_api/hyper_graphic_manager/ @wh_qwe
@@ -282,3 +287,18 @@ rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.cpp @chenlushe
 
 [capture]
 rosen/modules/render_service/core/feature/capture @chuchengcheng
+
+[rs_render_context]
+rosen/modules/render_service_base/src/platform/ohos/backend/rs_vulkan_context.cpp @andrew1993
+rosen/modules/render_service_base/src/platform/ohos/backend/rs_vulkan_context.h @andrew1993
+rosen/modules/render_service_base/src/platform/ohos/backend/native_buffer_utils.cpp @andrew1993
+rosen/modules/render_service_base/src/platform/ohos/backend/native_buffer_utils.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/render_context.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/render_context.cpp @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_vk.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_vk.cpp @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_gl.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_gl.cpp @andrew1993
+
+[vulkan]
+frameworks/vulkan_layers/swapchain_layer/swapchain_layer.cpp @GaoPan_t

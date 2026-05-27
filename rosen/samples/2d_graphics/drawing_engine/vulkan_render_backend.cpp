@@ -34,7 +34,7 @@ void VulkanRenderBackend::RenderFrame()
         LOGE("drSurface is nullptr, can not RenderFrame");
         return;
     }
-    skSurface_ = drSurface_->GetImpl<Drawing::SkiaSurface>()->GetSkSurface().get();
+    skSurface_ = drSurface_->GetSkSurface().get();
     if (skSurface_ == nullptr) {
         std::cout << "skSurface is nullptr, can not RenderFrame" << std::endl;
         return;
@@ -52,7 +52,7 @@ SkCanvas* VulkanRenderBackend::AcquireSkCanvas(std::unique_ptr<SurfaceFrame>& fr
 {
     auto vulkan_frame = reinterpret_cast<SurfaceFrameOhosVulkan*>(frame.get());
     drSurface_ = vulkan_frame->GetSurface();
-    skSurface_ = drSurface_->GetImpl<Drawing::SkiaSurface>()->GetSkSurface().get();
+    skSurface_ = drSurface_->GetSkSurface().get();
     return skSurface_->getCanvas();
 }
 

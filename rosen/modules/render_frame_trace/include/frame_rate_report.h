@@ -19,6 +19,12 @@
 #include <unordered_map>
 #include <cstdint>
 
+#if defined(__GNUC__) && __GNUC__ >= 4
+    #define RFT_HIDDEN __attribute__((visibility("hidden")))
+#else
+    #define RFT_HIDDEN
+#endif
+
 namespace FRAME_TRACE {
 
 class FrameRateReport {
@@ -40,7 +46,7 @@ public:
     void SendFrameRatesToRss(const std::unordered_map<int, uint32_t> rates);
 private:
     FrameRateReport() = default;
-    static FrameRateReport* instance_;
+    static RFT_HIDDEN FrameRateReport* instance_;
 };
 } // namespace FRAME_TRACE
 

@@ -80,6 +80,13 @@ do \
 
 #define UIEFFECT_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
+#if defined(HISTOGRAM_MANAGEMENT_ENABLE) && (HISTOGRAM_MANAGEMENT_ENABLE==1)
+#include "histogram_plugin_macros.h"
+#define API_STATS_HISTOGRAM(...) HISTOGRAM_BOOLEAN(__VA_ARGS__)
+#else
+#define API_STATS_HISTOGRAM(...)
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace UIEffect {
@@ -129,6 +136,7 @@ bool ParseJsRGBAColor(napi_env env, napi_value jsValue, Vector4f& rgba);
 bool ParseJsPoint(napi_env env, napi_value jsObject, Vector2f& point);
 bool ParseJsLTRBRect(napi_env env, napi_value jsValue, Vector4f& ltrb);
 bool ParseJsVector3f(napi_env env, napi_value jsObject, Vector3f& values);
+bool ParsegrayscaleFactor(napi_env env, napi_value jsObject, Vector3f& values);
 } // namespace UIEffect
 
 class UIEffectNapiUtils {

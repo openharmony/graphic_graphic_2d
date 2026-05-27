@@ -101,6 +101,41 @@ namespace OHOS {
         return rsLayer;
     }
 
+    std::shared_ptr<RSLayer> CreateTunnelRSLayer(uint64_t surfaceId, uint64_t tunnelLayerId, uint32_t property)
+    {
+        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+        rsLayer->SetSurfaceUniqueId(surfaceId);
+        rsLayer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+        rsLayer->SetTunnelLayerId(tunnelLayerId);
+        rsLayer->SetTunnelLayerProperty(property);
+        return rsLayer;
+    }
+
+    void DoTunnelLayerFuzz(const std::shared_ptr<HdiOutput>& hdiOutput, uint32_t screenId)
+    {
+        if (hdiOutput == nullptr) {
+            return;
+        }
+
+        uint64_t surfaceId = GetData<uint64_t>();
+        uint64_t tunnelLayerId = GetData<uint64_t>();
+        uint32_t property = GetData<uint32_t>();
+        std::shared_ptr<RSLayer> rsLayer = CreateTunnelRSLayer(surfaceId, tunnelLayerId, property);
+        hdiOutput->MarkTunnelSurfaceInvalid(surfaceId);
+        hdiOutput->EraseTunnelSurfaceInvalid(surfaceId);
+        hdiOutput->IsTunnelLayerRequestedLocked(rsLayer);
+
+        auto hdiLayer = std::make_shared<HdiLayer>(screenId);
+        hdiLayer->UpdateRSLayer(rsLayer);
+        hdiLayer->layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
+        hdiOutput->AppendDeferredDestroyLayerLocked(surfaceId, hdiLayer);
+        auto deferredDestroyLayers = hdiOutput->CollectDeferredDestroyLayersLocked();
+        deferredDestroyLayers.clear();
+
+        sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+        hdiOutput->CommitTunnelLayerBySurfaceId(surfaceId, tunnelLayerId, nullptr, nullptr, releaseFence);
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr || size < 0) {
@@ -134,6 +169,7 @@ namespace OHOS {
         hdiOutput->DumpFps(result, arg);
         hdiOutput->DumpHitchs(result, arg);
         hdiOutput->ClearFpsDump(result, arg);
+        DoTunnelLayerFuzz(hdiOutput, screenId);
 
         return true;
     }
@@ -146,4 +182,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DoSomethingInterestingWithMyAPI(data, size);
     return 0;
 }
-

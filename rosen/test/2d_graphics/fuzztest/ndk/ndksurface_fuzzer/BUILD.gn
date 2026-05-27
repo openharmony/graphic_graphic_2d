@@ -44,12 +44,14 @@ ohos_fuzztest("NdkSurfaceFuzzTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
   ]
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "skia:skia_canvaskit",
     "openssl:libcrypto_shared",
   ]
 

@@ -522,7 +522,7 @@ HWTEST_F(RSWindowAnimationStubTest, WindowAnimationTargetsUpdate001, TestSize.Le
 
 /**
  * @tc.name: WallpaperUpdate001
- * @tc.desc: Verify the WallpaperUpdate
+ * @tc.desc: Verify the WallpaperUpdate when input is invalid
  * @tc.type:FUNC
  */
 HWTEST_F(RSWindowAnimationStubTest, WallpaperUpdate001, TestSize.Level1)
@@ -532,11 +532,29 @@ HWTEST_F(RSWindowAnimationStubTest, WallpaperUpdate001, TestSize.Level1)
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
-    data.WriteInt32(StartingAppType::FROM_LAUNCHER);
+    int res = windowAnimationStub_->OnRemoteRequest(
+        RSIWindowAnimationController::ON_WALLPAPER_UPDATE, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest WallpaperUpdate001 end";
+}
+
+/**
+ * @tc.name: WallpaperUpdate002
+ * @tc.desc: Verify the WallpaperUpdate when input is valid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSWindowAnimationStubTest, WallpaperUpdate002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest WallpaperUpdate002 start";
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+    data.WriteParcelable(windowAnimationTarget_.get());
     int res = windowAnimationStub_->OnRemoteRequest(
         RSIWindowAnimationController::ON_WALLPAPER_UPDATE, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
-    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest WallpaperUpdate001 end";
+    GTEST_LOG_(INFO) << "RSWindowAnimationStubTest WallpaperUpdate002 end";
 }
 } // namespace Rosen
 } // namespace OHOS

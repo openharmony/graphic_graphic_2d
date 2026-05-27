@@ -103,17 +103,6 @@ HWTEST_F(RSSystemPropertiesTest, SetRecordingDisenabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetProfilerEnabled
- * @tc.desc: GetProfilerEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetProfilerEnabled, TestSize.Level1)
-{
-    ASSERT_EQ(RSSystemProperties::GetProfilerEnabled(), 0);
-}
-
-/**
  * @tc.name: GetPixelCheckEnabled
  * @tc.desc: GetPixelCheckEnabled Test
  * @tc.type:FUNC
@@ -971,7 +960,7 @@ HWTEST_F(RSSystemPropertiesTest, GetASTCEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetCachedBlurPartialRenderEnabled, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::GetCachedBlurPartialRenderEnabled());
+    ASSERT_TRUE(RSSystemProperties::GetCachedBlurPartialRenderEnabled());
 }
 
 /**

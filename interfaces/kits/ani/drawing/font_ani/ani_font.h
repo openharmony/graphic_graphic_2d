@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,6 +66,8 @@ public:
     static ani_object CreatePathForGlyph(ani_env* env, ani_object obj, ani_int index);
     static ani_object GetBounds(ani_env* env, ani_object obj, ani_array glyphs);
     static ani_object GetTextPath(ani_env* env, ani_object obj, ani_string aniText,
+        ani_int byteLength, ani_double x, ani_double y);
+    static ani_object GetTextPathWithFallback(ani_env* env, ani_object obj, ani_string aniText,
         ani_int byteLength, ani_double x, ani_double y);
     static void SetThemeFontFollowed(ani_env* env, ani_object obj, ani_boolean followed);
     static ani_boolean IsThemeFontFollowed(ani_env* env, ani_object obj);

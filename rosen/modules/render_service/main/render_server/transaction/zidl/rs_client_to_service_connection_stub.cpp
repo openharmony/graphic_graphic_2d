@@ -34,6 +34,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_ashmem_helper.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "render/rs_typeface_cache.h"
 #include "rs_trace.h"
@@ -78,7 +79,10 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE),
@@ -94,7 +98,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE),
@@ -129,6 +135,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_OFFSET),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SHOW_WATERMARK),
@@ -169,17 +176,20 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HDR_ON_DURATION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_COLOR_FOLLOW),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK),
@@ -280,10 +290,12 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     int32_t data{0};
     if (!parcelCopied->ReadInt32(data)) {
         RS_LOGE("RSClientToServiceConnectionStub::CopyParcelIfNeed parcel data Read failed");
+        free(base);
         return nullptr;
     }
     if (data != 0) {
         RS_LOGE("RSClientToServiceConnectionStub::CopyParcelIfNeed parcel data not match");
+        free(base);
         return nullptr;
     }
     return parcelCopied;
@@ -329,6 +341,7 @@ void RSClientToServiceConnectionStub::SetQos()
 int RSClientToServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
     AshmemFdContainer::SetIsUnmarshalThread(false);
     pid_t callingPid = GetCallingPid();
     RSMarshallingHelper::SetCallingPid(callingPid);
@@ -381,6 +394,20 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_CONNECT_TO_RENDER): {
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_CONNECT_TO_RENDER Read parcel fialed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto connectToRender = GetConnectToRenderToken(id);
+            if (!reply.WriteRemoteObject(connectToRender)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_CONNECT_TO_RENDER write status fialed");
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID): {
             uint64_t screenId = INVALID_SCREEN_ID;
             if (GetActiveScreenId(screenId) != ERR_OK || !reply.WriteUint64(screenId)) {
@@ -420,10 +447,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             sptr<Surface> surface = nullptr;
             if (useSurface) {
                 auto remoteObject = data.ReadRemoteObject();
-                if (remoteObject != nullptr) {
-                    auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
-                    surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+                if (remoteObject == nullptr) {
+                    RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN read surface failed!");
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
+                auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+                surface = Surface::CreateSurfaceAsProducer(bufferProducer);
             }
             ScreenId associatedScreenId{INVALID_SCREEN_ID};
             int32_t flags{0};
@@ -449,11 +479,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = SetVirtualScreenBlackList(id, blackList);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_BLACKLIST Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
+            SetVirtualScreenBlackList(id, blackList);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST): {
@@ -639,11 +665,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t result = SetCastScreenEnableSkipWindow(id, enable);
-            if (!reply.WriteInt32(result)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_MIRROR_SCREEN_VISIBLE_RECT Write result failed!");
-                ret = ERR_INVALID_REPLY;
-            }
+            SetCastScreenEnableSkipWindow(id, enable);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
@@ -665,11 +687,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            int32_t status = SetVirtualScreenSurface(id, surface);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACE Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
+            SetVirtualScreenSurface(id, surface);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN): {
@@ -718,11 +736,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RS_LOGI("RSClientToServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK");
-            int32_t status = SetScreenChangeCallback(cb);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
+            SetScreenChangeCallback(cb);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK): {
@@ -748,6 +762,37 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK): {
+            sptr<RSIActiveScreenIdChangedCallback> callback = nullptr;
+            bool readRemoteObject = false;
+            if (!data.ReadBool(readRemoteObject)) {
+                RS_LOGE(
+                    "RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK read ReadRemoteObject "
+                    "failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (readRemoteObject) {
+                sptr<IRemoteObject> remoteObject = nullptr;
+                remoteObject = data.ReadRemoteObject();
+                if (remoteObject) {
+                    callback = iface_cast<RSIActiveScreenIdChangedCallback>(remoteObject);
+                } else {
+                    RS_LOGE("RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK ReadRemoteObject "
+                            "failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
+                if (!callback) {
+                    RS_LOGE("RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK cast "
+                            "failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
+            }
+            SetActiveScreenIdChangedCallback(callback);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE): {
@@ -912,11 +957,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO): {
-            auto token = data.ReadInterfaceToken();
-            if (token != RSIClientToServiceConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             int32_t pid{0};
             if (!data.ReadInt32(pid)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_REFRESH_INFO Read pid failed!");
@@ -951,11 +991,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID): {
-            auto token = data.ReadInterfaceToken();
-            if (token != RSIClientToServiceConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             int32_t pid{0};
             if (!data.ReadInt32(pid)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID Read pid failed!");
@@ -1127,6 +1162,29 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN): {
+            ScreenId screenId{INVALID_SCREEN_ID};
+            bool isMainScreen{false};
+            if (!data.ReadUint64(screenId) || !data.ReadBool(isMainScreen)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_AS_MAIN_SCREEN Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t retCode = SetAsMainScreen(screenId, isMainScreen);
+            if (!reply.WriteInt32(retCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_AS_MAIN_SCREEN write retCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN): {
+            ScreenId mainScreenId = GetMainScreenId();
+            if (!reply.WriteUint64(mainScreenId)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_MAIN_SCREEN write mainScreenId failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
@@ -1285,14 +1343,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT): {
-            ScreenId id{INVALID_SCREEN_ID};
-            uint32_t level{0};
-            if (!data.ReadUint64(id) || !data.ReadUint32(level)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_BACK_LIGHT Read parcel failed!");
+            RsScreenBrightnessData brightnessData;
+            if (!RSMarshallingHelper::Unmarshalling(data, brightnessData)) {
+                ROSEN_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_BACK_LIGHT Unmarshalling failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            SetScreenBacklight(id, level);
+            SetScreenBacklight(brightnessData);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS): {
@@ -1648,6 +1705,22 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY): {
+            ScreenId id = INVALID_SCREEN_ID;
+            int32_t gravity = 0;
+            if (!data.ReadUint64(id) || !data.ReadInt32(gravity)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (gravity < 0 || gravity > static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY gravity is invalid!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetScreenFrameGravity(id, gravity);
+            break;
+        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_CAPABILITY): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
@@ -1680,14 +1753,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicPixelFormat pixelFormat;
-            int32_t resCode;
-            GetPixelFormat(id, pixelFormat, resCode);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = GetPixelFormat(id, pixelFormat);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_PIXEL_FORMAT Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(static_cast<uint32_t>(pixelFormat))) {
@@ -1710,9 +1782,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(pixel);
-            int32_t resCode;
-            SetPixelFormat(id, pixelFormat, resCode);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = SetPixelFormat(id, pixelFormat);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_PIXEL_FORMAT Write result failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -1749,14 +1820,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<uint32_t> hdrFormatsSend;
             std::vector<ScreenHDRFormat> hdrFormats;
-            int32_t resCode;
-            GetScreenSupportedHDRFormats(id, hdrFormats, resCode, cb);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = GetScreenSupportedHDRFormats(id, hdrFormats, cb);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
@@ -1775,14 +1845,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             ScreenHDRFormat hdrFormat;
-            int32_t resCode;
-            GetScreenHDRFormat(id, hdrFormat, resCode);
-            if (!reply.WriteInt32(resCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_HDR_FORMAT Write resCode failed!");
+            int32_t result = GetScreenHDRFormat(id, hdrFormat);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_HDR_FORMAT Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(hdrFormat)) {
@@ -1799,10 +1868,9 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t resCode;
-            SetScreenHDRFormat(id, modeIdx, resCode);
-            if (!reply.WriteInt32(resCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_HDR_FORMAT Write resCode failed!");
+            int32_t result = SetScreenHDRFormat(id, modeIdx);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_HDR_FORMAT Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1816,14 +1884,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<uint32_t> colorSpacesSend;
             std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-            int32_t resCode;
-            GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
-            if (!reply.WriteInt32(resCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_COLORSPACES Write resCode failed!");
+            int32_t result = GetScreenSupportedColorSpaces(id, colorSpaces);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_COLORSPACES Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(colorSpaces.begin(), colorSpaces.end(), std::back_inserter(colorSpacesSend));
@@ -1842,14 +1909,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicCM_ColorSpaceType colorSpace;
-            int32_t resCode;
-            GetScreenColorSpace(id, colorSpace, resCode);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = GetScreenColorSpace(id, colorSpace);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_COLORSPACE Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(colorSpace)) {
@@ -1872,9 +1938,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(color);
-            int32_t resCode;
-            SetScreenColorSpace(id, colorSpace, resCode);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = SetScreenColorSpace(id, colorSpace);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_COLORSPACE Write result failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -2094,22 +2159,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             SetScreenOffset(id, offsetX, offsetY);
             break;
         }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_FRAME_GRAVITY): {
-            ScreenId id = INVALID_SCREEN_ID;
-            int32_t gravity = 0;
-            if (!data.ReadUint64(id) || !data.ReadInt32(gravity)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY Read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (gravity < 0 || gravity > static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_FRAME_GRAVITY gravity is invalid!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetScreenFrameGravity(id, gravity);
-            break;
-        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK): {
             if (!RSSystemProperties::GetSurfaceNodeWatermarkEnabled()) {
                 RS_LOGI("Current disenable water mark");
@@ -2127,8 +2176,18 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::std::shared_ptr<Media::PixelMap> watermark == nullptr");
                 break;
             }
+            uint32_t rowCount = 0;
+            uint32_t colCount = 0;
+            if (!data.ReadUint32(rowCount)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadUint32(colCount)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool success = false;
-            if (SetWatermark(name, watermark, success) != ERR_OK || !success) {
+            if (SetWatermark(name, watermark, success, rowCount, colCount) != ERR_OK || !success) {
                 RS_LOGE("RSClientToServiceConnectionStub::SetWatermark failed");
             }
             break;
@@ -2548,6 +2607,44 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(
+            RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT) : {
+            sptr<RSIExposedEventCallback> callback = nullptr;
+            sptr<IRemoteObject> remoteObject = nullptr;
+            uint32_t type{0};
+            bool readRemoteObject{false};
+
+            // read type
+            if (!data.ReadUint32(type)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ON_EXPOSED_EVENT Read type failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (type >= static_cast<uint32_t>(RSExposedEventType::EXPOSED_EVENT_INVALID)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ON_EXPOSED_EVENT invalid type: %{public}u", type);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+
+            // read callback
+            if (!data.ReadBool(readRemoteObject)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ON_EXPOSED_EVENT Read callback failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (readRemoteObject) {
+                remoteObject = data.ReadRemoteObject();
+            }
+            if (remoteObject != nullptr) {
+                callback = iface_cast<RSIExposedEventCallback>(remoteObject);
+            }
+
+            int32_t status = RegisterExposedEventCallback(static_cast<RSExposedEventType>(type), callback);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
             RSIClientToServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK) : {
             sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback = nullptr;
             sptr<IRemoteObject> remoteObject = nullptr;
@@ -2805,16 +2902,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             SetVmaCacheStatus(flag);
             break;
         }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS) : {
-            bool enable{false};
-            if (!data.ReadBool(enable)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_FREE_MULTI_WINDOW_STATUS Read enable failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetFreeMultiWindowStatus(enable);
-            break;
-        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP) : {
             std::string nodeIdStr;
             bool isTop{false};
@@ -2825,6 +2912,18 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetLayerTop(nodeIdStr, isTop);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED) : {
+            std::string nodeIdStr;
+            bool isHdrForceHwcEnabled{false};
+            if (!data.ReadString(nodeIdStr) ||
+                !data.ReadBool(isHdrForceHwcEnabled)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_HDR_FORCE_HWC_ENABLED Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetHdrForceHwcEnabled(nodeIdStr, isHdrForceHwcEnabled);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH) : {
@@ -3080,14 +3179,39 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE): {
-            HrpServiceDir baseDirType = HrpServiceGetDirType(data.ReadUint32());
-            std::string subDir = data.ReadString();
-            std::string subDir2 = data.ReadString();
-            std::string fileName = data.ReadString();
-            int32_t flags = data.ReadInt32();
-
+            uint32_t dirType { 0 };
+            if (!data.ReadUint32(dirType)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read dirType failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            HrpServiceDir baseDirType = HrpServiceGetDirType(dirType);
+            std::string subDir;
+            if (!data.ReadString(subDir)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read subDir failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::string subDir2;
+            if (!data.ReadString(subDir2)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read subDir2 failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::string fileName;
+            if (!data.ReadString(fileName)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read fileName failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t flags { 0 };
+            if (!data.ReadInt32(flags)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read flags failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t retFd = -1;
-            HrpServiceDirInfo dirInfo{baseDirType, subDir, subDir2};
+            HrpServiceDirInfo dirInfo { baseDirType, subDir, subDir2 };
             RetCodeHrpService retCode = ProfilerServiceOpenFile(dirInfo, fileName, flags, retFd);
             reply.WriteInt32((int32_t)retCode);
             reply.WriteFileDescriptor(retFd);
@@ -3097,13 +3221,34 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES): {
-            HrpServiceDir baseDirType = HrpServiceGetDirType(data.ReadUint32());
-            std::string subDir = data.ReadString();
-            std::string subDir2 = data.ReadString();
-            uint32_t firstFileIndex = data.ReadUint32();
-
+            uint32_t dirType { 0 };
+            if (!data.ReadUint32(dirType)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_POPULATE_FILES Read dirType failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            HrpServiceDir baseDirType = HrpServiceGetDirType(dirType);
+            std::string subDir;
+            if (!data.ReadString(subDir)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_POPULATE_FILES Read subDir failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::string subDir2;
+            if (!data.ReadString(subDir2)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_POPULATE_FILES Read subDir2 failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t firstFileIndex { 0 };
+            if (!data.ReadUint32(firstFileIndex)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_POPULATE_FILES Read "
+                        "firstFileIndex failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             std::vector<HrpServiceFileInfo> retFiles;
-            HrpServiceDirInfo dirInfo{baseDirType, subDir, subDir2};
+            HrpServiceDirInfo dirInfo { baseDirType, subDir, subDir2 };
             RetCodeHrpService retCode = ProfilerServicePopulateFiles(dirInfo, firstFileIndex, retFiles);
             reply.WriteInt32((int32_t)retCode);
             reply.WriteUint32((uint32_t)retFiles.size());

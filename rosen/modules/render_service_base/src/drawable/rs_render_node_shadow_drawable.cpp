@@ -32,8 +32,9 @@ RSRenderNodeShadowDrawable::RSRenderNodeShadowDrawable(
 
 void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
 {
-    // rect is not directly used, make a dummy rect
-    static const Drawing::Rect rect;
+    // Use node frame rect to execute onDraw
+    Drawing::Rect rect = nodeDrawable_->GetRenderParams() ?
+        nodeDrawable_->GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
     auto shadowIndex = nodeDrawable_->drawCmdIndex_.shadowIndex_;
     if (shadowIndex == -1) {
@@ -64,7 +65,7 @@ void RSRenderNodeShadowDrawable::DumpDrawableTree(int32_t depth, std::string& ou
     for (int32_t i = 0; i < depth; ++i) {
         out += "  ";
     }
-    RSRenderNode::DumpNodeType(nodeType_, out);
+    RSRenderNode::DumpNodeType(GetNodeType(), out);
     out += "[" + std::to_string(nodeId_) + "] Draw Shadow Only\n";
 }
 } // namespace OHOS::Rosen::DrawableV2

@@ -47,13 +47,24 @@ namespace Rosen {
 const std::string OUT_STR1 =
     "DISPLAY_NODERS_NODESURFACE_NODECANVAS_NODEROOT_NODEPROXY_NODECANVAS_DRAWING_NODEEFFECT_NODEUNKNOWN_NODE";
 const std::string OUT_STR2 =
-    "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], [nodeGroup1], uifirstRootNodeId_: 1, "
-    "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], NodeColorSpace: 4, "
+    "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], nodeGroup: 1, uifirstRootNodeId_: 1, "
+    "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf]"
+    ", hasDecoration: 0, hasClipRRect: 0, hasGeoTrans: 0"
+    ", rrect[-inf -inf -inf -inf rx:0.0 ry:0.0]"
+    ", NodeColorSpace: 4, "
     "RSUIContextToken: NO_RSUIContext, "
-    "GetBootAnimation: true, isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, "
+    "isNodeDirty: 1, isPropertyDirty: true, "
     "isSubTreeDirty: true, IsPureContainer: true, Children list needs update, current count: 0 expected count: 0, "
     "disappearingChildren: 1(0 )\n  | RS_NODE[0], instanceRootNodeId[0], Properties: Bounds[-inf -inf -inf -inf] "
-    "Frame[-inf -inf -inf -inf], NodeColorSpace: 4, RSUIContextToken: NO_RSUIContext, IsPureContainer: true\n";
+    "Frame[-inf -inf -inf -inf]"
+    ", hasDecoration: 0, hasClipRRect: 0, hasGeoTrans: 0"
+    ", rrect[-inf -inf -inf -inf rx:0.0 ry:0.0]"
+    ", NodeColorSpace: 4, RSUIContextToken: NO_RSUIContext, "
+    "isNewOnTree: 0, isSelfDrawingNode: 0, selfAddForSubSurfaceCnt: 0, "
+    "visitedForSubSurfaceCnt: 0, isNodeSingleFrameComposer: 0, singleFrameComposer: 0, "
+    "appPid: 0, renderNodeSaveCount: [-1,-1,-1], globalAlpha: 1.000000, isPurgeable: 0, "
+    "isAccessibilityConfigChanged: 0, drawableVecNeedClear: 0, subSurfaceCnt: 0, nodeName: [], "
+    "IsPureContainer: true\n";
 const int DEFAULT_BOUNDS_SIZE = 10;
 const int DEFAULT_NODE_ID = 1;
 const NodeId TARGET_NODE_ID = 9999999999;
@@ -261,7 +272,7 @@ HWTEST_F(RSRenderNodeUnitTest, OnSyncTest1, TestSize.Level1)
 
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawableFilter;
     node->drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
-    node->stagingRenderParams_->freezeFlag_ = true;
+    node->stagingRenderParams_->SetRSFreezeFlag(true);
     node->needClearSurface_ = true;
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
     node->GetOpincCache().isOpincRootFlag_ = true;
@@ -1280,17 +1291,17 @@ HWTEST_F(RSRenderNodeUnitTest, SetBootAnimationTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     node.SetBootAnimation(true);
-    ASSERT_EQ(node.GetBootAnimation(), true);
+    ASSERT_EQ(node.GetBootAnimation(), false);
     node.SetBootAnimation(false);
     ASSERT_FALSE(node.GetBootAnimation());
 
     RSDisplayNodeConfig config;
     NodeId nodeId = 2;
     auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
-    auto rsRenderNode = std::static_pointer_cast<RSRenderNode>(logicalDisplayNode);
-    auto tempRenderNode = std::make_shared<RSRenderNode>(1);
-    rsRenderNode->parent_ = tempRenderNode;
-    rsRenderNode->SetBootAnimation(false);
+    logicalDisplayNode->SetBootAnimation(true);
+    ASSERT_EQ(logicalDisplayNode->GetBootAnimation(), true);
+    logicalDisplayNode->SetBootAnimation(false);
+    ASSERT_FALSE(logicalDisplayNode->GetBootAnimation());
 }
 
 /**
@@ -1647,26 +1658,25 @@ HWTEST_F(RSRenderNodeUnitTest, GenerateFullChildrenListTest, TestSize.Level1)
     node->GenerateFullChildrenList();
     EXPECT_TRUE(node->children_.empty());
     std::shared_ptr<RSRenderNode> sNode1 = std::make_shared<RSRenderNode>(id, context);
-    sNode1->isBootAnimation_ = false;
     wNode1 = sNode1;
     node->children_.emplace_back(wNode1); // wNode1 isn't nullptr
 
-    node->isContainBootAnimation_ = true;
+    node->SetContainBootAnimation(true);
     node->GenerateFullChildrenList();
     EXPECT_TRUE(!node->children_.empty());
 
-    node->isContainBootAnimation_ = false;
+    node->SetContainBootAnimation(false);
     node->GenerateFullChildrenList();
     EXPECT_TRUE(!node->children_.empty());
 
     // disappearingChildren_ isn't empty
     node->disappearingChildren_.emplace_back(sNode1, id);
     node->GenerateFullChildrenList();
-    EXPECT_FALSE(node->isContainBootAnimation_);
+    EXPECT_FALSE(node->IsContainBootAnimation());
 
-    node->isContainBootAnimation_ = true;
+    node->SetContainBootAnimation(true);
     node->GenerateFullChildrenList();
-    EXPECT_TRUE(node->isContainBootAnimation_);
+    EXPECT_FALSE(node->IsContainBootAnimation());
 }
 
 /**

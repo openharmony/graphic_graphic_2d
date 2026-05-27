@@ -14,8 +14,8 @@
  */
 
 #include "hgm_idle_detector.h"
-#include "rs_trace.h"
 #include "hgm_task_handle_thread.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -63,7 +63,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
         return;
     }
 
-    std::string validSurfaceType = "";
+    std::string validSurfaceType;
     bool hasValidFramework = false;
     switch (uiFwkType) {
         case UIFWKType::FROM_UNKNOWN:

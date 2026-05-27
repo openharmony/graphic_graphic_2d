@@ -346,6 +346,26 @@ HWTEST_F(SkiaGPUContextTest, FreeCpuCache001, TestSize.Level1)
     ASSERT_TRUE(gpuContext != nullptr);
     gpuContext->FreeCpuCache();
 }
+
+/**
+ * @tc.name: InitGpuMemoryInfoStatProc001
+ * @tc.desc: Test InitGpuMemoryInfoStatProc
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaGPUContextTest, InitGpuMemoryInfoStatProc001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    
+    // Test with nullptr callback
+    gpuContext->InitGpuMemoryInfoStatProc(nullptr);
+    
+    // Test with valid callback
+    auto callback = [](pid_t, size_t, bool) { return true; };
+    gpuContext->InitGpuMemoryInfoStatProc(callback);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

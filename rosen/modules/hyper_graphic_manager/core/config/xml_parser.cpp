@@ -133,6 +133,9 @@ int32_t XMLParser::ParseParam(xmlNode& node)
 
         HGM_LOGD("HgmXMLParser ParseParam default_refreshrate_mode %{public}s",
                  mParsedData_->defaultRefreshRateMode_.c_str());
+    } else if (paraName == "ability_enable") {
+        mParsedData_->hgmAbilityEnabled_ = ExtractPropertyValue("value", node) == "1";
+        HGM_LOGD("ability_enable %{public}d", mParsedData_->hgmAbilityEnabled_);
     }
 
     return EXEC_SUCCESS;
@@ -715,7 +718,7 @@ int32_t XMLParser::ParsePerformanceConfig(
 std::string XMLParser::ExtractPropertyValue(const std::string& propName, xmlNode& node)
 {
     HGM_LOGD("XMLParser extracting value : %{public}s", propName.c_str());
-    std::string propValue = "";
+    std::string propValue;
     xmlChar* tempValue = nullptr;
 
     if (xmlHasProp(&node, reinterpret_cast<const xmlChar*>(propName.c_str()))) {

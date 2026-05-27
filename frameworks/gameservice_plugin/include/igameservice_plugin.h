@@ -30,38 +30,33 @@ private:
     using LoadGameServiceFunc = void (*)(sptr<OHOS::Rosen::IGameServicePlugin>& instance);
     static void* loadFileHandle_;
     static sptr<IGameServicePlugin> instance_;
-    static std::mutex mutex_;
+    static std::once_flag initFlag;
 
 public:
     static sptr<IGameServicePlugin>& Instance()
     {
-        if (instance_ == nullptr) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (instance_ != nullptr) {
-                return instance_;
-            }
+        std::call_once(initFlag, []() {
 #ifdef _WIN32
-            instance_ = new IGameServicePlugin();
-            return instance_;
+            instance_ = sptr<IGameServicePlugin>::MakeSptr();
 #else
             loadFileHandle_ = dlopen("libgameservice_graphic_plugin.z.so", RTLD_NOW);
             if (loadFileHandle_ == nullptr) {
-                instance_ = new IGameServicePlugin();
-                return instance_;
+                instance_ = sptr<IGameServicePlugin>::MakeSptr();
+                return;
             }
             LoadGameServiceFunc loadGameServiceFunc =
                 reinterpret_cast<LoadGameServiceFunc>(dlsym(loadFileHandle_, "LoadGameServicePlugin"));
             if (loadGameServiceFunc == nullptr) {
                 dlclose(loadFileHandle_);
-                instance_ = new IGameServicePlugin();
-                return instance_;
+                instance_ = sptr<IGameServicePlugin>::MakeSptr();
+                return;
             }
             loadGameServiceFunc(instance_);
             if (instance_ == nullptr) {
-                instance_ = new IGameServicePlugin();
+                instance_ = sptr<IGameServicePlugin>::MakeSptr();
             }
 #endif
-        }
+        });
         return instance_;
     }
 
@@ -84,7 +79,7 @@ public:
 };
 void* IGameServicePlugin::loadFileHandle_ = nullptr;
 sptr<IGameServicePlugin> IGameServicePlugin::instance_ = nullptr;
-std::mutex IGameServicePlugin::mutex_;
+std::once_flag IGameServicePlugin::initFlag{};
 }  // namespace OHOS::Rosen
 
 #endif // RENDER_SERVICE_BASE_GAMESERVICE_PLUGIN_H

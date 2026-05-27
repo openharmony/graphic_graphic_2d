@@ -41,14 +41,6 @@ namespace OHOS::Rosen {
 #define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + (rect).ToString() + "] ")
 #define RENDER_PARAM_TO_STRING(param) (std::string(#param "[") + (param).ToString() + "] ")
 
-struct DirtyRegionInfoForDFX {
-    RectI oldDirty;
-    RectI oldDirtyInSurface;
-    bool operator==(const DirtyRegionInfoForDFX& rhs) const
-    {
-        return oldDirty == rhs.oldDirty && oldDirtyInSurface == rhs.oldDirtyInSurface;
-    }
-};
 struct RSLayerInfo;
 
 typedef enum {
@@ -269,15 +261,9 @@ public:
         return globalAlpha_;
     }
 
-    inline bool NodeGroupHasChildInBlacklist() const
-    {
-        return isNodeGroupHasChildInBlacklist_;
-    }
+    bool NodeGroupHasChildInBlacklist() const;
 
-    inline void SetNodeGroupHasChildInBlacklist(bool isInBlackList)
-    {
-        isNodeGroupHasChildInBlacklist_ = isInBlackList;
-    }
+    void SetNodeGroupHasChildInBlacklist(bool inBlacklist);
     
     inline bool IsSnapshotSkipLayer() const
     {
@@ -305,13 +291,9 @@ public:
         return childHasVisibleEffect_;
     }
 
-    void SetCacheSize(Vector2f size);
-    inline Vector2f GetCacheSize() const
-    {
-        return cacheSize_;
-    }
-
     // used for RenderGroup
+    void SetCacheSize(Vector2f size);
+    Vector2f GetCacheSize() const;
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
     bool GetDrawingCacheChanged() const
     {
@@ -342,16 +324,14 @@ public:
     bool ChildHasTranslateOnSqueeze() const;
     void SetNeedClipHoleForFilter(bool val);
     bool NeedClipHoleForFilter() const;
-    void SetDrawingCacheIncludeProperty(bool includeProperty);
-    bool GetDrawingCacheIncludeProperty() const
-    {
-        return drawingCacheIncludeProperty_;
-    }
-    void SetRSFreezeFlag(bool freezeFlag);
-    bool GetRSFreezeFlag() const
-    {
-        return freezeFlag_;
-    }
+    void SetNeedClearRenderGroupCache(bool needClear);
+    bool NeedClearRenderGroupCache() const;
+    void SetRenderGroupIncludeProperty(bool includeProperty);
+    bool IsRenderGroupIncludeProperty() const;
+    void SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI = false);
+    bool GetRSFreezeFlag() const;
+    RSRenderGroupCache::RSFreezeFlag GetRSFreezeFlagType() const;
+    bool IsFreezedByUser() const;
     // !used for RenderGroup
 
     void OpincSetIsSuggest(bool isSuggest);
@@ -401,6 +381,13 @@ public:
     bool GetStartingWindowFlag() const
     {
         return startingWindowFlag_;
+    }
+
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+
+    bool GetDoubleSidedEnabled() const
+    {
+        return isDoubleSided_;
     }
 
     bool IsRepaintBoundary() const;
@@ -562,6 +549,10 @@ public:
         return screensWithSubTreeWhitelist_;
     }
 
+    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
+    {
+        screensWithSubTreeWhitelist_.insert(screenIds.begin(), screenIds.end());
+    }
     // [Attention] Only used in PC window resize scene now
     void SetWindowKeyFrameNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetWindowKeyFrameNodeDrawable();
@@ -581,6 +572,7 @@ protected:
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
+    void ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
     NodeId id_;
     RSRenderParamsType paramsType_ = RSRenderParamsType::RS_PARAM_DEFAULT;
     RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
@@ -592,21 +584,17 @@ private:
     // this rect should map display coordination
     RectF localDrawRect_;
     RectI absDrawRect_;
-    Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
     // default 1.0f means max available headroom
     float hdrBrightness_ = 1.0f;
     HdrStatus hdrStatus_ = HdrStatus::NO_HDR;
     bool childHasVisibleHDRContent_ = false;
     GraphicColorGamut nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
-    bool drawingCacheIncludeProperty_ = false;
-    bool isNodeGroupHasChildInBlacklist_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
@@ -614,7 +602,6 @@ private:
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     std::unique_ptr<RSRenderGroupCache> renderGroupCache_ = nullptr;
-    DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincSuggestFlag_ = false;
     bool isOpincSupportFlag_ = false;
@@ -623,6 +610,7 @@ private:
     bool isLayerPartRenderEnable_ = false;
     RectI layerPartRenderCurrentFrameDirtyRegion_;
     bool startingWindowFlag_ = false;
+    bool isDoubleSided_ = true;
     bool needFilter_ = false;
     bool effectNodeShouldPaint_ = false;
     bool hasGlobalCorner_ = false;

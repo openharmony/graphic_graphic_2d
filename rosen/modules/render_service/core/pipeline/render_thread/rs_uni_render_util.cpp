@@ -105,7 +105,8 @@ void RSUniRenderUtil::ExpandDamageRegionToSingleRect(Occlusion::Region& damageRe
         auto bound = damageRegion.GetBound();
         // Multi-rects damage region will lead to clip path, which is performance-affecting.
         // Within reasonable threshold, consider expanding multi-rects into one single rect for performance improvement.
-        if (damageRegion.GetSize() > 1 && !bound.IsEmpty() && damageRegion.Area() > bound.Area() * clipRectThreshold) {
+        if (damageRegion.GetSize() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD &&
+            !bound.IsEmpty() && damageRegion.Area() > bound.Area() * clipRectThreshold) {
             RS_OPTIONAL_TRACE_NAME_FMT("dirty expand: %s to %s",
                 damageRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
             damageRegion = Occlusion::Region { bound };
@@ -151,7 +152,8 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSScreenRender
             RS_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory unsupported advanced dirty region type");
             break;
     }
-    if (!uniParam->IsDirtyAlignEnabled()) {
+    bool isDirtyAlignEnabled = uniParam->IsDirtyAlignEnabled() && RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid();
+    if (!isDirtyAlignEnabled) {
         ExpandDamageRegionToSingleRect(damageRegion);
     }
     // [Attention]: Filter dirty must be the last. If sampling is needed, sample after filter dirty processing.
@@ -159,15 +161,26 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSScreenRender
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {
         RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
             damageRegion, drawnRegion, screenDrawable, std::nullopt, false);
-        GetSampledDamageAndDrawnRegion(screenInfo, damageRegion, uniParam->IsDirtyAlignEnabled(),
+        GetSampledDamageAndDrawnRegion(screenInfo, damageRegion,
+            isDirtyAlignEnabled && damageRegion.GetSize() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD,
             damageRegion, drawnRegion);
     } else {
-        if (uniParam->IsDirtyAlignEnabled()) {
-            damageRegion = damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
+        if (!isDirtyAlignEnabled || damageRegion.GetSize() <= RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD) {
+            drawnRegion = damageRegion;
+            RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+                damageRegion, drawnRegion, screenDrawable, std::nullopt, false);
         }
-        drawnRegion = damageRegion;
-        RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
-            damageRegion, drawnRegion, screenDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
+        if (isDirtyAlignEnabled && damageRegion.GetSize() > RSUniDirtyComputeUtil::DIRTY_REGION_COUNT_THRESHOLD) {
+            RS_TRACE_NAME_FMT("%s, dirty align enabled with gpu tile(%d, %d)", __func__,
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first,
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
+            damageRegion = damageRegion.GetAlignedRegion(
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first,
+                RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
+            drawnRegion = damageRegion;
+            RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+                damageRegion, drawnRegion, screenDrawable, std::nullopt, true);
+        }
     }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // overlay display expand dirty region
@@ -839,11 +852,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     params.paint.SetFilter(filter);
     params.paint.SetAlpha(layer->GetAlpha().gAlpha);
 
-    sptr<SurfaceBuffer> buffer = layer->GetBuffer();
+    sptr<SurfaceBuffer> buffer = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalBuffer : layer->GetBuffer();
     if (buffer == nullptr) {
         return params;
     }
-    params.acquireFence = layer->GetAcquireFence();
+    params.acquireFence = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalAcquireFence : layer->GetAcquireFence();
     params.buffer = buffer;
     SetSrcRect(params, buffer);
     auto boundRect = layer->GetBoundSize();
@@ -851,13 +866,14 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
 
     auto layerMatrix = layer->GetMatrix();
     params.matrix = Drawing::Matrix();
-    bool rotationFixed = layer->GetRotationFixed() || layer->GetUseDeviceOffline();
+    bool rotationFixed = layer->GetRotationFixed();
     auto dstRect = layer->GetLayerSize();
     if (rotationFixed) {
         // if rotation fixed or use hpae offline,
         // not use [total matrix + bounds] to draw buffer, use [src + dst + transform]
         params.matrix.PreTranslate(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y));
-        auto srcRect = layer->GetCropRect();
+        auto srcRect = layer->GetUseDeviceOffline() ?
+            layer->GetHpaeOriginalInfo().originalCropRect : layer->GetCropRect();
         params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
     } else {
         params.matrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
@@ -865,7 +881,8 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     }
     // rotation degree anti-clockwise
     int nodeRotation = rotationFixed ? 0 : RSUniRenderUtil::GetRotationFromMatrix(params.matrix);
-    auto layerTransform = layer->GetTransform();
+    auto layerTransform = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalTransformType : layer->GetTransform();
     // calculate clockwise rotation degree excluded rotation in total matrix
     int realRotation = (nodeRotation +
         RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(layerTransform))) % 360;
@@ -877,7 +894,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
         rotationFixed ? static_cast<float>(dstRect.w) : static_cast<float>(boundRect.w),
         rotationFixed ? static_cast<float>(dstRect.h) : static_cast<float>(boundRect.h) };
     if (rotationFixed) {
-        auto gravity = layer->GetUseDeviceOffline() ? Gravity::RESIZE : static_cast<Gravity>(layer->GetGravity());
+        auto gravity = static_cast<Gravity>(layer->GetGravity());
         DealWithRotationAndGravityForRotationFixed(transform, gravity, localBounds, params);
     } else {
         RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),
@@ -1412,8 +1429,10 @@ void RSUniRenderUtil::GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInf
         sampledDamageRegion.OrSelf(mappedAndExpandedRegion);
     }
 
-    if (isDirtyAlignEnabled) {
-        sampledDamageRegion = sampledDamageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE);
+    if (isDirtyAlignEnabled && RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid()) {
+        sampledDamageRegion = sampledDamageRegion.GetAlignedRegion(
+            RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first,
+            RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second);
     }
     Occlusion::Region drawnRegion = sampledDamageRegion;
 
@@ -1631,6 +1650,140 @@ void RSUniRenderUtil::SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas,
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ResetMatrix();
     canvas.DrawImage(*offscreenImage, 0.f, 0.f, Drawing::SamplingOptions());
+}
+
+bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
+    RSScreenRenderParams& screenParams, RSLogicalDisplayRenderParams& displayParams)
+{
+    if (!RSSystemProperties::GetVirtualSelfDrawOptEnabled() ||
+        !screenParams.GetLayerSkipContext().screenLayerInvalid_) {
+        RS_LOGD(" %{public}s disabled or screenLayer is invalid", __func__);
+        return false;
+    }
+    const auto& targetSurfaceNodeIds = screenParams.GetLayerSkipContext().relevantSurfaceNodeIds_;
+    // only handle a single self drawing node
+    if (targetSurfaceNodeIds.size() != 1) {
+        RS_LOGD(" %{public}s more than one full-screen self drawing node exists", __func__);
+        return false;
+    }
+    auto surfaceId = targetSurfaceNodeIds[0];
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(surfaceId);
+    if (drawable == nullptr || drawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+        RS_LOGD(" %{public}s drawable is invalid", __func__);
+        return false;
+    }
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    if (UNLIKELY(targetSurfaceParams == nullptr)) {
+        RS_LOGD(" %{public}s surface Param is nullptr", __func__);
+        return false;
+    }
+    // Disable when node is not opaque
+    if (targetSurfaceParams->GetBackgroundColor().GetAlpha() != UINT8_MAX) {
+        RS_LOGD(" %{public}s targetSurfaceParam is not opaque", __func__);
+        return false;
+    }
+    const auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    for (const auto& [_, __, hwDrawablePtr] : hardwareDrawables) {
+        if (hwDrawablePtr == nullptr) {
+            continue;
+        }
+        auto hardwareDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(hwDrawablePtr.get());
+        if (hardwareDrawable == nullptr) {
+            continue;
+        }
+        auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawable->GetRenderParams().get());
+        if (hardwareParams == nullptr) {
+            continue;
+        }
+        // The non-fullscreen hardwareNode has a higher z-order than the relevantSurfaceNode.
+        if (hardwareParams->GetLayerInfo().zOrder > targetSurfaceParams->GetLayerInfo().zOrder) {
+            RS_LOGD(" %{public}s relevantSurface isn't topLayer", __func__);
+            return false;
+        }
+    }
+    if (DrawSingleSelfDrawingNode(canvas, surfaceDrawable, displayParams)) {
+        RS_TRACE_NAME_FMT("%s Draw single self drawing node: [%" PRIu64 "], name: %s",
+            __func__, surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
+        return true;
+    }
+    return false;
+}
+
+bool RSUniRenderUtil::DrawSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
+    RSLogicalDisplayRenderParams& displayParams)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    if (UNLIKELY(surfaceParams == nullptr)) {
+        RS_LOGD(" %{public}s surface Param is nullptr", __func__);
+        return false;
+    }
+
+    //Not enabled for special layer nodes
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
+    const auto& specialLayerMgr = surfaceParams->GetSpecialLayerMgr();
+    if (displayParams.IsSecurityDisplay() && (specialLayerMgr.Find(HAS_GENERAL_SPECIAL) ||
+        specialLayerMgr.FindWithScreen(displayParams.GetScreenId(), SpecialLayerType::HAS_BLACK_LIST) ||
+        !whiteList.empty())) {
+        return false;
+    }
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (UNLIKELY(renderEngine == nullptr)) {
+        RS_LOGD(" %{public}s name:%{public}s nodeId:[%{public}" PRIu64 "],  renderEngine is nullptr",
+            __func__, surfaceParams->GetName().c_str(), surfaceParams->GetId());
+        return false;
+    }
+    RSAutoCanvasRestore arc(&canvas);
+    auto params = ProcessCanvasBySurfaceNode(canvas, *surfaceParams, *surfaceDrawable);
+
+    renderEngine->DrawSurfaceNodeWithParams(canvas, *surfaceDrawable, params);
+    RSUniRenderThread::Instance().OnDrawBuffer(
+        surfaceDrawable->GetConsumerOnDraw(), params.buffer, surfaceParams->GetBufferOwnerCount());
+    return true;
+}
+
+BufferDrawParam RSUniRenderUtil::DealWithBufferDrawParam(
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
+{
+    surfaceParams.SetGlobalAlpha(1.0f);
+    uint32_t threadId = canvas.GetParallelThreadId();
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceDrawable, false, threadId);
+    params.ignoreAlpha = surfaceParams.GetSurfaceBufferOpaque();
+    params.targetColorGamut = surfaceDrawable.GetAncestorDisplayColorGamut(surfaceParams);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    params.sdrNits = surfaceParams.GetSdrNit();
+    params.tmoNits = surfaceParams.GetDisplayNit();
+    params.displayNits = params.tmoNits / std::pow(surfaceParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
+    // color temperature
+    params.layerLinearMatrix = surfaceParams.GetLayerLinearMatrix();
+    params.hasMetadata = surfaceParams.GetSdrHasMetadata();
+#endif
+    params.colorFollow = surfaceParams.GetColorFollow(); // force the buffer to follow the colorspace of canvas
+    return params;
+}
+
+BufferDrawParam RSUniRenderUtil::ProcessCanvasBySurfaceNode(
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
+{
+    const auto& matrix = surfaceParams.GetLayerInfo().matrix;
+    canvas.ConcatMatrix(matrix);
+    auto params = DealWithBufferDrawParam(canvas, surfaceParams, surfaceDrawable);
+    auto bgColor = surfaceParams.GetBackgroundColor();
+    if (surfaceParams.GetHardwareEnabled() && surfaceParams.GetIsHwcEnabledBySolidLayer()) {
+        bgColor = surfaceParams.GetSolidLayerColor();
+        RS_LOGD("solidLayer enabled, %{public}s, name:%{public}s nodeId:[%{public}" PRIu64 "], brush set color: "
+            "%{public}08x", __func__, surfaceParams.GetName().c_str(), surfaceParams.GetId(), bgColor.AsArgbInt());
+    }
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+    canvas.AttachBrush(brush);
+    canvas.DrawRect(surfaceParams.GetBounds());
+    canvas.DetachBrush();
+    return params;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -48,6 +48,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
 
 #include "ge_shader_filter.h"
@@ -55,7 +56,8 @@
 namespace OHOS::Rosen {
 std::atomic_bool RSProfiler::recordAbortRequested_ = false;
 std::atomic_uint32_t RSProfiler::mode_ = static_cast<uint32_t>(Mode::NONE);
-    static thread_local uint32_t g_subMode = static_cast<uint32_t>(SubMode::NONE);
+RSProfiler::LogicalDisplayChildren RSProfiler::displayChildren_;
+static thread_local uint32_t g_subMode = static_cast<uint32_t>(SubMode::NONE);
 static std::vector<pid_t> g_pids;
 static pid_t g_pid = 0;
 static NodeId g_parentNode = 0;
@@ -89,7 +91,6 @@ bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMod
 std::atomic<int8_t> RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
 std::atomic_bool RSProfiler::renderNodeKeepDrawCmdList_ = false;
-std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
 std::unordered_map<AnimationId, int64_t> RSProfiler::animationsTimes_;
 
 static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
@@ -575,7 +576,9 @@ void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
         map.screenNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
 
     if (auto fallbackNode = map.GetAnimationFallbackNode()) {
-        fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
+        if (auto animationManager = fallbackNode->GetAnimationManager()) {
+            animationManager->FilterAnimationByPid(pid);
+        }
     }
 }
 
@@ -599,7 +602,9 @@ void RSProfiler::FilterMockNode(RSContext& context)
 
     if (auto fallbackNode = nodeMap.GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid
-        FilterAnimationForPlayback(fallbackNode->GetAnimationManager());
+        if (auto animationManager = fallbackNode->GetAnimationManager()) {
+            FilterAnimationForPlayback(animationManager);
+        }
     }
 }
 
@@ -819,28 +824,43 @@ static void MarshalRenderModifier(const ModifierNG::RSRenderModifier& modifier, 
     }
 }
 
-static uint32_t MarshalDrawCmdModifiers(
-    ModifierNG::RSRenderModifier& modifier, bool skipDrawCmdModifiers, bool isBetaRecording, std::stringstream& data)
+bool RSProfiler::MarshalDrawCmdModifiers(const ModifierNG::RSRenderModifier& modifier, std::stringstream& data,
+    bool skipDrawCmdModifiers, bool isBetaRecording)
 {
-    auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier.GetType());
-    auto oldCmdList = modifier.Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
-    if (oldCmdList && skipDrawCmdModifiers) {
-        return 0;
-    }
-    if (!oldCmdList) {
-        MarshalRenderModifier(modifier, data);
-        return 1;
+    const auto simpleCmdList = modifier.IsCustom() ? modifier.GetPropertySimpleDrawCmdList() : nullptr;
+    if (simpleCmdList && skipDrawCmdModifiers) {
+        return false;
     }
 
-    auto newCmdList = std::make_shared<Drawing::DrawCmdList>(
-        oldCmdList->GetWidth(), oldCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
-    newCmdList->SetNoImageMarshallingFlag(isBetaRecording);
-    oldCmdList->ProfilerMarshallingDrawOps(newCmdList.get());
-    newCmdList->PatchTypefaceIds(oldCmdList);
-    modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, newCmdList);
-    MarshalRenderModifier(modifier, data);
-    modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, oldCmdList);
-    return 1;
+    if (!simpleCmdList) {
+        MarshalRenderModifier(modifier, data);
+        return true;
+    }
+
+    const auto cmdList = std::make_shared<Drawing::DrawCmdList>(
+        simpleCmdList->GetWidth(), simpleCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    if (!cmdList) {
+        return false;
+    }
+
+    for (auto& drawOp : simpleCmdList->GetDrawOpItems()) {
+        cmdList->AddDrawOp(std::move(drawOp));
+    }
+    cmdList->SetNoImageMarshallingFlag(isBetaRecording);
+    cmdList->ProfilerMarshallingDrawOps(cmdList.get());
+    cmdList->PatchTypefaceIds(cmdList);
+
+    const auto type = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier.GetType());
+    const auto oldProperty = const_cast<ModifierNG::RSRenderModifier&>(modifier).GetProperty(type);
+    const auto newProperty =
+        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(cmdList, oldProperty ? oldProperty->GetId() : 0);
+    if (newProperty) {
+        const_cast<ModifierNG::RSRenderModifier&>(modifier).properties_[type] = newProperty;
+        MarshalRenderModifier(modifier, data);
+        const_cast<ModifierNG::RSRenderModifier&>(modifier).properties_[type] = oldProperty;
+        return true;
+    }
+    return false;
 }
 
 static std::shared_ptr<ModifierNG::RSRenderModifier> CreateSnapshotModifier(const RSRenderNode& node, uint32_t version)
@@ -857,14 +877,22 @@ static std::shared_ptr<ModifierNG::RSRenderModifier> CreateSnapshotModifier(cons
 
     const auto drawOp = std::make_shared<Drawing::DrawImageOpItem>(*image, 0, 0,
         Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR), Drawing::Paint());
+    if (!drawOp) {
+        return nullptr;
+    }
 
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>(
+    const auto cmdList = std::make_shared<Drawing::DrawCmdList>(
         image->GetWidth(), image->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    if (!cmdList) {
+        return nullptr;
+    }
     cmdList->AddDrawOp(drawOp);
     cmdList->MarshallingDrawOps();
 
-    const auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(cmdList, 0);
-    return ModifierNG::RSRenderModifier::MakeRenderModifier(ModifierNG::RSModifierType::CONTENT_STYLE, property);
+    if (const auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(cmdList, 0)) {
+        return ModifierNG::RSRenderModifier::MakeRenderModifier(ModifierNG::RSModifierType::CONTENT_STYLE, property);
+    }
+    return nullptr;
 }
 
 void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
@@ -885,7 +913,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
             if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT) {
                 continue;
             }
-            modifierNGCount += MarshalDrawCmdModifiers(*modifierNG, skipDrawCmdModifiers, isBetaRecording, data);
+            modifierNGCount += MarshalDrawCmdModifiers(*modifierNG, data, skipDrawCmdModifiers, isBetaRecording);
         }
     }
 
@@ -1127,7 +1155,7 @@ static void SetupCanvasDrawingRenderNode(RSRenderNode& node)
     int32_t width = 0;
     int32_t height = 0;
     for (const auto& modifier : node.GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE)) {
-        const auto cmdList = modifier ? modifier->GetPropertyDrawCmdList() : nullptr;
+        const auto cmdList = modifier ? modifier->GetPropertySimpleDrawCmdList() : nullptr;
         if (cmdList) {
             width = std::max(width, cmdList->GetWidth());
             height = std::max(height, cmdList->GetHeight());
@@ -1161,6 +1189,7 @@ std::string RSProfiler::UnmarshalNodeModifiers(
             continue;
         }
         if (!disableModifiers) {
+            ptr->ConvertDrawCmdListToSimple();
             node.AddModifier(ptr);
         }
     }
@@ -1262,9 +1291,12 @@ std::string RSProfiler::DumpSurfaceNode(const RSRenderNode& node)
 }
 
 // RSAnimationManager
-void RSProfiler::FilterAnimationForPlayback(RSAnimationManager& manager)
+void RSProfiler::FilterAnimationForPlayback(std::shared_ptr<RSAnimationManager> manager)
 {
-    EraseIf(manager.animations_, [](const auto& pair) -> bool {
+    if (manager == nullptr) {
+        return;
+    }
+    EraseIf(manager->animations_, [](const auto& pair) -> bool {
         if (!Utils::IsNodeIdPatched(pair.first)) {
             return false;
         }
@@ -1487,7 +1519,7 @@ void RSProfiler::SetDrawingCanvasNodeRedraw(bool enable)
     dcnRedraw_ = enable && IsEnabled();
 }
 
-void RSProfiler::DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList)
+void RSProfiler::DrawingNodeAddClearOp(const SimpleDrawCmdListPtr& drawCmdList)
 {
     if (dcnRedraw_ || !drawCmdList) {
         return;
@@ -1520,10 +1552,10 @@ static void CacheAshmemData(uint64_t id, const uint8_t* data, size_t size)
     }
 }
 
-static const uint8_t* GetCachedAshmemData(uint64_t id)
+static const uint8_t* GetCachedAshmemData(uint64_t id, size_t size)
 {
     const auto ashmem = RSProfiler::IsReadMode() ? ImageCache::Get(id) : nullptr;
-    return ashmem ? ashmem->data.data() : nullptr;
+    return ashmem && (ashmem->data.size() == size) ? ashmem->data.data() : nullptr;
 }
 
 void RSProfiler::WriteParcelData(Parcel& parcel)
@@ -1548,15 +1580,21 @@ const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMall
 {
     bool isClientEnabled = false;
     if (!parcel.ReadBool(isClientEnabled)) {
-        HRPE("Unable to read is_client_enabled");
+        HRPE("ReadParcelData: Cannot read isClientEnabled");
         return nullptr;
     }
+
     if (!isClientEnabled) {
         return RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
     }
 
-    const uint64_t id = parcel.ReadUint64();
-    if (auto data = GetCachedAshmemData(id)) {
+    uint64_t id = 0u;
+    if (!parcel.ReadUint64(id)) {
+        HRPE("ReadParcelData: Cannot read id");
+        return nullptr;
+    }
+
+    if (auto data = GetCachedAshmemData(id, size)) {
         constexpr uint32_t skipBytes = 24u;
         parcel.SkipBytes(skipBytes);
         isMalloc = false;
@@ -1572,14 +1610,19 @@ bool RSProfiler::SkipParcelData(Parcel& parcel, size_t size)
 {
     bool isClientEnabled = false;
     if (!parcel.ReadBool(isClientEnabled)) {
-        HRPE("RSProfiler::SkipParcelData read isClientEnabled failed");
+        HRPE("SkipParcelData: Cannot read isClientEnabled");
         return false;
     }
+
     if (!isClientEnabled) {
         return false;
     }
 
-    [[maybe_unused]] const uint64_t id = parcel.ReadUint64();
+    uint64_t id = 0u;
+    if (!parcel.ReadUint64(id)) {
+        HRPE("SkipParcelData: Cannot read id");
+        return false;
+    }
 
     if (IsReadMode()) {
         constexpr uint32_t skipBytes = 24u;
@@ -1588,6 +1631,111 @@ bool RSProfiler::SkipParcelData(Parcel& parcel, size_t size)
     }
 
     return false;
+}
+
+bool IsTypefaceVariation(const Drawing::SharedTypeface& typeface)
+{
+    // See RSClientToServiceConnection::RegisterTypeface
+    return typeface.originId_ > 0;
+}
+
+void CacheSharedTypeface(uint64_t id, const Drawing::SharedTypeface& typeface)
+{
+    if (!RSProfiler::IsWriteMode() || (typeface.fd_ == INVALID_FD) || (typeface.size_ <= 0) ||
+        IsTypefaceVariation(typeface)) {
+        return;
+    }
+
+    if (const auto data = ::mmap(nullptr, typeface.size_, PROT_READ, MAP_SHARED, typeface.fd_, 0)) {
+        CacheAshmemData(id, reinterpret_cast<const uint8_t*>(data), typeface.size_);
+        ::munmap(data, typeface.size_);
+    } else {
+        HRPE("CacheSharedTypeface: Cannot cache typeface data");
+    }
+}
+
+bool FetchSharedTypeface(uint64_t id, Drawing::SharedTypeface& typeface)
+{
+    if (!RSProfiler::IsReadMode() || (typeface.size_ <= 0)) {
+        return false;
+    }
+
+    const auto file = AshmemCreate("HRPSharedTypeface", typeface.size_);
+    if ((file == INVALID_FD) || (AshmemSetProt(file, PROT_READ | PROT_WRITE) != EOK)) {
+        ::close(file);
+        HRPE("FetchSharedTypeface: Cannot create typeface file");
+        return false;
+    }
+
+    if (IsTypefaceVariation(typeface)) {
+        typeface.fd_ = file;
+        return true;
+    }
+
+    const auto cached = GetCachedAshmemData(id, typeface.size_);
+    if (!cached) {
+        ::close(file);
+        HRPE("FetchSharedTypeface: Cannot get cached data");
+        return false;
+    }
+
+    if (const auto data = ::mmap(nullptr, typeface.size_, PROT_WRITE, MAP_SHARED, file, 0)) {
+        if (::memcpy_s(data, typeface.size_, cached, typeface.size_) == EOK) {
+            ::munmap(data, typeface.size_);
+            typeface.fd_ = file;
+            return true;
+        }
+        ::munmap(data, typeface.size_);
+    }
+
+    ::close(file);
+    HRPE("FetchSharedTypeface: Copy failed");
+    return false;
+}
+
+void RSProfiler::WriteSharedTypeface(Parcel& parcel, const Drawing::SharedTypeface& typeface)
+{
+    const auto profilerEnabled = RSSystemProperties::GetProfilerEnabled();
+    if (!parcel.WriteBool(profilerEnabled)) {
+        HRPE("WriteSharedTypeface: Cannot write profilerEnabled");
+        return;
+    }
+
+    if (!profilerEnabled) {
+        return;
+    }
+
+    if (!parcel.WriteUint64(NewAshmemDataCacheId())) {
+        HRPE("WriteSharedTypeface: Cannot write cache id");
+    }
+}
+
+void RSProfiler::ReadSharedTypeface(Parcel& parcel, Drawing::SharedTypeface& typeface)
+{
+    bool profilerEnabled = false;
+    if (!parcel.ReadBool(profilerEnabled)) {
+        HRPE("ReadSharedTypeface: Cannot read profilerEnabled");
+    }
+
+    if (!profilerEnabled) {
+        typeface.fd_ = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+        return;
+    }
+
+    uint64_t id = 0u;
+    if (!parcel.ReadUint64(id)) {
+        HRPE("ReadSharedTypeface: Cannot read id");
+        return;
+    }
+
+    if (FetchSharedTypeface(id, typeface)) {
+        constexpr uint32_t skipBytes = 24u;
+        parcel.SkipBytes(skipBytes);
+        return;
+    }
+
+    typeface.fd_ = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    CacheSharedTypeface(id, typeface);
 }
 
 uint32_t RSProfiler::GetNodeDepth(const std::shared_ptr<RSRenderNode> node)
@@ -1675,19 +1823,15 @@ bool RSProfiler::ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr c
         return false;
     }
 
-    if (parent->GetType() == RSRenderNodeType::SCREEN_NODE &&
-        ! (child->GetId() & Utils::ComposeNodeId(Utils::GetMockPid(0), 0))) {
-        // BLOCK LOCK-SCREEN ATTACH TO SCREEN
-        g_childOfDisplayNodesPostponed.clear();
-        g_childOfDisplayNodesPostponed.emplace_back(child);
-        return true;
+    // Disable lock screen during playback
+    if (!Utils::IsNodeIdPatched(child->GetId())) {
+        const auto display = displayChildren_.find(parent->ReinterpretCastTo<RSLogicalDisplayRenderNode>());
+        if (display != displayChildren_.end()) {
+            display->second.push_back(child);
+            return true;
+        }
     }
     return false;
-}
-
-std::vector<RSRenderNode::WeakPtr>& RSProfiler::GetChildOfDisplayNodesPostponed()
-{
-    return g_childOfDisplayNodesPostponed;
 }
 
 void RSProfiler::RequestRecordAbort()

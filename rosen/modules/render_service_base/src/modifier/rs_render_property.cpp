@@ -19,6 +19,7 @@
 
 #include "rs_profiler.h"
 
+#include "animation/rs_particle_field_collection.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_particle.h"
@@ -32,6 +33,8 @@
 
 namespace OHOS {
 namespace Rosen {
+RSRenderPropertyBase::~RSRenderPropertyBase() = default;
+
 void RSRenderPropertyBase::Attach(RSRenderNode& node, std::weak_ptr<ModifierNG::RSRenderModifier> modifier)
 {
     node_ = node.weak_from_this();
@@ -404,6 +407,48 @@ size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const
 }
 
 template<>
+bool RSRenderProperty<Drawing::DrawCmdListPtr>::IsDrawCmdListProperty() const
+{
+    return true;
+}
+
+template<>
+std::shared_ptr<RSRenderPropertyBase> RSRenderProperty<Drawing::DrawCmdListPtr>::CreateSimpleProperty() const
+{
+    return std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(
+        RSSimpleDrawCmdList::CreateFromDrawCmdList(Get()), GetId());
+}
+
+template<>
+std::shared_ptr<RSRenderPropertyBase> RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>::CreateSimpleProperty() const
+{
+    return std::make_shared<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>(
+        RSSimpleDrawCmdList::CreateFromDrawCmdList(Get()), GetId());
+}
+
+template<>
+void RSRenderProperty<SimpleDrawCmdListPtr>::Dump(std::string& out) const
+{
+    auto propertyData = Get();
+    if (propertyData != nullptr) {
+        out += "simpleDrawCmdList[";
+        propertyData->Dump(out);
+        out += ']';
+    }
+}
+
+template<>
+size_t RSRenderProperty<SimpleDrawCmdListPtr>::GetSize() const
+{
+    auto propertyData = Get();
+    size_t size = sizeof(*this);
+    if (propertyData != nullptr) {
+        size += propertyData->GetSize();
+    }
+    return size;
+}
+
+template<>
 void RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>::Dump(std::string& out) const
 {
     auto property = Get();
@@ -414,15 +459,6 @@ void RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>::Dump(std::stri
 
 template<>
 void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) const
-{
-    auto property = Get();
-    if (property != nullptr) {
-        property->Dump(out);
-    }
-}
-
-template<>
-void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const
 {
     auto property = Get();
     if (property != nullptr) {
@@ -470,6 +506,15 @@ void RSRenderProperty<std::shared_ptr<ParticleRippleFields>>::Dump(std::string& 
 
 template<>
 void RSRenderProperty<std::shared_ptr<ParticleVelocityFields>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<ParticleFieldCollection>>::Dump(std::string& out) const
 {
     auto property = Get();
     if (property != nullptr) {
@@ -917,6 +962,7 @@ RSRenderPropertyBase::RSPropertyUnmarshallingFuncRegister RSRenderAnimatableProp
 #undef DECLARE_ANIMATABLE_PROPERTY
 
 template class RSRenderProperty<RSRenderParticleVector>;
-
+template class PROPERTY_EXPORT RSRenderProperty<SimpleDrawCmdListPtr>;
+template class RSRenderAnimatableProperty<std::shared_ptr<RSSimpleDrawCmdList>>;
 } // namespace Rosen
 } // namespace OHOS

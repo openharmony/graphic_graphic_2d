@@ -47,6 +47,17 @@ void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textS
     textStyle.lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(skStyle.getLineHeightStyle());
     textStyle.fontEdging = skStyle.getFontEdging();
     textStyle.isFakeBoldEnabled = skStyle.isFakeBoldEnabled();
+    textStyle.fontTypefaces = skStyle.getFontTypefaces();
+    const auto& fontArgs = skStyle.getFontArguments();
+    if (fontArgs.has_value()) {
+        const std::vector<uint32_t>& nListIndex = fontArgs->getNormalizationListIndex();
+        const std::vector<SkFontArguments::VariationPosition::Coordinate>& coordinates = fontArgs->getCoordinates();
+        for (size_t i = 0; i < coordinates.size(); ++i) {
+            const auto& coord = coordinates[i];
+            const bool isNormalization = std::find(nListIndex.begin(), nListIndex.end(), i) != nListIndex.end();
+            textStyle.fontVariations.SetAxisValue(SkFourByteTagToString(coord.axis), coord.value, isNormalization);
+        }
+    }
 }
 
 TextStyle SkStyleToSPTextStyle(const skia::textlayout::TextStyle& skStyle,
@@ -137,11 +148,15 @@ void ConvertBasicParagraphStyle(const skt::ParagraphStyle& skStyle, ParagraphSty
     paraStyle.isEndAddParagraphSpacing = skStyle.getIsEndAddParagraphSpacing();
     paraStyle.isTrailingSpaceOptimized = skStyle.getTrailingSpaceOptimized();
     paraStyle.compressHeadPunctuation = skStyle.getCompressHeadPunctuation();
+    paraStyle.punctuationOverflow = skStyle.getPunctuationOverflow();
     paraStyle.defaultTextStyleUid = skStyle.getTextStyle().getTextStyleUid();
     paraStyle.maxLineHeight = skStyle.getTextStyle().getMaxLineHeight();
     paraStyle.minLineHeight = skStyle.getTextStyle().getMinLineHeight();
     paraStyle.lineHeightStyle = static_cast<LineHeightStyle>(skStyle.getTextStyle().getLineHeightStyle());
     paraStyle.orphanCharOptimization = skStyle.getOrphanCharOptimization();
+    paraStyle.firstLineIndent = SkScalarToDouble(skStyle.getFirstLineIndent());
+    paraStyle.tailIndents = skStyle.getTailIndents();
+    paraStyle.headIndents = skStyle.getHeadIndents();
 }
 
 void ConvertStrutStyle(const skt::StrutStyle& strutStyle, ParagraphStyle& paraStyle)

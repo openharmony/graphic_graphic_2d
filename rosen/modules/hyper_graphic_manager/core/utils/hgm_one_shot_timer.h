@@ -14,10 +14,12 @@
  */
 #ifndef HGM_ONE_SHOT_TIME_H
 #define HGM_ONE_SHOT_TIME_H
-#include <semaphore.h>
+
 #include <chrono>
 #include <condition_variable>
 #include <thread>
+
+#include <semaphore.h>
 
 namespace OHOS::Rosen {
 class ChronoSteadyClock {
@@ -25,10 +27,7 @@ public:
     ChronoSteadyClock() = default;
     ~ChronoSteadyClock() = default;
 
-    static std::chrono::steady_clock::time_point Now()
-    {
-        return std::chrono::steady_clock::now();
-    }
+    static std::chrono::steady_clock::time_point Now() { return std::chrono::steady_clock::now(); }
 };
 
 class HgmSimpleTimer {
@@ -50,6 +49,7 @@ public:
     void Reset();
     // Set interval value
     void SetInterval(Interval valueMs);
+
 private:
     void Loop();
 

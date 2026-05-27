@@ -36,6 +36,7 @@
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
@@ -107,6 +108,7 @@ const uint8_t DO_SET_COLOR_FOLLOW = 30;
 const uint8_t DO_SET_FORCE_REFRESH = 31;
 const uint8_t DO_SET_SCREEN_OFFSET = 32;
 const uint8_t TARGET_SIZE = 33;
+const uint8_t DO_SET_HDR_FORCE_HWC_ENABLED = 34;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -462,11 +464,9 @@ void DoSetScreenBacklight()
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    ScreenId id = GetData<uint64_t>();
-    uint32_t level = GetData<uint32_t>();
+    RsScreenBrightnessData brightnessData(GetData<uint64_t>(), GetData<uint32_t>(), GetData<float>());
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint64(id);
-    dataParcel.WriteUint32(level);
+    RSMarshallingHelper::Marshalling(dataParcel, brightnessData);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -752,14 +752,14 @@ void DoSetVmaCacheStatus()
 
 void DoSetFreeMultiWindowStatus()
 {
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     bool enable = GetData<bool>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteBool(enable);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetLayerTop()
@@ -773,6 +773,20 @@ void DoSetLayerTop()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteString(nodeIdStr);
     dataParcel.WriteBool(isTop);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoSetHdrForceHwcEnabled()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    std::string nodeIdStr = GetData<std::string>();
+    bool isHdrForceHwcEnabled = GetData<bool>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteString(nodeIdStr);
+    dataParcel.WriteBool(isHdrForceHwcEnabled);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -1008,7 +1022,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
 
     OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
+            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
+            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
 
     auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
     OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
@@ -1120,6 +1136,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_LAYER_TOP:
             OHOS::Rosen::DoSetLayerTop();
+            break;
+        case OHOS::Rosen::DO_SET_HDR_FORCE_HWC_ENABLED:
+            OHOS::Rosen::DoSetHdrForceHwcEnabled();
             break;
         case OHOS::Rosen::DO_SET_FORCE_REFRESH:
             OHOS::Rosen::DoSetForceRefresh();

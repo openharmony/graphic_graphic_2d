@@ -107,7 +107,9 @@ public:
     virtual void ReWind() = 0;
 
     virtual void SetLastPoint(scalar x, scalar y) = 0;
+    virtual void GetLastPoint(Point& point) const = 0;
     virtual void Close() = 0;
+    virtual bool Equals(const Path& other) const = 0;
 
     virtual scalar GetLength(bool forceClosed) = 0;
     virtual bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) = 0;

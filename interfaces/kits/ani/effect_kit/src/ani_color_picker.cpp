@@ -33,6 +33,7 @@ namespace Rosen {
 
 static const std::string ANI_CLASS_COLOR_PICKER = "@ohos.effectKit.effectKit.ColorPickerInternal";
 static const std::string ANI_CLASS_COLOR = "@ohos.effectKit.effectKit.ColorInternal";
+static const char* ANI_CLASS_PICTURE_LIGHT_COLOR_DEGREE = "@ohos.effectKit.effectKit.PictureLightDegree";
 constexpr int REGION_COORDINATE_NUM = 4;
 
 struct AniColorPickerAsyncContext {
@@ -317,26 +318,41 @@ ani_object AniColorPicker::GetImmersiveForegroundColor(ani_env* env, ani_object 
     return BuildColor(env, color);
 }
 
-ani_int AniColorPicker::DiscriminatePictureLightDegree(ani_env* env, ani_object obj)
+ani_object AniColorPicker::DiscriminatePictureLightDegree(ani_env* env, ani_object obj)
 {
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
         EFFECT_LOG_E("[DiscriminatePictureLightDegree] Error1, failed to retrieve ColorPicker wrapper");
-        return 0;
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     if (!thisColorPicker->nativeColorPicker_) {
         EFFECT_LOG_E("[DiscriminatePictureLightDegree] Error2, failed to retrieve native ColorPicker wrapper");
-        return 0;
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
+    ani_enum pictureLightColorDegree;
+    ani_status status = env->FindEnum(ANI_CLASS_PICTURE_LIGHT_COLOR_DEGREE, &pictureLightColorDegree);
+    if (status != ANI_OK) {
+        EFFECT_LOG_E("[DiscriminatePictureLightDegree] Error3, FindEnum failed with error code: %d", status);
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    ani_enum_item aniDegree;
     PictureLightColorDegree degree;
+    
     errorCode = thisColorPicker->nativeColorPicker_->DiscriminatePictureLightDegree(degree);
     if (errorCode != SUCCESS) {
-        EFFECT_LOG_E("[DiscriminatePictureLightDegree] Error3, failed to discriminate picture light "
+        EFFECT_LOG_E("[DiscriminatePictureLightDegree] Error4, failed to discriminate picture light "
                      "degree (error code: %u)", errorCode);
-        return 0;
+        return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    return static_cast<ani_int>(degree);
+    status = env->Enum_GetEnumItemByIndex(pictureLightColorDegree, static_cast<ani_size>(degree), &aniDegree);
+    if (status != ANI_OK) {
+        EFFECT_LOG_E("[DiscriminatePictureLightDegree] Error5, "
+                     "Enum_GetEnumItemByIndex failed with error code: %d", status);
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+
+    return aniDegree;
 }
 
 ani_object AniColorPicker::GetReverseColor(ani_env* env, ani_object obj)

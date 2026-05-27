@@ -16,13 +16,14 @@
 #ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_HIGH_PERFORMANCE_VISUAL_ENGINE_H
 #define RENDER_SERVICE_BASE_RENDER_RENDER_RS_HIGH_PERFORMANCE_VISUAL_ENGINE_H
 
+#include <mutex>
+
 #include "draw/canvas.h"
 #include "image/image.h"
-#include <mutex>
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +34,7 @@ struct SurfaceNodeInfo {
     Drawing::Rect srcRect_;
     Drawing::Rect dstRect_;
     Color solidLayerColor_;
+    NodeId surfaceNodeId_;
 };
 class RSB_EXPORT HveFilter {
 public:
@@ -42,16 +44,29 @@ public:
 
     static HveFilter& GetHveFilter();
 
+    void Sync();
     void ClearSurfaceNodeInfo();
     void PushSurfaceNodeInfo(SurfaceNodeInfo& surfaceNodeInfo);
     std::vector<SurfaceNodeInfo> GetSurfaceNodeInfo() const;
     int GetSurfaceNodeSize() const;
+    bool HasFilterNode(NodeId filterId);
+    bool CheckPrecondition(const RSRenderNode& filterNode,
+        const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
+    void PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId);
+    std::shared_ptr<Drawing::Image> SampleLayer(
+        RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId);
 
-    std::shared_ptr<Drawing::Image> SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect);
 private:
+    bool HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node);
+    bool HasValidEffect(const RSRenderNode* node);
+    void DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
+        SurfaceNodeInfo& surfaceNodeInfo, const Drawing::RectI& srcRect);
     HveFilter() = default;
     std::vector<SurfaceNodeInfo> surfaceNodeInfo_;
     mutable std::mutex hveFilterMtx_;
+
+    std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeStagingMap_ = {};
+    std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeMap_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

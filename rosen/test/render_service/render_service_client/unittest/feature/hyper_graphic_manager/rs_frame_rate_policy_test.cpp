@@ -105,6 +105,61 @@ HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallback, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HgmConfigChangeCallback_002
+ * @tc.desc: test HgmConfigChangeCallback branch coverage for animType and animName empty check
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSFrameRatePolicyTest, HgmConfigChangeCallback_002, TestSize.Level1)
+{
+    auto instance = RSFrameRatePolicy::GetInstance();
+    std::shared_ptr<RSHgmConfigData> configData = std::make_shared<RSHgmConfigData>();
+ 
+    // Branch 1: both animType and animName are empty
+    instance->animAttributes_.clear();
+    AnimDynamicItem item1;
+    configData->AddAnimDynamicItem(item1);
+    instance->HgmConfigChangeCallback(configData);
+    // When both are empty, callback returns early, animAttributes_ should be empty
+    EXPECT_TRUE(instance->animAttributes_.empty());
+ 
+    // Branch 2: animType is empty, animName is not empty
+    instance->animAttributes_.clear();
+    configData = std::make_shared<RSHgmConfigData>();
+    AnimDynamicItem item2;
+    item2.animName = "testAnim";
+    configData->AddAnimDynamicItem(item2);
+    instance->HgmConfigChangeCallback(configData);
+    // When animType is empty, callback returns early
+    EXPECT_TRUE(instance->animAttributes_.empty());
+ 
+    // Branch 3: animType is not empty, animName is empty
+    instance->animAttributes_.clear();
+    configData = std::make_shared<RSHgmConfigData>();
+    AnimDynamicItem item3;
+    item3.animType = "testType";
+    configData->AddAnimDynamicItem(item3);
+    instance->HgmConfigChangeCallback(configData);
+    // When animName is empty, callback returns early
+    EXPECT_TRUE(instance->animAttributes_.empty());
+ 
+    // Branch 4: both animType and animName are not empty
+    instance->animAttributes_.clear();
+    configData = std::make_shared<RSHgmConfigData>();
+    AnimDynamicItem item4;
+    item4.animType = "testType";
+    item4.animName = "testAnim";
+    item4.minSpeed = 0;
+    item4.maxSpeed = 100;
+    item4.preferredFps = 60;
+    configData->AddAnimDynamicItem(item4);
+    instance->HgmConfigChangeCallback(configData);
+    // When both are not empty, callback should add to animAttributes_
+    EXPECT_FALSE(instance->animAttributes_.empty());
+    EXPECT_TRUE(instance->animAttributes_.count("testType") > 0);
+}
+
+/**
  * @tc.name: HgmRefreshRateModeChangeCallback
  * @tc.desc: test results of HgmRefreshRateModeChangeCallback
  * @tc.type: FUNC

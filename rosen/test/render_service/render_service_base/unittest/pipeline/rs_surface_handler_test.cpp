@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include <inttypes.h>
+#include <cinttypes>
 
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_context.h"
@@ -166,6 +166,12 @@ public:
     GSError SetScalingMode(ScalingMode scalingMode) override
     {
         (void)scalingMode;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    GSError SetTunnelLayerInfo(const TunnelLayerInfo& info) override
+    {
+        (void)info;
         return GSERROR_NOT_SUPPORT;
     }
 
@@ -644,6 +650,22 @@ HWTEST_F(RSSurfaceHandlerTest, TryReclaimLastBuffer002, TestSize.Level1)
             EXPECT_FALSE(rSSurfaceHandlerPtrTmp->ReclaimLastBufferProcess());
         }
     }
+}
+
+/**
+ * @tc.name: GetAndSetBufferDropped001
+ * @tc.desc: test GetBufferDropped and SetBufferDropped basic behavior
+ * @tc.type: FUNC
+ * @tc.require: issue23825
+ */
+HWTEST_F(RSSurfaceHandlerTest, GetAndSetBufferDropped001, TestSize.Level1)
+{
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->GetBufferDropped());
+    rSSurfaceHandlerPtr_->SetBufferDropped(true);
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->GetBufferDropped());
+    rSSurfaceHandlerPtr_->SetBufferDropped(false);
+    EXPECT_FALSE(rSSurfaceHandlerPtr_->GetBufferDropped());
 }
 #endif
 } // namespace OHOS::Rosen

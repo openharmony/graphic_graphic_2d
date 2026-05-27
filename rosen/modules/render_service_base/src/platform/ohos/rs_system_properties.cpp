@@ -34,7 +34,6 @@ constexpr int DEFAULT_CACHE_HEIGHT = 2710;
 constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 2;
 constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
 constexpr int DEFAULT_ADVANCED_DIRTY_REGION_ENABLED_VALUE = 1;
-constexpr int DEFAULT_DIRTY_ALIGN_ENABLED_VALUE = 0;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 constexpr int DEFAULT_SCALE_MODE = 2;
 constexpr const char* DEFAULT_CLIP_RECT_THRESHOLD = "0.7";
@@ -58,7 +57,7 @@ const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 
 bool RSSystemProperties::isEnableEarlyZ_ = system::GetBoolParameter("persist.sys.graphic.ddgrEarlyZ.enabled", true);
 
-int ConvertToInt(const char *originValue, int defaultValue)
+static int ConvertToInt(const char *originValue, int defaultValue)
 {
     if (originValue == nullptr) {
         return defaultValue;
@@ -257,8 +256,7 @@ bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
 {
     static bool isMultiInstance = system::GetParameter("persist.rosen.rsclientmultiinstance.enabled", "1") != "0";
-    static bool isPhone = system::GetParameter("const.product.devicetype", "phone") == "phone";
-    return isMultiInstance && isPhone;
+    return isMultiInstance;
 }
 
 bool RSSystemProperties::GetRSScreenRoundCornerEnable()
@@ -350,10 +348,10 @@ bool RSSystemProperties::GetAnimationOcclusionEnabled()
 
 DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyalign.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyalign.enabled", "-1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<DirtyAlignType>(ConvertToInt(enable, DEFAULT_DIRTY_ALIGN_ENABLED_VALUE));
+    return static_cast<DirtyAlignType>(ConvertToInt(enable, static_cast<int>(DirtyAlignType::DEFAULT)));
 }
 
 float RSSystemProperties::GetClipRectThreshold()
@@ -367,6 +365,14 @@ float RSSystemProperties::GetClipRectThreshold()
 bool RSSystemProperties::GetAllSurfaceVisibleDebugEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.allsurfacevisibledebug.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemProperties::GetVirtualSelfDrawOptEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualSelfDrawOptEnabled.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
@@ -428,6 +434,14 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetDynamicLayerSkipEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dynamiclayerskip.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
     static bool hardwareComposerEnabled = system::GetParameter(
@@ -445,7 +459,7 @@ bool RSSystemProperties::GetDoDirectCompositionEnabled()
 bool RSSystemProperties::GetDumpRsTreeDetailEnabled()
 {
     static bool dumpRsTreeDetailEnabled = system::GetParameter(
-        "persist.rosen.dumpRsTreeDetail.enabled", "0") != "0";
+        "persist.rosen.dumpRsTreeDetail.enabled", "1") != "0";
     return dumpRsTreeDetailEnabled;
 }
 
@@ -591,7 +605,7 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
-    return cacheEnabledForRotation_;
+    return cacheEnabledForRotation_.load();
 }
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
@@ -1038,6 +1052,14 @@ bool RSSystemProperties::GetDumpImgEnabled()
     return dumpImgEnabled;
 }
 
+bool RSSystemProperties::GetBufferOwnerCountDfxEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.backend.buffer.dfx.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
 {
     static std::string targetStr = system::GetParameter("persist.sys.graphic.traceTargetList", "");
@@ -1092,7 +1114,7 @@ bool RSSystemProperties::GetASTCEnabled()
 // GetCachedBlurPartialRenderEnabled Option On: no need to expand blur dirtyregion if blur has background cache
 bool RSSystemProperties::GetCachedBlurPartialRenderEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.cachedblurpartialrender.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.cachedblurpartialrender.enabled", "1");
     int changed = 0;
     const char *type = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(type, 1) != 0;
@@ -1125,6 +1147,15 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, defaultValue ? 1 : 0) != 0;
+}
+
+bool RSSystemProperties::GetNewTunnelEnabled()
+{
+    static CachedHandle handle = CachedParameterCreate("rosen.debug.new_tunnel", "false");
+    int changed = 0;
+    const char* enabled = CachedParameterGetChanged(handle, &changed);
+    return enabled != nullptr &&
+        (strcmp(enabled, "1") == 0 || strcmp(enabled, "true") == 0);
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
@@ -1247,6 +1278,14 @@ bool RSSystemProperties::GetLayerPartRenderEnabled()
 bool RSSystemProperties::GetLayerPartRenderDebugEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.layerPartRenderDfx.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetLayerDebugEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.layerDebugEnabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -1799,6 +1838,21 @@ bool RSSystemProperties::GetDefaultMemClearEnabled()
     static bool defaultMemClearEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.default.mem.clear.enabled", "1")).c_str()) != 0;
     return defaultMemClearEnabled;
+}
+
+bool RSSystemProperties::GetUnmarshalParallelEnabled()
+{
+    static bool unmarshalParallel =
+        RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
+        std::atoi((system::GetParameter("persist.sys.graphic.unmarshalParallel.enabled", "1")).c_str()) != 0;
+    return unmarshalParallel;
+}
+
+uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
+{
+    static uint32_t unmarshalParallelMinDataSize = static_cast<uint32_t>(
+        system::GetIntParameter("persist.sys.graphic.unmarshalParallel.minSize", 204800)); // 200KB
+    return unmarshalParallelMinDataSize;
 }
 
 bool RSSystemProperties::GetSceneBoardIsPcMode()

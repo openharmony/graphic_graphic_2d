@@ -19,7 +19,7 @@
 #include <string>
 
 #include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code.h"
-
+#include "platform/ohos/transaction/rs_iclient_to_render_connection_ipc_interface_code.h"
 namespace OHOS {
 namespace Rosen {
 class RSIRenderServiceConnectionInterfaceCodeUtils {

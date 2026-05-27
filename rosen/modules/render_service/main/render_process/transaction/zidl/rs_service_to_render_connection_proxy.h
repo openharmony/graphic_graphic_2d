@@ -31,10 +31,18 @@ public:
     explicit RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSServiceToRenderConnectionProxy() noexcept = default;
 
+    // Process Manager
+    bool NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override;
+    bool NotifyScreenDisconnectInfoToRender(ScreenId screenId) override;
+    bool NotifyScreenPropertyChangedInfoToRender(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& screenProperty) override;
+
     // Screen Manager
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
-    void OnScreenBacklightChanged(ScreenId screenId, uint32_t level) override;
+    void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData) override;
     void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
 
     // Partial Render
@@ -65,7 +73,8 @@ public:
 
     // Watermark
     ErrCode SetWatermark(
-        pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
+        pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success,
+        uint32_t rowCount = 0, uint32_t colCount = 0) override;
     void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) override;
 
     // Vrate
@@ -73,6 +82,7 @@ public:
 
     // Font
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
+    bool RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, bool isLocal = true) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     // Hgm
@@ -81,9 +91,6 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId screenId) override;
     void SetShowRefreshRateEnabled(bool enabled, int32_t type) override;
     ErrCode GetShowRefreshRateEnabled(bool& enable) override;
-
-    // Free Multi Window
-    void SetFreeMultiWindowStatus(bool enable) override;
 
     // Overlay
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -113,11 +120,13 @@ public:
     ErrCode RepaintEverything() override;
     void ForceRefreshOneFrameWithNextVSync() override;
     ErrCode SetLayerTop(const std::string& nodeIdStr, bool isTop) override;
+    ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled) override;
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect& srcRect,
         std::shared_ptr<Media::PixelMap>& pixelMap, bool transformEnabled = false) override;
     ErrCode SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh) override;
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
+    void SetCacheEnabledForRotation(bool enabled) override;
     void SetVmaCacheStatus(bool flag) override;
 
 private:

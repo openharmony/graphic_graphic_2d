@@ -119,7 +119,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         auto params = createLayerBufferDrawParamCallback_ ?
             createLayerBufferDrawParamCallback_(layer, forceCPU) : BufferDrawParam();
         // if rotation fixed or use hpae offline, no further scaling will be performed
-        bool rotationFixed = layer->GetRotationFixed() || layer->GetUseDeviceOffline();
+        bool rotationFixed = layer->GetRotationFixed();
         if (!rotationFixed) {
             params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(), composerScreenInfo.GetRogHeightRatio());
         }
@@ -147,14 +147,16 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
 void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
     const ComposerScreenInfo& composerScreenInfo)
 {
+    if (layer->GetVcldInfo().enable) {
+        ClipRoundRectForVCLD(canvas, layer); // clip round rect when layer has vcld info
+        return;
+    }
     const auto& dstRect = layer->GetLayerSize();
     const auto& drmCornerRadiusInfo = layer->GetCornerRadiusInfoForDRM();
     const auto& layerBackgroundColor = layer->GetBackgroundColor();
     Color backgroundColor = {
-        layerBackgroundColor.r,
-        layerBackgroundColor.g,
-        layerBackgroundColor.b,
-        layerBackgroundColor.a
+        layerBackgroundColor.r, layerBackgroundColor.g,
+        layerBackgroundColor.b, layerBackgroundColor.a
     };
     // clip round rect when drm has radius info
     if (!drmCornerRadiusInfo.empty()) {
@@ -194,6 +196,28 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const R
         static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
         static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
     canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+}
+
+void RSUniRenderEngine::ClipRoundRectForVCLD(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer)
+{
+    const auto& vcldInfo = layer->GetVcldInfo();
+    const auto& layerBackgroundColor = layer->GetBackgroundColor();
+    Color backgroundColor = {
+        layerBackgroundColor.r, layerBackgroundColor.g,
+        layerBackgroundColor.b, layerBackgroundColor.a
+    };
+    auto vcldRect = RectF();
+    vcldRect = {static_cast<float>(layer->GetLayerSize().x), static_cast<float>(layer->GetLayerSize().y),
+        static_cast<float>(layer->GetLayerSize().w), static_cast<float>(layer->GetLayerSize().h)};
+    auto vcldRadius = vcldInfo.radius;
+    Vector4f vcldRadiusVector {vcldRadius, vcldRadius, vcldRadius, vcldRadius};
+    RRect rrect = RRect(vcldRect, vcldRadiusVector);
+    canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(rrect), Drawing::ClipOp::INTERSECT, true);
+    if (backgroundColor != RgbPalette::Transparent()) {
+        canvas.DrawColor(backgroundColor.AsArgbInt());
+    }
+    RS_TRACE_NAME_FMT("RSUniRenderEngine::ClipRoundRectForVCLD, surface name: %s, vcldRadius:%f",
+        layer->GetSurfaceName().c_str(), vcldRadius);
 }
 
 void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)

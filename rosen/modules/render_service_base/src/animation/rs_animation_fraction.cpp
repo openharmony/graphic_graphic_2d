@@ -17,17 +17,19 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 #include <string>
 
+#include "animation/rs_animation_common.h"
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 static constexpr int INFINITE = -1;
-static constexpr int64_t MS_TO_NS = 1000000;
 static constexpr int REVERSE_COUNT = 2;
 static constexpr int MAX_SPEED = 1000000;
 constexpr const char* ANIMATION_SCALE_NAME = "persist.sys.graphic.animationscale";
@@ -78,6 +80,11 @@ void RSAnimationFraction::SetDirectionAfterStart(const ForwardDirection& directi
     direction_ = direction;
 }
 
+void RSAnimationFraction::FlipDirection()
+{
+    direction_ = (direction_ == ForwardDirection::NORMAL) ? ForwardDirection::REVERSE : ForwardDirection::NORMAL;
+}
+
 void RSAnimationFraction::SetLastFrameTime(int64_t lastFrameTime)
 {
     lastFrameTime_ = lastFrameTime;
@@ -104,8 +111,42 @@ bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t 
             runningTime_ -= static_cast<int64_t>(deltaTime * speed_ / animationScale);
         }
     }
-
     return runningTime_ > startDelayNs;
+}
+
+bool RSAnimationFraction::UpdateGroupWaitingTime(int64_t deltaTime, bool isCustom)
+{
+    // When doing round-trip animation, runningTime_ will be less than 0 on the second pass, and the state becomes
+    // groupwaiting. In this case, we should jump out directly and return true.
+    if (runningTime_ <= 0) {
+        return true;
+    }
+
+    const float animationScale = isCustom ? 1.0f : GetAnimationScale();
+    int64_t deltaWithSpeed = ROSEN_EQ(animationScale, 0.0f) ? static_cast<int64_t>(deltaTime * MAX_SPEED)
+        : static_cast<int64_t>(deltaTime * speed_ / animationScale);
+
+    if (direction_ == ForwardDirection::NORMAL) {
+        // Prevent overflow: check if addition would exceed INT64_MAX
+        if (deltaWithSpeed > 0 && groupWaitingTime_ > INT64_MAX - deltaWithSpeed) {
+            ROSEN_LOGW(
+                "RSAnimationFraction::UpdateGroupWaitingTime groupWaitingTime_ would overflow, clamp to INT64_MAX");
+            groupWaitingTime_ = INT64_MAX;
+        } else {
+            groupWaitingTime_ += deltaWithSpeed;
+        }
+        return false;
+    } else {
+        // Prevent underflow: check if subtraction would go below INT64_MIN
+        if (deltaWithSpeed > 0 && groupWaitingTime_ < INT64_MIN + deltaWithSpeed) {
+            ROSEN_LOGW(
+                "RSAnimationFraction::UpdateGroupWaitingTime groupWaitingTime_ would underflow, clamp to INT64_MIN");
+            groupWaitingTime_ = INT64_MIN;
+        } else {
+            groupWaitingTime_ -= deltaWithSpeed;
+        }
+        return groupWaitingTime_ <= 0;
+    }
 }
 
 int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs, bool isCustom)
@@ -131,8 +172,51 @@ int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs, 
     return static_cast<int64_t>(ret);
 }
 
+std::optional<std::tuple<float, bool, bool, bool>> RSAnimationFraction::HandleStartDelayPhase(int64_t startDelayNs,
+    int64_t deltaTime, bool isCustom, int64_t& minLeftDelayTime, bool& isInStartDelay, bool isOnTree)
+{
+    if (!IsStartRunning(deltaTime, startDelayNs, isCustom)) {
+        if (IsFinished(isCustom)) {
+            minLeftDelayTime = 0;
+            return std::make_optional(std::make_tuple(GetStartFraction(), isInStartDelay, true, false));
+        }
+        isInStartDelay = true;
+        if (minLeftDelayTime > 0) {
+            int64_t leftDelayTime = CalculateLeftDelayTime(startDelayNs, isCustom);
+            if (!isOnTree && repeatCount_ != INFINITE) {
+                leftDelayTime += static_cast<int64_t>(duration_) * repeatCount_;
+            }
+            minLeftDelayTime = std::min(leftDelayTime, minLeftDelayTime);
+        }
+        return std::make_optional(std::make_tuple(GetStartFraction(), isInStartDelay, false, false));
+    }
+    // Delay phase passed, animation starts running
+    // For on-tree nodes: set to 0 for immediate VSync
+    // For off-tree nodes: keep value for CalculateRemainingTime to compute delay + remaining
+    if (isOnTree) {
+        minLeftDelayTime = 0;
+    }
+    return std::nullopt;
+}
+
+void RSAnimationFraction::CalculateRemainingTime(int64_t durationNs, int64_t& minLeftDelayTime, bool isOnTree)
+{
+    if (isOnTree) {
+        minLeftDelayTime = 0;
+        return;
+    }
+    if (repeatCount_ != INFINITE && minLeftDelayTime > 0) {
+        int64_t remainingCycles = repeatCount_ - currentRepeatCount_;
+        int64_t remainingInCurrentCycle = durationNs - playTime_;
+        int64_t futureCompleteCycles = remainingCycles - 1;
+        int64_t totalRemainingTime = futureCompleteCycles * durationNs + remainingInCurrentCycle;
+        int64_t remainingTimeMs = totalRemainingTime / MS_TO_NS;
+        minLeftDelayTime = std::min(minLeftDelayTime, remainingTimeMs);
+    }
+}
+
 std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
-    int64_t time, int64_t& minLeftDelayTime, bool isCustom)
+    int64_t time, int64_t& minLeftDelayTime, bool isCustom, bool isOnTree)
 {
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
@@ -144,9 +228,8 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
     // When the UI animation and spring animation are inherited, time will be passed the default value of -1 for
     // lastFrameTime_, which is a normal situation.
     if (deltaTime < 0 && time != -1) {
-        ROSEN_LOGE("RSAnimationFraction::GetAnimationFraction, "
-            "current time: %{public}lld is earlier than last frame time: %{public}lld",
-            static_cast<long long>(time), static_cast<long long>(lastFrameTime_));
+        ROSEN_LOGE("RSAnimationFraction::GetAnimationFraction, current time: %{public}lld is earlier than last frame"
+            " time: %{public}lld", static_cast<long long>(time), static_cast<long long>(lastFrameTime_));
     }
     lastFrameTime_ = time;
 
@@ -156,18 +239,10 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
         return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished };
     }
     // 1. Calculates the total running fraction of animation
-    if (!IsStartRunning(deltaTime, startDelayNs, isCustom)) {
-        if (IsFinished(isCustom)) {
-            minLeftDelayTime = 0;
-            return { GetStartFraction(), isInStartDelay, true, isRepeatFinished };
-        }
-        isInStartDelay = true;
-        if (minLeftDelayTime > 0) {
-            minLeftDelayTime = std::min(CalculateLeftDelayTime(startDelayNs, isCustom), minLeftDelayTime);
-        }
-        return { GetStartFraction(), isInStartDelay, false, isRepeatFinished };
+    if (auto startDelayResult =
+            HandleStartDelayPhase(startDelayNs, deltaTime, isCustom, minLeftDelayTime, isInStartDelay, isOnTree)) {
+        return *startDelayResult;
     }
-    minLeftDelayTime = 0;
 
     // 2. Calculate the running time of the current cycle animation.
     int64_t realPlayTime = runningTime_ - startDelayNs - (currentRepeatCount_ * durationNs);
@@ -193,11 +268,16 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
 
     // 5. get final animation fraction
     if (isFinished) {
+        minLeftDelayTime = 0;
         return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_ };
     }
     currentTimeFraction_ = static_cast<float>(playTime_) / durationNs;
     currentTimeFraction_ = currentIsReverseCycle_ ? (1.0f - currentTimeFraction_) : currentTimeFraction_;
     currentTimeFraction_ = std::clamp(currentTimeFraction_, 0.0f, 1.0f);
+
+    // 6. calculate remaining time for finite animation
+    CalculateRemainingTime(durationNs, minLeftDelayTime, isOnTree);
+
     return { currentTimeFraction_, isInStartDelay, isFinished, isRepeatFinished };
 }
 
@@ -290,6 +370,7 @@ void RSAnimationFraction::ResetFraction()
     currentTimeFraction_ = 0.0f;
     currentRepeatCount_ = 0;
     currentIsReverseCycle_ = false;
+    groupWaitingTime_ = 0;
 }
 
 int RSAnimationFraction::GetRemainingRepeatCount() const

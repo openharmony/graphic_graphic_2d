@@ -133,6 +133,13 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, std::shared_ptr<RSPath> value)
+{
+    Drawing::Path path = value ? value->GetDrawingPath() : Drawing::Path();
+    geFilter.SetParam(desc, path);
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, const RSColor& value)
 {
     geFilter.SetParam(desc, value.AsRgbaInt());
@@ -246,6 +253,15 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const RSCo
 {
     uint32_t color = value.AsRgbaInt();
     hash = hashFunc_(&color, sizeof(color), hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSPath> value)
+{
+    if (!value) {
+        return;
+    }
+    uint32_t pathDistance = value->GetDistance();
+    hash = hashFunc_(&pathDistance, sizeof(pathDistance), hash);
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

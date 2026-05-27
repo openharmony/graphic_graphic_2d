@@ -25,7 +25,6 @@ std::vector<std::shared_ptr<RSLayer>> RSRenderComposerContext::GetNeedCompositio
     for (const auto& pair : layersMap_) {
         auto rsLayer = pair.second;
         if (!rsLayer->GetIsNeedComposition()) {
-            RS_LOGD("%{public}s: layer %{public}s did not compose", __func__, rsLayer->GetSurfaceName().c_str());
             continue;
         }
         layersVector.push_back(pair.second);

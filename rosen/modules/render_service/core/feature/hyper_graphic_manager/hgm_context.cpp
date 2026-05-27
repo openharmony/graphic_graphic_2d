@@ -18,16 +18,10 @@
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
-#include "rs_frame_report.h"
-#include "rs_frame_blur_predict.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
-const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
-}
 
 HgmContext::HgmContext(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
     const std::shared_ptr<HgmFrameRateManager>& frameRateMgr,
@@ -48,6 +42,10 @@ void HgmContext::InitHgmTaskHandleThread(
     const sptr<VSyncController>& rsVSyncController, const sptr<VSyncController>& appVSyncController,
     const sptr<VSyncGenerator>& vsyncGenerator)
 {
+    if (!hgmCore_.HgmAbilityEnabled()) {
+        HGM_LOGD("hgm policy is not enabled.");
+        return;
+    }
     auto forceUpdateTask = [this](bool forceUpdate) {
         renderServiceHandler_->PostTask([this, forceUpdate] {
             RS_TRACE_NAME_FMT("HgmForceUpdateTask forceUpdateFlag: %d", forceUpdate);
@@ -165,7 +163,7 @@ void HgmContext::ProcessHgmFrameRate(
     }
     rsCurrRange_.IsValid() ?
         frameRateManager_->GetRsFrameRateTimer().Start() : frameRateManager_->GetRsFrameRateTimer().Stop();
-    
+
     bool needRefresh = frameRateManager_->UpdateUIFrameworkDirtyNodes(
         processToServiceInfo->uiFrameworkDirtyNodeNameMap, timestamp);
     bool setHgmTaskFlag = hgmCore_.SetHgmTaskFlag(false);
@@ -363,25 +361,6 @@ void HgmContext::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
 
 void HgmContext::NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
 {
-    if (VOTER_SCENE_BLUR == eventInfo.eventName) {
-        RsFrameBlurPredict::GetInstance().TakeEffectBlurScene(eventInfo);
-        return;
-    }
-
-    if (VOTER_SCENE_GPU == eventInfo.eventName) {
-        RsFrameReport::ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
-        return;
-    }
-#ifdef RS_ENABLE_VK
-    if (GPU_FREQ_PREF == eventInfo.eventName) {
-        RS_LOGD("GPU frequency adjustment event occurs, isFullScreen[%{public}d] focusBundleName_=%{public}s",
-            eventInfo.eventStatus, eventInfo.description.c_str());
-        VkDevice device = RsVulkanContext::GetSingleton().GetRsVulkanInterface().GetDevice();
-        RsFrameReport::ReportWindowInfo(device, eventInfo.eventStatus, eventInfo.description.c_str());
-        return;
-    }
-#endif
-
     HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, pid, eventInfo] {
         frameRateManager->HandleRefreshRateEvent(pid, eventInfo);
     });

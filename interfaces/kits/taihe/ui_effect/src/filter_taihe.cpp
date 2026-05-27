@@ -546,34 +546,6 @@ Filter FilterImpl::ColorGradient(taihe::array_view<::ohos::graphics::uiEffect::u
     return make_holder<FilterImpl, Filter>(std::move(filter));
 }
 
-BrightnessBlender CreateBrightnessBlender(BrightnessBlenderParam const& param)
-{
-    BrightnessBlender brightnessBlender;
-    brightnessBlender.cubicRate = param.cubicRate;
-    brightnessBlender.quadraticRate = param.quadraticRate;
-    brightnessBlender.linearRate = param.linearRate;
-    brightnessBlender.degree = param.degree;
-    brightnessBlender.saturation = param.saturation;
-    brightnessBlender.positiveCoefficient = param.positiveCoefficient;
-    brightnessBlender.negativeCoefficient = param.negativeCoefficient;
-    brightnessBlender.fraction = param.fraction;
-    return brightnessBlender;
-}
-
-HdrBrightnessBlender CreateHdrBrightnessBlender(BrightnessBlenderParam const& param)
-{
-    HdrBrightnessBlender hdrBrightnessBlender;
-    hdrBrightnessBlender.brightnessBlender.cubicRate = param.cubicRate;
-    hdrBrightnessBlender.brightnessBlender.quadraticRate = param.quadraticRate;
-    hdrBrightnessBlender.brightnessBlender.linearRate = param.linearRate;
-    hdrBrightnessBlender.brightnessBlender.degree = param.degree;
-    hdrBrightnessBlender.brightnessBlender.saturation = param.saturation;
-    hdrBrightnessBlender.brightnessBlender.positiveCoefficient = param.positiveCoefficient;
-    hdrBrightnessBlender.brightnessBlender.negativeCoefficient = param.negativeCoefficient;
-    hdrBrightnessBlender.brightnessBlender.fraction = param.fraction;
-    return hdrBrightnessBlender;
-}
-
 bool FilterImpl::IsFilterValid() const
 {
     return nativeFilter_ != nullptr;
@@ -592,6 +564,4 @@ Filter CreateFilter()
 
 // NOLINTBEGIN
 TH_EXPORT_CPP_API_CreateFilter(CreateFilter);
-TH_EXPORT_CPP_API_CreateHdrBrightnessBlender(CreateHdrBrightnessBlender);
-TH_EXPORT_CPP_API_CreateBrightnessBlender(CreateBrightnessBlender);
 // NOLINTEND

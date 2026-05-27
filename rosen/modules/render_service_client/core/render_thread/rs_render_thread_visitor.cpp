@@ -62,8 +62,13 @@
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #else
 #include "rs_vulkan_context.h"
-#include "vulkan/rs_surface_android_vulkan.h"
 #endif
+#endif
+
+#ifdef ROSEN_ANDROID
+#include "vulkan/rs_surface_android_vulkan.h"
+#elif defined(ROSEN_IOS)
+#include "vulkan/rs_surface_ios_vulkan.h"
 #endif
 
 namespace OHOS {
@@ -636,8 +641,7 @@ void RSRenderThreadVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
         return;
     }
 #ifdef RS_ENABLE_EGLQUERYSURFACE
-    node.UpdateRenderStatus(curDirtyRegion_, isOpDropped_);
-    if (node.IsRenderUpdateIgnored()) {
+    if (node.UpdateRenderStatus(curDirtyRegion_, isOpDropped_)) {
         return;
     }
 #endif
@@ -982,11 +986,11 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
             canvas_->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y), width, height);
     }
     if (node.IsNotifyRTBufferAvailable() == true) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
+        ROSEN_LOGD("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
             "clip [%{public}f, %{public}f, %{public}f, %{public}f]", node.GetId(), x, y, width, height);
         canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     } else {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
+        ROSEN_LOGD("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
             "not clip [%{public}f, %{public}f, %{public}f, %{public}f]", node.GetId(), x, y, width, height);
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {

@@ -15,14 +15,17 @@
 
 #include "text_global_config.h"
 
-#include "modules/skparagraph/include/TextGlobalConfig.h"
+#include <atomic>
 
+#include "modules/skparagraph/include/TextGlobalConfig.h"
+#include "rosen_text/text_config.h"
 #include "text/text_blob.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen::SrvText {
 
 using namespace OHOS::Rosen::Drawing;
+
 uint32_t TextGlobalConfig::SetTextHighContrast(uint32_t textHighContrast)
 {
     if (textHighContrast >= TEXT_HIGH_CONTRAST_BUTT) {
@@ -42,4 +45,27 @@ uint32_t TextGlobalConfig::SetTextUndefinedGlyphDisplay(uint32_t textUndefinedGl
     skia::textlayout::TextGlobalConfig::SetUndefinedGlyphDisplay(textUndefinedGlyphDisplay);
     return TEXT_SUCCESS;
 }
+
 } // namespace OHOS::Rosen::SrvText
+
+// Exported API for external modules
+namespace OHOS {
+namespace Rosen {
+
+namespace {
+    static std::atomic<bool> g_localeTextBreakEnabled{false};
+}
+
+void TextConfig::SetLocaleTextBreakEnabled(bool enabled)
+{
+    g_localeTextBreakEnabled.store(enabled, std::memory_order_relaxed);
+    TEXT_LOGI("Locale text break set to: %{public}s", enabled ? "enabled" : "disabled");
+}
+
+bool TextConfig::IsLocaleTextBreakEnabled()
+{
+    return g_localeTextBreakEnabled.load(std::memory_order_relaxed);
+}
+
+} // namespace Rosen
+} // namespace OHOS

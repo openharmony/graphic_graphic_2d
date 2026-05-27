@@ -99,7 +99,8 @@ public:
     void SetExistHWCNode(bool isExistHWCNode);
     bool GetExistHWCNode() const;
 
-    void CollectHdrStatus(HdrStatus hdrStatus);
+    void CollectHdrStatus(NodeId id, HdrStatus hdrStatus);
+    const std::unordered_map<NodeId, HdrStatus>& GetScreenHDRStatusMap() const;
     void ResetDisplayHdrStatus();
     HdrStatus GetScreenHDRStatus() const;
 
@@ -225,10 +226,20 @@ public:
     void SetVirtualSurfaceChanged(bool isChanged) { isVirtualSurfaceChanged_ = isChanged; }
     bool IsVirtualSurfaceChanged() const { return isVirtualSurfaceChanged_; }
 
+    void SetActiveRectChanged(bool isChanged) { isActiveRectChanged_ = isChanged; }
+    bool IsActiveRectChanged() const { return isActiveRectChanged_; }
+
     void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod) { isEqualVsyncPeriod_ = isEqualVsyncPeriod; }
     bool IsEqualVsyncPeriod() const { return isEqualVsyncPeriod_; }
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
     ScreenRotation GetLogicalCameraRotationCorrection() const;
+    LayerSkipContext& GetLayerSkipContext()
+    {
+        return layerSkipContext_;
+    }
+
+    void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
+    bool GetHasForceHwcHdrSurface() const;
 
 private:
 
@@ -242,6 +253,7 @@ private:
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     uint32_t childDisplayCount_ = 0;
     HdrStatus screenHDRStatus_ = HdrStatus::NO_HDR;
+    std::unordered_map<NodeId, HdrStatus> screenHDRStatusMap_ = {};
     bool isMirrorScreen_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;
@@ -257,6 +269,7 @@ private:
     bool isAccumulatedHdrStatusChanged_ = false;
     bool isAccumulatedSpecialLayerStatusChanged_ = false;
     bool isVirtualSurfaceChanged_ = false;
+    bool isActiveRectChanged_ = false;
     bool isEqualVsyncPeriod_ = true;
     std::unordered_set<NodeId> lastBlackList_ = {};
     bool lastSecExemption_ = false;
@@ -266,6 +279,7 @@ private:
     bool isZoomed_ = false;
     uint32_t mirrorDstCount_ = 0;
     bool hasMirrorScreen_ = false;
+    LayerSkipContext layerSkipContext_;
     Drawing::Matrix slrMatrix_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;
     friend class RSUniRenderVisitor;
@@ -276,6 +290,7 @@ private:
     bool forceFreeze_ = false;
     bool hasMirroredScreenChanged_ = false;
     ScreenRotation logicalCameraRotationCorrection_ = ScreenRotation::ROTATION_0;
+    bool hasForceHwcHdrSurface_ = false;
 };
 } // namespace OHOS::Rosen
 

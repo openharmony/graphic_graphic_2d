@@ -36,6 +36,16 @@
 #include "command/rs_animation_command.h"
 #include "common/rs_common_def.h"
 #include "transaction/rs_irender_client.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
+#endif
+#include "transaction/rs_render_pipeline_client.h"
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#define RS_CLIENT_HIDDEN __attribute__((visibility("hidden")))
+#else
+#define RS_CLIENT_HIDDEN
+#endif
 
 namespace OHOS {
 class Surface;
@@ -48,7 +58,7 @@ class RSTransactionHandler;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::function<void(std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
     std::shared_ptr<RSTransactionHandler>)>;
 
 /**
@@ -63,7 +73,9 @@ public:
      *
      * @return A std::shared_ptr pointing to the newly created RSUIDirector instance.
      */
-    static std::shared_ptr<RSUIDirector> Create();
+    // rsUIContext入参用于给arkUI将不同子窗实例设置成一样
+    static std::shared_ptr<RSUIDirector> Create(sptr<IRemoteObject> connectToRenderRemote,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     /**
      * @brief Destructor for RSUIDirector.
@@ -87,16 +99,6 @@ public:
      *                        during the transition to the foreground. Defaults to false.
      */
     void GoForeground(bool isTextureExport = false);
-
-    /**
-     * @brief Initializes the RSUIDirector instance.
-     *
-     * @param shouldCreateRenderThread Indicates whether a render thread should be created. Defaults to true.
-     * @param isMultiInstance Indicates whether the instance supports multiple instances. Defaults to false.
-     * @param rsUIContext A shared pointer to the rsUIContext object to be set. Defaults to nullptr.
-     */
-    void Init(bool shouldCreateRenderThread = true, bool isMultiInstance = false,
-        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     /**
      * @brief Initiates the process of exporting texture data.
@@ -341,8 +343,17 @@ public:
      */
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
 private:
+    /**
+     * @brief Initializes the RSUIDirector instance.
+     *
+     * @param shouldCreateRenderThread Indicates whether a render thread should be created. Defaults to true.
+     * @param isMultiInstance Indicates whether the instance supports multiple instances. Defaults to false.
+     * @param rsUIContext A shared pointer to the rsUIContext object to be set. Defaults to nullptr.
+     */
+    void Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext);
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
+    static std::shared_ptr<RSUIDirector> CreateRSUIDirector();
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
     static void ProcessInstanceMessages(
@@ -369,9 +380,9 @@ private:
     RSUIDirector& operator=(const RSUIDirector&) = delete;
     RSUIDirector& operator=(const RSUIDirector&&) = delete;
 
-    inline static std::unordered_map<RSUIDirector*, TaskRunner> uiTaskRunners_;
-    inline static std::unordered_map<RSUIDirector*, std::function<void()>> requestVsyncCallbacks_;
-    inline static std::mutex uiTaskRunnersVisitorMutex_;
+    inline static RS_CLIENT_HIDDEN std::unordered_map<RSUIDirector*, TaskRunner> uiTaskRunners_;
+    inline static RS_CLIENT_HIDDEN std::unordered_map<RSUIDirector*, std::function<void()>> requestVsyncCallbacks_;
+    inline static RS_CLIENT_HIDDEN std::mutex uiTaskRunnersVisitorMutex_;
 
     NodeId root_ = 0;
     int32_t instanceId_ = INSTANCE_ID_UNDEFINED;
@@ -395,6 +406,7 @@ private:
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;
     friend class RSImplicitAnimator;
+    friend class RSTextureExport;
 };
 } // namespace Rosen
 } // namespace OHOS

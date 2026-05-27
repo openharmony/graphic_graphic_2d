@@ -60,7 +60,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         }
         case FuzzMethod::GETANIMATIONFRACTION: {
             int64_t delayTime = FD.ConsumeIntegral<int64_t>();
-            fraction.GetAnimationFraction(FD.ConsumeIntegral<int64_t>(), delayTime, FD.ConsumeBool());
+            fraction.GetAnimationFraction(FD.ConsumeIntegral<int64_t>(), delayTime, FD.ConsumeBool(), FD.ConsumeBool());
             break;
         }
         case FuzzMethod::UPDATEREMAINTIMEFRACTION: {

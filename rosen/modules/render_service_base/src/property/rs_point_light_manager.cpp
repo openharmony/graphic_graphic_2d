@@ -276,7 +276,7 @@ void RSPointLightManager::ProcessLostIlluminationNode()
     }
     for (auto& [_, weakPtr] : previousFrameIlluminatedNodeMap_) {
         auto illuminatedNodePtr = weakPtr.lock();
-        if (!illuminatedNodePtr || !illuminatedNodePtr->IsOnTheTree()) {
+        if (!illuminatedNodePtr) {
             continue;
         }
         auto illuminatedPtr = illuminatedNodePtr->GetRenderProperties().GetIlluminated();
@@ -296,7 +296,9 @@ void RSPointLightManager::MarkIlluminatedNodeDirty(const std::shared_ptr<RSRende
     // The illuminated nodes's point light properties did not change, so it's point light drawable slot was not marked
     // dirty, we need to manually mark point light slot dirty.
     illuminatedNodePtr->UpdatePointLightDirtySlot();
-    illuminatedNodePtr->SetDirty();
+    if (illuminatedNodePtr->IsOnTheTree()) {
+        illuminatedNodePtr->SetDirty();
+    }
 }
 
 } // namespace Rosen

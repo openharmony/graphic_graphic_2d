@@ -94,6 +94,36 @@ ohos_unittest("RSOpincCacheTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSOpincRootCacheTest  ##################################
+ohos_unittest("RSOpincRootCacheTest") {
+  module_out_path = module_output_path
+
+  sources = [ "opinc/rs_opinc_root_cache_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
+  subsystem_name = "graphic"
+}
+
 ##############################  RSFrameControlToolTest  ##################################
 ohos_unittest("RSFrameControlToolTest") {
   module_out_path = module_output_path
@@ -341,7 +371,6 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
   ]
 
   deps = [
-    "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
     "$rosen_root/modules/platform:eventhandler",
@@ -350,6 +379,14 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
   external_deps = [
     "init:libbegetutil",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
+
+  if (graphic_2d_feature_enable_image_detail_enhancer) {
+    defines = [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
+  }
 
   subsystem_name = "graphic"
 }
@@ -469,6 +506,47 @@ ohos_unittest("RSPowerOffRenderSkipTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSDynamicLayerSkipControllerTest  ##################################
+ohos_unittest("RSDynamicLayerSkipControllerTest") {
+  module_out_path = module_output_path
+  sources = [ "dynamic_layer_skip/rs_dynamic_layer_skip_controller_test.cpp" ]
+  if (defined(graphic_2d_dynamic_layer_skip_configs.vendor_root)) {
+    sources += graphic_2d_dynamic_layer_skip_configs.librender_service_ext_dynamic_layer_skip_test
+    sources -= graphic_2d_dynamic_layer_skip_configs.librender_service_ext_dynamic_layer_skip_test_del
+  }
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
@@ -481,6 +559,7 @@ group("unittest") {
     ":RSColorPickerTest",
     ":RSImageDetailEnhancerThreadTest",
     ":RSOpincCacheTest",
+    ":RSOpincRootCacheTest",
     ":RSOpincManagerTest",
     ":RSOpincManagerLayerPartTest",
     ":RSUiCaptureHelperTest",
@@ -490,5 +569,6 @@ group("unittest") {
     ":RSWindowKeyFrameRenderNodeTest",
     ":RSBufferReclaimTest",
     ":RSPowerOffRenderSkipTest",
+    ":RSDynamicLayerSkipControllerTest",
   ]
 }

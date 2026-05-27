@@ -83,7 +83,7 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
         }
         if (std::get<1>(releaseBufferFenceVec[i]) != nullptr) {
             data.WriteBool(true);
-            if (WriteSurfaceBufferImpl(data, std::get<1>(releaseBufferFenceVec[i])->GetSeqNum(),
+            if (WriteSurfaceBufferImplWithAllProperties(data, std::get<1>(releaseBufferFenceVec[i])->GetSeqNum(),
                 std::get<1>(releaseBufferFenceVec[i])) != GSERROR_OK) {
                 ROSEN_LOGE("%{public}s write surface buffer failed", __func__);
                 return -1;
@@ -107,7 +107,11 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
         return -1;
     }
 
-    auto replyMessage = reply.ReadInt32();
+    int32_t replyMessage;
+    if (!reply.ReadInt32(replyMessage)) {
+        RS_LOGE("%{public}s read replyMessage error", __func__);
+        return -1;
+    }
     RS_LOGD("%{public}s reply received successfully", __func__);
 
     return replyMessage;
@@ -149,8 +153,45 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
         ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return -1;
     }
-    auto replyMessage = reply.ReadInt32();
+    int32_t replyMessage;
+    if (!reply.ReadInt32(replyMessage)) {
+        RS_LOGE("%{public}s read replyMessage error", __func__);
+        return -1;
+    }
     return replyMessage;
+}
+
+int32_t RSComposerToRenderConnectionProxy::NotifyLayerStateChangedToRender(
+    uint64_t nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: write InterfaceToken failed", __func__);
+        return -1;
+    }
+    if (!data.WriteUint64(nodeId)) {
+        ROSEN_LOGE("%{public}s write nodeId failed", __func__);
+        return -1;
+    }
+    if (!data.WriteUint64(tunnelLayerGeneration)) {
+        ROSEN_LOGE("%{public}s write tunnelLayerGeneration failed", __func__);
+        return -1;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(state))) {
+        ROSEN_LOGE("%{public}s write state failed", __func__);
+        return -1;
+    }
+
+    uint32_t code = static_cast<uint32_t>(NOTIFY_LAYER_STATE_CHANGED_TO_RENDER);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
+        return -1;
+    }
+    return COMPOSITOR_ERROR_OK;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -287,4 +287,135 @@ HWTEST_F(RSScreenRenderParamsTest, SetLogicalCameraRotationCorrection, TestSize.
     std::unique_ptr<RSRenderParams> target = nullptr;
     params.OnSync(target);
 }
+
+/**
+ * @tc.name: HasForceHwcHdrSurface
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, HasForceHwcHdrSurfaceTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    params.SetHasForceHwcHdrSurface(params.GetHasForceHwcHdrSurface());
+    EXPECT_EQ(params.needSync_, false);
+    params.SetHasForceHwcHdrSurface(true);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_EQ(params.GetHasForceHwcHdrSurface(), true);
+}
+
+/**
+ * @tc.name: CollectHdrStatus_NewNodeInsert
+ * @tc.desc: Test CollectHdrStatus when inserting a new node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, CollectHdrStatus_NewNodeInsert, TestSize.Level1)
+{
+    constexpr NodeId id = 1001;
+    RSScreenRenderParams params(id);
+    params.CollectHdrStatus(id, HdrStatus::HDR_VIDEO);
+    const auto& statusMap = params.GetScreenHDRStatusMap();
+    EXPECT_EQ(statusMap.size(), 1);
+    ASSERT_TRUE(statusMap.find(id) != statusMap.end());
+    EXPECT_EQ(statusMap.at(id), HdrStatus::HDR_VIDEO);
+}
+
+/**
+ * @tc.name: CollectHdrStatus_ExistingNodeUpdate
+ * @tc.desc: Test CollectHdrStatus when updating an existing node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, CollectHdrStatus_ExistingNodeUpdate, TestSize.Level1)
+{
+    constexpr NodeId id = 1002;
+    RSScreenRenderParams params(id);
+    params.CollectHdrStatus(id, HdrStatus::HDR_PHOTO);
+    params.CollectHdrStatus(id, HdrStatus::HDR_VIDEO);
+    const auto& statusMap = params.GetScreenHDRStatusMap();
+    ASSERT_TRUE(statusMap.find(id) != statusMap.end());
+    EXPECT_EQ(statusMap.at(id), HdrStatus::HDR_PHOTO | HdrStatus::HDR_VIDEO);
+}
+
+/**
+ * @tc.name: CollectHdrStatus_SameStatusNoUpdate
+ * @tc.desc: Test CollectHdrStatus when HDR status is the same - should not trigger needSync
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, CollectHdrStatus_SameStatusNoUpdate, TestSize.Level1)
+{
+    constexpr NodeId id = 1003;
+    RSScreenRenderParams params(id);
+    params.CollectHdrStatus(id, HdrStatus::HDR_PHOTO);
+    bool firstNeedSync = params.NeedSync();
+    params.CollectHdrStatus(id, HdrStatus::HDR_PHOTO);
+    bool secondNeedSync = params.NeedSync();
+    EXPECT_EQ(firstNeedSync, secondNeedSync);
+}
+
+/**
+ * @tc.name: CollectHdrStatus_MultipleNodesMerge
+ * @tc.desc: Test CollectHdrStatus with multiple nodes - screenHDRStatus should merge
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, CollectHdrStatus_MultipleNodesMerge, TestSize.Level1)
+{
+    constexpr NodeId id1 = 1004;
+    constexpr NodeId id2 = 1005;
+    RSScreenRenderParams params(id1);
+    params.CollectHdrStatus(id1, HdrStatus::HDR_PHOTO);
+    params.CollectHdrStatus(id2, HdrStatus::HDR_VIDEO);
+    EXPECT_EQ(params.GetScreenHDRStatus(), HdrStatus::HDR_PHOTO | HdrStatus::HDR_VIDEO);
+}
+
+/**
+ * @tc.name: GetScreenHDRStatusMap_EmptyMap
+ * @tc.desc: Test GetScreenHDRStatusMap when map is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, GetScreenHDRStatusMap_EmptyMap, TestSize.Level1)
+{
+    constexpr NodeId id = 1006;
+    RSScreenRenderParams params(id);
+    const auto& statusMap = params.GetScreenHDRStatusMap();
+    EXPECT_TRUE(statusMap.empty());
+}
+
+/**
+ * @tc.name: GetScreenHDRStatusMap_NonEmptyMap
+ * @tc.desc: Test GetScreenHDRStatusMap when map has data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, GetScreenHDRStatusMap_NonEmptyMap, TestSize.Level1)
+{
+    constexpr NodeId id = 1007;
+    RSScreenRenderParams params(id);
+    params.CollectHdrStatus(id, HdrStatus::HDR_PHOTO);
+    const auto& statusMap = params.GetScreenHDRStatusMap();
+    EXPECT_FALSE(statusMap.empty());
+    EXPECT_EQ(statusMap.size(), 1);
+}
+
+/**
+ * @tc.name: ResetDisplayHdrStatus_ClearMap
+ * @tc.desc: Test ResetDisplayHdrStatus clears the map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderParamsTest, ResetDisplayHdrStatus_ClearMap, TestSize.Level1)
+{
+    constexpr NodeId id = 1008;
+    RSScreenRenderParams params(id);
+    params.CollectHdrStatus(id, HdrStatus::HDR_PHOTO);
+    EXPECT_FALSE(params.GetScreenHDRStatusMap().empty());
+    params.ResetDisplayHdrStatus();
+    EXPECT_TRUE(params.GetScreenHDRStatusMap().empty());
+    EXPECT_EQ(params.GetScreenHDRStatus(), HdrStatus::NO_HDR);
+}
 } // namespace OHOS::Rosen

@@ -31,8 +31,9 @@ public:
     virtual ~RSConnectToRenderProcess() noexcept = default;
 
 private:
-    sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token) override;
-
+    sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token,
+        bool needRefresh) override;
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
     const sptr<RSRenderPipelineAgent> renderPipelineAgent_;
 };
 } // namespace Rosen

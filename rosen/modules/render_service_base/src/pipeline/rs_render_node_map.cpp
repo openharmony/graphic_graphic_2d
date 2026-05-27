@@ -279,7 +279,9 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
             } else {
                 subIter->second->RemoveFromTree(false);
             }
-            subIter->second->GetAnimationManager().FilterAnimationByPid(pid);
+            if (auto animationManager = subIter->second->GetAnimationManager()) {
+                animationManager->FilterAnimationByPid(pid);
+            }
             subIter = subMap.erase(subIter);
         }
         renderNodeMap_.erase(iter);
@@ -349,11 +351,11 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
 
     if (auto fallbackNode = GetAnimationFallbackNode()) {
         // remove all fallback animations belong to given pid
-        fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
+        if (auto animationManager = fallbackNode->GetAnimationManager()) {
+            animationManager->FilterAnimationByPid(pid);
+        }
     }
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     RSRenderNodeGC::Instance().ReleaseNodeNotOnTree(pid);
-#endif
 }
 
 void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const
@@ -374,6 +376,15 @@ void RSRenderNodeMap::TraversalNodesByPid(int pid,
             func(node);
         }
     }
+}
+
+size_t RSRenderNodeMap::GetNodeCountByPid(pid_t pid) const
+{
+    const auto& itr = renderNodeMap_.find(pid);
+    if (itr != renderNodeMap_.end()) {
+        return itr->second.size();
+    }
+    return 0;
 }
 
 void RSRenderNodeMap::TraverseCanvasDrawingNodes(
@@ -505,6 +516,7 @@ std::vector<NodeId> RSRenderNodeMap::GetSelfDrawingNodeInProcess(pid_t pid)
 bool RSRenderNodeMap::AttachToDisplay(
     std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode, ScreenId screenId, bool toContainer) const
 {
+#ifndef ROSEN_ARKUI_X
     bool result = false;
     surfaceRenderNode->GetAttachedInfo() = std::nullopt;
     std::shared_ptr<RSRenderNode> displayRenderNodeTop = nullptr;
@@ -545,6 +557,9 @@ bool RSRenderNodeMap::AttachToDisplay(
         result = true;
     }
     return result;
+#else
+    return false;
+#endif
 }
 
 void RSRenderNodeMap::RegisterNeedAttachedNode(std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode)

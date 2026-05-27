@@ -29,7 +29,7 @@ const TEXT_LOG_TAG = "Text";
 export default namespace text {
   loadLibraryWithPermissionCheck('drawing_ani_core', "@ohos.graphics.text");
   loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text");
-  const ERROR_INVALID_PARAM = 401;
+  const ERROR_INVALID_PARAM: int = 401;
 
   class Cleaner {
     static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
@@ -42,10 +42,10 @@ export default namespace text {
     native clean(): void;
   }
 
-  let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
+  let destroyRegister: FinalizationRegistry<Cleaner> = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
     cleaner.clean();
   });
-  let unregisterToken = new object();
+  let unregisterToken: Object = new object();
 
   export class FontCollection {
     static { loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text") }
@@ -208,6 +208,7 @@ export default namespace text {
     native getProcessState(): TextProcessState;
     native getTextDisplayState(): TextDisplayState;
     native getParagraphStyle(): ParagraphStyle;
+    native forceReuseRasterResult(isForce: boolean): void;
     native getCharacterRangeForGlyphRange(glyphRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getGlyphRangeForCharacterRange(characterRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getCharacterPositionAtCoordinate(x: double, y: double, encoding: drawing.TextEncoding): PositionWithAffinity;
@@ -381,7 +382,11 @@ export default namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    punctuationOverflow?: boolean;
     lineSpacing?: double;
+    firstLineHeadIndent?: double;
+    tailIndents?: Array<double>;
+    headIndents?: Array<double>;
   }
 
   class ParagraphStyleInternal implements ParagraphStyle {
@@ -401,7 +406,11 @@ export default namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    punctuationOverflow?: boolean;
     lineSpacing?: double;
+    firstLineHeadIndent?: double;
+    tailIndents?: Array<double>;
+    headIndents?: Array<double>;
     constructor(
       orphanCharOptimization?: boolean,
       fallbackLineSpacing?: boolean,
@@ -419,7 +428,11 @@ export default namespace text {
       autoSpace?: boolean,
       verticalAlign?: TextVerticalAlign,
       compressHeadPunctuation?: boolean,
-      lineSpacing?: double
+      punctuationOverflow?: boolean,
+      lineSpacing?: double,
+      firstLineHeadIndent?: double,
+      tailIndents?: Array<double>,
+      headIndents?: Array<double>
     ) {
       this.orphanCharOptimization = orphanCharOptimization;
       this.fallbackLineSpacing = fallbackLineSpacing;
@@ -437,7 +450,11 @@ export default namespace text {
       this.autoSpace = autoSpace;
       this.verticalAlign = verticalAlign;
       this.compressHeadPunctuation = compressHeadPunctuation;
+      this.punctuationOverflow = punctuationOverflow;
       this.lineSpacing = lineSpacing;
+      this.firstLineHeadIndent = firstLineHeadIndent;
+      this.tailIndents = tailIndents;
+      this.headIndents = headIndents;
     }
   }
 
@@ -489,6 +506,7 @@ export default namespace text {
     lineHeightStyle?: LineHeightStyle;
     fontWidth?: FontWidth;
     fontEdging?: drawing.FontEdging;
+    fontTypefaces?: Array<drawing.Typeface>;
   }
 
   class TextStyleInternal implements TextStyle {
@@ -518,6 +536,7 @@ export default namespace text {
     lineHeightStyle?: LineHeightStyle;
     fontWidth?: FontWidth;
     fontEdging?: drawing.FontEdging;
+    fontTypefaces?: Array<drawing.Typeface>;
     constructor(
       decoration: Decoration,
       color: common2D.Color,
@@ -538,12 +557,14 @@ export default namespace text {
       fontFeatures: Array<FontFeature>,
       textShadows: Array<TextShadow>,
       backgroundRect: RectStyle,
+      fontVariations: Array<FontVariation>,
       badgeType: TextBadgeType,
       lineHeightMaximum: double,
       lineHeightMinimum: double,
       lineHeightStyle: LineHeightStyle,
       fontWidth: FontWidth,
-      fontEdging: drawing.FontEdging
+      fontEdging: drawing.FontEdging,
+      fontTypefaces: Array<drawing.Typeface>
     ) {
       this.decoration = decoration;
       this.color = color;
@@ -564,12 +585,14 @@ export default namespace text {
       this.fontFeatures = fontFeatures;
       this.textShadows = textShadows;
       this.backgroundRect = backgroundRect;
+      this.fontVariations = fontVariations;
       this.badgeType = badgeType;
       this.lineHeightMaximum = lineHeightMaximum;
       this.lineHeightMinimum = lineHeightMinimum;
       this.lineHeightStyle = lineHeightStyle;
       this.fontWidth = fontWidth;
       this.fontEdging = fontEdging;
+      this.fontTypefaces = fontTypefaces;
     }
   }
 
@@ -772,10 +795,12 @@ export default namespace text {
     isNormalized?: boolean;
     constructor(
       axis: string,
-      value: double
+      value: double,
+      isNormalized?: boolean
     ) {
       this.axis = axis;
       this.value = value;
+      this.isNormalized = isNormalized;
     }
   }
 
@@ -986,6 +1011,7 @@ export default namespace text {
     native getImageBounds(): common2D.Rect;
     native getTextDirection(): TextDirection;
     native getAdvances(range: Range): Array<common2D.Point> | undefined;
+    native getTextStyle(): TextStyle;
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
@@ -1142,6 +1168,8 @@ export default namespace text {
     index?: int;
     variationAxisRecords?: Array<FontVariationAxis>;
     variationInstanceRecords?: Array<FontVariationInstance>;
+    languages?: Array<string>;
+    fontFeatures?: Array<string>;
   }
 
   class FontDescriptorInternal implements FontDescriptor {
@@ -1167,6 +1195,8 @@ export default namespace text {
     index?: int;
     variationAxisRecords?: Array<FontVariationAxis>;
     variationInstanceRecords?: Array<FontVariationInstance>;
+    languages?: Array<string>;
+    fontFeatures?: Array<string>;
     constructor(
       path: string,
       postScriptName: string,
@@ -1190,6 +1220,8 @@ export default namespace text {
       index: int,
       variationAxisRecords?: Array<FontVariationAxis>,
       variationInstanceRecords?: Array<FontVariationInstance>,
+      languages?: Array<string>,
+      fontFeatures?: Array<string>,
     ) {
       this.path = path;
       this.postScriptName = postScriptName;
@@ -1213,6 +1245,8 @@ export default namespace text {
       this.index = index;
       this.variationAxisRecords = variationAxisRecords;
       this.variationInstanceRecords = variationInstanceRecords;
+      this.languages = languages;
+      this.fontFeatures = fontFeatures;
     }
   }
 

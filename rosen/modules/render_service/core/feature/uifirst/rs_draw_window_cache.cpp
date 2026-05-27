@@ -16,6 +16,7 @@
 #include "rs_draw_window_cache.h"
 
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/watermark/rs_surface_watermark.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_trace.h"
@@ -129,7 +130,7 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
         return false;
     }
     // Non-CrosNode not cache for uifirst need clear cache,
-    // and if node not execute prepre process in the second frame, cache type will still be MultiThreadCacheType::NONE,
+    // and if node not execute prepare process in the second frame, cache type will still be MultiThreadCacheType::NONE,
     // we should avoid clear cache by checking GetNeedCacheSurface
     if (!surfaceParams.IsCrossNode() && surfaceParams.GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE
         && !surfaceParams.ClonedSourceNode() && !surfaceParams.GetNeedCacheSurface()) {
@@ -228,7 +229,7 @@ void RSDrawWindowCache::DrawCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfa
     // draw foreground
     surfaceDrawable->DrawForeground(canvas, boundSize);
     // draw watermark
-    surfaceDrawable->DrawCommSurfaceWatermark(canvas, surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(canvas, surfaceParams);
 }
 #endif
 

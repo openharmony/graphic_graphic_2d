@@ -102,6 +102,17 @@ public:
         return cacheSurfaceInfo_.processedNodeCount;
     }
 
+    // only use in RT sync phase
+    uint64_t GetCompletedCacheSurfaceVsyncId() const
+    {
+        return cacheCompletedSurfaceInfo_.vsyncId;
+    }
+
+    GraphicColorGamut GetCacheSurfaceColorSpace() const
+    {
+        return cacheSurfaceInfo_.colorSpace;
+    }
+
     void SetCacheSurfaceNeedUpdated(bool isCacheSurfaceNeedUpdate)
     {
         isCacheSurfaceNeedUpdate_ = isCacheSurfaceNeedUpdate;
@@ -289,9 +300,11 @@ private:
         int processedNodeCount = -1;
         float alpha = -1.f;
         bool isContainShadow = false;
+        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
         std::unordered_set<NodeId> processedSubSurfaceNodeIds;
         Occlusion::Region opaqueRegion;
         RectI absDrawRect;
+        uint64_t vsyncId = 0;
 
         void Reset()
         {
@@ -299,9 +312,11 @@ private:
             processedNodeCount = -1;
             alpha = -1.f;
             isContainShadow = false;
+            colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
             processedSubSurfaceNodeIds.clear();
             opaqueRegion.Reset();
             absDrawRect = {};
+            vsyncId = 0;
         }
     };
     CacheSurfaceInfo cacheSurfaceInfo_;

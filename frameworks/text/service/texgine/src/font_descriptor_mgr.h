@@ -16,10 +16,6 @@
 #ifndef OHOS_ROSEN_FONT_DESCRIPTOR_MGR_H
 #define OHOS_ROSEN_FONT_DESCRIPTOR_MGR_H
 
-#ifdef BUILD_NON_SDK_VER
-#include <nocopyable.h>
-#endif
-
 #include <shared_mutex>
 
 #include "font_descriptor_cache.h"
@@ -33,9 +29,10 @@ public:
     static FontDescriptorMgr& GetInstance();
     virtual ~FontDescriptorMgr();
 
-#ifdef BUILD_NON_SDK_VER
-    DISALLOW_COPY_AND_MOVE(FontDescriptorMgr);
-#endif
+    FontDescriptorMgr(const FontDescriptorMgr&) = delete;
+    FontDescriptorMgr& operator=(const FontDescriptorMgr&) = delete;
+    FontDescriptorMgr(FontDescriptorMgr&&) = delete;
+    FontDescriptorMgr& operator=(FontDescriptorMgr&&) = delete;
 
     void ParseAllFontSource();
     void MatchFontDescriptors(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& descs);

@@ -872,27 +872,6 @@ HWTEST_F(RSRenderNodeUnitTest3, CollectAndUpdateLocalDistortionEffectRecttest, T
 }
 
 /**
- * @tc.name: CollectAndUpdateLocalMagnifierEffectRectTest
- * @tc.desc: CollectAndUpdateLocalMagnifierEffectRect
- * @tc.type: FUNC
- * @tc.require: issue20188
- */
-HWTEST_F(RSRenderNodeUnitTest3, CollectAndUpdateLocalMagnifierEffectRectTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    node.CollectAndUpdateLocalMagnifierEffectRect();
-    EXPECT_FALSE(node.renderProperties_.GetMagnifierDirty());
-
-    std::shared_ptr<RSMagnifierParams> para = std::make_shared<RSMagnifierParams>();
-    para->offsetX_ = 50.f; // set offset 50 of X
-    para->offsetY_ = 100.f; // set offset 100 of Y
-    para->factor_ = 0.5f; // set factor 0.5
-    node.renderProperties_.SetMagnifierParams(para);
-    node.CollectAndUpdateLocalMagnifierEffectRect();
-    EXPECT_TRUE(node.renderProperties_.GetMagnifierDirty());
-}
-
-/**
  * @tc.name: ChildrenBlurBehindWindowTest
  * @tc.desc: ChildrenBlurBehindWindowTest
  * @tc.type: FUNC
@@ -1029,7 +1008,6 @@ HWTEST_F(RSRenderNodeUnitTest3, InternalRemoveSelfFromDisappearingChildren, Test
 HWTEST_F(RSRenderNodeUnitTest3, DestroyRSRenderNode, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    node.appPid_ = 1;
     ASSERT_TRUE(true);
 }
 
@@ -1044,7 +1022,8 @@ HWTEST_F(RSRenderNodeUnitTest3, FallbackAnimationsToRoot, TestSize.Level1)
     RSRenderNode node(id, context);
     node.FallbackAnimationsToRoot();
     node.FallbackAnimationsToRoot();
-    node.animationManager_.animations_.clear();
+    nod.animationManager_ = std::make_shared<RSAnimationManager>();
+    node.animationManager_->animations_.clear();
     node.FallbackAnimationsToRoot();
     ASSERT_TRUE(true);
 }
@@ -1403,7 +1382,7 @@ HWTEST_F(RSRenderNodeUnitTest3, UpdateAbsDirtyRegion002, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    node.isSelfDrawingNode_ = true;
+    node.SetSelfDrawingNode(true);
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.UpdateAbsDirtyRegion(*rsDirtyManager, clipRect);
@@ -1421,7 +1400,7 @@ HWTEST_F(RSRenderNodeUnitTest3, UpdateAbsDirtyRegion003, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    node.isSelfDrawingNode_ = true;
+    node.SetSelfDrawingNode(true);
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = false;
@@ -1441,7 +1420,7 @@ HWTEST_F(RSRenderNodeUnitTest3, UpdateAbsDirtyRegion004, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RectI clipRect{0, 0, 1000, 1000};
-    node.isSelfDrawingNode_ = true;
+    node.SetSelfDrawingNode(true);
     node.absDrawRect_ = {1, 2, 3, 4};
     node.oldAbsDrawRect_ = {2, 2, 3, 4};
     node.shouldPaint_ = true;
@@ -1484,7 +1463,7 @@ HWTEST_F(RSRenderNodeUnitTest3, UpdateDrawRectAndDirtyRegion002, TestSize.Level1
     properties.clipToFrame_ = true;
     properties.geoDirty_ = true;
     node.dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
-    node.isSelfDrawingNode_ = true;
+    node.SetSelfDrawingNode(true);
     node.srcOrClipedAbsDrawRectChangeFlag_ = true;
     node.shouldPaint_ = true;
     node.isLastVisible_ = true;

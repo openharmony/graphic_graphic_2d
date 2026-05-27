@@ -19,6 +19,7 @@
 #include "property/rs_properties_painter.h"
 
 #include "common/rs_optional_trace.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSUniHwcComputeUtil"
@@ -558,6 +559,50 @@ void RSUniHwcComputeUtil::UpdateHwcEnableByProperty(const std::shared_ptr<RSSurf
     }
 }
 
+void RSUniHwcComputeUtil::UpdateHwcNodeVcldInfo(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+    const std::shared_ptr<RSRenderNode>& parent)
+{
+    if (!RSUniHwcPrevalidateUtil::GetInstance().IsVcldEnabled()) {
+        return;
+    }
+    if (hwcNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        return;
+    }
+    RSVcldParam vcldInfo;
+    auto& parentProperty = parent->GetRenderProperties();
+    auto cornerRadius = parentProperty.GetCornerRadius();
+    auto maxCornerRadius = *std::max_element(std::begin(cornerRadius.data_), std::end(cornerRadius.data_));
+    if (maxCornerRadius == 0) {
+        return;
+    }
+    auto parentGeo = parentProperty.GetBoundsGeometry();
+    auto parentAbsRect = parentGeo->GetAbsRect();
+    auto hwcGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
+    auto hwcAbsRect = hwcGeo->MapRect(hwcNode->GetSelfDrawRect(), hwcNode->GetTotalMatrix());
+    auto dstRect = hwcNode->GetDstRect();
+    if (parentAbsRect == hwcAbsRect && dstRect == parentAbsRect) {
+        auto ratio = GetMaxAbsoluteRatioFromMatrix(hwcNode->GetTotalMatrix());
+        auto maxRadius = maxCornerRadius * ratio;
+        if (maxRadius < hwcNode->GetVcldInfo().radius) {
+            return;
+        }
+        vcldInfo.enable = true;
+        vcldInfo.radius = maxRadius;
+        hwcNode->SetVcldInfo(vcldInfo);
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(hwcNode->GetStagingRenderParams().get());
+        if (surfaceParams == nullptr) {
+            RS_LOGE("node[%{public}s] id[%{public}" PRIu64 "] GetStagingRenderParams is null.",
+                hwcNode->GetName().c_str(), hwcNode->GetId());
+            return;
+        }
+        RRect vcldRoundRect = RRect({0, 0, std::round(hwcGeo->GetWidth()), std::round(hwcGeo->GetHeight())},
+            {maxCornerRadius, maxCornerRadius, maxCornerRadius, maxCornerRadius});
+        surfaceParams->SetRRectForVCLD(vcldRoundRect);
+    }
+    RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " corner radius[%f]",
+        hwcNode->GetName().c_str(), hwcNode->GetId(), hwcNode->GetVcldInfo().radius);
+}
+
 void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
     if (hwcNode == nullptr) {
@@ -565,6 +610,7 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceR
         return;
     }
     std::vector<RectI> currIntersectedRoundCornerAABBs = {};
+    hwcNode->ResetVcldInfo();
     const auto& hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
     HwcPropertyContext ctx;
@@ -578,6 +624,7 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceR
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAlpha(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeTotalMatrix(parent, ctx); },
         [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAbsRotation(parent, ctx); },
+        [&hwcNode](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeVcldInfo(hwcNode, parent); },
         [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
             auto& parentProperty = parent->GetRenderProperties();
             auto cornerRadius = parentProperty.GetCornerRadius();
@@ -802,6 +849,12 @@ float RSUniHwcComputeUtil::GetFloatRotationDegreeFromMatrix(const Drawing::Matri
     matrix.GetAll(value);
     return std::atan2(value[Drawing::Matrix::Index::SKEW_X], value[Drawing::Matrix::Index::SCALE_X]) *
         (RS_ROTATION_180 / PI);
+}
+
+float RSUniHwcComputeUtil::GetMaxAbsoluteRatioFromMatrix(const Drawing::Matrix& matrix)
+{
+    return std::max({std::abs(matrix.Get(Drawing::Matrix::SCALE_X)), std::abs(matrix.Get(Drawing::Matrix::SCALE_Y)),
+        std::abs(matrix.Get(Drawing::Matrix::SKEW_X)), std::abs(matrix.Get(Drawing::Matrix::SKEW_Y))});
 }
 
 #undef CHECK_NULL_VOID

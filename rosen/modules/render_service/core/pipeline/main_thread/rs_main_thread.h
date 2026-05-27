@@ -48,6 +48,8 @@
 #include "pipeline/hwc/rs_hwc_context.h"
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
+#include "feature/tunnel_layer/rs_tunnel_layer_manager.h"
+#include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
@@ -68,6 +70,8 @@ class AccessibilityObserver;
 #endif
 class HgmRenderContext;
 class RSIRenderToServiceConnection;
+class RSTunnelLayerStateHandler;
+class RSSurfaceHandler;
 class RSUniRenderVisitor;
 class GPUCacheManager;
 namespace Detail {
@@ -127,6 +131,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect);
 
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
@@ -155,6 +160,13 @@ public:
         return *context_;
     }
 
+    bool HasContext() const
+    {
+        return context_ != nullptr;
+    }
+
+    RSTunnelLayerStateHandler* GetTunnelLayerStateHandler() const;
+
     void SetGlobalDarkColorMode(bool isDark)
     {
         isGlobalDarkColorMode_ = isDark;
@@ -177,7 +189,7 @@ public:
     void ClearSurfaceOcclusionChangeCallback(pid_t pid);
     bool SurfaceOcclusionCallBackIfOnTreeStateChanged();
 
-    void ClearTransactionDataPidInfo(pid_t remotePid);
+    void ClearTransactionDataPidInfo(pid_t remotePid, bool forRefresh = false);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
     void SetFocusAppInfo(const FocusAppInfo& info);
@@ -191,6 +203,11 @@ public:
 
     void AddUiCaptureTask(NodeId id, std::function<void()> task);
     void ProcessUiCaptureTasks();
+
+    void AddWindowCapTask(NodeId id, std::function<void()> task);
+    void CheckWindowCapTasks();
+    void ProcessWindowCapTasks();
+    bool IsSnapshotPendingThisFrame() const;
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
@@ -217,10 +234,12 @@ public:
     SystemAnimatedScenes GetSystemAnimatedScenes();
     bool GetIsRegularAnimation() const;
     // Save marks, and use it for SurfaceNodes later.
-    void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
         std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
-        SurfaceWatermarkType watermarkType, bool isSystemCalling = false);
+        SurfaceWatermarkType watermarkType, bool isSystemCalling = false,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
     void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
     void ClearSurfaceWatermark(pid_t pid);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
@@ -238,7 +257,7 @@ public:
 
     bool IsWatermarkFlagChanged() const
     {
-        return lastWatermarkFlag_ != watermarkFlag_;
+        return lastWatermarkFlag_ != watermarkFlag_ || lastWatermarkImg_ != watermarkImg_;
     }
 
     uint64_t GetFrameCount() const
@@ -423,7 +442,7 @@ public:
 
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
-    void CleanResources(pid_t pid);
+    void CleanResources(pid_t pid, bool forRefresh = false);
     bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
     
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
@@ -466,6 +485,7 @@ private:
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
     void Animate(uint64_t timestamp);
+    void RequestDelayedVSyncForAnimation(int64_t minLeftDelayTime, uint64_t timestamp, int64_t nextFrameTime);
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
     void Render();
@@ -520,8 +540,6 @@ private:
     void TraverseCanvasDrawingNodes();
 
     void SetFocusLeashWindowId();
-    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
-        const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
 #ifdef RES_SCHED_ENABLE
@@ -575,8 +593,6 @@ private:
     void EndGPUDraw();
 
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
-    void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     void CleanRenderNodes(pid_t remotePid) noexcept;
     void CleanBrightnessInfoChangeCallbacks(pid_t remotePid) noexcept;
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -610,6 +626,7 @@ private:
     bool isNeedResetClearMemoryTask_ = false;
     bool watermarkFlag_ = false;
     bool lastWatermarkFlag_ = false;
+    std::shared_ptr<Drawing::Image> lastWatermarkImg_ = nullptr;
     bool hasProtectedLayer_ = false;
     bool hasSurfaceLockLayer_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
@@ -787,6 +804,9 @@ private:
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
+    // for window captures
+    std::vector<std::tuple<NodeId, std::function<void()>, uint64_t, uint64_t, bool>> pendingWindowCapTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> windowCapTasks_;
     // uiextension
     std::mutex uiExtensionMutex_;
     UIExtensionCallbackData uiExtensionCallbackData_;
@@ -821,6 +841,8 @@ private:
 #endif
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
+    std::unique_ptr<RSTunnelLayerManager> tunnelLayerManager_ = nullptr;
+    std::unique_ptr<RSTunnelRouteArbiter> tunnelRouteArbiter_ = nullptr;
     std::mutex dumpInfoMutex_;
 
     bool hasCanvasDrawingNodeCachedOp_ = false;
@@ -830,7 +852,6 @@ private:
     uint32_t curFrameBufferReclaimCount_ = 0;
 
     // for surface fps op
-    std::mutex surfaceFpsOpMutex_;
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
     std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
 };

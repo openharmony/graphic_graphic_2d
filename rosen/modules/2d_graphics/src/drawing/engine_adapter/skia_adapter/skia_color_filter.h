@@ -47,7 +47,7 @@ public:
     void InitWithLuma() override;
     void InitWithOverDrawColor(const ColorQuad colors[OVER_DRAW_COLOR_NUM]) override;
     void InitWithLighting(ColorQuad mul, ColorQuad add) override;
-    sk_sp<SkColorFilter> GetColorFilter() const;
+    sk_sp<SkColorFilter> GetSkColorFilter() const override;
 
     /*
      * @brief  Update the member variable to filter, adaptation layer calls.

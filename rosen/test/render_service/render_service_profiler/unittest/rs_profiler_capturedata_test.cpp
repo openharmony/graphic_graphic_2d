@@ -222,9 +222,9 @@ HWTEST_F(RSProfilerCaptureDataTest, SerializationTest, testing::ext::TestSize.Le
     initialData.SetProperty("qwe", 4353);
     initialData.SetProperty("asd", 675.234);
     initialData.SetProperty("zxc", std::string { "important data" });
-    initialData.Serialize(buf);
+    ASSERT_TRUE(initialData.Serialize(buf));
 
-    recoveredData.Deserialize(buf);
+    ASSERT_TRUE(recoveredData.Deserialize(buf));
     EXPECT_EQ(initialData.time_, recoveredData.time_);
     EXPECT_EQ(initialData.properties_, recoveredData.properties_);
 }

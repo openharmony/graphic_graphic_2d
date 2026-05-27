@@ -104,6 +104,8 @@ public:
     void DrawImageRect(const Drawing::Image& image,
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling) override;
     void DrawPicture(const Drawing::Picture& picture) override;
+    void DrawGlyphs(int count, const uint16_t glyphs[], const Drawing::Point positions[],
+                    Drawing::Point origin, const Drawing::Font* font) override;
     void DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y) override;
 
     void ClearStencil(const Drawing::RectI& rect, uint32_t stencilVal) override;
@@ -215,7 +217,6 @@ protected:
     void DrawCustomFunc(Drawing::Canvas* canvas, DrawFunc drawFunc);
 
     Drawing::Canvas* canvas_ = nullptr;
-    std::stack<std::pair<uint32_t, DrawFunc>> customStack_;
 };
 
 // This class is used to filter the paint before drawing. currently, it is used to filter the alpha and foreground
@@ -284,14 +285,18 @@ public:
         NON_SHOT = 0,
         SDR_SCREENSHOT,
         SDR_WINDOWSHOT,
+        SDR_UICAPTURE,
         HDR_SCREENSHOT,
         HDR_WINDOWSHOT,
+        HDR_UICAPTURE,
     };
 
     struct HDRProperties {
         bool isHDREnabledVirtualScreen = false;
         float hdrBrightness = 1.0f; // Default 1.0f means max available headroom
         ScreenshotType screenshotType = ScreenshotType::NON_SHOT;
+        bool isEDRSurface = false;
+        DisplayIntent displayIntent = DisplayIntent::CANONICAL;
     };
 
     enum SaveType : uint8_t {
@@ -383,6 +388,8 @@ public:
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
         float refractOut_ = 0.f;
         std::shared_ptr<IGECacheProvider> geCacheProvider_ = nullptr;
+
+        std::shared_ptr<Drawing::Image> GetProviderDataChecked();
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
@@ -421,6 +428,8 @@ public:
         return offscreenDataList_;
     }
 
+    std::vector<std::shared_ptr<Drawing::Canvas>> GetOffscreenCanvasVector() const;
+
     void StoreCanvas()
     {
         if (storeMainCanvas_ == nullptr) {
@@ -450,8 +459,11 @@ public:
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
     bool GetHdrOn() const;
     void SetHdrOn(bool isHdrOn);
+    bool IsEDRSurface() const;
+    void SetEDRSurface(bool isEDRSurface);
     bool GetHDREnabledVirtualScreen() const;
     void SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScreen);
+    void SetDisplayIntent(DisplayIntent displayIntent);
     const HDRProperties& GetHDRProperties() const;
     bool GetIsWindowFreezeCapture() const;
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);

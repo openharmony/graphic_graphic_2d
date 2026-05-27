@@ -54,6 +54,7 @@ RSTransactionProxy* RSTransactionProxy::GetInstance()
 RSTransactionProxy::RSTransactionProxy()
 {
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+    renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>();
 }
 
 RSTransactionProxy::~RSTransactionProxy()
@@ -93,7 +94,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     RS_LOGI_IF(DEBUG_NODE,
         "RSTransactionProxy::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
         " followType:%{public}hu", nodeId, isRenderServiceCommand, followType);
-    if (renderPipelineClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
+    if (renderPipelineClient_ != nullptr && (isRenderServiceCommand || renderPipelineClient_ == nullptr)) {
         #ifdef ROSEN_OHOS
         if (isRenderServiceCommand && command->GetSubType() == RSCommandType::ANIMATION &&
             ExtractPid(nodeId) != getpid() && RSSystemProperties::GetDmaReclaimParam()) {

@@ -487,29 +487,34 @@ bool ConvertVector4fFromAniTuple(OHOS::Rosen::Vector4f& vector4f, uintptr_t opaq
     return true;
 }
 
+void SetVectorCoeff(OHOS::Rosen::BrightnessBlender& blender, const Tuple3F& coeff, bool isPositive)
+{
+    OHOS::Rosen::Vector3f vector3f(static_cast<float>(coeff.x),
+                                 static_cast<float>(coeff.y),
+                                 static_cast<float>(coeff.z));
+    if (isPositive) {
+        blender.SetPositiveCoeff(vector3f);
+    } else {
+        blender.SetNegativeCoeff(vector3f);
+    }
+}
+
 // without OHOS::Rosen::BrightnessBlender SetHdr
 bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const BrightnessBlender& brightnessBlender)
 {
-    blender.SetCubicRate(brightnessBlender.cubicRate);
-    blender.SetQuadRate(brightnessBlender.quadraticRate);
-    blender.SetLinearRate(brightnessBlender.linearRate);
-    blender.SetDegree(brightnessBlender.degree);
-    blender.SetSaturation(brightnessBlender.saturation);
+    blender.SetCubicRate(static_cast<float>(brightnessBlender->getCubicRate()));
+    blender.SetQuadRate(static_cast<float>(brightnessBlender->getQuadraticRate()));
+    blender.SetLinearRate(static_cast<float>(brightnessBlender->getLinearRate()));
+    blender.SetDegree(static_cast<float>(brightnessBlender->getDegree()));
+    blender.SetSaturation(static_cast<float>(brightnessBlender->getSaturation()));
 
-    OHOS::Rosen::Vector3f vector3f;
-    if (!ConvertVector3fFromAniTuple(vector3f, brightnessBlender.positiveCoefficient)) {
-        UIEFFECT_LOG_E("ParseBrightnessBlender parse positiveCoefficient failed");
-        return false;
-    }
-    blender.SetPositiveCoeff(vector3f);
+    auto posCoeff = brightnessBlender->getPositiveCoefficient();
+    SetVectorCoeff(blender, posCoeff, true);
 
-    if (!ConvertVector3fFromAniTuple(vector3f, brightnessBlender.negativeCoefficient)) {
-        UIEFFECT_LOG_E("ParseBrightnessBlender parse negativeCoefficient failed");
-        return false;
-    }
-    blender.SetNegativeCoeff(vector3f);
+    auto negCoeff = brightnessBlender->getNegativeCoefficient();
+    SetVectorCoeff(blender, negCoeff, false);
 
-    blender.SetFraction(brightnessBlender.fraction);
+    blender.SetFraction(static_cast<float>(brightnessBlender->getFraction()));
     return true;
 }
 

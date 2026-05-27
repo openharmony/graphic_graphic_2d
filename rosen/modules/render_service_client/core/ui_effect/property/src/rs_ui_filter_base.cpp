@@ -19,6 +19,7 @@
 
 #include "ui_effect/filter/include/filter_bezier_warp_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
+#include "ui_effect/filter/include/filter_blur_bubbles_rise_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_content_light_para.h"
 #include "ui_effect/filter/include/filter_direction_light_para.h"
@@ -30,8 +31,10 @@
 #include "ui_effect/filter/include/filter_gasify_blur_para.h"
 #include "ui_effect/filter/include/filter_gasify_para.h"
 #include "ui_effect/filter/include/filter_gasify_scale_twist_para.h"
+#include "ui_effect/filter/include/filter_heat_distortion_para.h"
 #include "ui_effect/filter/include/filter_magnifier_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
+#include "ui_effect/filter/include/filter_motion_blur_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
 
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
@@ -96,6 +99,14 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGContentLightFilter>();
         }
     },
+    {RSNGEffectType::HEAT_DISTORTION, [] {
+            return std::make_shared<RSNGHeatDistortionFilter>();
+        }
+    },
+    {RSNGEffectType::BLUR_BUBBLES_RISE, [] {
+            return std::make_shared<RSNGBlurBubblesRiseFilter>();
+        }
+    },
     {RSNGEffectType::GASIFY_SCALE_TWIST, [] {
             return std::make_shared<RSNGGasifyScaleTwistFilter>();
         }
@@ -108,6 +119,7 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGGasifyFilter>();
         }
     },
+#ifndef ROSEN_ARKUI_X
     {RSNGEffectType::FROSTED_GLASS, [] {
             return std::make_shared<RSNGFrostedGlassFilter>();
         }
@@ -116,6 +128,7 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGFrostedGlassBlurFilter>();
         }
     },
+#endif
     {RSNGEffectType::GRID_WARP, [] {
             return std::make_shared<RSNGGridWarpFilter>();
         }
@@ -132,6 +145,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGDistortionCollapseFilter>();
         }
     },
+    {RSNGEffectType::MOTION_BLUR, [] {
+            return std::make_shared<RSNGMotionBlurFilter>();
+        }
+    },
 };
 
 namespace {
@@ -144,7 +161,9 @@ std::shared_ptr<RSNGFilterBase> ConvertDisplacementDistortFilterPara(std::shared
     auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
     auto dispDistortFilterPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
     dispDistortFilter->Setter<DispDistortFactorTag>(dispDistortFilterPara->GetFactor());
+#if !defined(ROSEN_ARKUI_X)
     dispDistortFilter->Setter<DispDistortMaskTag>(RSNGMaskBase::Create(dispDistortFilterPara->GetMask()));
+#endif
     return dispDistortFilter;
 }
 
@@ -201,7 +220,9 @@ std::shared_ptr<RSNGFilterBase> ConvertEdgeLightFilterPara(std::shared_ptr<Filte
     auto edgeLightFilterPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
     edgeLightFilter->Setter<EdgeLightColorTag>(edgeLightFilterPara->GetColor());
     edgeLightFilter->Setter<EdgeLightAlphaTag>(edgeLightFilterPara->GetAlpha());
+#ifndef ROSEN_ARKUI_X
     edgeLightFilter->Setter<EdgeLightMaskTag>(RSNGMaskBase::Create(edgeLightFilterPara->GetMask()));
+#endif
     edgeLightFilter->Setter<EdgeLightBloomTag>(edgeLightFilterPara->GetBloom());
     edgeLightFilter->Setter<EdgeLightUseRawColorTag>(edgeLightFilterPara->GetUseRawColor());
     return edgeLightFilter;
@@ -215,7 +236,9 @@ std::shared_ptr<RSNGFilterBase> ConvertDispersionFilterPara(std::shared_ptr<Filt
     }
     auto dispersionFilter = std::static_pointer_cast<RSNGDispersionFilter>(filter);
     auto dispersionFilterPara = std::static_pointer_cast<DispersionPara>(filterPara);
+#ifndef ROSEN_ARKUI_X
     dispersionFilter->Setter<DispersionMaskTag>(RSNGMaskBase::Create(dispersionFilterPara->GetMask()));
+#endif
     dispersionFilter->Setter<DispersionOpacityTag>(dispersionFilterPara->GetOpacity());
     dispersionFilter->Setter<DispersionRedOffsetTag>(dispersionFilterPara->GetRedOffset());
     dispersionFilter->Setter<DispersionGreenOffsetTag>(dispersionFilterPara->GetGreenOffset());
@@ -234,7 +257,9 @@ std::shared_ptr<RSNGFilterBase> ConvertColorGradientFilterPara(std::shared_ptr<F
     colorGradientFilter->Setter<ColorGradientColorsTag>(colorGradientFilterPara->GetColors());
     colorGradientFilter->Setter<ColorGradientPositionsTag>(colorGradientFilterPara->GetPositions());
     colorGradientFilter->Setter<ColorGradientStrengthsTag>(colorGradientFilterPara->GetStrengths());
+#ifndef ROSEN_ARKUI_X
     colorGradientFilter->Setter<ColorGradientMaskTag>(RSNGMaskBase::Create(colorGradientFilterPara->GetMask()));
+#endif
     return colorGradientFilter;
 }
 
@@ -247,7 +272,9 @@ std::shared_ptr<RSNGFilterBase> ConvertDirectionLightFilterPara(std::shared_ptr<
     }
     auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
     auto directionLightFilterPara = std::static_pointer_cast<DirectionLightPara>(filterPara);
+#ifndef ROSEN_ARKUI_X
     directionLightFilter->Setter<DirectionLightMaskTag>(RSNGMaskBase::Create(directionLightFilterPara->GetMask()));
+#endif
     directionLightFilter->Setter<DirectionLightFactorTag>(directionLightFilterPara->GetMaskFactor());
     directionLightFilter->Setter<DirectionLightDirectionTag>(directionLightFilterPara->GetLightDirection());
     directionLightFilter->Setter<DirectionLightColorTag>(directionLightFilterPara->GetLightColor());
@@ -264,7 +291,9 @@ std::shared_ptr<RSNGFilterBase> ConvertMaskTransitionFilterPara(std::shared_ptr<
     }
     auto maskTransitionFilter = std::static_pointer_cast<RSNGMaskTransitionFilter>(filter);
     auto maskTransitionFilterPara = std::static_pointer_cast<MaskTransitionPara>(filterPara);
+#ifndef ROSEN_ARKUI_X
     maskTransitionFilter->Setter<MaskTransitionMaskTag>(RSNGMaskBase::Create(maskTransitionFilterPara->GetMask()));
+#endif
     maskTransitionFilter->Setter<MaskTransitionFactorTag>(maskTransitionFilterPara->GetFactor());
     maskTransitionFilter->Setter<MaskTransitionInverseTag>(maskTransitionFilterPara->GetInverse());
     return maskTransitionFilter;
@@ -279,8 +308,10 @@ std::shared_ptr<RSNGFilterBase> ConvertVariableRadiusBlurFilterPara(std::shared_
     auto variableRadiusBlurFilter = std::static_pointer_cast<RSNGVariableRadiusBlurFilter>(filter);
     auto variableRadiusBlurFilterPara = std::static_pointer_cast<VariableRadiusBlurPara>(filterPara);
     variableRadiusBlurFilter->Setter<VariableRadiusBlurRadiusTag>(variableRadiusBlurFilterPara->GetBlurRadius());
+#ifndef ROSEN_ARKUI_X
     variableRadiusBlurFilter->Setter<VariableRadiusBlurMaskTag>(
         RSNGMaskBase::Create(variableRadiusBlurFilterPara->GetMask()));
+#endif
     return variableRadiusBlurFilter;
 }
 
@@ -314,6 +345,39 @@ std::shared_ptr<RSNGFilterBase> ConvertContentLightFilterPara(std::shared_ptr<Fi
     return contentLightFilter;
 }
 
+std::shared_ptr<RSNGFilterBase> ConvertHeatDistortionFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::HEAT_DISTORTION);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertHeatDistortionFilterPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto heatDistortionFilter = std::static_pointer_cast<RSNGHeatDistortionFilter>(filter);
+    auto heatDistortionFilterPara = std::static_pointer_cast<HeatDistortionPara>(filterPara);
+    heatDistortionFilter->Setter<HeatDistortionIntensityTag>(heatDistortionFilterPara->GetIntensity());
+    heatDistortionFilter->Setter<HeatDistortionNoiseScaleTag>(heatDistortionFilterPara->GetNoiseScale());
+    heatDistortionFilter->Setter<HeatDistortionRiseWeightTag>(heatDistortionFilterPara->GetRiseWeight());
+    heatDistortionFilter->Setter<HeatDistortionProgressTag>(heatDistortionFilterPara->GetProgress());
+    return heatDistortionFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertBlurBubblesRiseFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::BLUR_BUBBLES_RISE);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertBlurBubblesRiseFilterPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto blurBubblesRiseFilter = std::static_pointer_cast<RSNGBlurBubblesRiseFilter>(filter);
+    auto blurBubblesRiseFilterPara = std::static_pointer_cast<BlurBubblesRisePara>(filterPara);
+    blurBubblesRiseFilter->Setter<BlurBubblesRiseBlurIntensityTag>(blurBubblesRiseFilterPara->GetBlurIntensity());
+    blurBubblesRiseFilter->Setter<BlurBubblesRiseMixStrengthTag>(blurBubblesRiseFilterPara->GetMixStrength());
+    blurBubblesRiseFilter->Setter<BlurBubblesRiseProgressTag>(blurBubblesRiseFilterPara->GetProgress());
+    blurBubblesRiseFilter->Setter<BlurBubblesRiseMaskImageTag>(blurBubblesRiseFilterPara->GetMaskImage());
+    return blurBubblesRiseFilter;
+}
+
+#ifndef ROSEN_ARKUI_X
 void ConvertOptionalAdaptivePara(FrostedGlassPara const* para, RSNGFrostedGlassFilter* frostedGlassFilter)
 {
     if (auto darkMode = para->GetDarkAdaptiveParams(); darkMode) {
@@ -325,9 +389,11 @@ void ConvertOptionalAdaptivePara(FrostedGlassPara const* para, RSNGFrostedGlassF
         frostedGlassFilter->Setter<FrostedGlassDarkModeBgNegTag>(darkMode->bgNeg);
     }
 }
+#endif
 
 std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPara> filterPara)
 {
+#ifndef ROSEN_ARKUI_X
     auto filter = RSNGFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
     if (filter == nullptr || filterPara == nullptr) {
         ROSEN_LOGE("ConvertFrostedGlassPara filter or filterPara is nullptr");
@@ -370,10 +436,14 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassSkipFrameEnableTag>(
         frostedGlassFilterPara->GetSkipFrameEnable());
     return frostedGlassFilter;
+#else
+    return nullptr;
+#endif
 }
 
 std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<FilterPara> filterPara)
 {
+#ifndef ROSEN_ARKUI_X
     auto filter = RSNGFilterBase::Create(RSNGEffectType::FROSTED_GLASS_BLUR);
     auto frostedGlassBlurFilter = std::static_pointer_cast<RSNGFrostedGlassBlurFilter>(filter);
     auto frostedGlassBlurFilterPara = std::static_pointer_cast<FrostedGlassBlurPara>(filterPara);
@@ -383,6 +453,9 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<Filt
     frostedGlassBlurFilter->Setter<FrostedGlassBlurSkipFrameEnableTag>(
         frostedGlassBlurFilterPara->GetSkipFrameEnable());
     return frostedGlassBlurFilter;
+#else
+    return nullptr;
+#endif
 }
 
 std::shared_ptr<RSNGFilterBase> ConvertMagnifierPara(std::shared_ptr<FilterPara> filterPara)
@@ -409,6 +482,21 @@ std::shared_ptr<RSNGFilterBase> ConvertMagnifierPara(std::shared_ptr<FilterPara>
     magnifierFilter->Setter<MagnifierOuterContourColor2Tag>(RSColor(magnifierFilterPara->GetOuterContourColor2()));
     return magnifierFilter;
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertMotionBlurPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::MOTION_BLUR);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertMotionBlurPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto motionBlurFilter = std::static_pointer_cast<RSNGMotionBlurFilter>(filter);
+    auto motionBlurFilterPara = std::static_pointer_cast<MotionBlurPara>(filterPara);
+    motionBlurFilter->Setter<MotionBlurRadiusTag>(motionBlurFilterPara->GetRadius());
+    motionBlurFilter->Setter<MotionBlurAnchorTag>(motionBlurFilterPara->GetAnchor());
+    motionBlurFilter->Setter<MotionBlurSampleCountTag>(motionBlurFilterPara->GetSampleCount());
+    return motionBlurFilter;
+}
 } // namespace
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
@@ -427,6 +515,9 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::FROSTED_GLASS, ConvertFrostedGlassPara },
     { FilterPara::ParaType::FROSTED_GLASS_BLUR, ConvertFrostedGlassBlurPara },
     { FilterPara::ParaType::MAGNIFIER, ConvertMagnifierPara },
+    { FilterPara::ParaType::HEAT_DISTORTION, ConvertHeatDistortionFilterPara },
+    { FilterPara::ParaType::BLUR_BUBBLES_RISE, ConvertBlurBubblesRiseFilterPara },
+    { FilterPara::ParaType::MOTION_BLUR, ConvertMotionBlurPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)

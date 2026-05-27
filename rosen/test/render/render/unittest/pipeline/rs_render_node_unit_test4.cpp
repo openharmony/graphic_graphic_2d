@@ -532,15 +532,12 @@ HWTEST_F(RSRenderNodeUnitTest4, FilterModifiersByPidTest, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeUnitTest4, GetDrawableVecTest001, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     EXPECT_NE(node, nullptr);
     node->drawableVec_ = nullptr;
     node->GetDrawableVec(__func__);
     EXPECT_NE(node->drawableVec, nullptr);
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -551,7 +548,6 @@ HWTEST_F(RSRenderNodeUnitTest4, GetDrawableVecTest001, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeUnitTest4, SetIsOnTheTreeTest002, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     auto node = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(node, nullptr);
     node->isTextureExportNode_ = true;
@@ -559,8 +555,6 @@ HWTEST_F(RSRenderNodeUnitTest4, SetIsOnTheTreeTest002, TestSize.Level1)
     node->SetIsOnTheTree(true, 0, 1, 1, 1);
     node->isOnTheTree_ = true;
     node->SetIsOnTheTree(false, 0, 1, 1, 1);
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -571,11 +565,10 @@ HWTEST_F(RSRenderNodeUnitTest4, SetIsOnTheTreeTest002, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeUnitTest4, ClearDrawableVec2Test001, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     EXPECT_NE(node, nullptr);
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
@@ -583,30 +576,28 @@ HWTEST_F(RSRenderNodeUnitTest4, ClearDrawableVec2Test001, TestSize.Level1)
 
     auto backgroundColorDrawable =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::TRANSITION)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::TRANSITION)], nullptr);
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)], nullptr);
 
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)], nullptr);
 
-    node->drawableVecNeedClear_ = true;
+    node->SetDrawableVecNeedClear(true);
     node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY)] =
         std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     node->ClearDrawableVec2();
     EXPECT_EQ(node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY)], nullptr);
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -617,7 +608,6 @@ HWTEST_F(RSRenderNodeUnitTest4, ClearDrawableVec2Test001, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeUnitTest4, InitRenderDrawableAndDrawableVec001, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     EXPECT_NE(node, nullptr);
@@ -641,8 +631,6 @@ HWTEST_F(RSRenderNodeUnitTest4, InitRenderDrawableAndDrawableVec001, TestSize.Le
     node->InitRenderDrawableAndDrawableVec();
     EXPECT_NE(static_cast<int>(node->dirtyStatus_), 1);
     EXPECT_FALSE(node->released_);
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -653,7 +641,6 @@ HWTEST_F(RSRenderNodeUnitTest4, InitRenderDrawableAndDrawableVec001, TestSize.Le
  */
 HWTEST_F(RSRenderNodeUnitTest4, InitRenderDrawableAndDrawableVec002, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     EXPECT_NE(node, nullptr);
@@ -687,9 +674,6 @@ HWTEST_F(RSRenderNodeUnitTest4, InitRenderDrawableAndDrawableVec002, TestSize.Le
     EXPECT_EQ(static_cast<int>(node->dirtyStatus_), 1);
     EXPECT_TRUE(node->parent_.lock()->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CHILDREN)));
     EXPECT_FALSE(node->released_);
-
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -700,7 +684,6 @@ HWTEST_F(RSRenderNodeUnitTest4, InitRenderDrawableAndDrawableVec002, TestSize.Le
  */
 HWTEST_F(RSRenderNodeUnitTest4, MarkBlurIntersectWithDRM, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
@@ -710,8 +693,6 @@ HWTEST_F(RSRenderNodeUnitTest4, MarkBlurIntersectWithDRM, TestSize.Level1)
     backgroundNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     backgroundNode.MarkBlurIntersectWithDRM(true, true);
     EXPECT_EQ(filterDrawable->stagingIntersectWithDRM_, true);
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -722,7 +703,6 @@ HWTEST_F(RSRenderNodeUnitTest4, MarkBlurIntersectWithDRM, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeUnitTest4, NodeDrawLargeAreaBlur, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
@@ -733,8 +713,6 @@ HWTEST_F(RSRenderNodeUnitTest4, NodeDrawLargeAreaBlur, TestSize.Level1)
     backgroundNode.NodeDrawLargeAreaBlur(nodeBlurState);
     EXPECT_EQ(nodeBlurState.first, false);
     EXPECT_EQ(nodeBlurState.second, false);
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -745,7 +723,6 @@ HWTEST_F(RSRenderNodeUnitTest4, NodeDrawLargeAreaBlur, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeUnitTest4, InvokeFilterDrawable, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
@@ -760,8 +737,6 @@ HWTEST_F(RSRenderNodeUnitTest4, InvokeFilterDrawable, TestSize.Level1)
     };
     EXPECT_EQ(backgroundNode.InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc), true);
     EXPECT_EQ(backgroundNode.InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc), false);
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -772,7 +747,6 @@ HWTEST_F(RSRenderNodeUnitTest4, InvokeFilterDrawable, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeUnitTest4, GetFilterDrawable2, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
@@ -782,8 +756,6 @@ HWTEST_F(RSRenderNodeUnitTest4, GetFilterDrawable2, TestSize.Level1)
     EXPECT_EQ(backgroundNode.GetFilterDrawable(RSDrawableSlot::BACKGROUND_IMAGE) != nullptr, false);
     EXPECT_EQ(backgroundNode.GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER) != nullptr, true);
     EXPECT_EQ(backgroundNode.GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER) != nullptr, false);
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -794,7 +766,6 @@ HWTEST_F(RSRenderNodeUnitTest4, GetFilterDrawable2, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeUnitTest4, MarkFilterInForegroundFilterAndCheckNeedForceClearCache, TestSize.Level1)
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     // material filter
     RSRenderNode backgroundNode(id, context);
     auto& bgProperties = backgroundNode.GetMutableRenderProperties();
@@ -804,8 +775,6 @@ HWTEST_F(RSRenderNodeUnitTest4, MarkFilterInForegroundFilterAndCheckNeedForceCle
     backgroundNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     backgroundNode.MarkFilterInForegroundFilterAndCheckNeedForceClearCache(id);
     EXPECT_EQ(filterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
-#endif
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -952,7 +921,7 @@ HWTEST_F(RSRenderNodeUnitTest4, ApplyModifiersProcessUnionInfoAfterApplyModifier
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -968,7 +937,7 @@ HWTEST_F(RSRenderNodeUnitTest4, ApplyModifiersProcessUnionInfoAfterApplyModifier
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
-    ASSERT_FALSE(node->renderProperties_.useUnion_);
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
 }
 
 /**
@@ -1862,21 +1831,20 @@ HWTEST_F(RSRenderNodeUnitTest4, GenerateFullChildrenListTest02, TestSize.Level1)
     node->GenerateFullChildrenList();
     EXPECT_TRUE(node->children_.empty());
     std::shared_ptr<RSRenderNode> sNode1 = std::make_shared<RSRenderNode>(id, context);
-    sNode1->isBootAnimation_ = false;
     wNode1 = sNode1;
     node->children_.emplace_back(wNode1); // wNode1 isn't nullptr
 
-    node->isContainBootAnimation_ = false;
+    node->SetContainBootAnimation(false);
     node->GenerateFullChildrenList();
 
-    node->isContainBootAnimation_ = true;
+    node->SetContainBootAnimation(true);
     node->GenerateFullChildrenList();
 
     // disappearingChildren_ isn't empty
     node->disappearingChildren_.emplace_back(sNode1, id);
     node->GenerateFullChildrenList();
 
-    node->isContainBootAnimation_ = false;
+    node->SetContainBootAnimation(false);
     node->GenerateFullChildrenList();
 }
 

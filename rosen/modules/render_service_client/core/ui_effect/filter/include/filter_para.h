@@ -73,6 +73,9 @@ public:
         FROSTED_GLASS,
         FROSTED_GLASS_BLUR,
         MAGNIFIER,
+        HEAT_DISTORTION,
+        BLUR_BUBBLES_RISE,
+        MOTION_BLUR,
     };
 
     static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;

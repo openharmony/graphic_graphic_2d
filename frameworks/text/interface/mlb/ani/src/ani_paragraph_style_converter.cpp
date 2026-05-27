@@ -41,6 +41,8 @@ void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
         env, obj, AniGlobalMethod::GetInstance().paragraphStyleAutoSpace, paragraphStyle->enableAutoSpace);
     AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleCompressHeadPunctuation,
         paragraphStyle->compressHeadPunctuation);
+    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStylePunctuationOverflow,
+        paragraphStyle->punctuationOverflow);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textVerticalAlign,
         AniGlobalMethod::GetInstance().paragraphStyleVerticalAlign, paragraphStyle->verticalAlignment);
     AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleIncludeFontPadding,
@@ -51,6 +53,22 @@ void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
         paragraphStyle->orphanCharOptimization);
     AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleLineSpacing,
         paragraphStyle->lineSpacing);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleFirstLineIndent,
+        paragraphStyle->firstLineIndent);
+    auto doubleConvert = [](ani_env* env, ani_ref ref) {
+        ani_double objValue = 0;
+        ani_object obj = reinterpret_cast<ani_object>(ref);
+        ani_status ret = env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().doubleGet, &objValue);
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to get double, ret %{public}d", ret);
+            return 0.0;
+        }
+        return objValue;
+    };
+    AniTextUtils::ReadOptionalArrayField<double>(env, obj, AniGlobalMethod::GetInstance().paragraphStyleTailIndents,
+        paragraphStyle->tailIndents, doubleConvert);
+    AniTextUtils::ReadOptionalArrayField<double>(env, obj, AniGlobalMethod::GetInstance().paragraphStyleHeadIndents,
+        paragraphStyle->headIndents, doubleConvert);
 }
 
 ani_status ParagraphStyleGetMaxLine(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
@@ -236,6 +254,12 @@ void AniParagraphStyleConverter::ParseTypographyStyleToAni(
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textVerticalAlign,
             aniGetEnumIndex(AniTextEnum::textVerticalAlign, static_cast<uint32_t>(style.verticalAlignment))),
         AniTextUtils::CreateAniBooleanObj(env, style.compressHeadPunctuation),
-        AniTextUtils::CreateAniDoubleObj(env, style.lineSpacing));
+        AniTextUtils::CreateAniBooleanObj(env, style.punctuationOverflow),
+        AniTextUtils::CreateAniDoubleObj(env, style.lineSpacing),
+        AniTextUtils::CreateAniDoubleObj(env, style.firstLineIndent),
+        AniTextUtils::CreateAniArrayAndInitData(env, style.tailIndents, style.tailIndents.size(),
+            [](ani_env* env, const double& item) { return AniTextUtils::CreateAniDoubleObj(env, item); }),
+        AniTextUtils::CreateAniArrayAndInitData(env, style.headIndents, style.headIndents.size(),
+            [](ani_env* env, const double& item) { return AniTextUtils::CreateAniDoubleObj(env, item); }));
 }
 } // namespace OHOS::Text::ANI

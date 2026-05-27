@@ -107,13 +107,12 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue002, testing::
     EXPECT_EQ(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS), 0x000022);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE), 0x000023);
-    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
-        0x000024);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
         0x000025);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
         0x000026);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP), 0x000027);
+    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HDR_FORCE_HWC_ENABLED), 0x000048);
     EXPECT_EQ(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT), 0x000028);
     EXPECT_EQ(
@@ -234,7 +233,7 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue004, testing::
         0x00500D);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP), 0x005010);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID),
-        0x005012);
+        0x005013);
     EXPECT_EQ(static_cast<uint32_t>(
         RSIClientToServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK), 0x00500E);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK),
@@ -367,6 +366,8 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue006, testing::
         0x010001);
 #endif
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE), 0x012000);
+
+    EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS), 0X17000);
 }
 
 /**

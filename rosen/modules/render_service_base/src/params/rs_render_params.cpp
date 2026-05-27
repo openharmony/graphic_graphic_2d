@@ -64,11 +64,11 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
 void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix) const
 {
     if (UNLIKELY(HasSandBox())) {
-        if (applyMatrix) {
-            canvas.SetMatrix(parentSurfaceMatrix_);
-            canvas.ConcatMatrix(matrix_);
-        }
         canvas.SetAlpha(alpha_);
+        if (!applyMatrix) {
+            return;
+        }
+        ApplySandboxMatrixToCanvas(canvas);
     } else {
         if (applyMatrix) {
             canvas.ConcatMatrix(matrix_);
@@ -132,6 +132,15 @@ void RSRenderParams::SetShouldPaint(bool shouldPaint)
     needSync_ = true;
 }
 
+void RSRenderParams::SetDoubleSidedEnabled(bool isDoubleSided)
+{
+    if (isDoubleSided_ == isDoubleSided) {
+        return;
+    }
+    isDoubleSided_ = isDoubleSided;
+    needSync_ = true;
+}
+
 void RSRenderParams::SetContentEmpty(bool empty)
 {
     if (contentEmpty_ == empty) {
@@ -161,11 +170,20 @@ void RSRenderParams::SetChildHasVisibleEffect(bool val)
 
 void RSRenderParams::SetCacheSize(Vector2f size)
 {
-    if (cacheSize_ == size) {
-        return;
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
     }
-    cacheSize_ = size;
-    needSync_ = true;
+    if (renderGroupCache_ && renderGroupCache_->SetCacheSize(size)) {
+        needSync_ = true;
+    }
+}
+
+Vector2f RSRenderParams::GetCacheSize() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->GetCacheSize();
+    }
+    return Vector2f();
 }
 
 void RSRenderParams::SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced)
@@ -290,6 +308,27 @@ bool RSRenderParams::ChildHasTranslateOnSqueeze() const
     return false;
 }
 
+void RSRenderParams::SetNodeGroupHasChildInBlacklist(bool inBlacklist)
+{
+    if (NodeGroupHasChildInBlacklist() == inBlacklist) {
+        return;
+    }
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetNodeGroupHasChildInBlacklist(inBlacklist)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::NodeGroupHasChildInBlacklist() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->NodeGroupHasChildInBlacklist();
+    }
+    return false;
+}
+
 void RSRenderParams::SetNeedClipHoleForFilter(bool val)
 {
     if (NeedClipHoleForFilter() == val) {
@@ -311,22 +350,71 @@ bool RSRenderParams::NeedClipHoleForFilter() const
     return false;
 }
 
-void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
+void RSRenderParams::SetNeedClearRenderGroupCache(bool needClear)
 {
-    if (drawingCacheIncludeProperty_ == includeProperty) {
-        return;
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
     }
-    drawingCacheIncludeProperty_ = includeProperty;
-    needSync_ = true;
+    if (renderGroupCache_->SetNeedClearRenderGroupCache(needClear)) {
+        needSync_ = true;
+    }
+}
+bool RSRenderParams::NeedClearRenderGroupCache() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->NeedClearRenderGroupCache();
+    }
+    return false;
 }
 
-void RSRenderParams::SetRSFreezeFlag(bool freezeFlag)
+void RSRenderParams::SetRenderGroupIncludeProperty(bool includeProperty)
 {
-    if (freezeFlag_ == freezeFlag) {
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetRenderGroupIncludeProperty(includeProperty)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::IsRenderGroupIncludeProperty() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->IsRenderGroupIncludeProperty();
+    }
+    return false;
+}
+
+void RSRenderParams::SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI)
+{
+    if (GetRSFreezeFlag() == freezeFlag) {
         return;
     }
-    freezeFlag_ = freezeFlag;
-    needSync_ = true;
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_->SetRSFreezeFlag(freezeFlag, isMarkedByUI)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::GetRSFreezeFlag() const
+{
+    return GetRSFreezeFlagType() != RSRenderGroupCache::RSFreezeFlag::NONE;
+}
+
+RSRenderGroupCache::RSFreezeFlag RSRenderParams::GetRSFreezeFlagType() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->GetRSFreezeFlag();
+    }
+    return RSRenderGroupCache::RSFreezeFlag::NONE;
+}
+
+bool RSRenderParams::IsFreezedByUser() const
+{
+    return (GetRSFreezeFlagType() & RSRenderGroupCache::RSFreezeFlag::FREEZED_BY_USER) !=
+            RSRenderGroupCache::RSFreezeFlag::NONE;
 }
 
 void RSRenderParams::OpincSetIsSuggest(bool isSuggest)
@@ -365,6 +453,32 @@ void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
         needSync_ = needSync_ || (isOpincStateChanged_ || (isOpincStateChanged_ != state));
         isOpincStateChanged_ = isOpincStateChanged_ || state;
     }
+}
+
+void RSRenderParams::ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const
+{
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    auto originalCanvas = paintFilterCanvas->GetOriginalCanvas();
+    if (!originalCanvas || paintFilterCanvas->GetOffscreenDataList().empty()) {
+        canvas.SetMatrix(parentSurfaceMatrix_);
+        canvas.ConcatMatrix(matrix_);
+        return;
+    }
+    Drawing::Matrix combinedMatrix;
+    Drawing::Matrix invertMatrix;
+    auto offscreenCanvasVector = paintFilterCanvas->GetOffscreenCanvasVector();
+    // skip current canvas, concat all stacked offscreen canvas
+    for (size_t i = 1; i < offscreenCanvasVector.size(); ++i) {
+        if (const auto& offscreenCanvas = offscreenCanvasVector[i]) {
+            offscreenCanvas->GetTotalMatrix().Invert(invertMatrix);
+            combinedMatrix.PreConcat(invertMatrix);
+        }
+    }
+    originalCanvas->GetTotalMatrix().Invert(invertMatrix);
+    combinedMatrix.PreConcat(invertMatrix);
+    canvas.SetMatrix(combinedMatrix);
+    canvas.ConcatMatrix(parentSurfaceMatrix_);
+    canvas.ConcatMatrix(matrix_);
 }
 
 void RSRenderParams::SetLayerPartRenderEnabled(bool enable)
@@ -449,7 +563,8 @@ void RSRenderParams::SetNodeColorSpace(GraphicColorGamut colorSpace)
 void RSRenderParams::ClearHDRVideoStatus()
 {
     HdrStatus newStatus = static_cast<HdrStatus>(
-        hdrStatus_ & ~(HdrStatus::HDR_VIDEO | HdrStatus::AI_HDR_VIDEO_GTM | HdrStatus::AI_HDR_VIDEO_GAINMAP));
+        hdrStatus_ & ~(HdrStatus::HDR_VIDEO | HdrStatus::AI_HDR_VIDEO_GTM
+            | HdrStatus::AI_HDR_VIDEO_GAINMAP | HdrStatus::AI_HDR_VIDEO_AI2020));
     if (newStatus == hdrStatus_) {
         return;
     }
@@ -566,7 +681,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasSandBox_ = hasSandBox_;
     target->localDrawRect_ = localDrawRect_;
     target->id_ = id_;
-    target->cacheSize_ = cacheSize_;
     target->frameGravity_ = frameGravity_;
     target->childHasVisibleFilter_ = childHasVisibleFilter_;
     target->childHasVisibleEffect_ = childHasVisibleEffect_;
@@ -574,12 +688,9 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     // (flag in render param may be not used because of occlusion skip, so we need to update cache in next frame)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
-    target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
-    target->isNodeGroupHasChildInBlacklist_ = isNodeGroupHasChildInBlacklist_;
     if (renderGroupCache_) {
         target->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
     }
-    target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;
     target->hdrBrightness_ = hdrBrightness_;
@@ -603,7 +714,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isLayerPartRenderEnable_ = isLayerPartRenderEnable_;
     target->layerPartRenderCurrentFrameDirtyRegion_ = layerPartRenderCurrentFrameDirtyRegion_;
     target->startingWindowFlag_ = startingWindowFlag_;
-    target->freezeFlag_ = freezeFlag_;
+    target->isDoubleSided_ = isDoubleSided_;
     target->absDrawRect_ = absDrawRect_;
     target->firstLevelNodeId_ = firstLevelNodeId_;
     target->uifirstRootNodeId_ = uifirstRootNodeId_;

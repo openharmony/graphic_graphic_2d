@@ -16,8 +16,13 @@
 #ifndef RENDER_GROUP_CACHE_DRAWABLE_H
 #define RENDER_GROUP_CACHE_DRAWABLE_H
 
+#include <atomic>
+#include <mutex>
+
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "draw/surface.h"
+#include "image/image.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -43,10 +48,52 @@ public:
         return isLastFrameCacheRootHasExcludedChild_;
     }
 
+    void SetShouldClipHole(bool value)
+    {
+        shouldClipHole_ = value;
+    }
+
+    bool ShouldClipHole() const
+    {
+        return shouldClipHole_;
+    }
+
+    void SetRenderGroupCachedSurface(const std::shared_ptr<Drawing::Surface>& surface);
+    std::shared_ptr<Drawing::Surface>& GetRenderGroupCachedSurface();
+
+    void SetRenderGroupCachedImage(const std::shared_ptr<Drawing::Image>& image);
+    std::shared_ptr<Drawing::Image>& GetRenderGroupCachedImage();
+
+    void ClearRenderGroupResource();
+
+    pid_t GetRenderGroupCacheThreadId() const;
+    std::atomic<pid_t>& GetMutableRenderGroupCacheThreadId();
+
+    void SetRenderGroupDrawableCacheType(DrawableCacheType drawableCacheType);
+    DrawableCacheType GetRenderGroupDrawableCacheType() const;
+
+    std::unique_lock<std::recursive_mutex> RenderGroupCacheLock() const;
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    void SetCachedBackendTexture(const Drawing::BackendTexture& texture);
+    const Drawing::BackendTexture& GetCachedBackendTexture() const;
+#endif
+
 private:
+    mutable std::recursive_mutex cacheMutex_;
+    std::shared_ptr<Drawing::Surface> renderGroupCachedSurface_ = nullptr;
+    std::shared_ptr<Drawing::Image> renderGroupCachedImage_ = nullptr;
+    std::atomic<pid_t> renderGroupCacheThreadId_ = 0;
+    std::atomic<DrawableCacheType> drawableCacheType_ = DrawableCacheType::NONE;
+    bool isLastFrameCacheRootHasExcludedChild_ = false;
+    bool shouldClipHole_ = false;
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    Drawing::BackendTexture cachedBackendTexture_;
+#endif
+
     static thread_local bool drawBlurForCache_;
     static thread_local bool drawExcludedSubTreeForCache_;
-    bool isLastFrameCacheRootHasExcludedChild_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
