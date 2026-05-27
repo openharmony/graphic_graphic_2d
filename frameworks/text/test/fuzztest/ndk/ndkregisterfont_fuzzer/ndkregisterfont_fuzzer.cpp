@@ -41,13 +41,43 @@ void OHDrawingRegisterFontTest(const uint8_t* data, size_t size)
     FuzzedDataProvider fdp(data, size);
     OH_Drawing_FontCollection* fc = OH_Drawing_GetFontCollectionGlobalInstance();
     std::string familyName = fdp.ConsumeRandomLengthString();
-    OH_Drawing_RegisterFont(fc, familyName.c_str(), "random path");
+    uint32_t index = fdp.ConsumeIntegral<uint8_t>();
+
+    // All RegisterFont variants delegate to RegisterFontInternal.
+    // Branch: RegisterFontInternal - null fontCollection || null familySrc
+    OH_Drawing_RegisterFont(nullptr, familyName.c_str(), "/system/fonts/NotoSansCJK-Regular.ttc");
+    OH_Drawing_RegisterFont(fc, familyName.c_str(), nullptr);
+
+    // Branch: RegisterFontInternal - valid params, LoadFontDataFromFile paths
+    OH_Drawing_RegisterFont(fc, familyName.c_str(), "/system/fonts/NotoSansCJK-Regular.ttc");
     UseCustomFontToLayout(fc, familyName);
     OH_Drawing_UnregisterFont(fc, familyName.c_str());
+
+    // Branch: RegisterFontInternal - with fuzzed index (ByIndex variant)
+    OH_Drawing_RegisterFontByIndex(fc, familyName.c_str(), "/system/fonts/NotoSansCJK-Regular.ttc", index);
+
+    // Branch: RegisterFontBufferInternal - null fontBuffer, length == 0
+    OH_Drawing_RegisterFontBuffer(fc, familyName.c_str(), nullptr, 0);
+    // Branch: RegisterFontBufferInternal - null fontBuffer with fuzzed non-zero length
+    OH_Drawing_RegisterFontBuffer(fc, familyName.c_str(), nullptr, fdp.ConsumeIntegral<size_t>() + 1);
+    // Branch: RegisterFontBufferInternal - null fontCollection
+    OH_Drawing_RegisterFontBuffer(nullptr, familyName.c_str(), nullptr, 0);
+
+    // Branch: RegisterFontBufferInternal - valid buffer
     std::vector<uint8_t> fontBuffer = fdp.ConsumeRemainingBytes<uint8_t>();
     OH_Drawing_RegisterFontBuffer(fc, familyName.c_str(), fontBuffer.data(), fontBuffer.size());
     UseCustomFontToLayout(fc, familyName);
     OH_Drawing_UnregisterFont(fc, familyName.c_str());
+    // Branch: RegisterFontBufferInternal - with fuzzed index (ByIndex variant)
+    if (fontBuffer.size() > 0) {
+        OH_Drawing_RegisterFontBufferByIndex(fc, familyName.c_str(), fontBuffer.data(), fontBuffer.size(), index);
+        OH_Drawing_UnregisterFont(fc, familyName.c_str());
+    }
+
+    // Branch: UnregisterFont - null fontCollection || null fontFamily || empty family
+    OH_Drawing_UnregisterFont(nullptr, familyName.c_str());
+    OH_Drawing_UnregisterFont(fc, nullptr);
+    OH_Drawing_UnregisterFont(fc, "");
 }
 
 void OHDrawingIsFontSupportedTest(const uint8_t* data, size_t size)
