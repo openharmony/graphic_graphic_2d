@@ -714,11 +714,12 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
     params.SetTunnelLayerId(1);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
-    sptr<IConsumerSurface> consumer = nullptr;
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("GetLayerInfo001_test");
     sptr<SyncFence> acquireFence = nullptr;
+    ASSERT_NE(consumer, nullptr);
     EXPECT_EQ(params.GetTunnelLayerId(), 1);
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
-    EXPECT_EQ(result, nullptr);
+    EXPECT_NE(result, nullptr);
 }
 
 /**

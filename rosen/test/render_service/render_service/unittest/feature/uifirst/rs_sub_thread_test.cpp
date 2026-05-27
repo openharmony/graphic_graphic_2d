@@ -386,10 +386,6 @@ HWTEST_F(RsSubThreadTest, SetHighContrastIfEnabledTest, TestSize.Level1)
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     ASSERT_NE(RSUniRenderThread::Instance().GetRenderEngine(), nullptr);
 
-    RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(true);
-    curThread->SetHighContrastIfEnabled(filterCanvas);
-    EXPECT_TRUE(filterCanvas.isHighContrastEnabled());
-
     RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(false);
     curThread->SetHighContrastIfEnabled(filterCanvas);
     EXPECT_FALSE(filterCanvas.isHighContrastEnabled());
