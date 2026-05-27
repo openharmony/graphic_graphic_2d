@@ -52,7 +52,11 @@ ohos_fuzztest("EffectFilterFuzzTest") {
 
   sources = [ "effectfilter_fuzzer.cpp" ]
 
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "image_framework:image_native",
+    "image_framework:pixelmap_ndk",
+  ]
 }
 
 group("fuzztest") {
