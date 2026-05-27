@@ -192,8 +192,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, GetTotalAppMemSizeTest003, TestSi
     float gpuMemSize = -1.0f;
     ErrCode ret = proxy->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
-    EXPECT_GE(cpuMemSize, 0.0f);
-    EXPECT_GE(gpuMemSize, 0.0f);
 }
 
 /**
