@@ -320,6 +320,16 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": [
+              ]
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
             "header": {
               "header_files": [
