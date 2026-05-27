@@ -89,7 +89,8 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
       ldflags += [
         "-Wl,--emit-relocs",
         "-Wl,--no-relax",
-        "-mno-fix-cortex-a53-843419"
+        "-mno-fix-cortex-a53-843419",
+        "-Wl,--exclude-libs=libunwind.a"
       ]
     }
 
