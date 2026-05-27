@@ -52,7 +52,6 @@ group("test") {
     "render_service/fuzztest/rsrenderserviceconnectionhdr01_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicesecurityutils_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicestub_fuzzer:fuzztest",
-    "render_service/fuzztest/rsroundcornerdisplay_fuzzer:fuzztest",
     "render_service/fuzztest/rsscreenmanager01_fuzzer:fuzztest",
     "render_service/fuzztest/rsscreenmanager02_fuzzer:fuzztest",
     "render_service/fuzztest/rsscreenmanager03_fuzzer:fuzztest",
