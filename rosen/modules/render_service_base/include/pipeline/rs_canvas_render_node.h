@@ -24,10 +24,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-class DrawCmdList;
-}
-
 namespace ModifierNG {
 class RSModifierContext;
 }
@@ -40,8 +36,8 @@ public:
 
     virtual ~RSCanvasRenderNode();
 
-    void UpdateRecordingNG(std::shared_ptr<Drawing::DrawCmdList> drawCmds,
-        ModifierNG::RSModifierType type, bool isSingleFrameComposer = false);
+    void UpdateRecordingNG(
+        SimpleDrawCmdListPtr drawCmds, ModifierNG::RSModifierType type, bool isSingleFrameComposer = false);
     void ClearRecording();
 
     void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override;

@@ -17,6 +17,7 @@
 
 #include "ani_common.h"
 #include "ani_drawing_utils.h"
+#include "ani_global_ref.h"
 #include "ani_text_utils.h"
 #include "draw/color.h"
 #include "text/font_types.h"
@@ -349,6 +350,7 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
                 return AniTextStyleConverter::ParseTextShadowToAni(env, item);
             }),
         AniTextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect),
+        ParseFontVariationsToAni(env, textStyle.fontVariations),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textBadgeType,
             aniGetEnumIndex(AniTextEnum::textBadgeType, static_cast<uint32_t>(textStyle.badgeType))),
         textStyle.maxLineHeight, textStyle.minLineHeight,
@@ -433,53 +435,39 @@ ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const Fon
 
 ani_object AniTextStyleConverter::ParseFontVariationsToAni(ani_env* env, const FontVariations& fontVariations)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(
-        env, AniGlobalClass::GetInstance().fontVariation, AniGlobalMethod::GetInstance().fontVariationCtor);
-    return aniObj;
+    const std::map<std::string, std::pair<float, bool>>& variationSet = fontVariations.GetAxisValues();
+    std::vector<std::pair<std::string, std::pair<float, bool>>> variations(variationSet.begin(), variationSet.end());
+    ani_object arrayObj = AniTextUtils::CreateAniArrayAndInitData(
+        env, variations, variations.size(),
+        [](ani_env* env, const std::pair<std::string, std::pair<float, bool>>& variation) {
+            return AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontVariation,
+                AniGlobalMethod::GetInstance().fontVariationCtor,
+                AniTextUtils::CreateAniStringObj(env, variation.first),
+                ani_double(variation.second.first),
+                AniTextUtils::CreateAniBooleanObj(env, variation.second.second));
+        });
+    return arrayObj;
 }
 
 ani_object AniTextStyleConverter::ParseFontTypefacesToAni(ani_env* env, const TextStyle& textStyle)
 {
-    // Create ANI array from native fontTypefaces vector
     ani_object arrayObj = AniTextUtils::CreateAniArrayAndInitData(
         env, textStyle.fontTypefaces, textStyle.fontTypefaces.size(),
         [](ani_env* env, const std::shared_ptr<Drawing::Typeface>& typeface) {
-            // Create AniTypeface wrapper from native Typeface
-            // Reuse the private CreateAniTypeface method by directly calling it
-            ani_object aniTypefaceObj = AniTextUtils::CreateAniObject(env,
-                OHOS::Rosen::Drawing::AniGlobalClass::GetInstance().typeface,
-                OHOS::Rosen::Drawing::AniGlobalMethod::GetInstance().typefaceCtor);
-            if (aniTypefaceObj == nullptr) {
-                TEXT_LOGW("Failed to create AniTypeface object");
-                return aniTypefaceObj;
-            }
-
-            // Create native AniTypeface wrapper
-            auto* aniTypeface = new OHOS::Rosen::Drawing::AniTypeface(typeface);
-            ani_status status = env->Object_SetField_Long(
-                aniTypefaceObj,
-                OHOS::Rosen::Drawing::AniGlobalField::GetInstance().typefaceNativeObj,
-                reinterpret_cast<ani_long>(aniTypeface));
-            if (status != ANI_OK) {
-                delete aniTypeface;
-                TEXT_LOGW("Failed to set AniTypeface native object, ret %{public}d", status);
-                return aniTypefaceObj;
-            }
-            return aniTypefaceObj;
+            return OHOS::Rosen::Drawing::AniTypeface::CreateAniTypeface(env, typeface);
         });
     return arrayObj;
 }
 
 void AniTextStyleConverter::ParseFontTypefacesToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
 {
-    std::vector<std::string> array;
     AniTextUtils::ReadOptionalArrayField<std::shared_ptr<Drawing::Typeface>>(
         env, obj, AniGlobalMethod::GetInstance().textStyleFontTypefaces, textStyle.fontTypefaces,
         [](ani_env* env, ani_ref ref) -> std::shared_ptr<Drawing::Typeface> {
             ani_object typefaceObj = reinterpret_cast<ani_object>(ref);
-            // Use GetNativeFromObj to extract the native Typeface pointer
-            auto* aniTypeface = Drawing::GetNativeFromObj<OHOS::Rosen::Drawing::AniTypeface>(
-                env, typefaceObj, OHOS::Rosen::Drawing::AniGlobalField::GetInstance().typefaceNativeObj);
+            ani_long nativePtr = 0;
+            env->Object_GetField_Long(typefaceObj, AniGlobalField::GetInstance().typefaceNativeObj, &nativePtr);
+            auto* aniTypeface = reinterpret_cast<OHOS::Rosen::Drawing::AniTypeface*>(nativePtr);
             if (aniTypeface == nullptr) {
                 TEXT_LOGW("Failed to get AniTypeface from object");
                 return nullptr;

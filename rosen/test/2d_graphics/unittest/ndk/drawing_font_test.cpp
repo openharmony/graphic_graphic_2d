@@ -139,13 +139,13 @@ HWTEST_F(NativeFontTest, NativeFontTest_OH_Drawing_GetTextPathWithFallback001, T
     EXPECT_NE(path, nullptr);
 
     EXPECT_EQ(OH_Drawing_FontGetTextPathWithFallback(nullptr, text, strlen(text),
-        TEXT_ENCODING_UTF8, 0, 0, path), OH_DRAWING_ERROR_INVALID_PARAMETER);
+        TEXT_ENCODING_UTF8, 0, 0, path), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_FontGetTextPathWithFallback(font, nullptr, strlen(text),
-        TEXT_ENCODING_UTF8, 0, 0, path), OH_DRAWING_ERROR_INVALID_PARAMETER);
+        TEXT_ENCODING_UTF8, 0, 0, path), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_FontGetTextPathWithFallback(font, text, 0,
-        TEXT_ENCODING_UTF8, 0, 0, path), OH_DRAWING_ERROR_INVALID_PARAMETER);
+        TEXT_ENCODING_UTF8, 0, 0, path), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_FontGetTextPathWithFallback(font, text, strlen(text),
-        TEXT_ENCODING_UTF8, 0, 0, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+        TEXT_ENCODING_UTF8, 0, 0, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     OH_Drawing_FontDestroy(font);
     OH_Drawing_PathDestroy(path);
@@ -280,7 +280,7 @@ HWTEST_F(NativeFontTest, NativeFontTest_OH_Drawing_GetTextPathWithFallback007, T
     EXPECT_NE(path, nullptr);
 
     EXPECT_EQ(OH_Drawing_FontGetTextPathWithFallback(font, text, 0,
-        TEXT_ENCODING_UTF8, 0, 0, path), OH_DRAWING_ERROR_INVALID_PARAMETER);
+        TEXT_ENCODING_UTF8, 0, 0, path), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     OH_Drawing_FontDestroy(font);
     OH_Drawing_PathDestroy(path);

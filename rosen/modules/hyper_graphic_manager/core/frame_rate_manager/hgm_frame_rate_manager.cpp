@@ -490,8 +490,8 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
         currRefreshRate_.store(refreshRate);
         schedulePreferredFpsChange_ = true;
         needChangeDssRefreshRate = true;
-        FrameRateReport();
     }
+    FrameRateReport();
     bool frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange, rsFrameRateLinker_,
         appFrameRateLinkers_, currRefreshRate_);
     CheckRefreshRateChange(followRs, frameRateChanged, refreshRate, needChangeDssRefreshRate);
@@ -530,7 +530,7 @@ void HgmFrameRateManager::FrameRateReport()
     rates[GetRealPid()] = currRefreshRate_;
     if (curRefreshRateMode_ != HGM_REFRESHRATE_MODE_AUTO) {
         rates[UNI_APP_PID] = currRefreshRate_;
-    } else if (schedulePreferredFps_ == OLED_60_HZ && currRefreshRate_ == OLED_60_HZ) {
+    } else if (schedulePreferredFps_ <= OLED_60_HZ && currRefreshRate_ <= OLED_60_HZ) {
         rates[UNI_APP_PID] = OLED_60_HZ;
     } else {
         rates[UNI_APP_PID] = OLED_120_HZ;
@@ -1245,7 +1245,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     bool needChangeDssRefreshRate = currRefreshRate_.load() != refreshRate;
     RS_TRACE_NAME_FMT("%s: %d %d", __func__, currRefreshRate_.load(), refreshRate);
     currRefreshRate_.store(refreshRate);
-    schedulePreferredFpsChange_ = needChangeDssRefreshRate;
+    schedulePreferredFpsChange_ |= needChangeDssRefreshRate;
     FrameRateReport();
 
     bool frameRateChanged = false;

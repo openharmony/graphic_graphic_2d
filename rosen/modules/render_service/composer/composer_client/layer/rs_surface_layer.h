@@ -77,6 +77,8 @@ public:
     const GraphicLayerColor& GetBackgroundColor() const override;
     void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo) override;
     const std::vector<float>& GetCornerRadiusInfoForDRM() const override;
+    void SetVcldInfo(const RSVcldParam& vcldInfo) override;
+    const RSVcldParam& GetVcldInfo() const override;
     void SetColorTransform(const std::vector<float>& matrix) override;
     const std::vector<float>& GetColorTransform() const override;
     void SetColorDataSpace(GraphicColorDataSpace colorSpace) override;
@@ -99,6 +101,8 @@ public:
     uint64_t GetTunnelLayerId() const override;
     void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) override;
     uint32_t GetTunnelLayerProperty() const override;
+    void SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration) override;
+    uint64_t GetTunnelLayerGeneration() const override;
     void SetIsSupportedPresentTimestamp(bool isSupported) override;
     bool GetIsSupportedPresentTimestamp() const override;
     void SetPresentTimestamp(const GraphicPresentTimestamp& timestamp) override;
@@ -234,11 +238,13 @@ private:
     uint64_t nodeId_ = 0;
     uint64_t tunnelLayerId_ = 0;
     uint32_t tunnelLayerProperty_ = 0;
+    uint64_t tunnelLayerGeneration_ = 0;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
     bool copybitTag_ = false;
     std::vector<float> drmCornerRadiusInfo_;
+    RSVcldParam vcldInfo_;
     bool isMaskLayer_ = false;
     uint32_t ancoFlags_ = 0;
     uint32_t cycleBuffersNum_ = 0;

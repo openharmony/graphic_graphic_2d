@@ -217,7 +217,6 @@ protected:
     void DrawCustomFunc(Drawing::Canvas* canvas, DrawFunc drawFunc);
 
     Drawing::Canvas* canvas_ = nullptr;
-    std::stack<std::pair<uint32_t, DrawFunc>> customStack_;
 };
 
 // This class is used to filter the paint before drawing. currently, it is used to filter the alpha and foreground

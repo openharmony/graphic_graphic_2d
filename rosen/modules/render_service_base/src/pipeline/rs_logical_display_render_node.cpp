@@ -131,6 +131,21 @@ Occlusion::Region RSLogicalDisplayRenderNode::GetTopSurfaceOpaqueRegion() const
     return topSurfaceOpaqueRegion;
 }
 
+void RSLogicalDisplayRenderNode::SetBootAnimation(bool isBootAnimation)
+{
+    ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 "isBootAnimation %{public}d",
+        GetId(), isBootAnimation);
+    isBootAnimation_ = isBootAnimation;
+    if (auto parent = GetParent().lock()) {
+        parent->SetBootAnimation(isBootAnimation);
+    }
+}
+
+bool RSLogicalDisplayRenderNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
+}
+
 void RSLogicalDisplayRenderNode::ClearModifiersByPid(pid_t pid)
 {
     RS_LOGI("RSLogicalDisplayRenderNode::ClearModifiersByPid %{public}u", static_cast<uint32_t>(pid));
@@ -149,12 +164,9 @@ void RSLogicalDisplayRenderNode::ClearModifiersByPid(pid_t pid)
 }
 
 void RSLogicalDisplayRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
+    NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
-    // if node is marked as cacheRoot, update subtree status when update surface
-    // in case prepare stage upper cacheRoot cannot specify dirty subnode
-    RSRenderNode::SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId, uifirstRootNodeId,
-        screenNodeId, GetId());
+    RSRenderNode::SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, uifirstRootNodeId, screenNodeId, GetId());
 }
 
 void RSLogicalDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container)

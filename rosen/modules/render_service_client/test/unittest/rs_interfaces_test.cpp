@@ -734,7 +734,7 @@ HWTEST_F(RSInterfacesTest, SetScreenBacklight001, Function | SmallTest | Level2)
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
-    rsInterfaces->SetScreenBacklight(screenId, 50);
+    rsInterfaces->SetScreenBacklight(RsScreenBrightnessData(screenId, 50));
     auto backLight = rsInterfaces->GetScreenBacklight(screenId);
     EXPECT_EQ(backLight, 50);
 }
@@ -752,7 +752,7 @@ HWTEST_F(RSInterfacesTest, SetScreenBacklight002, Function | SmallTest | Level2)
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
-    rsInterfaces->SetScreenBacklight(screenId, 100);
+    rsInterfaces->SetScreenBacklight(RsScreenBrightnessData(screenId, 100));
     auto backLight = rsInterfaces->GetScreenBacklight(screenId);
     EXPECT_EQ(backLight, 100);
 }
@@ -770,7 +770,7 @@ HWTEST_F(RSInterfacesTest, GetScreenBacklight001, Function | SmallTest | Level2)
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
-    rsInterfaces->SetScreenBacklight(screenId, 50);
+    rsInterfaces->SetScreenBacklight(RsScreenBrightnessData(screenId, 50));
     auto backLight = rsInterfaces->GetScreenBacklight(screenId);
     EXPECT_EQ(backLight, 50);
 }

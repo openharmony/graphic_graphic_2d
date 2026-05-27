@@ -26,6 +26,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class SkiaSurface;
+class SkiaImage;
+class DDGRSurface;
+class DDGRImage;
+
+struct TileGranularity {
+    uint32_t width = 0;
+    uint32_t height = 0;
+};
 
 #ifdef RS_ENABLE_GPU
 struct FrameBuffer {
@@ -64,6 +73,11 @@ enum class SemaphoresSubmited {
 };
 
 class DRAWING_API Surface {
+    friend class SkiaSurface;
+    friend class SkiaImage;
+    friend class DDGRSurface;
+    friend class DDGRImage;
+
 public:
     Surface();
     ~Surface() {}
@@ -198,12 +212,6 @@ public:
     int Width() const;
     int Height() const;
 
-    template<typename T>
-    T* GetImpl() const
-    {
-        return impl_->DowncastingTo<T>();
-    }
-
 #ifdef RS_ENABLE_GL
     void Wait(const std::vector<GrGLsync>& syncs);
 #endif
@@ -221,12 +229,27 @@ public:
     void SetHeadroom(float headroom);
 
     /**
+     * @brief         Get GPU Tile alignment granularity.
+     * @return        TileGranularity containing width and height alignment values.
+     * @note          Returns {0, 0} if query fails.
+     */
+    TileGranularity GetRenderAreaGranularity();
+
+    /**
      * @brief         Get headroom for backendTexture of Surface.
      * @return        headroom value
      */
     float GetHeadroom() const;
 
+    sk_sp<SkSurface> GetSkSurface() const;
+
 private:
+    template<typename T>
+    T* GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
+
     std::shared_ptr<SurfaceImpl> impl_;
     std::shared_ptr<Canvas> cachedCanvas_;
 };

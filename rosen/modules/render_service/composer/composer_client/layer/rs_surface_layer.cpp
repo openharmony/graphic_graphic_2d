@@ -15,6 +15,7 @@
 
 #include "rs_surface_layer.h"
 #include <memory>
+#include "common/rs_tunnel_layer_utils.h"
 #include "rs_composer_context.h"
 #include "rs_layer_parcel.h"
 #include "rs_surface_layer_parcel.h"
@@ -24,6 +25,27 @@
 #define LOG_TAG "RSSurfaceLayer"
 namespace OHOS {
 namespace Rosen {
+namespace {
+bool ShouldNotifyTunnelLayerDestroyed(const sptr<IConsumerSurface>& surface, uint64_t tunnelLayerId, uint32_t property)
+{
+    if (!IsNewTunnelEnabled()) {
+        return false;
+    }
+    if (surface == nullptr) {
+        return false;
+    }
+    if (tunnelLayerId == 0 || property == TUNNEL_PROP_INVALID) {
+        TunnelLayerState state;
+        if (surface->GetTunnelLayerInfo(state) != GSERROR_OK) {
+            return false;
+        }
+        tunnelLayerId = state.tunnelLayerId;
+        property = state.property;
+    }
+    return tunnelLayerId != 0;
+}
+}
+
 const std::map<GraphicTransformType, std::string> TransformTypeStrs = {
     {GRAPHIC_ROTATE_NONE,                    "0 <no rotation>"},
     {GRAPHIC_ROTATE_90,                      "1 <rotation by 90 degrees>"},
@@ -111,12 +133,15 @@ RSSurfaceLayer::~RSSurfaceLayer()
         std::make_shared<RSDestroyRSLayerCmd>(rsLayerId_, renderLayerCmd);
 
     bool success = AddRSLayerParcel(rsLayerId_, layerParcel);
+    auto context = rsComposerContext_.lock();
     if (!success) {
         ROSEN_LOGE("%{public}s failed to send destroy command, layerId: %{public}" PRIu64, __func__, GetRSLayerId());
     } else {
         ROSEN_LOGI("%{public}s destroy command sent successfully, layerId: %{public}" PRIu64, __func__, GetRSLayerId());
+        if (context != nullptr && ShouldNotifyTunnelLayerDestroyed(cSurface_, tunnelLayerId_, tunnelLayerProperty_)) {
+            context->NotifyLayerStateChanged(GetNodeId(), LayerStateChange::UNAVAILABLE, tunnelLayerGeneration_);
+        }
     }
-    auto context = rsComposerContext_.lock();
     if (context) {
         context->RemoveRSLayer(rsLayerId_);
     }
@@ -379,6 +404,20 @@ const std::vector<float>& RSSurfaceLayer::GetCornerRadiusInfoForDRM() const
     return drmCornerRadiusInfo_;
 }
 
+void RSSurfaceLayer::SetVcldInfo(const RSVcldParam& vcldInfo)
+{
+    if (vcldInfo_ == vcldInfo) {
+        return;
+    }
+    vcldInfo_ = vcldInfo;
+    SetRSLayerCmd<RSRenderLayerVcldInfoCmd>(vcldInfo);
+}
+
+const RSVcldParam& RSSurfaceLayer::GetVcldInfo() const
+{
+    return vcldInfo_;
+}
+
 void RSSurfaceLayer::SetColorTransform(const std::vector<float> &matrix)
 {
     if (colorTransformMatrix_ == matrix) {
@@ -533,6 +572,20 @@ void RSSurfaceLayer::SetTunnelLayerProperty(uint32_t tunnelLayerProperty)
 uint32_t RSSurfaceLayer::GetTunnelLayerProperty() const
 {
     return tunnelLayerProperty_;
+}
+
+void RSSurfaceLayer::SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration)
+{
+    if (tunnelLayerGeneration_ == tunnelLayerGeneration) {
+        return;
+    }
+    tunnelLayerGeneration_ = tunnelLayerGeneration;
+    SetRSLayerCmd<RSRenderLayerTunnelLayerGenerationCmd>(tunnelLayerGeneration);
+}
+
+uint64_t RSSurfaceLayer::GetTunnelLayerGeneration() const
+{
+    return tunnelLayerGeneration_;
 }
 
 void RSSurfaceLayer::SetPresentTimestamp(const GraphicPresentTimestamp& timestamp)

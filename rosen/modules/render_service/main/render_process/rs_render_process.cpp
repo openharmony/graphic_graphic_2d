@@ -148,15 +148,13 @@ bool RSRenderProcess::Init()
     auto serviceToRenderConnection =
         sptr<RSServiceToRenderConnection>::MakeSptr(renderProcessAgent, renderPipelineAgent);
     auto connectToRenderConnection = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);
+    RS_PROFILER_INIT(renderPipeline_, serviceToRenderConnection);
     // child process is initialized
     RS_LOGI("%{public}s: NotifyRenderProcessInitFinished", __func__);
-    if (!renderToServiceConnection_->NotifyRenderProcessInitFinished(
-        serviceToRenderConnection->AsObject(), connectToRenderConnection->AsObject())) {
-        RS_LOGE("%{public}s: NotifyRenderProcessInitFinished is failed", __func__);
-        return false;
-    }
-
-    RS_PROFILER_INIT(renderPipeline_, serviceToRenderConnection);
+    handler_->PostTask([this, serviceToRenderConnection, connectToRenderConnection]() {
+        renderToServiceConnection_->NotifyRenderProcessInitFinished(
+            serviceToRenderConnection->AsObject(), connectToRenderConnection->AsObject());
+    });
 
     RS_LOGI("%{public}s: subprocess init successful", __func__);
     return true;

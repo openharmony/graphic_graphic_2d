@@ -207,12 +207,8 @@ HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
     node->resetSurfaceIndex_ = RSCanvasDrawingNode::GenerateResetSurfaceIndex();
     node->PreAllocateDMABuffer(weakNode, nodeId, 0, 0, 1);
     ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
-    node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, 1);
-    if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
-        ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
-    } else {
-        ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
-    }
+    node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, node->resetSurfaceIndex_);
+    ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
     node->resetSurfaceIndex_ = 10;
     node->canvasSurfaceBuffer_ = nullptr;
     node->PreAllocateDMABuffer(node, nodeId, 0, 0, 10);
@@ -220,11 +216,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
     node->resetSurfaceIndex_ = 0;
     node->canvasSurfaceBuffer_ = nullptr;
     node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);
-    if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
-        ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
-    } else {
-        ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
-    }
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
     node->resetSurfaceIndex_ = 0;
     node->canvasSurfaceBuffer_ = nullptr;
     node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);

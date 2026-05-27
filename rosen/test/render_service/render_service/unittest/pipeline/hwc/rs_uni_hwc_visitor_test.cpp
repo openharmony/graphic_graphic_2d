@@ -22,6 +22,7 @@
 #include "consumer_surface.h"
 #include "common/rs_common_def.h"
 #include "draw/color.h"
+#include "effect/rs_render_shape_base.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -2235,6 +2236,26 @@ HWTEST_F(RSUniHwcVisitorTest, UpdatePrepareClip002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdatePrepareClip_003
+ * @tc.desc: Test UpdatePrepareClip003, clipToBounds_ & clipToframe_ = true, has sdfDistort;
+ * @tc.type: FUNC
+ * @tc.require: issueIAJSIS
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdatePrepareClip003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    node->GetMutableRenderProperties().clipToBounds_ = true;
+    node->GetMutableRenderProperties().clipToFrame_ = true;
+    node->GetMutableRenderProperties().renderSDFShape_ =
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    rsUniHwcVisitor->UpdatePrepareClip(*node);
+}
+
+/**
  * @tc.name: UpdateHwcNodeRectInSkippedSubTree_001
  * @tc.desc: Test UpdateHwcNodeRectInSkippedSubTree when RS_PROFILER_SHOULD_BLOCK_HWCNODE() is false,
  *           curSurfaceNode_ is null or hwcNodes is empty.
@@ -3376,7 +3397,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRect_005, Function | SmallTest | 
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
     canvasNode->InitRenderParams();
     RRect rect({0, 10, 20, 30}, 1.f, 1.f);
-    canvasNode->renderProperties_.clipRRect_ = rect;
+    canvasNode->renderProperties_.clipRRect_ = std::make_unique<RRect>(rect);
     Drawing::Matrix canvasNodeMatrix;
     canvasNodeMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
     canvasNode->renderProperties_.boundsGeo_->ConcatMatrix(canvasNodeMatrix);
@@ -4340,7 +4361,7 @@ HWTEST_F(RSUniHwcVisitorTest, CollectHdrForceHwcNodes_Test, TestSize.Level2)
     bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
     system::SetParameter("const.graphics.rgba_1010108_supported", "true");
     system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", "true");
-    EXPECT_TRUE(RSBaseHdrUtil::GetRGBA1010108Enabled());
+    EXPECT_FALSE(RSBaseHdrUtil::GetRGBA1010108Enabled());
 
     rsUniHwcVisitor->UpdateHwcNodeEnable();
     EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());

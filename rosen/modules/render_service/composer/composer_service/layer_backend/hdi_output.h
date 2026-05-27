@@ -18,8 +18,11 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <list>
+#include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "graphic_error.h"
@@ -40,12 +43,25 @@ struct LayerDumpInfo {
     std::shared_ptr<HdiLayer> hdiLayer;
 };
 
+struct DeferredDestroyLayerInfo {
+    uint64_t surfaceId = 0;
+    std::shared_ptr<HdiLayer> hdiLayer;
+};
+
 struct PrepareCompleteParam {
     bool needFlushFramebuffer = false;
     std::vector<std::shared_ptr<RSLayer>> layers;
 };
+
+struct LayerCreatedInfo {
+    uint64_t nodeId = 0;
+    uint64_t tunnelLayerGeneration = 0;
+};
+
 using OnPrepareCompleteFunc = std::function<void(sptr<Surface>& surface,
                                                  const PrepareCompleteParam &param, void* data)>;
+using OnLayerCreatedFunc = std::function<void(
+    uint64_t nodeId, bool success, uint64_t tunnelLayerGeneration, void* data)>;
 
 class HdiOutput {
 public:
@@ -109,12 +125,22 @@ public:
         return isProtectedBufferAllocated_.load();
     }
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+    void MarkTunnelSurfaceInvalid(uint64_t surfaceId);
+    void EraseTunnelSurfaceInvalid(uint64_t surfaceId);
+    uint64_t GetNodeIdBySurfaceId(uint64_t surfaceId) const;
+    uint64_t GetTunnelLayerGenerationBySurfaceId(uint64_t surfaceId) const;
+    int32_t DestroyLayerBySurfaceId(uint64_t surfaceId);
+    int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence);
 
     void SetActiveRectSwitchStatus(bool flag, const GraphicIRect& activeRect);
     void SetMaskLayer(const std::shared_ptr<HdiLayer>& maskLayer) { maskLayer_ = maskLayer; }
     RosenError RegPrepareComplete(OnPrepareCompleteFunc func, void* data);
+    RosenError RegLayerCreated(OnLayerCreatedFunc func, void* data);
+    void ClearLayerCreatedCallback();
     void Repaint();
     void SetScreenBacklight(uint32_t level);
+    void SetScreenLinearMatrix(const std::vector<float>& matrix);
     int32_t GetCurrentFramePresentFd() const
     {
         return curPresentFd_;
@@ -150,11 +176,16 @@ private:
     std::unordered_map<uint32_t, std::shared_ptr<HdiLayer>> layerIdMap_;
     // surface unique id -- layer ptr
     std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> surfaceIdMap_;
+    std::unordered_set<uint64_t> invalidTunnelSurfaceIds_;
+    // surfaceId -> last failed tunnelLayerGeneration; suppresses tunnel retry until generation changes.
+    std::unordered_map<uint64_t, uint64_t> tunnelFallbackGenerations_;
     // solidLayer unique id -- layer ptr
     std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> solidSurfaceIdMap_;
     uint32_t screenId_;
     std::vector<GraphicIRect> outputDamages_;
     bool directClientCompositionEnabled_ = true;
+    std::list<DeferredDestroyLayerInfo> deferredDestroyLayers_;
+    std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> latestDeferredDestroyLayers_;
 
     std::vector<sptr<SurfaceBuffer>> bufferCache_;
     uint32_t bufferCacheCountMax_ = 0;
@@ -162,7 +193,6 @@ private:
 
     std::vector<uint32_t> layersId_;
     std::vector<sptr<SyncFence>> fences_;
-
     // DISPLAYENGINE
     bool arsrPreEnabled_ = false;
     bool arsrPreEnabledForVm_ = false;
@@ -171,8 +201,13 @@ private:
     std::atomic<bool> isProtectedBufferAllocated_ = false;
 
     std::shared_ptr<HdiLayer> maskLayer_ = nullptr;
+    std::function<std::shared_ptr<HdiLayer>(uint32_t)> createHdiLayerFunc_ = HdiLayer::CreateHdiLayer;
 
     int32_t CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<RSLayer>& rsLayer);
+    void DestroyLayerBySurfaceIdLocked(uint64_t surfaceId);
+    void UnregisterGlobalTunnelLayersLocked() const;
+    void UpdateRSLayerLocked(const std::shared_ptr<RSLayer>& rsLayer, uint32_t& solidLayerCount);
+    bool UpdateSolidColorLayerLocked(const std::shared_ptr<RSLayer>& rsLayer, uint32_t& solidLayerCount);
     void DeletePrevLayersLocked();
     void ResetLayerStatusLocked();
     void ReorderLayerInfoLocked(std::vector<LayerDumpInfo>& dumpLayerInfos) const;
@@ -194,15 +229,33 @@ private:
     void OnPrepareComplete(bool needFlush, std::vector<std::shared_ptr<RSLayer>>& newRSLayer);
     int32_t PrepareCompleteIfNeed(bool needFlush);
     void DumpLayerInfoForSplitRender(std::string& result) const;
+    void OnLayerCreated(uint64_t nodeId, bool success, uint64_t tunnelLayerGeneration);
+    std::vector<LayerCreatedInfo> CollectPendingLayerCreatedInfosLocked();
+    void ClearRecoveredInvalidTunnelSurfaceIdsLocked();
+    void AppendDeferredDestroyLayerLocked(uint64_t surfaceId, const std::shared_ptr<HdiLayer>& hdiLayer);
+    std::list<DeferredDestroyLayerInfo> CollectDeferredDestroyLayersLocked();
+    bool IsTunnelLayerRequestedLocked(const std::shared_ptr<RSLayer>& rsLayer) const;
+    bool FallbackTunnelLayerToGraphicLocked(const std::shared_ptr<HdiLayer>& hdiLayer,
+        const std::shared_ptr<RSLayer>& rsLayer) const;
+    void RegisterCreatedLayerLocked(
+        uint64_t surfaceId, const std::shared_ptr<HdiLayer>& hdiLayer,
+        const std::shared_ptr<RSLayer>& rsLayer, bool shouldEmitTunnelCreated);
+    void SetLayerPerFrameParameters(uint32_t layerId, const std::shared_ptr<RSLayer>& rsLayer);
+    bool IsTunnelDeclinedLocked(uint64_t surfaceId, uint64_t generation) const;
+    bool ShouldFallbackTunnelLayerLocked(uint64_t surfaceId, const std::shared_ptr<RSLayer>& rsLayer) const;
+    void MarkTunnelDeclinedLocked(uint64_t surfaceId, uint64_t generation);
+    void ClearTunnelDeclinedLocked(uint64_t surfaceId);
+    void FinalizePostCommit(bool commitSucceeded = true);
 
     bool isActiveRectSwitching_ = false;
     void DirtyRegions(const std::shared_ptr<RSLayer>& rsLayer);
     OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
     void* onPrepareCompleteCbData_ = nullptr;
+    OnLayerCreatedFunc onLayerCreatedCb_ = nullptr;
+    void* onLayerCreatedCbData_ = nullptr;
     int32_t thirdFrameAheadPresentFenceFd_ = 0;
     int64_t thirdFrameAheadPresentTime_ = 0;
     int32_t curPresentFd_ = 0;
-
     RSComposerJankStats rsComposerJankStats;
 };
 } // namespace Rosen

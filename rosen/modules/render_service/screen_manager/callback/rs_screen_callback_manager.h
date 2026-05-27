@@ -44,6 +44,9 @@ public:
     void NotifyScreenConnectedToAgentListener(ScreenId id, ScreenChangeReason reason,
                                               sptr<RSIScreenManagerAgentListener> agentListener);
     void NotifyScreenDisconnected(ScreenId id);
+    void NotifyNoScreen(ScreenChangeReason reason);
+    void NotifyPhysicalScreenProcessDisconnected(ScreenId screenId);
+    void NotifyVirtualScreenProcessDisconnected(ScreenId screenId);
     void NotifyScreenPropertyUpdated(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void NotifyScreenRefresh(ScreenId id);
     void NotifyHwcRestored(const ScreenPresenceEvent& event);
@@ -55,7 +58,7 @@ public:
     void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
     void NotifyActiveScreenIdChangedToAgentListener(ScreenId activeScreenId,
                                                     sptr<RSIScreenManagerAgentListener> agentListener);
-    void NotifyScreenBacklightChanged(ScreenId id, uint32_t level);
+    void NotifyScreenBacklightChanged(const RsScreenBrightnessData& brightnessData);
     void NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
     void NotifySwitchingCallback(bool status);
 

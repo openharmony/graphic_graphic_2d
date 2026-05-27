@@ -50,6 +50,7 @@ RSCanvasDrawingRenderNodeDrawable::Registrar RSCanvasDrawingRenderNodeDrawable::
 RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
     : RSRenderNodeDrawable(std::move(node))
 {
+    renderNode_ = node;
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     static std::once_flag flag;
     std::call_once(flag, []() {

@@ -118,6 +118,9 @@ public:
     void Destroy() override;
     int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) override;
     int32_t GetDisplayClientTargetProperty(uint32_t screenId, int32_t& pixelFormat, int32_t& dataspace) override;
+    int32_t SetTunnelLayerBuffer(uint32_t screenId, uint64_t tunnleId, const BufferHandle* inHandle,
+        const int32_t acquireFence) override;
+    int32_t CommitTunnelLayer(uint32_t screenId, uint64_t tunnleId, int32_t& releaseFence) override;
 
 private:
     HdiDeviceImpl(const HdiDeviceImpl& rhs) = delete;

@@ -96,6 +96,8 @@ public:
     uint64_t GetTunnelLayerId() const override;
     void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) override;
     uint32_t GetTunnelLayerProperty() const override;
+    void SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration) override;
+    uint64_t GetTunnelLayerGeneration() const override;
     void SetIsSupportedPresentTimestamp(bool isSupported) override;
     bool GetIsSupportedPresentTimestamp() const override;
     void SetPresentTimestamp(const GraphicPresentTimestamp& timestamp) override;
@@ -177,6 +179,8 @@ public:
     void DumpCurrentFrameLayer() const override;
     void SetIsNeedComposition(bool isNeedComposition) override;
     bool GetIsNeedComposition() const override;
+    void SetVcldInfo(const RSVcldParam& vcldInfo) override;
+    const RSVcldParam& GetVcldInfo() const override;
 
 private:
     // rs layer pipeline info
@@ -224,6 +228,7 @@ private:
     uint64_t nodeId_ = 0;
     uint64_t tunnelLayerId_ = 0;
     uint32_t tunnelLayerProperty_ = 0;
+    uint64_t tunnelLayerGeneration_ = 0;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
@@ -242,6 +247,7 @@ private:
     bool ignoreAlpha_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
     sptr<IConsumerSurface> cSurface_ = nullptr;
+    RSVcldParam vcldInfo_;
 };
 } // namespace Rosen
 } // namespace OHOS

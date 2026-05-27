@@ -127,7 +127,7 @@ HWTEST_F(RSRenderModifierTest, DrawCmdListModifier001, TestSize.Level1)
     ExtendRecordingCanvas canvas(100, 100);
     canvas.Translate(15.f, 15.f);
 
-    auto prop = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
+    auto prop = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
     auto modifier = std::make_shared<RSDrawCmdListRenderModifier>(prop);
 
     MessageParcel parcel;
@@ -136,7 +136,7 @@ HWTEST_F(RSRenderModifierTest, DrawCmdListModifier001, TestSize.Level1)
 
     canvas.Scale(2.f, 2.f);
     modifier->Update(nullptr, false);
-    auto prop1 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
+    auto prop1 = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
     modifier->Update(prop1, true);
 
     ASSERT_TRUE(modifier->Marshalling(parcel));
@@ -231,7 +231,7 @@ HWTEST_F(RSRenderModifierTest, Apply, TestSize.Level1)
 {
     ExtendRecordingCanvas canvas(100, 100);
     canvas.Translate(15.f, 15.f);
-    auto prop = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
+    auto prop = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
     auto modifier = std::make_shared<RSDrawCmdListRenderModifier>(prop);
     RSProperties properties;
     RSModifierContext context(properties);
@@ -324,7 +324,7 @@ HWTEST_F(RSRenderModifierTest, CanvasNull, TestSize.Level1)
 {
     ExtendRecordingCanvas canvas(100, 100);
     canvas.Translate(15.f, 15.f);
-    auto prop = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
+    auto prop = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
     auto modifier = std::make_shared<RSDrawCmdListRenderModifier>(prop);
     RSProperties properties;
     RSModifierContext context(properties);
@@ -343,7 +343,7 @@ HWTEST_F(RSRenderModifierTest, CanvasNotNull, TestSize.Level1)
 {
     ExtendRecordingCanvas canvas(100, 100);
     canvas.Translate(15.f, 15.f);
-    auto prop = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
+    auto prop = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(canvas.GetDrawCmdList(), id);
     auto modifier = std::make_shared<RSDrawCmdListRenderModifier>(prop);
     RSProperties properties;
     RSModifierContext context(properties);

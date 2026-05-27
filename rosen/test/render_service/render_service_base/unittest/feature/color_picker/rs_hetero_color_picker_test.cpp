@@ -74,6 +74,8 @@ public:
     MOCK_METHOD(float, GetHeadroom, (), (const, override));
     MOCK_METHOD(int, Width, (), (const, override));
     MOCK_METHOD(int, Height, (), (const, override));
+    MOCK_METHOD(Drawing::TileGranularity, GetRenderAreaGranularity, (), (override));
+    MOCK_METHOD(sk_sp<SkSurface>, GetSkSurface, (), (const, override));
 };
 
 class RSPaintFilterCanvasTest : public RSPaintFilterCanvas {

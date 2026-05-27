@@ -170,15 +170,17 @@ bool RSRenderService::CoreComponentsInit()
 void RSRenderService::HgmInit()
 {
     RS_LOGI("%{public}s", __func__);
-    HgmCore::Instance().RegisterScreenManagerCallbacks(
+    HgmCore::Instance().RegisterScreenManagerCallbacks({
         std::bind(&RSScreenManager::GetDefaultScreenId, screenManager_.GetRefPtr()),
         std::bind(&RSScreenManager::GetScreenPowerStatus, screenManager_.GetRefPtr(), std::placeholders::_1),
         std::bind(&RSScreenManager::GetScreenSupportedModes, screenManager_.GetRefPtr(), std::placeholders::_1),
         std::bind(&RSScreenManager::SetScreenConstraint,
             screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
         std::bind(&RSScreenManager::SetScreenActiveMode,
-            screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2)
-    );
+            screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2),
+        std::bind(&RSScreenManager::GetScreenActiveRefreshRate,
+            screenManager_.GetRefPtr(), std::placeholders::_1)
+    });
     HgmCore::Instance().SetScreenManager(screenManager_.GetRefPtr());
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
         auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) {
@@ -383,6 +385,14 @@ void RSRenderService::FpsDump(std::string& dumpString, const std::string& arg)
     rsRenderComposerManager_->FpsDump(dumpString, arg);
 }
 
+std::shared_ptr<HgmContext> RSRenderService::GetHgmContext() const
+{
+    if (!HgmCore::Instance().HgmAbilityEnabled()) {
+        return nullptr;
+    }
+    return hgmContext_;
+}
+
 void RSRenderService::HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status)
 {
     rsRenderComposerManager_->HandlePowerStatus(screenId, status);
@@ -408,7 +418,7 @@ sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(Sc
         RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "] SetAFBCEnabled[false]", __func__, screenId);
     }
 #endif
-    if (const auto& hgmContext = renderService_.GetHgmContext()) {
+    if (const auto hgmContext = renderService_.GetHgmContext()) {
         hgmContext->AddScreenToHgm(property);
     }
     ScreenId vsyncEnabledScreenId = renderService_.vsyncManager_->OnScreenConnected(screenId, renderService_.handler_);
@@ -420,7 +430,7 @@ void RSRenderService::ScreenManagerListener::OnScreenDisconnected(ScreenId id)
 {
     RS_LOGD("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, id);
     renderService_.rsRenderComposerManager_->OnScreenDisconnected(id);
-    if (const auto& hgmContext = renderService_.GetHgmContext()) {
+    if (const auto hgmContext = renderService_.GetHgmContext()) {
         hgmContext->RemoveScreenFromHgm(id);
     }
     renderService_.vsyncManager_->OnScreenDisconnected(id, renderService_.handler_);
@@ -483,9 +493,9 @@ void RSRenderService::ScreenManagerListener::OnActiveScreenIdChanged(ScreenId ac
     HgmCore::Instance().SetActiveScreenId(activeScreenId);
 }
 
-void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(ScreenId id, uint32_t level)
+void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
-    renderService_.renderProcessManager_->OnScreenBacklightChanged(id, level);
+    renderService_.renderProcessManager_->OnScreenBacklightChanged(brightnessData);
 }
 
 void RSRenderService::ScreenManagerListener::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
@@ -525,6 +535,16 @@ void RSRenderService::InitGameFrameHandler()
 const sptr<RsGameFrameHandler>& RSRenderService::GetGameFrameHandler() const
 {
     return rsGameFrameHandler_;
+}
+
+void RSRenderService::ScreenManagerListener::OnProcessDisconnected(ScreenId screenId)
+{
+    RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, screenId);
+    renderService_.rsRenderComposerManager_->OnScreenDisconnected(screenId);
+    if (const auto& hgmContext = renderService_.GetHgmContext()) {
+        hgmContext->RemoveScreenFromHgm(screenId);
+    }
+    renderService_.vsyncManager_->OnScreenDisconnected(screenId, renderService_.handler_);
 }
 } // namespace Rosen
 } // namespace OHOS

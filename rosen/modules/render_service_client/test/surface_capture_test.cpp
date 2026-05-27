@@ -21,7 +21,6 @@
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
 
-#include "pipeline/rs_render_result.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_node.h"
 #include "ui/rs_surface_extractor.h"

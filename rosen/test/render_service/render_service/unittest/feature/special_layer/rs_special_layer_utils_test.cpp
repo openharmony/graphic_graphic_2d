@@ -49,7 +49,7 @@ ScreenId GenerateScreenId()
 
 constexpr int CANVAS_WIDTH = 800;
 constexpr int CANVAS_HEIGHT = 600;
-const RectI DEFAULT_RECTI {0, 0, 100, 100};
+const Drawing::Rect DEFAULT_RECT {0, 0, 100, 100};
 }
 class RSSpecialLayerUtilsTest : public testing::Test {
 public:
@@ -494,6 +494,9 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord001, TestSize.L
 {
     auto rsContext = std::make_shared<RSContext>();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    auto cloneCrossNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    cloneCrossNode->isCloneCrossNode_ = true;
+    cloneCrossNode->sourceCrossNode_ = surfaceNode;
     RSDisplayNodeConfig displayConfig;
     displayConfig.screenId = GenerateScreenId();
     auto displayNode =
@@ -506,7 +509,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord001, TestSize.L
     property.Set<ScreenPropertyType::ID>(screenId);
     RSSpecialLayerUtils::UpdateScreenSpecialLayer(property);
     
-    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *displayNode, false);
+    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *cloneCrossNode, *displayNode, false);
     ASSERT_FALSE(displayNode->GetSpecialLayerMgr().FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST));
 
     // Clean up
@@ -523,6 +526,9 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord002, TestSize.L
 {
     auto rsContext = std::make_shared<RSContext>();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    auto cloneCrossNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    cloneCrossNode->isCloneCrossNode_ = true;
+    cloneCrossNode->sourceCrossNode_ = surfaceNode;
     RSDisplayNodeConfig displayConfig;
     displayConfig.screenId = GenerateScreenId();
     auto displayNode =
@@ -535,7 +541,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord002, TestSize.L
     property.Set<ScreenPropertyType::ID>(screenId);
     RSSpecialLayerUtils::UpdateScreenSpecialLayer(property);
     
-    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *displayNode, true);
+    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *cloneCrossNode, *displayNode, true);
     ASSERT_TRUE(displayNode->GetSpecialLayerMgr().FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST));
 
     // Clean up
@@ -700,30 +706,6 @@ HWTEST_F(RSSpecialLayerUtilsTest, DealWithSpecialLayer002, TestSize.Level2)
 
     RSSpecialLayerUtils::DealWithSpecialLayer(*surfaceNode, *displayNode, true);
     ASSERT_TRUE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
-}
-
-/**
- * @tc.name: DealWithSpecialLayer003
- * @tc.desc: test DealWithSpecialLayer with clone node having null source
- * @tc.type: FUNC
- * @tc.require: issue41
- */
-HWTEST_F(RSSpecialLayerUtilsTest, DealWithSpecialLayer003, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    RSDisplayNodeConfig displayConfig;
-    displayConfig.screenId = GenerateScreenId();
-    auto displayNode =
-        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
-
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
-    surfaceNode->isCloneCrossNode_ = true;
-    surfaceNode->sourceCrossNode_ = std::weak_ptr<RSSurfaceRenderNode>();
-    surfaceNode->SetSkipLayer(true);
-    surfaceNode->shouldPaint_ = true;
-
-    RSSpecialLayerUtils::DealWithSpecialLayer(*surfaceNode, *displayNode, true);
-    ASSERT_FALSE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
 }
 
 /**
@@ -1238,7 +1220,8 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData001, TestSize.Level2
     
     // Test with null processor - returns directly without any operation
     ASSERT_EQ(uniParam.processor_, nullptr);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
 }
 
 /**
@@ -1262,7 +1245,8 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData002, TestSize.Level2
 
     // Test with no whitelist rects - returns directly without any operation
     ASSERT_NE(uniParam.GetWhiteListRectByScreenId(mirrorScreenProperty.GetScreenId()).size(), 1);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
 }
 
 /**
@@ -1285,12 +1269,13 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData003, TestSize.Level2
     uniParam.processor_ = processor;
 
     // Add multiple whitelist rects - should return early
-    uniParam.AddWhiteListRect({mirrorScreenProperty.GetScreenId()}, DEFAULT_RECTI);
-    uniParam.AddWhiteListRect({mirrorScreenProperty.GetScreenId()}, DEFAULT_RECTI);
+    uniParam.AddWhiteListRect({mirrorScreenProperty.GetScreenId()}, DEFAULT_RECT);
+    uniParam.AddWhiteListRect({mirrorScreenProperty.GetScreenId()}, DEFAULT_RECT);
 
     // Test multiple whitelist rects - returns directly without any operation
     ASSERT_NE(uniParam.GetWhiteListRectByScreenId(mirrorScreenProperty.GetScreenId()).size(), 1);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
 }
 
 /**
@@ -1313,11 +1298,17 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData004, TestSize.Level2
     uniParam.processor_ = processor;
 
     // Add single whitelist rect - should process normally
-    uniParam.AddWhiteListRect({mirrorScreenProperty.GetScreenId()}, DEFAULT_RECTI);
+    uniParam.AddWhiteListRect({mirrorScreenProperty.GetScreenId()}, DEFAULT_RECT);
 
     // Test single whitelist rect - SetCropRectForMetadata will be called
     ASSERT_EQ(uniParam.GetWhiteListRectByScreenId(mirrorScreenProperty.GetScreenId()).size(), 1);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
+
+    std::shared_ptr<RSSLRScaleFunction> scaleManager = std::make_shared<RSSLRScaleFunction>(1.0f, 1.0f, 1.0f, 1.0f);
+    ASSERT_NE(scaleManager, nullptr);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, scaleManager);
 }
 
 /**
@@ -1341,7 +1332,8 @@ HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData005, TestSize.Level2
 
     // Test with non-virtual processor - returns directly without any operation
     ASSERT_EQ(RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor), nullptr);
-    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorScreenProperty, sourceLogicalParam);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(
+        canvas, uniParam, mirrorScreenProperty, sourceLogicalParam, nullptr);
 }
 
 /**
@@ -1392,13 +1384,15 @@ HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect001, TestSize.Level2)
     
     // Set whitelist
     ScreenId screenId = GenerateScreenId();
+    auto screenNode =
+        std::make_shared<RSScreenRenderNode>(GenerateNodeId(), screenId, rsContext->weak_from_this());
     ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, screenId, {node->GetId()});
 
     // Setup renderThreadParams for mainThread
     RSMainThread::Instance()->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     
     // Test with hasMirrorDisplay false - should return early
-    RSSpecialLayerUtils::CollectWhiteListRect(*node, false, false, screenId);
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, false, false, *screenNode);
 
     // Verify
     auto& uniParam = RSMainThread::Instance()->renderThreadParams_;
@@ -1423,13 +1417,15 @@ HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect002, TestSize.Level2)
 
     // Set whitelist
     ScreenId screenId = GenerateScreenId();
+    auto screenNode =
+        std::make_shared<RSScreenRenderNode>(GenerateNodeId(), screenId, rsContext->weak_from_this());
     ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, screenId, {node->GetId()});
 
     // Setup renderThreadParams for mainThread
     RSMainThread::Instance()->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     
     // Test with isRotating true - should return early
-    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, true, screenId);
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, true, *screenNode);
 
     // Verify
     auto& uniParam = RSMainThread::Instance()->renderThreadParams_;
@@ -1457,13 +1453,15 @@ HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect003, TestSize.Level2)
 
     // Set whitelist
     ScreenId screenId = GenerateScreenId();
+    auto screenNode =
+        std::make_shared<RSScreenRenderNode>(GenerateNodeId(), screenId, rsContext->weak_from_this());
     ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, screenId, {node->GetId()});
 
     // Setup renderThreadParams for mainThread
     RSMainThread::Instance()->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     
     // Test with null boundsGeo - should return early
-    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false, screenId);
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false, *screenNode);
 
     // Verify
     auto& uniParam = RSMainThread::Instance()->renderThreadParams_;
@@ -1488,13 +1486,15 @@ HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect004, TestSize.Level2)
 
     // Set whitelist
     ScreenId screenId = GenerateScreenId();
+    auto screenNode =
+        std::make_shared<RSScreenRenderNode>(GenerateNodeId(), screenId, rsContext->weak_from_this());
     ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, screenId, {node->GetId()});
 
     // Set renderThreadParams_ to nullptr
     RSMainThread::Instance()->renderThreadParams_ = nullptr;
     
     // Test with null renderThreadParams_ - should return early
-    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false, screenId);
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false, *screenNode);
 
     // Verify : CollectWhiteListRect will not create new renderThreadParams_
     ASSERT_EQ(RSMainThread::Instance()->renderThreadParams_, nullptr);
@@ -1508,6 +1508,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect004, TestSize.Level2)
  */
 HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect005, TestSize.Level2)
 {
+    auto rsContext = std::make_shared<RSContext>();
     // Setup renderThreadParams for mainThread
     RSMainThread::Instance()->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     
@@ -1517,7 +1518,10 @@ HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect005, TestSize.Level2)
     ScreenId mirrorScreenId2 = GenerateScreenId();
     ScreenId sourceScreenId2 = GenerateScreenId();
     ScreenId otherScreenId = GenerateScreenId();
-
+    auto sourceScreenNode1 =
+        std::make_shared<RSScreenRenderNode>(GenerateNodeId(), sourceScreenId1, rsContext->weak_from_this());
+    auto sourceScreenNode2 =
+        std::make_shared<RSScreenRenderNode>(GenerateNodeId(), sourceScreenId2, rsContext->weak_from_this());
     // Set whitelist info
     ScreenSpecialLayerInfo::ClearScreenMirrorSourceMap();
     ScreenSpecialLayerInfo::UpdateScreenMirrorSourceMap(mirrorScreenId1, sourceScreenId1);
@@ -1526,8 +1530,8 @@ HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect005, TestSize.Level2)
     ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, otherScreenId, {node->GetId()});
 
     // Verify
-    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false, sourceScreenId1);
-    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false, sourceScreenId2);
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false, *sourceScreenNode1, true);
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false, *sourceScreenNode2, false);
     auto& uniParam = RSMainThread::Instance()->renderThreadParams_;
     // AncestorScreenId match
     auto whiteListRects = uniParam->GetWhiteListRectByScreenId(mirrorScreenId1);

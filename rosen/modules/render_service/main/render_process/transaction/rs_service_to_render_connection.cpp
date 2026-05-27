@@ -331,9 +331,9 @@ void RSServiceToRenderConnection::SetCurtainScreenUsingStatus(bool isCurtainScre
     renderPipelineAgent_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
 
-void RSServiceToRenderConnection::OnScreenBacklightChanged(ScreenId screenId, uint32_t level)
+void RSServiceToRenderConnection::OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
-    renderPipelineAgent_->OnScreenBacklightChanged(screenId, level);
+    renderPipelineAgent_->OnScreenBacklightChanged(brightnessData);
 }
 
 void RSServiceToRenderConnection::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)

@@ -16,8 +16,11 @@
 #ifndef CANVAS_H
 #define CANVAS_H
 
+#include <functional>
 #include <iostream>
+#include <stack>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "drawing/draw/core_canvas.h"
@@ -27,6 +30,8 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 class RecordCmd;
+
+using CustomSaveLayerStack = std::stack<std::pair<uint32_t, std::function<void(Canvas&)>>>;
 
 class AutoCanvasMatrixBrush {
 public:
@@ -111,7 +116,10 @@ public:
     {
         maxStencilVal_ = maxStencilVal;
     }
+
+    CustomSaveLayerStack* getCustomSaveLayerStack() { return &customStack_; }
 protected:
+    Drawing::CustomSaveLayerStack customStack_;
     std::vector<Canvas*> pCanvasList_;
     bool recordingState_ = false;
     bool isOffscreen_ = false;

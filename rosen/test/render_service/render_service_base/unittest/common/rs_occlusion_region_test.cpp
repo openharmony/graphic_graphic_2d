@@ -524,4 +524,100 @@ HWTEST_F(RSOcclusionRegionTest, CheckAndCorrectValue001, Function | MediumTest |
     rect.CheckAndCorrectValue();
     EXPECT_EQ(rect, maxRect);
 }
+
+/**
+ * @tc.name: GetAlignedRegionWidthHeight001
+ * @tc.desc: test GetAlignedRegion with separate width and height alignment parameters
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSOcclusionRegionTest, GetAlignedRegionWidthHeight001, Function | MediumTest | Level2)
+{
+    constexpr int alignmentWidth = 128;
+    constexpr int alignmentHeight = 64;
+    Rect rect{ 10, 20, 200, 300 };
+    Region region(rect);
+    Region alignedRegion = region.GetAlignedRegion(alignmentWidth, alignmentHeight);
+
+    auto bound = alignedRegion.GetBound();
+    EXPECT_EQ(bound.left_ % alignmentWidth, 0);
+    EXPECT_EQ(bound.top_ % alignmentHeight, 0);
+    EXPECT_EQ(bound.right_ % alignmentWidth, 0);
+    EXPECT_EQ(bound.bottom_ % alignmentHeight, 0);
+}
+
+/**
+ * @tc.name: GetAlignedRegionWidthHeight002
+ * @tc.desc: test GetAlignedRegion with different width and height alignment values
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSOcclusionRegionTest, GetAlignedRegionWidthHeight002, Function | MediumTest | Level2)
+{
+    constexpr int alignmentWidth = 256;
+    constexpr int alignmentHeight = 128;
+    Rect rect{ 50, 100, 500, 600 };
+    Region region(rect);
+    Region alignedRegion = region.GetAlignedRegion(alignmentWidth, alignmentHeight);
+
+    auto bound = alignedRegion.GetBound();
+    EXPECT_TRUE(bound.left_ <= rect.left_);
+    EXPECT_TRUE(bound.top_ <= rect.top_);
+    EXPECT_TRUE(bound.right_ >= rect.right_);
+    EXPECT_TRUE(bound.bottom_ >= rect.bottom_);
+}
+
+/**
+ * @tc.name: GetAlignedRegionWidthHeight003
+ * @tc.desc: test GetAlignedRegion with empty region
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSOcclusionRegionTest, GetAlignedRegionWidthHeight003, Function | MediumTest | Level2)
+{
+    constexpr int alignmentWidth = 128;
+    constexpr int alignmentHeight = 128;
+    Region emptyRegion;
+    Region alignedRegion = emptyRegion.GetAlignedRegion(alignmentWidth, alignmentHeight);
+    EXPECT_TRUE(alignedRegion.IsEmpty());
+}
+
+/**
+ * @tc.name: GetAlignedRegionWidthHeight004
+ * @tc.desc: test GetAlignedRegion with multiple rects region
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSOcclusionRegionTest, GetAlignedRegionWidthHeight004, Function | MediumTest | Level2)
+{
+    constexpr int alignmentWidth = 64;
+    constexpr int alignmentHeight = 32;
+    Rect rect1{ 10, 20, 100, 200 };
+    Rect rect2{ 150, 250, 300, 400 };
+    Region region1(rect1);
+    Region region2(rect2);
+    Region region = region1.Or(region2);
+    Region alignedRegion = region.GetAlignedRegion(alignmentWidth, alignmentHeight);
+
+    EXPECT_FALSE(alignedRegion.IsEmpty());
+    EXPECT_TRUE(alignedRegion.GetSize() >= region.GetSize());
+}
+
+/**
+ * @tc.name: GetSizeReturnType001
+ * @tc.desc: test GetSize returns size_t type
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSOcclusionRegionTest, GetSizeReturnType001, Function | MediumTest | Level2)
+{
+    Rect rect{ 0, 0, 100, 100 };
+    Region region(rect);
+    size_t size = region.GetSize();
+    EXPECT_EQ(size, static_cast<size_t>(1));
+
+    Region emptyRegion;
+    size = emptyRegion.GetSize();
+    EXPECT_EQ(size, static_cast<size_t>(0));
+}
 } // namespace OHOS::Rosen::Occlusion

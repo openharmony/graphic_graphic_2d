@@ -36,7 +36,7 @@ void OHDrawingRunTest(OH_Drawing_Array* runs, OH_Drawing_Canvas* canvas, FuzzedD
     OH_Drawing_GetRunStringIndices(run, fdp.ConsumeIntegral<int64_t>(), fdp.ConsumeIntegral<int64_t>());
     OH_Drawing_Array* stringIndicesArr = OH_Drawing_GetRunStringIndices(run, 0, count);
     OH_Drawing_GetDrawingArraySize(stringIndicesArr);
-    uint64_t indices = OH_Drawing_GetRunStringIndicesByIndex(stringIndicesArr, fdp.ConsumeIntegral<size_t>());
+    OH_Drawing_GetRunStringIndicesByIndex(stringIndicesArr, fdp.ConsumeIntegral<size_t>());
     OH_Drawing_DestroyRunStringIndices(stringIndicesArr);
     float myAscent = 0;
     float myDescent = 0;

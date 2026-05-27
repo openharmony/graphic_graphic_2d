@@ -941,7 +941,7 @@ HWTEST_F(RSServiceClientTest, GetScreenBacklight001, TestSize.Level1)
 {
     auto screenId = rsClient->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    rsClient->SetScreenBacklight(screenId, 60); // for test
+    rsClient->SetScreenBacklight(RsScreenBrightnessData(screenId, 60)); // for test
     usleep(SET_REFRESHRATE_SLEEP_US);
     auto backLight = rsClient->GetScreenBacklight(screenId);
     EXPECT_EQ(backLight, 60); // for test

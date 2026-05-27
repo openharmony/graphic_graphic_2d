@@ -884,6 +884,7 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NullBufferOwnerCountTest00
  * @tc.name: ReleaseUniOnDrawBuffers_NotLastUniBufferOwnerTest001
  * @tc.desc: Test CheckLastUniBufferOwner false path in ReleaseUniOnDrawBuffers
  *           When CheckLastUniBufferOwner returns false, should call SetBufferOwnerCount with false
+ *           CheckLastUniBufferOwner returns false when screenId exists in map AND bufferId doesn't match
  * @tc.type: FUNC
  * @tc.require: issue41
  */
@@ -899,9 +900,6 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NotLastUniBufferOwnerTest0
     uint64_t targetBufferId = GenerateBufferId();
     owner->InsertUniOnDrawSet(TEST_LAYER_ID, targetBufferId);
 
-    // Set uniBufferOwner with different bufferId and screenId to make CheckLastUniBufferOwner return false
-    owner->SetUniBufferOwner(GenerateBufferId(), TEST_SCREEN_ID);
-
     // Create rsLayers with valid layer
     auto ctx = std::make_shared<RSComposerContext>(nullptr);
     auto layer = RSSurfaceLayer::Create(0, ctx);
@@ -911,13 +909,15 @@ HWTEST_F(RSBufferManagerTest, ReleaseUniOnDrawBuffers_NotLastUniBufferOwnerTest0
     // Put bufferOwnerCount into layer so PopBufferOwnerCountById returns non-null
     auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     bufferOwnerCount->bufferId_ = targetBufferId;
+    bufferOwnerCount->SetUniBufferOwner(GenerateBufferId(), TEST_SCREEN_ID);
     layer->SetBufferOwnerCount(bufferOwnerCount, false);
 
     std::set<uint64_t> decedSet{};
     sptr<SyncFence> uniFence = new SyncFence(dup(STDOUT_FILENO));
     // Call ReleaseUniOnDrawBuffers, CheckLastUniBufferOwner returns false so SetBufferOwnerCount(false) called
+    // Flow: SetBufferOwnerCount(AddRef=2) -> Pop -> SetBufferOwnerCount(AddRef=3) -> OnBufferReleased(DecRef=2)
     mgr->ReleaseUniOnDrawBuffers(owner, uniFence, decedSet, rsLayers, TEST_SCREEN_ID);
-    ASSERT_EQ(bufferOwnerCount->refCount_.load(), 1);
+    ASSERT_EQ(bufferOwnerCount->refCount_.load(), 2);
 }
 
 /**

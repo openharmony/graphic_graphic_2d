@@ -65,11 +65,13 @@ struct BrightnessInfo {
     float currentHeadroom = 1.0f;
     float maxHeadroom = 1.0f;
     float sdrNits = 500.0f;
+    float brightnessPosition = 0.0f;
 
     bool operator==(const BrightnessInfo& other) const
     {
-        return ROSEN_EQ(currentHeadroom, other.currentHeadroom) &&
-            ROSEN_EQ(maxHeadroom, other.maxHeadroom) && ROSEN_EQ(sdrNits, other.sdrNits);
+        return this == &other || (ROSEN_EQ(currentHeadroom, other.currentHeadroom) &&
+            ROSEN_EQ(maxHeadroom, other.maxHeadroom) && ROSEN_EQ(sdrNits, other.sdrNits) &&
+            ROSEN_EQ(brightnessPosition, other.brightnessPosition));
     }
 
     bool operator!=(const BrightnessInfo& other) const
@@ -87,7 +89,7 @@ public:
     virtual bool IsHdrOn(ScreenId screenId) const = 0;
     virtual bool IsDimmingOn(ScreenId screenId) = 0;
     virtual void DimmingIncrease(ScreenId screenId) = 0;
-    virtual void SetSdrLuminance(ScreenId screenId, uint32_t level) = 0;
+    virtual void SetSdrLuminance(const RsScreenBrightnessData& brightnessData) = 0;
     virtual uint32_t GetNewHdrLuminance(ScreenId screenId) = 0;
     virtual void SetNowHdrLuminance(ScreenId screenId, uint32_t level) = 0;
     virtual bool IsNeedUpdateLuminance(ScreenId screenId) = 0;
@@ -135,7 +137,7 @@ public:
     RSB_EXPORT bool IsDimmingOn(ScreenId screenId);
     RSB_EXPORT void DimmingIncrease(ScreenId screenId);
 
-    RSB_EXPORT void SetSdrLuminance(ScreenId screenId, uint32_t level);
+    RSB_EXPORT void SetSdrLuminance(const RsScreenBrightnessData& brightnessData);
     RSB_EXPORT uint32_t GetNewHdrLuminance(ScreenId screenId);
     RSB_EXPORT void SetNowHdrLuminance(ScreenId screenId, uint32_t level);
     RSB_EXPORT bool IsNeedUpdateLuminance(ScreenId screenId);

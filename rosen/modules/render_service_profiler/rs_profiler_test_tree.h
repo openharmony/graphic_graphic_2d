@@ -49,7 +49,6 @@ private:
     const Color almostWhite_ = Color(240, 240, 240, 255);
     std::mt19937 mt_;
     std::uniform_int_distribution<uint8_t> distribution_;
-    Drawing::Image GenerateRandomImage(int width, int height);
     NodeId insideId_;
     bool withDisplay_;
     bool withScreenNode_;

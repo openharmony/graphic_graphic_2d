@@ -258,7 +258,7 @@ bool RSHpaeManager::IsHpaeBlurNode(RSRenderNode& node, uint32_t phyWidth, uint32
             // small radius is not allowed
             return false;
         }
-        if (renderProperty.GetPixelStretch().has_value()) {
+        if (!renderProperty.GetPixelStretch().IsZero()) {
             return false;
         }
 

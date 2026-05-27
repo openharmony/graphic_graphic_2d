@@ -102,11 +102,10 @@ public:
         return hdrNodeMap_;
     }
 
-    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
-        NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
+    void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID, NodeId firstLevelNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID, NodeId screenNodeId = INVALID_NODEID,
         NodeId logicalDisplayNodeId = INVALID_NODEID) override;
-    
+
     // Window Container
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
@@ -137,6 +136,9 @@ public:
     void SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus);
     bool GetVirtualScreenMuteStatus() const;
     void SetDisplaySpecialSurfaceChanged(bool displaySpecialSurfaceChanged);
+
+    void SetBootAnimation(bool isBootAnimation) override;
+    bool GetBootAnimation() const override;
 
     RSSpecialLayerManager& GetMultableSpecialLayerMgr();
     const RSSpecialLayerManager& GetSpecialLayerMgr() const;
@@ -222,6 +224,8 @@ private:
     bool hasSecLayerInVisibleRectChanged_ = false;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     bool hasCaptureWindow_ = false;
+
+    bool isBootAnimation_ = false;
 
     bool waitToSetOnTree_ = false;
 

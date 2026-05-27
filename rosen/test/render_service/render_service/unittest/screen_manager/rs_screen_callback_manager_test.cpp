@@ -46,8 +46,9 @@ private:
         void OnVirtualScreenDisconnected(ScreenId id) override {};
         void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override {};
         void OnActiveScreenIdChanged(ScreenId activeScreenId) override {};
-        void OnScreenBacklightChanged(ScreenId id, uint32_t level) override {};
+        void OnScreenBacklightChanged(const RsScreenBrightnessData&) override {};
         void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override {};
+        void OnProcessDisconnected(ScreenId id) override {};
     };
 
     std::shared_ptr<RSScreenCallbackManager> callbackMgr_ = std::make_shared<RSScreenCallbackManager>();
@@ -336,10 +337,10 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyScreenBacklightChangedTest, TestSize
     ScreenId screenId = 100;
     uint32_t level = 100;
     ASSERT_EQ(callbackMgr_->coreListener_, nullptr);
-    callbackMgr_->NotifyScreenBacklightChanged(screenId, level);
+    callbackMgr_->NotifyScreenBacklightChanged(RsScreenBrightnessData(screenId, level));
     callbackMgr_->SetCoreListener(coreListener_);
     ASSERT_NE(callbackMgr_->coreListener_, nullptr);
-    callbackMgr_->NotifyScreenBacklightChanged(screenId, level);
+    callbackMgr_->NotifyScreenBacklightChanged(RsScreenBrightnessData(screenId, level));
     callbackMgr_->coreListener_ = nullptr;
 }
 
@@ -362,6 +363,20 @@ HWTEST_F(RSScreenCallbackManagerTest, GetClientToRenderConnectionTest, TestSize.
     callbackMgr_->GetClientToRenderConnection(screenId);
     callbackMgr_->clientToRenderConns_.clear();
     ASSERT_EQ(callbackMgr_->clientToRenderConns_.size(), 0);
+}
+
+/*
+ * @tc.name: NotifyNoScreenTest
+ * @tc.desc: Test NotifyNoScreen
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenCallbackManagerTest, NotifyNoScreenTest, TestSize.Level0)
+{
+    auto screenManagerAgentListener = sptr<RSScreenManagerAgentListener>::MakeSptr();
+    callbackMgr_->AddAgentListener(screenManagerAgentListener);
+    ASSERT_NE(callbackMgr_->agentListeners_.size(), 0);
+    callbackMgr_->NotifyNoScreen(ScreenChangeReason::DEFAULT);
+    callbackMgr_->RemoveAgentListener(screenManagerAgentListener);
 }
 
 /*
@@ -388,6 +403,122 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyScreenDisconnectedToAgentListenersTe
     ScreenId screenId = 100;
     ASSERT_EQ(callbackMgr_->GetCoreListener(), nullptr);
     callbackMgr_->NotifyScreenDisconnectedToAgentListeners(screenId, ScreenChangeReason::DEFAULT);
+}
+
+/*
+ * @tc.name: NotifyPhysicalScreenProcessDisconnectedTest001
+ * @tc.desc: Test NotifyPhysicalScreenProcessDisconnected with null coreListener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCallbackManagerTest, NotifyPhysicalScreenProcessDisconnectedTest001, TestSize.Level0)
+{
+    ScreenId screenId = 100;
+    callbackMgr_->coreListener_ = nullptr;
+    callbackMgr_->clientToRenderConns_[screenId] = nullptr;
+    ASSERT_EQ(callbackMgr_->clientToRenderConns_.count(screenId), 1);
+    callbackMgr_->NotifyPhysicalScreenProcessDisconnected(screenId);
+    ASSERT_EQ(callbackMgr_->clientToRenderConns_.count(screenId), 0);
+}
+
+/*
+ * @tc.name: NotifyPhysicalScreenProcessDisconnectedTest002
+ * @tc.desc: Test NotifyPhysicalScreenProcessDisconnected with coreListener set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCallbackManagerTest, NotifyPhysicalScreenProcessDisconnectedTest002, TestSize.Level0)
+{
+    ScreenId screenId = 200;
+    callbackMgr_->SetCoreListener(coreListener_);
+    ASSERT_NE(callbackMgr_->GetCoreListener(), nullptr);
+    callbackMgr_->clientToRenderConns_[screenId] = nullptr;
+    ASSERT_EQ(callbackMgr_->clientToRenderConns_.count(screenId), 1);
+    callbackMgr_->NotifyPhysicalScreenProcessDisconnected(screenId);
+    ASSERT_EQ(callbackMgr_->clientToRenderConns_.count(screenId), 0);
+    callbackMgr_->coreListener_ = nullptr;
+}
+
+/*
+ * @tc.name: NotifyPhysicalScreenProcessDisconnectedWithAgentTest
+ * @tc.desc: Test NotifyPhysicalScreenProcessDisconnected notifies agent listeners
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCallbackManagerTest, NotifyPhysicalScreenProcessDisconnectedWithAgentTest, TestSize.Level0)
+{
+    class MockDisconnectAgentListener : public RSIScreenManagerAgentListener {
+    public:
+        bool disconnectedCalled = false;
+        ScreenChangeReason lastReason = ScreenChangeReason::DEFAULT;
+        void OnScreenConnected(ScreenId id, ScreenChangeReason reason,
+            sptr<IRemoteObject> remoteConn) override {};
+        void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) override
+        {
+            disconnectedCalled = true;
+            lastReason = reason;
+        }
+        void OnScreenSwitchingNotify(bool status) override {};
+        void OnHwcEvent(uint32_t deviceId, uint32_t eventId,
+            const std::vector<int32_t>& eventData) override {};
+        void OnActiveScreenIdChanged(ScreenId activeScreenId) override {};
+    };
+
+    ScreenId screenId = 300;
+    auto mockAgent = sptr<MockDisconnectAgentListener>::MakeSptr();
+    callbackMgr_->AddAgentListener(mockAgent);
+    callbackMgr_->NotifyPhysicalScreenProcessDisconnected(screenId);
+    ASSERT_TRUE(mockAgent->disconnectedCalled);
+    ASSERT_EQ(mockAgent->lastReason, ScreenChangeReason::PROCESS_DISCONNECTED);
+    callbackMgr_->RemoveAgentListener(mockAgent);
+}
+
+/*
+ * @tc.name: NotifyVirtualScreenProcessDisconnectedTest001
+ * @tc.desc: Test NotifyVirtualScreenProcessDisconnected with null coreListener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCallbackManagerTest, NotifyVirtualScreenProcessDisconnectedTest001, TestSize.Level0)
+{
+    ScreenId screenId = 400;
+    callbackMgr_->coreListener_ = nullptr;
+    ASSERT_EQ(callbackMgr_->GetCoreListener(), nullptr);
+    callbackMgr_->NotifyVirtualScreenProcessDisconnected(screenId);
+}
+
+/*
+ * @tc.name: NotifyVirtualScreenProcessDisconnectedWithAgentTest
+ * @tc.desc: Test NotifyVirtualScreenProcessDisconnected notifies agent listeners with PROCESS_DISCONNECTED
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCallbackManagerTest, NotifyVirtualScreenProcessDisconnectedWithAgentTest, TestSize.Level0)
+{
+    class MockVirtualDisconnectAgentListener : public RSIScreenManagerAgentListener {
+    public:
+        bool disconnectedCalled = false;
+        ScreenChangeReason lastReason = ScreenChangeReason::DEFAULT;
+        void OnScreenConnected(ScreenId id, ScreenChangeReason reason,
+            sptr<IRemoteObject> remoteConn) override {};
+        void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) override
+        {
+            disconnectedCalled = true;
+            lastReason = reason;
+        }
+        void OnScreenSwitchingNotify(bool status) override {};
+        void OnHwcEvent(uint32_t deviceId, uint32_t eventId,
+            const std::vector<int32_t>& eventData) override {};
+        void OnActiveScreenIdChanged(ScreenId activeScreenId) override {};
+    };
+
+    ScreenId screenId = 500;
+    auto mockAgent = sptr<MockVirtualDisconnectAgentListener>::MakeSptr();
+    callbackMgr_->AddAgentListener(mockAgent);
+    callbackMgr_->NotifyVirtualScreenProcessDisconnected(screenId);
+    ASSERT_TRUE(mockAgent->disconnectedCalled);
+    ASSERT_EQ(mockAgent->lastReason, ScreenChangeReason::PROCESS_DISCONNECTED);
+    callbackMgr_->RemoveAgentListener(mockAgent);
 }
 
 } // namespace OHOS::Rosen

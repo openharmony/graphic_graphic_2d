@@ -290,7 +290,7 @@ void RSRenderTimeDrivenGroupAnimator::PauseAnimator()
 
     // When pause occurs during the delay period, record the elapsed delay time and add it to the total executed time.
     int64_t minLeftDelayTime = 0;
-    animationFraction_.GetAnimationFraction(context->GetCurrentTimestamp(), minLeftDelayTime, false);
+    animationFraction_.GetAnimationFraction(context->GetCurrentTimestamp(), minLeftDelayTime, false, true);
 
     groupWaitingAnimationIds_.clear();
     for (auto& weakAnim : cachedAnimations_) {
@@ -339,7 +339,7 @@ void RSRenderTimeDrivenGroupAnimator::OnAnimate(int64_t timestamp, int64_t& minL
 void RSRenderTimeDrivenGroupAnimator::UpdateFraction(int64_t timestamp, int64_t& minLeftDelayTime)
 {
     auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =
-        animationFraction_.GetAnimationFraction(timestamp, minLeftDelayTime, false);
+        animationFraction_.GetAnimationFraction(timestamp, minLeftDelayTime, false, true);
 
     RS_TRACE_NAME_FMT("RSRenderTimeDrivenGroupAnimator::UpdateFraction animator[%llu] fraction[%f] "
         "runningTime[%lld]ms duration[%d]ms delay[%d]ms repeat[%d] childCount[%zu]",

@@ -54,6 +54,9 @@ struct OpFontHandle {
     bool isBaselineSnap = false;
     FontEdging fontEdging = FontEdging::ANTI_ALIAS;
     FontHinting fontHinting = FontHinting::NORMAL;
+    bool themeFontFollowed = false;
+    bool isCustomTypeface = false;
+    bool isThemeTypeface = false;
 };
 
 struct FlattenableHandle {

@@ -48,7 +48,6 @@ struct FilterDirtyRegionInfo {
     NodeId id_ = INVALID_NODEID;
     Occlusion::Region intersectRegion_ = Occlusion::Region();
     Occlusion::Region filterDirty_ = Occlusion::Region();
-    Occlusion::Region alignedFilterDirty_ = Occlusion::Region();
     Occlusion::Region belowDirty_ = Occlusion::Region();
     bool isBackgroundFilterClean_ = false;
     bool addToDirty_ = false;

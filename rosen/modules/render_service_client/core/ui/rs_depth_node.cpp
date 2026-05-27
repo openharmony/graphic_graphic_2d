@@ -35,6 +35,8 @@ void RSDepthNode::SetDepthCameraPara(const DepthCameraPara& cameraPara) {}
 
 void RSDepthNode::SetDepthLightPara(const DepthLightPara& lightPara) {}
 
+void RSDepthNode::SetDepthImageMatrix(const Matrix3f& imageMatrix) {}
+
 RSDepthNode::RSDepthNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
     : RSNode(isRenderServiceNode, isTextureExportNode, rsUIContext) {}
 } // namespace Rosen

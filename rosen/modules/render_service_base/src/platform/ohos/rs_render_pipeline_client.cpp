@@ -59,6 +59,7 @@
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
 #include "vsync_iconnection_token.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -70,7 +71,7 @@ RSRenderPipelineClient::RSRenderPipelineClient()
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
-    if (isUniRender) {
+    if (isUniRender && RSSystemProperties::IsSceneBoardEnabled()) {
         auto conn = iface_cast<RSIConnectToRenderProcess>(connectToRenderRemote);
         if (conn == nullptr) {
             RS_LOGE("RSRenderPipelineClient::%{public}s, iface_cast failed", __func__);
@@ -1058,6 +1059,17 @@ int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarg
         return RENDER_SERVICE_NULL;
     }
     return clientToRenderConnection_->GetFrameStabilityResult(target, result);
+}
+
+int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
+    if (clientToRenderConnection_ == nullptr) {
+        ROSEN_LOGE("UpdateFrameStabilityDetection clientToRenderConnection_ == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToRenderConnection_->UpdateFrameStabilityDetection(oldTarget, newTarget);
 }
 } // namespace Rosen
 } // namespace OHOS

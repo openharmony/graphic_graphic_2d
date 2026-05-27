@@ -48,9 +48,11 @@ HWTEST_F(RSDrawCmdListTest, PlaybackTest, TestSize.Level1)
     auto canvas = std::make_unique<Drawing::Canvas>();
     RSPaintFilterCanvas paintCanvas(canvas.get());
     auto rect = std::make_shared<Drawing::Rect>(0, 0, 1, 1);
-    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0);
-    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    auto rsCmdList = std::make_shared<RSDrawCmdList>(startValue, endValue);
+    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto startV = RSSimpleDrawCmdList::CreateFromDrawCmdList(startValue);
+    auto endV = RSSimpleDrawCmdList::CreateFromDrawCmdList(endValue);
+    auto rsCmdList = std::make_shared<RSDrawCmdList>(startV, endV);
     rsCmdList->Playback(paintCanvas, rect.get());
     ASSERT_TRUE(rsCmdList->GetEndDrawCmdList());
 
@@ -69,14 +71,16 @@ HWTEST_F(RSDrawCmdListTest, PlaybackTest, TestSize.Level1)
 HWTEST_F(RSDrawCmdListTest, GetWidthTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSDrawCmdListTest GetWidthTest start";
-    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0);
-    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    auto rsCmdList = std::make_shared<RSDrawCmdList>(startValue, endValue);
+    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto startV = RSSimpleDrawCmdList::CreateFromDrawCmdList(startValue);
+    auto endV = RSSimpleDrawCmdList::CreateFromDrawCmdList(endValue);
+    auto rsCmdList = std::make_shared<RSDrawCmdList>(startV, endV);
     ASSERT_EQ(rsCmdList->GetWidth(), rsCmdList->GetEndDrawCmdList()->GetWidth());
 
     rsCmdList->startValue_.first = nullptr;
     rsCmdList->endValue_.first = nullptr;
-    auto cmdList = std::static_pointer_cast<Drawing::DrawCmdList>(rsCmdList);
+    auto cmdList = std::static_pointer_cast<RSSimpleDrawCmdList>(rsCmdList);
     ASSERT_EQ(rsCmdList->GetWidth(), cmdList->GetWidth());
     GTEST_LOG_(INFO) << "RSDrawCmdListTest GetWidthTest end";
 }
@@ -89,14 +93,16 @@ HWTEST_F(RSDrawCmdListTest, GetWidthTest, TestSize.Level1)
 HWTEST_F(RSDrawCmdListTest, GetHeightTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSDrawCmdListTest GetHeightTest start";
-    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0);
-    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    auto rsCmdList = std::make_shared<RSDrawCmdList>(startValue, endValue);
+    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto startV = RSSimpleDrawCmdList::CreateFromDrawCmdList(startValue);
+    auto endV = RSSimpleDrawCmdList::CreateFromDrawCmdList(endValue);
+    auto rsCmdList = std::make_shared<RSDrawCmdList>(startV, endV);
     ASSERT_EQ(rsCmdList->GetHeight(), rsCmdList->GetEndDrawCmdList()->GetHeight());
 
     rsCmdList->startValue_.first = nullptr;
     rsCmdList->endValue_.first = nullptr;
-    auto cmdList = std::static_pointer_cast<Drawing::DrawCmdList>(rsCmdList);
+    auto cmdList = std::static_pointer_cast<RSSimpleDrawCmdList>(rsCmdList);
     ASSERT_EQ(rsCmdList->GetHeight(), cmdList->GetHeight());
     GTEST_LOG_(INFO) << "RSDrawCmdListTest GetHeightTest end";
 }
@@ -109,9 +115,11 @@ HWTEST_F(RSDrawCmdListTest, GetHeightTest, TestSize.Level1)
 HWTEST_F(RSDrawCmdListTest, IsEmptyTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSDrawCmdListTest IsEmptyTest start";
-    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0);
-    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    auto rsCmdList = std::make_shared<RSDrawCmdList>(startValue, endValue);
+    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto startV = RSSimpleDrawCmdList::CreateFromDrawCmdList(startValue);
+    auto endV = RSSimpleDrawCmdList::CreateFromDrawCmdList(endValue);
+    auto rsCmdList = std::make_shared<RSDrawCmdList>(startV, endV);
     ASSERT_EQ(rsCmdList->IsEmpty(), rsCmdList->GetEndDrawCmdList()->IsEmpty());
 
     rsCmdList->startValue_.first = nullptr;
@@ -128,9 +136,11 @@ HWTEST_F(RSDrawCmdListTest, IsEmptyTest, TestSize.Level1)
 HWTEST_F(RSDrawCmdListTest, EstimateTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSDrawCmdListTest EstimateTest start";
-    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0);
-    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    auto rsCmdList = std::make_shared<RSDrawCmdList>(startValue, endValue);
+    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto startV = RSSimpleDrawCmdList::CreateFromDrawCmdList(startValue);
+    auto endV = RSSimpleDrawCmdList::CreateFromDrawCmdList(endValue);
+    auto rsCmdList = std::make_shared<RSDrawCmdList>(startV, endV);
     rsCmdList->Estimate(1.0f);
     // fraction_ should be 1.0f
     ASSERT_EQ(rsCmdList->fraction_.load(std::memory_order_relaxed), 1.0f);
@@ -148,9 +158,11 @@ HWTEST_F(RSDrawCmdListTest, EstimateTest, TestSize.Level1)
 HWTEST_F(RSDrawCmdListTest, GetEndDrawCmdListTest, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSDrawCmdListTest GetEndDrawCmdListTest start";
-    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0);
-    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    auto rsCmdList = std::make_shared<RSDrawCmdList>(startValue, endValue);
+    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto startV = RSSimpleDrawCmdList::CreateFromDrawCmdList(startValue);
+    auto endV = RSSimpleDrawCmdList::CreateFromDrawCmdList(endValue);
+    auto rsCmdList = std::make_shared<RSDrawCmdList>(startV, endV);
     ASSERT_TRUE(rsCmdList->GetEndDrawCmdList());
     GTEST_LOG_(INFO) << "RSDrawCmdListTest GetEndDrawCmdListTest end";
 }
@@ -162,13 +174,16 @@ HWTEST_F(RSDrawCmdListTest, GetEndDrawCmdListTest, TestSize.Level1)
  */
 HWTEST_F(RSDrawCmdListTest, RSDrawCmdListTest, TestSize.Level1)
 {
-    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0);
-    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
-    auto rsCmdList = std::make_shared<RSDrawCmdList>(nullptr, endValue);
+    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto startV = RSSimpleDrawCmdList::CreateFromDrawCmdList(startValue);
+    auto endV = RSSimpleDrawCmdList::CreateFromDrawCmdList(endValue);
+    auto rsCmdList = std::make_shared<RSDrawCmdList>(nullptr, endV);
     EXPECT_TRUE(rsCmdList->startValue_.first == nullptr);
 
-    auto startValue2 = std::make_shared<RSDrawCmdList>(startValue, endValue);
-    auto rsCmdList2 = std::make_shared<RSDrawCmdList>(startValue2, endValue);
+    auto startValue2 = std::make_shared<RSDrawCmdList>(startV, endV);
+    auto startV2 = RSSimpleDrawCmdList::CreateFromDrawCmdList(startValue);
+    auto rsCmdList2 = std::make_shared<RSDrawCmdList>(startV2, endV);
     EXPECT_TRUE(rsCmdList->GetEndDrawCmdList());
 }
 
@@ -179,8 +194,8 @@ HWTEST_F(RSDrawCmdListTest, RSDrawCmdListTest, TestSize.Level1)
  */
 HWTEST_F(RSDrawCmdListTest, DrawCmdListPtrTest, TestSize.Level1)
 {
-    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0);
-    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto startValue = std::make_shared<Drawing::DrawCmdList>(0, 0, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    auto endValue = std::make_shared<Drawing::DrawCmdList>(1, 1, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
     auto retPlus = startValue + endValue;
     EXPECT_EQ(startValue.get(), retPlus.get());
 

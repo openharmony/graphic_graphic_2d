@@ -34,9 +34,6 @@ void NativeDrawingPointTest001(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -60,9 +57,6 @@ void NativeDrawingPointTest002(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -80,9 +74,6 @@ void NativeDrawingPointTest003(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
 
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -103,6 +94,11 @@ void NativeDrawingPointTest003(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    // initialize
+    OHOS::Rosen::Drawing::g_data = data;
+    OHOS::Rosen::Drawing::g_size = size;
+    OHOS::Rosen::Drawing::g_pos = 0;
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingPointTest001(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPointTest002(data, size);

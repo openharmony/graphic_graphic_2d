@@ -68,15 +68,13 @@ RSCanvasRenderNode::~RSCanvasRenderNode()
 }
 
 void RSCanvasRenderNode::UpdateRecordingNG(
-    std::shared_ptr<Drawing::DrawCmdList> drawCmds, ModifierNG::RSModifierType type, bool isSingleFrameComposer)
+    SimpleDrawCmdListPtr drawCmds, ModifierNG::RSModifierType type, bool isSingleFrameComposer)
 {
     if (!drawCmds || drawCmds->IsEmpty()) {
         return;
     }
-    auto renderProperty =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(drawCmds, ANONYMOUS_MODIFIER_NG_ID);
-    auto renderModifier =
-        ModifierNG::RSRenderModifier::MakeRenderModifier<Drawing::DrawCmdListPtr>(type, renderProperty);
+    auto renderProperty = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>(drawCmds, ANONYMOUS_MODIFIER_NG_ID);
+    auto renderModifier = ModifierNG::RSRenderModifier::MakeRenderModifier<SimpleDrawCmdListPtr>(type, renderProperty);
     AddModifier(renderModifier, isSingleFrameComposer);
 }
 
@@ -115,7 +113,7 @@ void RSCanvasRenderNode::OnTreeStateChanged()
             SetCacheType(CacheType::NONE);
             SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }
-        needClearSurface_ = true;
+        SetNeedClearRenderGroupCache(true);
         displayNodeId = preDisplayNodeId_;
         AddToPendingSyncList();
     }
@@ -251,12 +249,13 @@ void RSCanvasRenderNode::ApplyDrawCmdModifier(ModifierNG::RSModifierContext& con
     }
     if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
         bool needSkip = false;
-        if (GetNodeIsSingleFrameComposer() && singleFrameComposer_ != nullptr) {
+        auto singleFrameComposer = GetSingleFrameComposer();
+        if (GetNodeIsSingleFrameComposer() && singleFrameComposer != nullptr) {
             auto& modifierList = const_cast<std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>&>(modifiers);
-            needSkip = singleFrameComposer_->SingleFrameModifierAddToListNG(type, modifierList);
+            needSkip = singleFrameComposer->SingleFrameModifierAddToListNG(type, modifierList);
         }
         for (const auto& modifier : modifiers) {
-            if (singleFrameComposer_ != nullptr && singleFrameComposer_->SingleFrameIsNeedSkipNG(needSkip, modifier)) {
+            if (singleFrameComposer != nullptr && singleFrameComposer->SingleFrameIsNeedSkipNG(needSkip, modifier)) {
                 continue;
             }
             modifier->Apply(context.canvas_, context.properties_);

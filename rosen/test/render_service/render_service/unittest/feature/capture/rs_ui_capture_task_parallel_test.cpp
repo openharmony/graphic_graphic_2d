@@ -229,6 +229,7 @@ std::shared_ptr<RenderContext> RSUiCaptureTaskParallelTest::renderContext_ = nul
 RSDisplayNodeConfig RSUiCaptureTaskParallelTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
 std::shared_ptr<RSDisplayNode> RSUiCaptureTaskParallelTest::displayNode_ = nullptr;
 
+#ifdef RS_ENABLE_UNI_RENDER
 /*
  * @tc.name: TakeSurfaceCaptureForUiInvalidSurface
  * @tc.desc: Test TakeSurfaceCaptureForUI with invalid surface
@@ -493,6 +494,50 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
     ASSERT_EQ(callback->captureSuccess_, true);
 #endif
+}
+
+/*
+ * @tc.name: LimitSizeNormal
+ * @tc.desc: Test RSUiCaptureTaskParallel::LimitSizeNormal
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, LimitSizeNormal, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+
+    NodeId nodeId = 130;
+    RSSurfaceCaptureConfig config;
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(40000.0f);
+    renderNode->renderProperties_.SetBoundsHeight(40000.0f);
+    nodeMap.RegisterRenderNode(renderNode);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 20.f, 50.f);
+
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(specifiedAreaRect), true);
+}
+
+/*
+ * @tc.name: LimitSizeAbnormal
+ * @tc.desc: Test RSUiCaptureTaskParallel::LimitSizeAbnormal
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, LimitSizeAbnormal, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+
+    NodeId nodeId = 132;
+    RSSurfaceCaptureConfig config;
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(40000.0f);
+    renderNode->renderProperties_.SetBoundsHeight(40000.0f);
+    nodeMap.RegisterRenderNode(renderNode);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 35000.f, 35000.f);
+
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->CreateResources(specifiedAreaRect), false);
 }
 
 /*
@@ -1170,5 +1215,6 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateClientPixelMap, Function | SmallTest
         EXPECT_EQ(pixelMap->GetHeight(), specifiAreaRect.GetHeight());
     }
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -55,6 +55,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSUIContext;
 class RSRenderAnimation;
 namespace ModifierNG {
 class RSModifier;
@@ -203,7 +204,33 @@ public:
 
     void MoveModifier(std::shared_ptr<RSModifierManager> dstModifierManager, NodeId nodeId);
 
+    /**
+     * @brief Sets the RSUIContext associated with this modifier manager.
+     *
+     * @param context A weak pointer to the RSUIContext.
+     */
+    void SetRSUIContext(std::weak_ptr<RSUIContext> context);
+
 private:
+    /**
+     * @brief Requests delayed VSync for power optimization.
+     *
+     * @param minLeftDelayTime Minimum left delay time in milliseconds. For nodes on tree, will be 0
+     *        (immediate VSync needed). For nodes not on tree, includes delayTime + remainingTime
+     *        (delayed VSync for power optimization).
+     * @param hasRunningAnimation [out] Reference to indicate if animations are running.
+     *        Will be set to false if delayed request is scheduled (to prevent external immediate request).
+     */
+    void RequestDelayedVSync(int64_t minLeftDelayTime, bool& hasRunningAnimation);
+
+    /**
+     * @brief Gets node tree status for animation optimization.
+     *
+     * @param targetId The target node ID.
+     * @return Whether the node is on the render tree.
+     */
+    bool GetNodeTreeStatus(NodeId targetId) const;
+
     /**
      * @brief Callback invoked when a animation has finished.
      *
@@ -229,6 +256,7 @@ private:
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderDisplaySync>> displaySyncs_;
     bool isDisplaySyncEnabled_ = false;
+    std::weak_ptr<RSUIContext> rsUIContext_;
 
     template <typename T>
     friend class RSAnimatableProperty;

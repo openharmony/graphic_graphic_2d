@@ -162,10 +162,10 @@ private:
         std::vector<Drawing::Point>& pointPositions);
     static bool GetTexs(ani_env* env, ani_int vertexCount, ani_object texsObj,
         std::vector<Drawing::Point>& pointTexs);
-    static bool GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
-                            ani_array glyphIdsObj, std::unique_ptr<uint16_t[]>& glyphIds);
-    static bool GetGlyphPositions(ani_env* env, ani_int positionCount,
-                                  ani_array positionsObj, std::unique_ptr<Drawing::Point[]>& positions);
+    static bool GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit, ani_size aniLength,
+                            ani_array& glyphIdsObj, std::unique_ptr<uint16_t[]>& glyphIds);
+    static bool GetGlyphPositions(ani_env* env, ani_int positionCount, ani_size aniLength,
+                                  ani_array& positionsObj, std::unique_ptr<Drawing::Point[]>& positions);
     static bool CheckDrawVerticesParams(ani_env* env, ani_int& vertexCount, ani_int& indexCount);
     static void GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t colorOffset,
         DrawPixelMapMeshArgs& args, AniCanvas* aniCanvas);

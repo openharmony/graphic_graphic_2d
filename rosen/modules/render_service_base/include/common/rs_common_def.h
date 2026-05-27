@@ -25,13 +25,15 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <unistd.h>
+#ifndef ENABLE_RS_PROXY
 #include <utils/rect.h>
+#include "draw/color.h"
+#include "../../../../utils/color_manager/export/color_space.h"
+#endif
 #include <vector>
 
 #include "common/rs_macros.h"
 #include "common/rs_anco_type.h"
-#include "draw/color.h"
-#include "../../../../utils/color_manager/export/color_space.h"
 
 namespace OHOS {
 class Surface;
@@ -56,7 +58,6 @@ constexpr uint64_t INVALID_LEASH_PERSISTENTID = 0;
 constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
 constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
-constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
 constexpr uint32_t MAX_NODE_COUNT_PER_PID = 500000;
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
@@ -388,7 +389,7 @@ enum class DisplayIntent : uint32_t {
     LOCAL = 1, // current screen nits
     DISPLAY_INTENT_BUTT, // a boundary for DisplayIntent Security Check
 };
-
+#ifndef ENABLE_RS_PROXY
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -459,7 +460,7 @@ struct RSSurfaceCapturePermissions {
     bool isSystemCalling = false;
     bool selfCapture = false;
 };
-
+#endif
 #define CHECK_FALSE_RETURN(var)      \
     do {                             \
         if (!(var)) {                \

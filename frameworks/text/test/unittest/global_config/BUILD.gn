@@ -15,29 +15,20 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-ohos_unittest("rosen_text_global_test") {
-  module_out_path = text_ut_out_path
-
+text_unittest("rosen_text_global_test") {
   sources = [ "text_global_config_test.cpp" ]
   include_dirs = [
-    "$graphic_2d_root/frameworks/text/service/global_config",
-    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$rosen_root/modules/2d_graphics/src",
+    "$rosen_root/modules/2d_graphics/src/drawing/engine_adapter",
+    "$rosen_root/modules/render_service_base/include",
+    "$rosen_text_root/service/global_config",
+    "$rosen_root/modules/2d_graphics/include",
   ]
 
-  cflags = [
-    "-std=c++17",
-    "-Dprivate=public",
+  external_deps = [
+    "hilog:libhilog",
+    "skia:skia_canvaskit",
   ]
-
-  defines = [ "ENABLE_OHOS_ENHANCE" ]
-  deps = [
-    "$rosen_root/modules/2d_graphics:2d_graphics",
-    "$rosen_text_root:rosen_text",
-  ]
-  external_deps = [ "hilog:libhilog" ]
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
 }
 
 group("unittest") {

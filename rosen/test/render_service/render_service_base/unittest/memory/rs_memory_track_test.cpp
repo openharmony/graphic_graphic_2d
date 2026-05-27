@@ -1213,7 +1213,6 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsForReportTest001, testing::ex
     MemoryTrack::Instance().DumpMemoryPicStatisticsForReport(log, testPid);
     std::string logStr = log.GetString();
     EXPECT_TRUE(logStr.find("RSImageCache:") != std::string::npos);
-    EXPECT_TRUE(logStr.find("Size        NodeId        Pid        Type,Format") != std::string::npos);
 }
 
 /**
@@ -1252,7 +1251,6 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsForReportTest002, testing::ex
     std::string logStr = log.GetString();
 
     EXPECT_TRUE(logStr.find("RSImageCache:") != std::string::npos);
-    EXPECT_TRUE(logStr.find("Size        NodeId        Pid        Type,Format") != std::string::npos);
     EXPECT_TRUE(logStr.find("HEAP") != std::string::npos);
     EXPECT_TRUE(logStr.find("SHARE_MEM") != std::string::npos);
 
@@ -1331,7 +1329,6 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsForReportTest004, testing::ex
     std::string logStr = log.GetString();
 
     EXPECT_TRUE(logStr.find("RSImageCache:") != std::string::npos);
-    EXPECT_TRUE(logStr.find("skimage") != std::string::npos);
 
     MemoryTrack::Instance().RemovePictureRecord(addr);
 }

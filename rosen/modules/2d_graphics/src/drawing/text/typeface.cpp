@@ -451,12 +451,26 @@ bool Typeface::IsCustomTypeface() const
     return false;
 }
 
+void Typeface::SetIsCustomTypeface(bool isCustom)
+{
+    if (typefaceImpl_) {
+        typefaceImpl_->SetIsCustomTypeface(isCustom);
+    }
+}
+
 bool Typeface::IsThemeTypeface() const
 {
     if (typefaceImpl_) {
         return typefaceImpl_->IsThemeTypeface();
     }
     return false;
+}
+
+void Typeface::SetIsThemeTypeface(bool isTheme)
+{
+    if (typefaceImpl_) {
+        typefaceImpl_->SetIsThemeTypeface(isTheme);
+    }
 }
 
 std::shared_ptr<Data> Typeface::Serialize() const

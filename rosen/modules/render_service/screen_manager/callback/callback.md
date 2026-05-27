@@ -151,7 +151,7 @@ void NotifyVirtualScreenDisconnected(ScreenId id);
 
 // Active screen & backlight
 void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
-void NotifyScreenBacklightChanged(ScreenId id, uint32_t level);
+void NotifyScreenBacklightChanged(const RsScreenBrightnessData& brightnessData);
 void NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
 
 // HWC event & switching

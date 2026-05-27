@@ -100,6 +100,8 @@ public:
     MOCK_METHOD3(SetLayerTunnelHandle, int32_t(uint32_t, uint32_t, GraphicExtDataHandle *));
     MOCK_METHOD3(SetTunnelLayerId, int32_t(uint32_t, uint32_t, uint64_t));
     MOCK_METHOD3(SetTunnelLayerProperty, int32_t(uint32_t, uint32_t, uint32_t));
+    MOCK_METHOD4(SetTunnelLayerBuffer, int32_t(uint32_t, uint64_t, const BufferHandle*, const int32_t));
+    MOCK_METHOD3(CommitTunnelLayer, int32_t(uint32_t, uint64_t, int32_t&));
     MOCK_METHOD3(GetSupportedPresentTimestampType, int32_t(uint32_t, uint32_t, GraphicPresentTimestampType&));
     MOCK_METHOD3(GetPresentTimestamp, int32_t(uint32_t, uint32_t, GraphicPresentTimestamp&));
     MOCK_METHOD3(SetLayerMaskInfo, int32_t(uint32_t, uint32_t, uint32_t));

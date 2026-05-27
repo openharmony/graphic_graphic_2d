@@ -18,6 +18,7 @@
 #include <parameters.h>
 
 #include "drawable/rs_logical_display_render_node_drawable.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "graphic_feature_param_manager.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -1000,6 +1001,70 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest009, T
     auto param = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     param->mirrorSourceDrawable_.reset();
     displayDrawable_->CalculateVirtualDirty(virtualProcesser, *screenDrawable_, *renderParams, matrix);
+}
+
+/**
+ * @tc.name: CalculateVirtualDirtyTest011
+ * @tc.desc: Test CalculateVirtualDirty when IsDamageRegionGpuTileValid is false
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest011, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(renderParams, nullptr);
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    screenDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    screenDrawable_->syncDirtyManager_->currentFrameDirtyRegion_ = {1, 1, 1, 1};
+
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(0, 0));
+    EXPECT_FALSE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    Drawing::Matrix matrix;
+    auto damageRects =
+        displayDrawable_->CalculateVirtualDirty(virtualProcesser, *screenDrawable_, *renderParams, matrix);
+    EXPECT_NE(damageRects.size(), 0);
+}
+
+/**
+ * @tc.name: CalculateVirtualDirtyTest012
+ * @tc.desc: Test CalculateVirtualDirty when IsDamageRegionGpuTileValid is true
+ * @tc.type: FUNC
+ * @tc.require: issue23778
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest012, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(renderParams, nullptr);
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    screenDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    screenDrawable_->syncDirtyManager_->currentFrameDirtyRegion_ = {1, 1, 1, 1};
+
+    constexpr int32_t gpuTileWidth = 16;
+    constexpr int32_t gpuTileHeight = 16;
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(gpuTileWidth, gpuTileHeight));
+    EXPECT_TRUE(RSUniDirtyComputeUtil::IsDamageRegionGpuTileValid());
+    EXPECT_EQ(RSUniDirtyComputeUtil::GetDamageRegionGpuTile().first, gpuTileWidth);
+    EXPECT_EQ(RSUniDirtyComputeUtil::GetDamageRegionGpuTile().second, gpuTileHeight);
+
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    Drawing::Matrix matrix;
+    auto damageRects =
+        displayDrawable_->CalculateVirtualDirty(virtualProcesser, *screenDrawable_, *renderParams, matrix);
+    EXPECT_NE(damageRects.size(), 0);
+
+    RSUniDirtyComputeUtil::SetDamageRegionGpuTile(std::make_pair(0, 0));
 }
 
 /**
@@ -3909,6 +3974,71 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, MirrorRedrawDFXTest001, TestSiz
     // when mirrorRedraw_ have value and mirrorRedraw_ != mirrorRedraw
     displayDrawable_->MirrorRedrawDFX(false, INVALID_SCREEN_ID);
     EXPECT_TRUE(displayDrawable_->mirrorRedraw_);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderWithFixFormatTest
+ * @tc.desc: Test PrepareOffscreenRender with fixFormat parameter
+ * @tc.type: FUNC
+ * @tc.require: issue26248
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderWithFixFormatTest, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+
+    auto surface = std::make_shared<Drawing::Surface>();
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+    displayParams->frameRect_ = {0, 0, 100, 100};
+
+    auto screenDrawable = screenNode_->GetRenderDrawable();
+    auto screenParam = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    screenParam->SetHDRPresent(true);
+
+    displayParams->SetAncestorScreenDrawable(screenDrawable);
+    displayParams->needOffscreen_ = false;
+    displayDrawable_->useFixedOffscreenSurfaceSize_ = true;
+    displayDrawable_->offscreenSurface_ = std::make_shared<Drawing::Surface>();
+    screenParam->screenHDRStatus_ = HdrStatus::HDR_EFFECT;
+
+    // Test with fixFormat = true (covers the new else if branch)
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false, true);
+
+    // Verify offscreen surface was created
+    // The fixFormat branch creates surface with COLORTYPE_RGBA_8888
+    EXPECT_NE(displayParams->GetAncestorScreenDrawable().lock(), nullptr);
+}
+
+/**
+ * @tc.name: PrepareOffscreenRenderWithFixFormatFalseTest
+ * @tc.desc: Test PrepareOffscreenRender with fixFormat = false
+ * @tc.type: FUNC
+ * @tc.require: issue26248
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderWithFixFormatFalseTest, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+
+    auto surface = std::make_shared<Drawing::Surface>();
+    displayDrawable_->curCanvas_->surface_ = surface.get();
+    displayParams->frameRect_ = {0, 0, 100, 100};
+
+    auto screenDrawable = screenNode_->GetRenderDrawable();
+    auto screenParam = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    screenParam->SetHDRPresent(true);
+
+    displayParams->SetAncestorScreenDrawable(screenDrawable);
+    displayParams->needOffscreen_ = false;
+    displayDrawable_->useFixedOffscreenSurfaceSize_ = true;
+    displayDrawable_->offscreenSurface_ = std::make_shared<Drawing::Surface>();
+    screenParam->screenHDRStatus_ = HdrStatus::HDR_EFFECT;
+
+    // Test with fixFormat = false (should use default branch)
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false, false, false);
+
+    // Verify offscreen surface was created
+    EXPECT_NE(displayParams->GetAncestorScreenDrawable().lock(), nullptr);
 }
 
 /**

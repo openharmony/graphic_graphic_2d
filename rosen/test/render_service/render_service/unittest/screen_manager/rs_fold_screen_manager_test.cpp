@@ -271,7 +271,7 @@ HWTEST_F(RSFoldScreenManagerTest, HandlePostureDataTest004, TestSize.Level1)
     auto data = std::make_shared<uint8_t>(1000);
     auto event = std::make_shared<SensorEvent>();
     event->data = data.get();
-    event->dataLen = sizeof(PostureData);
+    event->dataLen = sizeof(data);
     foldScreenManager_->HandlePostureData(event.get());
     ASSERT_NE(foldScreenManager_, nullptr);
 }

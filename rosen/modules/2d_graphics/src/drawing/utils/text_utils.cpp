@@ -27,7 +27,7 @@ namespace Rosen {
 namespace Drawing {
 constexpr size_t UTF16_UNIT_SIZE = 2;
 constexpr size_t UTF32_UNIT_SIZE = 4;
-size_t GetStrLength(const void* text, size_t byteLength, TextEncoding encoding)
+size_t GetByteLength(const void* text, size_t byteLength, TextEncoding encoding)
 {
     switch (encoding) {
         case TextEncoding::GLYPH_ID:

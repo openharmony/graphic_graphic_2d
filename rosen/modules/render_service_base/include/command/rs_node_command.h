@@ -145,6 +145,9 @@ public:
         }
     }
 
+    static void UpdatePropertyDrawCmdList(
+        RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList, PropertyId id, PropertyUpdateType type);
+
     static void UpdateModifierNGDrawCmdList(
         RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId propertyId);
     static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze, bool isMarkedByUi);
@@ -314,9 +317,8 @@ ADD_COMMAND(RSUpdatePropertyRRect,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_RRECT,
         RSNodeCommandHelper::UpdateProperty<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
-        RSNodeCommandHelper::UpdateProperty<Drawing::DrawCmdListPtr>,
-        NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdatePropertyDrawCmdList, NodeId,
+        Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVectorVector2f,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR2F,
         RSNodeCommandHelper::UpdateProperty<std::vector<Vector2f>>,

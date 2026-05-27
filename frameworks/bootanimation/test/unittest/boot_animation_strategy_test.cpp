@@ -123,28 +123,86 @@ HWTEST_F(BootAnimationStrategyTest, IsOtaUpdate_HmosUpdateFlagInvalid_ReturnFals
 }
 
 /**
- * @tc.name: GetConnectToRenderMap_CountOne_Timeout
- * @tc.desc: Verify the GetConnectToRenderMap with timeout returns normally
- * @tc.type:FUNC
+ * @tc.name: OnScreenChanged_InvalidScreenId_NoScreenTrue
+ * @tc.desc: Verify OnScreenChanged sets noScreen_ to true when rsScreenId is INVALID_SCREEN_ID.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationStrategyTest, GetConnectToRenderMap_CountOne_Timeout, TestSize.Level1)
+HWTEST_F(BootAnimationStrategyTest, OnScreenChanged_InvalidScreenId_NoScreenTrue, TestSize.Level1)
 {
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
-    constexpr uint32_t timeoutMs = 100;
-    strategy->GetConnectToRenderMap(1, timeoutMs);
-    EXPECT_GE(strategy->connectToRenderMap_.size(), 0);
+    ASSERT_NE(strategy, nullptr);
+
+    strategy->noScreen_ = false;
+    EXPECT_FALSE(strategy->noScreen_.load());
+
+    strategy->OnScreenChanged(INVALID_SCREEN_ID, ScreenEvent::UNKNOWN, ScreenChangeReason::DEFAULT, nullptr);
+
+    EXPECT_TRUE(strategy->noScreen_.load());
 }
 
 /**
- * @tc.name: GetConnectToRenderMap_CountOne_MapSizeOne
- * @tc.desc: Verify the GetConnectToRenderMap function creates map with correct size.
+ * @tc.name: OnScreenChanged_ValidScreenConnected_MapPopulated
+ * @tc.desc: Verify OnScreenChanged adds screen to connectToRenderMap_ when screenEvent is CONNECTED.
  * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationStrategyTest, GetConnectToRenderMap_CountOne_MapSizeOne, TestSize.Level1)
+HWTEST_F(BootAnimationStrategyTest, OnScreenChanged_ValidScreenConnected_MapPopulated, TestSize.Level1)
 {
     std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
-    strategy->GetConnectToRenderMap(1);
-    EXPECT_GE(strategy->connectToRenderMap_.size(), 1);
+    ASSERT_NE(strategy, nullptr);
+
+    ScreenId testScreenId = static_cast<ScreenId>(12345);
+    sptr<IRemoteObject> connectToRender = nullptr;
+
+    strategy->OnScreenChanged(testScreenId, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, connectToRender);
+
+    EXPECT_FALSE(strategy->noScreen_.load());
+    EXPECT_EQ(strategy->connectToRenderMap_.size(), 1);
+    EXPECT_NE(strategy->connectToRenderMap_.find(testScreenId), strategy->connectToRenderMap_.end());
+}
+
+/**
+ * @tc.name: OnScreenChanged_ScreenDisconnected_MapEntryRemoved
+ * @tc.desc: Verify OnScreenChanged removes screen from connectToRenderMap_ when screenEvent is DISCONNECTED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootAnimationStrategyTest, OnScreenChanged_ScreenDisconnected_MapEntryRemoved, TestSize.Level1)
+{
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    ASSERT_NE(strategy, nullptr);
+
+    ScreenId testScreenId = static_cast<ScreenId>(54321);
+    {
+        std::lock_guard<std::mutex> lock(strategy->connectToRenderMapMtx_);
+        strategy->connectToRenderMap_.emplace(testScreenId, nullptr);
+    }
+    ASSERT_EQ(strategy->connectToRenderMap_.size(), 1);
+
+    strategy->OnScreenChanged(testScreenId, ScreenEvent::DISCONNECTED, ScreenChangeReason::DEFAULT, nullptr);
+
+    EXPECT_FALSE(strategy->noScreen_.load());
+    EXPECT_EQ(strategy->connectToRenderMap_.size(), 0);
+    EXPECT_EQ(strategy->connectToRenderMap_.find(testScreenId), strategy->connectToRenderMap_.end());
+}
+
+/**
+ * @tc.name: OnScreenChanged_MultipleScreensConnected_MapPopulatedCorrectly
+ * @tc.desc: Verify OnScreenChanged handles multiple CONNECTED events correctly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootAnimationStrategyTest, OnScreenChanged_MultipleScreensConnected_MapPopulatedCorrectly, TestSize.Level1)
+{
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    ASSERT_NE(strategy, nullptr);
+
+    ScreenId screenId1 = static_cast<ScreenId>(100);
+    ScreenId screenId2 = static_cast<ScreenId>(200);
+
+    strategy->OnScreenChanged(screenId1, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, nullptr);
+    strategy->OnScreenChanged(screenId2, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT, nullptr);
+
+    EXPECT_EQ(strategy->connectToRenderMap_.size(), 2);
+    EXPECT_NE(strategy->connectToRenderMap_.find(screenId1), strategy->connectToRenderMap_.end());
+    EXPECT_NE(strategy->connectToRenderMap_.find(screenId2), strategy->connectToRenderMap_.end());
 }
 
 /**

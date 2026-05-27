@@ -18,6 +18,7 @@
 #include <message_parcel.h>
 
 #include "gtest/gtest.h"
+#include "hgm_core.h"
 #include "limit_number.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/rs_render_service.h"
@@ -156,5 +157,28 @@ HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub006, TestSize.Level1)
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION);
     int res = stub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_UNKNOWN_OBJECT);
+}
+
+/**
+ * @tc.name: GetHgmContextTest001
+ * @tc.desc: Test GetHgmContext when hgmPolicyEnabled is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceStubTest, GetHgmContextTest001, TestSize.Level1)
+{
+    auto renderService = static_cast<RSRenderService*>(stub_.GetRefPtr());
+    ASSERT_NE(renderService, nullptr);
+
+    auto orgHgmPolicyEnabled = HgmCore::Instance().hgmAbilityEnabled_;
+    HgmCore::Instance().hgmAbilityEnabled_ = true;
+
+    auto hgmContext = renderService->GetHgmContext();
+    // When hgmPolicyEnabled is true, GetHgmContext returns hgmContext_ (may be nullptr if not initialized)
+    EXPECT_EQ(hgmContext, renderService->hgmContext_);
+    // When hgmPolicyEnabled is false, GetHgmContext returns nullptr
+    HgmCore::Instance().hgmAbilityEnabled_ = false;
+    EXPECT_EQ(hgmContext, nullptr);
+    HgmCore::Instance().hgmAbilityEnabled_ = orgHgmPolicyEnabled;
 }
 } // namespace OHOS::Rosen

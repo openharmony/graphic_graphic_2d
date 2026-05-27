@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 #include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
@@ -433,16 +434,6 @@ public:
         return context_.lock();
     }
 
-    void SetClipRegion(const Drawing::Region& clipRegion)
-    {
-        clipRegion_.Clone(clipRegion);
-    }
-
-    const Drawing::Region& GetClipRegion() const
-    {
-        return clipRegion_;
-    }
-
     void SetForceMirrorScreenDirty(bool flag)
     {
         isMirrorScreenDirty_ = flag;
@@ -493,14 +484,14 @@ public:
         return isSecurityExemption_;
     }
 
-    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect)
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, const Drawing::Rect& rect)
     {
         for (auto screenId : screenIds) {
             whiteListRect_[screenId].push_back(rect);
         }
     }
 
-    std::vector<RectI> GetWhiteListRectByScreenId(ScreenId screenId) const
+    std::vector<Drawing::Rect> GetWhiteListRectByScreenId(ScreenId screenId) const
     {
         if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
             return iter->second;
@@ -614,6 +605,11 @@ public:
         return slrManager_;
     }
 
+    const std::unordered_map<NodeId, GraphicColorGamut>& GetSurfaceColorGamutMap() const
+    {
+        return surfaceColorGamutMap_;
+    }
+
 #ifdef RS_ENABLE_TV_PQ_METADATA
     bool GetCachedNodeOnTheTree() const
     {
@@ -700,6 +696,7 @@ private:
     uint32_t watermarkColCount_ = 0;
     std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> surfaceWatermarks_;
     std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> surfaceWatermarkGridCounts_;
+    std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
     RSPowerOffRenderController powerOffRenderController_;
     bool isOverDrawEnabled_ = false;
@@ -720,11 +717,10 @@ private:
     bool overlayDisplayEnable_{false};
 #endif
 
-    Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
-    std::map<ScreenId, std::vector<RectI>> whiteListRect_;
+    std::map<ScreenId, std::vector<Drawing::Rect>> whiteListRect_;
     bool isSecurityExemption_ = false;
     // use to mark security display
     bool isSecurityDisplay_ = false;

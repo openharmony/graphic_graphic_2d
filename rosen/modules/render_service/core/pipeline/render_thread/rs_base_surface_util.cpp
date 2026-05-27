@@ -54,6 +54,7 @@ GSError RSBaseSurfaceUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, ui
         if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
             RS_TRACE_NAME("DropFrame");
         }
+        surfaceHandler.SetBufferDropped(true);
         IConsumerSurface::AcquireBufferReturnValue returnValue;
         returnValue.fence = SyncFence::InvalidFence();
         int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);

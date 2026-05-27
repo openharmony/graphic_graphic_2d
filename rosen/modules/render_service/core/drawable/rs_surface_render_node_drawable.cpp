@@ -1189,6 +1189,20 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    bool isDoubleSided = surfaceParams->GetDoubleSidedEnabled();
+    if (!isDoubleSided) {
+        Drawing::Matrix baseMatrix = surfaceParams->HasSandBox()
+            ? RSRenderParams::GetParentSurfaceMatrix()
+            : rscanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(surfaceParams->GetMatrix());
+        if (IsBackFace(baseMatrix)) {
+            SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+            RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture[%s] backface skip, id:%" PRIu64,
+                name_.c_str(), surfaceParams->GetId());
+            return;
+        }
+    }
+
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(rscanvas->GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_ONCAPTURE);
 #endif
@@ -1676,7 +1690,7 @@ void RSSurfaceRenderNodeDrawable::ClipHoleForSelfDrawingNode(RSPaintFilterCanvas
     canvas.ClipRect({std::round(bounds.GetLeft()), std::round(bounds.GetTop()),
         std::round(bounds.GetRight()), std::round(bounds.GetBottom())});
     canvas.Clear(Drawing::Color::COLOR_TRANSPARENT);
-    if (RSSystemProperties::GetDebugTraceEnabled()) {
+    {
         Drawing::RectF absRect;
         canvas.GetTotalMatrix().MapRect(absRect, bounds);
         RS_TRACE_NAME_FMT("hwc debug: clipHole: [%f,%f,%f,%f], absRect: [%s]", bounds.GetLeft(), bounds.GetTop(),
@@ -1722,13 +1736,15 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
         (bgColor != RgbPalette::Transparent())) {
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
-        if (HasCornerRadius(surfaceParams)) {
+        if (surfaceParams.GetVcldInfo().enable) {
+            auto rrect = surfaceParams.GetRRectForVCLD();
+            canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(rrect), Drawing::ClipOp::INTERSECT, true);
             auto bounds = RSPropertiesPainter::Rect2DrawingRect({ 0, 0,
                 std::round(surfaceParams.GetBounds().GetWidth()), std::round(surfaceParams.GetBounds().GetHeight()) });
             Drawing::SaveLayerOps layerOps(&bounds, nullptr);
             canvas.SaveLayer(layerOps);
             canvas.AttachBrush(brush);
-            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams.GetRRect()));
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(surfaceParams.GetRRectForVCLD()));
             canvas.DetachBrush();
             renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
             canvas.Restore();

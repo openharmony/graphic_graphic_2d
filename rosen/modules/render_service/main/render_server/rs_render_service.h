@@ -17,8 +17,12 @@
 #define RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_SERVICE_H
 
 #include <event_handler.h>
+#include <functional>
 #include <map>
+#include <unordered_set>
+#include <vector>
 
+#include "hgm_core.h"
 #include "rs_game_frame_handler.h"
 #include "rs_render_mode_config.h"
 #include "rs_render_multi_process_manager.h"
@@ -72,8 +76,10 @@ private:
         void OnVirtualScreenDisconnected(ScreenId id) override;
         void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
         void OnActiveScreenIdChanged(ScreenId activeScreenId) override;
-        void OnScreenBacklightChanged(ScreenId id, uint32_t level) override;
+        void OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData) override;
         void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
+
+        void OnProcessDisconnected(ScreenId id) override;
 
     private:
         RSRenderService& renderService_;
@@ -105,7 +111,7 @@ private:
     void FpsDump(std::string& dumpString, const std::string& arg);
 
     // Hgm related
-    const std::shared_ptr<HgmContext>& GetHgmContext() const { return hgmContext_; }
+    std::shared_ptr<HgmContext> GetHgmContext() const;
     void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
 
     // Game Scene Handler

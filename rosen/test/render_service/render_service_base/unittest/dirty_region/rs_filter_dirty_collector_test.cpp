@@ -23,7 +23,6 @@ namespace OHOS::Rosen {
 
 namespace {
 const RectI DEFAULT_RECT = {0, 0, 100, 100};
-const RectI DEFAULT_ALIGNED_RECT = {0, 0, 128, 128};
 }
 class RSFilterDirtyCollectorTest : public testing::Test {
 public:
@@ -50,7 +49,6 @@ HWTEST_F(RSFilterDirtyCollectorTest, RSFilterDirtyCollectorTest_001, TestSize.Le
         INVALID_NODEID,
         Occlusion::Region(Occlusion::Rect(DEFAULT_RECT)),
         Occlusion::Region(Occlusion::Rect(DEFAULT_RECT)),
-        Occlusion::Region(Occlusion::Rect(DEFAULT_ALIGNED_RECT)),
         Occlusion::Region()
     };
     // test if filter info can be collected.

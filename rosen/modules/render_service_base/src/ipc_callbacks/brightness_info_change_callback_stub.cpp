@@ -15,6 +15,8 @@
 
 #include "brightness_info_change_callback_stub.h"
 
+#include "transaction/rs_marshalling_helper.h"
+
 namespace OHOS {
 namespace Rosen {
 int RSBrightnessInfoChangeCallbackStub::OnRemoteRequest(
@@ -36,8 +38,8 @@ int RSBrightnessInfoChangeCallbackStub::OnRemoteRequest(
                 break;
             }
             BrightnessInfo brightnessInfo;
-            if (!ReadBrightnessInfo(brightnessInfo, data)) {
-                RS_LOGE("RSBrightnessInfoChangeCallbackStub::ReadBrightnessInfo ReadBrightnessInfo failed!");
+            if (!RSMarshallingHelper::Unmarshalling(data, brightnessInfo)) {
+                RS_LOGE("RSBrightnessInfoChangeCallbackStub::ON_BRIGHTNESS_INFO_CHANGE read brightnessInfo failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -50,17 +52,6 @@ int RSBrightnessInfoChangeCallbackStub::OnRemoteRequest(
         }
     }
     return ret;
-}
-
-bool RSBrightnessInfoChangeCallbackStub::ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data)
-{
-    if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
-        !data.ReadFloat(brightnessInfo.maxHeadroom) ||
-        !data.ReadFloat(brightnessInfo.sdrNits)) {
-        ROSEN_LOGE("RSBrightnessInfoChangeCallbackStub::ReadBrightnessInfo read brightnessInfo failed");
-        return false;
-    }
-    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

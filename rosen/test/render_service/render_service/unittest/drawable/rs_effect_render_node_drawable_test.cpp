@@ -305,15 +305,14 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectDataOnDemandWithColorPick
     auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, nodeId);
     ASSERT_NE(colorPickerDrawable, nullptr);
 
-    // Set it at the COLOR_PICKER slot
-    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
-
     // Create effect drawable
     auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(node);
     ASSERT_NE(drawable, nullptr);
 
-    // Set up children index to pass the initial check
+    // Set up synced draw command indexes to pass the initial check and draw ColorPickerDrawable.
+    drawable->drawCmdList_.emplace_back(colorPickerDrawable);
     drawable->drawCmdIndex_.childrenIndex_ = 0;
+    drawable->drawCmdIndex_.colorPickerIndex_ = 0;
 
     int width = 1024;
     int height = 1920;

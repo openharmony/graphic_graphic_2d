@@ -53,6 +53,7 @@ ohos_fuzztest("NdkDrawingCanvasUtilsFuzzTest") {
     "image_framework:pixelmap",
     "image_framework:pixelmap_ndk",
     "napi:ace_napi",
+    "graphic_surface:surface",
   ]
 
   part_name = "graphic_2d"

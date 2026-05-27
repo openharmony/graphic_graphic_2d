@@ -151,6 +151,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 static bool g_isUniRenderEnabled = false;
+static bool g_isSceneBoardEnable = false;
 static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::UNKNOW,              "UNKNOW"},
     {RSUINodeType::DISPLAY_NODE,        "DisplayNode"},
@@ -245,7 +246,7 @@ RSNode::~RSNode()
     }
     if (rsUIContext != nullptr) {
         // tell RT/RS to destroy related render node
-        if (!isShadowNode_ || g_isUniRenderEnabled) {
+        if (!isShadowNode_ || (g_isUniRenderEnabled && g_isSceneBoardEnable)) {
             rsUIContext->GetMutableNodeMap().UnregisterNode(id_);
         }
         auto transaction = rsUIContext->GetRSTransaction();
@@ -3507,16 +3508,7 @@ void RSNode::ExcludedFromNodeGroup(bool isExcluded)
     AddCommand(command, IsRenderServiceNode());
 }
 
-void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
-{
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    if (isNodeSingleFrameComposer_ != isNodeSingleFrameComposer) {
-        isNodeSingleFrameComposer_ = isNodeSingleFrameComposer;
-        std::unique_ptr<RSCommand> command =
-            std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer, GetRealPid());
-        AddCommand(command, IsRenderServiceNode());
-    }
-}
+void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) {}
 
 void RSNode::MarkRepaintBoundary(const std::string& tag)
 {
@@ -3834,6 +3826,7 @@ void RSNode::InitUniRenderEnabled()
     if (!inited) {
         inited = true;
         g_isUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
+        g_isSceneBoardEnable = RSSystemProperties::IsSceneBoardEnabled();
         ROSEN_LOGD("RSNode::InitUniRenderEnabled:%{public}d", g_isUniRenderEnabled);
     }
 }
@@ -4325,7 +4318,7 @@ void RSNode::Dump(std::string& out) const
     out += "], isNodeGroup[";
     out += isNodeGroup_ ? "true" : "false";
     out += "], isSingleFrameComposer[";
-    out += isNodeSingleFrameComposer_ ? "true" : "false";
+    out += IsNodeSingleFrameComposer() ? "true" : "false";
     out += "], isSuggestOpincNode[";
     out += isSuggestOpincNode_ ? "true" : "false";
     out += "], isUifirstNode[";

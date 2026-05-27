@@ -294,6 +294,13 @@ int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarg
     return 0;
 }
 
+int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
+    const FrameStabilityTarget& oldTarget,
+    const FrameStabilityTarget& newTarget)
+{
+    return 0;
+}
+
 void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
 {
 }

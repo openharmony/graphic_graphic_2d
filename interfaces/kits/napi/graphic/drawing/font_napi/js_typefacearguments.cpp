@@ -139,7 +139,7 @@ napi_value JsTypeFaceArguments::AddVariation(napi_env env, napi_callback_info in
         ROSEN_LOGE("JsTypeFaceArguments::AddVariation failed to GetTypeFaceArgumentsHelper");
         return nullptr;
     }
-    typeFaceArgumentsHelper->coordinate.push_back({ConvertAxisToNumber(axis), (float)value});
+    typeFaceArgumentsHelper->coordinate.push_back({ConvertAxisToNumber(axis), static_cast<float>(value)});
     return nullptr;
 }
 

@@ -169,7 +169,7 @@ HBFace FontHarfbuzz::CreateHbFace(const Typeface& typeface)
         GetTable,
         const_cast<Typeface*>(std::make_unique<Typeface>(typeface).release()),
         [](void* userData) { std::unique_ptr<Typeface>(reinterpret_cast<Typeface*>(userData)); }));
-    hb_face_set_index(face.get(), (unsigned)index);
+    hb_face_set_index(face.get(), static_cast<unsigned>(index));
     if (!face) {
         return nullptr;
     }

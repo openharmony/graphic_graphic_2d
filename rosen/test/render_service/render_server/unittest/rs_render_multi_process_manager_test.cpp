@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -791,4 +791,282 @@ HWTEST_F(RSMultiRenderProcessManagerTest, GetPendingScreenPropertyWithPromise001
     multiProcessManager_->renderProcessReadyPromises_.erase(TEST_PID);
 }
 
+/**
+ * @tc.name: GetPendingScreenProperty002
+ * @tc.desc: Test GetPendingScreenProperty returns nullptr when extract fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GetPendingScreenProperty002, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->renderProcessReadyPromises_[TEST_PID] = std::promise<bool>();
+    auto result = multiProcessManager_->GetPendingScreenProperty(TEST_PID);
+    ASSERT_EQ(result, nullptr);
+    multiProcessManager_->renderProcessReadyPromises_.erase(TEST_PID);
+}
+
+/**
+ * @tc.name: GetComposerToRenderConnByPid001
+ * @tc.desc: Test GetComposerToRenderConnByPid returns nullptr when not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GetComposerToRenderConnByPid001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto conn = multiProcessManager_->GetComposerToRenderConnByPid(TEST_PID);
+    EXPECT_EQ(conn, nullptr);
+}
+
+/**
+ * @tc.name: GetComposerToRenderConnByPid002
+ * @tc.desc: Test GetComposerToRenderConnByPid returns connection when found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GetComposerToRenderConnByPid002, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    sptr<IRSComposerToRenderConnection> storedConn = nullptr;
+    multiProcessManager_->composerToRenderConnections_[TEST_PID] = storedConn;
+    auto conn = multiProcessManager_->GetComposerToRenderConnByPid(TEST_PID);
+    EXPECT_EQ(conn, nullptr);
+    multiProcessManager_->composerToRenderConnections_.erase(TEST_PID);
+}
+
+/**
+ * @tc.name: GetComposerToRenderConnByPidLocked001
+ * @tc.desc: Test GetComposerToRenderConnByPidLocked returns nullptr when not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GetComposerToRenderConnByPidLocked001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto conn = multiProcessManager_->GetComposerToRenderConnByPidLocked(TEST_PID);
+    EXPECT_EQ(conn, nullptr);
+}
+
+/**
+ * @tc.name: GetComposerToRenderConnByPidLocked002
+ * @tc.desc: Test GetComposerToRenderConnByPidLocked returns connection when found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, GetComposerToRenderConnByPidLocked002, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    sptr<IRSComposerToRenderConnection> storedConn = nullptr;
+    multiProcessManager_->composerToRenderConnections_[TEST_PID] = storedConn;
+    auto conn = multiProcessManager_->GetComposerToRenderConnByPidLocked(TEST_PID);
+    EXPECT_EQ(conn, nullptr);
+    multiProcessManager_->composerToRenderConnections_.erase(TEST_PID);
+}
+
+/**
+ * @tc.name: SetRenderProcessReadyPromise003
+ * @tc.desc: Test SetRenderProcessReadyPromise returns false when promise not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, SetRenderProcessReadyPromise003, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    sptr<RSIServiceToRenderConnection> serviceConn = nullptr;
+    sptr<RSIConnectToRenderProcess> connectConn = nullptr;
+    auto result = multiProcessManager_->SetRenderProcessReadyPromise(TEST_PID, serviceConn, connectConn);
+    EXPECT_FALSE(result);
+    multiProcessManager_->serviceToRenderConnections_.erase(TEST_PID);
+    multiProcessManager_->connectToRenderConnections_.erase(TEST_PID);
+}
+
+/**
+ * @tc.name: CheckAndHandleSubprocessDeathOverflow001
+ * @tc.desc: Test CheckAndHandleSubprocessDeathOverflow when empty deque
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, CheckAndHandleSubprocessDeathOverflow001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->subprocessDeathTimes_.clear();
+    multiProcessManager_->CheckAndHandleSubprocessDeathOverflow();
+    EXPECT_EQ(multiProcessManager_->subprocessDeathTimes_.size(), 1u);
+    multiProcessManager_->subprocessDeathTimes_.clear();
+}
+
+/**
+ * @tc.name: CheckAndHandleSubprocessDeathOverflow002
+ * @tc.desc: Test CheckAndHandleSubprocessDeathOverflow when deque has old entries
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, CheckAndHandleSubprocessDeathOverflow002, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto oldTime = std::chrono::steady_clock::now() - std::chrono::seconds(200);
+    multiProcessManager_->subprocessDeathTimes_.push_back(oldTime);
+    multiProcessManager_->CheckAndHandleSubprocessDeathOverflow();
+    EXPECT_EQ(multiProcessManager_->subprocessDeathTimes_.size(), 1u);
+    multiProcessManager_->subprocessDeathTimes_.clear();
+}
+
+/**
+ * @tc.name: CheckAndHandleSubprocessDeathOverflow003
+ * @tc.desc: Test CheckAndHandleSubprocessDeathOverflow when count exceeds threshold
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, CheckAndHandleSubprocessDeathOverflow003, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->subprocessDeathTimes_.clear();
+    for (int i = 0; i < 3; i++) {
+        multiProcessManager_->subprocessDeathTimes_.push_back(std::chrono::steady_clock::now());
+    }
+    multiProcessManager_->CheckAndHandleSubprocessDeathOverflow();
+    EXPECT_GT(multiProcessManager_->subprocessDeathTimes_.size(), 2u);
+    multiProcessManager_->subprocessDeathTimes_.clear();
+}
+
+/**
+ * @tc.name: AddScreenOutputToProcess001
+ * @tc.desc: Test AddScreenOutputToProcess adds screen output
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, AddScreenOutputToProcess001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    multiProcessManager_->AddScreenOutputToProcess(TEST_PID, TEST_SCREEN_ID, output);
+    EXPECT_EQ(multiProcessManager_->pidToScreenOutputMap_.count(TEST_PID), 1u);
+    multiProcessManager_->pidToScreenOutputMap_.erase(TEST_PID);
+}
+
+/**
+ * @tc.name: RemoveScreenOutputFromProcess001
+ * @tc.desc: Test RemoveScreenOutputFromProcess when pid not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, RemoveScreenOutputFromProcess001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->RemoveScreenOutputFromProcess(TEST_PID, TEST_SCREEN_ID);
+    EXPECT_EQ(multiProcessManager_->pidToScreenOutputMap_.count(TEST_PID), 0u);
+}
+
+/**
+ * @tc.name: RemoveScreenOutputFromProcess002
+ * @tc.desc: Test RemoveScreenOutputFromProcess when screenId not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, RemoveScreenOutputFromProcess002, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    multiProcessManager_->pidToScreenOutputMap_[TEST_PID].emplace_back(TEST_SCREEN_ID, output);
+    multiProcessManager_->RemoveScreenOutputFromProcess(TEST_PID, TEST_VIRTUAL_SCREEN_ID);
+    EXPECT_EQ(multiProcessManager_->pidToScreenOutputMap_[TEST_PID].size(), 1u);
+    multiProcessManager_->pidToScreenOutputMap_.erase(TEST_PID);
+}
+
+/**
+ * @tc.name: RemoveScreenOutputFromProcess003
+ * @tc.desc: Test RemoveScreenOutputFromProcess removes and clears pid when empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, RemoveScreenOutputFromProcess003, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    multiProcessManager_->pidToScreenOutputMap_[TEST_PID].emplace_back(TEST_SCREEN_ID, output);
+    multiProcessManager_->RemoveScreenOutputFromProcess(TEST_PID, TEST_SCREEN_ID);
+    EXPECT_EQ(multiProcessManager_->pidToScreenOutputMap_.count(TEST_PID), 0u);
+}
+
+/**
+ * @tc.name: HandleRenderProcessDeath001
+ * @tc.desc: Test HandleRenderProcessDeath clears all connections
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, HandleRenderProcessDeath001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->serviceToRenderConnections_[TEST_PID] = nullptr;
+    multiProcessManager_->connectToRenderConnections_[TEST_PID] = nullptr;
+    multiProcessManager_->composerToRenderConnections_[TEST_PID] = nullptr;
+    multiProcessManager_->groupIdToRenderProcessPid_[TEST_GROUP_ID] = TEST_PID;
+    auto output = std::make_shared<HdiOutput>(TEST_SCREEN_ID);
+    multiProcessManager_->pidToScreenOutputMap_[TEST_PID].emplace_back(TEST_SCREEN_ID, output);
+    multiProcessManager_->HandleRenderProcessDeath(TEST_PID);
+    EXPECT_EQ(multiProcessManager_->serviceToRenderConnections_.count(TEST_PID), 0u);
+    EXPECT_EQ(multiProcessManager_->connectToRenderConnections_.count(TEST_PID), 0u);
+    EXPECT_EQ(multiProcessManager_->composerToRenderConnections_.count(TEST_PID), 0u);
+    EXPECT_EQ(multiProcessManager_->groupIdToRenderProcessPid_.count(TEST_GROUP_ID), 0u);
+    EXPECT_EQ(multiProcessManager_->pidToScreenOutputMap_.count(TEST_PID), 0u);
+}
+
+/**
+ * @tc.name: HandleRenderProcessDeath002
+ * @tc.desc: Test HandleRenderProcessDeath sets promise to false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, HandleRenderProcessDeath002, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->renderProcessReadyPromises_[TEST_PID] = std::promise<bool>();
+    multiProcessManager_->HandleRenderProcessDeath(TEST_PID);
+    EXPECT_EQ(multiProcessManager_->renderProcessReadyPromises_.count(TEST_PID), 0u);
+}
+
+/**
+ * @tc.name: UnregisterDeathRecipient001
+ * @tc.desc: Test UnregisterDeathRecipient when not found
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, UnregisterDeathRecipient001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    multiProcessManager_->UnregisterDeathRecipient(TEST_PID);
+    EXPECT_EQ(multiProcessManager_->deathRecipients_.count(TEST_PID), 0u);
+}
+
+/**
+ * @tc.name: UnregisterDeathRecipient002
+ * @tc.desc: Test UnregisterDeathRecipient removes recipient
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, UnregisterDeathRecipient002, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto deathRecipient = sptr<RSMultiRenderProcessManager::RenderProcessDeathRecipient>::MakeSptr(
+        TEST_PID, wptr<RSMultiRenderProcessManager>(multiProcessManager_));
+    multiProcessManager_->deathRecipients_[TEST_PID] = deathRecipient;
+    multiProcessManager_->UnregisterDeathRecipient(TEST_PID);
+    EXPECT_EQ(multiProcessManager_->deathRecipients_.count(TEST_PID), 0u);
+}
+
+/**
+ * @tc.name: RenderProcessDeathRecipientOnRemoteDied001
+ * @tc.desc: Test RenderProcessDeathRecipient::OnRemoteDied when token is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMultiRenderProcessManagerTest, RenderProcessDeathRecipientOnRemoteDied001, TestSize.Level1)
+{
+    ASSERT_NE(multiProcessManager_, nullptr);
+    auto deathRecipient = sptr<RSMultiRenderProcessManager::RenderProcessDeathRecipient>::MakeSptr(
+        TEST_PID, wptr<RSMultiRenderProcessManager>(multiProcessManager_));
+    wptr<IRemoteObject> token = nullptr;
+    deathRecipient->OnRemoteDied(token);
+}
 } // namespace OHOS::Rosen

@@ -324,6 +324,16 @@ bool FontMgrFuzzTest010(const uint8_t* data, size_t size)
     std::filesystem::remove(tmpPath);
     return true;
 }
+
+bool FontMgrFuzzTest011(const uint8_t* data, size_t size)
+{
+    auto dynamicMgr = FontMgr::CreateDynamicFontMgr();
+    std::vector<int32_t> codepoints(data, data + size);
+    dynamicMgr->GetFallbacksForString(codepoints);
+    auto defaultMgr = FontMgr::CreateDefaultFontMgr();
+    defaultMgr->GetFallbacksForString(codepoints, Typeface::MakeDefault(), {}, { "zh-Hans", "zh-CN" });
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

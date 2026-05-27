@@ -32,7 +32,6 @@ public:
     void OnBrightnessInfoChange(ScreenId screenId, const BrightnessInfo& brightnessInfo) override;
 
 private:
-    bool WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data);
     static inline BrokerDelegator<RSBrightnessInfoChangeCallbackProxy> delegator_;
 };
 } // namespace Rosen

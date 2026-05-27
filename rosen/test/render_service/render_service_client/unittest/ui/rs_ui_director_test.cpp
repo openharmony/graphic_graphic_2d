@@ -21,7 +21,6 @@
 #include "animation/rs_render_animation.h"
 #include "modifier/rs_modifier_manager.h"
 #include "pipeline/rs_node_map.h"
-#include "pipeline/rs_render_result.h"
 #include "pipeline/rs_render_thread.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"

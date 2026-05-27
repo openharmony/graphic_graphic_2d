@@ -174,7 +174,7 @@ namespace OHOS::Rosen::Text {
     {
         for (size_t i = 0; i < arrayLength; i++) {
             if (arrayValue[i] < 0) {
-                return OH_DRAWING_ERROR_INVALID_PARAMETER;
+                return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
             }
         }
         style->headIndents.clear();
@@ -201,7 +201,7 @@ namespace OHOS::Rosen::Text {
     {
         for (size_t i = 0; i < arrayLength; i++) {
             if (arrayValue[i] < 0) {
-                return OH_DRAWING_ERROR_INVALID_PARAMETER;
+                return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
             }
         }
         style->tailIndents.clear();
@@ -363,7 +363,7 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeDoubleArray(OH_Drawin
     OH_Drawing_TypographyStyleAttributeId id, double* arrayValue, size_t arrayLength)
 {
     if (style == nullptr || arrayValue == nullptr || arrayLength == 0) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     auto it = Text::g_typographyStyleDoubleArraySetters.find(id);
     if (it == Text::g_typographyStyleDoubleArraySetters.end()) {
@@ -376,7 +376,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeDoubleArray(const OH_
     OH_Drawing_TypographyStyleAttributeId id, double** arrayValue, size_t* arrayLength)
 {
     if (style == nullptr || arrayValue == nullptr || arrayLength == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     auto it = Text::g_typographyStyleDoubleArrayGetters.find(id);
     if (it == Text::g_typographyStyleDoubleArrayGetters.end()) {

@@ -34,8 +34,11 @@ public:
     void OnHwcDead();
     GSError ClearFrameBuffers(bool isNeedResetContext = true);
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+    int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence);
     void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
+    void SetScreenLinearMatrix(const std::vector<float>& matrix);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void SurfaceDump(std::string& dumpString);
     void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);

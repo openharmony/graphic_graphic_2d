@@ -911,7 +911,7 @@ RSDrawable::Ptr RSDynamicLightUpDrawable::OnGenerate(const RSRenderNode& node)
     }
 
     return std::make_shared<RSDynamicLightUpDrawable>(
-        properties.GetDynamicLightUpRate().value(), properties.GetDynamicLightUpDegree().value());
+        properties.GetDynamicLightUpRate(), properties.GetDynamicLightUpDegree());
 };
 
 bool RSDynamicLightUpDrawable::OnUpdate(const RSRenderNode& node)
@@ -921,8 +921,8 @@ bool RSDynamicLightUpDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
 
-    stagingDynamicLightUpRate_ = properties.GetDynamicLightUpRate().value();
-    stagingDynamicLightUpDeg_ = properties.GetDynamicLightUpDegree().value();
+    stagingDynamicLightUpRate_ = properties.GetDynamicLightUpRate();
+    stagingDynamicLightUpDeg_ = properties.GetDynamicLightUpDegree();
     needSync_ = true;
 
     return true;

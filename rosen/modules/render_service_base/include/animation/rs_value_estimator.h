@@ -28,6 +28,7 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_draw_cmd_list.h"
+#include "pipeline/rs_simple_draw_cmd_list.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -155,12 +156,12 @@ template<>
 float RSCurveValueEstimator<float>::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator);
 
 template<>
-void RSCurveValueEstimator<Drawing::DrawCmdListPtr>::InitCurveAnimationValue(
+void RSCurveValueEstimator<SimpleDrawCmdListPtr>::InitCurveAnimationValue(
     const std::shared_ptr<RSRenderPropertyBase>& property, const std::shared_ptr<RSRenderPropertyBase>& startValue,
     const std::shared_ptr<RSRenderPropertyBase>& endValue, const std::shared_ptr<RSRenderPropertyBase>& lastValue);
 
 template<>
-void RSCurveValueEstimator<Drawing::DrawCmdListPtr>::UpdateAnimationValue(const float fraction, const bool isAdditive);
+void RSCurveValueEstimator<SimpleDrawCmdListPtr>::UpdateAnimationValue(const float fraction, const bool isAdditive);
 
 template<typename T>
 class RSB_EXPORT_TMP RSKeyframeValueEstimator : public RSValueEstimator {

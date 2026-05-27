@@ -33,6 +33,7 @@
 #include "sync_fence.h"
 #endif
 #include "surface_type.h"
+#include "feature/vcld/rs_vcld_param.h"
 
 namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
@@ -54,6 +55,7 @@ struct RSLayerInfo {
     uint32_t ancoFlags = 0;
     GraphicIRect ancoCropRect{};
     bool useDeviceOffline = false;
+    RSVcldParam vcldInfo{};
 
     bool operator==(const RSLayerInfo& layerInfo) const
     {
@@ -64,7 +66,7 @@ struct RSLayerInfo {
             (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType) &&
             (arsrTag == layerInfo.arsrTag) && (copybitTag == layerInfo.copybitTag) &&
             (ancoCropRect == layerInfo.ancoCropRect) && (ancoFlags == layerInfo.ancoFlags) &&
-            (useDeviceOffline == layerInfo.useDeviceOffline);
+            (useDeviceOffline == layerInfo.useDeviceOffline) && (vcldInfo == layerInfo.vcldInfo);
     }
 #endif
 };
@@ -167,6 +169,14 @@ public:
     const RRect& GetRRect() const
     {
         return rrect_;
+    }
+    void SetRRectForVCLD(RRect vcldRoundRect)
+    {
+        vcldRoundRect_ = vcldRoundRect;
+    }
+    const RRect& GetRRectForVCLD() const
+    {
+        return vcldRoundRect_;
     }
     bool GetAnimateState() const
     {
@@ -386,7 +396,10 @@ public:
     int32_t GetLayerSourceTuning() const;
     void SetTunnelLayerId(const uint64_t& tunnelLayerId);
     uint64_t GetTunnelLayerId() const;
-
+    void SetTunnelLayerInfo(uint64_t tunnelLayerId, uint32_t property);
+    uint32_t GetTunnelLayerProperty() const;
+    void SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration);
+    uint64_t GetTunnelLayerGeneration() const;
     void SetGpuOverDrawBufferOptimizeNode(bool overDrawNode);
     bool IsGpuOverDrawBufferOptimizeNode() const;
     void SetOverDrawBufferNodeCornerRadius(const Vector4f& radius);
@@ -533,6 +546,23 @@ public:
         }
         drmCornerRadiusInfo_ = drmCornerRadiusInfo;
         needSync_ = true;
+    }
+
+    void SetVcldInfo(const RSVcldParam& vcldInfo)
+    {
+        if (vcldInfo_ == vcldInfo) {
+            return;
+        }
+        vcldInfo_ = vcldInfo;
+#ifndef ROSEN_CROSS_PLATFORM
+        layerInfo_.vcldInfo = vcldInfo;
+#endif
+        needSync_ = true;
+    }
+
+    const RSVcldParam& GetVcldInfo() const
+    {
+        return vcldInfo_;
     }
 
     void SetForceDisableClipHoleForDRM(bool isForceDisable)
@@ -876,6 +906,7 @@ private:
     RectI dstRect_;
     RectI oldDirtyInSurface_;
     RRect rrect_;
+    RRect vcldRoundRect_;
     Rect ancoSrcCrop_{};
     uint32_t ancoFlags_ = 0;
     Vector4<int> regionToBeMagnified_;
@@ -939,10 +970,13 @@ private:
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
     uint64_t tunnelLayerId_ = 0;
+    uint32_t tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
+    uint64_t tunnelLayerGeneration_ = 0;
     int64_t stencilVal_ = -1;
     std::unordered_map<std::string, bool> systemWatermarkHandles_ = {};
     std::unordered_map<std::string, bool> customWatermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;
+    RSVcldParam vcldInfo_;
     bool isForceDisableClipHoleForDRM_ = false;
 
     bool isHwcGlobalPositionEnabled_ = false;

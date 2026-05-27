@@ -74,6 +74,63 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, ProxyStub_ReleaseLayerBuffers_An
 }
 
 /**
+ * Function: Proxy_NotifyLayerStateChangedToRender_UsesAsyncFlag
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with a fake remote object
+ *                  2. call NotifyLayerStateChangedToRender
+*                  3. verify request is sent with TF_ASYNC and payload is intact
+*/
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLayerStateChangedToRender_UsesAsyncFlag, TestSize.Level1)
+{
+    class FakeAsyncRemoteLocal : public IRemoteObject {
+    public:
+        FakeAsyncRemoteLocal() : IRemoteObject(IRSComposerToRenderConnection::GetDescriptor()) {}
+        int32_t GetObjectRefCount() override { return 1; }
+        int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &, MessageOption &option) override
+        {
+            capturedCode_ = code;
+            capturedFlags_ = option.GetFlags();
+            capturedToken_ = data.ReadInterfaceToken();
+            capturedNodeIdValid_ = data.ReadUint64(capturedNodeId_);
+            capturedGenerationValid_ = data.ReadUint64(capturedGeneration_);
+            capturedStateValid_ = data.ReadUint32(capturedState_);
+            return NO_ERROR;
+        }
+        bool AddDeathRecipient(const sptr<DeathRecipient> &) override { return false; }
+        bool RemoveDeathRecipient(const sptr<DeathRecipient> &) override { return false; }
+        int Dump(int, const std::vector<std::u16string> &) override { return 0; }
+
+        uint32_t capturedCode_ = 0;
+        int capturedFlags_ = 0;
+        std::u16string capturedToken_;
+        uint64_t capturedNodeId_ = 0;
+        uint64_t capturedGeneration_ = 0;
+        uint32_t capturedState_ = 0;
+        bool capturedNodeIdValid_ = false;
+        bool capturedGenerationValid_ = false;
+        bool capturedStateValid_ = false;
+    };
+
+    auto remote = sptr<FakeAsyncRemoteLocal>::MakeSptr();
+    RSComposerToRenderConnectionProxy proxy(remote);
+
+    int32_t ret = proxy.NotifyLayerStateChangedToRender(999u, LayerStateChange::UNAVAILABLE, 77u);
+
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+    EXPECT_EQ(remote->capturedCode_, 2u);
+    EXPECT_EQ(remote->capturedFlags_, MessageOption::TF_ASYNC);
+    EXPECT_EQ(remote->capturedToken_, IRSComposerToRenderConnection::GetDescriptor());
+    EXPECT_TRUE(remote->capturedNodeIdValid_);
+    EXPECT_TRUE(remote->capturedStateValid_);
+    EXPECT_EQ(remote->capturedNodeId_, 999u);
+    EXPECT_TRUE(remote->capturedGenerationValid_);
+    EXPECT_EQ(remote->capturedGeneration_, 77u);
+    EXPECT_EQ(remote->capturedState_, static_cast<uint32_t>(LayerStateChange::UNAVAILABLE));
+}
+
+/**
  * Function: Proxy_ReleaseLayerBuffers_TimestampOnly
  * Type: Function
  * Rank: Important(2)

@@ -3273,4 +3273,91 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
 
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }
+
+/**
+ * @tc.name: OnCaptureBackFaceSkipTest001
+ * @tc.desc: Test OnCapture skips with BACKFACE_SKIP when single sided + back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCaptureBackFaceSkipTest001, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->shouldPaint_ = true;
+    surfaceParams->contentEmpty_ = false;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(-1.0f, 1.0f);
+    surfaceParams->SetMatrix(matrix);
+    surfaceParams->SetDoubleSidedEnabled(false);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    surfaceDrawable_->OnCapture(*canvas_);
+
+    ASSERT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
+
+/**
+ * @tc.name: OnCaptureBackFaceSkipTest002
+ * @tc.desc: Test OnCapture does NOT skip when double sided + back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCaptureBackFaceSkipTest002, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->shouldPaint_ = true;
+    surfaceParams->contentEmpty_ = false;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(-1.0f, 1.0f);
+    surfaceParams->SetMatrix(matrix);
+    surfaceParams->SetDoubleSidedEnabled(true);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    surfaceDrawable_->OnCapture(*canvas_);
+
+    ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
+
+/**
+ * @tc.name: OnCaptureBackFaceSkipTest003
+ * @tc.desc: Test OnCapture does NOT skip when single sided + front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCaptureBackFaceSkipTest003, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->shouldPaint_ = true;
+    surfaceParams->contentEmpty_ = false;
+
+    Drawing::Matrix matrix;
+    matrix.SetScale(1.0f, 1.0f);
+    surfaceParams->SetMatrix(matrix);
+    surfaceParams->SetDoubleSidedEnabled(false);
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
+    surfaceDrawable_->OnCapture(*canvas_);
+
+    ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
 } // namespace OHOS::Rosen

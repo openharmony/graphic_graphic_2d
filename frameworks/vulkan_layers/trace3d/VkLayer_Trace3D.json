@@ -1,0 +1,17 @@
+{
+  "file_format_version" : "1.1.2",
+  "layer" : {
+    "name": "VK_LAYER_TRACE3D_Loader",
+    "type": "GLOBAL",
+    "library_path": "libVkLayer_Trace3D.so",
+    "api_version": "1.4.309",
+    "implementation_version": "0.1.0",
+    "description": "Trace3D Layer Loader 0.1.0",
+    "functions": {
+      "vkNegotiateLoaderLayerInterfaceVersion": "VK_LAYER_TRACE3D_LoaderNegotiateLoaderLayerInterfaceVersion"
+    },
+    "disable_environment": {
+      "TRACE3D_LOADER_LAYER_DISABLE": "1"
+    }
+  }
+}

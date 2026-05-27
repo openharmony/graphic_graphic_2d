@@ -337,5 +337,26 @@ private:
     void InitTextRectSizeMethod(ani_env* env);
     void InitParagraphStyleInternalMethod(ani_env* env);
 };
+
+class AniGlobalField {
+public:
+    static AniGlobalField& GetInstance()
+    {
+        static AniGlobalField instance;
+        return instance;
+    }
+
+    void Init(ani_env* env);
+
+    ani_field typefaceNativeObj;
+
+private:
+    AniGlobalField() = default;
+    ~AniGlobalField() = default;
+    AniGlobalField(const AniGlobalField&) = delete;
+    AniGlobalField& operator=(const AniGlobalField&) = delete;
+    AniGlobalField(AniGlobalField&&) = delete;
+    AniGlobalField& operator=(AniGlobalField&&) = delete;
+};
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_GLOBAL_REF_H

@@ -19,18 +19,15 @@
 #if defined(ENABLE_OHOS_ENHANCE) && defined(HISTOGRAM_MANAGEMENT_ENABLE)
 #include "histogram_plugin_macros.h"
 
-#define TEXT_HISTOGRAM_PREFIX "ArkGraphics2D.Text."
-#define TEXT_HISTOGRAM_IS_SUCCESS ".is_success"
+#define TEXT_HISTOGRAM_PREFIX "ArkGraphics2d.Text."
 
-#define TEXT_HISTOGRAM_BOOLEAN(success)                                                \
-    do {                                                                               \
-        static const std::string _histName =                                           \
-            std::string(TEXT_HISTOGRAM_PREFIX) + __func__ + TEXT_HISTOGRAM_IS_SUCCESS; \
-        HISTOGRAM_BOOLEAN(_histName.c_str(), (success) ? 1 : 0);                       \
+#define TEXT_HISTOGRAM_BOOLEAN(success)                                                     \
+    do {                                                                                    \
+        static const std::string _histName = std::string(TEXT_HISTOGRAM_PREFIX) + __func__; \
+        HISTOGRAM_BOOLEAN(_histName.c_str(), (success) ? 1 : 0);                            \
     } while (0)
 
-#define TEXT_HISTOGRAM_BOOLEAN_NAME(name, success) \
-    HISTOGRAM_BOOLEAN(TEXT_HISTOGRAM_PREFIX name TEXT_HISTOGRAM_IS_SUCCESS, (success) ? 1 : 0)
+#define TEXT_HISTOGRAM_BOOLEAN_NAME(name, success) HISTOGRAM_BOOLEAN(TEXT_HISTOGRAM_PREFIX name, (success) ? 1 : 0)
 
 #else
 

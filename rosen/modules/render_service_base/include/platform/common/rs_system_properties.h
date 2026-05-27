@@ -87,6 +87,7 @@ enum class AdvancedDirtyRegionType {
 };
 
 enum class DirtyAlignType {
+    DEFAULT = -1, // follow the ccm configuration
     DISABLED = 0,
     ENABLED = 1,
 };
@@ -272,6 +273,7 @@ public:
     static bool GetAnimationCacheEnabled();
 
     static bool ViewDrawNodeType();
+    static bool GetNewTunnelEnabled();
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();

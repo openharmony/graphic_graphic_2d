@@ -585,7 +585,7 @@ HWTEST_F(RSPropertiesPainterUtilTest, GetForegroundEffectDirtyRect002, TestSize.
     shadow.SetMask(true);
     shadow.SetRadius(1.0f);
     properties.GetEffect().shadow_ = shadow;
-    properties.rrect_ = rrect;
+        SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 1.f, 1.f));
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
     EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
 }
@@ -718,7 +718,7 @@ HWTEST_F(RSPropertiesPainterUtilTest, GetPixelStretchDirtyRect001, TestSize.Leve
     RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, true);
     EXPECT_TRUE(!properties.needFilter_);
 
-    properties.GetEffect().pixelStretch_ = Vector4f { 1.f, 1.f, 1.f, 1.f };
+    properties.SetPixelStretch(Vector4f { 1.f, 1.f, 1.f, 1.f });
     RSPropertiesPainter::GetPixelStretchDirtyRect(dirtyPixelStretch, properties, true);
     EXPECT_TRUE(!properties.needFilter_);
 }
@@ -886,7 +886,7 @@ HWTEST_F(RSPropertiesPainterUtilTest, DrawBackground001, TestSize.Level1)
     RSProperties properties;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    properties.decoration_ = std::make_optional<Decoration>();
+    properties.decoration_ = std::make_unique<Decoration>();
     properties.decoration_->backgroundColor_ = Color(1, 1, 1, 1);
     RSPropertiesPainter::DrawBackground(properties, canvas, true, false);
     EXPECT_TRUE(!properties.contentDirty_);
@@ -900,7 +900,7 @@ HWTEST_F(RSPropertiesPainterUtilTest, DrawBackground001, TestSize.Level1)
     EXPECT_TRUE(!properties.contentDirty_);
 
     RRect rect;
-    properties.clipRRect_ = rect;
+    properties.clipRRect_ = std::make_unique<RRect>(rect);
     RSPropertiesPainter::DrawBackground(properties, canvas, true, false);
     EXPECT_TRUE(!properties.contentDirty_);
 

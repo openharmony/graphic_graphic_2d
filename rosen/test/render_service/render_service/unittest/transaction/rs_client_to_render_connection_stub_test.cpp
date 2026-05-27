@@ -619,49 +619,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetBrightnessInfoTest, TestSize.Lev
 }
 
 /**
- * @tc.name: WriteBrightnessInfoTest
- * @tc.desc: Test WriteBrightnessInfo
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, WriteBrightnessInfoTest, TestSize.Level2)
-{
-    // case 1: normal write
-    {
-        BrightnessInfo brightnessInfo;
-        MessageParcel data;
-        ASSERT_TRUE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 2: can't write any data
-    {
-        BrightnessInfo brightnessInfo;
-        MessageParcel data;
-        size_t desireCapacity = sizeof(float) * 0;
-        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
-        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 3: can write one float
-    {
-        BrightnessInfo brightnessInfo;
-        MessageParcel data;
-        size_t desireCapacity = sizeof(float) * 1;
-        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
-        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
-    }
-
-    // case 4: can write two float
-    {
-        BrightnessInfo brightnessInfo;
-        MessageParcel data;
-        size_t desireCapacity = sizeof(float) * 2;
-        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
-        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
-    }
-}
-
-/**
  * @tc.name: GetScreenHDRStatus001
  * @tc.desc: Test GetScreenHDRStatus
  * @tc.type: FUNC
@@ -4086,7 +4043,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest012, 
     // Should return without crash
 
     // Test OnScreenBacklightChanged
-    agent->OnScreenBacklightChanged(0, 100);
+    agent->OnScreenBacklightChanged(RsScreenBrightnessData(0, 100));
     // Should return without crash
 
     // Test OnGlobalBlacklistChanged
@@ -4775,5 +4732,37 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest003, Te
         RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: UpdateFrameStabilityDetectionTest001
+ * @tc.desc: Test UPDATE_FRAME_STABILITY_DETECTION with valid data
+ * @tc.type: FUNC
+ * @tc.require: issue23671
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, UpdateFrameStabilityDetectionTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION);
+
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    FrameStabilityTarget oldTarget;
+    oldTarget.id = 100;
+    oldTarget.type = FrameStabilityTargetType::SCREEN;
+    data.WriteUint64(oldTarget.id);
+    data.WriteUint32(static_cast<uint32_t>(oldTarget.type));
+
+    FrameStabilityTarget newTarget;
+    newTarget.id = 200;
+    newTarget.type = FrameStabilityTargetType::WINDOW;
+    data.WriteUint64(newTarget.id);
+    data.WriteUint32(static_cast<uint32_t>(newTarget.type));
+
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_REPLY);
 }
 } // namespace OHOS::Rosen

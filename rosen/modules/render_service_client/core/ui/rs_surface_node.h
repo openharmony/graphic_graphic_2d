@@ -377,6 +377,9 @@ public:
     void SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType);
     void SetIsDepthResource(bool isDepthResource);
 
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
+    bool IsNodeSingleFrameComposer() const override { return isNodeSingleFrameComposer_; }
+
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
@@ -438,6 +441,7 @@ private:
     bool isDarkColorMode_ = false;
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
+    bool isNodeSingleFrameComposer_ = false;
     std::shared_ptr<RSCompositeLayerUtils> compositeLayerUtils_;
 
     uint32_t windowId_ = 0;

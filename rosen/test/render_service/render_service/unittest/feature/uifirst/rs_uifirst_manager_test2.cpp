@@ -186,6 +186,10 @@ HWTEST_F(RSUifirstManagerTest2, NeedPurgePendingPostNodesInner, TestSize.Level1)
     ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, true);
     EXPECT_TRUE(ret);
 
+    surfaceRenderNode->SetSelfAndParentShouldPaint(false);
+    ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, true);
+    EXPECT_TRUE(ret);
+
     subThreadCache.cacheCompletedSurfaceInfo_.isContainShadow = true;
     ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, true);
     EXPECT_FALSE(ret);
@@ -204,6 +208,7 @@ HWTEST_F(RSUifirstManagerTest2, DoPurgePendingPostNodes000, TestSize.Level1)
     auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
+    adapter->renderParams_->renderNodeType_ = surfaceRenderNode->GetType();
     uifirstManager_.subthreadProcessingNode_.clear();
     pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
     surfaceRenderNode->isOnTheTree_ = true;
@@ -692,12 +697,12 @@ HWTEST_F(RSUifirstManagerTest2, UpdateCompletedSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: PostUifistSubTasks
+ * @tc.name: PostUifirstSubTasks
  * @tc.desc: Test post task to subthread
  * @tc.type: FUNC
  * @tc.require: issueIBVHE7
  */
-HWTEST_F(RSUifirstManagerTest2, PostUifistSubTasks, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest2, PostUifirstSubTasks, TestSize.Level1)
 {
     uifirstManager_.sortedSubThreadNodeIds_.clear();
     uifirstManager_.pendingPostNodes_.clear();
@@ -713,7 +718,7 @@ HWTEST_F(RSUifirstManagerTest2, PostUifistSubTasks, TestSize.Level1)
     uifirstManager_.pendingPostNodes_.insert(std::make_pair(surfaceNode3->GetId(), surfaceNode3));
     auto surfaceNode4 = RSTestUtil::CreateSurfaceNode();
     uifirstManager_.pendingPostNodes_.insert(std::make_pair(surfaceNode4->GetId(), surfaceNode4));
-    uifirstManager_.PostUifistSubTasks();
+    uifirstManager_.PostUifirstSubTasks();
     ASSERT_TRUE(uifirstManager_.sortedSubThreadNodeIds_.empty());
 }
 
@@ -937,10 +942,44 @@ static void SetNodeOpaque(RSSurfaceRenderNode& node)
  */
 HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_NotLeashWindow, TestSize.Level1)
 {
-    // Not a leash window → early return false
-    auto nonLeashNode = RSTestUtil::CreateSurfaceNode();
-    nonLeashNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*nonLeashNode));
+    // leash window --> app window
+    auto parentNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    auto childNode1 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(childNode1, nullptr);
+    childNode1->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    childNode1->absDrawRect_ = {0, 0, 100, 100};
+    parentNode->AddChild(childNode1);
+    parentNode->GenerateFullChildrenList();
+    auto result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
+
+    // leash window ---> (app window, default surface) --> rootNode
+    auto childNode2 = RSTestUtil::CreateSurfaceNode();
+    childNode2->absDrawRect_ = {0, 0, 50, 50};
+    parentNode->AddChild(childNode2);
+    parentNode->GenerateFullChildrenList();
+    NodeId nodeId = 200;
+    auto rootChildNode = std::make_shared<RSRootRenderNode>(nodeId);
+    childNode1->AddChild(rootChildNode);
+    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
+
+    // leash window ---> (app window, default surface) --> rootNode --> canvasNode
+    nodeId = 300;
+    auto canvasChildNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    rootChildNode->AddChild(canvasChildNode);
+    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
+
+    // has filter and transparent
+    parentNode->childHasVisibleFilter_ = true;
+    childNode2->absDrawRect_ = {0, 0, 200, 200};
+    childNode2->abilityBgAlpha_ = 0;
+    childNode2->SetGlobalAlpha(0);
+    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, true);
 }
 
 /**
@@ -1301,6 +1340,7 @@ HWTEST_F(RSUifirstManagerTest2, GetCacheSurfaceProcessedStatusTest, TestSize.Lev
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    surfaceDrawable->renderParams_->renderNodeType_ = surfaceNode->GetType();
     surfaceDrawable->GetRsSubThreadCache().SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
     ASSERT_EQ(uifirstManager_.GetCacheSurfaceProcessedStatus(surfaceParams), CacheProcessStatus::DOING);
 
@@ -1763,6 +1803,7 @@ HWTEST_F(RSUifirstManagerTest2, ProcessMarkedNodeSubThreadCacheTest, TestSize.Le
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    surfaceDrawable->renderParams_->renderNodeType_ = surfaceNode->GetType();
     auto& rsSubThreadCache = surfaceDrawable->GetRsSubThreadCache();
     rsSubThreadCache.cacheSurface_ = std::make_shared<Drawing::Surface>();
     uifirstManager_.pendingPostNodes_.insert({nodeId, nullptr});

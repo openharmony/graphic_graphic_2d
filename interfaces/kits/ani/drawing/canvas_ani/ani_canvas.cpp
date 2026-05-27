@@ -341,6 +341,7 @@ static const std::array g_methods = {
     ani_native_function { "resetClip", nullptr, reinterpret_cast<void*>(AniCanvas::ResetClip) },
     ani_native_function { "quickRejectPath", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectPath) },
     ani_native_function { "quickRejectRect", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectRect) },
+    ani_native_function { "isOpaque", nullptr, reinterpret_cast<void*>(AniCanvas::IsOpaque) },
     ani_native_function { "drawSingleCharacterWithFeatures", nullptr,
         reinterpret_cast<void*>(AniCanvas::DrawSingleCharacterWithFeatures) },
     ani_native_function { "drawGlyphs", nullptr, reinterpret_cast<void*>(AniCanvas::DrawGlyphs) },
@@ -932,8 +933,12 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t col
     uint32_t colorsSize = 0;
     float* verticesMesh = args.verticesSize ? (args.vertices + args.vertOffset * 2) : nullptr;
     if (!IsNull(env, colorsObj)) {
-        ani_size aniLength;
-        env->Array_GetLength(reinterpret_cast<ani_array>(colorsObj), &aniLength);
+        ani_size aniLength = 0;
+        if (env->Array_GetLength(reinterpret_cast<ani_array>(colorsObj), &aniLength) != ANI_OK) {
+            ROSEN_LOGE("AniCanvas::GetColorsAndDraw colors Array_GetLength failed");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid colors params.");
+            return;
+        }
         colorsSize = static_cast<uint32_t>(aniLength);
         int64_t tempColorsSize = (args.column + 1) * (args.row + 1) + colorOffset;
         if (colorsSize != 0 && colorsSize != tempColorsSize) {
@@ -1650,16 +1655,10 @@ void AniCanvas::DrawPoints(ani_env* env, ani_object obj, ani_array pointsObj, an
     delete [] points;
 }
 
-bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
-                            ani_array glyphIdsObj, std::unique_ptr<uint16_t[]>& glyphIds)
+bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit, ani_size aniLength,
+                            ani_array& glyphIdsObj, std::unique_ptr<uint16_t[]>& glyphIds)
 {
-    ani_size aniLength;
-    if (ANI_OK != env->Array_GetLength(glyphIdsObj, &aniLength) || aniLength == 0) {
-        ROSEN_LOGE("AniCanvas::DrawGlyphs glyphIds array is invalid");
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect glyphIds.");
-        return false;
-    }
-    if (aniLength < glyphsIDCountLimit) {
+    if (static_cast<ani_int>(aniLength) < glyphsIDCountLimit) {
         ROSEN_LOGE("AniCanvas::DrawGlyphs glyphs input is out of range");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
                            "AniCanvas::DrawGlyphs glyphs input out of range.");
@@ -1695,16 +1694,10 @@ bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
     return true;
 }
 
-bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit,
-                                  ani_array positionsObj, std::unique_ptr<Drawing::Point[]>& positions)
+bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit, ani_size aniLength,
+                                  ani_array& positionsObj, std::unique_ptr<Drawing::Point[]>& positions)
 {
-    ani_size aniLength;
-    if (ANI_OK != env->Array_GetLength(positionsObj, &aniLength) || aniLength == 0) {
-        ROSEN_LOGE("AniCanvas::DrawGlyphs positions array is invalid");
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect positions.");
-        return false;
-    }
-    if (aniLength < positionCountLimit) {
+    if (static_cast<ani_int>(aniLength) < positionCountLimit) {
         ROSEN_LOGE("AniCanvas::DrawGlyphs positions input is out of range");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
                            "AniCanvas::DrawGlyphs position input out of range.");
@@ -1726,6 +1719,32 @@ bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit,
     return true;
 }
 
+int32_t GlyphSafeAdd(int32_t a, int32_t b)
+{
+    const int32_t maxInt32 = std::numeric_limits<int32_t>::max();
+    const int32_t minInt32 = std::numeric_limits<int32_t>::min();
+    if (b > 0) {
+        if (a > maxInt32 - b) {
+            return maxInt32;
+        }
+    } else if (b < 0) {
+        if (a < minInt32 - b) {
+            return minInt32;
+        }
+    }
+    return a + b;
+}
+
+std::shared_ptr<Font> GetValidFont(const std::shared_ptr<Font>& font)
+{
+    if (font == nullptr) {
+        ROSEN_LOGE("GetValidFont: font is nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    return themeFont ? themeFont : font;
+}
+
 void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
                            ani_array glyphIdsObj, ani_int glyphIdOffset,
                            ani_array positionsObj, ani_int positionOffset,
@@ -1736,23 +1755,38 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs canvas is nullptr.");
         return;
     }
-    std::unique_ptr<uint16_t[]> glyphIds;
-    std::unique_ptr<Drawing::Point[]> positions;
-    if (glyphIdOffset < 0 || positionOffset < 0) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
-                           "AniCanvas::DrawGlyphs array offset out of range.");
-        return;
-    }
-    if (!GetGlyphIds(env, glyphIdOffset + glyphCount, glyphIdsObj, glyphIds) ||
-        !GetGlyphPositions(env, positionOffset + glyphCount, positionsObj, positions)) {
-        return;
-    }
     auto aniFont = GetNativeFromObj<AniFont>(env, fontObj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs font is nullptr.");
         return;
     }
-    std::shared_ptr<Font> font = aniFont->GetFont();
+    ani_size lenGlyph;
+    if (ANI_OK != env->Array_GetLength(glyphIdsObj, &lenGlyph) || lenGlyph == 0) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect glyphIds.");
+        return;
+    }
+    ani_size lenPosition;
+    if (ANI_OK != env->Array_GetLength(positionsObj, &lenPosition) || lenPosition == 0) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect positions.");
+        return;
+    }
+    std::unique_ptr<uint16_t[]> glyphIds;
+    std::unique_ptr<Drawing::Point[]> positions;
+    if (glyphCount <= 0) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+                           "AniCanvas::DrawGlyphs glyphCount out of range.");
+        return;
+    }
+    if (glyphIdOffset < 0 || positionOffset < 0) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+                           "AniCanvas::DrawGlyphs array offset is out of range.");
+        return;
+    }
+    if (!GetGlyphIds(env, GlyphSafeAdd(glyphIdOffset, glyphCount), lenGlyph, glyphIdsObj, glyphIds) ||
+        !GetGlyphPositions(env, GlyphSafeAdd(positionOffset, glyphCount), lenPosition, positionsObj, positions)) {
+        return;
+    }
+    std::shared_ptr<Font> font = GetValidFont(aniFont->GetFont());
     Drawing::Point origin = Drawing::Point(0, 0);
     aniCanvas->GetCanvas()->DrawGlyphs(glyphCount,
                                        glyphIds.get() + glyphIdOffset,

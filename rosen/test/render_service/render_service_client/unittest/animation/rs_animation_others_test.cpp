@@ -47,7 +47,7 @@ HWTEST_F(RSAnimationOthersClientTest, AddInteractiveImplictAnimator001, TestSize
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest AddInteractiveImplictAnimator001 start";
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     ASSERT_NE(uiContext, nullptr);
 
     // Cover branch: animator == nullptr
@@ -67,7 +67,7 @@ HWTEST_F(RSAnimationOthersClientTest, AddInteractiveImplictAnimator002, TestSize
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest AddInteractiveImplictAnimator002 start";
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     ASSERT_NE(uiContext, nullptr);
 
     // Cover branch: animator != nullptr, add to map
@@ -98,7 +98,7 @@ HWTEST_F(RSAnimationOthersClientTest, AddInteractiveImplictAnimator003, TestSize
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest AddInteractiveImplictAnimator003 start";
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     ASSERT_NE(uiContext, nullptr);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -140,7 +140,7 @@ HWTEST_F(RSAnimationOthersClientTest, RemoveInteractiveImplictAnimator001, TestS
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest RemoveInteractiveImplictAnimator001 start";
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     ASSERT_NE(uiContext, nullptr);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -171,7 +171,7 @@ HWTEST_F(RSAnimationOthersClientTest, RemoveInteractiveImplictAnimator002, TestS
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest RemoveInteractiveImplictAnimator002 start";
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     ASSERT_NE(uiContext, nullptr);
 
     // Cover branch: removing non-existent id (no error, just erase)
@@ -190,7 +190,7 @@ HWTEST_F(RSAnimationOthersClientTest, RemoveInteractiveImplictAnimator002, TestS
 HWTEST_F(RSAnimationOthersClientTest, InteractiveImplictAnimator003, TestSize.Level1)
 {
     OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     ASSERT_NE(uiContext, nullptr);
 
     RSAnimationTimingProtocol timingProtocol;

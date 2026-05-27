@@ -82,7 +82,7 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateRecording002, TestSize.Level1)
     int32_t w;
     int32_t h;
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id + 1);
-    auto drawCmds = std::make_shared<Drawing::DrawCmdList>(w, h);
+    auto drawCmds = std::make_shared<RSSimpleDrawCmdList>(w, h);
     Drawing::Paint paint;
     auto drawOpItem = std::make_shared<Drawing::DrawWithPaintOpItem>(paint, Drawing::DrawOpItem::Type::POINT_OPITEM);
     drawCmds->drawOpItems_.emplace_back(drawOpItem);
@@ -292,12 +292,13 @@ HWTEST_F(RSCanvasRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
     std::shared_ptr<RSCanvasRenderNode> rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId, context);
+    rsCanvasRenderNode->InitRenderParams();
     rsCanvasRenderNode->SetCacheType(CacheType::CONTENT);
     EXPECT_EQ(rsCanvasRenderNode->IsOnTheTree(), false);
-    EXPECT_FALSE(rsCanvasRenderNode->needClearSurface_);
+    EXPECT_FALSE(rsCanvasRenderNode->NeedClearRenderGroupCache());
     rsCanvasRenderNode->OnTreeStateChanged();
     EXPECT_EQ(rsCanvasRenderNode->GetCacheType(), CacheType::NONE);
-    EXPECT_TRUE(rsCanvasRenderNode->needClearSurface_);
+    EXPECT_TRUE(rsCanvasRenderNode->NeedClearRenderGroupCache());
 }
 
 /**

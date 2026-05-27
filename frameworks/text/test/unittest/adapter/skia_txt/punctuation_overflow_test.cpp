@@ -987,5 +987,95 @@ HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest041, TestSize.Level0)
     EXPECT_EQ(typographyWithEllipsis->GetLineCount(), 1);
     EXPECT_TRUE(skia::textlayout::nearlyEqual(widthWithEllipsis, widthWithoutEllipsis));
 }
+
+// ============================================================================
+// Group 8: RTL punctuation hanging with trailing space (ghost space regression)
+// ============================================================================
+
+/*
+* @tc.name: PunctuationOverflowTest042
+* @tc.desc: RTL punctuation hanging with trailing space - ghost space should not inflate shift.
+*           RIGHT alignment: x + width should equal layoutWidth.
+* @tc.type: FUNC
+*/
+HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest042, TestSize.Level0)
+{
+    // Arabic text ending with exclamation mark (！) followed by a space.
+    // The exclamation mark triggers handlePunctuationOverflow in line breaking.
+    // The space after it becomes a ghost cluster on the same line.
+    double textWidth = MeasureTextWidth(u"العربية للنصوص", fontSize);
+    auto typEnabled = BuildAndLayout(
+        u"العربية للنصوص！      ",
+        CreateConfigWithAlign(fontSize, textWidth, true, TextDirection::RTL, TextAlign::RIGHT));
+    ASSERT_NE(typEnabled, nullptr);
+
+    EXPECT_EQ(typEnabled->GetLineCount(), 1);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typEnabled->GetLongestLineWithIndent(), 174.759842));
+
+    auto metrics = typEnabled->GetLineMetrics();
+    // x + width should equal layoutWidth (right edge aligned)
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metrics[0].x, -19.999984));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metrics[0].width, 142.359878));
+}
+
+/*
+* @tc.name: PunctuationOverflowTest043
+* @tc.desc: RTL punctuation hanging disabled with trailing space - no hanging shift.
+* @tc.type: FUNC
+*/
+HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest043, TestSize.Level0)
+{
+    double textWidth = MeasureTextWidth(u"العربية للنصوص", fontSize);
+    auto typDisabled = BuildAndLayout(
+        u"العربية للنصوص！      ",
+        CreateConfigWithAlign(fontSize, textWidth, false, TextDirection::RTL, TextAlign::RIGHT));
+    ASSERT_NE(typDisabled, nullptr);
+
+    // Without punctuation overflow, the exclamation mark should wrap to the next line
+    EXPECT_EQ(typDisabled->GetLineCount(), 2);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typDisabled->GetLongestLineWithIndent(), 120.279891));
+
+    auto metrics = typDisabled->GetLineMetrics();
+    // line 0: right edge should align with layoutWidth
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metrics[0].x, 73.279937));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metrics[0].width, 49.079956));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metrics[1].x, 34.479965));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metrics[1].width, 87.879928));
+}
+
+/*
+* @tc.name: PunctuationOverflowTest044
+* @tc.desc: RTL punctuation hanging with single vs multiple trailing spaces -
+*           ghost space count should not affect x offset.
+* @tc.type: FUNC
+*/
+HWTEST_F(PunctuationOverflowTest, PunctuationOverflowTest044, TestSize.Level0)
+{
+    double textWidth = MeasureTextWidth(u"العربية للنصوص", fontSize);
+    auto typSingleSpace = BuildAndLayout(
+        u"العربية للنصوص！ ",
+        CreateConfigWithAlign(fontSize, textWidth, true, TextDirection::RTL, TextAlign::RIGHT));
+    auto typMultiSpace = BuildAndLayout(
+        u"العربية للنصوص！   ",
+        CreateConfigWithAlign(fontSize, textWidth, true, TextDirection::RTL, TextAlign::RIGHT));
+    ASSERT_NE(typSingleSpace, nullptr);
+    ASSERT_NE(typMultiSpace, nullptr);
+
+    EXPECT_EQ(typSingleSpace->GetLineCount(), 1);
+    EXPECT_EQ(typMultiSpace->GetLineCount(), 1);
+
+    // Both should have the same longest line width (spaces are ghost)
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typSingleSpace->GetLongestLineWithIndent(), 147.759872));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typMultiSpace->GetLongestLineWithIndent(), 158.559860));
+
+    auto metricsSingle = typSingleSpace->GetLineMetrics();
+    auto metricsMulti = typMultiSpace->GetLineMetrics();
+
+    // x offset should be the same - ghost space count should not affect fShift
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metricsSingle[0].x, -19.999984));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metricsMulti[0].x,  -19.999984));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metricsSingle[0].width, 142.359878));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(metricsMulti[0].width, 142.359878));
+}
 } // namespace Rosen
 } // namespace OHOS

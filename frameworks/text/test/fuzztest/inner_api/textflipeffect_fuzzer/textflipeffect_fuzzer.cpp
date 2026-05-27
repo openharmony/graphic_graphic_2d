@@ -15,6 +15,7 @@
 
 #include "textflipeffect_fuzzer.h"
 #include "text_flip_effect.h"
+#include "txt/font_collection.h"
 #include "typography.h"
 #include "typography_create.h"
 #include "font_collection.h"

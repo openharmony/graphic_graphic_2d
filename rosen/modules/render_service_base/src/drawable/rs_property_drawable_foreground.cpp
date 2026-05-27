@@ -426,7 +426,7 @@ RSDrawable::Ptr RSPixelStretchDrawable::OnGenerate(const RSRenderNode& node)
 bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
 {
     auto& pixelStretch = node.GetRenderProperties().GetPixelStretch();
-    if (!pixelStretch.has_value()) {
+    if (pixelStretch.IsZero()) {
         return false;
     }
     needSync_ = true;

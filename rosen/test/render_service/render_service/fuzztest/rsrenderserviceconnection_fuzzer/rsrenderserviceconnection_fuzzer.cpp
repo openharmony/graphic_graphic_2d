@@ -207,8 +207,8 @@ bool DoGetScreenBacklight()
         return false;
     }
     ScreenId id = GetData<uint64_t>();
-    uint32_t setLevel = GetData<uint32_t>();
-    rsToServiceConn_->SetScreenBacklight(id, setLevel);
+    uint32_t level = GetData<uint32_t>();
+    rsToServiceConn_->SetScreenBacklight(RsScreenBrightnessData(id, level));
     int32_t getLevel = GetData<int32_t>();
     rsToServiceConn_->GetScreenBacklight(id, getLevel);
     return true;

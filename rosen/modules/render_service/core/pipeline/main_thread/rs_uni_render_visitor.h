@@ -162,8 +162,6 @@ private:
     Occlusion::Region GetSurfaceTransparentFilterRegion(const RSSurfaceRenderNode& surfaceNode) const;
     void CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion);
     void PartialRenderOptionInit();
-    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
-        const Occlusion::Region& selfDrawRegion);
     void UpdateSurfaceOcclusionInfo();
     enum class RSPaintStyle {
         FILL,
@@ -226,6 +224,8 @@ private:
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
         bool& hasVisibleHwcNodes, bool& needForceUpdateHwcNodes);
     void PrevalidateHwcNode();
+    void UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, RequestCompositionType> &strategy,
+        const RSRenderNodeMap& nodeMap);
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
     bool IsSourceNodeDirty(RSSurfaceRenderNode& node);
@@ -414,6 +414,8 @@ private:
     std::shared_ptr<RSLogicalDisplayRenderNode> curLogicalDisplayNode_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcCleanFilter_;
+    // map of surface node color gamut collected in CheckColorSpace
+    std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcDirtyFilter_;
     // record DRM nodes

@@ -333,6 +333,16 @@ uint32_t RSRenderSurfaceLayer::GetTunnelLayerProperty() const
     return tunnelLayerProperty_;
 }
 
+void RSRenderSurfaceLayer::SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration)
+{
+    tunnelLayerGeneration_ = tunnelLayerGeneration;
+}
+
+uint64_t RSRenderSurfaceLayer::GetTunnelLayerGeneration() const
+{
+    return tunnelLayerGeneration_;
+}
+
 void RSRenderSurfaceLayer::SetIsSupportedPresentTimestamp(bool isSupported)
 {
     isSupportedPresentTimestamp_ = isSupported;
@@ -655,6 +665,15 @@ const GraphicIRect& RSRenderSurfaceLayer::GetAncoSrcRect() const
     return ancoSrcRect_;
 }
 
+void RSRenderSurfaceLayer::SetVcldInfo(const RSVcldParam& vcldInfo)
+{
+    vcldInfo_ = vcldInfo;
+}
+const RSVcldParam& RSRenderSurfaceLayer::GetVcldInfo() const
+{
+    return vcldInfo_;
+}
+
 void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer)
 {
     rsLayerId_ = rsLayer->GetRSLayerId();
@@ -698,6 +717,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     needBilinearInterpolation_ = rsLayer->GetNeedBilinearInterpolation();
     tunnelLayerId_ = rsLayer->GetTunnelLayerId();
     tunnelLayerProperty_ = rsLayer->GetTunnelLayerProperty();
+    tunnelLayerGeneration_ = rsLayer->GetTunnelLayerGeneration();
     isSupportedPresentTimestamp_ = rsLayer->GetIsSupportedPresentTimestamp();
     presentTimestamp_ = rsLayer->GetPresentTimestamp();
     windowsName_ = rsLayer->GetWindowsName();
@@ -713,6 +733,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     useDeviceOffline_ = rsLayer->GetUseDeviceOffline();
     ignoreAlpha_ = rsLayer->GetIgnoreAlpha();
     ancoSrcRect_ = rsLayer->GetAncoSrcRect();
+    vcldInfo_ = rsLayer->GetVcldInfo();
 }
 
 void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command)

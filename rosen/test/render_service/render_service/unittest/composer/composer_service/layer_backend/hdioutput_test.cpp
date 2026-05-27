@@ -16,6 +16,7 @@
 #define PRIVATE PUBLIC
 #include "hdi_output.h"
 #undef PRIVATE
+#include <unistd.h>
 #include <gtest/gtest.h>
 #include "mock_hdi_device.h"
 #include "surface_buffer_impl.h"
@@ -44,12 +45,97 @@ void HdiOutputTest::SetUpTestCase()
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     hdiOutput_->device_ = hdiDeviceMock_;
-    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey())
+        .WillRepeatedly(testing::ReturnRef(paramKey_));
 }
 
 void HdiOutputTest::TearDownTestCase() {}
 
 namespace {
+
+constexpr uint32_t TEST_SCREEN_ID = 0;
+constexpr uint32_t TEST_LAYER_ID = 7001;
+constexpr uint32_t TEST_LAYER_ID_GRAPHIC = 7002;
+constexpr uint32_t TEST_LAYER_ID_TUNNEL = 7003;
+constexpr uint64_t TEST_SURFACE_ID = 7101;
+constexpr uint64_t TEST_SURFACE_ID_SECOND = 7102;
+constexpr uint64_t TEST_SURFACE_ID_THIRD = 7103;
+constexpr uint64_t TEST_NODE_ID = 7201;
+constexpr uint64_t TEST_NODE_ID_SECOND = 7202;
+constexpr uint64_t TEST_TUNNEL_LAYER_ID = 7301;
+constexpr uint64_t TEST_TUNNEL_LAYER_ID_SECOND = 7302;
+constexpr size_t EXPECTED_DEFERRED_LAYER_COUNT = 2;
+constexpr size_t TEST_PIPE_FD_COUNT = 2;
+constexpr int RELEASE_FENCE_ARG_INDEX = 2;
+constexpr uint32_t EXPECTED_TUNNEL_CALLBACK_COUNT = 2;
+
+std::shared_ptr<RSSurfaceLayer> CreateHdiOutputSurfaceLayer(uint64_t surfaceId, uint64_t nodeId,
+    GraphicLayerType layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC,
+    uint64_t tunnelLayerId = 0)
+{
+    auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    if (rsLayer == nullptr) {
+        return nullptr;
+    }
+    rsLayer->SetSurfaceUniqueId(surfaceId);
+    rsLayer->SetNodeId(nodeId);
+    rsLayer->SetType(layerType);
+    rsLayer->SetTunnelLayerId(tunnelLayerId);
+    rsLayer->SetTunnelLayerProperty(tunnelLayerId == 0 ? TUNNEL_PROP_INVALID : TUNNEL_PROP_BUFFER_ADDR);
+    rsLayer->SetTunnelLayerGeneration(tunnelLayerId);
+    return rsLayer;
+}
+
+std::shared_ptr<HdiLayer> CreateHdiOutputHdiLayer(const std::shared_ptr<RSLayer>& rsLayer,
+    GraphicLayerType createdType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC)
+{
+    auto hdiLayer = std::make_shared<HdiLayer>(TEST_SCREEN_ID);
+    if (hdiLayer == nullptr) {
+        return nullptr;
+    }
+    hdiLayer->UpdateRSLayer(rsLayer);
+    hdiLayer->layerType_ = createdType;
+    return hdiLayer;
+}
+
+sptr<SurfaceBuffer> CreateHdiOutputTestBuffer()
+{
+    constexpr uint32_t bufferSize = 4;
+    constexpr uint32_t strideAlignment = 0x8;
+    BufferRequestConfig requestConfig = {
+        .width = bufferSize,
+        .height = bufferSize,
+        .strideAlignment = strideAlignment,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    if (buffer == nullptr || buffer->Alloc(requestConfig) != GSERROR_OK) {
+        return nullptr;
+    }
+    return buffer;
+}
+
+struct LayerCreatedCallbackData {
+    uint64_t nodeId = 0;
+    uint64_t tunnelLayerGeneration = 0;
+    bool success = false;
+    uint32_t count = 0;
+};
+
+void OnLayerCreatedForTest(uint64_t nodeId, bool success, uint64_t tunnelLayerGeneration, void* data)
+{
+    auto callbackData = static_cast<LayerCreatedCallbackData*>(data);
+    if (callbackData == nullptr) {
+        return;
+    }
+    callbackData->nodeId = nodeId;
+    callbackData->tunnelLayerGeneration = tunnelLayerGeneration;
+    callbackData->success = success;
+    callbackData->count++;
+}
 
 /**
  * Function: GetFrameBufferSurface_ReturnsNullptr
@@ -1840,7 +1926,8 @@ HWTEST_F(HdiOutputTest, Repaint001, Function | MediumTest | Level1)
             ::testing::Return(GRAPHIC_DISPLAY_FAILURE)
         ));
     // UpdateLayerCompType return GRAPHIC_DISPLAY_FAILURE
-    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
     HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->Repaint();
 
@@ -1855,7 +1942,8 @@ HWTEST_F(HdiOutputTest, Repaint001, Function | MediumTest | Level1)
             ::testing::Return(GRAPHIC_DISPLAY_FAILURE)
         ));
     // UpdateLayerCompType return GRAPHIC_DISPLAY_SUCCESS
-    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->Repaint();
 }
@@ -1893,7 +1981,8 @@ HWTEST_F(HdiOutputTest, Repaint002, Function | MediumTest | Level1)
             ::testing::Return(GRAPHIC_DISPLAY_FAILURE)
         ));
     // UpdateLayerCompType return GRAPHIC_DISPLAY_SUCCESS
-    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
     HdiOutputTest::hdiOutput_->Repaint();
 }
@@ -2095,6 +2184,25 @@ HWTEST_F(HdiOutputTest, SetScreenBacklight_And_PowerOnChanged, Function | Medium
     hdiOutput_->device_ = nullptr;
     hdiOutput_->device_ = hdiDeviceMock_;
     hdiOutput_->SetScreenBacklight(80u);
+}
+
+ /*
+ * Function: SetScreenLinearMatrix_ValidArgs_And_InvalidArgs
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: SetScreenLinearMatrix with validArgs and invalidArgs
+ */
+HWTEST_F(HdiOutputTest, SetScreenLinearMatrix_ValidArgs_And_InvalidArgs, Function | MediumTest | Level1)
+{
+    auto out = HdiOutput::CreateHdiOutput(0);
+    out->device_ = hdiDeviceMock_;
+    std::vector<float> matrix1 = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    EXPECT_CALL(*hdiDeviceMock_, SetDisplayPerFrameParameterSmq(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    out->SetScreenLinearMatrix(matrix1);
+    std::vector<float> matrix2 = { 1.0f, 2.0f };
+    out->SetScreenLinearMatrix(matrix2);
 }
 
 /*
@@ -4628,6 +4736,366 @@ HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_NullHdiLayer_Skipped, Function | 
     // Verify DumpLayerInfoForSplitRender was called
     // Should contain header but layer info is skipped
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
+}
+
+HWTEST_F(HdiOutputTest, TunnelDeferredDestroyLatestAndRelease, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    auto graphicRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID);
+    auto oldRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto newRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID_SECOND,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID_SECOND);
+    auto graphicLayer = CreateHdiOutputHdiLayer(graphicRsLayer);
+    auto oldTunnelLayer = CreateHdiOutputHdiLayer(oldRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    auto newTunnelLayer = CreateHdiOutputHdiLayer(newRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(output, nullptr);
+    ASSERT_NE(graphicLayer, nullptr);
+    ASSERT_NE(oldTunnelLayer, nullptr);
+    ASSERT_NE(newTunnelLayer, nullptr);
+
+    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, nullptr);
+    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, graphicLayer);
+    EXPECT_TRUE(output->deferredDestroyLayers_.empty());
+    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, oldTunnelLayer);
+    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, newTunnelLayer);
+
+    auto latestIter = output->latestDeferredDestroyLayers_.find(TEST_SURFACE_ID);
+    ASSERT_NE(latestIter, output->latestDeferredDestroyLayers_.end());
+    EXPECT_EQ(latestIter->second, newTunnelLayer);
+    auto layers = output->CollectDeferredDestroyLayersLocked();
+    EXPECT_EQ(layers.size(), EXPECTED_DEFERRED_LAYER_COUNT);
+    EXPECT_TRUE(output->latestDeferredDestroyLayers_.empty());
+}
+
+HWTEST_F(HdiOutputTest, TunnelSurfaceStateAndNodeLookupBranches, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+
+    output->MarkTunnelSurfaceInvalid(0);
+    output->EraseTunnelSurfaceInvalid(0);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+    EXPECT_EQ(output->GetNodeIdBySurfaceId(0), 0);
+    EXPECT_EQ(output->GetTunnelLayerGenerationBySurfaceId(0), 0);
+    EXPECT_EQ(output->GetNodeIdBySurfaceId(TEST_SURFACE_ID), 0);
+    EXPECT_EQ(output->GetTunnelLayerGenerationBySurfaceId(TEST_SURFACE_ID), 0);
+
+    output->surfaceIdMap_[TEST_SURFACE_ID] = nullptr;
+    EXPECT_EQ(output->GetNodeIdBySurfaceId(TEST_SURFACE_ID), 0);
+    EXPECT_EQ(output->GetTunnelLayerGenerationBySurfaceId(TEST_SURFACE_ID), 0);
+    EXPECT_EQ(output->DestroyLayerBySurfaceId(TEST_SURFACE_ID), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(output->surfaceIdMap_.find(TEST_SURFACE_ID), output->surfaceIdMap_.end());
+
+    auto rsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto hdiLayer = CreateHdiOutputHdiLayer(rsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(hdiLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = hdiLayer;
+    EXPECT_EQ(output->GetNodeIdBySurfaceId(TEST_SURFACE_ID), TEST_NODE_ID);
+    EXPECT_EQ(output->GetTunnelLayerGenerationBySurfaceId(TEST_SURFACE_ID), TEST_TUNNEL_LAYER_ID);
+    EXPECT_EQ(output->DestroyLayerBySurfaceId(0), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(output->DestroyLayerBySurfaceId(TEST_SURFACE_ID), GRAPHIC_DISPLAY_SUCCESS);
+    auto latestIter = output->latestDeferredDestroyLayers_.find(TEST_SURFACE_ID);
+    ASSERT_NE(latestIter, output->latestDeferredDestroyLayers_.end());
+    EXPECT_EQ(latestIter->second, hdiLayer);
+    EXPECT_EQ(output->GetNodeIdBySurfaceId(TEST_SURFACE_ID), TEST_NODE_ID);
+    EXPECT_EQ(output->GetTunnelLayerGenerationBySurfaceId(TEST_SURFACE_ID), TEST_TUNNEL_LAYER_ID);
+}
+
+HWTEST_F(HdiOutputTest, TunnelCallbacksAndPendingCreatedBranches, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    LayerCreatedCallbackData callbackData;
+    ASSERT_NE(output, nullptr);
+
+    EXPECT_EQ(output->RegLayerCreated(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(output->RegLayerCreated(OnLayerCreatedForTest, &callbackData), ROSEN_ERROR_OK);
+    output->OnLayerCreated(TEST_NODE_ID, true, TEST_TUNNEL_LAYER_ID);
+    EXPECT_EQ(callbackData.nodeId, TEST_NODE_ID);
+    EXPECT_EQ(callbackData.tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID);
+    EXPECT_TRUE(callbackData.success);
+    EXPECT_EQ(callbackData.count, 1u);
+    output->ClearLayerCreatedCallback();
+    output->OnLayerCreated(TEST_NODE_ID_SECOND, false, TEST_TUNNEL_LAYER_ID_SECOND);
+    EXPECT_EQ(callbackData.count, 1u);
+
+    auto graphicRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID);
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_SECOND, TEST_NODE_ID_SECOND,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto graphicLayer = CreateHdiOutputHdiLayer(graphicRsLayer);
+    auto tunnelLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(graphicLayer, nullptr);
+    ASSERT_NE(tunnelLayer, nullptr);
+    graphicLayer->MarkPendingTunnelLayerCreated(TEST_TUNNEL_LAYER_ID);
+    tunnelLayer->MarkPendingTunnelLayerCreated(TEST_TUNNEL_LAYER_ID_SECOND);
+    output->layerIdMap_[TEST_LAYER_ID] = nullptr;
+    output->layerIdMap_[TEST_LAYER_ID_GRAPHIC] = graphicLayer;
+    output->layerIdMap_[TEST_LAYER_ID_TUNNEL] = tunnelLayer;
+    output->invalidTunnelSurfaceIds_.insert(TEST_SURFACE_ID_SECOND);
+
+    auto createdInfos = output->CollectPendingLayerCreatedInfosLocked();
+    ASSERT_EQ(createdInfos.size(), 1u);
+    EXPECT_EQ(createdInfos.front().nodeId, TEST_NODE_ID_SECOND);
+    EXPECT_EQ(createdInfos.front().tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID_SECOND);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+}
+
+HWTEST_F(HdiOutputTest, TunnelToGraphicUpdateNotifiesUnavailable, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    LayerCreatedCallbackData callbackData;
+    ASSERT_EQ(output->RegLayerCreated(OnLayerCreatedForTest, &callbackData), ROSEN_ERROR_OK);
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto tunnelLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(tunnelLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = tunnelLayer;
+    output->createHdiLayerFunc_ = [](uint32_t) -> std::shared_ptr<HdiLayer> { return nullptr; };
+
+    auto graphicRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID);
+    uint32_t solidLayerCount = 0;
+    output->UpdateRSLayerLocked(graphicRsLayer, solidLayerCount);
+
+    EXPECT_EQ(callbackData.nodeId, TEST_NODE_ID);
+    EXPECT_EQ(callbackData.tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID);
+    EXPECT_FALSE(callbackData.success);
+    EXPECT_EQ(callbackData.count, 1u);
+}
+
+HWTEST_F(HdiOutputTest, TunnelCommitAndFallbackBranches, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    auto emptyBuffer = sptr<SurfaceBufferImpl>::MakeSptr();
+    ASSERT_NE(output, nullptr);
+
+    EXPECT_EQ(output->CommitTunnelLayerBySurfaceId(TEST_SURFACE_ID, TEST_TUNNEL_LAYER_ID,
+        emptyBuffer, nullptr, releaseFence), ROSEN_ERROR_NOT_INIT);
+    output->device_ = hdiDeviceMock_;
+    EXPECT_EQ(output->CommitTunnelLayerBySurfaceId(0, TEST_TUNNEL_LAYER_ID,
+        emptyBuffer, nullptr, releaseFence), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(output->CommitTunnelLayerBySurfaceId(TEST_SURFACE_ID, TEST_TUNNEL_LAYER_ID,
+        emptyBuffer, nullptr, releaseFence), GRAPHIC_DISPLAY_FAILURE);
+
+    auto rsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto hdiLayer = CreateHdiOutputHdiLayer(rsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(hdiLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = hdiLayer;
+    EXPECT_EQ(output->CommitTunnelLayerBySurfaceId(TEST_SURFACE_ID, TEST_TUNNEL_LAYER_ID,
+        emptyBuffer, nullptr, releaseFence), GRAPHIC_DISPLAY_FAILURE);
+
+    auto buffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerBuffer(TEST_SCREEN_ID, TEST_TUNNEL_LAYER_ID, NotNull(), -1))
+        .WillOnce(Return(GRAPHIC_DISPLAY_FAILURE))
+        .WillOnce(Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, CommitTunnelLayer(TEST_SCREEN_ID, TEST_TUNNEL_LAYER_ID, _))
+        .WillOnce(Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(output->CommitTunnelLayerBySurfaceId(TEST_SURFACE_ID, TEST_TUNNEL_LAYER_ID,
+        buffer, nullptr, releaseFence), GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_EQ(output->CommitTunnelLayerBySurfaceId(TEST_SURFACE_ID, TEST_TUNNEL_LAYER_ID,
+        buffer, nullptr, releaseFence), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+HWTEST_F(HdiOutputTest, TunnelCommitFailureAndReleaseFenceBranches, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    output->device_ = hdiDeviceMock_;
+    auto rsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto hdiLayer = CreateHdiOutputHdiLayer(rsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    auto buffer = CreateHdiOutputTestBuffer();
+    ASSERT_NE(hdiLayer, nullptr);
+    ASSERT_NE(buffer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = hdiLayer;
+
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerBuffer(TEST_SCREEN_ID, TEST_TUNNEL_LAYER_ID, NotNull(), -1))
+        .WillOnce(Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, CommitTunnelLayer(TEST_SCREEN_ID, TEST_TUNNEL_LAYER_ID, _))
+        .WillOnce(Return(GRAPHIC_DISPLAY_FAILURE));
+    EXPECT_EQ(output->CommitTunnelLayerBySurfaceId(TEST_SURFACE_ID, TEST_TUNNEL_LAYER_ID,
+        buffer, nullptr, releaseFence), GRAPHIC_DISPLAY_FAILURE);
+
+    int pipeFd[TEST_PIPE_FD_COUNT] = { -1, -1 };
+    ASSERT_EQ(pipe(pipeFd), 0);
+    close(pipeFd[1]);
+    int32_t releaseFenceFd = pipeFd[0];
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerBuffer(TEST_SCREEN_ID, TEST_TUNNEL_LAYER_ID, NotNull(), -1))
+        .WillOnce(Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, CommitTunnelLayer(TEST_SCREEN_ID, TEST_TUNNEL_LAYER_ID, _))
+        .WillOnce(DoAll(SetArgReferee<RELEASE_FENCE_ARG_INDEX>(releaseFenceFd), Return(GRAPHIC_DISPLAY_SUCCESS)));
+    EXPECT_EQ(output->CommitTunnelLayerBySurfaceId(TEST_SURFACE_ID, TEST_TUNNEL_LAYER_ID,
+        buffer, nullptr, releaseFence), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_NE(releaseFence, nullptr);
+    EXPECT_EQ(releaseFence->Get(), releaseFenceFd);
+}
+
+HWTEST_F(HdiOutputTest, TunnelCreateNullAndFinalizePostCommitBranches, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+    LayerCreatedCallbackData callbackData;
+    ASSERT_EQ(output->RegLayerCreated(OnLayerCreatedForTest, &callbackData), ROSEN_ERROR_OK);
+    output->createHdiLayerFunc_ = [](uint32_t) -> std::shared_ptr<HdiLayer> { return nullptr; };
+
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    EXPECT_EQ(output->CreateLayerLocked(TEST_SURFACE_ID, tunnelRsLayer), GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_EQ(callbackData.count, 1u);
+    EXPECT_FALSE(callbackData.success);
+    EXPECT_EQ(callbackData.tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID);
+
+    auto createdLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(createdLayer, nullptr);
+    output->RegisterCreatedLayerLocked(TEST_SURFACE_ID, createdLayer, tunnelRsLayer, true);
+    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, createdLayer);
+    output->FinalizePostCommit(false);
+    uint64_t tunnelLayerGeneration = 0;
+    EXPECT_TRUE(createdLayer->TakePendingTunnelLayerCreated(tunnelLayerGeneration));
+    EXPECT_EQ(callbackData.count, 1u);
+    EXPECT_TRUE(output->deferredDestroyLayers_.empty());
+
+    createdLayer->MarkPendingTunnelLayerCreated(TEST_TUNNEL_LAYER_ID);
+    output->invalidTunnelSurfaceIds_.insert(TEST_SURFACE_ID);
+    output->FinalizePostCommit(true);
+    EXPECT_EQ(callbackData.count, EXPECTED_TUNNEL_CALLBACK_COUNT);
+    EXPECT_TRUE(callbackData.success);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+HWTEST_F(HdiOutputTest, TunnelFallbackThresholdBranches, Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto existingLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(output, nullptr);
+    ASSERT_NE(existingLayer, nullptr);
+
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, nullptr));
+    (void)output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = existingLayer;
+    EXPECT_FALSE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID, tunnelRsLayer));
+
+    auto registryOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    auto firstLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    auto secondRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_SECOND, TEST_NODE_ID_SECOND,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID_SECOND);
+    auto secondLayer = CreateHdiOutputHdiLayer(secondRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(registryOutput, nullptr);
+    ASSERT_NE(firstLayer, nullptr);
+    ASSERT_NE(secondLayer, nullptr);
+    registryOutput->RegisterCreatedLayerLocked(TEST_SURFACE_ID, firstLayer, tunnelRsLayer, true);
+    registryOutput->RegisterCreatedLayerLocked(TEST_SURFACE_ID_SECOND, secondLayer, secondRsLayer, false);
+    auto graphicRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_THIRD, TEST_NODE_ID_SECOND);
+    auto graphicLayer = CreateHdiOutputHdiLayer(graphicRsLayer);
+    registryOutput->RegisterCreatedLayerLocked(TEST_SURFACE_ID_THIRD, graphicLayer, graphicRsLayer, true);
+    uint64_t tunnelLayerGeneration = 0;
+    EXPECT_FALSE(graphicLayer->TakePendingTunnelLayerCreated(tunnelLayerGeneration));
+    EXPECT_TRUE(output->ShouldFallbackTunnelLayerLocked(TEST_SURFACE_ID_THIRD, secondRsLayer));
+
+    LayerCreatedCallbackData callbackData;
+    ASSERT_EQ(output->RegLayerCreated(OnLayerCreatedForTest, &callbackData), ROSEN_ERROR_OK);
+    auto existingGraphicLayer = CreateHdiOutputHdiLayer(secondRsLayer);
+    ASSERT_NE(existingGraphicLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID_SECOND] = existingGraphicLayer;
+    uint32_t solidLayerCount = 0;
+    output->UpdateRSLayerLocked(secondRsLayer, solidLayerCount);
+    EXPECT_EQ(callbackData.nodeId, TEST_NODE_ID_SECOND);
+    EXPECT_EQ(callbackData.tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID_SECOND);
+    EXPECT_FALSE(callbackData.success);
+    EXPECT_EQ(callbackData.count, 1u);
+    EXPECT_EQ(secondRsLayer->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC);
+    EXPECT_EQ(secondRsLayer->GetTunnelLayerId(), 0);
+    EXPECT_EQ(secondRsLayer->GetTunnelLayerProperty(), TUNNEL_PROP_INVALID);
+
+    registryOutput->UnregisterGlobalTunnelLayersLocked();
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+HWTEST_F(HdiOutputTest, TunnelFallbackDeclineEmitsOncePerGenerationOnUpdate,
+    Function | MediumTest | Level1)
+{
+    auto registryOutput = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(registryOutput, nullptr);
+    ASSERT_NE(output, nullptr);
+
+    auto firstTunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_SECOND, TEST_NODE_ID_SECOND,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID_SECOND);
+    auto secondTunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_THIRD, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto firstTunnelLayer = CreateHdiOutputHdiLayer(
+        firstTunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    auto secondTunnelLayer = CreateHdiOutputHdiLayer(
+        secondTunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    ASSERT_NE(firstTunnelLayer, nullptr);
+    ASSERT_NE(secondTunnelLayer, nullptr);
+    registryOutput->RegisterCreatedLayerLocked(TEST_SURFACE_ID_SECOND, firstTunnelLayer, firstTunnelRsLayer, false);
+    registryOutput->RegisterCreatedLayerLocked(TEST_SURFACE_ID_THIRD, secondTunnelLayer, secondTunnelRsLayer, false);
+
+    LayerCreatedCallbackData callbackData;
+    ASSERT_EQ(output->RegLayerCreated(OnLayerCreatedForTest, &callbackData), ROSEN_ERROR_OK);
+    auto existingGraphicRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID);
+    auto existingGraphicLayer = CreateHdiOutputHdiLayer(existingGraphicRsLayer);
+    ASSERT_NE(existingGraphicLayer, nullptr);
+    output->surfaceIdMap_[TEST_SURFACE_ID] = existingGraphicLayer;
+
+    uint32_t solidLayerCount = 0;
+    auto requestedTunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    output->UpdateRSLayerLocked(requestedTunnelRsLayer, solidLayerCount);
+    EXPECT_EQ(callbackData.count, 1u);
+    EXPECT_FALSE(callbackData.success);
+    EXPECT_EQ(callbackData.tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID);
+
+    auto sameGenerationRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    output->UpdateRSLayerLocked(sameGenerationRsLayer, solidLayerCount);
+    EXPECT_EQ(callbackData.count, 1u);
+
+    registryOutput->UnregisterGlobalTunnelLayersLocked();
+    output->UnregisterGlobalTunnelLayersLocked();
+}
+
+HWTEST_F(HdiOutputTest, TunnelFallbackDeclineEmitsOncePerGenerationOnCreate,
+    Function | MediumTest | Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+
+    LayerCreatedCallbackData callbackData;
+    ASSERT_EQ(output->RegLayerCreated(OnLayerCreatedForTest, &callbackData), ROSEN_ERROR_OK);
+    output->createHdiLayerFunc_ = [](uint32_t screenId) {
+        auto hdiLayer = std::make_shared<HdiLayer>(screenId);
+        if (hdiLayer != nullptr) {
+            hdiLayer->SetHdiDeviceMock(Mock::HdiDeviceMock::GetInstance());
+        }
+        return hdiLayer;
+    };
+
+    EXPECT_CALL(*hdiDeviceMock_, CreateLayer(TEST_SCREEN_ID, _, _, _))
+        .Times(4)
+        .WillRepeatedly(Return(GRAPHIC_DISPLAY_FAILURE));
+
+    auto firstTunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    EXPECT_EQ(output->CreateLayerLocked(TEST_SURFACE_ID, firstTunnelRsLayer), GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_EQ(callbackData.count, 1u);
+    EXPECT_FALSE(callbackData.success);
+    EXPECT_EQ(callbackData.tunnelLayerGeneration, TEST_TUNNEL_LAYER_ID);
+
+    auto sameGenerationRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
+        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    EXPECT_EQ(output->CreateLayerLocked(TEST_SURFACE_ID, sameGenerationRsLayer), GRAPHIC_DISPLAY_FAILURE);
+    EXPECT_EQ(callbackData.count, 1u);
 }
 } // namespace
 } // namespace Rosen

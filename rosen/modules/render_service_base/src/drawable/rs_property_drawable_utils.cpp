@@ -1594,23 +1594,23 @@ bool RSPropertyDrawableUtils::RSFilterSetPixelStretch(const RSProperties& proper
     }
 
     auto& pixelStretch = property.GetPixelStretch();
-    if (!pixelStretch.has_value()) {
+    if (pixelStretch.IsZero()) {
         return false;
     }
 
     constexpr static float EPS = 1e-5f;
     // The pixel stretch is fuzed only when the stretch factors are negative
-    if (pixelStretch->x_ > EPS || pixelStretch->y_ > EPS || pixelStretch->z_ > EPS || pixelStretch->w_ > EPS) {
+    if (pixelStretch.x_ > EPS || pixelStretch.y_ > EPS || pixelStretch.z_ > EPS || pixelStretch.w_ > EPS) {
         return false;
     }
 
     ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch fuzed with MESABlur.");
     const auto& boundsRect = property.GetBoundsRect();
     auto tileMode = property.GetPixelStretchTileMode();
-    auto pixelStretchParams = std::make_shared<RSPixelStretchParams>(std::abs(pixelStretch->x_),
-                                                                     std::abs(pixelStretch->y_),
-                                                                     std::abs(pixelStretch->z_),
-                                                                     std::abs(pixelStretch->w_),
+    auto pixelStretchParams = std::make_shared<RSPixelStretchParams>(std::abs(pixelStretch.x_),
+                                                                     std::abs(pixelStretch.y_),
+                                                                     std::abs(pixelStretch.z_),
+                                                                     std::abs(pixelStretch.w_),
                                                                      tileMode,
                                                                      boundsRect.width_, boundsRect.height_);
     auto mesaBlurFilter = std::static_pointer_cast<RSMESABlurShaderFilter>(mesaShaderFilter);

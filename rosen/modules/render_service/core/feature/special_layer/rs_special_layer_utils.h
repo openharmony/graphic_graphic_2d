@@ -60,14 +60,15 @@ public:
         const RSSurfaceRenderParams& surfaceParams, const RSRenderThreadParams& uniParams);
     static DrawType GetDrawTypeInSnapshot(const RSSurfaceRenderParams& surfaceParams);
     static void SetWhiteListRectToMetaData(RSPaintFilterCanvas& canvas, const RSRenderThreadParams& uniParam,
-        const RSScreenProperty& mirrorScreenProperty, const RSLogicalDisplayRenderParams& sourceLogicalParam);
-    static void CollectWhiteListRect(
-        const RSSurfaceRenderNode& node, bool hasMirrorDisplay, bool isRotating, ScreenId ancestorScreenId);
+        const RSScreenProperty& mirrorScreenProperty, const RSLogicalDisplayRenderParams& sourceLogicalParam,
+        const std::shared_ptr<RSSLRScaleFunction>& scaleManager);
+    static void CollectWhiteListRect(RSSurfaceRenderNode& node, bool hasMirrorDisplay,
+        bool isRotating, RSScreenRenderNode& ancestorScreenNode, bool needConvertMatrix = false);
 private:
     static bool CheckCurrentTypeIntersectVisibleRect(const std::unordered_set<NodeId>& nodeIds,
         uint32_t currentType, const RectI& visibleRect);
-    static void UpdateScreenSpecialLayersRecord(
-        RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer);
+    static void UpdateScreenSpecialLayersRecord(RSSurfaceRenderNode& sourceNode,
+        RSSurfaceRenderNode& surfaceNode, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer);
     static void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode);
     static void NotifyScreenSpecialLayerChange();
     static void DrawDebugRect(RSPaintFilterCanvas& canvas, Drawing::Color color, RectT<uint32_t> rect);

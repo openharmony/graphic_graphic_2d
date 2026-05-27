@@ -37,6 +37,7 @@
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "transaction/rs_render_to_service_connection.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
@@ -415,11 +416,10 @@ void DoSetScreenBacklight(FuzzedDataProvider& fdp)
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
-    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
-    uint32_t level = fdp.ConsumeIntegral<uint32_t>();
+    RsScreenBrightnessData brightnessData(fdp.ConsumeIntegral<uint64_t>(),
+        fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeFloatingPoint<float>());
     dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataP.WriteUint64(id);
-    dataP.WriteUint32(level);
+    RSMarshallingHelper::Marshalling(dataP, brightnessData);
     g_toServiceConnectionStub->OnRemoteRequest(code, dataP, reply, option);
 }
 

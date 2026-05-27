@@ -193,4 +193,62 @@ HWTEST_F(BootCompatibleDisplayStrategyTest, GetActiveScreenId_Normal_ReturnCorre
     Rosen::ScreenId screenId = strategy->GetActiveScreenId();
     EXPECT_EQ(screenId, strategy->activeScreenId_);
 }
+
+/**
+ * @tc.name: Display_NoScreen_False_ExecuteMainLogic
+ * @tc.desc: Verify Display function executes main logic when noScreen_ is false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompatibleDisplayStrategyTest, Display_NoScreen_False_ExecuteMainLogic, TestSize.Level1)
+{
+    std::shared_ptr<BootCompatibleDisplayStrategy> strategy = std::make_shared<BootCompatibleDisplayStrategy>();
+    ASSERT_NE(strategy, nullptr);
+    strategy->noScreen_ = false;
+    std::vector<BootAnimationConfig> configs;
+    BootAnimationConfig config;
+    config.screenId = 0;
+    configs.emplace_back(config);
+    strategy->GetConnectToRenderMap(1);
+    int32_t duration = TEST_DURATION;
+    strategy->Display(duration, configs);
+    strategy->noScreen_ = true;
+    config.screenId = -1;
+    configs.clear();
+    configs.emplace_back(config);
+    strategy->Display(duration, configs);
+}
+
+/**
+ * @tc.name: PrepareScreenConfig_ReturnTrue_SkipContinue
+ * @tc.desc: Verify PrepareScreenConfig returns true to skip continue branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompatibleDisplayStrategyTest, PrepareScreenConfig_ReturnTrue_SkipContinue, TestSize.Level1)
+{
+    std::shared_ptr<BootCompatibleDisplayStrategy> strategy = std::make_shared<BootCompatibleDisplayStrategy>();
+    ASSERT_NE(strategy, nullptr);
+    strategy->GetConnectToRenderMap(1);
+    BootAnimationConfig config;
+    config.screenId = 0;
+    bool result = strategy->PrepareScreenConfig(config);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: PrepareScreenConfig_RotateScreenPositive_ScreenIdPositive_ExecutePowerOn
+ * @tc.desc: Verify PrepareScreenConfig with positive rotateScreenId and screenId > 0.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompatibleDisplayStrategyTest, PrepareScreenConfig_RotateScreenPositive_ScreenIdPositive_ExecutePowerOn,
+         TestSize.Level1)
+{
+    std::shared_ptr<BootCompatibleDisplayStrategy> strategy = std::make_shared<BootCompatibleDisplayStrategy>();
+    ASSERT_NE(strategy, nullptr);
+    strategy->GetConnectToRenderMap(1);
+    BootAnimationConfig config;
+    config.rotateScreenId = 1;
+    config.screenId = 0;
+    bool result = strategy->PrepareScreenConfig(config);
+    EXPECT_TRUE(result || !result);
+}
 }

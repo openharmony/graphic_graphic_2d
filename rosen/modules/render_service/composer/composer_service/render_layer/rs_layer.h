@@ -25,6 +25,7 @@
 #include "surface.h"
 #include "sync_fence.h"
 #include "hpae_offline/rs_hpae_offline_layer_info.h"
+#include "feature/vcld/rs_vcld_param.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -96,6 +97,8 @@ public:
     virtual uint64_t GetTunnelLayerId() const = 0;
     virtual void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) = 0;
     virtual uint32_t GetTunnelLayerProperty() const = 0;
+    virtual void SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration) = 0;
+    virtual uint64_t GetTunnelLayerGeneration() const = 0;
     virtual void SetIsSupportedPresentTimestamp(bool isSupported) = 0;
     virtual bool GetIsSupportedPresentTimestamp() const = 0;
     virtual void SetPresentTimestamp(const GraphicPresentTimestamp& timestamp) = 0;
@@ -175,6 +178,8 @@ public:
     };
     virtual bool GetIsNeedComposition() const = 0;
     virtual void SetIsNeedComposition(bool isNeedComposition) = 0;
+    virtual void SetVcldInfo(const RSVcldParam& vcldInfo) = 0;
+    virtual const RSVcldParam& GetVcldInfo() const = 0;
 };
 
 using RSLayerPtr = std::shared_ptr<RSLayer>;

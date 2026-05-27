@@ -268,9 +268,8 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterWithoutSnapshotTest, TestSize.Level
     RSPaintFilterCanvas filterCanvas(&canvas);
     auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
-    Drawing::RectI src;
     Drawing::RectI dst;
-    EXPECT_FALSE(rsFilterCacheManager->DrawFilterWithoutSnapshot(filterCanvas, filter, src, dst, false));
+    EXPECT_FALSE(rsFilterCacheManager->DrawFilterWithoutSnapshot(filterCanvas, filter, dst, false));
 }
 
 /**
@@ -2235,6 +2234,232 @@ HWTEST_F(RSFilterCacheManagerTest, ClearFilterCacheTest005, TestSize.Level1)
     // Should still be null and no crash should occur
     EXPECT_EQ(manager->cachedSnapshot_, nullptr);
     EXPECT_EQ(manager->cachedFilteredSnapshot_, nullptr);
+}
+
+/**
+ * @tc.name: DrawFilterSrcIsEmptyWithCacheValidTest
+ * @tc.desc: test DrawFilter when cache is valid and src is empty, should not return early
+ * @tc.type: FUNC
+ * @tc.require: issue23827
+ */
+HWTEST_F(RSFilterCacheManagerTest, DrawFilterSrcIsEmptyWithCacheValidTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bmp.Build(100, 100, format);
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bmp);
+
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(image,
+        Drawing::RectI(0, 0, 100, 100));
+    rsFilterCacheManager->cachedFilteredSnapshot_ =
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(image, Drawing::RectI(0, 0, 100, 100));
+
+    EXPECT_TRUE(rsFilterCacheManager->IsCacheValid());
+
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 0, 0 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
+
+    bool shouldClearFilteredCache = false;
+    rsFilterCacheManager->DrawFilter(filterCanvas, filter, 0, true, shouldClearFilteredCache, srcRect, dstRect);
+
+    EXPECT_TRUE(filterCanvas.GetDeviceClipBounds().IsEmpty());
+}
+
+/**
+ * @tc.name: DrawFilterSrcIsEmptyWithCacheInvalidTest
+ * @tc.desc: test DrawFilter when cache is invalid and src is empty, should return early
+ * @tc.type: FUNC
+ * @tc.require: issue23827
+ */
+HWTEST_F(RSFilterCacheManagerTest, DrawFilterSrcIsEmptyWithCacheInvalidTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+
+    rsFilterCacheManager->cachedSnapshot_ = nullptr;
+    rsFilterCacheManager->cachedFilteredSnapshot_ = nullptr;
+
+    EXPECT_FALSE(rsFilterCacheManager->IsCacheValid());
+
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 0, 0 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
+
+    bool shouldClearFilteredCache = false;
+    rsFilterCacheManager->DrawFilter(filterCanvas, filter, 0, true, shouldClearFilteredCache, srcRect, dstRect);
+
+    EXPECT_TRUE(filterCanvas.GetDeviceClipBounds().IsEmpty());
+}
+
+/**
+ * @tc.name: GeneratedCachedEffectDataSrcIsEmptyWithCacheValidTest
+ * @tc.desc: test GeneratedCachedEffectData when cache is valid and src is empty, should not return early
+ * @tc.type: FUNC
+ * @tc.require: issue23827
+ */
+HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataSrcIsEmptyWithCacheValidTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bmp.Build(100, 100, format);
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bmp);
+
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(image,
+        Drawing::RectI(0, 0, 100, 100));
+    rsFilterCacheManager->cachedFilteredSnapshot_ =
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(image, Drawing::RectI(0, 0, 100, 100));
+    rsFilterCacheManager->snapshotNeedUpdate_ = false;
+
+    EXPECT_TRUE(rsFilterCacheManager->IsCacheValid());
+
+    NodeId id = 1;
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 0, 0 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
+
+    auto result = rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
+
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: GeneratedCachedEffectDataSrcIsEmptyWithCacheInvalidTest
+ * @tc.desc: test GeneratedCachedEffectData when cache is invalid and src is empty, should return early
+ * @tc.type: FUNC
+ * @tc.require: issue23827
+ */
+HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataSrcIsEmptyWithCacheInvalidTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+
+    rsFilterCacheManager->cachedSnapshot_ = nullptr;
+    rsFilterCacheManager->cachedFilteredSnapshot_ = nullptr;
+
+    EXPECT_FALSE(rsFilterCacheManager->IsCacheValid());
+
+    NodeId id = 1;
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 0, 0 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
+
+    auto result = rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
+
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: GeneratedCachedEffectDataSrcIsEmptyWithSnapshotNeedUpdateTest
+ * @tc.desc: test GeneratedCachedEffectData when cache is valid but snapshotNeedUpdate_ is true and src is empty
+ * @tc.type: FUNC
+ * @tc.require: issue23827
+ */
+HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataSrcIsEmptyWithSnapshotNeedUpdateTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bmp.Build(100, 100, format);
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bmp);
+
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(image,
+        Drawing::RectI(0, 0, 100, 100));
+    rsFilterCacheManager->cachedFilteredSnapshot_ =
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(image, Drawing::RectI(0, 0, 100, 100));
+    rsFilterCacheManager->snapshotNeedUpdate_ = true;
+
+    EXPECT_TRUE(rsFilterCacheManager->IsCacheValid());
+
+    NodeId id = 1;
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 0, 0 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
+
+    auto result = rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
+
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: DrawFilterDstIsEmptyTest
+ * @tc.desc: test DrawFilter when dst is empty, should return early
+ * @tc.type: FUNC
+ * @tc.require: issue23827
+ */
+HWTEST_F(RSFilterCacheManagerTest, DrawFilterDstIsEmptyTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 0, 0 });
+
+    bool shouldClearFilteredCache = false;
+    rsFilterCacheManager->DrawFilter(filterCanvas, filter, 0, true, shouldClearFilteredCache, srcRect, dstRect);
+
+    EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_, nullptr);
+}
+
+/**
+ * @tc.name: GeneratedCachedEffectDataDstIsEmptyTest
+ * @tc.desc: test GeneratedCachedEffectData when dst is empty, should return early
+ * @tc.type: FUNC
+ * @tc.require: issue23827
+ */
+HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataDstIsEmptyTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+
+    NodeId id = 1;
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 0, 0 });
+
+    auto result = rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
+
+    EXPECT_EQ(result, nullptr);
 }
 
 } // namespace Rosen

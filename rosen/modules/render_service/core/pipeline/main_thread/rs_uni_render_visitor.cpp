@@ -23,6 +23,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "common/rs_tunnel_layer_utils.h"
 #include "engine/rs_base_render_util.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
@@ -35,8 +36,9 @@
 #include "display_engine/rs_luminance_control.h"
 #include "feature/color_picker/rs_color_picker_utils.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/hdr/rs_colorspace_util.h"
 #include "feature/hpae/rs_hpae_manager.h"
-#include "feature/opinc/rs_opinc_cache.h"
+#include "feature/opinc/rs_opinc_root_cache.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
@@ -110,7 +112,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
 constexpr int EXPAND_ONE_PIX = 1;
 constexpr int MAX_ALPHA = 255;
 constexpr int TRACE_LEVEL_THREE = 3;
@@ -175,16 +176,6 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
 {
     isPartialRenderEnabled_ = DirtyRegionParam::IsDirtyRegionEnable();
     isAdvancedDirtyRegionEnabled_ = DirtyRegionParam::IsAdvancedDirtyRegionEnable();
-    isDirtyAlignEnabled_ = DirtyRegionParam::IsTileBasedAlignEnable();
-
-    if (RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() == StencilPixelOcclusionCullingType::DEFAULT) {
-        isStencilPixelOcclusionCullingEnabled_ =
-            OcclusionCullingParam::IsStencilPixelOcclusionCullingEnable();
-    } else {
-        isStencilPixelOcclusionCullingEnabled_ =
-            RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() != StencilPixelOcclusionCullingType::DISABLED;
-    }
-
     partialRenderType_ = RSSystemProperties::GetUniPartialRenderEnabled();
     isPartialRenderEnabled_ &= (partialRenderType_ > PartialRenderType::DISABLED);
 
@@ -213,7 +204,15 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
     isVirtualExpandScreenDirtyEnabled_ = RSSystemProperties::GetVirtualExpandScreenDirtyEnabled();
     advancedDirtyType_ = isAdvancedDirtyRegionEnabled_ ?
         RSSystemProperties::GetAdvancedDirtyRegionEnabled() : AdvancedDirtyRegionType::DISABLED;
-    isDirtyAlignEnabled_ &= RSSystemProperties::GetDirtyAlignEnabled() != DirtyAlignType::DISABLED;
+
+    auto dirtyAlignEnabled = RSSystemProperties::GetDirtyAlignEnabled();
+    isDirtyAlignEnabled_ = dirtyAlignEnabled == DirtyAlignType::DEFAULT ? DirtyRegionParam::IsTileBasedAlignEnable() :
+        RSSystemProperties::GetDirtyAlignEnabled() != DirtyAlignType::DISABLED;
+
+    auto spocEnabled = RSSystemProperties::GetStencilPixelOcclusionCullingEnabled();
+    isStencilPixelOcclusionCullingEnabled_ = spocEnabled == StencilPixelOcclusionCullingType::DEFAULT ?
+        OcclusionCullingParam::IsStencilPixelOcclusionCullingEnable() :
+        spocEnabled != StencilPixelOcclusionCullingType::DISABLED;
     if (isStencilPixelOcclusionCullingEnabled_) {
         // SPOC relies on dirty region alignment; when SPOC is enabled, dirty region alignment must also be enabled
         isDirtyAlignEnabled_ = true;
@@ -262,6 +261,11 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
         return;
     }
     GraphicColorGamut gamut = node.GetColorSpace();
+    auto firstLevelNodeId = node.GetFirstLevelNodeId();
+    auto [it, inserted] = surfaceColorGamutMap_.try_emplace(firstLevelNodeId, gamut);
+    if (!inserted) {
+        it->second = RSColorSpaceUtil::SelectBigGamut(it->second, gamut);
+    }
     if (gamut != GRAPHIC_COLOR_GAMUT_SRGB) {
         curScreenNode_->UpdateColorSpace(gamut);
         RS_LOGD("CheckColorSpace: node(%{public}s) set new colorgamut %{public}d",
@@ -351,25 +355,12 @@ bool RSUniRenderVisitor::IsWiredMirrorScreen(RSScreenRenderNode& node)
 void RSUniRenderVisitor::HandleWiredMirrorScreenColorGamut(RSScreenRenderNode& node)
 {
     std::vector<ScreenColorGamut> mode = node.GetScreenProperty().GetScreenSupportedColorGamuts();
-    if (!MultiScreenParam::IsMirrorDisplayCloseP3()) {
-        std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
-        if (!mirrorNode) {
-            return;
-        }
-        bool isSupportedDisplayP3 =
-            std::any_of(mode.begin(), mode.end(), [](const auto gamut) { return gamut == COLOR_GAMUT_DISPLAY_P3; });
-        if (isSupportedDisplayP3) {
-            // wired mirror and mirror support P3, mirror gamut = main gamut
-            node.SetColorSpace(mirrorNode->GetColorSpace());
-        }
-    } else {
-        node.SelectBestGamut(mode);
+    std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
+    if (!mirrorNode) {
+        return;
     }
-
-    ScreenColorGamut screenColorGamut = node.GetScreenProperty().GetScreenColorGamut();
-    if (static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_SRGB) {
-        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
-    }
+    node.SetColorSpace(mirrorNode->GetColorSpace());
+    node.SelectBestGamut(mode);
 }
 
 bool RSUniRenderVisitor::IsWiredExtendedScreen(RSScreenRenderNode& node)
@@ -586,6 +577,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     ret = ret || RSOverlayDisplayManager::Instance().CheckStatusChanged();
 #endif
     if (ret) {
+        RS_TRACE_NAME_FMT("%s ResetDirtyAsSurfaceSize", __func__);
         curScreenDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("ResetDisplayDirtyRegion on");
     }
@@ -754,13 +746,14 @@ void RSUniRenderVisitor::UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTr
 
 void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
 {
-    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareScreenRenderNode nodeId[%llu]", node.GetId());
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     // 0. init display info
-    RS_TRACE_NAME("RSUniRender:QuickPrepareScreenRenderNode " + std::to_string(node.GetScreenId()));
+    RS_TRACE_NAME_FMT("RSUniRender:%s %" PRIu64 " nodeId[%" PRIu64 "] dirtyStatus[%d] isPropertyDirty[%d] "
+        "isSubTreeDirty[%d] isSubTreeAllDirty[%d]", __func__, node.GetScreenId(), node.GetId(),
+        static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
+        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
     if (!InitScreenInfo(node)) {
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     UpdateDisplayZoomState();
@@ -769,7 +762,10 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     dirtyFlag_ = isDirty_ || zoomStateChange_ || curScreenDirtyManager_->IsActiveSurfaceRectChanged() ||
         curScreenDirtyManager_->IsSurfaceRectChanged() || node.IsDirty();
     if (dirtyFlag_) {
-        RS_TRACE_NAME_FMT("need recalculate dirty region");
+        RS_TRACE_NAME_FMT("need recalculate dirty region. isUniVisitorDirty:%d, zoomStateChange:%d, "
+            "isActiveSurfaceRectChanged:%d, isSurfaceRectChanged:%d, isScreenRenderNodeDirty:%d",
+            isDirty_, zoomStateChange_, curScreenDirtyManager_->IsActiveSurfaceRectChanged(),
+            curScreenDirtyManager_->IsSurfaceRectChanged(), node.IsDirty());
         RS_LOGD("need recalculate dirty region");
     }
     prepareClipRect_ = curScreenNode_->GetScreenRect();
@@ -793,6 +789,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     }
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
+    node.AccumulateParentGeoDirty();
 
     QuickPrepareChildren(node);
     TryNotifyUIBufferAvailable();
@@ -831,7 +828,6 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     PrepareForMultiScreenViewDisplayNode(node);
     node.ResetDirtyFlag();
     RS_TRACE_NAME_FMT("RSUniRenderVisitor::QuickPrepareScreenRenderNode childNumber: %d", rsScreenNodeChildNum_);
-    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node)
@@ -860,20 +856,19 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
 
 void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
 {
-    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID,
-        "QuickPrepareLogicalDisplayRenderNode nodeId[%llu]", node.GetId());
-    RS_TRACE_NAME("RSUniRender:QuickPrepareLogicalDisplayRenderNode " + std::to_string(node.GetScreenId()));
+    RS_TRACE_NAME_FMT("RSUniRender:%s %" PRIu64 " nodeId[%" PRIu64 "] dirtyStatus[%d] "
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        __func__, node.GetScreenId(), node.GetId(), static_cast<int>(node.GetDirtyStatus()),
+        node.GetRenderProperties().IsDirty(), node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     if (!InitLogicalDisplayInfo(node)) {
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     // 0. check ......
     auto dirtyManager = curScreenDirtyManager_;
     if (!dirtyManager) {
         RS_LOGE("QuickPrepareLogicalDisplayRenderNode dirtyManager is nullptr");
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     UpdateVirtualDisplayInfo(node);
@@ -891,6 +886,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     bool hasAccumulatedClip = hasAccumulatedClip_;
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
+    node.AccumulateParentGeoDirty();
     node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
     node.UpdateRotation();
     UpdateFixedSize(node);
@@ -910,7 +906,6 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     childHasProtectedNodeSet_.clear();
     node.UpdateOffscreenRenderParams(node.IsRotationChanged());
     node.RenderTraceDebug();
-    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 void RSUniRenderVisitor::CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node)
@@ -962,7 +957,12 @@ void RSUniRenderVisitor::PrepareForSkippedCrossNode(RSSurfaceRenderNode& surface
             .IntersectRect(curScreenNode_->GetScreenRect());
     curScreenNode_->UpdateSurfaceNodePos(nodeRef.GetId(), surfaceRect);
     curScreenNode_->AddSurfaceNodePosByDescZOrder(nodeRef.GetId(), surfaceRect);
-    // 5. record all children surface nodes and their position on second display, for global dirty region conversion.
+    // 5. collect white list rect for cross node with conversion matrix
+    bool isRotatingForWhiteList = displayNodeRotationChanged_ || isScreenRotationAnimating_ ||
+        RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION;
+    RSSpecialLayerUtils::CollectWhiteListRect(nodeRef, hasMirrorUsedInSpecialLayer_,
+        isRotatingForWhiteList, *curScreenNode_, true);
+    // 6. record all children surface nodes and their position on second display, for global dirty region conversion.
     std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
     nodeRef.GetAllSubSurfaceNodes(allSubSurfaceNodes);
     for (auto& [_, subSurfaceNode] : allSubSurfaceNodes) {
@@ -1110,7 +1110,6 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
 
 void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
-    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareSurfaceRenderNode nodeId[%llu]", node.GetId());
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     AutoRenderGroupExcludedSubTreeGuard renderGroupExcludedSubTreeGuard(
@@ -1127,21 +1126,24 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
             node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
             static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(),
             isBgWindowTraversalStarted_, node.ChildHasVisibleFilter());
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         dynamicLayerSkipController_->VisitRenderNode(node.ReinterpretCastTo<RSSurfaceRenderNode>(), node);
         return;
     }
 #endif
-    RS_TRACE_NAME_FMT("RSUniRender::QuickPrepare:[%s] nodeId[%" PRIu64 "] pid[%d] nodeType[%u]"
-        " subTreeDirty[%d], crossDisplay:[%d]", node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
-        static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode());
+    RS_TRACE_NAME_FMT("RSUniRender::QuickPrepare:[%s] nodeId[%" PRIu64 "] pid[%d] nodeType[%u] subTreeDirty[%d], "
+        "crossDisplay:[%d] dirtyStatus[%d] isPropertyDirty[%d] isSubTreeAllDirty[%d]",
+        node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
+        static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(),
+        static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
+        node.GetRenderProperties().IsSubTreeAllDirty());
     RS_LOGD("QuickPrepareSurfaceRenderNode:[%{public}s] nodeid:[%{public}" PRIu64 "] pid:[%{public}d] "
-        "nodeType:[%{public}d] subTreeDirty[%{public}d] crossDisplay[%{public}d]", node.GetName().c_str(), node.GetId(),
-        ExtractPid(node.GetId()), static_cast<int>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(),
-        node.IsFirstLevelCrossNode());
+        "nodeType:[%{public}d] subTreeDirty[%{public}d] crossDisplay[%{public}d] dirtyStatus[%{public}d] "
+        "isPropertyDirty[%{public}d] isSubTreeAllDirty[%{public}d]",
+        node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()), static_cast<int>(node.GetSurfaceNodeType()),
+        node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(), static_cast<int>(node.GetDirtyStatus()),
+        node.GetRenderProperties().IsDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
 
     if (PrepareForCloneNode(node)) {
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
 
@@ -1161,7 +1163,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     RSSpecialLayerUtils::DealWithSpecialLayer(node, *curLogicalDisplayNode_, needCalcScreenSpecialLayer);
     // avoid cross node subtree visited twice or more
     if (CheckSkipAndPrepareForCrossNode(node)) {
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     // 0. init curSurface info and check node info
@@ -1171,16 +1172,14 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (!BeforeUpdateSurfaceDirtyCalc(node)) {
         RS_LOGE("QuickPrepareSurfaceRenderNode BeforeUpdateSurfaceDirtyCalc fail");
         RSUifirstManager::Instance().DisableUifirstNode(node);
-        node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
+        RSOpincManager::OpincSetInAppStateEnd(node, unchangeMarkInApp_);
         return;
     }
 
     if (curSurfaceDirtyManager_ == nullptr) {
         RS_LOGE("QuickPrepareSurfaceRenderNode %{public}s curSurfaceDirtyManager is nullptr",
             node.GetName().c_str());
-        node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
+        RSOpincManager::OpincSetInAppStateEnd(node, unchangeMarkInApp_);
         return;
     }
     curSurfaceDirtyManager_->SetAdvancedDirtyRegionType(advancedDirtyType_);
@@ -1209,20 +1208,19 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
         *curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix);
+    node.AccumulateParentGeoDirty();
     auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     if (!geoPtr) {
-        node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
+        RSOpincManager::OpincSetInAppStateEnd(node, unchangeMarkInApp_);
         globalShouldPaint_ = preGlobalShouldPaint;
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     parentSurfaceNodeMatrix_ = geoPtr->GetAbsMatrix();
     if (!AfterUpdateSurfaceDirtyCalc(node)) {
         RS_LOGE("QuickPrepareSurfaceRenderNode AfterUpdateSurfaceDirtyCalc fail");
         RSUifirstManager::Instance().DisableUifirstNode(node);
-        node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
+        RSOpincManager::OpincSetInAppStateEnd(node, unchangeMarkInApp_);
         globalShouldPaint_ = preGlobalShouldPaint;
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     bool isDimmingOn = RSLuminanceControl::Get().IsDimmingOn(curScreenNode_->GetScreenId());
@@ -1255,9 +1253,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (curSurfaceDirtyManager_ == nullptr) {
         RS_LOGE("QuickPrepareSurfaceRenderNode %{public}s curSurfaceDirtyManager "
             "is set to nullptr by QuickPrepareChildren", node.GetName().c_str());
-        node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
+        RSOpincManager::OpincSetInAppStateEnd(node, unchangeMarkInApp_);
         globalShouldPaint_ = preGlobalShouldPaint;
-        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
     if (!node.IsFirstLevelCrossNode()) {
@@ -1304,7 +1301,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     isInFocusSurface_ = isInFocusSurface;
 #endif
     UpdateInfoForClonedNode(node);
-    node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
+    RSOpincManager::OpincSetInAppStateEnd(node, unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
     curCornerRect_ = curCornerRect;
@@ -1325,12 +1322,14 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     HandleTunnelLayerId(node);
     PrepareForMultiScreenViewSurfaceNode(node);
     CollectSurfaceLockLayer(node);
-    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node)
 {
-    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareUnionRenderNode nodeId[%llu]", node.GetId());
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s nodeId[%" PRIu64 "] dirtyStatus[%d] "
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        __func__, node.GetId(), static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
+        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     AutoRenderGroupExcludedSubTreeGuard renderGroupExcludedSubTreeGuard(
@@ -1351,12 +1350,12 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node)
     CheckFilterCacheNeedForceClearOrSave(node);
     bool isAccessibilityConfigChanged = IsAccessibilityConfigChanged();
     if (isAccessibilityConfigChanged) {
-        node.SetIsAccessibilityConfigChanged(true);
+        node.MarkAccessibilityConfigChanged(true);
     }
     UpdateDrawingCacheInfoBeforeChildren(node);
     UpdateOffscreenCanvasNodeId(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
-    node.SetIsAccessibilityConfigChanged(false);
+    node.MarkAccessibilityConfigChanged(false);
     RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
         isAccessibilityConfigChanged);
     RectI prepareClipRect = prepareClipRect_;
@@ -1369,6 +1368,7 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node)
     }
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
+    node.AccumulateParentGeoDirty();
 
     // update prepare clip before children
     hwcVisitor_->UpdatePrepareClip(node);
@@ -1772,7 +1772,7 @@ void RSUniRenderVisitor::CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node)
     }
     // collect mainWindow occlusion visibleLevel
     Occlusion::Region selfDrawRegion { node.GetSurfaceOcclusionRect(true) };
-    auto visibleLevel = GetRegionVisibleLevel(node.GetVisibleRegion(), selfDrawRegion);
+    auto visibleLevel = RSUniDirtyComputeUtil::GetRegionVisibleLevel(selfDrawRegion, node.GetVisibleRegion());
 
     // wms default all visible about sefdrawing node and AbilityComponent node
     auto instanceNode = node.GetInstanceRootNode() ?
@@ -1799,23 +1799,12 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
     }
 }
 
-RSVisibleLevel RSUniRenderVisitor::GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
-    const Occlusion::Region& selfDrawRegion)
-{
-    if (visibleRegion.IsEmpty()) {
-        return RSVisibleLevel::RS_INVISIBLE;
-    } else if (visibleRegion.Area() == selfDrawRegion.Area()) {
-        return RSVisibleLevel::RS_ALL_VISIBLE;
-    } else if (static_cast<uint>(visibleRegion.Area()) <
-        (static_cast<uint>(selfDrawRegion.Area()) >> VISIBLEAREARATIO_FORQOS)) {
-        return RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
-    }
-    return RSVisibleLevel::RS_SEMI_NONDEFAULT_VISIBLE;
-}
-
 void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
 {
-    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "CheckCacheTypeAndDraw nodeId[%llu]", node.GetId());
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s nodeId[%" PRIu64 "] dirtyStatus[%d] "
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        __func__, node.GetId(), static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
+        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     AutoRenderGroupExcludedSubTreeGuard renderGroupExcludedSubTreeGuard(
@@ -1843,6 +1832,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     bool hasAccumulatedClip = hasAccumulatedClip_;
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
+    node.AccumulateParentGeoDirty();
     node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
     // 1. Recursively traverse child nodes
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
@@ -1975,7 +1965,10 @@ void RSUniRenderVisitor::UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node)
 
 void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
-    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareCanvasRenderNode nodeId[%llu]", node.GetId());
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s nodeId[%" PRIu64 "] dirtyStatus[%d] "
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        __func__, node.GetId(), static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
+        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     AutoRenderGroupExcludedSubTreeGuard renderGroupExcludedSubTreeGuard(
@@ -1994,7 +1987,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     CheckFilterCacheNeedForceClearOrSave(node);
     bool isAccessibilityConfigChanged = IsAccessibilityConfigChanged();
     if (isAccessibilityConfigChanged) {
-        node.SetIsAccessibilityConfigChanged(true);
+        node.MarkAccessibilityConfigChanged(true);
     }
     
     RSOpincManager::Instance().InitLayerPartRenderNode(OPIncParam::IsLayerPartRenderEnable(), node,
@@ -2003,7 +1996,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     UpdateDrawingCacheInfoBeforeChildren(node);
     UpdateOffscreenCanvasNodeId(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
-    node.SetIsAccessibilityConfigChanged(false);
+    node.MarkAccessibilityConfigChanged(false);
     RSOpincManager::Instance().QuickMarkStableNode(node, unchangeMarkInApp_, unchangeMarkEnable_,
         isAccessibilityConfigChanged);
     RectI prepareClipRect = prepareClipRect_;
@@ -2017,6 +2010,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
 
+    node.AccumulateParentGeoDirty();
     // update prepare clip before children
     hwcVisitor_->UpdatePrepareClip(node);
     node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
@@ -2073,6 +2067,10 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 
 void RSUniRenderVisitor::QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRenderNode& node)
 {
+    RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "%s nodeId[%" PRIu64 "] dirtyStatus[%d] "
+        "isPropertyDirty[%d] isSubTreeDirty[%d] isSubTreeAllDirty[%d]",
+        __func__, node.GetId(), static_cast<int>(node.GetDirtyStatus()), node.GetRenderProperties().IsDirty(),
+        node.IsSubTreeDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
     UpdateCurFrameInfoDetail(node);
     RSSubTreePrepareController subTreePrepareController(isCurSubTreeForcePrepare_, IsCurrentSubTreeForcePrepare(node));
     AutoRenderGroupExcludedSubTreeGuard renderGroupExcludedSubTreeGuard(
@@ -2082,6 +2080,7 @@ void RSUniRenderVisitor::QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRe
     auto dirtyManager = curSurfaceNode_ ? curSurfaceDirtyManager_ : curScreenDirtyManager_;
     if (!dirtyManager) {
         RS_LOGE("QuickPrepareWindowKeyFrameRenderNode dirtyManager is nullptr");
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
 
@@ -2092,6 +2091,7 @@ void RSUniRenderVisitor::QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRe
     node.CollectLinkedNodeInfo();
 
     node.RenderTraceDebug();
+    RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
 
 void RSUniRenderVisitor::UpdateRotationStatusForEffectNode(RSEffectRenderNode& node)
@@ -2370,7 +2370,7 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
     needRecalculateOcclusion_ = needRecalculateOcclusion_ || node.IsDirty() ||
         node.CheckIfOcclusionReusable(preMainAndLeashWindowNodesIds_);
     if (autoCacheEnable_ && node.IsAppWindow()) {
-        node.GetOpincCache().OpincSetInAppStateStart(unchangeMarkInApp_);
+        RSOpincManager::OpincSetInAppStateStart(node, unchangeMarkInApp_);
     }
     // 3. check pixelFormat and update RelMatrix
     CheckPixelFormat(node);
@@ -2430,8 +2430,7 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
     // 5. collect white list rect
     bool isRotating = displayNodeRotationChanged_ || isScreenRotationAnimating_ ||
         RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION;
-    RSSpecialLayerUtils::CollectWhiteListRect(node, hasMirrorUsedInSpecialLayer_, isRotating,
-        curScreenNode_ ? curScreenNode_->GetScreenId() : INVALID_SCREEN_ID);
+    RSSpecialLayerUtils::CollectWhiteListRect(node, hasMirrorUsedInSpecialLayer_, isRotating, *curScreenNode_);
     return true;
 }
 
@@ -2567,12 +2566,21 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     }
     {
         auto iter = std::find_if(strategy.begin(), strategy.end(),
-            [](const auto& elem) { return elem.second == RequestCompositionType::OFFLINE_DEVICE; });
+            [](const auto& elem) {
+            return (elem.second == RequestCompositionType::OFFLINE_DEVICE ||
+                elem.second == RequestCompositionType::OFFLINE_VCLD_OFF);
+        });
         if (iter == strategy.end()) {
             RSHpaeOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask();
         }
     }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    UpdateHwcNodeEnableByPrevalidate(strategy, nodeMap);
+}
+
+void RSUniRenderVisitor::UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, RequestCompositionType> &strategy,
+    const RSRenderNodeMap& nodeMap)
+{
     for (auto it : strategy) {
         RS_LOGD_IF(DEBUG_PREVALIDATE, "PrevalidateHwcNode id: %{public}" PRIu64 ","
             " result: %{public}d", it.first, it.second);
@@ -2587,13 +2595,24 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             node->SetArsrTag(false);
             continue;
         }
-        if (it.second == RequestCompositionType::OFFLINE_DEVICE &&
+        if (it.second == RequestCompositionType::DEVICE_VCLD_OFF) {
+            node->ResetVcldInfo();
+            continue;
+        }
+        uint64_t nodeTunnelLayerId = 0;
+        uint32_t nodeTunnelProperty = TUNNEL_PROP_INVALID;
+        node->GetTunnelLayerInfo(nodeTunnelLayerId, nodeTunnelProperty);
+        if ((it.second == RequestCompositionType::OFFLINE_DEVICE ||
+            it.second == RequestCompositionType::OFFLINE_VCLD_OFF) &&
 #ifdef HETERO_HDR_ENABLE
             !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
 #endif
             RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady() &&
-            node->GetTunnelLayerId() == 0) {
+            nodeTunnelLayerId == 0) {
             node->SetDeviceOfflineEnable(true);
+            if (it.second == RequestCompositionType::OFFLINE_VCLD_OFF) {
+                node->ResetVcldInfo();
+            }
             continue;
         }
         if (node->IsInFixedRotation() || node->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
@@ -2750,6 +2769,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfac
         !appNode->GetVisibleRegion().IsEmpty()) {
         // merge hwc node dst rect for virtual screen dirty, in case the main display node skip
         curScreenDirtyManager_->MergeHwcDirtyRect(hwcNode->GetDstRect());
+        appNode->GetDirtyManager()->MergeHwcDirtyRect(hwcNode->GetDstRect());
     }
 }
 
@@ -3487,9 +3507,11 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
         nodeParent->GetOpincCache().UpdateSubTreeSupportFlag(
             RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
-            node.GetOpincCache().OpincGetRootFlag(),
+            RSOpincManager::OpincGetRootFlag(node),
             nodeParent->GetNodeGroupType() == RSRenderNode::NodeGroupType::NONE);
-        nodeParent->GetOpincCache().UpdateSubTreeHasUnstableOpincNode(node.GetOpincCache());
+        nodeParent->GetOpincCache().UpdateSubTreeHasUnstableOpincNode(
+            node.GetOpincCache(),
+            RSOpincManager::IsSuggestOpincNode(node) && !RSOpincManager::IsOpincUnchangeState(node));
 #ifdef SUBTREE_PARALLEL_ENABLE
         nodeParent->UpdateRepaintBoundaryInfo(node);
 #endif
@@ -3849,8 +3871,10 @@ void RSUniRenderVisitor::UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 {
-    RS_TRACE_NAME_FMT("RSUniRender::PrepareRootRenderNode:node[%" PRIu64 "] pid[%d] subTreeDirty[%d]",
-        node.GetId(), ExtractPid(node.GetId()), node.IsSubTreeDirty());
+    RS_TRACE_NAME_FMT("RSUniRender::%s:node[%" PRIu64 "] pid[%d] subTreeDirty[%d] dirtyStatus[%d]"
+        " isPropertyDirty[%d] isSubTreeAllDirty[%d]", __func__, node.GetId(),
+        ExtractPid(node.GetId()), node.IsSubTreeDirty(), static_cast<int>(node.GetDirtyStatus()),
+        node.GetRenderProperties().IsDirty(), node.GetRenderProperties().IsSubTreeAllDirty());
     bool dirtyFlag = dirtyFlag_;
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
     auto prepareClipRect = prepareClipRect_;
@@ -3869,6 +3893,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     }
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
         *curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
+    node.AccumulateParentGeoDirty();
     if (nodeParent == curSurfaceNode_) {
         const float rootWidth = property.GetFrameWidth() * property.GetScaleX();
         const float rootHeight = property.GetFrameHeight() * property.GetScaleY();
@@ -3952,6 +3977,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     if (RSPointerWindowManager::Instance().IsNeedForceCommitByPointer()) {
         renderThreadParams->forceCommitReason_ |= ForceCommitReason::FORCED_BY_POINTER_WINDOW;
     }
+    renderThreadParams->surfaceColorGamutMap_ = std::move(surfaceColorGamutMap_);
 }
 
 void RSUniRenderVisitor::SendRcdMessage(RSScreenRenderNode& node)
@@ -4186,18 +4212,22 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
 
 void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
 {
-    auto tunnelLayerId = node.GetTunnelLayerId();
-    if (!tunnelLayerId) {
-        return;
-    }
+    uint64_t tunnelLayerId = 0;
+    uint32_t property = TUNNEL_PROP_INVALID;
+    node.GetTunnelLayerInfo(tunnelLayerId, property);
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     if (nodeParams == nullptr) {
         return;
     }
-    nodeParams->SetTunnelLayerId(tunnelLayerId);
-    RS_LOGI("%{public}s lpp surfaceid:%{public}" PRIu64 ", nodeid:%{public}" PRIu64,
-        __func__, tunnelLayerId, node.GetId());
-    RS_TRACE_NAME_FMT("%s lpp surfaceid:%" PRIu64 ", nodeid:%" PRIu64, __func__, tunnelLayerId, node.GetId());
+    nodeParams->SetTunnelLayerInfo(tunnelLayerId, property);
+    nodeParams->SetTunnelLayerGeneration(node.GetTunnelRuntimeState().GetTunnelLayerGeneration());
+    if (tunnelLayerId == 0) {
+        return;
+    }
+    RS_LOGI("%{public}s tunnel surfaceid:%{public}" PRIu64 ", property:%{public}u, nodeid:%{public}" PRIu64,
+        __func__, tunnelLayerId, property, node.GetId());
+    RS_TRACE_NAME_FMT("%s tunnel surfaceid:%" PRIu64 ", property:%u, nodeid:%" PRIu64,
+        __func__, tunnelLayerId, property, node.GetId());
 }
 
 void RSUniRenderVisitor::UpdateChildBlurBehindWindowAbsMatrix(RSRenderNode& node)

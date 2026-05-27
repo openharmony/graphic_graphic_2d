@@ -71,12 +71,12 @@ HWTEST_F(RSValueEstimatorTest, EstimateFraction001, TestSize.Level1)
  */
 HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueTest, TestSize.Level1)
 {
-    auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<Drawing::DrawCmdListPtr>>();
+    auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<SimpleDrawCmdListPtr>>();
 
-    auto property = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
-    auto startValue = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
-    auto endValue = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
-    auto lastValue = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>();
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>();
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>();
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>();
 
     curveValueEstimator->InitCurveAnimationValue(nullptr, nullptr, nullptr, nullptr);
     EXPECT_EQ(curveValueEstimator->property_, nullptr);
@@ -98,23 +98,23 @@ HWTEST_F(RSValueEstimatorTest, InitCurveAnimationValueTest, TestSize.Level1)
  */
 HWTEST_F(RSValueEstimatorTest, UpdateAnimationValueTest, TestSize.Level1)
 {
-    auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<Drawing::DrawCmdListPtr>>();
+    auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<SimpleDrawCmdListPtr>>();
     EXPECT_EQ(curveValueEstimator->property_, nullptr);
     curveValueEstimator->UpdateAnimationValue(0.f, true);
 
-    auto property = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
-    curveValueEstimator->property_ = std::make_shared<RSRenderAnimatableProperty<Drawing::DrawCmdListPtr>>();
+    auto property = std::make_shared<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>();
+    curveValueEstimator->property_ = std::make_shared<RSRenderAnimatableProperty<SimpleDrawCmdListPtr>>();
 
     auto animationValue = curveValueEstimator->property_->Get();
     EXPECT_EQ(animationValue, nullptr);
     curveValueEstimator->UpdateAnimationValue(0.f, true);
 
-    Drawing::DrawCmdListPtr value = std::make_shared<Drawing::DrawCmdList>();
+    SimpleDrawCmdListPtr value = std::make_shared<RSSimpleDrawCmdList>();
     EXPECT_NE(value->GetType(), Drawing::CmdList::Type::RS_DRAW_CMD_LIST);
     curveValueEstimator->property_->Set(value);
     curveValueEstimator->UpdateAnimationValue(0.f, true);
 
-    Drawing::DrawCmdListPtr value1 = std::make_shared<RSDrawCmdList>(nullptr, nullptr);
+    auto value1 = std::make_shared<RSDrawCmdList>(nullptr, nullptr);
     EXPECT_EQ(value1->GetType(), Drawing::CmdList::Type::RS_DRAW_CMD_LIST);
     curveValueEstimator->property_->Set(value1);
     curveValueEstimator->UpdateAnimationValue(0.f, true);

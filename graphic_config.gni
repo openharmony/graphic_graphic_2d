@@ -16,6 +16,7 @@ declare_args() {
   graphic_2d_feature_product = "default"
   graphic_2d_feature_enable_pgo = false
   graphic_2d_feature_enable_codemerge = false
+  graphic_2d_feature_enable_func_arg_specialization = false
   graphic_2d_feature_pgo_path = ""
   graphic_2d_feature_bootanimation_enable = true
   graphic_2d_feature_ace_enable_gpu = true
@@ -60,6 +61,7 @@ declare_args() {
   graphic_2d_feature_enable_mediacommon = false
   graphic_2d_feature_enable_image_detail_enhancer = false
   graphic_2d_feature_rs_modifiers_draw_enable = false
+  graphic_2d_feature_enable_rs_proxy = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -82,10 +84,6 @@ if (graphic_2d_feature_product == "phone" ||
     graphic_2d_feature_product == "wearable") {
   graphic_2d_feature_enable_vulkan = true
   graphic_2d_feature_enable_stack_culling = true
-}
-
-if (is_ios && is_arkui_x) {
-  graphic_2d_feature_enable_vulkan = false
 }
 
 if (graphic_2d_feature_product == "phone" ||
@@ -232,6 +230,11 @@ check_math_tools_ext_file_args = [
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni"),
 ]
+check_frame_stability_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni"),
+]
 check_hgm_ext_file_args = [
   "--filename",
   rebase_path(
@@ -308,6 +311,15 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools
   graphic_2d_math_tools_configs = {
     import(
         "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni")
+  }
+}
+
+graphic_2d_frame_stability_configs = {
+}
+if (path_exists("//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni")) {
+  graphic_2d_frame_stability_configs = {
+    import(
+        "//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni")
   }
 }
 

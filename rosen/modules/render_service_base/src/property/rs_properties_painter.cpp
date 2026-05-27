@@ -751,13 +751,13 @@ void RSPropertiesPainter::GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,
     const RSProperties& properties, const bool isAbsCoordinate)
 {
     auto& pixelStretch = properties.GetPixelStretch();
-    if (!pixelStretch.has_value()) {
+    if (pixelStretch.IsZero()) {
         return;
     }
     auto boundsRect = properties.GetBoundsRect();
-    auto scaledBounds = RectF(boundsRect.left_ - pixelStretch->x_, boundsRect.top_ - pixelStretch->y_,
-        boundsRect.width_ + pixelStretch->x_ + pixelStretch->z_,
-        boundsRect.height_ + pixelStretch->y_ + pixelStretch->w_);
+    auto scaledBounds = RectF(boundsRect.left_ - pixelStretch.x_, boundsRect.top_ - pixelStretch.y_,
+        boundsRect.width_ + pixelStretch.x_ + pixelStretch.z_,
+        boundsRect.height_ + pixelStretch.y_ + pixelStretch.w_);
     auto geoPtr = properties.GetBoundsGeometry();
     Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
     auto drawingRect = Rect2DrawingRect(scaledBounds);
@@ -955,7 +955,7 @@ bool RSPropertiesPainter::GetBgAntiAlias()
 }
 
 void RSPropertiesPainter::DrawFrame(
-    const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::DrawCmdListPtr& cmds)
+    const RSProperties& properties, RSPaintFilterCanvas& canvas, SimpleDrawCmdListPtr& cmds)
 {
     if (cmds == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawFrame cmds null");

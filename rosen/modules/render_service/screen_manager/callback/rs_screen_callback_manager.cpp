@@ -73,6 +73,31 @@ void RSScreenCallbackManager::NotifyScreenDisconnected(ScreenId screenId)
     }
 }
 
+void RSScreenCallbackManager::NotifyNoScreen(ScreenChangeReason reason)
+{
+    RS_LOGI("%{public}s: no screen after init.", __func__);
+    NotifyScreenConnectedToAgentListeners(INVALID_SCREEN_ID, reason);
+}
+
+void RSScreenCallbackManager::NotifyPhysicalScreenProcessDisconnected(ScreenId screenId)
+{
+    if (coreListener_) {
+        coreListener_->OnProcessDisconnected(screenId);
+    } else {
+        RS_LOGI("%{public}s: coreListener is nullptr", __func__);
+    }
+    NotifyScreenDisconnectedToAgentListeners(screenId, ScreenChangeReason::PROCESS_DISCONNECTED);
+    {
+        std::lock_guard<std::mutex> lock(clientToRenderMtx_);
+        clientToRenderConns_.erase(screenId);
+    }
+}
+
+void RSScreenCallbackManager::NotifyVirtualScreenProcessDisconnected(ScreenId screenId)
+{
+    NotifyScreenDisconnectedToAgentListeners(screenId, ScreenChangeReason::PROCESS_DISCONNECTED);
+}
+
 void RSScreenCallbackManager::NotifyScreenPropertyUpdated(
     ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
 {
@@ -184,13 +209,13 @@ void RSScreenCallbackManager::NotifyActiveScreenIdChangedToAgentListeners(Screen
     }
 }
 
-void RSScreenCallbackManager::NotifyScreenBacklightChanged(ScreenId id, uint32_t level)
+void RSScreenCallbackManager::NotifyScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
     if (!coreListener_) {
         RS_LOGE("%{public}s: coreListener is nullptr", __func__);
         return;
     }
-    coreListener_->OnScreenBacklightChanged(id, level);
+    coreListener_->OnScreenBacklightChanged(brightnessData);
 }
 
 void RSScreenCallbackManager::NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)

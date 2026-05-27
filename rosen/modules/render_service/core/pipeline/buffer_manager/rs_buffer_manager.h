@@ -65,6 +65,9 @@ public:
     void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr);
 
+    void ReplacePendingReleaseBufferFence(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer,
+        sptr<SyncFence> fence, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr);
+
     void AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence> fence,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr);
 

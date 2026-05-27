@@ -62,7 +62,7 @@ public:
     void RemoveToken(const sptr<RSIConnectionToken>& token);
 
     // Hgm
-    const std::shared_ptr<HgmContext>& GetHgmContext() const { return renderService_.GetHgmContext(); }
+    std::shared_ptr<HgmContext> GetHgmContext() const { return renderService_.GetHgmContext(); }
     void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
 
     // Dfx

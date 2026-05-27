@@ -704,19 +704,19 @@ void TestScreenBacklight(InterfaceClientFrameTest &testFrame)
 
     // Normal call
     auto backlight = rsInterfaces.GetScreenBacklight(screenId);
-    rsInterfaces.SetScreenBacklight(screenId, 100);
+    rsInterfaces.SetScreenBacklight(RsScreenBrightnessData(screenId, 100));
     (void)backlight;
-    rsInterfaces.SetScreenBacklight(screenId, 50);
+    rsInterfaces.SetScreenBacklight(RsScreenBrightnessData(screenId, 50));
 
     // Boundary value - minimum
-    rsInterfaces.SetScreenBacklight(screenId, 0);
+    rsInterfaces.SetScreenBacklight(RsScreenBrightnessData(screenId, 0));
 
     // Boundary value - maximum
-    rsInterfaces.SetScreenBacklight(screenId, UINT32_MAX);
+    rsInterfaces.SetScreenBacklight(RsScreenBrightnessData(screenId, UINT32_MAX));
 
     // Abnormal call - invalid screenId
     rsInterfaces.GetScreenBacklight(0);
-    rsInterfaces.SetScreenBacklight(0, 100);
+    rsInterfaces.SetScreenBacklight(RsScreenBrightnessData(0, 100));
 }
 
 // ============================================================================

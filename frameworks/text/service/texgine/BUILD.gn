@@ -13,9 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
-import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-## Build libtexgine.so {{{
 config("libtexgine_config") {
   visibility = [ ":*" ]
 
@@ -28,30 +26,30 @@ config("libtexgine_config") {
   include_dirs = [ "$rosen_text_root" ]
 }
 
-if (defined(is_arkui_x) && is_arkui_x) {
-  config("libtexgine_public_config") {
-    include_dirs = [
-      "//third_party/icu/icu4c/source/common",
-      "$graphic_2d_root/rosen/modules/render_service_base/include",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-      "$graphic_2d_root/rosen/modules/2d_graphics/include",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$rosen_text_root/interface/export/rosen_text",
-    ]
-  }
-} else {
-  config("libtexgine_public_config") {
-    include_dirs = [
-      "$graphic_2d_root/rosen/modules/render_service_base/include",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-      "$graphic_2d_root/rosen/modules/2d_graphics/include",
-      "$graphic_2d_root/rosen/modules/2d_graphics/src",
-      "$rosen_text_root/interface/export/rosen_text",
-    ]
+config("libtexgine_public_config") {
+  include_dirs = [
+    "$rosen_root/modules/render_service_base/include",
+    "$rosen_root/modules/2d_graphics/src/drawing/engine_adapter",
+    "$rosen_root/modules/2d_graphics/include",
+    "$rosen_root/modules/2d_graphics/src",
+    "$rosen_text_root/interface/export/rosen_text",
+  ]
+  if (defined(is_arkui_x) && is_arkui_x) {
+    include_dirs += [ "//third_party/icu/icu4c/source/common" ]
   }
 }
 
 ohos_source_set("libtexgine_source") {
+  configs = [
+    ":libtexgine_config",
+    "//build/config/compiler:exceptions",
+    "//build/config/compiler:rtti",
+  ]
+
+  public_configs = [ ":libtexgine_public_config" ]
+
+  configs += [ "$rosen_text_root:rosen_text_config" ]
+
   sources = [
     "src/font_config.cpp",
     "src/font_descriptor_cache.cpp",
@@ -61,29 +59,16 @@ ohos_source_set("libtexgine_source") {
     "src/opentype_parser/opentype_basic_type.cpp",
   ]
 
-  configs = [
-    ":libtexgine_config",
-    "//build/config/compiler:exceptions",
-    "//build/config/compiler:rtti",
-  ]
-
-  public_configs = [ ":libtexgine_public_config" ]
+  include_dirs = []
+  if (is_arkui_x) {
+    include_dirs += [
+      "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
+      "$rosen_root/modules/platform/utils",
+    ]
+  }
 
   public_deps = []
-  defines = []
-
-  if (rs_enable_gpu) {
-    defines += [ "RS_ENABLE_GPU" ]
-  }
   if (is_arkui_x) {
-    include_dirs = [
-      "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
-      "$graphic_2d_root/rosen/modules/platform/utils"
-    ]
-    defines += [
-      "CROSS_PLATFORM",
-      "BUILD_NON_SDK_VER"
-    ]
     public_deps += [
       "//third_party/jsoncpp:jsoncpp_static",
       "//third_party/skia:skia_$platform",
@@ -104,11 +89,6 @@ ohos_source_set("libtexgine_source") {
   }
 
   if (platform_is_ohos) {
-    defines += [
-      "BUILD_NON_SDK_VER",
-      "ENABLE_OHOS_ENHANCE",
-    ]
-
     external_deps += [
       "c_utils:utils",
       "hitrace:hitrace_meter",

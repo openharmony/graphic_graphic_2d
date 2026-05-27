@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <set>
+#include <unistd.h>
 #include <unordered_set>
 #include <vector>
 
@@ -24,6 +25,7 @@
 #include "rs_render_to_composer_connection.h"
 #include "rs_render_to_composer_connection_proxy.h"
 #include "rs_render_to_composer_connection_stub.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,6 +33,62 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 
 class RSRenderToComposerConnectionProxyTest : public Test {};
+
+namespace {
+class RecordingRenderToComposerConnectionStub final : public RSRenderToComposerConnectionStub {
+public:
+    bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override
+    {
+        return false;
+    }
+
+    void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override {}
+
+    int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
+        const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence) override
+    {
+        commitTunnelCalled = true;
+        lastSurfaceId = surfaceId;
+        lastTunnelLayerId = tunnelLayerId;
+        lastBufferSeqNum = buffer == nullptr ? 0 : buffer->GetSeqNum();
+        lastAcquireFenceFd = acquireFence == nullptr ? -1 : acquireFence->Get();
+        releaseFence = new SyncFence(dup(STDIN_FILENO));
+        return returnValue;
+    }
+
+    void ClearFrameBuffers() override {}
+    void ClearRedrawGPUCompositionCache(const std::unordered_set<uint64_t>& bufferIds) override {}
+    void SetScreenBacklight(uint32_t level) override {}
+    void SetScreenLinearMatrix(const std::vector<float>& matirx) override {}
+    void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
+    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
+
+    bool commitTunnelCalled = false;
+    uint64_t lastSurfaceId = 0;
+    uint64_t lastTunnelLayerId = 0;
+    uint32_t lastBufferSeqNum = 0;
+    int32_t lastAcquireFenceFd = -2;
+    int32_t returnValue = GRAPHIC_DISPLAY_SUCCESS;
+};
+
+sptr<SurfaceBuffer> CreateTunnelTestBuffer()
+{
+    BufferRequestConfig requestConfig = {
+        .width = 4,
+        .height = 4,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    if (buffer != nullptr && buffer->Alloc(requestConfig) != GSERROR_OK) {
+        return nullptr;
+    }
+    return buffer;
+}
+} // namespace
 
 /**
  * Function: ProxyStub_AllCommands
@@ -43,6 +101,7 @@ class RSRenderToComposerConnectionProxyTest : public Test {};
  *                  4. call CleanLayerBufferBySurfaceId and verify forwarded id
  *                  5. call ClearRedrawGPUCompositionCache and verify ids count
  *                  6. call SetScreenBacklight and verify level
+ *                  7. call SetScreenLinearMatrix and verify matrix
  */
 HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.Level1)
 {
@@ -64,6 +123,9 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.
     proxy.ClearRedrawGPUCompositionCache(ids);
 
     proxy.SetScreenBacklight(88u);
+
+    std::vector<float> matrix1 = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    proxy.SetScreenLinearMatrix(matrix1);
     EXPECT_EQ(ids.size(), 2u);
 }
 
@@ -74,7 +136,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, ProxyStub_AllCommands, TestSize.
  * EnvConditions: N/A
  * CaseDescription: 1. construct proxy with nullptr remote
  *                  2. call ClearFrameBuffers/CleanLayerBufferBySurfaceId
- *                  3. call ClearRedrawGPUCompositionCache/SetScreenBacklight
+ *                  3. call ClearRedrawGPUCompositionCache/SetScreenBacklight/SetScreenLinearMatrix
  *                  4. ensure functions execute without crash to hit SendRequest error branch
  */
 HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendRequest_RemoteNull_ErrorPaths, TestSize.Level1)
@@ -87,6 +149,8 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendRequest_RemoteNull_Err
     std::unordered_set<uint64_t> ids { 1u };
     proxy.ClearRedrawGPUCompositionCache(ids);
     proxy.SetScreenBacklight(1u);
+    std::vector<float> matrix2 = { 1.0f, 2.0f };
+    proxy.SetScreenLinearMatrix(matrix2);
     EXPECT_EQ(ids.count(1u), 1u);
 }
 
@@ -283,5 +347,36 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendLayers_ReadServerRetFa
     std::vector<std::shared_ptr<MessageParcel>> parcels;
     RSComposerError ret = proxy.SendLayers(parcels);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+}
+
+/**
+ * Function: Proxy_CommitTunnelLayerBySurfaceId_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create proxy with recording stub
+ *                  2. call CommitTunnelLayerBySurfaceId with valid buffer
+ *                  3. verify request is sent and parameters are decoded on remote side
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_CommitTunnelLayerBySurfaceId_Success, TestSize.Level1)
+{
+    auto stub = sptr<RecordingRenderToComposerConnectionStub>::MakeSptr();
+    ASSERT_NE(stub, nullptr);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+    auto buffer = CreateTunnelTestBuffer();
+    ASSERT_NE(buffer, nullptr);
+
+    constexpr uint64_t surfaceId = 101u;
+    constexpr uint64_t tunnelLayerId = 202u;
+    sptr<SyncFence> releaseFence = SyncFence::InvalidFence();
+    EXPECT_EQ(proxy.CommitTunnelLayerBySurfaceId(surfaceId, tunnelLayerId, buffer, nullptr, releaseFence),
+        GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_TRUE(stub->commitTunnelCalled);
+    EXPECT_EQ(stub->lastSurfaceId, surfaceId);
+    EXPECT_EQ(stub->lastTunnelLayerId, tunnelLayerId);
+    EXPECT_EQ(stub->lastBufferSeqNum, buffer->GetSeqNum());
+    EXPECT_EQ(stub->lastAcquireFenceFd, -1);
+    ASSERT_NE(releaseFence, nullptr);
+    EXPECT_GE(releaseFence->Get(), 0);
 }
 } // namespace OHOS::Rosen

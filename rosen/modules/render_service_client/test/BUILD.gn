@@ -161,18 +161,15 @@ ohos_executable("render_service_client_gesture_interrupt_animation_demo") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  public_external_deps = [
-    "$public_deps_skia",
-    "window_manager:libwm",
-  ]
-
   external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "safwk:system_ability_fwk",
+    "window_manager:libwm",
     "zlib:libz",
+    "$public_deps_skia",
   ]
 
   defines = []
@@ -709,6 +706,14 @@ ohos_executable("rs_interface_frame_stability_demo") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   part_name = "graphic_2d"

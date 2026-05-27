@@ -91,12 +91,9 @@ void RSScreenRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 }
 
 void RSScreenRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
+    NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
-    // if node is marked as cacheRoot, update subtree status when update surface
-    // in case prepare stage upper cacheRoot cannot specify dirty subnode
-    RSRenderNode::SetIsOnTheTree(flag, GetId(), firstLevelNodeId, cacheNodeId, uifirstRootNodeId, GetId(),
-        logicalDisplayNodeId);
+    RSRenderNode::SetIsOnTheTree(flag, GetId(), firstLevelNodeId, uifirstRootNodeId, GetId(), logicalDisplayNodeId);
 }
 
 void RSScreenRenderNode::SetForceSoftComposite(bool flag)
@@ -697,6 +694,19 @@ void RSScreenRenderNode::SetVirtualSurfaceChanged(bool isChanged)
 }
 // LCOV_EXCL_STOP
 
+void RSScreenRenderNode::SetActiveRectChanged(bool isChanged)
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::%{public}s screenParams is null", __func__);
+        return;
+    }
+    screenParams->SetActiveRectChanged(isChanged);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
 void RSScreenRenderNode::SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection)
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -710,6 +720,19 @@ void RSScreenRenderNode::SetLogicalCameraRotationCorrection(ScreenRotation logic
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
+}
+
+void RSScreenRenderNode::SetBootAnimation(bool isBootAnimation)
+{
+    isBootAnimation_ = isBootAnimation;
+    if (isBootAnimation) {
+        SetContainBootAnimation(true);
+    }
+}
+
+bool RSScreenRenderNode::GetBootAnimation() const
+{
+    return isBootAnimation_;
 }
 
 void RSScreenRenderNode::UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level)

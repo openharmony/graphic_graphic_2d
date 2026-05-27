@@ -839,6 +839,22 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_
 #endif
 }
 
+int32_t GlyphSafeAdd(int32_t a, int32_t b)
+{
+    const int32_t maxInt32 = std::numeric_limits<int32_t>::max();
+    const int32_t minInt32 = std::numeric_limits<int32_t>::min();
+    if (b > 0) {
+        if (a > maxInt32 - b) {
+            return maxInt32;
+        }
+    } else if (b < 0) {
+        if (a < minInt32 - b) {
+            return minInt32;
+        }
+    }
+    return a + b;
+}
+
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(const OH_Drawing_Canvas* cCanvas,
                                                  const int* glyphIds,
                                                  int glyphIdCount,
@@ -854,8 +870,13 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(const OH_Drawing_Canvas* cCanva
     if (canvas == nullptr || font == nullptr || glyphIds == nullptr || positions == nullptr) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
     if ((glyphCount <= 0) || (glyphIdOffset < 0) || (positionOffset < 0) ||
-        (glyphIdCount < (glyphCount + glyphIdOffset)) || (positionCount < (glyphCount + positionOffset))) {
+        (glyphIdCount < GlyphSafeAdd(glyphCount, glyphIdOffset)) ||
+        (positionCount < GlyphSafeAdd(glyphCount, positionOffset))) {
         return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
     }
     const Point* glyphPositions = reinterpret_cast<const Point*>(positions);

@@ -103,7 +103,7 @@ private:
 
     uint64_t curTime_ = 0;
     int curRatesLevel_ = 0;
-    int64_t oneFramePeriod_ = 0;
+    std::atomic<int64_t> oneFramePeriod_ {0};
     uint32_t rsRefreshRate_ = 0;
     static constexpr int RS_REFRESH_RATE_BEHIND_WINDOW = 30;
     std::mutex mutexFrameDuration_;

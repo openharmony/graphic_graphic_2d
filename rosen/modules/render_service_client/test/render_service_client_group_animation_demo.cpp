@@ -28,6 +28,7 @@
 #include "animation/rs_steps_interpolator.h"
 #include "common/rs_vector2.h"
 #include "modifier/rs_property.h"
+#include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_root_node.h"
@@ -1588,22 +1589,22 @@ void GroupAnimationTestTwentyFour(std::shared_ptr<RSUIDirector> rsUiDirector,
     auto callback1 = [nodes, rsUIContext, groupStartTime]() {
         RSAnimationTimingProtocol protocol;
         protocol.SetDuration(2000);
-        RSNode::OpenImplicitAnimation(protocol, RSAnimationTimingCurve::DEFAULT, [groupStartTime]() {
+        RSNode::OpenImplicitAnimation(rsUIContext, protocol, RSAnimationTimingCurve::DEFAULT, [groupStartTime]() {
             auto endTime = std::chrono::steady_clock::now();
             auto endTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime.time_since_epoch()).count();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - groupStartTime).count();
             std::cout << "Node 1 (Keyframe) animation finished! End time: " << endTimeMs << "ms, Duration: " << duration
                       << "ms" << std::endl;
         });
-        RSNode::AddKeyFrame(
-            0.0f, RSAnimationTimingCurve::EASE_IN, [&]() { nodes[1]->SetTranslate(Vector2f(0.0f, 0.0f)); });
-        RSNode::AddKeyFrame(
-            0.3f, RSAnimationTimingCurve::EASE_IN, [&]() { nodes[1]->SetTranslate(Vector2f(200.0f, 0.0f)); });
-        RSNode::AddKeyFrame(
-            0.7f, RSAnimationTimingCurve::EASE_OUT, [&]() { nodes[1]->SetTranslate(Vector2f(400.0f, 0.0f)); });
-        RSNode::AddKeyFrame(
-            1.0f, RSAnimationTimingCurve::EASE_IN_OUT, [&]() { nodes[1]->SetTranslate(Vector2f(500.0f, 0.0f)); });
-        RSNode::CloseImplicitAnimation();
+        RSNode::AddKeyFrame(rsUIContext, 0.0f, RSAnimationTimingCurve::EASE_IN,
+            [&]() { nodes[1]->SetTranslate(Vector2f(0.0f, 0.0f)); });
+        RSNode::AddKeyFrame(rsUIContext, 0.3f, RSAnimationTimingCurve::EASE_IN,
+            [&]() { nodes[1]->SetTranslate(Vector2f(200.0f, 0.0f)); });
+        RSNode::AddKeyFrame(rsUIContext, 0.7f, RSAnimationTimingCurve::EASE_OUT,
+            [&]() { nodes[1]->SetTranslate(Vector2f(400.0f, 0.0f)); });
+        RSNode::AddKeyFrame(rsUIContext, 1.0f, RSAnimationTimingCurve::EASE_IN_OUT,
+            [&]() { nodes[1]->SetTranslate(Vector2f(500.0f, 0.0f)); });
+        RSNode::CloseImplicitAnimation(rsUIContext);
     };
     groupAnimator->AddAnimation(callback1);
 
@@ -2718,9 +2719,10 @@ void GroupAnimationTestThirtyEight(std::shared_ptr<RSUIDirector> rsUiDirector,
 void GroupAnimationTestThirtyNine(std::shared_ptr<RSUIDirector> rsUiDirector,
     std::shared_ptr<RSTransactionHandler> transaction, std::vector<std::shared_ptr<RSCanvasNode>>& nodes)
 {
-    std::cout << "Group Animation case ThirtyNine: Child animations with durations exceeding group duration, repeatCount = "
-                 "4, autoReverse = true"
-              << std::endl;
+    std::cout
+        << "Group Animation case ThirtyNine: Child animations with durations exceeding group duration, repeatCount = "
+           "4, autoReverse = true"
+        << std::endl;
     std::cout << "Group animator duration: 1000ms, repeatCount = 4, autoReverse = true" << std::endl;
     std::cout << "Node 0 duration: 800ms (shorter than group)" << std::endl;
 
@@ -2763,16 +2765,17 @@ void GroupAnimationTestThirtyNine(std::shared_ptr<RSUIDirector> rsUiDirector,
     std::cout << "Node 0 current translation value after starting animation: (" 
               << currentTranslate.x_ << ", " << currentTranslate.y_ << ")" << std::endl;
 
-    std::cout << "Group animation started: group=1000ms repeat=4 autoReverse=true, node0=800ms, waiting for completion..."
-              << std::endl;
+    std::cout
+        << "Group animation started: group=1000ms repeat=4 autoReverse=true, node0=800ms, waiting for completion..."
+        << std::endl;
     sleep(6);
 }
 
 bool StartTest(int testCase = -1)
 {
     // Create rsUIContext
-    std::shared_ptr<RSUIDirector> rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
-    
+    auto connectToRender = OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    std::shared_ptr<RSUIDirector> rsUiDirector = RSUIDirector::Create(connectToRender);
     auto uiContext = rsUiDirector->GetRSUIContext();
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);

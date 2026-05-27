@@ -38,6 +38,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_render_service_client_info.h"
@@ -115,6 +116,11 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -197,10 +203,12 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     int32_t data{0};
     if (!parcelCopied->ReadInt32(data)) {
         RS_LOGE("RSClientToRenderConnectionStub::CopyParcelIfNeed parcel data Read failed");
+        free(base);
         return nullptr;
     }
     if (data != 0) {
         RS_LOGE("RSClientToRenderConnectionStub::CopyParcelIfNeed parcel data not match");
+        free(base);
         return nullptr;
     }
     return parcelCopied;
@@ -1077,7 +1085,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (!WriteBrightnessInfo(brightnessInfo, reply)) {
+            if (!RSMarshallingHelper::Marshalling(reply, brightnessInfo)) {
                 RS_LOGE("RSClientToRenderConnectionStub::GET_BRIGHTNESS_INFO Write brightnessInfo failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -1684,6 +1692,42 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION): {
+            FrameStabilityTarget oldTarget;
+            if (!data.ReadUint64(oldTarget.id)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read oldId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t oldTypeValue;
+            if (!data.ReadUint32(oldTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            oldTarget.type = static_cast<FrameStabilityTargetType>(oldTypeValue);
+
+            FrameStabilityTarget newTarget;
+            if (!data.ReadUint64(newTarget.id)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read newId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t newTypeValue;
+            if (!data.ReadUint32(newTypeValue)) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            newTarget.type = static_cast<FrameStabilityTargetType>(newTypeValue);
+            int32_t repCode = UpdateFrameStabilityDetection(oldTarget, newTarget);
+            if (repCode != 0) {
+                RS_LOGE("UPDATE_FRAME_STABILITY_DETECTION Write repCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
             RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS): {
             bool enable{false};
             if (!data.ReadBool(enable)) {
@@ -1713,17 +1757,6 @@ bool RSClientToRenderConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessagePar
         !data.ReadString(info.abilityName) ||!data.ReadString(info.pageUrl) ||
         !data.ReadString(info.sourceType) || !data.ReadString(info.note)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadDataBaseRs Read parcel failed!");
-        return false;
-    }
-    return true;
-}
-
-bool RSClientToRenderConnectionStub::WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data)
-{
-    if (!data.WriteFloat(brightnessInfo.currentHeadroom) ||
-        !data.WriteFloat(brightnessInfo.maxHeadroom) ||
-        !data.WriteFloat(brightnessInfo.sdrNits)) {
-        RS_LOGE("RSClientToRenderConnectionStub::WriteBrightnessInfo write brightnessInfo failed!");
         return false;
     }
     return true;

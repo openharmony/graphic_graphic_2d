@@ -824,28 +824,43 @@ static void MarshalRenderModifier(const ModifierNG::RSRenderModifier& modifier, 
     }
 }
 
-static uint32_t MarshalDrawCmdModifiers(
-    ModifierNG::RSRenderModifier& modifier, bool skipDrawCmdModifiers, bool isBetaRecording, std::stringstream& data)
+bool RSProfiler::MarshalDrawCmdModifiers(const ModifierNG::RSRenderModifier& modifier, std::stringstream& data,
+    bool skipDrawCmdModifiers, bool isBetaRecording)
 {
-    auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier.GetType());
-    auto oldCmdList = modifier.Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
-    if (oldCmdList && skipDrawCmdModifiers) {
-        return 0;
-    }
-    if (!oldCmdList) {
-        MarshalRenderModifier(modifier, data);
-        return 1;
+    const auto simpleCmdList = modifier.IsCustom() ? modifier.GetPropertySimpleDrawCmdList() : nullptr;
+    if (simpleCmdList && skipDrawCmdModifiers) {
+        return false;
     }
 
-    auto newCmdList = std::make_shared<Drawing::DrawCmdList>(
-        oldCmdList->GetWidth(), oldCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
-    newCmdList->SetNoImageMarshallingFlag(isBetaRecording);
-    oldCmdList->ProfilerMarshallingDrawOps(newCmdList.get());
-    newCmdList->PatchTypefaceIds(oldCmdList);
-    modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, newCmdList);
-    MarshalRenderModifier(modifier, data);
-    modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, oldCmdList);
-    return 1;
+    if (!simpleCmdList) {
+        MarshalRenderModifier(modifier, data);
+        return true;
+    }
+
+    const auto cmdList = std::make_shared<Drawing::DrawCmdList>(
+        simpleCmdList->GetWidth(), simpleCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    if (!cmdList) {
+        return false;
+    }
+
+    for (auto& drawOp : simpleCmdList->GetDrawOpItems()) {
+        cmdList->AddDrawOp(std::move(drawOp));
+    }
+    cmdList->SetNoImageMarshallingFlag(isBetaRecording);
+    cmdList->ProfilerMarshallingDrawOps(cmdList.get());
+    cmdList->PatchTypefaceIds(cmdList);
+
+    const auto type = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier.GetType());
+    const auto oldProperty = const_cast<ModifierNG::RSRenderModifier&>(modifier).GetProperty(type);
+    const auto newProperty =
+        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(cmdList, oldProperty ? oldProperty->GetId() : 0);
+    if (newProperty) {
+        const_cast<ModifierNG::RSRenderModifier&>(modifier).properties_[type] = newProperty;
+        MarshalRenderModifier(modifier, data);
+        const_cast<ModifierNG::RSRenderModifier&>(modifier).properties_[type] = oldProperty;
+        return true;
+    }
+    return false;
 }
 
 static std::shared_ptr<ModifierNG::RSRenderModifier> CreateSnapshotModifier(const RSRenderNode& node, uint32_t version)
@@ -862,14 +877,22 @@ static std::shared_ptr<ModifierNG::RSRenderModifier> CreateSnapshotModifier(cons
 
     const auto drawOp = std::make_shared<Drawing::DrawImageOpItem>(*image, 0, 0,
         Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR), Drawing::Paint());
+    if (!drawOp) {
+        return nullptr;
+    }
 
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>(
+    const auto cmdList = std::make_shared<Drawing::DrawCmdList>(
         image->GetWidth(), image->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    if (!cmdList) {
+        return nullptr;
+    }
     cmdList->AddDrawOp(drawOp);
     cmdList->MarshallingDrawOps();
 
-    const auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(cmdList, 0);
-    return ModifierNG::RSRenderModifier::MakeRenderModifier(ModifierNG::RSModifierType::CONTENT_STYLE, property);
+    if (const auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(cmdList, 0)) {
+        return ModifierNG::RSRenderModifier::MakeRenderModifier(ModifierNG::RSModifierType::CONTENT_STYLE, property);
+    }
+    return nullptr;
 }
 
 void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion,
@@ -890,7 +913,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
             if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT) {
                 continue;
             }
-            modifierNGCount += MarshalDrawCmdModifiers(*modifierNG, skipDrawCmdModifiers, isBetaRecording, data);
+            modifierNGCount += MarshalDrawCmdModifiers(*modifierNG, data, skipDrawCmdModifiers, isBetaRecording);
         }
     }
 
@@ -1132,7 +1155,7 @@ static void SetupCanvasDrawingRenderNode(RSRenderNode& node)
     int32_t width = 0;
     int32_t height = 0;
     for (const auto& modifier : node.GetModifiersNG(ModifierNG::RSModifierType::CONTENT_STYLE)) {
-        const auto cmdList = modifier ? modifier->GetPropertyDrawCmdList() : nullptr;
+        const auto cmdList = modifier ? modifier->GetPropertySimpleDrawCmdList() : nullptr;
         if (cmdList) {
             width = std::max(width, cmdList->GetWidth());
             height = std::max(height, cmdList->GetHeight());
@@ -1166,6 +1189,7 @@ std::string RSProfiler::UnmarshalNodeModifiers(
             continue;
         }
         if (!disableModifiers) {
+            ptr->ConvertDrawCmdListToSimple();
             node.AddModifier(ptr);
         }
     }
@@ -1495,7 +1519,7 @@ void RSProfiler::SetDrawingCanvasNodeRedraw(bool enable)
     dcnRedraw_ = enable && IsEnabled();
 }
 
-void RSProfiler::DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList)
+void RSProfiler::DrawingNodeAddClearOp(const SimpleDrawCmdListPtr& drawCmdList)
 {
     if (dcnRedraw_ || !drawCmdList) {
         return;

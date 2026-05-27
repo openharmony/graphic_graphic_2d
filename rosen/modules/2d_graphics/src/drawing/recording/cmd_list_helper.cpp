@@ -463,7 +463,8 @@ OpFontHandle CmdListHelper::AddFontToCmdList(CmdList& cmdList, const Font* font)
             font->GetSize(), font->GetScaleX(), font->GetSkewX(),
             font->IsForceAutoHinting(), font->IsEmbeddedBitmaps(), font->IsSubpixel(),
             font->IsLinearMetrics(), font->IsEmbolden(), font->IsBaselineSnap(),
-            font->GetEdging(), font->GetHinting()};
+            font->GetEdging(), font->GetHinting(), font->IsThemeFontFollowed(),
+            typeface->IsCustomTypeface(), typeface->IsThemeTypeface()};
 }
 
 std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(const CmdList& cmdList, const OpFontHandle& fontHandle,
@@ -490,6 +491,8 @@ std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(const CmdList& cmdList, 
         typefaceData->BuildWithoutCopy(data, fontHandle.size);
         typeface = Typeface::Deserialize(typefaceData->GetData(), typefaceData->GetSize());
     }
+    typeface->SetIsCustomTypeface(fontHandle.isCustomTypeface);
+    typeface->SetIsThemeTypeface(fontHandle.isThemeTypeface);
     auto result = std::make_shared<Font>(typeface, fontHandle.fontSize, fontHandle.fontScaleX, fontHandle.fontSkewX);
     result->SetForceAutoHinting(fontHandle.isForceAutoHinting);
     result->SetEmbeddedBitmaps(fontHandle.isEmbeddedBitmap);
@@ -499,6 +502,7 @@ std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(const CmdList& cmdList, 
     result->SetBaselineSnap(fontHandle.isBaselineSnap);
     result->SetEdging(fontHandle.fontEdging);
     result->SetHinting(fontHandle.fontHinting);
+    result->SetThemeFontFollowed(fontHandle.themeFontFollowed);
     return result;
 }
 

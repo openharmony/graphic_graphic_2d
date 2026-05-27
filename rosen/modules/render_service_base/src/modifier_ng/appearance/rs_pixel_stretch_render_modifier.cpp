@@ -27,8 +27,8 @@ const RSPixelStretchRenderModifier::LegacyPropertyApplierMap RSPixelStretchRende
 
 void RSPixelStretchRenderModifier::ResetProperties(RSProperties& properties)
 {
-    properties.SetPixelStretch({});
-    properties.SetPixelStretchPercent({});
-    properties.SetPixelStretchTileMode(0);
+    properties.SetPixelStretch(std::nullopt);
+    properties.SetPixelStretchPercent(std::nullopt);
+    properties.SetPixelStretchTileMode(std::nullopt);
 }
 } // namespace OHOS::Rosen::ModifierNG

@@ -1791,7 +1791,7 @@ void RSServiceToRenderConnectionProxy::SetCurtainScreenUsingStatus(bool isCurtai
     }
 }
 
-void RSServiceToRenderConnectionProxy::OnScreenBacklightChanged(ScreenId screenId, uint32_t level)
+void RSServiceToRenderConnectionProxy::OnScreenBacklightChanged(const RsScreenBrightnessData& brightnessData)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1801,12 +1801,8 @@ void RSServiceToRenderConnectionProxy::OnScreenBacklightChanged(ScreenId screenI
         ROSEN_LOGE("RSServiceToRenderConnectionProxy failed to get descriptor");
         return;
     }
-    if (!data.WriteUint64(screenId)) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::OnScreenBacklightChanged WriteUint64 screenId failed");
-        return;
-    }
-    if (!data.WriteUint32(level)) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::OnScreenBacklightChanged WriteUint32 level failed");
+    if (!RSMarshallingHelper::Marshalling(data, brightnessData)) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::OnScreenBacklightChanged Marshalling failed");
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BACKLIGHT_LEVEL);

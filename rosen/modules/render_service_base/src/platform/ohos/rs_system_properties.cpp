@@ -34,7 +34,6 @@ constexpr int DEFAULT_CACHE_HEIGHT = 2710;
 constexpr int DEFAULT_PARTIAL_RENDER_ENABLED_VALUE = 2;
 constexpr int DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE = 4;
 constexpr int DEFAULT_ADVANCED_DIRTY_REGION_ENABLED_VALUE = 1;
-constexpr int DEFAULT_DIRTY_ALIGN_ENABLED_VALUE = 0;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 constexpr int DEFAULT_SCALE_MODE = 2;
 constexpr const char* DEFAULT_CLIP_RECT_THRESHOLD = "0.7";
@@ -349,10 +348,10 @@ bool RSSystemProperties::GetAnimationOcclusionEnabled()
 
 DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyalign.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyalign.enabled", "-1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return static_cast<DirtyAlignType>(ConvertToInt(enable, DEFAULT_DIRTY_ALIGN_ENABLED_VALUE));
+    return static_cast<DirtyAlignType>(ConvertToInt(enable, static_cast<int>(DirtyAlignType::DEFAULT)));
 }
 
 float RSSystemProperties::GetClipRectThreshold()
@@ -460,7 +459,7 @@ bool RSSystemProperties::GetDoDirectCompositionEnabled()
 bool RSSystemProperties::GetDumpRsTreeDetailEnabled()
 {
     static bool dumpRsTreeDetailEnabled = system::GetParameter(
-        "persist.rosen.dumpRsTreeDetail.enabled", "0") != "0";
+        "persist.rosen.dumpRsTreeDetail.enabled", "1") != "0";
     return dumpRsTreeDetailEnabled;
 }
 
@@ -1148,6 +1147,15 @@ bool RSSystemProperties::GetBoolSystemProperty(const char* name, bool defaultVal
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, defaultValue ? 1 : 0) != 0;
+}
+
+bool RSSystemProperties::GetNewTunnelEnabled()
+{
+    static CachedHandle handle = CachedParameterCreate("rosen.debug.new_tunnel", "false");
+    int changed = 0;
+    const char* enabled = CachedParameterGetChanged(handle, &changed);
+    return enabled != nullptr &&
+        (strcmp(enabled, "1") == 0 || strcmp(enabled, "true") == 0);
 }
 
 int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)

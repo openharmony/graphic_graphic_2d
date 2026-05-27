@@ -729,10 +729,9 @@ public:
 
     /**
      * @brief Set backlight value of the screen.
-     * @param id Id of the screen to set its backlight value.
-     * @param level The value of backlight.
+     * @param brightnessData The screen brightness data, including screenId, level and brightnessPosition.
      */
-    void SetScreenBacklight(ScreenId id, uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 

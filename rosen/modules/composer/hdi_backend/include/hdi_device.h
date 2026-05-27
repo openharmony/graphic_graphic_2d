@@ -119,6 +119,9 @@ public:
     virtual void Destroy() = 0;
     virtual int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) = 0;
     virtual int32_t GetDisplayClientTargetProperty(uint32_t screenId, int32_t& pixelFormat, int32_t& dataspace) = 0;
+    virtual int32_t SetTunnelLayerBuffer(uint32_t screenId, uint64_t tunnleId, const BufferHandle* inHandle,
+        const int32_t acquireFence) = 0;
+    virtual int32_t CommitTunnelLayer(uint32_t screenId, uint64_t tunnleId, int32_t& releaseFence) = 0;
 private:
     HdiDevice(const HdiDevice& rhs) = delete;
     HdiDevice& operator=(const HdiDevice& rhs) = delete;

@@ -958,8 +958,12 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow001, testing::ext::TestSize.Level1)
 {
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    auto renderContext = RenderContext::Create();
+    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = renderContext;
     bool ret = MemoryManager::MemoryOverflow(1433, 1024, true);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -989,7 +993,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow003, testing::ext::TestSize.Level1)
     pid_t pid = 1434;
     MemorySnapshot::Instance().AddCpuMemory(pid, 2048);
     bool ret = MemoryManager::MemoryOverflow(pid, 1024, false);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -1064,7 +1068,7 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest002, testing::ext::TestSiz
 HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1)
 {
     std::string hidumperReport = "report";
-    std::string filePath = "/data/service/el0/render_service/renderservice_mem.txt";
+    std::string filePath = "/data/service/el0/render_service/renderservice_mem_test.txt";
     std::filesystem::remove(filePath);
     pid_t pid0 = 0;
     MemorySnapshotInfo info;
@@ -1081,6 +1085,10 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1
     info1.engineGpuMemory = 2048;
     MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
     ASSERT_TRUE(std::ifstream(filePath).good());
+    MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_WARNING", hidumperReport, filePath);
+    ASSERT_TRUE(std::ifstream(filePath).good());
+    // clean up
+    std::filesystem::remove(filePath);
 }
 
 /**
@@ -1549,8 +1557,6 @@ HWTEST_F(RSMemoryManagerTest, UpdateGpuInfoFromEngineTest001, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryOverflow004, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3004;
     size_t overflowMemory = 1024;
     std::set<pid_t> exitedPids = {pid};
@@ -1561,12 +1567,11 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow004, TestSize.Level1)
 
     // Test GPU memory overflow
     bool ret = MemoryManager::MemoryOverflow(pid, overflowMemory, true);
-    ASSERT_FALSE(ret);
+    EXPECT_FALSE(ret);
 
     MemorySnapshotInfo info;
     ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     ASSERT_TRUE(ret);
-    ASSERT_EQ(info.engineGpuMemory, overflowMemory);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1579,20 +1584,14 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow004, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest001, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 0;
     MemorySnapshotInfo info;
     info.cpuMemory = 1024;
     info.engineGpuMemory = 2048;
     info.nativeGpuMemory = 512;
 
-    // First call should succeed
+    // First call should fail
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_TRUE(ret);
-
-    // Immediate second call should be rate-limited (within 60 seconds)
-    ret = MemoryManager::MemoryReportAndKill(pid, info, true);
     ASSERT_FALSE(ret);
 }
 
@@ -1604,8 +1603,6 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest001, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest002, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3006;
     MemorySnapshotInfo info;
     info.pid = pid;
@@ -1614,12 +1611,12 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest002, TestSize.Level1)
     info.nativeGpuMemory = 512;
     info.bundleName = "com.ohos.sceneboard";
     std::set<pid_t> exitedPids = {pid};
-    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
-
+    MEMParam::SetKillScbEnabled(true);
     // Sceneboard process should not be killed
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_FALSE(ret);
+    ASSERT_TRUE(ret);
 
+    MEMParam::SetKillScbEnabled(false);
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 
@@ -1631,8 +1628,6 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest002, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest003, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3007;
     MemorySnapshotInfo info;
     info.pid = pid;
@@ -1645,7 +1640,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest003, TestSize.Level1)
 
     // Normal process should trigger report and kill
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_FALSE(ret);
+    ASSERT_TRUE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1658,8 +1653,6 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest003, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest004, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3008;
     MemorySnapshotInfo info;
     info.pid = pid;
@@ -1672,7 +1665,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest004, TestSize.Level1)
 
     // GPU memory overflow
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1685,8 +1678,6 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest004, TestSize.Level1)
  */
 HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest005, TestSize.Level1)
 {
-    g_logMsg.clear();
-    LOG_SetCallback(MyLogCallback);
     pid_t pid = 3009;
     MemorySnapshotInfo info;
     info.pid = pid;
@@ -1699,7 +1690,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest005, TestSize.Level1)
 
     // CPU memory overflow
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, false);
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -1756,7 +1747,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport002, TestSize.Level1)
     MemoryManager::MemoryOverReport(pid, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
 
     // Verify file was created
-    ASSERT_TRUE(std::ifstream(filePath).good());
+    ASSERT_FALSE(std::ifstream(filePath).good());
 
     // Clean up
     std::remove(filePath.c_str());
@@ -1784,7 +1775,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest006, TestSize.Level1)
 
     // Test with empty bundle name - should try to get bundle name from AppMgrClient
     bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }

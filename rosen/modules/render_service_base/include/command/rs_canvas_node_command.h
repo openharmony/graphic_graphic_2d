@@ -53,8 +53,8 @@ public:
     static void SetPixelmap(RSContext& context, NodeId nodeId, const std::shared_ptr<Media::PixelMap>& pixelMap);
 
 private:
-    static bool AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
-        std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType);
+    static bool AddCmdToSingleFrameComposer(
+        std::shared_ptr<RSCanvasRenderNode> node, SimpleDrawCmdListPtr drawCmds, uint16_t modifierType);
 };
 
 ADD_COMMAND(RSCanvasNodeCreate,

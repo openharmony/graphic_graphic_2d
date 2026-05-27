@@ -33,6 +33,7 @@
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_particle_field_collection.h"
+#include "utils/rect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -176,7 +177,7 @@ HWTEST_F(PropertiesTest, OnApplyModifiersTest, TestSize.Level1)
 {
     RSProperties properties;
     properties.OnApplyModifiers();
-    EXPECT_EQ(properties.GetPixelStretch(), std::nullopt);
+    EXPECT_EQ(properties.GetPixelStretch(), Vector4f());
 
     properties.geoDirty_ = true;
     properties.OnApplyModifiers();
@@ -251,11 +252,11 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     EXPECT_FALSE(properties.foregroundFilter_);
 
     properties.GetEffect().foregroundEffectRadius_ = -0.1f;
-    properties.GetEffect().isSpherizeValid_ = true;
+    properties.SetSpherize(1.0f);
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
 
-    properties.GetEffect().isSpherizeValid_ = false;
+    properties.SetSpherize(0.0f);
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
@@ -294,7 +295,7 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
 
-    properties.GetEffect().distortionK_ = 0.7;
+    properties.SetDistortionK(0.7f);
     properties.GetEffect().shadow_->imageMask_ = true;
     properties.UpdateFilter();
     EXPECT_TRUE(properties.foregroundFilter_);
@@ -819,9 +820,9 @@ HWTEST_F(PropertiesTest, SetDynamicLightUpRateTest, TestSize.Level1)
     rate = std::optional<float>(1.f);
     properties.SetDynamicLightUpRate(rate);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
-    ASSERT_TRUE(properties.GetDynamicLightUpRate().has_value());
-    EXPECT_EQ(properties.GetDynamicLightUpRate().value(), rate.value());
-    EXPECT_FALSE(properties.IsDynamicLightUpValid());
+    EXPECT_EQ(properties.GetDynamicLightUpRate(), rate.value());
+    // After slim refactoring: rate and degree share RSDynamicLightUpPara, degree defaults to 0.f
+    EXPECT_TRUE(properties.IsDynamicLightUpValid());
 }
 
 /**
@@ -840,8 +841,7 @@ HWTEST_F(PropertiesTest, SetDynamicLightUpDegreeTest, TestSize.Level1)
     lightUpDegree = std::optional<float>(1.f);
     properties.SetDynamicLightUpDegree(lightUpDegree);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
-    ASSERT_TRUE(properties.GetDynamicLightUpDegree().has_value());
-    EXPECT_EQ(properties.GetDynamicLightUpDegree().value(), lightUpDegree.value());
+    EXPECT_EQ(properties.GetDynamicLightUpDegree(), lightUpDegree.value());
 }
 
 /**
@@ -909,7 +909,7 @@ HWTEST_F(PropertiesTest, SetClipRRectTest, TestSize.Level1)
 
     RRect clipRRectNew;
     properties.SetClipRRect(clipRRectNew);
-    EXPECT_TRUE(properties.clipRRect_.has_value());
+    EXPECT_TRUE(properties.clipRRect_ != nullptr);
 }
 
 /**
@@ -948,11 +948,12 @@ HWTEST_F(PropertiesTest, GenerateBackgroundMaterialBlurFilterTest, TestSize.Leve
     properties.GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
-    properties.GetEffect().backgroundColorMode_ = BLUR_COLOR_MODE::AVERAGE;
+    properties.GetEffect().backgroundBlurPara_ = std::make_unique<RSBackgroundBlurPara>();
+    properties.GetEffect().backgroundBlurPara_->colorMode = BLUR_COLOR_MODE::AVERAGE;
     properties.GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 
-    properties.GetEffect().backgroundColorMode_ = BLUR_COLOR_MODE::FASTAVERAGE;
+    properties.GetEffect().backgroundBlurPara_->colorMode = BLUR_COLOR_MODE::FASTAVERAGE;
     properties.GenerateBackgroundMaterialBlurFilter();
     EXPECT_EQ(vectorValue.x_, 1.f);
 }
@@ -967,17 +968,17 @@ HWTEST_F(PropertiesTest, GenerateForegroundFilterTest, TestSize.Level1)
 {
     RSProperties properties;
     properties.GenerateForegroundFilter();
-    EXPECT_EQ(properties.GetEffect().backgroundBlurSaturation_, 1.f);
+    EXPECT_EQ(properties.GetBackgroundBlurSaturation(), 1.f);
 
-    properties.GetEffect().foregroundBlurRadiusX_ = 2.f;
+    properties.SetForegroundBlurRadiusX(2.f);
     properties.GenerateForegroundFilter();
     EXPECT_TRUE(properties.IsForegroundBlurRadiusXValid());
 
-    properties.GetEffect().foregroundBlurRadiusY_ = 2.f;
+    properties.SetForegroundBlurRadiusY(2.f);
     properties.GenerateForegroundFilter();
     EXPECT_TRUE(properties.IsForegroundBlurRadiusYValid());
 
-    properties.GetEffect().foregroundBlurRadius_ = 2.f;
+    properties.SetForegroundBlurRadius(2.f);
     properties.GenerateForegroundFilter();
     EXPECT_TRUE(properties.IsForegroundMaterialFilterValid());
 
@@ -1665,7 +1666,7 @@ HWTEST_F(PropertiesTest, GenerateMaterialFilter002, TestSize.Level1)
 HWTEST_F(PropertiesTest, GetRRectForSDFTest001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.clipRRect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    properties.clipRRect_ = std::make_unique<RRect>(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
     ASSERT_TRUE(properties.GetClipToRRect());
     ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
 }
@@ -1679,7 +1680,7 @@ HWTEST_F(PropertiesTest, GetRRectForSDFTest002, TestSize.Level1)
 {
     RSProperties properties;
     properties.cornerRadius_ = Vector4f(5.f);
-    properties.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    properties.SetClipRRect(RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f));
     ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
 }
 
@@ -2278,5 +2279,461 @@ HWTEST_F(PropertiesTest, SetParticleFieldsNullPara001, TestSize.Level1)
     EXPECT_EQ(properties.GetParticleFields(), nullptr);
 }
 
+/**
+ * @tc.name: DecorationLazyAllocationTest
+ * @tc.desc: Verify decoration_ is lazily allocated only when needed
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, DecorationLazyAllocationTest, TestSize.Level1)
+{
+    RSProperties properties;
+    ASSERT_NE(&properties, nullptr);
+
+    Color color;
+    color.SetRed(255);
+    color.SetGreen(0);
+    color.SetBlue(0);
+    color.SetAlpha(255);
+    properties.SetBackgroundColor(color);
+    ASSERT_TRUE(properties.decoration_ != nullptr);
+    EXPECT_EQ(properties.decoration_->backgroundColor_.GetRed(), 255);
+}
+
+/**
+ * @tc.name: DecorationNotAllocatedWhenNotUsedTest
+ * @tc.desc: Verify decoration_ remains nullptr when not used
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, DecorationNotAllocatedWhenNotUsedTest, TestSize.Level1)
+{
+    RSProperties properties;
+    ASSERT_NE(&properties, nullptr);
+
+    ASSERT_TRUE(properties.decoration_ == nullptr);
+}
+
+/**
+ * @tc.name: SetDynamicLightUpDegreeNullParaTest
+ * @tc.desc: test SetDynamicLightUpDegree when dynamicLightUpPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetDynamicLightUpDegreeNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    std::optional<float> degree = std::optional<float>(1.f);
+    properties.SetDynamicLightUpDegree(degree);
+    EXPECT_EQ(properties.GetDynamicLightUpDegree(), degree.value());
+    EXPECT_TRUE(properties.GetEffect().dynamicLightUpPara_ != nullptr);
+}
+
+/**
+ * @tc.name: SetBackgroundBlurSaturationNullParaTest
+ * @tc.desc: test SetBackgroundBlurSaturation when backgroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetBackgroundBlurSaturationNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().backgroundBlurPara_, nullptr);
+    properties.SetBackgroundBlurSaturation(0.5f);
+    EXPECT_NE(properties.GetEffect().backgroundBlurPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetBackgroundBlurSaturation(), 0.5f);
+    EXPECT_TRUE(properties.IsBackgroundBlurSaturationValid());
+}
+
+/**
+ * @tc.name: SetBackgroundBlurBrightnessNullParaTest
+ * @tc.desc: test SetBackgroundBlurBrightness when backgroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetBackgroundBlurBrightnessNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().backgroundBlurPara_, nullptr);
+    properties.SetBackgroundBlurBrightness(0.8f);
+    EXPECT_NE(properties.GetEffect().backgroundBlurPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetBackgroundBlurBrightness(), 0.8f);
+    EXPECT_TRUE(properties.IsBackgroundBlurBrightnessValid());
+}
+
+/**
+ * @tc.name: SetBackgroundBlurColorModeNullParaTest
+ * @tc.desc: test SetBackgroundBlurColorMode when backgroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetBackgroundBlurColorModeNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().backgroundBlurPara_, nullptr);
+    properties.SetBackgroundBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
+    EXPECT_NE(properties.GetEffect().backgroundBlurPara_, nullptr);
+    EXPECT_EQ(properties.GetBackgroundBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
+}
+
+/**
+ * @tc.name: SetBackgroundBlurRadiusXNullParaTest
+ * @tc.desc: test SetBackgroundBlurRadiusX when backgroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetBackgroundBlurRadiusXNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().backgroundBlurPara_, nullptr);
+    properties.SetBackgroundBlurRadiusX(5.f);
+    EXPECT_NE(properties.GetEffect().backgroundBlurPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetBackgroundBlurRadiusX(), 5.f);
+    EXPECT_TRUE(properties.IsBackgroundBlurRadiusXValid());
+}
+
+/**
+ * @tc.name: SetBackgroundBlurRadiusYNullParaTest
+ * @tc.desc: test SetBackgroundBlurRadiusY when backgroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetBackgroundBlurRadiusYNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().backgroundBlurPara_, nullptr);
+    properties.SetBackgroundBlurRadiusY(5.f);
+    EXPECT_NE(properties.GetEffect().backgroundBlurPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetBackgroundBlurRadiusY(), 5.f);
+    EXPECT_TRUE(properties.IsBackgroundBlurRadiusYValid());
+}
+
+/**
+ * @tc.name: SetForegroundBlurSaturationNullParaTest
+ * @tc.desc: test SetForegroundBlurSaturation when foregroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetForegroundBlurSaturationNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().foregroundBlurPara_, nullptr);
+    properties.SetForegroundBlurSaturation(1.5f);
+    EXPECT_NE(properties.GetEffect().foregroundBlurPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetForegroundBlurSaturation(), 1.5f);
+    EXPECT_TRUE(properties.IsForegroundBlurSaturationValid());
+}
+
+/**
+ * @tc.name: SetForegroundBlurBrightnessNullParaTest
+ * @tc.desc: test SetForegroundBlurBrightness when foregroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetForegroundBlurBrightnessNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().foregroundBlurPara_, nullptr);
+    properties.SetForegroundBlurBrightness(1.8f);
+    EXPECT_NE(properties.GetEffect().foregroundBlurPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetForegroundBlurBrightness(), 1.8f);
+    EXPECT_TRUE(properties.IsForegroundBlurBrightnessValid());
+}
+
+/**
+ * @tc.name: SetForegroundBlurMaskColorNullParaTest
+ * @tc.desc: test SetForegroundBlurMaskColor when foregroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetForegroundBlurMaskColorNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().foregroundBlurPara_, nullptr);
+    Color maskColor(255, 0, 0, 128);
+    properties.SetForegroundBlurMaskColor(maskColor);
+    EXPECT_NE(properties.GetEffect().foregroundBlurPara_, nullptr);
+    EXPECT_TRUE(properties.IsForegroundBlurMaskColorValid());
+}
+
+/**
+ * @tc.name: SetForegroundBlurColorModeNullParaTest
+ * @tc.desc: test SetForegroundBlurColorMode when foregroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetForegroundBlurColorModeNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().foregroundBlurPara_, nullptr);
+    properties.SetForegroundBlurColorMode(BLUR_COLOR_MODE::AVERAGE);
+    EXPECT_NE(properties.GetEffect().foregroundBlurPara_, nullptr);
+    EXPECT_EQ(properties.GetForegroundBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
+}
+
+/**
+ * @tc.name: SetForegroundBlurRadiusXNullParaTest
+ * @tc.desc: test SetForegroundBlurRadiusX when foregroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetForegroundBlurRadiusXNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().foregroundBlurPara_, nullptr);
+    properties.SetForegroundBlurRadiusX(5.f);
+    EXPECT_NE(properties.GetEffect().foregroundBlurPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetForegroundBlurRadiusX(), 5.f);
+    EXPECT_TRUE(properties.IsForegroundBlurRadiusXValid());
+}
+
+/**
+ * @tc.name: SetForegroundBlurRadiusYNullParaTest
+ * @tc.desc: test SetForegroundBlurRadiusY when foregroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetForegroundBlurRadiusYNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().foregroundBlurPara_, nullptr);
+    properties.SetForegroundBlurRadiusY(5.f);
+    EXPECT_NE(properties.GetEffect().foregroundBlurPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetForegroundBlurRadiusY(), 5.f);
+    EXPECT_TRUE(properties.IsForegroundBlurRadiusYValid());
+}
+
+/**
+ * @tc.name: SetForegroundBlurRadiusNullParaTest
+ * @tc.desc: test SetForegroundBlurRadius when foregroundBlurPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetForegroundBlurRadiusNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().foregroundBlurPara_, nullptr);
+    properties.SetForegroundBlurRadius(5.f);
+    EXPECT_NE(properties.GetEffect().foregroundBlurPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetForegroundBlurRadius(), 5.f);
+    EXPECT_TRUE(properties.IsForegroundBlurRadiusValid());
+}
+
+/**
+ * @tc.name: SetPixelStretchPercentNullParaTest
+ * @tc.desc: test SetPixelStretchPercent when pixelStretchPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetPixelStretchPercentNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().pixelStretchPara_, nullptr);
+    std::optional<Vector4f> percent = Vector4f(0.1f, 0.1f, 0.1f, 0.1f);
+    properties.SetPixelStretchPercent(percent);
+    EXPECT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
+    EXPECT_FLOAT_EQ(properties.GetEffect().pixelStretchPara_->percent.x_, 0.1f);
+    EXPECT_TRUE(properties.pixelStretchNeedUpdate_);
+}
+
+/**
+ * @tc.name: SetPixelStretchTileModeNullParaTest
+ * @tc.desc: test SetPixelStretchTileMode when pixelStretchPara_ is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetPixelStretchTileModeNullParaTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetEffect().pixelStretchPara_, nullptr);
+    std::optional<int> tileMode = static_cast<int>(Drawing::TileMode::REPEAT);
+    properties.SetPixelStretchTileMode(tileMode);
+    EXPECT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
+    EXPECT_EQ(properties.GetEffect().pixelStretchPara_->tileMode, static_cast<int>(Drawing::TileMode::REPEAT));
+}
+
+/**
+ * @tc.name: GetPixelStretchDirtyRectTest001
+ * @tc.desc: test GetPixelStretchDirtyRect with non-zero pixel stretch
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetPixelStretchDirtyRectTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds(10.0f, 20.0f, 100.0f, 200.0f);
+    properties.SetBounds(bounds);
+    properties.SetPixelStretch(Vector4f(5.f, 10.f, 5.f, 10.f));
+    RectI dirtyRect = properties.GetPixelStretchDirtyRect();
+    EXPECT_GT(dirtyRect.width_, 0);
+    EXPECT_GT(dirtyRect.height_, 0);
+}
+
+/**
+ * @tc.name: CalculatePixelStretchAllZeroTest
+ * @tc.desc: test CalculatePixelStretch with zero stretch (early return)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculatePixelStretchAllZeroTest, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds(0.0f, 0.0f, 100.0f, 100.0f);
+    properties.SetBounds(bounds);
+    properties.SetPixelStretch(Vector4f(0.f, 0.f, 0.f, 0.f));
+    properties.OnApplyModifiers();
+    EXPECT_EQ(properties.GetEffect().pixelStretchPara_, nullptr);
+}
+
+/**
+ * @tc.name: CalculatePixelStretchNearZeroTest
+ * @tc.desc: test CalculatePixelStretch with near-zero stretch values (reset para)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculatePixelStretchNearZeroTest, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds(0.0f, 0.0f, 100.0f, 100.0f);
+    properties.SetBounds(bounds);
+    float eps = 1e-6f;
+    properties.SetPixelStretch(Vector4f(eps, eps, eps, eps));
+    properties.OnApplyModifiers();
+    EXPECT_EQ(properties.GetEffect().pixelStretchPara_, nullptr);
+}
+
+/**
+ * @tc.name: CalculatePixelStretchAllPositiveTest
+ * @tc.desc: test CalculatePixelStretch with all positive values (valid stretch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculatePixelStretchAllPositiveTest, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds(0.0f, 0.0f, 100.0f, 100.0f);
+    properties.SetBounds(bounds);
+    properties.SetPixelStretch(Vector4f(5.f, 5.f, 5.f, 5.f));
+    properties.OnApplyModifiers();
+    EXPECT_TRUE(properties.isDrawn_);
+}
+
+/**
+ * @tc.name: CalculatePixelStretchMixedSignsTest
+ * @tc.desc: test CalculatePixelStretch with mixed signs (invalid, resets para)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculatePixelStretchMixedSignsTest, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds(0.0f, 0.0f, 100.0f, 100.0f);
+    properties.SetBounds(bounds);
+    properties.SetPixelStretch(Vector4f(5.f, -5.f, 5.f, -5.f));
+    properties.OnApplyModifiers();
+    EXPECT_EQ(properties.GetEffect().pixelStretchPara_, nullptr);
+}
+
+/**
+ * @tc.name: CalculatePixelStretchPercentTest
+ * @tc.desc: test CalculatePixelStretch with percent-based stretch
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CalculatePixelStretchPercentTest, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds(0.0f, 0.0f, 100.0f, 100.0f);
+    properties.SetBounds(bounds);
+    std::optional<Vector4f> percent = Vector4f(0.1f, 0.2f, 0.1f, 0.2f);
+    properties.SetPixelStretchPercent(percent);
+    properties.OnApplyModifiers();
+    EXPECT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
+}
+
+/**
+ * @tc.name: OnApplyModifiersPixelStretchTest
+ * @tc.desc: test OnApplyModifiers triggers pixelStretchNeedUpdate when stretch is non-zero
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, OnApplyModifiersPixelStretchTest, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds(0.0f, 0.0f, 100.0f, 100.0f);
+    properties.SetBounds(bounds);
+    properties.SetPixelStretch(Vector4f(10.f, 10.f, 10.f, 10.f));
+    properties.geoDirty_ = true;
+    properties.OnApplyModifiers();
+    EXPECT_TRUE(properties.NeedFilter());
+}
+
+/**
+ * @tc.name: GenerateBackgroundBlurFilterHashTest
+ * @tc.desc: test GenerateBackgroundBlurFilter accesses radiusX for hash
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateBackgroundBlurFilterHashTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetBackgroundBlurRadiusX(5.f);
+    properties.SetBackgroundBlurRadiusY(5.f);
+    properties.GenerateBackgroundFilter();
+    EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
+}
+
+/**
+ * @tc.name: GenerateForegroundBlurFilterHashTest
+ * @tc.desc: test GenerateForegroundBlurFilter accesses radiusX for hash
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateForegroundBlurFilterHashTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetForegroundBlurRadiusX(5.f);
+    properties.SetForegroundBlurRadiusY(5.f);
+    properties.GenerateForegroundFilter();
+    EXPECT_NE(properties.GetFilter(), nullptr);
+}
+
+/**
+ * @tc.name: GenerateBackgroundMaterialBlurFilterFastAverageTest
+ * @tc.desc: test GenerateBackgroundMaterialBlurFilter converts FASTAVERAGE to AVERAGE
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateBackgroundMaterialBlurFilterFastAverageTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetBackgroundBlurRadius(5.f);
+    properties.SetBackgroundBlurSaturation(0.8f);
+    properties.SetBackgroundBlurColorMode(BLUR_COLOR_MODE::FASTAVERAGE);
+    properties.GenerateBackgroundFilter();
+    EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
+    EXPECT_EQ(properties.GetBackgroundBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
+}
+
+/**
+ * @tc.name: GenerateForegroundMaterialBlurFilterFastAverageTest
+ * @tc.desc: test GenerateForegroundMaterialBlurFilter converts FASTAVERAGE to AVERAGE
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateForegroundMaterialBlurFilterFastAverageTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetForegroundBlurRadius(5.f);
+    properties.SetForegroundBlurSaturation(0.8f);
+    properties.SetForegroundBlurColorMode(BLUR_COLOR_MODE::FASTAVERAGE);
+    properties.GenerateForegroundFilter();
+    EXPECT_NE(properties.GetFilter(), nullptr);
+    EXPECT_EQ(properties.GetForegroundBlurColorMode(), BLUR_COLOR_MODE::AVERAGE);
+}
+
+/**
+ * @tc.name: DumpPixelStretchTest
+ * @tc.desc: test Dump includes PixelStretch when set
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, DumpPixelStretchTest, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f bounds(0.0f, 0.0f, 100.0f, 100.0f);
+    properties.SetBounds(bounds);
+    properties.SetPixelStretch(Vector4f(5.f, 10.f, 5.f, 10.f));
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("PixelStretch") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpDynamicLightUpTest
+ * @tc.desc: test Dump includes DynamicLightUpRate and DynamicLightUpDegree when set
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, DumpDynamicLightUpTest, TestSize.Level1)
+{
+    RSProperties properties;
+    std::optional<float> rate = std::optional<float>(0.5f);
+    properties.SetDynamicLightUpRate(rate);
+    std::optional<float> degree = std::optional<float>(0.8f);
+    properties.SetDynamicLightUpDegree(degree);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("DynamicLightUpRate") != std::string::npos);
+    EXPECT_TRUE(dumpInfo.find("DynamicLightUpDegree") != std::string::npos);
+}
 } // namespace Rosen
 } // namespace OHOS

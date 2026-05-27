@@ -251,6 +251,38 @@ uint64_t RSSurfaceRenderParams::GetTunnelLayerId() const
     return tunnelLayerId_;
 }
 
+void RSSurfaceRenderParams::SetTunnelLayerInfo(uint64_t tunnelLayerId, uint32_t property)
+{
+    if (tunnelLayerId == 0) {
+        property = TUNNEL_PROP_INVALID;
+    }
+    if (tunnelLayerId_ == tunnelLayerId && tunnelLayerProperty_ == property) {
+        return;
+    }
+    tunnelLayerId_ = tunnelLayerId;
+    tunnelLayerProperty_ = property;
+    needSync_ = true;
+}
+
+uint32_t RSSurfaceRenderParams::GetTunnelLayerProperty() const
+{
+    return tunnelLayerProperty_;
+}
+
+void RSSurfaceRenderParams::SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration)
+{
+    if (tunnelLayerGeneration_ == tunnelLayerGeneration) {
+        return;
+    }
+    tunnelLayerGeneration_ = tunnelLayerGeneration;
+    needSync_ = true;
+}
+
+uint64_t RSSurfaceRenderParams::GetTunnelLayerGeneration() const
+{
+    return tunnelLayerGeneration_;
+}
+
 bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
 {
     return isLastFrameHardwareEnabled_;
@@ -704,6 +736,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->tunnelLayerId_ = tunnelLayerId_;
+    targetSurfaceParams->tunnelLayerProperty_ = tunnelLayerProperty_;
+    targetSurfaceParams->tunnelLayerGeneration_ = tunnelLayerGeneration_;
     targetSurfaceParams->hasHdrPresent_ = hasHdrPresent_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
@@ -745,6 +779,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     }
     targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
     targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
+    targetSurfaceParams->vcldInfo_ = vcldInfo_;
+    targetSurfaceParams->vcldRoundRect_ = vcldRoundRect_;
     targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
     targetSurfaceParams->uifirstParams_.leashAllEnabled = uifirstParams_.leashAllEnabled;
     targetSurfaceParams->uifirstParams_.isPartialSynced = uifirstParams_.isPartialSynced;

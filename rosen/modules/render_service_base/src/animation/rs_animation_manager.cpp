@@ -168,7 +168,7 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
             animation->Finish();
             animation->RemoveFromGroupAnimator();
         }
-        bool isFinished = animation->Animate(time, minLeftDelayTime, false);
+        bool isFinished = animation->Animate(time, minLeftDelayTime, false, nodeIsOnTheTree);
         if (isFinished) {
             isCalculateAnimationValue = true;
             OnAnimationFinished(animation);

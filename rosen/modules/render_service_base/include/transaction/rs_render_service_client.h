@@ -22,6 +22,8 @@
 #include <mutex>
 #include <shared_mutex>
 #include <refbase.h>
+#include "common/rs_common_def.h"
+#ifndef ENABLE_RS_PROXY
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
@@ -36,11 +38,12 @@
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
-#include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
+#endif
 #include "rs_render_service_client_info.h"
+#ifndef ENABLE_RS_PROXY
 #include "rs_hrp_service.h"
 #include "rs_irender_client.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
@@ -61,8 +64,10 @@
 #include "info_collection/rs_layer_compose_collection.h"
 #include "utils/scalar.h"
 #include "rs_client_render_comm_def_info.h"
+#endif
 namespace OHOS {
 namespace Rosen {
+#ifndef ENABLE_RS_PROXY
 // normal callback functor for client users.
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason, sptr<IRemoteObject>)>;
 using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
@@ -81,8 +86,12 @@ using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, con
 using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
 using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSSelfDrawingNodeRectData>)>;
 using FirstFrameCommitCallback = std::function<void(uint64_t, int64_t)>;
-
-class RSB_EXPORT RSRenderServiceClient : public RSIRenderClient {
+#endif
+class RSB_EXPORT RSRenderServiceClient
+#ifndef ENABLE_RS_PROXY
+ : public RSIRenderClient
+#endif
+{
 public:
     RSRenderServiceClient() = default;
     virtual ~RSRenderServiceClient() = default;
@@ -90,9 +99,13 @@ public:
     RSRenderServiceClient(const RSRenderServiceClient&) = delete;
     void operator=(const RSRenderServiceClient&) = delete;
 
+#ifndef ENABLE_RS_PROXY
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
-
+#else
+    static std::shared_ptr<RSRenderServiceClient> CreateRenderServiceClient();
+#endif
+#ifndef ENABLE_RS_PROXY
     bool GetUniRenderEnabled();
 
     sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
@@ -115,7 +128,9 @@ public:
     std::vector<ScreenId> GetAllScreenIds();
 
 #ifndef ROSEN_CROSS_PLATFORM
+
     std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
+
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
 
@@ -228,7 +243,7 @@ public:
 
     int32_t GetScreenBacklight(ScreenId id);
 
-    void SetScreenBacklight(ScreenId id, uint32_t level);
+    void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
@@ -320,9 +335,9 @@ public:
     void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos);
 
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount);
-
+#endif
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
-
+#ifndef ENABLE_RS_PROXY
     void NotifyDynamicModeEvent(bool enableDynamicMode);
 
     void NotifyHgmConfigEvent(const std::string &eventName, bool state);
@@ -342,9 +357,9 @@ public:
     void ReportGameStateData(GameStateData info);
 
     void SetCacheEnabledForRotation(bool isEnabled);
-
+#endif
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
-
+#ifndef ENABLE_RS_PROXY
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
  
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
@@ -412,47 +427,16 @@ public:
     bool AvcodecVideoGetRecent();
 
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
+#endif
 private:
+#ifndef ENABLE_RS_PROXY
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
     void TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp);
 
-    struct RectHash {
-        std::size_t operator()(const Drawing::Rect& rect) const {
-            std::size_t h1 = std::hash<Drawing::scalar>()(rect.left_);
-            std::size_t h2 = std::hash<Drawing::scalar>()(rect.top_);
-            std::size_t h3 = std::hash<Drawing::scalar>()(rect.right_);
-            std::size_t h4 = std::hash<Drawing::scalar>()(rect.bottom_);
-            return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
-        }
-    };
-
-    // Hash for solo node capture
-    struct UICaptureParamHash {
-        std::size_t operator()(const RSUICaptureInRangeParam& param) const {
-            std::size_t h1 = std::hash<NodeId>()(param.endNodeId);
-            std::size_t h2 = std::hash<bool>()(param.useBeginNodeSize);
-            return h1 ^ (h2 << 1);
-        }
-    };
-
-    struct PairHash {
-        std::size_t operator()(const std::pair<NodeId, RSSurfaceCaptureConfig>& p) const {
-            std::size_t h1 = std::hash<NodeId>()(p.first);
-            std::size_t h2 = RectHash()(p.second.mainScreenRect);
-            std::size_t h3 = UICaptureParamHash()(p.second.uiCaptureInRangeParam);
-            std::size_t h4 = RectHash()(p.second.specifiedAreaRect);
-            return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
-        }
-    };
-
     std::mutex mutex_;
-    std::mutex surfaceCaptureCbDirectorMutex_;
-    std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
-    std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
     sptr<RSIScreenChangeCallback> screenChangeCb_ = nullptr;
     sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCb_ = nullptr;
-    sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_ = nullptr;
     sptr<RSISurfaceBufferCallback> surfaceBufferCbDirector_;
     std::map<uint64_t, std::shared_ptr<SurfaceBufferCallback>> surfaceBufferCallbacks_;
     mutable std::shared_mutex surfaceBufferCallbackMutex_;
@@ -463,6 +447,7 @@ private:
 
     friend class SurfaceBufferCallbackDirector;
     friend class TransactionDataCallbackDirector;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

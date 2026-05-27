@@ -103,12 +103,12 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSiz
     std::shared_ptr<DrawableV2::RSForegroundColorDrawable> foregroundColorDrawable =
         std::make_shared<DrawableV2::RSForegroundColorDrawable>();
     EXPECT_NE(foregroundColorDrawable, nullptr);
-    renderNodeTest5.renderProperties_.decoration_ = std::nullopt;
+    renderNodeTest5.renderProperties_.decoration_ = nullptr;
     EXPECT_EQ(foregroundColorDrawable->OnGenerate(renderNodeTest5), nullptr);
-    Decoration decorationTest;
+    auto decorationTest = std::make_unique<Decoration>();
     RSColor val(0.0f, 0.0f, 1.0f, 1.0f);
-    decorationTest.foregroundColor_ = val;
-    renderNodeTest5.renderProperties_.decoration_ = decorationTest;
+    decorationTest->foregroundColor_ = val;
+    renderNodeTest5.renderProperties_.decoration_ = std::move(decorationTest);
     EXPECT_NE(foregroundColorDrawable->OnGenerate(renderNodeTest5), nullptr);
 
     RSRenderNode renderNodeTest6(0);
@@ -158,10 +158,10 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest003, TestSiz
     std::shared_ptr<DrawableV2::RSPixelStretchDrawable> pixelStretchDrawable =
         std::make_shared<DrawableV2::RSPixelStretchDrawable>();
     EXPECT_NE(pixelStretchDrawable, nullptr);
-    renderNodeTest9.renderProperties_.GetEffect().pixelStretch_ = std::nullopt;
+    renderNodeTest9.renderProperties_.SetPixelStretch(std::nullopt);
     EXPECT_EQ(pixelStretchDrawable->OnGenerate(renderNodeTest9), nullptr);
     Vector4f pixelStretchTest(0.0f, 0.0f, 0.0f, 1.0f);
-    renderNodeTest9.renderProperties_.GetEffect().pixelStretch_ = pixelStretchTest;
+    renderNodeTest9.renderProperties_.SetPixelStretch(pixelStretchTest);
     EXPECT_NE(pixelStretchDrawable->OnGenerate(renderNodeTest9), nullptr);
 }
 

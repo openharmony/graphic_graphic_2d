@@ -40,11 +40,18 @@ ohos_unittest("opengl_wrapper_unit_test") {
     "egl_wrapper_loader_test.cpp",
     "thread_private_data_ctl_test.cpp",
     "egl_wrapper_hook_test.cpp",
+    "egl_wrapper_custom_test.cpp",
+    "parameters.cpp"
   ]
 
   deps = [
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
+
+  if (graphic_2d_feature_enable_opengl_to_vulkan) {
+    defines += [ "OPENGL_WRAPPER_ENABLE_GL4" ]
+  }
 
   external_deps = [
     "bundle_framework:appexecfwk_base",

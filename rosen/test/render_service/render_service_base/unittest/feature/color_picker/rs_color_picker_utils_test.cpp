@@ -46,9 +46,10 @@ const RectI COLOR_PICKER_OUTSIDE_DIRTY_RECT = { 300, 300, 20, 20 };
 const RectI COLOR_PICKER_CUSTOM_DIRTY_RECT = { 310, 310, 10, 10 };
 const Vector4f COLOR_PICKER_CUSTOM_RECT = { 200.f, 200.f, 330.f, 330.f };
 
-std::shared_ptr<RSRenderNode> CreatePreparingColorPickerNode(NodeId nodeId, const RectI& absRect)
+std::shared_ptr<RSRenderNode> CreatePreparingColorPickerNode(
+    NodeId nodeId, const RectI& absRect, const std::weak_ptr<RSContext>& context = {})
 {
-    auto filterNode = std::make_shared<RSRenderNode>(nodeId);
+    auto filterNode = std::make_shared<RSRenderNode>(nodeId, context);
     filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = absRect;
     filterNode->GetMutableRenderProperties().SetColorPickerStrategy(COLOR_PICKER_STRATEGY_AVERAGE);
     filterNode->GetMutableRenderProperties().SetColorPickerInterval(COLOR_PICKER_INTERVAL_MS);
@@ -501,8 +502,7 @@ HWTEST_F(RSColorPickerUtilsTest, DirtyInCurrentSurfaceNotPreparing, TestSize.Lev
     auto filterNode = std::make_shared<RSRenderNode>(COLOR_PICKER_FILTER_NODE_ID);
     EXPECT_FALSE(RSColorPickerUtils::DirtyInCurrentSurface(*filterNode, COLOR_PICKER_INTERSECT_DIRTY_RECT));
 
-    auto colorPickerDrawable =
-        std::make_shared<DrawableV2::RSColorPickerDrawable>(false, COLOR_PICKER_FILTER_NODE_ID);
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, COLOR_PICKER_FILTER_NODE_ID);
     colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::SCHEDULED;
     filterNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
@@ -517,11 +517,16 @@ HWTEST_F(RSColorPickerUtilsTest, DirtyInCurrentSurfaceNotPreparing, TestSize.Lev
 HWTEST_F(RSColorPickerUtilsTest, DirtyInSurfacesBelowStopsAtCurrentSurface, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
-    auto filterNode = CreatePreparingColorPickerNode(COLOR_PICKER_FILTER_NODE_ID, COLOR_PICKER_ABS_RECT);
-    auto currentSurface = std::make_shared<RSSurfaceRenderNode>(
-        COLOR_PICKER_SURFACE_NODE_ID, rsContext->weak_from_this());
+    rsContext->Initialize();
+    auto currentSurface =
+        std::make_shared<RSSurfaceRenderNode>(COLOR_PICKER_SURFACE_NODE_ID, rsContext->weak_from_this());
     currentSurface->GetDirtyManager()->MergeDirtyRect(COLOR_PICKER_INTERSECT_DIRTY_RECT);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(currentSurface);
+
+    auto filterNode =
+        CreatePreparingColorPickerNode(COLOR_PICKER_FILTER_NODE_ID, COLOR_PICKER_ABS_RECT, rsContext->weak_from_this());
     filterNode->instanceRootNodeId_ = currentSurface->GetId();
+    rsContext->GetMutableNodeMap().RegisterRenderNode(filterNode);
 
     std::vector<std::shared_ptr<RSRenderNode>> surfaces = { currentSurface };
 

@@ -47,6 +47,7 @@ DECLARE_RSLAYER_CMD(BrightnessRatio, float, BRIGHTNESS_RATIO)
 DECLARE_RSLAYER_CMD(NodeId, uint64_t, NODE_ID)
 DECLARE_RSLAYER_CMD(TunnelLayerId, uint64_t, TUNNEL_LAYER_ID)
 DECLARE_RSLAYER_CMD(TunnelLayerProperty, uint32_t, TUNNEL_LAYER_PROPERTY)
+DECLARE_RSLAYER_CMD(TunnelLayerGeneration, uint64_t, TUNNEL_LAYER_GENERATION)
 DECLARE_RSLAYER_CMD(AncoFlags, uint32_t, ANCO_FLAGS)
 DECLARE_RSLAYER_CMD(LayerSourceTuning, int32_t, LAYER_SOURCE_TUNING)
 DECLARE_RSLAYER_CMD(CycleBuffersNum, uint32_t, CYCLE_BUFFERS_NUM)
@@ -81,6 +82,9 @@ DECLARE_RSLAYER_CMD(SolidColorLayerProperty, GraphicSolidColorLayerProperty, SOL
 //string command
 DECLARE_RSLAYER_CMD(WindowsName, std::vector<std::string>, WINDOWS_NAME)
 DECLARE_RSLAYER_CMD(SurfaceName, std::string, SURFACE_NAME)
+
+// vcld command
+DECLARE_RSLAYER_CMD(VcldInfo, RSVcldParam, VCLD_INFO)
 
 // spec command
 DECLARE_RSLAYER_CMD(TunnelHandle, sptr<SurfaceTunnelHandle>, TUNNEL_HANDLE)

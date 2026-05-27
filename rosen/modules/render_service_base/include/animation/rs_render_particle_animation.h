@@ -45,7 +45,7 @@ public:
     {
         return renderParticleVector_;
     }
-    bool Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom = false) override;
+    bool Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom = false, bool isOnTree = true) override;
     void UpdateEmitter(const std::vector<std::shared_ptr<EmitterUpdater>>& emitterUpdater);
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
     void UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields);

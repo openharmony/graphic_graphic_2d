@@ -241,6 +241,8 @@ public:
     std::unordered_map<std::string, std::string> videoFrameRateList_;
     // vrate <"minifps", "1">
     std::unordered_map<std::string, std::string> vRateControlList_;
+    bool hgmAbilityEnabled_ = true;
+
     // hover status frame up switch
     bool hoverFrameUpSwitch_ = false;
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode) const;
