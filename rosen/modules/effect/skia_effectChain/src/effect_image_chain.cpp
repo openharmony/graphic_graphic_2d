@@ -321,6 +321,11 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyEllipticalGradientBlur");
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyEllipticalGradientBlur: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
     Drawing::GERadialGradientShaderMaskParams maskParams{
         {centerX, centerY}, maskRadiusX, maskRadiusY, degrees, positions};
     auto radialGradientShaderMask = std::make_shared<Drawing::GERadialGradientShaderMask>(maskParams);
@@ -371,6 +376,11 @@ DrawingError EffectImageChain::ApplyMapColorByBrightness(
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyMapColorByBrightness");
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyMapColorByBrightness: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
     Drawing::GEMapColorByBrightnessFilterParams params = {colors, positions};
     auto filterShader = GenerateGEXShaderFilter(Drawing::GEFilterType::MAP_COLOR_BY_BRIGHTNESS,
         sizeof(Drawing::GEMapColorByBrightnessFilterParams), static_cast<void*>(&params));
@@ -407,6 +417,11 @@ DrawingError EffectImageChain::ApplyGammaCorrection(float gamma)
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyGammaCorrection");
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyGammaCorrection: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
     float gammaValue = gamma;
     auto gammaCorrectionShader = GenerateGEXShaderFilter(Drawing::GEFilterType::GAMMA_CORRECTION,
         sizeof(float), static_cast<void*>(&gammaValue));
@@ -428,6 +443,11 @@ DrawingError EffectImageChain::ApplyMesaBlur(float radius, const Drawing::TileMo
     bool isDirection, float angle)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyMesaBlur");
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyMesaBlur: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
     Drawing::GEMESABlurShaderFilterParams params { radius, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, static_cast<int>(tileMode),
         0.f, 0.f, isDirection, angle};
     auto mesaBlurFilter = std::make_shared<GEMESABlurShaderFilter>(params);
@@ -444,6 +464,11 @@ DrawingError EffectImageChain::ApplyHpsBlur(float radius)
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyHpsBlur");
     auto ret = DrawingError::ERR_OK;
     do {
+        if (image_ == nullptr) {
+            EFFECT_LOG_E("EffectImageChain::ApplyHpsBlur: image_ is null.");
+            ret = DrawingError::ERR_IMAGE_NULL;
+            break;
+        }
         if (std::ceil(radius) == 0) { // exception when applying hps blur on 0, need handle separately
             break;
         }
@@ -472,7 +497,6 @@ DrawingError EffectImageChain::ApplySDFCreation(int spreadFactor, bool generateD
         return DrawingError::ERR_NOT_PREPARED;
     }
 
-    // CPU not supported
     if (forceCPU_) {
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
@@ -481,6 +505,12 @@ DrawingError EffectImageChain::ApplySDFCreation(int spreadFactor, bool generateD
 
     if (filters_ != nullptr) {
         UpdateImage();
+    }
+
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplySDFCreation: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
     }
 
     Drawing::GESDFFromImageFilterParams params{spreadFactor, generateDerivs};
@@ -516,8 +546,12 @@ DrawingError EffectImageChain::ApplyMaskTransitionFilter(const std::shared_ptr<M
     auto maskTransitionFilter = std::make_shared<GEMaskTransitionShaderFilter>(filterParams);
     
     Drawing::CanvasInfo canvasInfo;
-    canvasInfo.geoWidth = image_->GetWidth();
-    canvasInfo.geoHeight = image_->GetHeight();
+    if (!image_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyMaskTransitionFilter: input image is null or invalid.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+    canvasInfo.geoWidth = srcPixelMap_->GetWidth();
+    canvasInfo.geoHeight = srcPixelMap_->GetHeight();
 
     auto topLayer = RSPixelMapUtil::ExtractDrawingImage(topLayerMap);
     if (!topLayer || canvasInfo.geoHeight <= 0 || canvasInfo.geoWidth <= 0) {
@@ -603,6 +637,11 @@ DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shar
     }
 
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyWaterDropletTransitionFilter");
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
     Drawing::CanvasInfo canvasInfo;
     canvasInfo.geoWidth = image_->GetWidth();
     canvasInfo.geoHeight = image_->GetHeight();
@@ -619,6 +658,11 @@ DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shar
 void EffectImageChain::DrawOnFilter()
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::DrawOnFilter");
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::DrawOnFilter: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return;
+    }
     // Step1: Setup Paint
     Drawing::Paint paint;
     paint.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
@@ -894,6 +938,11 @@ DrawingError EffectImageChain::ApplyWaterGlass(const std::shared_ptr<Drawing::GE
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyWaterGlass: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
     image_ = dmShader->ProcessImage(*canvas_, image_,
         Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
         Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()));
@@ -930,6 +979,11 @@ DrawingError EffectImageChain::ApplyReededGlass(
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyReededGlass: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
     image_ = dmShader->ProcessImage(*canvas_, image_,
         Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
         Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()));
