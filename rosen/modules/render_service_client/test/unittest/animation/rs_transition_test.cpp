@@ -338,18 +338,16 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest004, TestSize.Level1)
     auto rsUIContext = rsUiDirector->GetRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
     
-    std::string surfaceNodeName = "AnimationSurface";
-    struct RSSurfaceNodeConfig surfaceNodeConfig = { .SurfaceNodeName = surfaceNodeName, .isSync = true };
-    auto animationSurfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true, rsUIContext);
+    auto animationCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto effect = RSTransitionEffect::Create()->Translate({500.f, 300.f, 0.f});
-    animationSurfaceNode->SetBoundsWidth(200.f);
-    animationSurfaceNode->SetBoundsHeight(300.f);
-    animationSurfaceNode->SetBackgroundColor(SK_ColorRED);
-    animationSurfaceNode->SetTransitionEffect(effect);
+    animationCanvasNode->SetBoundsWidth(200.f);
+    animationCanvasNode->SetBoundsHeight(300.f);
+    animationCanvasNode->SetBackgroundColor(SK_ColorRED);
+    animationCanvasNode->SetTransitionEffect(effect);
     RSAnimationTimingProtocol protocol;
     auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
-        [&animationSurfaceNode]() {
-        rootNode->AddChild(animationSurfaceNode, -1);
+        [&animationCanvasNode]() {
+        rootNode->AddChild(animationCanvasNode, -1);
     });
 
     /**
@@ -376,18 +374,16 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest005, TestSize.Level1)
     auto rsUIContext = rsUiDirector->GetRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
     
-    std::string surfaceNodeName = "AnimationSurface";
-    struct RSSurfaceNodeConfig surfaceNodeConfig = { .SurfaceNodeName = surfaceNodeName, .isSync = true };
-    auto animationSurfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true, rsUIContext);
+    auto animationCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto effect = RSTransitionEffect::Create()->Opacity(0.5f);
-    animationSurfaceNode->SetFrame(ANIMATION_START_BOUNDS);
-    animationSurfaceNode->SetBackgroundColor(SK_ColorRED);
-    animationSurfaceNode->SetTransitionEffect(effect);
-    rootNode->AddChild(animationSurfaceNode, -1);
+    animationCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
+    animationCanvasNode->SetBackgroundColor(SK_ColorRED);
+    animationCanvasNode->SetTransitionEffect(effect);
+    rootNode->AddChild(animationCanvasNode, -1);
     RSAnimationTimingProtocol protocol;
     auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
-        [&animationSurfaceNode]() {
-        animationSurfaceNode->SetVisible(false);
+        [&animationCanvasNode]() {
+        animationCanvasNode->SetVisible(false);
     });
 
     /**
@@ -414,17 +410,15 @@ HWTEST_F(RSTransitionTest, RSNodeAnimateTest006, TestSize.Level1)
     auto rsUIContext = rsUiDirector->GetRSUIContext();
     ASSERT_NE(rsUIContext, nullptr);
     
-    std::string surfaceNodeName = "AnimationSurface";
-    struct RSSurfaceNodeConfig surfaceNodeConfig = { .SurfaceNodeName = surfaceNodeName, .isSync = true };
-    auto animationSurfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, true, rsUIContext);
+    auto animationCanvasNode = RSCanvasNode::Create(false, false, rsUIContext);
     auto effect = RSTransitionEffect::Create()->Scale({0.1f, 0.4f, 0.5f});
-    animationSurfaceNode->SetFrame(ANIMATION_START_BOUNDS);
-    animationSurfaceNode->SetBackgroundColor(SK_ColorRED);
-    rootNode->AddChild(animationSurfaceNode, -1);
+    animationCanvasNode->SetFrame(ANIMATION_START_BOUNDS);
+    animationCanvasNode->SetBackgroundColor(SK_ColorRED);
+    rootNode->AddChild(animationCanvasNode, -1);
     RSAnimationTimingProtocol protocol;
     auto animations = RSNode::Animate(rsUIContext, protocol, RSAnimationTimingCurve::EASE,
-        [&animationSurfaceNode, &effect]() {
-        animationSurfaceNode->NotifyTransition(effect, true);
+        [&animationCanvasNode, &effect]() {
+        animationCanvasNode->NotifyTransition(effect, true);
     });
     /**
      * @tc.steps: step2. start RSNodeAnimate test
