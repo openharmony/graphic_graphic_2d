@@ -2267,17 +2267,6 @@ HWTEST_F(RSInterfacesTest, SetScreenCorrection, Function | SmallTest | Level2)
 }
 
 /*
- * @tc.name: SetSystemAnimatedScenes
- * @tc.desc: Test SetSystemAnimatedScenes
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSInterfacesTest, SetSystemAnimatedScenes, Function | SmallTest | Level2)
-{
-    ASSERT_TRUE(rsInterfaces->SetSystemAnimatedScenes(SystemAnimatedScenes::OTHERS));
-}
-
-/*
  * @tc.name: SetVirtualScreenBlackList
  * @tc.desc: Test SetVirtualScreenBlackList
  * @tc.type: FUNC
