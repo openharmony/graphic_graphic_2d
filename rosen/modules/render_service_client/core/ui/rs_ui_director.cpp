@@ -63,6 +63,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr int32_t INSTANCE_ID_UNDEFINED_TASK_RUNNER = 0;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 static std::once_flag g_isResidentProcessFlag;
