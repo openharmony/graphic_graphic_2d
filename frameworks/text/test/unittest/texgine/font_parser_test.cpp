@@ -1483,7 +1483,7 @@ HWTEST_F(FontParserTest, ParserFontDescriptorsFromPathLanguagesTest, TestSize.Le
 
     auto desc = descriptors[0];
     ASSERT_NE(desc, nullptr);
-    EXPECT_EQ(desc->languages.size(), 48);
+    EXPECT_EQ(desc->languages.size(), 56);
 
     // Test case 2: Invalid font file path
     auto invalidDescriptors = FontParser::ParserFontDescriptorsFromPath(NON_EXISTENT_PATH);

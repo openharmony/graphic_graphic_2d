@@ -174,9 +174,9 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHarmonyOSSansByTyp
     ASSERT_TRUE(typeface);
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(typeface);
-    std::vector<std::string> languagesExp = {"af", "ain", "be", "bg", "bm", "cs", "da", "de", "el", "el-polyton", "en",
-        "es", "et", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "mk", "ng", "nl", "no",
-        "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"az", "be", "bg", "bm", "cs", "cu", "da", "de", "ee", "el", "el-polyton",
+        "en", "es", "et", "ff", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja-Kana", "la", "lt", "lv", "mk",
+        "ng", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "tr", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -195,9 +195,9 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHarmonyOSSansByPat
     }
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(path);
-    std::vector<std::string> languagesExp = {"af", "ain", "be", "bg", "bm", "cs", "da", "de", "el", "el-polyton", "en",
-        "es", "et", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "mk", "ng", "nl", "no",
-        "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"az", "be", "bg", "bm", "cs", "cu", "da", "de", "ee", "el", "el-polyton",
+        "en", "es", "et", "ff", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja-Kana", "la", "lt", "lv", "mk",
+        "ng", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "tr", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -216,9 +216,9 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHarmonyOSSansByVec
     ASSERT_FALSE(fontData.empty());
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(fontData);
-    std::vector<std::string> languagesExp = {"af", "ain", "be", "bg", "bm", "cs", "da", "de", "el", "el-polyton", "en",
-        "es", "et", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "mk", "ng", "nl", "no",
-        "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"az", "be", "bg", "bm", "cs", "cu", "da", "de", "ee", "el", "el-polyton",
+        "en", "es", "et", "ff", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja-Kana", "la", "lt", "lv", "mk",
+        "ng", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "tr", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -240,9 +240,9 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHarmonyOSSansItali
     ASSERT_TRUE(typeface);
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(typeface);
-    std::vector<std::string> languagesExp = {"af", "be", "bg", "bm", "cs", "da", "de", "el", "el-polyton", "en", "es",
-        "et", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "mk", "ng", "nl", "no", "pl",
-        "pt", "ro", "ru", "sk", "sl", "sr", "sv", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"az", "be", "bg", "bm", "cs", "cu", "da", "de", "ee", "el", "el-polyton",
+        "en", "es", "et", "ff", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "la", "lt", "lv", "mk", "ng", "nl",
+        "no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "tr", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -261,9 +261,9 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHarmonyOSSansItali
     }
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(path);
-    std::vector<std::string> languagesExp = {"af", "be", "bg", "bm", "cs", "da", "de", "el", "el-polyton", "en", "es",
-        "et", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "mk", "ng", "nl", "no", "pl",
-        "pt", "ro", "ru", "sk", "sl", "sr", "sv", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"az", "be", "bg", "bm", "cs", "cu", "da", "de", "ee", "el", "el-polyton",
+        "en", "es", "et", "ff", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "la", "lt", "lv", "mk", "ng", "nl",
+        "no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "tr", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -282,9 +282,9 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHarmonyOSSansItali
     ASSERT_FALSE(fontData.empty());
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(fontData);
-    std::vector<std::string> languagesExp = {"af", "be", "bg", "bm", "cs", "da", "de", "el", "el-polyton", "en", "es",
-        "et", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "mk", "ng", "nl", "no", "pl",
-        "pt", "ro", "ru", "sk", "sl", "sr", "sv", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"az", "be", "bg", "bm", "cs", "cu", "da", "de", "ee", "el", "el-polyton",
+        "en", "es", "et", "ff", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "la", "lt", "lv", "mk", "ng", "nl",
+        "no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "tr", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -306,9 +306,10 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHarmonyOSSansTCByT
     ASSERT_TRUE(typeface);
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(typeface);
-    std::vector<std::string> languagesExp = {"af", "ain", "be", "bg", "bm", "cs", "da", "de", "el", "el-polyton", "en",
-        "es", "et", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "mk", "ng", "nl", "no",
-        "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"az", "be", "bg", "bm", "cs", "cu", "da", "de", "ee", "el", "el-polyton",
+        "en", "es", "et", "ff", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ja-Hira", "ja-Kana", "ko-Hang",
+        "la", "lt", "lv", "mk", "ng", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "tr", "uk", "vi",
+        "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -327,9 +328,10 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHarmonyOSSansTCByP
     }
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(path);
-    std::vector<std::string> languagesExp = {"af", "ain", "be", "bg", "bm", "cs", "da", "de", "el", "el-polyton", "en",
-        "es", "et", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "mk", "ng", "nl", "no",
-        "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"az", "be", "bg", "bm", "cs", "cu", "da", "de", "ee", "el", "el-polyton",
+        "en", "es", "et", "ff", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ja-Hira", "ja-Kana", "ko-Hang",
+        "la", "lt", "lv", "mk", "ng", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "tr", "uk", "vi",
+        "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -348,9 +350,10 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHarmonyOSSansTCByV
     ASSERT_FALSE(fontData.empty());
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(fontData);
-    std::vector<std::string> languagesExp = {"af", "ain", "be", "bg", "bm", "cs", "da", "de", "el", "el-polyton", "en",
-        "es", "et", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "mk", "ng", "nl", "no",
-        "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "uk", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"az", "be", "bg", "bm", "cs", "cu", "da", "de", "ee", "el", "el-polyton",
+        "en", "es", "et", "ff", "fi", "fr", "grc", "ha", "hr", "hu", "id", "it", "ja", "ja-Hira", "ja-Kana", "ko-Hang",
+        "la", "lt", "lv", "mk", "ng", "nl", "no", "pl", "pt", "ro", "ru", "sk", "sl", "sr", "sv", "tr", "uk", "vi",
+        "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -372,9 +375,10 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesNotoSansSylotiNagr
     ASSERT_TRUE(typeface);
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(typeface);
-    std::vector<std::string> languagesExp = {"af", "as", "bh", "bm", "bn", "cs", "da", "de", "en", "es", "et", "fi",
-        "fr", "ha", "hi", "hr", "hu", "id", "it", "kok", "lt", "lv", "mai", "mr", "ne", "ng", "nl", "no", "pl", "pt",
-        "ro", "sa", "sk", "sl", "sv", "syl-Sylo", "vi", "za"};
+    std::vector<std::string> languagesExp = {"as-Bang", "az", "bho-Deva", "bm", "bn-Bang", "brx-Deva", "cs", "da",
+        "de", "ee", "en", "es", "et", "ff", "fi", "fr", "ha", "hi-Deva", "hr", "hu", "id", "it", "kokne-Deva", "la",
+        "lt", "lv", "mai-Deva", "mr-Deva", "ng", "nl", "no", "pl", "pt", "raj-Deva", "ro", "sa-Deva", "sd-Deva", "sk",
+        "sl", "sv", "syl-Sylo", "tr", "vi", "za"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -393,9 +397,10 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesNotoSansSylotiNagr
     }
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(path);
-    std::vector<std::string> languagesExp = {"af", "as", "bh", "bm", "bn", "cs", "da", "de", "en", "es", "et", "fi",
-        "fr", "ha", "hi", "hr", "hu", "id", "it", "kok", "lt", "lv", "mai", "mr", "ne", "ng", "nl", "no", "pl", "pt",
-        "ro", "sa", "sk", "sl", "sv", "syl-Sylo", "vi", "za"};
+    std::vector<std::string> languagesExp = {"as-Bang", "az", "bho-Deva", "bm", "bn-Bang", "brx-Deva", "cs", "da",
+        "de", "ee", "en", "es", "et", "ff", "fi", "fr", "ha", "hi-Deva", "hr", "hu", "id", "it", "kokne-Deva", "la",
+        "lt", "lv", "mai-Deva", "mr-Deva", "ng", "nl", "no", "pl", "pt", "raj-Deva", "ro", "sa-Deva", "sd-Deva", "sk",
+        "sl", "sv", "syl-Sylo", "tr", "vi", "za"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -414,9 +419,10 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesNotoSansSylotiNagr
     ASSERT_FALSE(fontData.empty());
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(fontData);
-    std::vector<std::string> languagesExp = {"af", "as", "bh", "bm", "bn", "cs", "da", "de", "en", "es", "et", "fi",
-        "fr", "ha", "hi", "hr", "hu", "id", "it", "kok", "lt", "lv", "mai", "mr", "ne", "ng", "nl", "no", "pl", "pt",
-        "ro", "sa", "sk", "sl", "sv", "syl-Sylo", "vi", "za"};
+    std::vector<std::string> languagesExp = {"as-Bang", "az", "bho-Deva", "bm", "bn-Bang", "brx-Deva", "cs", "da",
+        "de", "ee", "en", "es", "et", "ff", "fi", "fr", "ha", "hi-Deva", "hr", "hu", "id", "it", "kokne-Deva", "la",
+        "lt", "lv", "mai-Deva", "mr-Deva", "ng", "nl", "no", "pl", "pt", "raj-Deva", "ro", "sa-Deva", "sd-Deva", "sk",
+        "sl", "sv", "syl-Sylo", "tr", "vi", "za"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -438,9 +444,9 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesDejaVuMathTeXGyreB
     ASSERT_TRUE(typeface);
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(typeface);
-    std::vector<std::string> languagesExp = {"af", "ar", "bm", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr",
-        "grc", "ha", "he", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "ng", "nl", "no", "pl", "pt", "ro", "sk",
-        "sl", "sv", "th", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"ar", "az", "bm", "cs", "da", "de", "ee", "el", "en", "es", "et", "ff",
+        "fi", "fr", "grc", "ha", "he", "hr", "hu", "id", "it", "la", "lt", "lv", "ng", "nl", "no", "pl", "pt", "ro",
+        "sk", "sl", "sv", "th-Thai", "tr", "vi", "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -459,9 +465,9 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesDejaVuMathTeXGyreB
     }
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(path);
-    std::vector<std::string> languagesExp = {"af", "ar", "bm", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr",
-        "grc", "ha", "he", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "ng", "nl", "no", "pl", "pt", "ro", "sk",
-        "sl", "sv", "th", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"ar", "az", "bm", "cs", "da", "de", "ee", "el", "en", "es", "et", "ff",
+        "fi", "fr", "grc", "ha", "he", "hr", "hu", "id", "it", "la", "lt", "lv", "ng", "nl", "no", "pl", "pt", "ro",
+        "sk", "sl", "sv", "th-Thai", "tr", "vi", "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -480,9 +486,9 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesDejaVuMathTeXGyreB
     ASSERT_FALSE(fontData.empty());
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(fontData);
-    std::vector<std::string> languagesExp = {"af", "ar", "bm", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr",
-        "grc", "ha", "he", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "ng", "nl", "no", "pl", "pt", "ro", "sk",
-        "sl", "sv", "th", "vi", "za", "zh-Hans", "zh-Hant"};
+    std::vector<std::string> languagesExp = {"ar", "az", "bm", "cs", "da", "de", "ee", "el", "en", "es", "et", "ff",
+        "fi", "fr", "grc", "ha", "he", "hr", "hu", "id", "it", "la", "lt", "lv", "ng", "nl", "no", "pl", "pt", "ro",
+        "sk", "sl", "sv", "th-Thai", "tr", "vi", "za", "zh-Hans", "zh-Hant"};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -504,7 +510,7 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHMSymbolVFByTypefa
     ASSERT_TRUE(typeface);
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(typeface);
-    std::vector<std::string> languagesExp = {"da", "de", "en", "es", "fi", "fr", "id", "it", "nl", "no", "pt", "sv"};
+    std::vector<std::string> languagesExp = {};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -523,7 +529,7 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHMSymbolVFByPath, 
     }
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(path);
-    std::vector<std::string> languagesExp = {"da", "de", "en", "es", "fi", "fr", "id", "it", "nl", "no", "pt", "sv"};
+    std::vector<std::string> languagesExp = {};
     EXPECT_EQ(languages, languagesExp);
 }
 
@@ -542,7 +548,7 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesHMSymbolVFByVector
     ASSERT_FALSE(fontData.empty());
 
     auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(fontData);
-    std::vector<std::string> languagesExp = {"da", "de", "en", "es", "fi", "fr", "id", "it", "nl", "no", "pt", "sv"};
+    std::vector<std::string> languagesExp = {};
     EXPECT_EQ(languages, languagesExp);
 }
 
