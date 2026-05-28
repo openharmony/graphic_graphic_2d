@@ -232,7 +232,7 @@ cJSON* ParseFileConfig(const std::string& path)
     }
 
     std::ifstream configFile;
-    configFile.open(newpath)
+    configFile.open(newpath);
     if (!configFile.is_open()) {
         LOGE("failed to open config file: %{public}s", newpath);
         return nullptr;
