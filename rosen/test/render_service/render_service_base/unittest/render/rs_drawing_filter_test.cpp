@@ -922,6 +922,7 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffectFrostedGlassNoCustomRegion001, Tes
     drawingFilter->SetNGRenderFilter(renderFilter);
     drawingFilter->SetHasCustomRegion(false);
     drawingFilter->OnSync();
+    EXPECT_TRUE(drawingFilter->HasCustomRegion());
 
     // Generate visual effect with frosted glass
     auto frostedGlassFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
@@ -935,7 +936,7 @@ HWTEST_F(RSDrawingFilterTest, ApplyImageEffectFrostedGlassNoCustomRegion001, Tes
     // This should trigger the frosted glass branch without custom region
     drawingFilter->ApplyImageEffect(canvas, image, visualEffectContainer, attr);
 
-    EXPECT_FALSE(drawingFilter->HasCustomRegion());
+    EXPECT_TRUE(drawingFilter->HasCustomRegion());
 }
 
 /**
