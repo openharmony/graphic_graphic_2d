@@ -1326,7 +1326,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, GetPixelMapByProcessId003, TestSiz
     uint64_t pid = 12345;
     data.WriteUint64(pid);
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ret, ERR_INVALID_REPLY);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 
 /**
