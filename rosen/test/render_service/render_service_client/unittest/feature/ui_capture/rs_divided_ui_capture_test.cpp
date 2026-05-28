@@ -21,6 +21,8 @@
 #include "pipeline/rs_root_render_node.h"
 #include "render/rs_image_cache.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_context.h"
+#include "ui/rs_ui_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -526,6 +528,9 @@ HWTEST_F(RSDividedUICaptureTest, ProcessSurfaceRenderNode, TestSize.Level1)
     float scaleY = 1.0;
     RSDividedUICapture::RSDividedUICaptureVisitor rsDividedUICaptureVisitor(nodeId, scaleX, scaleY);
     RSSurfaceRenderNode node(nodeId);
+    auto uiDirector = RSUIDirector::Create(nullptr, nullptr);
+    auto uiContext = uiDirector->GetRSUIContext();
+    node.SetUIContextToken(uiContext->GetToken());
     rsDividedUICaptureVisitor.canvas_ = nullptr;
     rsDividedUICaptureVisitor.ProcessSurfaceRenderNode(node);
     EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ == nullptr);

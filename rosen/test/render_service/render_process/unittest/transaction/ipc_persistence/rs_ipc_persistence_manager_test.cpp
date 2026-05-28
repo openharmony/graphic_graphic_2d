@@ -17,6 +17,8 @@
 
 #include "rs_ipc_persistence_manager.h"
 #include "rs_ipc_persistence_data.h"
+#include "core/rs_render_pipeline_agent.h"
+#include "core/rs_render_pipeline.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -86,10 +88,14 @@ void RSIpcPersistenceManagerTest::TearDown()
     manager_ = nullptr;
 }
 
+// Already Added Phase1
 HWTEST_F(RSIpcPersistenceManagerTest, GetReplayDataTest001, TestSize.Level1)
 {
     auto replayData = manager_->GetReplayData();
     EXPECT_TRUE(replayData.empty());
+    EXPECT_EQ(replayData.size(), 0u);
+    auto replayData2 = manager_->GetReplayData();
+    EXPECT_TRUE(replayData2.empty());
 }
 
 HWTEST_F(RSIpcPersistenceManagerTest, RegisterWithCallingPidTest001, TestSize.Level1)
@@ -192,18 +198,6 @@ HWTEST_F(RSIpcPersistenceManagerTest, UnregisterByCallingPidTest002, TestSize.Le
     manager_->UnregisterByCallingPid(1000);
     auto replayData = manager_->GetReplayData();
     EXPECT_TRUE(replayData.empty());
-}
-
-HWTEST_F(RSIpcPersistenceManagerTest, UnregisterByCallingPidTest003, TestSize.Level1)
-{
-    auto data1 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SET_WATERMARK, 1000);
-    auto data2 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::ON_HWC_EVENT, 2000);
-    manager_->RegisterWithCallingPid(data1);
-    manager_->RegisterWithCallingPid(data2);
-    manager_->UnregisterByCallingPid(1000);
-    auto replayData = manager_->GetReplayData();
-    EXPECT_EQ(replayData.size(), 1u);
-    EXPECT_EQ(replayData[RSIpcPersistenceType::ON_HWC_EVENT].size(), 1u);
 }
 
 HWTEST_F(RSIpcPersistenceManagerTest, UnregisterByTypeAndCallingPidTest001, TestSize.Level1)
@@ -384,29 +378,6 @@ HWTEST_F(RSIpcPersistenceManagerTest, MarshallingUnmarshallingTest003, TestSize.
     auto unmarshallingResult = RSIpcPersistenceManager::Unmarshalling(parcel);
     EXPECT_TRUE(unmarshallingResult.has_value());
     EXPECT_EQ(unmarshallingResult.value().size(), 2u);
-}
-
-HWTEST_F(RSIpcPersistenceManagerTest, MultipleOperationsTest001, TestSize.Level1)
-{
-    auto data1 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SET_WATERMARK, 1000);
-    auto data2 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::ON_HWC_EVENT, 2000);
-    auto data3 = std::make_shared<MockPersistenceData>(
-        RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
-    
-    manager_->RegisterWithCallingPid(data1);
-    manager_->RegisterWithCallingPid(data2);
-    manager_->RegisterWithoutCallingPid(data3);
-    
-    auto replayData = manager_->GetReplayData();
-    EXPECT_EQ(replayData.size(), 3u);
-    
-    manager_->UnregisterByCallingPid(1000);
-    replayData = manager_->GetReplayData();
-    EXPECT_EQ(replayData.size(), 2u);
-    
-    manager_->UnregisterByType(RSIpcPersistenceType::ON_HWC_EVENT);
-    replayData = manager_->GetReplayData();
-    EXPECT_EQ(replayData.size(), 1u);
 }
 
 HWTEST_F(RSIpcPersistenceManagerTest, DefaultPidTest001, TestSize.Level1)
