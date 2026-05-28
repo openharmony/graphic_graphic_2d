@@ -384,7 +384,7 @@ void BootCompileProgress::RecordDeviceType()
     LOGI("deviceType: %{public}s", deviceType.c_str());
     if (deviceType == DEVICE_TYPE_WEARABLE) {
         isWearable_ = true;
-    } else if (deviceType != DEVICE_TYPE_PHONE) {
+    } else if (deviceType != DEVICE_TYPE_PHONE && deviceType != DEVICE_TYPE_DEFAULT) {
         isOther_ = true;
     }
 }
