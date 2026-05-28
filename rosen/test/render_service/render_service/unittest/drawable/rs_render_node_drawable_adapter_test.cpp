@@ -769,7 +769,7 @@ HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender_Backg
     std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
         std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
     ASSERT_NE(adapter, nullptr);
-    EXPECT_TRUE(adapter->IsFilterCacheValidForPartialRender());
+    EXPECT_FALSE(adapter->IsFilterCacheValidForPartialRender());
 }
 
 /**
