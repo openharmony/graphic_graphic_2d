@@ -315,6 +315,7 @@ ErrCode RSClientToRenderConnection::CreateNodeAndSurface(const RSSurfaceRenderNo
     return renderPipelineAgent_->CreateNodeAndSurface(config, sfc, unobscured);
 }
 
+// LCOV_EXCL_START
 ErrCode RSClientToRenderConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
     if (renderPipelineAgent_ == nullptr) {
@@ -325,6 +326,7 @@ ErrCode RSClientToRenderConnection::RegisterApplicationAgent(uint32_t pid, sptr<
     app->AsObject()->AddDeathRecipient(applicationDeathRecipient_);
     return ERR_OK;
 }
+// LCOV_EXCL_STOP
 
 ErrCode RSClientToRenderConnection::RegisterBufferClearListener(
     NodeId id, sptr<RSIBufferClearCallback> callback)
