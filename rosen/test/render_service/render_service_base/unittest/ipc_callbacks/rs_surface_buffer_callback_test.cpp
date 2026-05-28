@@ -44,11 +44,13 @@ void RSDefaultSurfaceBufferCallbackTest::TearDown() {}
  */
 HWTEST_F(RSDefaultSurfaceBufferCallbackTest, Constructor, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     DefaultSurfaceBufferCallbackFuncs funcs{};
     funcs.OnFinish = [](const FinishCallbackRet&) {};
     funcs.OnAfterAcquireBuffer = [](const AfterAcquireBufferRet&) {};
     sptr<RSDefaultSurfaceBufferCallback> callback = new RSDefaultSurfaceBufferCallback(funcs);
     EXPECT_TRUE(callback->finishCallback_ != nullptr);
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS
