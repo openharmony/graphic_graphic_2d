@@ -179,8 +179,17 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromCurrent(const OH_Drawing_Typef
     if (fontArguments.GetCollectionIndex() == 0 && fontArguments.GetVariationDesignPosition().coordinateCount == 0) {
         return nullptr;
     }
-    std::shared_ptr<Typeface> typeface = Typeface::MakeFromAshmem(
-        currentTypeface->GetFd(), currentTypefaceSize, currentTypeface->GetHash(), fontArguments);
+
+    std::shared_ptr<Typeface> typeface = nullptr;
+    if (currentTypeface->GetFd() == -1) {
+        typeface = currentTypeface->MakeClone(fontArguments);
+        if (typeface == nullptr || currentTypeface->GetUniqueID() == typeface->GetUniqueID()) {
+            return nullptr;
+        }
+    } else {
+        typeface = Typeface::MakeFromAshmem(
+            currentTypeface->GetFd(), currentTypefaceSize, currentTypeface->GetHash(), fontArguments);
+    }
     return RegisterAndConvertTypeface(typeface);
 }
 

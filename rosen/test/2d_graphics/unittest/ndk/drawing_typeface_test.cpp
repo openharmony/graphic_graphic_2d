@@ -18,6 +18,7 @@
 #include "drawing_path.h"
 #include "drawing_typeface.h"
 #include "gtest/gtest.h"
+#include "text/typeface.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -197,6 +198,11 @@ HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceCreateFromCurrent001, Tes
     typeface = OH_Drawing_TypefaceCreateFromCurrent(nullptr, fontArgs);
     ASSERT_TRUE(typeface == nullptr);
     typeface = OH_Drawing_TypefaceCreateFromCurrent(current, fontArgs);
+    ASSERT_TRUE(typeface != nullptr);
+
+    std::shared_ptr<Drawing::Typeface> typefaceA = Drawing::Typeface::MakeDefault();
+    OH_Drawing_Typeface* drawingTypeface = reinterpret_cast<OH_Drawing_Typeface*>(typefaceA.get());
+    typeface = OH_Drawing_TypefaceCreateFromCurrent(drawingTypeface, fontArgs);
     ASSERT_TRUE(typeface != nullptr);
 
     OH_Drawing_FontArgumentsDestroy(fontArgs);
