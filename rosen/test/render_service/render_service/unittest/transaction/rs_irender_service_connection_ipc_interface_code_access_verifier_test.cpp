@@ -345,34 +345,4 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, SetLogica
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, true);
 }
-
-/**
- * @tc.name: AddVirtualScreenSurfaceAccessTest001
- * @tc.desc: test ADD_VIRTUAL_SCREEN_SURFACE access verification
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, AddVirtualScreenSurfaceAccessTest001,
-    testing::ext::TestSize.Level1)
-{
-    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
-    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
-        RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_SURFACE);
-    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
-}
-
-/**
- * @tc.name: RemoveVirtualScreenSurfaceAccessTest001
- * @tc.desc: test REMOVE_VIRTUAL_SCREEN_SURFACE access verification
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, RemoveVirtualScreenSurfaceAccessTest001,
-    testing::ext::TestSize.Level1)
-{
-    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
-    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
-        RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_SURFACE);
-    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
-}
 } // namespace OHOS::Rosen

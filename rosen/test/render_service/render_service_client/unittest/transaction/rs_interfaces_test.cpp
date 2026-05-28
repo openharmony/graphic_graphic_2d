@@ -1122,36 +1122,4 @@ HWTEST_F(RSInterfacesTest, SetSurfaceWatermarkGrid001, TestSize.Level1)
 #endif
 }
 
-/**
- * @tc.name: AddVirtualScreenSurface001
- * @tc.desc: test results of AddVirtualScreenSurface
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, AddVirtualScreenSurface001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    constexpr ScreenId screenId = 1;
-    std::vector<SurfaceRegionConfig> configs;
-    auto ret = instance.AddVirtualScreenSurface(screenId, configs);
-    EXPECT_NE(ret, SUCCESS);
-}
-
-/**
- * @tc.name: RemoveVirtualScreenSurface001
- * @tc.desc: test results of RemoveVirtualScreenSurface
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSInterfacesTest, RemoveVirtualScreenSurface001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    constexpr ScreenId screenId = 1;
-    std::vector<sptr<Surface>> surfaces;
-    auto ret = instance.RemoveVirtualScreenSurface(screenId, surfaces);
-    EXPECT_NE(ret, SUCCESS);
-}
-
 } // namespace OHOS::Rosen

@@ -63,9 +63,7 @@ const uint8_t DO_SET_VIRTUAL_SCREEN_USING_STATUS = 10;
 const uint8_t DO_SET_VIRTUAL_SCREEN_REFRESH_RATE = 11;
 const uint8_t DO_SET_VIRTUAL_SCREEN_STATUS = 12;
 const uint8_t DO_SET_VIRTUAL_SCREEN_TYPE_BLACK_LIST = 13;
-const uint8_t DO_ADD_VIRTUAL_SCREEN_SURFACE = 14;
-const uint8_t DO_REMOVE_VIRTUAL_SCREEN_SURFACE = 15;
-const uint8_t TARGET_SIZE = 16;
+const uint8_t TARGET_SIZE = 14;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -541,74 +539,6 @@ void DoSetVirtualScreenTypeBlackList()
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
-
-void DoAddVirtualScreenSurface()
-{
-    uint64_t id = GetData<uint64_t>();
-    uint8_t configCount = GetData<uint8_t>();
-    MessageParcel dataP;
-    MessageParcel reply;
-    MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        return;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (!dataP.WriteUint64(id)) {
-        return;
-    }
-    if (!dataP.WriteUint32(configCount)) {
-        return;
-    }
-    for (uint8_t i = 0; i < configCount; i++) {
-        auto csurface = IConsumerSurface::Create("FuzzAddVirtualSurface");
-        if (csurface != nullptr && csurface->GetProducer() != nullptr) {
-            auto producer = csurface->GetProducer();
-            dataP.WriteRemoteObject(producer->AsObject());
-        } else {
-            dataP.WriteRemoteObject(nullptr);
-        }
-        int32_t left = GetData<int32_t>();
-        int32_t top = GetData<int32_t>();
-        int32_t width = GetData<int32_t>();
-        int32_t height = GetData<int32_t>();
-        dataP.WriteInt32(left);
-        dataP.WriteInt32(top);
-        dataP.WriteInt32(width);
-        dataP.WriteInt32(height);
-    }
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_SURFACE);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
-}
-
-void DoRemoveVirtualScreenSurface()
-{
-    uint64_t id = GetData<uint64_t>();
-    uint8_t surfaceCount = GetData<uint8_t>();
-    MessageParcel dataP;
-    MessageParcel reply;
-    MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        return;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (!dataP.WriteUint64(id)) {
-        return;
-    }
-    if (!dataP.WriteUint32(surfaceCount)) {
-        return;
-    }
-    for (uint8_t i = 0; i < surfaceCount; i++) {
-        auto csurface = IConsumerSurface::Create("FuzzRemoveVirtualSurface");
-        if (csurface != nullptr && csurface->GetProducer() != nullptr) {
-            auto producer = csurface->GetProducer();
-            dataP.WriteRemoteObject(producer->AsObject());
-        } else {
-            dataP.WriteRemoteObject(nullptr);
-        }
-    }
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_SURFACE);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
-}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -719,12 +649,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_TYPE_BLACK_LIST:
             OHOS::Rosen::DoSetVirtualScreenTypeBlackList();
-            break;
-        case OHOS::Rosen::DO_ADD_VIRTUAL_SCREEN_SURFACE:
-            OHOS::Rosen::DoAddVirtualScreenSurface();
-            break;
-        case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_SURFACE:
-            OHOS::Rosen::DoRemoveVirtualScreenSurface();
             break;
         default:
             return -1;

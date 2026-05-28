@@ -37,9 +37,7 @@ constexpr uint8_t DO_SET_VIRTUAL_SCREEN_STATUS = 6;
 constexpr uint8_t DO_SET_VIRTUAL_SCREEN_BLACK_LIST = 7;
 constexpr uint8_t DO_ADD_VIRTUAL_SCREEN_WHITE_LIST = 8;
 constexpr uint8_t DO_SET_MIRROR_SCREEN_VISIBLE_RECT = 9;
-constexpr uint8_t DO_ADD_VIRTUAL_SCREEN_SURFACE = 10;
-constexpr uint8_t DO_REMOVE_VIRTUAL_SCREEN_SURFACE = 11;
-constexpr uint8_t TARGET_SIZE = 12;
+constexpr uint8_t TARGET_SIZE = 10;
 
 constexpr uint8_t SCREEN_SCALE_MODE_SIZE = 3;
 constexpr uint8_t VIRTUAL_SCREEN_STATUS_SIZE = 3;
@@ -140,32 +138,6 @@ void DoSetMirrorScreenVisibleRect(FuzzedDataProvider& fdp)
     g_screenManager->SetMirrorScreenVisibleRect(id, mainScreenRect, supportRotation);
 }
 
-void DoAddVirtualScreenSurface(FuzzedDataProvider& fdp)
-{
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    uint8_t configCount = fdp.ConsumeIntegral<uint8_t>();
-    std::vector<SurfaceRegionConfig> surfaceConfigs;
-    for (uint8_t i = 0; i < configCount; i++) {
-        SurfaceRegionConfig config;
-        config.surface = nullptr;
-        config.region = RectI(fdp.ConsumeIntegral<int32_t>(), fdp.ConsumeIntegral<int32_t>(),
-            fdp.ConsumeIntegral<int32_t>(), fdp.ConsumeIntegral<int32_t>());
-        surfaceConfigs.push_back(config);
-    }
-    g_screenManager->AddVirtualScreenSurface(id, surfaceConfigs);
-}
-
-void DoRemoveVirtualScreenSurface(FuzzedDataProvider& fdp)
-{
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    uint8_t surfaceCount = fdp.ConsumeIntegral<uint8_t>();
-    std::vector<sptr<Surface>> surfaces;
-    for (uint8_t i = 0; i < surfaceCount; i++) {
-        surfaces.push_back(nullptr);
-    }
-    g_screenManager->RemoveVirtualScreenSurface(id, surfaces);
-}
-
 } // namespace
 
 } // namespace Rosen
@@ -227,12 +199,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_MIRROR_SCREEN_VISIBLE_RECT:
             OHOS::Rosen::DoSetMirrorScreenVisibleRect(fdp);
-            break;
-        case OHOS::Rosen::DO_ADD_VIRTUAL_SCREEN_SURFACE:
-            OHOS::Rosen::DoAddVirtualScreenSurface(fdp);
-            break;
-        case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_SURFACE:
-            OHOS::Rosen::DoRemoveVirtualScreenSurface(fdp);
             break;
         default:
             return -1;

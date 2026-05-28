@@ -7062,44 +7062,4 @@ HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_DelayOverflowClamp001
 
     GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 end";
 }
-
-/**
- * @tc.name: HandleScreenPropertyRefreshOneFrame_MultiSurfaceConfigs001
- * @tc.desc: Test HandleScreenPropertyRefreshOneFrame with MULTI_SURFACE_CONFIGS type
- * @tc.type: FUNC
- */
-HWTEST_F(RSMainThreadTest, HandleScreenPropertyRefreshOneFrame_MultiSurfaceConfigs001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    ScreenId virtualScreenId = screenManager_->defaultScreenId_;
-    ScreenPropertyType type = ScreenPropertyType::MULTI_SURFACE_CONFIGS;
-
-    auto property = sptr<RSScreenProperty>::MakeSptr();
-    auto prop = sptr<ScreenPropertyBase>::MakeSptr(
-        ScreenPropertyType::MULTI_SURFACE_CONFIGS,
-        property->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(MultiSurfaceConfigs()));
-    screenManager_->preprocessor_->NotifyScreenPropertyChanged(
-        virtualScreenId, ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop);
-}
-
-/**
- * @tc.name: HandleScreenPropertyRefreshOneFrame_RenderResolution001
- * @tc.desc: Test HandleScreenPropertyRefreshOneFrame with RENDER_RESOLUTION type triggers dirty flag
- * @tc.type: FUNC
- */
-HWTEST_F(RSMainThreadTest, HandleScreenPropertyRefreshOneFrame_RenderResolution001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    ScreenId virtualScreenId = screenManager_->defaultScreenId_;
-    auto property = sptr<RSScreenProperty>::MakeSptr();
-    auto prop = sptr<ScreenPropertyBase>::MakeSptr(
-        ScreenPropertyType::RENDER_RESOLUTION,
-        property->Set<ScreenPropertyType::RENDER_RESOLUTION>({100, 100}));
-    screenManager_->preprocessor_->NotifyScreenPropertyChanged(
-        virtualScreenId, ScreenPropertyType::RENDER_RESOLUTION, prop);
-}
 } // namespace OHOS::Rosen

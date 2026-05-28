@@ -857,10 +857,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode009, TestSize.Level1
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    SurfaceRegionConfig surfaceConfig;
-    surfaceConfig.surface = psurface;
-    surfaceConfig.region = RectI(0, 0, 0, 0);
-    rsScreen->SetMultiSurfaceConfigs({surfaceConfig});
+    rsScreen->SetProducerSurface(psurface);
     rsScreen->SetScreenSkipFrameInterval(1);
     screenManager_->MockHdiScreenConnected(rsScreen);
 
@@ -886,10 +883,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode010, TestSize.Level1
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    SurfaceRegionConfig surfaceConfig;
-    surfaceConfig.surface = psurface;
-    surfaceConfig.region = RectI(0, 0, 0, 0);
-    rsScreen->SetMultiSurfaceConfigs({surfaceConfig});
+    rsScreen->SetProducerSurface(psurface);
     rsScreen->SetScreenSkipFrameInterval(1);
     screenManager_->MockHdiScreenConnected(rsScreen);
 
