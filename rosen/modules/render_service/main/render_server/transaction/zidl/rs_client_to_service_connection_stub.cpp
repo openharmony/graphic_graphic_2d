@@ -3484,7 +3484,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 .mirrorSourceRotation = mirrorSourceRotation,
             };
             bool success;
-            if (CreateNode(config, id, success) != ERR_OK || reply.WriteBool(success)) {
+            if (CreateNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
                 RS_LOGE("RSClientToServiceConnectionStub::CREATE_DISPLAY_NODE Write success failed!");
                 ret = ERR_INVALID_REPLY;
             }

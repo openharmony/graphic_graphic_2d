@@ -374,7 +374,7 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         const NodeId nodeId = command->GetNodeId();
         const pid_t commandPid = ExtractPid(nodeId);
         bool allowNonSystemAppCalling = command->GetAccessPermission() != RSCommandPermissionType::PERMISSION_SYSTEM;
-        if (allowNonSystemAppCalling && (callingPid == commandPid || nodeMap.IsUIExtensionSurfaceNode(nodeId))) {
+        if (allowNonSystemAppCalling && (callingPid == 0 || callingPid == commandPid || nodeMap.IsUIExtensionSurfaceNode(nodeId))) {
             continue;
         }
         inaccessibleCommandMap[commandPid][nodeId].insert(command->GetUniqueType());

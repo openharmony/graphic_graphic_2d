@@ -437,7 +437,7 @@ ErrCode RSClientToServiceConnection::CreateNode(const RSDisplayNodeConfig& displ
         success = false;
         return ERR_INVALID_VALUE;
     }
-    std::function<void()> registerNode = [this, nodeId, node, &displayNodeConfig]() {
+    std::function<void()> registerNode = [this, nodeId, node, displayNodeConfig]() {
         RS_TRACE_NAME_FMT("RSRenderServiceConnection::CreateNode, nodeId[%" PRIu64 "], screenId[%" PRIu64 "]",
             nodeId, displayNodeConfig.screenId);
         if (mainThread_ == nullptr) {
