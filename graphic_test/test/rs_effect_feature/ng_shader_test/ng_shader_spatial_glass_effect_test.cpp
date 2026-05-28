@@ -206,7 +206,7 @@ GRAPHIC_TEST(SpatialGlassEffectTest, EFFECT_TEST, Set_SpatialGlassEffect_Refract
     for (int i = 0; i < rowCount; i++) {
         auto spatialGlassEffect = std::make_shared<RSNGSpatialGlassEffect>();
         InitSpatialGlassEffect(spatialGlassEffect);
-        spatialglasseffect->Setter<SpatialGlassEffectRefractParamsTag>(RefractParams[i]);
+        spatialGlassEffect->Setter<SpatialGlassEffectRefractParamsTag>(RefractParams[i]);
         SetEffectChildNode(i, columnCount, rowCount, effectNode, spatialGlassEffect);}
 }
 
