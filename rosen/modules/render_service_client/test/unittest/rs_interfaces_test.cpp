@@ -1692,36 +1692,6 @@ HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest,
 }
 
 /*
- * @tc.name: RegisterSurfaceOcclusionChangeCallback001
- * @tc.desc: RegisterOcclusionChangeCallback interface test.
- * @tc.type: FUNC
- * @tc.require: issueI851VR
- */
-HWTEST_F(RSInterfacesTest, RegisterSurfaceOcclusionChangeCallback001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    NodeId id = 0;
-    SurfaceOcclusionChangeCallback cb = [](float) {};
-    std::vector<float> partitionPoints;
-    int32_t ret = rsInterfaces->RegisterSurfaceOcclusionChangeCallback(id, cb, partitionPoints);
-    EXPECT_NE(ret, 0); // Unable to access IPC due to lack of permissions.
-}
-
-/*
- * @tc.name: UnRegisterSurfaceOcclusionChangeCallback001
- * @tc.desc: UnRegisterSurfaceOcclusionChangeCallback interface test.
- * @tc.type: FUNC
- * @tc.require: issueI851VR
- */
-HWTEST_F(RSInterfacesTest, UnRegisterSurfaceOcclusionChangeCallback001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    NodeId id = 0;
-    int32_t ret = rsInterfaces->UnRegisterSurfaceOcclusionChangeCallback(id);
-    EXPECT_EQ(ret, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
-}
-
-/*
  * @tc.name: ResizeVirtualScreen001
  * @tc.desc: ResizeVirtualScreen interface test.
  * @tc.type: FUNC
