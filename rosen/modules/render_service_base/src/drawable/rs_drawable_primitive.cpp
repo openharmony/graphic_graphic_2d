@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#ifdef USE_PRIMITIVE
 #include "common/rs_common_def.h"
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_misc_drawable.h"
@@ -83,3 +84,4 @@ void DrawableV2::RSChildrenDrawable::OnDrawPrimitive(Drawing::Canvas* canvas, co
     return;
 }
 } // namespace OHOS::Rosen
+#endif
