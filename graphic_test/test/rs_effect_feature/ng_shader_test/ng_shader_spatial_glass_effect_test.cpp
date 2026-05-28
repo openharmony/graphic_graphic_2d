@@ -169,7 +169,7 @@ GRAPHIC_TEST(SpatialGlassEffectTest, EFFECT_TEST, Set_SpatialGlassEffect_ThickPa
     const int rowCount = 2;
     auto backgroundTestNode = SetCommonBackgroundNode();
     auto effectNode = SetDefaultFrostedGlassBlurEffectNode();
-    const std::vector<Vector2f> ThickParams = {Vector2f(0.03f, 0.01f),Vector2f{0.5f, 1.0f},};
+    const std::vector<Vector2f> ThickParams = {Vector2f(0.03f, 0.01f), Vector2f{0.5f, 1.0f}};
     for (int i = 0; i < rowCount; i++) {
         auto spatialGlassEffect = std::make_shared<RSNGSpatialGlassEffect>();
         InitSpatialGlassEffect(spatialGlassEffect);
@@ -184,7 +184,7 @@ GRAPHIC_TEST(SpatialGlassEffectTest, EFFECT_TEST, Set_SpatialGlassEffect_LightDi
     const int rowCount = 2;
     auto backgroundTestNode = SetCommonBackgroundNode();
     auto effectNode = SetDefaultFrostedGlassBlurEffectNode();
-    const std::vector<Vector3f> LightDirParams = {Vector3f(1.0f, 1.0f, 0.0f),Vector3f(0.0f, 1.0f, 0.0f)};
+    const std::vector<Vector3f> LightDirParams = {Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f)};
     for (int i = 0; i < rowCount; i++) {
         auto spatialGlassEffect = std::make_shared<RSNGSpatialGlassEffect>();
         InitSpatialGlassEffect(spatialGlassEffect);
