@@ -53,6 +53,10 @@
 #include "property/rs_properties.h"
 #include "screen_manager/screen_types.h"
 
+#ifdef USE_PRIMITIVE
+#include "foundation/graphic/graphic_2d_ext/subtree/primitive/primitive_dirty_type.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
@@ -1232,6 +1236,12 @@ protected:
 
     // Enable HWCompose
     RSHwcRecorder hwcRecorder_;
+
+#ifdef USE_PRIMITIVE
+    bool isTransformDirty_ = false;
+    PrimitiveDirtyBitmap stagingSelfPrimDirtyBitmap_;
+    PrimitiveDirtyBitmap stagingInfectiousPrimDirtyBitmap_;
+#endif
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;

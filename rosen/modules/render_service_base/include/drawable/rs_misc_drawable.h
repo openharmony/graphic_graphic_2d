@@ -54,6 +54,10 @@ private:
     bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node);
     friend class RSRenderNode;
     friend class RSRenderNodeDrawableAdapter;
+
+#ifdef USE_PRIMITIVE
+    void OnDrawPrimitive(Drawing::Canvas* canvas, const Drawing::Rect* rect) override;
+#endif
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers

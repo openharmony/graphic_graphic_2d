@@ -35,6 +35,9 @@ namespace OHOS {
 namespace Rosen {
 class RSFilter;
 struct IGECacheProvider;
+#ifdef USE_PRIMITIVE
+class PrimListAdapter;
+#endif
 
 class RSB_EXPORT RSPaintFilterCanvasBase : public Drawing::Canvas {
 public:
@@ -521,6 +524,14 @@ public:
     {
         return damageRegionrects;
     }
+
+#ifdef USE_PRIMITIVE
+    std::shared_ptr<PrimListAdapter> primListAdapter_ = nullptr;
+    Drawing::Canvas* GetCanvas()
+    {
+        return canvas_;
+    }
+#endif
 
 protected:
     using Env = struct {

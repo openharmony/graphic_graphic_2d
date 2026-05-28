@@ -81,6 +81,10 @@
 #endif
 #include "rs_composer_context.h"
 
+#ifdef USE_PRIMITIVE
+#include "primitive/primitive_adapter.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -356,6 +360,9 @@ void RSUniRenderThread::ClearResource()
 {
     RunImageReleaseTask();
     DrawableV2::RSRenderNodeDrawableAdapter::ClearResource();
+#ifdef USE_PRIMITIVE
+    PrimListAdapter::ClearResource();
+#endif
 }
 
 void RSUniRenderThread::PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,

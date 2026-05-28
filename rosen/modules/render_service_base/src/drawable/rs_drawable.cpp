@@ -483,7 +483,13 @@ bool RSDrawable::UpdateDirtySlots(
                 // If the slot is no longer needed, destroy it
                 drawable.reset();
                 drawableAddedOrRemoved = true;
+#ifdef USE_PRIMITIVE
+            } else {
+                drawable->SetDirty();
             }
+#else
+            }
+#endif
         } else if (auto& generator = g_drawableGeneratorLut[static_cast<int>(slot)]) {
             // If the slot is not created, call OnGenerate
             if (auto drawable = generator(node)) {
@@ -548,6 +554,9 @@ bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
     auto &stretchDrawable = findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::PIXEL_STRETCH));
     auto pixelStretchDrawable = std::static_pointer_cast<RSPixelStretchDrawable>(stretchDrawable);
     pixelStretchDrawable->OnUpdate(node);
+#ifdef USE_PRIMITIVE
+    pixelStretchDrawable->SetDirty();
+#endif
 
     auto itStart = static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER) + 1;
     auto itEnd = static_cast<int8_t>(RSDrawableSlot::PIXEL_STRETCH);

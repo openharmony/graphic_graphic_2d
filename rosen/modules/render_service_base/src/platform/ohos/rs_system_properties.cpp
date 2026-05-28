@@ -1886,5 +1886,11 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
+
+bool RSSystemProperties::GetUsePrimList()
+{
+    static bool usePrimList = OHOS::system::GetBoolParameter("persist.sys.graphic.useprimlist", true);
+    return usePrimList;
+}
 } // namespace Rosen
 } // namespace OHOS

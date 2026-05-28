@@ -86,6 +86,10 @@
 #endif
 #endif
 
+#ifdef USE_PRIMITIVE
+#include "primitive/primitive_adapter.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 
@@ -3227,6 +3231,9 @@ void RSRenderNode::ApplyPositionZModifier()
         modifier->ApplyLegacyProperty(GetMutableRenderProperties());
     }
     dirtyTypesNG_.reset(transformModifierTypeNG);
+#ifdef USE_PRIMITIVE
+    isTransformDirty_ = true;
+#endif
 }
 
 void RSRenderNode::SetChildHasSharedTransition(bool val)
@@ -3294,12 +3301,28 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         // if children has shared transition, force regenerate RSChildrenDrawable
         AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
     } else if (!RSRenderNode::IsDirty() || dirtyTypesNG_.none()) {
+#ifdef USE_PRIMITIVE
+        if (isTransformDirty_) {
+            stagingSelfPrimDirtyBitmap_.set(static_cast<int>(PrimitiveDirtyType::MATRIX));
+            stagingInfectiousPrimDirtyBitmap_.set(static_cast<int>(PrimitiveDirtyType::MATRIX));
+            isTransformDirty_ = false;
+        }
+#endif
         RS_LOGD("RSRenderNode::apply modifiers RSRenderNode's dirty is false or dirtyTypes_ is none");
         // clean node, skip apply
         return;
     }
     AccumulateLastDirtyTypes();
     RecordCurDirtyTypes();
+#ifdef USE_PRIMITIVE
+    ModifierDirtyTypes2PrimitiveDirtyBitmapNG(dirtyTypesNG_, stagingSelfPrimDirtyBitmap_,
+        stagingInfectiousPrimDirtyBitmap_);
+    if (isTransformDirty_) {
+        stagingSelfPrimDirtyBitmap_.set(static_cast<int>(PrimitiveDirtyType::MATRIX));
+        stagingInfectiousPrimDirtyBitmap_.set(static_cast<int>(PrimitiveDirtyType::MATRIX));
+        isTransformDirty_ = false;
+    }
+#endif
     // Reset and re-apply all modifiers
     ResetAndApplyModifiers();
     ResetFilterInfo();
@@ -4701,6 +4724,13 @@ void RSRenderNode::OnSync()
         }
     }
 
+#ifdef USE_PRIMITIVE
+    renderDrawable_->selfPrimDirtyBitmap_ |= stagingSelfPrimDirtyBitmap_;
+    renderDrawable_->infectiousPrimDirtyBitmap_ |= stagingInfectiousPrimDirtyBitmap_;
+    stagingSelfPrimDirtyBitmap_.reset();
+    stagingInfectiousPrimDirtyBitmap_.reset();
+#endif
+
     if (drawCmdListNeedSync_) {
         std::swap(stagingDrawCmdList_, renderDrawable_->drawCmdList_);
         stagingDrawCmdList_.clear();
@@ -4741,7 +4771,11 @@ void RSRenderNode::OnSync()
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
                 if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
+#ifdef USE_PRIMITIVE
+                    drawable->OnPrimitiveSync();
+#else
                     drawable->OnSync();
+#endif
                 }
             }
             dirtySlots_.clear();

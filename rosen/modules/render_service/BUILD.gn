@@ -482,6 +482,10 @@ ohos_shared_library("librender_service") {
     include_dirs += graphic_2d_subtree_configs.librender_service_subtree_include
   }
 
+  if (graphic_2d_feature_enable_primitive && defined(graphic_2d_subtree_configs.subtree_root)) {
+    include_dirs += graphic_2d_subtree_configs.librender_service_primitive_include
+  }
+
   if (graphic_2d_feature_mhc_enable) {
     include_dirs += graphic_2d_mhc_configs.librender_service_mhc_include
   }
