@@ -103,14 +103,14 @@ typedef struct {
  */
 typedef struct {
     /** The numbers of colors and positions must be the same,
-     *  the red, green, blur and alpha of OH_Filter_Color must be > 0.
+     *  the red, green, blue and alpha of OH_Filter_Color must be > 0.
      */
     OH_Filter_Color* colors;
     /** Specify the position where the color map brightness is set,
      *  the value rangle 0.0f to 1.0f, < 0.0f set to 0.0f, > 1.0f set to 1.0f.
      */
     float* positions;
-    /** The number of available colors and position, must to be > 0, otherwise no effect,
+    /** The number of available colors and position, must be > 0, otherwise no effect,
      *  take first 5 value of color and position if number > 5.
      */
     uint8_t colorsNum;
@@ -152,6 +152,20 @@ typedef enum {
 } EffectTileMode;
 
 /**
+ * @brief Defines a effect filter mask type.
+ *
+ * @since 24
+ */
+typedef enum {
+    /** mask type linear gradient */
+    LINEAR_GRADIENT_MASK = 0,
+    /** mask type radial gradient */
+    RADIAL_GRADIENT_MASK,
+    /** mask type undefined */
+    MAX
+} EffectMaskType;
+
+/**
  * @brief Defines the scale mode of the sampling optiopns .
  *
  * @since 24
@@ -176,20 +190,6 @@ typedef enum {
     /** Linear mode of the scaling mode */
     MIPMAP_MODE_LINEAR,
 } OH_Filter_MipmapMode;
-
-/**
- * @brief Defines a effect filter mask type.
- *
- * @since 24
- */
-typedef enum {
-    /** mask type linear gradient */
-    LINEAR_GRADIENT_MASK = 0,
-    /** mask type radial gradient */
-    RADIAL_GRADIENT_MASK,
-    /** mask type undefined */
-    MAX
-} EffectMaskType;
 
 /**
  * @brief Defines Vector 2d.
@@ -345,7 +345,7 @@ typedef struct {
      */
     OH_Filter_Vec2 shakingDirection1;
 
-    /** Wave shakingDirection1, refraction animation progress.
+    /** Wave shakingDirection2, refraction animation progress.
      * Range: [(-1.0f， -1.0f), (1.0f, 1.0f)]
      */
     OH_Filter_Vec2 shakingDirection2;
@@ -390,7 +390,7 @@ typedef struct {
      */
     float rippleXWave;
 
-    /** Ripple degree in the X-direction of the wave.
+    /** Ripple degree in the Y-direction of the wave.
      *  Range: [0.0f, 1.0f]
      */
     float rippleYWave;

@@ -91,7 +91,7 @@ EffectErrorCode OH_Filter_Blur(OH_Filter* filter, float radius);
 EffectErrorCode OH_Filter_BlurWithTileMode(OH_Filter* filter, float radius, EffectTileMode tileMode);
 
 /**
- * @brief Creates a blur effect width direction angle and then add to the filter.
+ * @brief Creates a blur effect with direction angle and then add to the filter.
  *
  * @param filter The OH_Filter pointer will be operated.
  * @param radius The radius of the blur effect.
@@ -155,7 +155,8 @@ EffectErrorCode OH_Filter_Invert(OH_Filter* filter);
 EffectErrorCode OH_Filter_SetColorMatrix(OH_Filter* filter, OH_Filter_ColorMatrix* matrix);
 
 /**
-* @brief Creates a scale filter and then add to the filter
+* @brief Creates a scale filter and then add to the filter, only support getEffectNativeBuffer pipeline.
+* Note that when the scaling size exceeds the NativeBuffer size, it may cause rendering issues.
 *
 * @param filter The OH_Filter pointer will be operated.
 * @param radius The scaleX.
@@ -279,6 +280,7 @@ EffectErrorCode OH_Filter_GammaCorrection(OH_Filter* filter, float gamma);
  * @brief Obtains the OH_NativeBuffer used to create a filter.
  * This function could transform the pixelmap with effect to a shared memory directly.
  * The user is suggested to align the size and format with the input pixelmap when creating the effect.
+ * Only support GPU.
  *
  * @param filter The OH_Filter pointer will be operated.
  * @param nativeBuffer The OH_NativeBuffer pointer will be operated.
@@ -286,7 +288,8 @@ EffectErrorCode OH_Filter_GammaCorrection(OH_Filter* filter, float gamma);
  * @since 24
  * @version 1.0
  */
-EffectErrorCode OH_Filter_GetEffectNativeBuffer(OH_Filter* filter, OH_NativeBuffer* dstNativeBuffer);
+EffectErrorCode OH_Filter_GetEffectNativeBuffer(
+    OH_Filter *filter, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext);
 
 #ifdef __cplusplus
 }
