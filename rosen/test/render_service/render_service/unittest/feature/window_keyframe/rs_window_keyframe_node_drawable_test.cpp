@@ -209,8 +209,7 @@ HWTEST_F(RSWindowKeyFrameDrawableTest, OnLinkedNodeDrawWithNullSurface, TestSize
     auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
     ASSERT_NE(renderThreadParams, nullptr);
     RSUniRenderThread::Instance().Sync(std::move(renderThreadParams));
-    EXPECT_FALSE(keyframeDrawable_->OnLinkedNodeDraw(nullSurfaceCanvas,
-        *rootDrawable, *rootDrawable->renderParams_));
+    EXPECT_FALSE(keyframeDrawable_->OnLinkedNodeDraw(nullSurfaceCanvas, *rootDrawable, *rootDrawable->renderParams_));
 }
 
 /**
