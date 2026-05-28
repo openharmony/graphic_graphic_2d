@@ -114,6 +114,10 @@ typedef enum {
     DISPLAY_P3_PQ = P3_PQ,
     /** PRIMARIES_BT2020 | TRANSFUNC_SRGB | RANGE_FULL */
     DISPLAY_BT2020_SRGB = 26,
+    /** PRIMARIES_BT2020 | TRANSFUNC_PRIV_LOG | RANGE_FULL */
+    BT2020_LOG_FULL = 27,
+    /** PRIMARIES_BT2020 | TRANSFUNC_PRIV_LOG | RANGE_LIMIT */
+    BT2020_LOG_LIMIT = 28,
     /** Indicates a customized color space. */
     CUSTOM = 5,
 } ColorSpaceName;
