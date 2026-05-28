@@ -1498,7 +1498,7 @@ HWTEST_F(EffectImageChainUnittest, ApplyScaleWithInvalidScaleX001, TestSize.Leve
         );
         // Test with null pixelmap
         std::shared_ptr<Media::PixelMap> nullPixelmap = nullptr;
-        auto ret = image->PrepareNativeBuffer(nullPixelmap, dst, false);
+        auto ret = image->PrepareNativeBuffer(nullPixelmap, dst);
         ASSERT_NE(ret, DrawingError::ERR_OK);
         // Test with null buffer
         Media::InitializationOptions opts;
@@ -1506,7 +1506,7 @@ HWTEST_F(EffectImageChainUnittest, ApplyScaleWithInvalidScaleX001, TestSize.Leve
         std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
         ASSERT_NE(srcPixelMap, nullptr);
         std::shared_ptr<OH_NativeBuffer> nullBuffer = nullptr;
-        ret = image->PrepareNativeBuffer(srcPixelMap, nullBuffer, false);
+        ret = image->PrepareNativeBuffer(srcPixelMap, nullBuffer);
         ASSERT_NE(ret, DrawingError::ERR_OK);
         OH_NativeBuffer_Unreference(dstBuffer);
     }
