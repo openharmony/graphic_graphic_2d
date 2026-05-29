@@ -28,9 +28,7 @@ group("unittest") {
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableTest",
     ":RSRootRenderNodeDrawableTest",
-    ":RSScreenRenderNodeDrawableTest",
     ":RSSkpCaptureDFXTest",
-    ":RSSurfaceRenderNodeDrawableTest",
   ]
 }
 

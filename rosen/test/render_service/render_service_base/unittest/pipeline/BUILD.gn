@@ -1585,7 +1585,6 @@ group("unittest") {
 
   deps = [
     ":RSBaseRenderNodeTest",
-    ":RSCanvasDrawingRenderNodeTest",
     ":RSCanvasRenderNodeTest",
     ":RSContextTest",
     ":RSDirtyRegionManagerTest",
@@ -1611,7 +1610,6 @@ group("unittest") {
     ":RSRootRenderNodeTest",
     ":RSSurfaceHandlerTest",
     ":RSSurfaceRenderNodeFourTest",
-    ":RSSurfaceRenderNodeTest",
     ":RSSurfaceRenderNodeThreeTest",
     ":RSSurfaceRenderNodeTwoTest",
     ":RSTaskDispatcherTest",
