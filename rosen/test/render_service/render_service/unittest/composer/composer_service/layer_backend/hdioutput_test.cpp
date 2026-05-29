@@ -4821,8 +4821,14 @@ HWTEST_F(HdiOutputTest, TunnelCallbacksAndPendingCreatedBranches, Function | Med
     EXPECT_EQ(callbackData.count, 1u);
 
     auto graphicRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID);
-    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID_SECOND, TEST_NODE_ID_SECOND,
-        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto tunnelRsLayer = std::make_shared<RSRenderSurfaceLayer>();
+    tunnelRsLayer->SetSurfaceUniqueId(TEST_SURFACE_ID_SECOND);
+    tunnelRsLayer->SetNodeId(TEST_NODE_ID_SECOND);
+    tunnelRsLayer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    tunnelRsLayer->SetTunnelLayerId(TEST_TUNNEL_LAYER_ID);
+    tunnelRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
+    tunnelRsLayer->SetTunnelLayerGeneration(TEST_TUNNEL_LAYER_ID);
+    tunnelRsLayer->SetHdiCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     auto graphicLayer = CreateHdiOutputHdiLayer(graphicRsLayer);
     auto tunnelLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
     ASSERT_NE(graphicLayer, nullptr);
