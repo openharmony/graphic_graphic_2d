@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifdef SUPPORT_ACCESS_TOKEN
 #include <chrono>
 #include <thread>
 #include <vector>
@@ -582,3 +583,4 @@ HWTEST_F(RSRenderComposerClientRemoteTest, GetLayerInfo002, TestSize.Level0)
     rsLayer->SetBufferOwnerCount(bufferOwnerCount, true);
 }
 }
+#endif
