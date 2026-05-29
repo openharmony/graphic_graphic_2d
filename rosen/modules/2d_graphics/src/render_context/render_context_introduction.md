@@ -297,4 +297,4 @@ private:
 1. **抽象工厂模式**: `RenderContext::Create()`根据系统属性动态创建GL或VK后端实例
 2. **单例模式**: `ShaderCache::Instance()`提供全局唯一的Shader缓存访问点
 3. **策略模式**: RenderContextGL和RenderContextVK作为不同的渲染策略实现同一接口
-4. **模板方法模式**: ShaderCache定义缓存操作的统一流程，具体存储由CacheData实现
+4. **模板方法模式**: ShaderCache定义缓存操作的统一的流程，具体存储由CacheData实现

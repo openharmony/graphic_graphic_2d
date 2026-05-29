@@ -301,8 +301,6 @@ sources = [
 ]
 ```
 
-> 注意：`rs_game_frame_handler.cpp` 存在于源码目录中但未包含在 BUILD.gn 的 sources 列表中，说明该文件可能处于开发阶段或由其他构建目标引用。
-
 **依赖关系**:
 ```gn
 deps = [

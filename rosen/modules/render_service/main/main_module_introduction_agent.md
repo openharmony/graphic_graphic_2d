@@ -29,7 +29,7 @@
 - **进程管理**：作为主进程管理子进程的生命周期
 - **资源协调**：协调screenManager、vsyncManager、composerManager、HGM等周边模块
 - **IPC服务端**：作为Binder服务端响应客户端请求
-- **硬件交互**：通过composerManager与硬件合成器（HWC）交互，控制显示输出
+- **硬件交互**：通过composerManager与硬件合成器交互，控制显示输出
 - **事件循环**：拥有runner和handler，支持任务调度
 
 #### render_process进程职责
