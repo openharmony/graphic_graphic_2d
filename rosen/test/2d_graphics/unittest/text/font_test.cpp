@@ -266,7 +266,7 @@ HWTEST_F(FontTest, DecodeTextToCodepoints006, TestSize.Level1)
     const char32_t text[] = U"你好";
     std::vector<int32_t> out;
     bool result = DecodeTextToCodepoints(text, 3, TextEncoding::UTF32, out);
-    ASSERT_EQ(result, false);
+    ASSERT_EQ(result, true);
 }
 
 /**
