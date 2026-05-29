@@ -65,7 +65,6 @@ constexpr uint64_t TEST_NODE_ID = 7201;
 constexpr uint64_t TEST_NODE_ID_SECOND = 7202;
 constexpr uint64_t TEST_TUNNEL_LAYER_ID = 7301;
 constexpr uint64_t TEST_TUNNEL_LAYER_ID_SECOND = 7302;
-constexpr size_t EXPECTED_DEFERRED_LAYER_COUNT = 2;
 constexpr size_t TEST_PIPE_FD_COUNT = 2;
 constexpr int RELEASE_FENCE_ARG_INDEX = 2;
 constexpr uint32_t EXPECTED_TUNNEL_CALLBACK_COUNT = 2;
@@ -4739,36 +4738,6 @@ HWTEST_F(HdiOutputTest, Dump_IsSplitRenderTrue_NullHdiLayer_Skipped, Function | 
     EXPECT_TRUE(result.find("LayerInfo ScreenId:") != std::string::npos);
 }
 
-HWTEST_F(HdiOutputTest, TunnelDeferredDestroyLatestAndRelease, Function | MediumTest | Level1)
-{
-    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
-    auto graphicRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID);
-    auto oldRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
-        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
-    auto newRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID_SECOND,
-        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID_SECOND);
-    auto graphicLayer = CreateHdiOutputHdiLayer(graphicRsLayer);
-    auto oldTunnelLayer = CreateHdiOutputHdiLayer(oldRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
-    auto newTunnelLayer = CreateHdiOutputHdiLayer(newRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
-    ASSERT_NE(output, nullptr);
-    ASSERT_NE(graphicLayer, nullptr);
-    ASSERT_NE(oldTunnelLayer, nullptr);
-    ASSERT_NE(newTunnelLayer, nullptr);
-
-    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, nullptr);
-    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, graphicLayer);
-    EXPECT_TRUE(output->deferredDestroyLayers_.empty());
-    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, oldTunnelLayer);
-    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, newTunnelLayer);
-
-    auto latestIter = output->latestDeferredDestroyLayers_.find(TEST_SURFACE_ID);
-    ASSERT_NE(latestIter, output->latestDeferredDestroyLayers_.end());
-    EXPECT_EQ(latestIter->second, newTunnelLayer);
-    auto layers = output->CollectDeferredDestroyLayersLocked();
-    EXPECT_EQ(layers.size(), EXPECTED_DEFERRED_LAYER_COUNT);
-    EXPECT_TRUE(output->latestDeferredDestroyLayers_.empty());
-}
-
 HWTEST_F(HdiOutputTest, TunnelSurfaceStateAndNodeLookupBranches, Function | MediumTest | Level1)
 {
     auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
@@ -4797,11 +4766,8 @@ HWTEST_F(HdiOutputTest, TunnelSurfaceStateAndNodeLookupBranches, Function | Medi
     EXPECT_EQ(output->GetTunnelLayerGenerationBySurfaceId(TEST_SURFACE_ID), TEST_TUNNEL_LAYER_ID);
     EXPECT_EQ(output->DestroyLayerBySurfaceId(0), GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_EQ(output->DestroyLayerBySurfaceId(TEST_SURFACE_ID), GRAPHIC_DISPLAY_SUCCESS);
-    auto latestIter = output->latestDeferredDestroyLayers_.find(TEST_SURFACE_ID);
-    ASSERT_NE(latestIter, output->latestDeferredDestroyLayers_.end());
-    EXPECT_EQ(latestIter->second, hdiLayer);
-    EXPECT_EQ(output->GetNodeIdBySurfaceId(TEST_SURFACE_ID), TEST_NODE_ID);
-    EXPECT_EQ(output->GetTunnelLayerGenerationBySurfaceId(TEST_SURFACE_ID), TEST_TUNNEL_LAYER_ID);
+    EXPECT_EQ(output->GetNodeIdBySurfaceId(TEST_SURFACE_ID), 0);
+    EXPECT_EQ(output->GetTunnelLayerGenerationBySurfaceId(TEST_SURFACE_ID), 0);
 }
 
 HWTEST_F(HdiOutputTest, TunnelCallbacksAndPendingCreatedBranches, Function | MediumTest | Level1)
@@ -4829,7 +4795,7 @@ HWTEST_F(HdiOutputTest, TunnelCallbacksAndPendingCreatedBranches, Function | Med
     tunnelRsLayer->SetTunnelLayerId(TEST_TUNNEL_LAYER_ID);
     tunnelRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
     tunnelRsLayer->SetTunnelLayerGeneration(TEST_TUNNEL_LAYER_ID);
-    tunnelRsLayer->SetHdiCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    tunnelRsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     auto nonDeviceRsLayer = std::make_shared<RSRenderSurfaceLayer>();
     nonDeviceRsLayer->SetSurfaceUniqueId(TEST_SURFACE_ID_THIRD);
     nonDeviceRsLayer->SetNodeId(TEST_NODE_ID);
@@ -4837,7 +4803,7 @@ HWTEST_F(HdiOutputTest, TunnelCallbacksAndPendingCreatedBranches, Function | Med
     nonDeviceRsLayer->SetTunnelLayerId(TEST_TUNNEL_LAYER_ID);
     nonDeviceRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
     nonDeviceRsLayer->SetTunnelLayerGeneration(TEST_TUNNEL_LAYER_ID);
-    nonDeviceRsLayer->SetHdiCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    nonDeviceRsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     auto graphicLayer = CreateHdiOutputHdiLayer(graphicRsLayer);
     auto tunnelLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
     auto nonDeviceLayer = CreateHdiOutputHdiLayer(nonDeviceRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
@@ -4965,8 +4931,14 @@ HWTEST_F(HdiOutputTest, TunnelCreateNullAndFinalizePostCommitBranches, Function 
     ASSERT_EQ(output->RegLayerCreated(OnLayerCreatedForTest, &callbackData), ROSEN_ERROR_OK);
     output->createHdiLayerFunc_ = [](uint32_t) -> std::shared_ptr<HdiLayer> { return nullptr; };
 
-    auto tunnelRsLayer = CreateHdiOutputSurfaceLayer(TEST_SURFACE_ID, TEST_NODE_ID,
-        GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL, TEST_TUNNEL_LAYER_ID);
+    auto tunnelRsLayer = std::make_shared<RSRenderSurfaceLayer>();
+    tunnelRsLayer->SetSurfaceUniqueId(TEST_SURFACE_ID);
+    tunnelRsLayer->SetNodeId(TEST_NODE_ID);
+    tunnelRsLayer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+    tunnelRsLayer->SetTunnelLayerId(TEST_TUNNEL_LAYER_ID);
+    tunnelRsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);
+    tunnelRsLayer->SetTunnelLayerGeneration(TEST_TUNNEL_LAYER_ID);
+    tunnelRsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     EXPECT_EQ(output->CreateLayerLocked(TEST_SURFACE_ID, tunnelRsLayer), GRAPHIC_DISPLAY_FAILURE);
     EXPECT_EQ(callbackData.count, 1u);
     EXPECT_FALSE(callbackData.success);
@@ -4975,12 +4947,10 @@ HWTEST_F(HdiOutputTest, TunnelCreateNullAndFinalizePostCommitBranches, Function 
     auto createdLayer = CreateHdiOutputHdiLayer(tunnelRsLayer, GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
     ASSERT_NE(createdLayer, nullptr);
     output->RegisterCreatedLayerLocked(TEST_SURFACE_ID, createdLayer, tunnelRsLayer, true);
-    output->AppendDeferredDestroyLayerLocked(TEST_SURFACE_ID, createdLayer);
     output->FinalizePostCommit(false);
     uint64_t tunnelLayerGeneration = 0;
     EXPECT_TRUE(createdLayer->TakePendingTunnelLayerCreated(tunnelLayerGeneration));
     EXPECT_EQ(callbackData.count, 1u);
-    EXPECT_TRUE(output->deferredDestroyLayers_.empty());
 
     createdLayer->MarkPendingTunnelLayerCreated(TEST_TUNNEL_LAYER_ID);
     output->invalidTunnelSurfaceIds_.insert(TEST_SURFACE_ID);

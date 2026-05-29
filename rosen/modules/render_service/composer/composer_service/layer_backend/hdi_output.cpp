@@ -225,7 +225,7 @@ void HdiOutput::DestroyLayerBySurfaceIdLocked(uint64_t surfaceId)
     if (hdiLayer != nullptr) {
         layerIdMap_.erase(hdiLayer->GetLayerId());
         layersTobeRelease_.remove(hdiLayer);
-        AppendDeferredDestroyLayerLocked(surfaceId, hdiLayer);
+        UnregisterTunnelHdiLayer(screenId_, hdiLayer);
     }
 }
 
@@ -330,9 +330,6 @@ void HdiOutput::UnregisterGlobalTunnelLayersLocked() const
     for (const auto& [_, hdiLayer] : surfaceIdMap_) {
         UnregisterTunnelHdiLayer(screenId_, hdiLayer);
     }
-    for (const auto& layerInfo : deferredDestroyLayers_) {
-        UnregisterTunnelHdiLayer(screenId_, layerInfo.hdiLayer);
-    }
 }
 
 void HdiOutput::MarkTunnelSurfaceInvalid(uint64_t surfaceId)
@@ -363,10 +360,6 @@ uint64_t HdiOutput::GetNodeIdBySurfaceId(uint64_t surfaceId) const
     auto iter = surfaceIdMap_.find(surfaceId);
     std::shared_ptr<HdiLayer> hdiLayer = iter == surfaceIdMap_.end() ? nullptr : iter->second;
     if (hdiLayer == nullptr) {
-        auto deferredIter = latestDeferredDestroyLayers_.find(surfaceId);
-        hdiLayer = deferredIter == latestDeferredDestroyLayers_.end() ? nullptr : deferredIter->second;
-    }
-    if (hdiLayer == nullptr) {
         return 0;
     }
     auto rsLayer = hdiLayer->GetRSLayer();
@@ -385,10 +378,6 @@ uint64_t HdiOutput::GetTunnelLayerGenerationBySurfaceId(uint64_t surfaceId) cons
     std::unique_lock<std::mutex> lock(mutex_);
     auto iter = surfaceIdMap_.find(surfaceId);
     std::shared_ptr<HdiLayer> hdiLayer = iter == surfaceIdMap_.end() ? nullptr : iter->second;
-    if (hdiLayer == nullptr) {
-        auto deferredIter = latestDeferredDestroyLayers_.find(surfaceId);
-        hdiLayer = deferredIter == latestDeferredDestroyLayers_.end() ? nullptr : deferredIter->second;
-    }
     if (hdiLayer == nullptr) {
         return 0;
     }
@@ -426,9 +415,6 @@ int32_t HdiOutput::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tun
         auto iter = surfaceIdMap_.find(surfaceId);
         if (iter != surfaceIdMap_.end()) {
             hdiLayer = iter->second;
-        } else {
-            auto deferredIter = latestDeferredDestroyLayers_.find(surfaceId);
-            hdiLayer = deferredIter == latestDeferredDestroyLayers_.end() ? nullptr : deferredIter->second;
         }
         if (hdiLayer == nullptr) {
             HLOGE("%{public}s can not find hdiLayer, surfaceId:%{public}" PRIu64, __func__, surfaceId);
@@ -488,7 +474,7 @@ void HdiOutput::DeletePrevLayersLocked()
     while (surfaceIter != surfaceIdMap_.end()) {
         const std::shared_ptr<HdiLayer>& hdiLayer = surfaceIter->second;
         if (!hdiLayer->GetLayerStatus()) {
-            AppendDeferredDestroyLayerLocked(surfaceIter->first, hdiLayer);
+            UnregisterTunnelHdiLayer(screenId_, hdiLayer);
             ClearTunnelDeclinedLocked(surfaceIter->first);
             surfaceIdMap_.erase(surfaceIter++);
         } else {
@@ -540,26 +526,6 @@ void HdiOutput::ResetLayerStatusLocked()
             rsLayer->SetIsNeedComposition(false);
         }
     }
-}
-
-void HdiOutput::AppendDeferredDestroyLayerLocked(uint64_t surfaceId, const std::shared_ptr<HdiLayer>& hdiLayer)
-{
-    if (!IsTunnelHdiLayer(hdiLayer)) {
-        return;
-    }
-    DeferredDestroyLayerInfo layerInfo;
-    layerInfo.surfaceId = surfaceId;
-    layerInfo.hdiLayer = hdiLayer;
-    deferredDestroyLayers_.push_back(layerInfo);
-    latestDeferredDestroyLayers_[surfaceId] = hdiLayer;
-}
-
-std::list<DeferredDestroyLayerInfo> HdiOutput::CollectDeferredDestroyLayersLocked()
-{
-    std::list<DeferredDestroyLayerInfo> deferredDestroyLayers;
-    deferredDestroyLayers.swap(deferredDestroyLayers_);
-    latestDeferredDestroyLayers_.clear();
-    return deferredDestroyLayers;
 }
 
 bool HdiOutput::CheckSupportArsrPreMetadata()
@@ -1048,20 +1014,15 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
 void HdiOutput::FinalizePostCommit(bool commitSucceeded)
 {
     std::vector<LayerCreatedInfo> createdInfos;
-    std::list<DeferredDestroyLayerInfo> destroyLayers;
     {
         std::unique_lock<std::mutex> lock(mutex_);
         if (commitSucceeded) {
             ClearRecoveredInvalidTunnelSurfaceIdsLocked();
             createdInfos = CollectPendingLayerCreatedInfosLocked();
         }
-        destroyLayers = CollectDeferredDestroyLayersLocked();
     }
     for (const auto& info : createdInfos) {
         OnLayerCreated(info.nodeId, true, info.tunnelLayerGeneration);
-    }
-    for (const auto& layerInfo : destroyLayers) {
-        UnregisterTunnelHdiLayer(screenId_, layerInfo.hdiLayer);
     }
 }
 
