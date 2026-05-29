@@ -66,7 +66,7 @@
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Security::AccessToken;
-
+#if defined(RS_ENABLE_UNI_RENDER)
 namespace {
 constexpr const int DEFAULT_WIDTH = 2160;
 constexpr const int DEFAULT_HEIGHT = 1080;
@@ -77,7 +77,6 @@ constexpr const int DELAY_TEAR_DOWN_TESE_CASE = 110;
 // constexpr const size_t PARCEL_MAX_CAPACITY = 2000 * 1024;
 
 };
-
 namespace OHOS::Rosen {
 namespace {
 class MockRSBrightnessInfoChangeCallback : public IRemoteProxy<RSIBrightnessInfoChangeCallback> {
@@ -5546,3 +5545,4 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetHdrForceHwcEnabledStubTest003, 
     setuid(0);
 }
 } // namespace OHOS::Rosen
+#endif

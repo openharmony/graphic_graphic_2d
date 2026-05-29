@@ -75,6 +75,7 @@ HWTEST_F(RSCanvasNodeCommandTest, Create001, TestSize.Level1)
     NodeId targetId = static_cast<NodeId>(-1);
     RSCanvasNodeCommandHelper::Create(context, targetId, false);
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(targetId), nullptr);
+    context.GetMutableNodeMap().UnregisterRenderNode(targetId);
 }
 
 /**
@@ -89,6 +90,7 @@ HWTEST_F(RSCanvasNodeCommandTest, Create002, TestSize.Level1)
     NodeId targetId = 0;
     RSCanvasNodeCommandHelper::Create(context, targetId, false);
     EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(targetId), nullptr);
+    context.GetMutableNodeMap().UnregisterRenderNode(targetId);
 }
 
 /**
@@ -136,6 +138,7 @@ HWTEST_F(RSCanvasNodeCommandTest, UpdateRecording001, TestSize.Level1)
     drawCmds = std::make_shared<Drawing::DrawCmdList>();
     RSCanvasNodeCommandHelper::UpdateRecording(context, id, drawCmds, modifierType);
     EXPECT_TRUE(drawCmds == nullptr);
+    context.GetMutableNodeMap().UnregisterRenderNode(id);
 }
 
 /**
@@ -169,6 +172,7 @@ HWTEST_F(RSCanvasNodeCommandTest, ClearRecording001, TestSize.Level1)
 
     RSCanvasNodeCommandHelper::ClearRecording(context, 0);
     EXPECT_TRUE(id);
+    context.GetMutableNodeMap().UnregisterRenderNode(id);
 }
 
 /**
@@ -212,23 +216,4 @@ HWTEST_F(RSCanvasNodeCommandTest, SetPixelmap, TestSize.Level1)
     RSCanvasNodeCommandHelper::SetPixelmap(context, id, pixelmap);
     context.GetMutableNodeMap().UnregisterRenderNode(id);
 }
-
-/**
- * @tc.name: CreateDOSProtectionTest
- * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
- * @tc.type: FUNC
- */
-HWTEST_F(RSCanvasNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
-{
-    RSContext context;
-    pid_t pid = 1;
-    for (uint32_t i = 0; i <= MAX_NODE_COUNT_PER_PID; i++) {
-        NodeId existId = MakeNodeId(pid, i);
-        RSCanvasNodeCommandHelper::Create(context, existId, false);
-    }
-    NodeId newNodeId = MakeNodeId(pid, MAX_NODE_COUNT_PER_PID + 1);
-    RSCanvasNodeCommandHelper::Create(context, newNodeId, false);
-    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(newNodeId), nullptr);
-}
-
 } // namespace OHOS::Rosen

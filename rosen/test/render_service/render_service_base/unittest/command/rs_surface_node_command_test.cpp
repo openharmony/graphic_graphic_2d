@@ -499,7 +499,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
     context.nodeMap.logicalDisplayNodeMap_[0]->isOnTheTree_ = false;
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->isOnTheTree_ = false;
+    context.nodeMap.logicalDisplayNodeMap_[0]->isOnTheTree_ = true;
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
     EXPECT_EQ(context.nodeMap.logicalDisplayNodeMap_[0]->children_.size(), 0);
 }
