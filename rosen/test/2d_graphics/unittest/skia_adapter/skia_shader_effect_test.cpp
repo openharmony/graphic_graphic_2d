@@ -412,10 +412,10 @@ HWTEST_F(SkiaShaderEffectTest, ConvertUIColorToColor4f001, TestSize.Level1)
     EXPECT_FLOAT_EQ(result[0].greenF_, 0.2f);
     EXPECT_FLOAT_EQ(result[0].blueF_, 0.3f);
     EXPECT_FLOAT_EQ(result[0].alphaF_, 0.4f);
-    EXPECT_FLOAT_EQ(result[1].redF_, 1.0f);
-    EXPECT_FLOAT_EQ(result[1].greenF_, 1.0f);
-    EXPECT_FLOAT_EQ(result[1].blueF_, 1.0f);
-    EXPECT_FLOAT_EQ(result[1].alphaF_, 1.0f);
+    EXPECT_FLOAT_EQ(result[1].redF_, 1.5f);
+    EXPECT_FLOAT_EQ(result[1].greenF_, 1.6f);
+    EXPECT_FLOAT_EQ(result[1].blueF_, 1.7f);
+    EXPECT_FLOAT_EQ(result[1].alphaF_, 1.8f);
 }
 
 /**

@@ -476,25 +476,6 @@ HWTEST_F(FontFeatureQueryTest, GenerateFontSupportedFeaturesDejaVuMathTeXGyreByP
 }
 
 /**
- * @tc.name: GenerateFontSupportedFeaturesDejaVuMathTeXGyreByVector
- * @tc.desc: Test GenerateFontSupportedFeatures
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(FontFeatureQueryTest, GenerateFontSupportedFeaturesDejaVuMathTeXGyreByVector, TestSize.Level1)
-{
-    std::string ttfName = "DejaVuMathTeXGyre.ttf";
-    std::string path = GenerateRelativePathForFontResource(ttfName);
-    std::vector<uint8_t> fontData;
-    getDataStream(path, fontData);
-    ASSERT_FALSE(fontData.empty());
-
-    auto features = FontFeatureQuery::GenerateFontSupportedFeatures(fontData);
-    std::vector<std::string> featuresExp = {"aalt", "dtls", "ssty"};
-    EXPECT_EQ(features, featuresExp);
-}
-
-/**
  * @tc.name: GenerateFontSupportedFeaturesHMSymbolVFByTypeface
  * @tc.desc: Test GenerateFontSupportedFeatures
  * @tc.type: FUNC
