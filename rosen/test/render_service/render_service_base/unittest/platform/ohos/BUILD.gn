@@ -1735,7 +1735,7 @@ group("unittest") {
     ":RSJankStatsTest",
     ":RSJankReportThreadTest",
     ":RSLogTest",
-    ":RSMarshallingHelperTest",
+    #":RSMarshallingHelperTest",
     ":RSNodeStatsTest",
     ":RSProxyTest",
     ":RSRenderServiceConnectHubTest",

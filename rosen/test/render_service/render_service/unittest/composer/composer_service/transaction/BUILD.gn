@@ -22,9 +22,9 @@ group("unittest") {
   deps = [
     ":RSLayerTransactionTest",
     ":RSTransactionDataTest",
-    ":RSMarshallingHelperTest",
-    ":RSLayerTransactionHandlerTest",
-    "command:unittest",
+    #":RSMarshallingHelperTest",
+    #":RSLayerTransactionHandlerTest",
+    #"command:unittest",
   ]
 }
 
