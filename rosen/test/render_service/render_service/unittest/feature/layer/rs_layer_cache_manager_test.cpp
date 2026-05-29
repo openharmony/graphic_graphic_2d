@@ -63,6 +63,7 @@ void RSLayerCacheManagerTest::TearDownTestCase() {}
 void RSLayerCacheManagerTest::SetUp() {}
 void RSLayerCacheManagerTest::TearDown() {}
 
+#ifdef RS_ENABLE_VK
 /**
  * @tc.name: HandleLayerDrawablesTest001
  * @tc.desc: Test HandleLayerDrawables
@@ -873,5 +874,6 @@ HWTEST_F(RSLayerCacheManagerTest, LayerCacheRegionDfxTest, TestSize.Level1)
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
     (void)system::SetParameter(debugKey, oldDebugValue);
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

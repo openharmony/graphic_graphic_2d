@@ -28,6 +28,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
+#include "feature/layer/rs_layer_cache_manager_base.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -3387,6 +3388,15 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (nodeParent == nullptr) {
         return;
     }
+    bool isSupportLayer = RSLayerCacheManagerBase::isNodeUnSupportLayer(node) ||
+                          node.GetOpincRootCache().IsSuggestOpincNode() || node.GetRenderProperties().IsShadowValid() ||
+                          node.GetRenderProperties().IsBgBrightnessValid() ||
+                          node.GetRenderProperties().IsColorBlendModeValid() ||
+                          node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE;
+    if (isSupportLayer) {
+        RSLayerCacheManagerBase::nodeUnSupportLayerStatus_[nodeParent->GetId()] = true;
+    }
+
     // Handle ColorPickerDrawable - MERGE into filter handling
     if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter() ||
         node.GetColorPickerDrawable()) {
