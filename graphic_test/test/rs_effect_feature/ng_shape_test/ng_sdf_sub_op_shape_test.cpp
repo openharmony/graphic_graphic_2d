@@ -29,9 +29,9 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-constexpr int SCREEN_WIDTH = 1200;
-constexpr int SCREEN_HEIGHT = 2000;
-constexpr int COLUMN_COUNT = 2;
+constexpr int32_t SCREEN_WIDTH = 1200;
+constexpr int32_t SCREEN_HEIGHT = 2000;
+constexpr int32_t COLUMN_COUNT = 2;
 constexpr float SMOOTH_SPACING_SMALL = 1.0f;
 constexpr float SMOOTH_SPACING_MEDIUM = 24.0f;
 constexpr float SMOOTH_SPACING_LARGE = 120.0f;
