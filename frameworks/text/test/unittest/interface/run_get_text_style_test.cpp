@@ -724,4 +724,77 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest018, TestSize.Level0)
     VerifyLanguageResultStyle(runs[2]->GetTextStyle(), "ar-SA", 16.0, FontWeight::W600, Drawing::Color::COLOR_BLUE);
 }
 
+/*
+ * @tc.name: RunGetTextStyleTest019
+ * @tc.desc: Test GetTextStyle with fontFeatures property
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest019, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle paragraphStyle;
+    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(paragraphStyle, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontFeatures.SetFeature("liga", 1);
+    textStyle.fontFeatures.SetFeature("tnum", 1);
+
+    typographyCreate_->PushStyle(textStyle);
+
+    std::u16string text = u"FeatureTest";
+    typographyCreate_->AppendText(text);
+
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+
+    typography_->Layout(LAYOUT_WIDTH_MEDIUM);
+
+    auto textLines = typography_->GetTextLines();
+    spRuns_ = textLines[0]->GetGlyphRuns();
+
+    TextStyle resultStyle = spRuns_[0]->GetTextStyle();
+
+    const auto &features = resultStyle.fontFeatures.GetFontFeatures();
+    EXPECT_EQ(features.size(), 2);
+    EXPECT_EQ(features[0].first, "liga");
+    EXPECT_EQ(features[0].second, 1);
+    EXPECT_EQ(features[1].first, "tnum");
+    EXPECT_EQ(features[1].second, 1);
+}
+
+/*
+ * @tc.name: RunGetTextStyleTest020
+ * @tc.desc: Test GetTextStyle with fontVariations property
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest020, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle paragraphStyle;
+    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(paragraphStyle, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+
+    TextStyle textStyle;
+    textStyle.fontVariations.SetAxisValue("wght", 400.0f);
+    textStyle.fontVariations.SetAxisValue("wdth", 75.0f);
+
+    typographyCreate_->PushStyle(textStyle);
+
+    std::u16string text = u"VariationTest";
+    typographyCreate_->AppendText(text);
+
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+
+    typography_->Layout(LAYOUT_WIDTH_MEDIUM);
+
+    auto textLines = typography_->GetTextLines();
+    spRuns_ = textLines[0]->GetGlyphRuns();
+
+    TextStyle resultStyle = spRuns_[0]->GetTextStyle();
+
+    const auto &axisValues = resultStyle.fontVariations.GetAxisValues();
+    EXPECT_EQ(axisValues.size(), 2);
+    EXPECT_FLOAT_EQ(axisValues.at("wght").first, 400.0f);
+    EXPECT_FLOAT_EQ(axisValues.at("wdth").first, 75.0f);
+}
 } // namespace

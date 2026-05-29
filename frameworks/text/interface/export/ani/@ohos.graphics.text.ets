@@ -555,6 +555,7 @@ export default namespace text {
       fontFeatures: Array<FontFeature>,
       textShadows: Array<TextShadow>,
       backgroundRect: RectStyle,
+      fontVariations: Array<FontVariation>,
       badgeType: TextBadgeType,
       lineHeightMaximum: double,
       lineHeightMinimum: double,
@@ -581,6 +582,7 @@ export default namespace text {
       this.fontFeatures = fontFeatures;
       this.textShadows = textShadows;
       this.backgroundRect = backgroundRect;
+      this.fontVariations = fontVariations;
       this.badgeType = badgeType;
       this.lineHeightMaximum = lineHeightMaximum;
       this.lineHeightMinimum = lineHeightMinimum;
@@ -789,10 +791,12 @@ export default namespace text {
     isNormalized?: boolean;
     constructor(
       axis: string,
-      value: double
+      value: double,
+      isNormalized?: boolean
     ) {
       this.axis = axis;
       this.value = value;
+      this.isNormalized = isNormalized;
     }
   }
 
