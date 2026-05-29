@@ -489,9 +489,9 @@ bool RSHdrUtil::HDRColorHeadroomMapping(const Drawing::UIColor& srcColor, Drawin
         displayHeadroom =
             RSLuminanceControl::Get().GetDisplayNits(screenId) / RSLuminanceControl::Get().GetSdrDisplayNits(screenId);
     }
-    Media::VideoProcessingEngine::NonLinearRGB inputRgb =
-        {srcColor.GetRed(), srcColor.GetGreen(), srcColor.GetBlue()};
-    Media::VideoProcessingEngine::NonLinearRGB outputRgb = {0.0f, 0.0f, 0.0f};
+    Media::VideoProcessingEngine::NonLinearRGB inputRgb = {
+        srcColor.GetRed(), srcColor.GetGreen(), srcColor.GetBlue() };
+    Media::VideoProcessingEngine::NonLinearRGB outputRgb = { 0.0f, 0.0f, 0.0f };
     Media::Format aihdrParameter {};
     aihdrParameter.PutFloatValue("expectedHeadroom", srcColor.GetHeadroom());
     aihdrParameter.PutFloatValue("actualHeadroom", displayHeadroom);
