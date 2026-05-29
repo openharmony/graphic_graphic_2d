@@ -97,10 +97,12 @@ HWTEST_F(EglBlobTest, EglBlobInit003, Level1)
     EGLsizeiANDROID valuesize = 4;
     EGLsizeiANDROID valuesize2 = 3;
     void *value2 = malloc(4);
+    ASSERT_NE(value2, nullptr);
+    *static_cast<int *>(value2) = -1;
     BlobCache::SetBlobFunc(key, keysize, value, valuesize);
     BlobCache::GetBlobFunc(key, keysize, value2, valuesize2);
     int c = *static_cast<int *>(value2);
-    ASSERT_EQ(c, 0);
+    ASSERT_EQ(c, -1);
 }
 
 /**
@@ -126,10 +128,12 @@ HWTEST_F(EglBlobTest, EglBlobInit004, Level1)
     EGLsizeiANDROID keysize = -1;
     EGLsizeiANDROID valuesize = -1;
     void *value2 = malloc(4);
+    ASSERT_NE(value2, nullptr);
+    *static_cast<int *>(value2) = -1;
     BlobCache::SetBlobFunc(key, keysize, value, valuesize);
     BlobCache::GetBlobFunc(key, keysize, value2, valuesize);
     int c = *static_cast<int *>(value2);
-    ASSERT_EQ(c, 0);
+    ASSERT_EQ(c, -1);
 }
 
 /**
