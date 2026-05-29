@@ -788,6 +788,18 @@ HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest004, TestSize.Level1)
     VkFormat vkFormat = VK_FORMAT_R32_SFLOAT;
     EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_8888);
 }
+
+/**
+ * @tc.name: GetColorTypeWithVKFormatTest005
+ * @tc.desc: Verify function GetColorTypeWithVKFormat
+ * @tc.type: FUNC
+ * @tc.require: issue#23950
+ */
+HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest005, TestSize.Level1)
+{
+    VkFormat vkFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_BGRA_8888);
+}
 #endif
 
 /**
