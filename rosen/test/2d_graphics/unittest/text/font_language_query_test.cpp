@@ -466,27 +466,6 @@ HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesDejaVuMathTeXGyreB
 }
 
 /**
- * @tc.name: GenerateFontSupportedLanguagesDejaVuMathTeXGyreByVector
- * @tc.desc: Test GenerateFontSupportedLanguages
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(FontLanguageQueryTest, GenerateFontSupportedLanguagesDejaVuMathTeXGyreByVector, TestSize.Level1)
-{
-    std::string ttfName = "DejaVuMathTeXGyre.ttf";
-    std::string path = GenerateRelativePathForFontResource(ttfName);
-    std::vector<uint8_t> fontData;
-    getDataStream(path, fontData);
-    ASSERT_FALSE(fontData.empty());
-
-    auto languages = FontLanguageQuery::GenerateFontSupportedLanguages(fontData);
-    std::vector<std::string> languagesExp = {"af", "ar", "bm", "cs", "da", "de", "el", "en", "es", "et", "fi", "fr",
-        "grc", "ha", "he", "hr", "hu", "id", "it", "ja", "ko", "lt", "lv", "ng", "nl", "no", "pl", "pt", "ro", "sk",
-        "sl", "sv", "th", "vi", "za", "zh-Hans", "zh-Hant"};
-    EXPECT_EQ(languages, languagesExp);
-}
-
-/**
  * @tc.name: GenerateFontSupportedLanguagesHMSymbolVFByTypeface
  * @tc.desc: Test GenerateFontSupportedLanguages
  * @tc.type: FUNC

@@ -594,30 +594,6 @@ HWTEST_F(FontPropertiesQueryTest, GenerateFontPropertiesDejaVuMathTeXGyreByPath,
 }
 
 /**
- * @tc.name: GenerateFontPropertiesDejaVuMathTeXGyreByVector
- * @tc.desc: Test GenerateFontProperties
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(FontPropertiesQueryTest, GenerateFontPropertiesDejaVuMathTeXGyreByVector, TestSize.Level1)
-{
-    std::string ttfName = "DejaVuMathTeXGyre.ttf";
-    std::string path = GenerateRelativePathForFontResource(ttfName);
-    std::vector<uint8_t> fontData;
-    getDataStream(path, fontData);
-    ASSERT_FALSE(fontData.empty());
-
-    auto properties = FontPropertiesQuery::GenerateFontProperties(fontData);
-    EXPECT_EQ(properties.weight, FontStyle::NORMAL_WEIGHT);
-    EXPECT_EQ(properties.width, FontStyle::NORMAL_WIDTH);
-    EXPECT_EQ(properties.slant, FontStyle::UPRIGHT_SLANT);
-    EXPECT_FALSE(properties.bold);
-    EXPECT_FALSE(properties.italic);
-    EXPECT_FALSE(properties.monospace);
-    EXPECT_FALSE(properties.colorglyphs);
-}
-
-/**
  * @tc.name: GenerateFontPropertiesHMOSColorEmojiFlagsByTypeface
  * @tc.desc: Test GenerateFontProperties
  * @tc.type: FUNC
