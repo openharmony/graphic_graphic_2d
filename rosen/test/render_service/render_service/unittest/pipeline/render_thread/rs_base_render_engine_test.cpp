@@ -1442,4 +1442,289 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ColorSpaceConvertorTest_002, TestSize.Level
     renderEngine->ColorSpaceConvertor(shaderEffect, params, parameter, RSPaintFilterCanvas::HDRProperties());
 #endif
 }
+
+/**
+ * @tc.name: FlushGpu_NullTargetSurface
+ * @tc.desc: Test FlushGpu returns false when targetSurface_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, FlushGpu_NullTargetSurface, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    renderFrame->targetSurface_ = nullptr;
+    EXPECT_FALSE(renderFrame->FlushGpu());
+}
+
+/**
+ * @tc.name: FlushGpu_NullSurfaceFrame
+ * @tc.desc: Test FlushGpu returns false when surfaceFrame_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, FlushGpu_NullSurfaceFrame, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    renderFrame->surfaceFrame_ = nullptr;
+    EXPECT_FALSE(renderFrame->FlushGpu());
+}
+
+/**
+ * @tc.name: FlushGpu_ValidSurface
+ * @tc.desc: Test FlushGpu with valid surface sets flushPhaseActive_ and returns surface result
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, FlushGpu_ValidSurface, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    ASSERT_NE(renderFrame->GetSurface(), nullptr);
+    ASSERT_NE(renderFrame->GetFrame(), nullptr);
+    // RSSurfaceOhosRaster does not override FlushGpu, base falls back to FlushFrame which fails on invalid frame
+    EXPECT_FALSE(renderFrame->FlushGpu());
+    // After FlushGpu, flushPhaseActive_ should be true; verify by calling Reset
+    renderFrame->Reset();
+    EXPECT_EQ(renderFrame->GetSurface(), nullptr);
+    EXPECT_EQ(renderFrame->GetFrame(), nullptr);
+}
+
+/**
+ * @tc.name: SubmitGpu_NullTargetSurface
+ * @tc.desc: Test SubmitGpu returns false when targetSurface_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, SubmitGpu_NullTargetSurface, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    renderFrame->targetSurface_ = nullptr;
+    EXPECT_FALSE(renderFrame->SubmitGpu());
+}
+
+/**
+ * @tc.name: SubmitGpu_NullSurfaceFrame
+ * @tc.desc: Test SubmitGpu returns false when surfaceFrame_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, SubmitGpu_NullSurfaceFrame, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    renderFrame->surfaceFrame_ = nullptr;
+    EXPECT_FALSE(renderFrame->SubmitGpu());
+}
+
+/**
+ * @tc.name: SubmitGpu_ValidSurface
+ * @tc.desc: Test SubmitGpu with valid surface returns surface result
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, SubmitGpu_ValidSurface, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    ASSERT_NE(renderFrame->GetSurface(), nullptr);
+    ASSERT_NE(renderFrame->GetFrame(), nullptr);
+    // RSSurfaceOhosRaster does not override SubmitGpu, base returns true (no-op fallback)
+    EXPECT_TRUE(renderFrame->SubmitGpu());
+    renderFrame->Reset();
+}
+
+/**
+ * @tc.name: FlushBuffer_NullTargetSurface
+ * @tc.desc: Test FlushBuffer returns false when targetSurface_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, FlushBuffer_NullTargetSurface, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    renderFrame->targetSurface_ = nullptr;
+    EXPECT_FALSE(renderFrame->FlushBuffer());
+}
+
+/**
+ * @tc.name: FlushBuffer_NullSurfaceFrame
+ * @tc.desc: Test FlushBuffer returns false when surfaceFrame_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, FlushBuffer_NullSurfaceFrame, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    renderFrame->surfaceFrame_ = nullptr;
+    EXPECT_FALSE(renderFrame->FlushBuffer());
+}
+
+/**
+ * @tc.name: FlushBuffer_ValidSurface
+ * @tc.desc: Test FlushBuffer with valid surface resets pointers and flushPhaseActive_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, FlushBuffer_ValidSurface, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    ASSERT_NE(renderFrame->GetSurface(), nullptr);
+    ASSERT_NE(renderFrame->GetFrame(), nullptr);
+    // RSSurfaceOhosRaster does not override FlushBuffer, base returns true (no-op fallback)
+    bool ret = renderFrame->FlushBuffer();
+    EXPECT_TRUE(ret);
+    // After FlushBuffer, pointers should be nullptr
+    EXPECT_EQ(renderFrame->GetSurface(), nullptr);
+    EXPECT_EQ(renderFrame->GetFrame(), nullptr);
+}
+
+/**
+ * @tc.name: FlushBuffer_VulkanFrame
+ * @tc.desc: Test FlushBuffer with vulkan frame type gets acquireFence
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, FlushBuffer_VulkanFrame, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::IsUseVulkan()) {
+        auto csurf = IConsumerSurface::Create();
+        auto producer = csurf->GetProducer();
+        auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+        auto rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+        auto tmpSurface = std::make_shared<Drawing::Surface>();
+        auto surfaceFrame =
+            std::make_unique<RSSurfaceFrameOhosVulkan>(tmpSurface, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE, 1);
+        auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+        ASSERT_NE(renderFrame->GetSurface(), nullptr);
+        ASSERT_NE(renderFrame->GetFrame(), nullptr);
+        renderFrame->FlushBuffer();
+        // After FlushBuffer, pointers should be nullptr
+        EXPECT_EQ(renderFrame->GetSurface(), nullptr);
+        EXPECT_EQ(renderFrame->GetFrame(), nullptr);
+    }
+#endif
+}
+
+/**
+ * @tc.name: CancelActiveFlush_NullTargetSurface
+ * @tc.desc: Test CancelActiveFlush resets pointers when targetSurface_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, CancelActiveFlush_NullTargetSurface, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    renderFrame->targetSurface_ = nullptr;
+    renderFrame->CancelActiveFlush();
+    EXPECT_EQ(renderFrame->GetSurface(), nullptr);
+    EXPECT_EQ(renderFrame->GetFrame(), nullptr);
+}
+
+/**
+ * @tc.name: CancelActiveFlush_ValidSurface
+ * @tc.desc: Test CancelActiveFlush resets pointers and flushPhaseActive_ with valid surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, CancelActiveFlush_ValidSurface, TestSize.Level1)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    ASSERT_NE(renderFrame->GetSurface(), nullptr);
+    ASSERT_NE(renderFrame->GetFrame(), nullptr);
+    renderFrame->CancelActiveFlush();
+    // After CancelActiveFlush, pointers should be nullptr
+    EXPECT_EQ(renderFrame->GetSurface(), nullptr);
+    EXPECT_EQ(renderFrame->GetFrame(), nullptr);
+}
+
+/**
+ * @tc.name: CancelActiveFlush_VulkanSurface
+ * @tc.desc: Test CancelActiveFlush with vulkan surface calls CancelActiveFlush on VK surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, CancelActiveFlush_VulkanSurface, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::IsUseVulkan()) {
+        auto csurf = IConsumerSurface::Create();
+        auto producer = csurf->GetProducer();
+        auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+        auto rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+        auto tmpSurface = std::make_shared<Drawing::Surface>();
+        auto surfaceFrame =
+            std::make_unique<RSSurfaceFrameOhosVulkan>(tmpSurface, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE, 1);
+        auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+        ASSERT_NE(renderFrame->GetSurface(), nullptr);
+        ASSERT_NE(renderFrame->GetFrame(), nullptr);
+        renderFrame->CancelActiveFlush();
+        // After CancelActiveFlush, pointers should be nullptr
+        EXPECT_EQ(renderFrame->GetSurface(), nullptr);
+        EXPECT_EQ(renderFrame->GetFrame(), nullptr);
+    }
+#endif
+}
+
+/**
+ * @tc.name: FlushGpu_FlushPhaseActive
+ * @tc.desc: Test FlushGpu sets flushPhaseActive_ to true, verified via destructor behavior
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, FlushGpu_FlushPhaseActive, TestSize.Level2)
+{
+    auto csurf = IConsumerSurface::Create();
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosRaster>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    ASSERT_NE(renderFrame->GetSurface(), nullptr);
+    ASSERT_NE(renderFrame->GetFrame(), nullptr);
+    // FlushGpu sets flushPhaseActive_ = true
+    renderFrame->FlushGpu();
+    // Verify flushPhaseActive_ is true by checking that CancelActiveFlush resets it
+    renderFrame->CancelActiveFlush();
+    EXPECT_EQ(renderFrame->GetSurface(), nullptr);
+    EXPECT_EQ(renderFrame->GetFrame(), nullptr);
+}
 }

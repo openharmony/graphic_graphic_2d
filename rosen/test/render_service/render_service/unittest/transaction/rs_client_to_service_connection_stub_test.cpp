@@ -3515,6 +3515,68 @@ HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreenTest001, TestSi
 }
 
 /**
+ * @tc.name: CreateVirtualScreenTest002
+ * @tc.desc: Test CreateVirtualScreen with non-null surface triggers NotifyRefreshRateEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreenTest002, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    string name = "TestVirtualScreen";
+    uint32_t width = 100;
+    uint32_t height = 100;
+    ScreenId associatedScreenId = 0;
+    int32_t flags = 0;
+    std::vector<NodeId> whiteList;
+
+    auto consumer = Surface::CreateSurfaceAsConsumer("CreateVirtualScreenTest002");
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto surface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(surface, nullptr);
+
+    auto res = connection->CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
+    if (res != INVALID_SCREEN_ID) {
+        SUCCEED();
+    }
+}
+
+/**
+ * @tc.name: CreateVirtualScreenTest003
+ * @tc.desc: Test CreateVirtualScreen with non-null surface but INVALID screenId skips NotifyRefreshRateEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CreateVirtualScreenTest003, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    string name = "TestVirtualScreen";
+    uint32_t width = 65537;
+    uint32_t height = 65537;
+    ScreenId associatedScreenId = 0;
+    int32_t flags = 0;
+    std::vector<NodeId> whiteList;
+
+    auto consumer = Surface::CreateSurfaceAsConsumer("CreateVirtualScreenTest003");
+    ASSERT_NE(consumer, nullptr);
+    auto producer = consumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto surface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(surface, nullptr);
+
+    auto res = connection->CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
+    EXPECT_EQ(res, INVALID_SCREEN_ID);
+}
+
+/**
  * @tc.name: SetAsMainScreenTest001
  * @tc.desc: Test SetAsMainScreen
  * @tc.type: FUNC
@@ -5544,5 +5606,215 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetHdrForceHwcEnabledStubTest003, 
     auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_INVALID_DATA);
     setuid(0);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_AddVirtualScreenSurface_Test001
+ * @tc.desc: Test ADD_VIRTUAL_SCREEN_SURFACE read id failed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_AddVirtualScreenSurface_Test001, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_AddVirtualScreenSurface_Test002
+ * @tc.desc: Test ADD_VIRTUAL_SCREEN_SURFACE read configCount failed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_AddVirtualScreenSurface_Test002, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(INVALID_SCREEN_ID);
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_AddVirtualScreenSurface_Test003
+ * @tc.desc: Test ADD_VIRTUAL_SCREEN_SURFACE configCount exceeds limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_AddVirtualScreenSurface_Test003, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(INVALID_SCREEN_ID);
+    data.WriteUint32(17);
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_AddVirtualScreenSurface_Test004
+ * @tc.desc: Test ADD_VIRTUAL_SCREEN_SURFACE read region failed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_AddVirtualScreenSurface_Test004, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(INVALID_SCREEN_ID);
+    data.WriteUint32(1);
+    data.WriteRemoteObject(nullptr);
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_AddVirtualScreenSurface_Test005
+ * @tc.desc: Test ADD_VIRTUAL_SCREEN_SURFACE success with null surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_AddVirtualScreenSurface_Test005, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(INVALID_SCREEN_ID);
+    data.WriteUint32(1);
+    data.WriteRemoteObject(nullptr);
+    data.WriteInt32(0);
+    data.WriteInt32(0);
+    data.WriteInt32(100);
+    data.WriteInt32(100);
+    ASSERT_EQ(ERR_NONE, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_AddVirtualScreenSurface_Test006
+ * @tc.desc: Test ADD_VIRTUAL_SCREEN_SURFACE success with empty configs
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_AddVirtualScreenSurface_Test006, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(INVALID_SCREEN_ID);
+    data.WriteUint32(0);
+    ASSERT_EQ(ERR_NONE, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_RemoveVirtualScreenSurface_Test001
+ * @tc.desc: Test REMOVE_VIRTUAL_SCREEN_SURFACE read id failed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_RemoveVirtualScreenSurface_Test001, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_RemoveVirtualScreenSurface_Test002
+ * @tc.desc: Test REMOVE_VIRTUAL_SCREEN_SURFACE read surfaceCount failed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_RemoveVirtualScreenSurface_Test002, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(INVALID_SCREEN_ID);
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_RemoveVirtualScreenSurface_Test003
+ * @tc.desc: Test REMOVE_VIRTUAL_SCREEN_SURFACE surfaceCount exceeds limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_RemoveVirtualScreenSurface_Test003, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(INVALID_SCREEN_ID);
+    data.WriteUint32(17);
+    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_RemoveVirtualScreenSurface_Test004
+ * @tc.desc: Test REMOVE_VIRTUAL_SCREEN_SURFACE read surface failed (null remoteObject)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_RemoveVirtualScreenSurface_Test004, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(INVALID_SCREEN_ID);
+    data.WriteUint32(1);
+    data.WriteRemoteObject(nullptr);
+    ASSERT_EQ(ERR_NULL_OBJECT, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: OnRemoteRequest_RemoveVirtualScreenSurface_Test005
+ * @tc.desc: Test REMOVE_VIRTUAL_SCREEN_SURFACE success with empty surfaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_RemoveVirtualScreenSurface_Test005, TestSize.Level1)
+{
+    MockNativeToken mockToken("foundation");
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_SURFACE);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(INVALID_SCREEN_ID);
+    data.WriteUint32(0);
+    ASSERT_EQ(ERR_NONE, connectionStub_->OnRemoteRequest(code, data, reply, option));
 }
 } // namespace OHOS::Rosen

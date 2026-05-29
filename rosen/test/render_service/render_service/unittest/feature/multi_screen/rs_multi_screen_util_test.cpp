@@ -621,4 +621,52 @@ HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest007, TestSize.Level
     RSUniDirtyComputeUtil::SetDamageRegionGpuTile({0, 0});
     EXPECT_NE(params, nullptr);
 }
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest008
+ * @tc.desc: Test HandleVirtualExtendScreen with IsVirtualDirtyDfxEnabled true, takes else branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest008, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    params->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    RSUniRenderThread::Instance().InitGrContext();
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
+
+    uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    uniParam->isVirtualDirtyDfxEnabled_ = true;
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *params, processor);
+    uniParam->isVirtualDirtyDfxEnabled_ = false;
+    EXPECT_NE(params, nullptr);
+}
+
+/**
+ * @tc.name: HandleVirtualExtendScreenTest009
+ * @tc.desc: Test HandleVirtualExtendScreen with IsMultiSurfaceExtendMode true, takes else branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMultiScreenUtilTest, HandleVirtualExtendScreenTest009, TestSize.Level1)
+{
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_NE(uniParam, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    params->screenProperty_.Set<ScreenPropertyType::SCREEN_STATUS>(static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
+    RSUniRenderThread::Instance().InitGrContext();
+    processor->InitForRenderThread(*screenDrawable_, RSUniRenderThread::Instance().GetRenderEngine());
+
+    uniParam->SetVirtualExpandScreenDirtyEnabled(true);
+    processor->needsOffscreenRender_ = true;
+    RSMultiScreenUtil::HandleVirtualExtendScreen(*screenDrawable_, *params, processor);
+    processor->needsOffscreenRender_ = false;
+    EXPECT_NE(params, nullptr);
+}
 }

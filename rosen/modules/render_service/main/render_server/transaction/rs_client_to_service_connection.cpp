@@ -510,8 +510,7 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
     }
     auto screenId = screenManagerAgent_->CreateVirtualScreen(
         name, width, height, surface, associatedScreenId, flags, whiteList);
-    if (screenId != INVALID_SCREEN_ID) {
-        if (surface != nullptr) {
+    if (screenId != INVALID_SCREEN_ID && surface != nullptr) {
             EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
             NotifyRefreshRateEvent(event);
             ROSEN_LOGI("%{public}s vote 60hz", __func__);

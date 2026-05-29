@@ -1369,5 +1369,88 @@ HWTEST_F(RSServiceClientTest, SetDualScreenState001, TestSize.Level1)
     rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
 }
 
+/**
+ * @tc.name: AddVirtualScreenSurface001
+ * @tc.desc: Test AddVirtualScreenSurface with empty surfaceConfigs
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, AddVirtualScreenSurface001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<SurfaceRegionConfig> emptyConfigs;
+    EXPECT_EQ(rsClient->AddVirtualScreenSurface(INVALID_SCREEN_ID, emptyConfigs),
+        StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: AddVirtualScreenSurface002
+ * @tc.desc: Test AddVirtualScreenSurface with null connection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, AddVirtualScreenSurface002, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto csurf = IConsumerSurface::Create("AddVirtSurf_SF");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    SurfaceRegionConfig src;
+    src.surface = pSurface;
+    src.region = RectI(0, 0, 100, 100);
+    std::vector<SurfaceRegionConfig> configs = {src};
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->AddVirtualScreenSurface(INVALID_SCREEN_ID, configs),
+        StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+}
+
+/**
+ * @tc.name: AddVirtualScreenSurface003
+ * @tc.desc: Test AddVirtualScreenSurface with valid connection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, AddVirtualScreenSurface003, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto csurf = IConsumerSurface::Create("AddVirtSurf_SF2");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    SurfaceRegionConfig src;
+    src.surface = pSurface;
+    src.region = RectI(0, 0, 100, 100);
+    std::vector<SurfaceRegionConfig> configs = {src};
+    EXPECT_NE(rsClient->AddVirtualScreenSurface(INVALID_SCREEN_ID, configs),
+        StatusCode::RENDER_SERVICE_NULL);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface001
+ * @tc.desc: Test RemoveVirtualScreenSurface with null connection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, RemoveVirtualScreenSurface001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<sptr<Surface>> surfaces;
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->RemoveVirtualScreenSurface(INVALID_SCREEN_ID, surfaces),
+        StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface002
+ * @tc.desc: Test RemoveVirtualScreenSurface with valid connection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceClientTest, RemoveVirtualScreenSurface002, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<sptr<Surface>> surfaces;
+    EXPECT_NE(rsClient->RemoveVirtualScreenSurface(INVALID_SCREEN_ID, surfaces),
+        StatusCode::RENDER_SERVICE_NULL);
+}
+
 } // namespace Rosen
 } // namespace OHOS

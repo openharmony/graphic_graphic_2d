@@ -63,7 +63,10 @@ const uint8_t DO_SET_VIRTUAL_SCREEN_USING_STATUS = 10;
 const uint8_t DO_SET_VIRTUAL_SCREEN_REFRESH_RATE = 11;
 const uint8_t DO_SET_VIRTUAL_SCREEN_STATUS = 12;
 const uint8_t DO_SET_VIRTUAL_SCREEN_TYPE_BLACK_LIST = 13;
-const uint8_t TARGET_SIZE = 14;
+const uint8_t DO_ADD_VIRTUAL_SCREEN_SURFACE = 14;
+const uint8_t DO_REMOVE_VIRTUAL_SCREEN_SURFACE = 15;
+const uint8_t TARGET_SIZE = 16;
+constexpr uint32_t MAX_SURFACE_REGION_CONFIG_COUNT = 16;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -539,6 +542,193 @@ void DoSetVirtualScreenTypeBlackList()
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
+
+void DoAddVirtualScreenSurface()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_SURFACE);
+
+    // Test 1: Normal valid parcel with fuzzed data
+    MessageParcel dataP1;
+    MessageParcel reply1;
+    MessageOption option1;
+    option1.SetFlags(MessageOption::TF_ASYNC);
+    uint64_t screenId = GetData<uint64_t>();
+    uint32_t configCount = GetData<uint32_t>() % (MAX_SURFACE_REGION_CONFIG_COUNT + 1);
+    sptr<IConsumerSurface> cSurface1 = IConsumerSurface::Create("FuzzAdd1");
+    sptr<IBufferProducer> bp1 = cSurface1->GetProducer();
+    if (!dataP1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP1.WriteUint64(screenId) || !dataP1.WriteUint32(configCount)) {
+        return;
+    }
+    for (uint32_t i = 0; i < configCount; i++) {
+        if (!dataP1.WriteRemoteObject(bp1->AsObject())) {
+            return;
+        }
+        int32_t left = GetData<int32_t>();
+        int32_t top = GetData<int32_t>();
+        int32_t width = GetData<int32_t>();
+        int32_t height = GetData<int32_t>();
+        if (!dataP1.WriteInt32(left) || !dataP1.WriteInt32(top) ||
+            !dataP1.WriteInt32(width) || !dataP1.WriteInt32(height)) {
+            return;
+        }
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP1, reply1, option1);
+
+    // Test 2: Short parcel - missing configCount
+    MessageParcel dataP2;
+    MessageParcel reply2;
+    MessageOption option2;
+    option2.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP2.WriteUint64(screenId)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP2, reply2, option2);
+
+    // Test 3: Zero configCount
+    MessageParcel dataP3;
+    MessageParcel reply3;
+    MessageOption option3;
+    option3.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP3.WriteUint64(screenId) || !dataP3.WriteUint32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP3, reply3, option3);
+
+    // Test 4: Large configCount (exceeds MAX_SURFACE_REGION_CONFIG_COUNT)
+    MessageParcel dataP4;
+    MessageParcel reply4;
+    MessageOption option4;
+    option4.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP4.WriteUint64(screenId) || !dataP4.WriteUint32(MAX_SURFACE_REGION_CONFIG_COUNT + 1)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP4, reply4, option4);
+
+    // Test 5: INVALID_SCREEN_ID
+    MessageParcel dataP5;
+    MessageParcel reply5;
+    MessageOption option5;
+    option5.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP5.WriteUint64(INVALID_SCREEN_ID) || !dataP5.WriteUint32(1)) {
+        return;
+    }
+    sptr<IConsumerSurface> cSurface5 = IConsumerSurface::Create("FuzzAdd5");
+    sptr<IBufferProducer> bp5 = cSurface5->GetProducer();
+    if (!dataP5.WriteRemoteObject(bp5->AsObject()) ||
+        !dataP5.WriteInt32(0) || !dataP5.WriteInt32(0) ||
+        !dataP5.WriteInt32(100) || !dataP5.WriteInt32(100)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP5, reply5, option5);
+
+    // Test 6: Missing fields in region (short parcel mid-config)
+    MessageParcel dataP6;
+    MessageParcel reply6;
+    MessageOption option6;
+    option6.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP6.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP6.WriteUint64(screenId) || !dataP6.WriteUint32(1)) {
+        return;
+    }
+    // Write only the remote object but skip region fields
+    sptr<IConsumerSurface> cSurface6 = IConsumerSurface::Create("FuzzAdd6");
+    sptr<IBufferProducer> bp6 = cSurface6->GetProducer();
+    if (!dataP6.WriteRemoteObject(bp6->AsObject())) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP6, reply6, option6);
+}
+
+void DoRemoveVirtualScreenSurface()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_SURFACE);
+
+    // Test 1: Normal valid parcel with fuzzed data
+    MessageParcel dataP1;
+    MessageParcel reply1;
+    MessageOption option1;
+    option1.SetFlags(MessageOption::TF_ASYNC);
+    uint64_t screenId = GetData<uint64_t>();
+    uint32_t surfaceCount = GetData<uint32_t>() % (MAX_SURFACE_REGION_CONFIG_COUNT + 1);
+    sptr<IConsumerSurface> cSurface1 = IConsumerSurface::Create("FuzzRemove1");
+    sptr<IBufferProducer> bp1 = cSurface1->GetProducer();
+    if (!dataP1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP1.WriteUint64(screenId) || !dataP1.WriteUint32(surfaceCount)) {
+        return;
+    }
+    for (uint32_t i = 0; i < surfaceCount; i++) {
+        if (!dataP1.WriteRemoteObject(bp1->AsObject())) {
+            return;
+        }
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP1, reply1, option1);
+
+    // Test 2: Short parcel - missing surfaceCount
+    MessageParcel dataP2;
+    MessageParcel reply2;
+    MessageOption option2;
+    option2.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP2.WriteUint64(screenId)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP2, reply2, option2);
+
+    // Test 3: Zero surfaceCount
+    MessageParcel dataP3;
+    MessageParcel reply3;
+    MessageOption option3;
+    option3.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP3.WriteUint64(screenId) || !dataP3.WriteUint32(0)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP3, reply3, option3);
+
+    // Test 4: Large surfaceCount (exceeds MAX_SURFACE_REGION_CONFIG_COUNT)
+    MessageParcel dataP4;
+    MessageParcel reply4;
+    MessageOption option4;
+    option4.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP4.WriteUint64(screenId) || !dataP4.WriteUint32(MAX_SURFACE_REGION_CONFIG_COUNT + 1)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP4, reply4, option4);
+
+    // Test 5: INVALID_SCREEN_ID
+    MessageParcel dataP5;
+    MessageParcel reply5;
+    MessageOption option5;
+    option5.SetFlags(MessageOption::TF_ASYNC);
+    sptr<IConsumerSurface> cSurface5 = IConsumerSurface::Create("FuzzRemove5");
+    sptr<IBufferProducer> bp5 = cSurface5->GetProducer();
+    if (!dataP5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP5.WriteUint64(INVALID_SCREEN_ID) || !dataP5.WriteUint32(1) ||
+        !dataP5.WriteRemoteObject(bp5->AsObject())) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP5, reply5, option5);
+
+    // Test 6: Missing surface remote object (short parcel mid-loop)
+    MessageParcel dataP6;
+    MessageParcel reply6;
+    MessageOption option6;
+    option6.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP6.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP6.WriteUint64(screenId) || !dataP6.WriteUint32(1)) {
+        return;
+    }
+    // Deliberately don't write the remote object - tests short parcel
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP6, reply6, option6);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -649,6 +839,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_TYPE_BLACK_LIST:
             OHOS::Rosen::DoSetVirtualScreenTypeBlackList();
+            break;
+        case OHOS::Rosen::DO_ADD_VIRTUAL_SCREEN_SURFACE:
+            OHOS::Rosen::DoAddVirtualScreenSurface();
+            break;
+        case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_SURFACE:
+            OHOS::Rosen::DoRemoveVirtualScreenSurface();
             break;
         default:
             return -1;

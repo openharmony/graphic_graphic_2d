@@ -4631,7 +4631,7 @@ HWTEST_F(RSMainThreadTest, HandleScreenPropertyRefreshOneFrameTest, TestSize.Lev
     mainThread->context_->GetGlobalRootRenderNode()->AddChild(node);
 
     mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::ACTIVE_RECT_OPTION);
-    mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::PRODUCER_SURFACE);
+    mainThread->HandleScreenPropertyRefreshOneFrame(0, ScreenPropertyType::MULTI_SURFACE_CONFIGS);
 }
 
 /**

@@ -2038,4 +2038,57 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_DirtyAlignSingleDirtyRegion,
 
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
+
+/**
+ * @tc.name: OnDrawTest_MultiSurfaceExpandNoSkip
+ * @tc.desc: Test OnDraw when isMultiSurfaceExpand is true (configs.size > 1), should NOT skip
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_MultiSurfaceExpandNoSkip, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    // Set multi-surface configs with 2 entries so isMultiSurfaceExpand = true
+    SurfaceRegionConfig config1;
+    SurfaceRegionConfig config2;
+    std::vector<SurfaceRegionConfig> configs = {config1, config2};
+    params->screenProperty_.Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
+    screenDrawable_->OnDraw(canvas);
+}
+
+/**
+ * @tc.name: OnDrawTest_SingleSurfaceExpandSkip
+ * @tc.desc: Test OnDraw when isMultiSurfaceExpand is false and skip check returns true, should skip
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_SingleSurfaceExpandSkip, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    // Default: configs empty (size=0), isAccumulatedDirty_=false, isAccumulatedHdrStatusChanged_=false
+    // CheckVirtualExpandScreenSkip returns true -> early return (skip)
+    params->isAccumulatedDirty_ = false;
+    params->isAccumulatedHdrStatusChanged_ = false;
+    screenDrawable_->OnDraw(canvas);
+}
+
+/**
+ * @tc.name: OnDrawTest_SingleSurfaceExpandNoSkip
+ * @tc.desc: Test OnDraw when isMultiSurfaceExpand is false and skip check returns false, should NOT skip
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest_SingleSurfaceExpandNoSkip, TestSize.Level1)
+{
+    ASSERT_NE(screenDrawable_, nullptr);
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    params->compositeType_ = CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
+    // Set isAccumulatedDirty_=true so CheckVirtualExpandScreenSkip returns false -> no skip
+    params->isAccumulatedDirty_ = true;
+    screenDrawable_->OnDraw(canvas);
+}
 } // namespace OHOS::Rosen

@@ -515,5 +515,354 @@ HWTEST_F(RSSurfaceOhosVulkanTest, CancelBufferForCurrentFrame, TestSize.Level1)
     rsSurface.CancelBufferForCurrentFrame();
     ASSERT_TRUE(rsSurface.mSurfaceList.empty());
 }
+
+/**
+ * @tc.name: CancelBuffer_NullBuffer
+ * @tc.desc: Test CancelBuffer with null buffer returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, CancelBuffer_NullBuffer, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("CancelBuffer_NullBuffer");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    rsSurface.CancelBuffer(nullptr);
+    EXPECT_TRUE(rsSurface.mSurfaceMap.empty());
+    EXPECT_TRUE(rsSurface.mSurfaceList.empty());
+}
+
+/**
+ * @tc.name: CancelBuffer_NotFoundInMap
+ * @tc.desc: Test CancelBuffer with buffer not in mSurfaceMap returns early
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, CancelBuffer_NotFoundInMap, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("CancelBuffer_NotFound");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    NativeWindowBuffer fakeBuffer;
+    rsSurface.CancelBuffer(&fakeBuffer);
+    EXPECT_TRUE(rsSurface.mSurfaceMap.empty());
+}
+
+/**
+ * @tc.name: CancelBuffer_ResetsFlushState
+ * @tc.desc: Test CancelBuffer resets flushState when buffer matches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, CancelBuffer_ResetsFlushState, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("CancelBuffer_FlushReset");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    int32_t fence = -1;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    pSurface->RequestBuffer(sBuffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
+
+    rsSurface.mSurfaceList.emplace_back(nativeWindowBuffer);
+    rsSurface.mSurfaceMap[nativeWindowBuffer] = {};
+
+    rsSurface.flushState_.valid = true;
+    rsSurface.flushState_.bufferKey = nativeWindowBuffer;
+
+    rsSurface.CancelBuffer(nativeWindowBuffer);
+    EXPECT_FALSE(rsSurface.flushState_.valid);
+    EXPECT_TRUE(rsSurface.mSurfaceMap.empty());
+    EXPECT_TRUE(rsSurface.mSurfaceList.empty());
+}
+
+/**
+ * @tc.name: CancelBuffer_FlushStateNotMatch
+ * @tc.desc: Test CancelBuffer does not reset flushState when buffer does not match
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, CancelBuffer_FlushStateNotMatch, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("CancelBuffer_FlushNoMatch");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    int32_t fence = -1;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    pSurface->RequestBuffer(sBuffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
+
+    rsSurface.mSurfaceList.emplace_back(nativeWindowBuffer);
+    rsSurface.mSurfaceMap[nativeWindowBuffer] = {};
+
+    NativeWindowBuffer otherBuffer;
+    rsSurface.flushState_.valid = true;
+    rsSurface.flushState_.bufferKey = &otherBuffer;
+
+    rsSurface.CancelBuffer(nativeWindowBuffer);
+    EXPECT_TRUE(rsSurface.flushState_.valid);
+    EXPECT_TRUE(rsSurface.mSurfaceMap.empty());
+}
+
+/**
+ * @tc.name: CancelActiveFlush_NotValid
+ * @tc.desc: Test CancelActiveFlush returns early when flushState is not valid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, CancelActiveFlush_NotValid, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("CancelActiveFlush_NotValid");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    rsSurface.flushState_.valid = false;
+    rsSurface.CancelActiveFlush();
+    EXPECT_FALSE(rsSurface.flushState_.valid);
+}
+
+/**
+ * @tc.name: CancelActiveFlush_ValidFlush
+ * @tc.desc: Test CancelActiveFlush cancels buffer when flushState is valid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, CancelActiveFlush_ValidFlush, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("CancelActiveFlush_Valid");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    int32_t fence = -1;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    pSurface->RequestBuffer(sBuffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
+
+    rsSurface.mSurfaceList.emplace_back(nativeWindowBuffer);
+    rsSurface.mSurfaceMap[nativeWindowBuffer] = {};
+
+    rsSurface.flushState_.valid = true;
+    rsSurface.flushState_.bufferKey = nativeWindowBuffer;
+
+    rsSurface.CancelActiveFlush();
+    EXPECT_TRUE(rsSurface.mSurfaceMap.empty());
+    EXPECT_TRUE(rsSurface.mSurfaceList.empty());
+}
+
+/**
+ * @tc.name: FlushGpu_FlushStateActive
+ * @tc.desc: Test FlushGpu returns false when flushState is already active
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, FlushGpu_FlushStateActive, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FlushGpu_FlushStateActive");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    rsSurface.flushState_.valid = true;
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    EXPECT_FALSE(rsSurface.FlushGpu(frame, 0));
+}
+
+/**
+ * @tc.name: FlushGpu_SurfaceListEmpty
+ * @tc.desc: Test FlushGpu returns false when mSurfaceList is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, FlushGpu_SurfaceListEmpty, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FlushGpu_SurfaceListEmpty");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    ASSERT_TRUE(rsSurface.mSurfaceList.empty());
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    EXPECT_FALSE(rsSurface.FlushGpu(frame, 0));
+}
+
+/**
+ * @tc.name: FlushGpu_BufferNotInSurfaceMap
+ * @tc.desc: Test FlushGpu returns false when mSurfaceList front is not in mSurfaceMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, FlushGpu_BufferNotInSurfaceMap, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FlushGpu_BufferNotInMap");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    NativeWindowBuffer fakeBuffer;
+    rsSurface.mSurfaceList.emplace_back(&fakeBuffer);
+    ASSERT_TRUE(rsSurface.mSurfaceMap.empty());
+
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    EXPECT_FALSE(rsSurface.FlushGpu(frame, 0));
+}
+
+/**
+ * @tc.name: SubmitGpu_NotValid
+ * @tc.desc: Test SubmitGpu returns false when flushState is not valid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, SubmitGpu_NotValid, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("SubmitGpu_NotValid");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    rsSurface.flushState_.valid = false;
+    rsSurface.flushState_.bufferKey = nullptr;
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    EXPECT_FALSE(rsSurface.SubmitGpu(frame, 0));
+}
+
+/**
+ * @tc.name: SubmitGpu_BufferKeyNull
+ * @tc.desc: Test SubmitGpu returns false when bufferKey is null even if valid is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, SubmitGpu_BufferKeyNull, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("SubmitGpu_BufferKeyNull");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    rsSurface.flushState_.valid = true;
+    rsSurface.flushState_.bufferKey = nullptr;
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    EXPECT_FALSE(rsSurface.SubmitGpu(frame, 0));
+}
+
+/**
+ * @tc.name: FlushBuffer_NotValid
+ * @tc.desc: Test FlushBuffer returns false when flushState is not valid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, FlushBuffer_NotValid, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FlushBuffer_NotValid");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    rsSurface.flushState_.valid = false;
+    rsSurface.flushState_.bufferKey = nullptr;
+    rsSurface.flushState_.callbackInfo = nullptr;
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    EXPECT_FALSE(rsSurface.FlushBuffer(frame, 0));
+}
+
+/**
+ * @tc.name: FlushBuffer_BufferKeyNull
+ * @tc.desc: Test FlushBuffer returns false when bufferKey is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, FlushBuffer_BufferKeyNull, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FlushBuffer_BufferKeyNull");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    rsSurface.flushState_.valid = true;
+    rsSurface.flushState_.bufferKey = nullptr;
+    rsSurface.flushState_.callbackInfo = reinterpret_cast<RsVulkanInterface::CallbackSemaphoreInfo*>(0x1);
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    EXPECT_FALSE(rsSurface.FlushBuffer(frame, 0));
+}
+
+/**
+ * @tc.name: FlushBuffer_CallbackInfoNull
+ * @tc.desc: Test FlushBuffer returns false when callbackInfo is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, FlushBuffer_CallbackInfoNull, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FlushBuffer_CBNull");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    NativeWindowBuffer fakeBuffer;
+    rsSurface.flushState_.valid = true;
+    rsSurface.flushState_.bufferKey = &fakeBuffer;
+    rsSurface.flushState_.callbackInfo = nullptr;
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    EXPECT_FALSE(rsSurface.FlushBuffer(frame, 0));
+}
+
+/**
+ * @tc.name: FlushBuffer_BufferNotInMap
+ * @tc.desc: Test FlushBuffer returns false when bufferKey is not found in mSurfaceMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, FlushBuffer_BufferNotInMap, TestSize.Level2)
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FlushBuffer_BufferNotInMap");
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    RSSurfaceOhosVulkan rsSurface(pSurface);
+
+    NativeWindowBuffer fakeBuffer;
+    rsSurface.flushState_.valid = true;
+    rsSurface.flushState_.bufferKey = &fakeBuffer;
+    rsSurface.flushState_.callbackInfo = reinterpret_cast<RsVulkanInterface::CallbackSemaphoreInfo*>(0x1);
+    ASSERT_TRUE(rsSurface.mSurfaceMap.empty());
+    std::unique_ptr<RSSurfaceFrame> frame = nullptr;
+    EXPECT_FALSE(rsSurface.FlushBuffer(frame, 0));
+    EXPECT_FALSE(rsSurface.flushState_.valid);
+}
 } // namespace Rosen
 } // namespace OHOS

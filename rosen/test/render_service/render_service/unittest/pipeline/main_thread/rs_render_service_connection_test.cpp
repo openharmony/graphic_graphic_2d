@@ -1117,5 +1117,73 @@ HWTEST_F(RSRenderServiceConnectionTest, GetPixelMapByProcessIdWithTexture001, Te
     ErrCode result = connection->GetPixelMapByProcessId(pixelMapInfoVector, 4005, repCode);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
+
+/**
+ * @tc.name: AddVirtualScreenSurface001
+ * @tc.desc: Test AddVirtualScreenSurface with null screenManagerAgent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionTest, AddVirtualScreenSurface001, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto connection = new RSClientToServiceConnection(
+        getpid(), nullptr, nullptr, nullptr, token->AsObject(), nullptr);
+    ASSERT_NE(connection, nullptr);
+    std::vector<SurfaceRegionConfig> configs;
+    auto result = connection->AddVirtualScreenSurface(INVALID_SCREEN_ID, configs);
+    EXPECT_EQ(result, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/**
+ * @tc.name: AddVirtualScreenSurface002
+ * @tc.desc: Test AddVirtualScreenSurface with valid screenManagerAgent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionTest, AddVirtualScreenSurface002, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto screenManagerAgent = new RSScreenManagerAgent(CreateOrGetScreenManager());
+    ASSERT_NE(screenManagerAgent, nullptr);
+    auto connection = new RSClientToServiceConnection(
+        getpid(), nullptr, nullptr, screenManagerAgent, token->AsObject(), nullptr);
+    ASSERT_NE(connection, nullptr);
+    std::vector<SurfaceRegionConfig> configs;
+    auto result = connection->AddVirtualScreenSurface(INVALID_SCREEN_ID, configs);
+    EXPECT_NE(result, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface001
+ * @tc.desc: Test RemoveVirtualScreenSurface with null screenManagerAgent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionTest, RemoveVirtualScreenSurface001, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto connection = new RSClientToServiceConnection(
+        getpid(), nullptr, nullptr, nullptr, token->AsObject(), nullptr);
+    ASSERT_NE(connection, nullptr);
+    std::vector<sptr<Surface>> surfaces;
+    auto result = connection->RemoveVirtualScreenSurface(INVALID_SCREEN_ID, surfaces);
+    EXPECT_EQ(result, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface002
+ * @tc.desc: Test RemoveVirtualScreenSurface with valid screenManagerAgent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionTest, RemoveVirtualScreenSurface002, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto screenManagerAgent = new RSScreenManagerAgent(CreateOrGetScreenManager());
+    ASSERT_NE(screenManagerAgent, nullptr);
+    auto connection = new RSClientToServiceConnection(
+        getpid(), nullptr, nullptr, screenManagerAgent, token->AsObject(), nullptr);
+    ASSERT_NE(connection, nullptr);
+    std::vector<sptr<Surface>> surfaces;
+    auto result = connection->RemoveVirtualScreenSurface(INVALID_SCREEN_ID, surfaces);
+    EXPECT_NE(result, StatusCode::SCREEN_NOT_FOUND);
+}
 #endif
 } // namespace OHOS::Rosen

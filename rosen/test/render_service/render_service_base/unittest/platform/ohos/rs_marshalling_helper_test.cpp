@@ -51,6 +51,7 @@
 #include "recording/record_cmd.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "screen_manager/screen_types.h"
+#include "screen_manager/rs_surface_region_config.h"
 #include "display_engine/rs_luminance_control.h"
 
 #ifdef ROSEN_OHOS
@@ -2608,6 +2609,41 @@ HWTEST_F(RSMarshallingHelperTest, BrightnessInfoUnmarshallingFailTest, TestSize.
     parcel.WriteFloat(500.0f);
     BrightnessInfo info;
     ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, info));
+}
+
+/**
+ * @tc.name: SurfaceRegionConfigMarshallingTest001
+ * @tc.desc: Verify Marshalling/Unmarshalling of SurfaceRegionConfig with null surface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, SurfaceRegionConfigMarshallingTest001, TestSize.Level2)
+{
+    SurfaceRegionConfig src{};
+    src.surface = nullptr;
+    src.region = RectI{10, 20, 480, 320};
+
+    Parcel parcel;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(parcel, src));
+
+    SurfaceRegionConfig dst{};
+    ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, dst));
+    EXPECT_EQ(dst.surface, nullptr);
+    EXPECT_EQ(dst.region.left_, 10);
+    EXPECT_EQ(dst.region.top_, 20);
+    EXPECT_EQ(dst.region.width_, 480);
+    EXPECT_EQ(dst.region.height_, 320);
+}
+
+/**
+ * @tc.name: SurfaceRegionConfigUnmarshallingFailTest
+ * @tc.desc: Verify Unmarshalling of SurfaceRegionConfig fails with empty parcel
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, SurfaceRegionConfigUnmarshallingFailTest, TestSize.Level2)
+{
+    Parcel parcel;
+    SurfaceRegionConfig val{};
+    ASSERT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
 }
 } // namespace Rosen
 } // namespace OHOS

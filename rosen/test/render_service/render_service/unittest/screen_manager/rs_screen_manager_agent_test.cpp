@@ -1653,4 +1653,70 @@ HWTEST_F(RSScreenManagerAgentTest, GetPanelPowerStatus001, TestSize.Level1)
     ASSERT_EQ(ret, PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
     screenManagerAgent_->screenManager_ = screenManager;
 }
+
+/**
+ * @tc.name: AddVirtualScreenSurface001
+ * @tc.desc: Test AddVirtualScreenSurface delegates to screenManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerAgentTest, AddVirtualScreenSurface001, TestSize.Level2)
+{
+    ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
+    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+        "virtual_add_agent", 480, 320, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    auto csurface = IConsumerSurface::Create("AddVirtualSurfaceAgent");
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    std::vector<SurfaceRegionConfig> configs = {
+        {psurface, RectI{0, 0, 480, 320}}
+    };
+    auto ret = screenManagerAgent_->AddVirtualScreenSurface(virtualScreenId, configs);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+
+    screenManagerAgent_->RemoveVirtualScreen(virtualScreenId);
+    sleep(1);
+
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    ret = screenManagerAgent_->AddVirtualScreenSurface(virtualScreenId, configs);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    screenManagerAgent_->screenManager_ = screenManager;
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface001
+ * @tc.desc: Test RemoveVirtualScreenSurface delegates to screenManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerAgentTest, RemoveVirtualScreenSurface001, TestSize.Level2)
+{
+    ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
+    auto csurface = IConsumerSurface::Create("RmVirtualSurfaceAgent");
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+        "virtual_rm_agent", 480, 320, psurface, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<sptr<Surface>> surfaces = {psurface};
+    auto ret = screenManagerAgent_->RemoveVirtualScreenSurface(virtualScreenId, surfaces);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+
+    screenManagerAgent_->RemoveVirtualScreen(virtualScreenId);
+    sleep(1);
+
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    ret = screenManagerAgent_->RemoveVirtualScreenSurface(virtualScreenId, surfaces);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    screenManagerAgent_->screenManager_ = screenManager;
+}
 }

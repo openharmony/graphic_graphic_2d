@@ -3289,6 +3289,22 @@
     "connectionType": 1
   },
   {
+    "testCaseDesc": "ADD_VIRTUAL_SCREEN_SURFACE_TEST_001",
+    "interfaceName": "ADD_VIRTUAL_SCREEN_SURFACE",
+    "inputParams": "WriteUint64;WriteUint32;WriteSurfaceSptr;WriteInt32;WriteInt32;WriteInt32;WriteInt32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC",
+    "connectionType": 1
+  },
+  {
+    "testCaseDesc": "REMOVE_VIRTUAL_SCREEN_SURFACE_TEST_001",
+    "interfaceName": "REMOVE_VIRTUAL_SCREEN_SURFACE",
+    "inputParams": "WriteUint64;WriteUint32;WriteSurfaceSptr",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC",
+    "connectionType": 1
+  },
+  {
     "testCaseDesc": "SET_BEHIND_WINDOW_FILTER_ENABLED_TEST_001",
     "interfaceName": "SET_BEHIND_WINDOW_FILTER_ENABLED",
     "inputParams": "WriteBool",

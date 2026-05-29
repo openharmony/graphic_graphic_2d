@@ -1942,5 +1942,200 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenTypeTest, TestSize.Level
     proxy->GetScreenType(id, type);
     ASSERT_EQ(type, UNKNOWN_TYPE_SCREEN);
 }
+
+/**
+ * @tc.name: AddVirtualScreenSurface001
+ * @tc.desc: Test AddVirtualScreenSurface with SendRequest failure
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenSurface001, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+    std::vector<SurfaceRegionConfig> configs;
+    ScreenId screenId = 1;
+    std::vector<SurfaceRegionConfig> configs;
+    auto ret = mockProxy->AddVirtualScreenSurface(screenId, configs);
+    EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+}
+
+/**
+ * @tc.name: AddVirtualScreenSurface002
+ * @tc.desc: Test AddVirtualScreenSurface with SendRequest success
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenSurface002, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(0);
+            return 0;
+        });
+    ScreenId screenId = 1;
+    std::vector<SurfaceRegionConfig> configs;
+    auto ret = mockProxy->AddVirtualScreenSurface(screenId, configs);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenSurface003
+ * @tc.desc: Test AddVirtualScreenSurface filters null surface configs
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenSurface003, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(0);
+            return 0;
+        });
+    ScreenId screenId = 1;
+    SurfaceRegionConfig nullSurfaceConfig;
+    nullSurfaceConfig.surface = nullptr;
+    nullSurfaceConfig.region = RectI(0, 0, 100, 100);
+    std::vector<SurfaceRegionConfig> configs = {nullSurfaceConfig};
+    auto ret = mockProxy->AddVirtualScreenSurface(screenId, configs);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenSurface004
+ * @tc.desc: Test AddVirtualScreenSurface with valid surface config
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenSurface004, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(0);
+            return 0;
+        });
+    ScreenId screenId = 1;
+    auto csurf = IConsumerSurface::Create("AddVirtSurfProxy_SF");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    SurfaceRegionConfig src;
+    src.surface = pSurface;
+    src.region = RectI(0, 0, 100, 100);
+    std::vector<SurfaceRegionConfig> configs = {src};
+    auto ret = mockProxy->AddVirtualScreenSurface(screenId, configs);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenSurface005
+ * @tc.desc: Test AddVirtualScreenSurface with mixed valid and null configs
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenSurface005, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(0);
+            return 0;
+        });
+    ScreenId screenId = 1;
+    SurfaceRegionConfig nullSurfaceConfig;
+    nullSurfaceConfig.surface = nullptr;
+    nullSurfaceConfig.region = RectI(0, 0, 50, 50);
+    auto csurf = IConsumerSurface::Create("AddVirtSurfProxy_SF2");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    SurfaceRegionConfig validConfig;
+    validConfig.surface = pSurface;
+    validConfig.region = RectI(0, 0, 100, 100);
+    std::vector<SurfaceRegionConfig> configs = {nullSurfaceConfig, validConfig};
+    auto ret = mockProxy->AddVirtualScreenSurface(screenId, configs);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface001
+ * @tc.desc: Test RemoveVirtualScreenSurface with empty surfaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenSurface001, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    std::vector<sptr<Surface>> emptySurfaces;
+    auto ret = proxy->RemoveVirtualScreenSurface(screenId, emptySurfaces);
+    EXPECT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface002
+ * @tc.desc: Test RemoveVirtualScreenSurface with null surface in list
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenSurface002, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    sptr<Surface> nullSurface = nullptr;
+    std::vector<sptr<Surface>> surfaces = {nullSurface};
+    auto ret = proxy->RemoveVirtualScreenSurface(screenId, surfaces);
+    EXPECT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface003
+ * @tc.desc: Test RemoveVirtualScreenSurface with SendRequest failure
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenSurface003, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+    ScreenId screenId = 1;
+    auto csurf = IConsumerSurface::Create("RemVirtSurfProxy_SF");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    std::vector<sptr<Surface>> surfaces = {pSurface};
+    auto ret = mockProxy->RemoveVirtualScreenSurface(screenId, surfaces);
+    EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenSurface004
+ * @tc.desc: Test RemoveVirtualScreenSurface with SendRequest success
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenSurface004, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(0);
+            return 0;
+        });
+    ScreenId screenId = 1;
+    auto csurf = IConsumerSurface::Create("RemVirtSurfProxy_SF2");
+    ASSERT_NE(csurf, nullptr);
+    auto producer = csurf->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    std::vector<sptr<Surface>> surfaces = {pSurface};
+    auto ret = mockProxy->RemoveVirtualScreenSurface(screenId, surfaces);
+    EXPECT_EQ(ret, 0);
+}
 } // namespace Rosen
 } // namespace OHOS
