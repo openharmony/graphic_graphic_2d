@@ -213,7 +213,7 @@ void RSEffectLuminanceManager::SetCurrentScreenId(ScreenId id)
     currentScreenId_ = id;
 }
 
-ScreenId RSEffectLuminanceManager::GetCurrentScreenId()
+ScreenId RSEffectLuminanceManager::GetCurrentScreenId() const
 {
     return currentScreenId_;
 }
@@ -223,7 +223,7 @@ void RSEffectLuminanceManager::SetCurrentScreenshotType(RSPaintFilterCanvas::Scr
     currentScreenshotType_ = type;
 }
 
-RSPaintFilterCanvas::ScreenshotType RSEffectLuminanceManager::GetCurrentScreenshotType()
+RSPaintFilterCanvas::ScreenshotType RSEffectLuminanceManager::GetCurrentScreenshotType() const
 {
     return currentScreenshotType_;
 }
@@ -233,7 +233,7 @@ void RSEffectLuminanceManager::SetHdrPipelineStatus(bool isHdrOn)
     isHdrPipelineOn_ = isHdrOn;
 }
 
-bool RSEffectLuminanceManager::GetHdrPipelineStatus()
+bool RSEffectLuminanceManager::GetHdrPipelineStatus() const
 {
     return isHdrPipelineOn_;
 }

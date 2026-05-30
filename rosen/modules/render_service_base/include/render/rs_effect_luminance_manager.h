@@ -41,15 +41,15 @@ public:
 
     void SetCurrentScreenId(ScreenId id);
 
-    ScreenId GetCurrentScreenId();
+    ScreenId GetCurrentScreenId() const;
 
     void SetCurrentScreenshotType(RSPaintFilterCanvas::ScreenshotType type);
 
-    RSPaintFilterCanvas::ScreenshotType GetCurrentScreenshotType();
+    RSPaintFilterCanvas::ScreenshotType GetCurrentScreenshotType() const;
 
     void SetHdrPipelineStatus(bool isHdrOn);
 
-    bool GetHdrPipelineStatus();
+    bool GetHdrPipelineStatus() const;
 
 private:
     RSEffectLuminanceManager() = default;
