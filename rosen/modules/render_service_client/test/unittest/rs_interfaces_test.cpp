@@ -806,6 +806,9 @@ HWTEST_F(RSInterfacesTest, GetScreenVCPFeature001, Function | SmallTest | Level2
     auto ret = rsInterfaces->GetScreenVCPFeature(INVALID_SCREEN_ID, 0x10,
         currentValue, maximumValue, errorCode);
     ASSERT_NE(ret, 0);
+    auto defaultId = rsInterfaces->GetDefaultScreenId();
+    rsInterfaces->GetScreenVCPFeature(defaultId, 0x10,
+        currentValue, maximumValue, errorCode);
 }
 
 /*
@@ -823,6 +826,8 @@ HWTEST_F(RSInterfacesTest, SetScreenVCPFeature001, Function | SmallTest | Level2
     ScreenId id = INVALID_SCREEN_ID;
     auto ret = rsInterfaces->SetScreenVCPFeature(id, 0x10, currentValue);
     ASSERT_NE(ret, 0);
+    auto defaultId = rsInterfaces->GetDefaultScreenId();
+    rsInterfaces->SetScreenVCPFeature(defaultId, 0x10, currentValue);
 }
 
 /*

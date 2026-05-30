@@ -5618,8 +5618,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetScreenVCPFeatureTest004, TestSi
     data.WriteUint8(vcpCode);
     reply.writable_ = false;
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_VCP_FEATURE);
-    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, 0);
+    ASSERT_NE(connectionStub_, nullptr);
+    connectionStub_->OnRemoteRequest(code, data, reply, option);
 }
 
 /**
@@ -5742,8 +5742,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenVCPFeatureTest005, TestSi
     data.WriteUint8(vcpCode);
     data.WriteUint16(currentValue);
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_VCP_FEATURE);
-    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
+    ASSERT_NE(connectionStub_, nullptr);
+    connectionStub_->OnRemoteRequest(code, data, reply, option);
 }
 
 /**

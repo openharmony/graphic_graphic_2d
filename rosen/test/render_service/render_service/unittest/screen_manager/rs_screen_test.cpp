@@ -1540,7 +1540,7 @@ HWTEST_F(RSScreenTest, SetScreenVCPFeature_001, testing::ext::TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueIAIRAN
  */
-HWTEST_F(RSScreenTest, GetScreenVCPFeature_002, testing::ext::TestSize.Level1)
+HWTEST_F(RSScreenTest, SetScreenVCPFeature_002, testing::ext::TestSize.Level1)
 {
     auto rsScreen = std::make_shared<RSScreen>(0);
     ASSERT_NE(nullptr, rsScreen);

@@ -1383,7 +1383,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (SetScreenVCPFeature(id, vcpCode, currentValue) != ERR_OK) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_VCP_FEATURE Write failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_VCP_FEATURE failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

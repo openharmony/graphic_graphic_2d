@@ -357,7 +357,7 @@ void DoSetScreenVCPFeature()
         return;
     }
     if (g_serviceConnection == nullptr) {
-        return false;
+        return;
     }
     g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }

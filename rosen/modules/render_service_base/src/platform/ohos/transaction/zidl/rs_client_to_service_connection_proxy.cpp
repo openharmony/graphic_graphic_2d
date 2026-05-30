@@ -2068,12 +2068,12 @@ ErrCode RSClientToServiceConnectionProxy::GetScreenVCPFeature(ScreenId id, uint8
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("GetScreenVCPFeature: SendRequest failed");
-        return ERR_INVALID_VALUE;
+        return ERR_INVALID_OPERATION;
     }
     if (!reply.ReadUint16(currentValue) || !reply.ReadUint16(maximumValue) ||
         !reply.ReadInt32(errorCode)) {
         ROSEN_LOGE("GetScreenVCPFeature: Read values failed");
-        return ERR_INVALID_VALUE;
+        return READ_PARCEL_ERR;
     }
     return ERR_OK;
 }
@@ -2105,7 +2105,7 @@ ErrCode RSClientToServiceConnectionProxy::SetScreenVCPFeature(ScreenId id, uint8
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("SetScreenVCPFeature: SendRequest failed");
-        return ERR_INVALID_VALUE;
+        return ERR_INVALID_OPERATION;
     }
     return ERR_OK;
 }
