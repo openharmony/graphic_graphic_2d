@@ -557,7 +557,7 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessAnimationFinishCallbackGuaranteeTaskTest
  */
 HWTEST_F(RSImplicitAnimatorTest, GetRSImplicitAnimator, TestSize.Level1)
 {
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
     auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     // repeat count
     int count = 10;
