@@ -45,38 +45,38 @@ struct HaeRect {
 } __attribute__ ((aligned(8)));
 
 struct HaeImage {
-    void* handle;
+    void* handle = nullptr;
     struct HaeRect rect;
 } __attribute__ ((aligned(8)));
 
 struct HaePixel {
-    uint16_t a;
-    uint16_t r;
-    uint16_t g;
-    uint16_t b;
+    uint16_t a = 0;
+    uint16_t r = 0;
+    uint16_t g = 0;
+    uint16_t b = 0;
 } __attribute__ ((aligned(8)));
 
 struct HaeNoiseValue {
-    float noiseRatio;
-    float noiseValue;
-    float noiseUpClip;
-    float noiseDnClip;
+    float noiseRatio = 0.0f;
+    float noiseValue = 0.0f;
+    float noiseUpClip = 0.0f;
+    float noiseDnClip = 0.0f;
 } __attribute__ ((aligned(8)));
 
 struct BlurImgParam {
-    uint32_t width;
-    uint32_t height;
-    float sigmaNum;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    float sigmaNum = 0.0f;
 } __attribute__ ((aligned(8)));
 
 struct HaeBlurBasicAttr {
     struct HaeImage srcLayer;
     struct HaeImage dstLayer;
-    uint32_t perfLevel;
+    uint32_t perfLevel = 1; // low level
     uint32_t timeoutMs = 0;
     int32_t expectRunTime = -1;
-    float sigmaNum;
-    bool enablePremult;
+    float sigmaNum = 0.0f;
+    bool enablePremult = false;
 } __attribute__ ((aligned(8)));
 
 enum BlppAbility : uint32_t {
@@ -91,8 +91,8 @@ enum BlppAbility : uint32_t {
 };
 
 struct HaeBlurEffectAttr {
-    uint16_t effectCaps;
-    uint32_t alphaReplaceVal;
+    uint16_t effectCaps = 0;
+    uint32_t alphaReplaceVal = 0;
     struct HaeNoiseValue noisePara;
     std::vector<float> colorMatrixCoef;
     struct HaePixel colorMaskPara;
@@ -112,14 +112,14 @@ using HianimationDumpDebugInfoFunc = int32_t (*)(uint32_t taskId);
 // define device structure
 struct hianimation_algo_device_t {
     void* device;
-    HianimationOpenDeviceFunc openDevice;
-    HianimationCloseDeviceFunc closeDevice;
-    HianimationInputCheckFunc hianimationInputCheck;
-    HianimationAlgoInitFunc hianimationAlgoInit;
-    HianimationAlgoDeInitFunc hianimationAlgoDeInit;
-    HianimationBuildTaskFunc hianimationBuildTask;
-    HianimationDestroyTaskFunc hianimationDestroyTask;
-    HianimationDumpDebugInfoFunc hianimationDumpDebugInfo;
+    HianimationOpenDeviceFunc openDevice = nullptr;
+    HianimationCloseDeviceFunc closeDevice = nullptr;
+    HianimationInputCheckFunc hianimationInputCheck = nullptr;
+    HianimationAlgoInitFunc hianimationAlgoInit = nullptr;
+    HianimationAlgoDeInitFunc hianimationAlgoDeInit = nullptr;
+    HianimationBuildTaskFunc hianimationBuildTask = nullptr;
+    HianimationDestroyTaskFunc hianimationDestroyTask = nullptr;
+    HianimationDumpDebugInfoFunc hianimationDumpDebugInfo = nullptr;
     
     hianimation_algo_device_t() = default;
 };

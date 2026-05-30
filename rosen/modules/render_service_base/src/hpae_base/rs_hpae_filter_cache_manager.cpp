@@ -78,7 +78,7 @@ int RSHpaeFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std:
 
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
 
-    int32_t radiusI = (int)RSHpaeBaseData::GetInstance().GetBlurRadius();
+    int32_t radiusI = static_cast<int32_t>(RSHpaeBaseData::GetInstance().GetBlurRadius());
     curRadius_ = radiusI; // use int radius
 
     if (!IsCacheValid()) {
@@ -543,8 +543,8 @@ static void ClipVisibleRect(RSPaintFilterCanvas& canvas)
 {
     auto visibleRectF = canvas.GetVisibleRect();
     visibleRectF.Round();
-    Drawing::RectI visibleIRect = {(int)visibleRectF.GetLeft(), (int)visibleRectF.GetTop(),
-        (int)visibleRectF.GetRight(), (int)visibleRectF.GetBottom()};
+    Drawing::RectI visibleIRect = {static_cast<int>(visibleRectF.GetLeft()), static_cast<int>(visibleRectF.GetTop()),
+        static_cast<int>(visibleRectF.GetRight()), static_cast<int>(visibleRectF.GetBottom())};
     auto deviceClipRect = canvas.GetDeviceClipBounds();
     if (!visibleIRect.IsEmpty() && deviceClipRect.Intersect(visibleIRect)) {
         canvas.ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);

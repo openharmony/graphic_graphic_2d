@@ -31,9 +31,9 @@ using HpaeBufferInfo = struct HpaeBufferInfo_ {
     std::shared_ptr<Drawing::Image> snapshot = nullptr;
 };
 
-using HpaeTask = struct {
-    uint32_t taskId;
-    void *taskPtr; // task function
+using HpaeTask = struct HpaeTask_ {
+    uint32_t taskId = 0;
+    void *taskPtr = nullptr; // task function
 };
 
 struct HpaeBackgroundCacheItem {
