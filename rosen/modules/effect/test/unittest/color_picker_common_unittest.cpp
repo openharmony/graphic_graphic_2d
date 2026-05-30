@@ -75,13 +75,15 @@ HWTEST_F(ColorPickerCommonUnittest, CreateColorPickerFromPixelmapTest001, TestSi
     opts.size.height = 150;
     opts.editable = true;
     std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
 
     /**
      * @tc.steps: step2. Call create From pixelMap
      */
     uint32_t errorCode = SUCCESS;
+    std::shared_ptr<Media::PixelMap> sharedPixmap = std::move(pixmap);
     std::shared_ptr<ColorPickerCommon> pColorPicker =
-        ColorPickerCommon::CreateColorPicker(std::move(pixmap), errorCode);
+        ColorPickerCommon::CreateColorPicker(sharedPixmap, errorCode);
     ASSERT_EQ(errorCode, SUCCESS);
     EXPECT_NE(pColorPicker, nullptr);
 }
@@ -170,14 +172,16 @@ HWTEST_F(ColorPickerCommonUnittest, CreateColorPickerFromPixelmapTest004, TestSi
     opts.size.height = 150;
     opts.editable = true;
     std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
 
     /**
      * @tc.steps: step2. Call create From pixelMap
      */
     uint32_t errorCode = SUCCESS;
     std::vector<double> region = { 0, 0, 0.5, 0.5 };
+    std::shared_ptr<Media::PixelMap> sharedPixmap = std::move(pixmap);
     std::shared_ptr<ColorPickerCommon> pColorPicker =
-        ColorPickerCommon::CreateColorPicker(std::move(pixmap), region, errorCode);
+        ColorPickerCommon::CreateColorPicker(sharedPixmap, region, errorCode);
     ASSERT_EQ(errorCode, SUCCESS);
     EXPECT_NE(pColorPicker, nullptr);
 }
@@ -200,14 +204,16 @@ HWTEST_F(ColorPickerCommonUnittest, CreateColorPickerFromPixelmapTest005, TestSi
     opts.size.height = 150;
     opts.editable = true;
     std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
 
     /**
      * @tc.steps: step2. Call create From pixelMap
      */
     uint32_t errorCode = SUCCESS;
     std::vector<double> region = { 0, 0, 0.5, 0.5 };
+    std::shared_ptr<Media::PixelMap> sharedPixmap = std::move(pixmap);
     std::shared_ptr<ColorPickerCommon> pColorPicker =
-        ColorPickerCommon::CreateColorPicker(std::move(pixmap), region, errorCode);
+        ColorPickerCommon::CreateColorPicker(sharedPixmap, region, errorCode);
     EXPECT_NE(pColorPicker, nullptr);
 }
 
