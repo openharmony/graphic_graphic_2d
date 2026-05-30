@@ -943,8 +943,6 @@ public:
 
     // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
-    virtual void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
-    virtual RSUIFirstSwitch GetUIFirstSwitch() const { return RSUIFirstSwitch::NONE; }
 
     const RectI GetFilterCachedRegion() const;
     virtual bool EffectNodeShouldPaint() const { return true; };

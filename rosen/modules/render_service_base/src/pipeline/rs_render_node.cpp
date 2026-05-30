@@ -4947,13 +4947,6 @@ void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
     isUifirstNode_ = isUifirstNode;
 }
 
-void RSRenderNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
-{
-    if (auto& firstNode = GetFirstLevelNode()) {
-        firstNode->SetUIFirstSwitch(uiFirstSwitch);
-    }
-}
-
 void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)
 {
     childrenHasSharedTransition_ = hasSharedTransition;

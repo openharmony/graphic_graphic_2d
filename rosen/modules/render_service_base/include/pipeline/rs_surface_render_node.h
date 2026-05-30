@@ -809,12 +809,12 @@ public:
         uifirstState_.forceUpdate = b;
     }
 
-    RSUIFirstSwitch GetUIFirstSwitch() const override
+    RSUIFirstSwitch GetUIFirstSwitch() const
     {
         return uifirstState_.switchMode;
     }
 
-    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch) override
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
     {
         uifirstState_.switchMode = uiFirstSwitch;
     }
