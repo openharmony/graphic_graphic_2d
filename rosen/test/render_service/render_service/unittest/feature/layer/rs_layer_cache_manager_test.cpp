@@ -46,6 +46,7 @@ using namespace testing;
 using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_VK
 constexpr NodeId DEFAULT_ID = 10086;
 
 class RSLayerCacheManagerTest : public testing::Test {
@@ -873,5 +874,6 @@ HWTEST_F(RSLayerCacheManagerTest, LayerCacheRegionDfxTest, TestSize.Level1)
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
     (void)system::SetParameter(debugKey, oldDebugValue);
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS
