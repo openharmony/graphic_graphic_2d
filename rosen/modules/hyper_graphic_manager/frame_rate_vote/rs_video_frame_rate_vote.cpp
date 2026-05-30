@@ -45,7 +45,7 @@ RSVideoFrameRateVote::~RSVideoFrameRateVote()
     ffrtQueue_ = nullptr;
 }
 
-void RSVideoFrameRateVote::StartVideoFrameRateVote(double videoRate)
+void RSVideoFrameRateVote::StartVideoFrameRateVote(uint32_t videoRate)
 {
     CancelDelayTask();
     VoteVideoFrameRate(videoRate);
@@ -57,18 +57,16 @@ void RSVideoFrameRateVote::ReSetLastRate()
     lastRate_ = 0;
 }
 
-void RSVideoFrameRateVote::VoteVideoFrameRate(double videoRate)
+void RSVideoFrameRateVote::VoteVideoFrameRate(uint32_t videoRate)
 {
-    int32_t intRate = static_cast<int32_t>(videoRate);
-    uint32_t rate = static_cast<uint32_t>(intRate);
-    if (rate < NORMAL_RATE_MIN || rate > NORMAL_RATE_MAX) {
+    if (videoRate < NORMAL_RATE_MIN || videoRate > NORMAL_RATE_MAX) {
         return;
     }
-    if (rate == lastRate_) {
+    if (videoRate == lastRate_) {
         return;
     }
-    DoVoteCallback(rate);
-    lastRate_ = rate;
+    DoVoteCallback(videoRate);
+    lastRate_ = videoRate;
 }
 
 void RSVideoFrameRateVote::SendDelayTask()

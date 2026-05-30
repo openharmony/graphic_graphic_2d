@@ -65,47 +65,47 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Leve
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     RSFrameRateVote::isVideoApp_.store(false);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer, 0);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     RSFrameRateVote::isVideoApp_.store(true);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer, 0);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer, 0);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer, 0);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer, 0);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = false;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, buffer, 0);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer, 0);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 0);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->isSwitchOn_ = true;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, buffer, 0);
     usleep(500000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.size(), 1);
 }
@@ -123,37 +123,37 @@ HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote002, Function | SmallTest | Leve
     DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer, 0);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, false);
 
     DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer, 0);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, false);
 
     DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer, 0);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, true);
 
     DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[0,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer, 0);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, true);
 
     DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT, nullBuffer, 0);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, true);
 
     DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[0,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 0;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(
-        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer);
+        1000, OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO, nullBuffer, 0);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, true);
 }
 
@@ -296,6 +296,86 @@ HWTEST_F(RSFrameRateVoteTest, CancelVoteRate003, Function | SmallTest | Level0)
     EXPECT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
 
     DelayedSingleton<RSFrameRateVote>::GetInstance()->voterRateFunc_ = oriVoterRateFunc;
+}
+
+/**
+ * @tc.name: SetVideoRateInfo001
+ * @tc.desc: test when isVideoApp_ is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, SetVideoRateInfo001, Function | SmallTest | Level0)
+{
+    RSFrameRateVote::isVideoApp_.store(false);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.clear();
+
+    std::unordered_map<std::string, std::string> videoRateInfo = {{"pid", "12345"}, {"decRate", "60"}};
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
+    ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.empty());
+}
+
+/**
+ * @tc.name: SetVideoRateInfo002
+ * @tc.desc: test when SetVideoRateInfo when pid is missing
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, SetVideoRateInfo002, Function | SmallTest | Level0)
+{
+    RSFrameRateVote::isVideoApp_.store(true);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.clear();
+
+    std::unordered_map<std::string, std::string> videoRateInfo = {{"decRate", "60"}};
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
+    ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.empty());
+}
+
+/**
+ * @tc.name: SetVideoRateInfo003
+ * @tc.desc: test when SetVideoRateInfo when decRate is missing
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, SetVideoRateInfo003, Function | SmallTest | Level0)
+{
+    RSFrameRateVote::isVideoApp_.store(true);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.clear();
+
+    std::unordered_map<std::string, std::string> videoRateInfo = {{"pid", "12345"}};
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
+    ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.empty());
+}
+
+/**
+ * @tc.name: SetVideoRateInfo004
+ * @tc.desc: test when pid is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, SetVideoRateInfo004, Function | SmallTest | Level0)
+{
+    RSFrameRateVote::isVideoApp_.store(true);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.clear();
+
+    std::unordered_map<std::string, std::string> videoRateInfo = {{"pid", "invalid"}, {"decRate", "60"}};
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
+    ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.empty());
+}
+
+/**
+ * @tc.name: SetVideoRateInfo005
+ * @tc.desc: test when decRate is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, SetVideoRateInfo005, Function | SmallTest | Level0)
+{
+    RSFrameRateVote::isVideoApp_.store(true);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.clear();
+
+    std::unordered_map<std::string, std::string> videoRateInfo = {{"pid", "12345"}, {"decRate", "invalid"}};
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
+    ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->videoRateInfo_.empty());
 }
 } // namespace Rosen
 } // namespace OHOS

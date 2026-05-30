@@ -36,18 +36,23 @@ public:
      * @param surfaceNodeId the surfaceNode unique id
      * @param sourceType the buffer queue type of the surfaceNode
      * @param buffer the buffer queue
+     * @param bufferCount the available buffer count
      */
-    void VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType, sptr<SurfaceBuffer>& buffer);
+    void VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType, sptr<SurfaceBuffer>& buffer,
+        int32_t bufferCount);
     void SetTransactionFlags(const std::string& transactionFlags);
     void CheckSurfaceAndUi(uint64_t timestamp);
     void SetVoterRateFunc(VideoVoterFunc func);
     void SetVideoFrameRateSwtich(bool isSwitchOn);
+    void SetVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
 
 private:
     void ReleaseSurfaceMap(uint64_t surfaceNodeId);
     void SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate);
     void VoteRate(pid_t pid, std::string eventName, uint32_t rate);
     void CancelVoteRate(pid_t pid, std::string eventName);
+    bool CheckSurfaceNodeIdChange(uint64_t surfaceNodeId);
+    bool CheckAvailableBufferCount(int32_t bufferCount);
 
     bool isSwitchOn_{ false };
     pid_t lastVotedPid_{ DEFAULT_PID };
@@ -65,6 +70,9 @@ private:
     ffrt::task_handle taskHandler_{ nullptr };
     VideoVoterFunc voterRateFunc_ = nullptr;
     static std::atomic<bool> isVideoApp_;
+    std::unordered_map<pid_t, uint32_t> videoRateInfo_;
+    int64_t lastSurfaceNodeIdUpdateTime_{ 0 };
+    std::atomic<int32_t> availableBufferCount_{ 0 };
 
     friend class HgmEnergyConsumptionPolicy;
 };

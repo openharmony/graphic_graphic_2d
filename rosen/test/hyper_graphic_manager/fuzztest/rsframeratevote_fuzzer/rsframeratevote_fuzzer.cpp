@@ -59,12 +59,18 @@ bool DoVideoFrameRateVote(const uint8_t* data, size_t size)
 
     uint64_t id = GetData<uint64_t>();
     OHSurfaceSource type = GetData<OHSurfaceSource>();
-    double rate = GetData<double>();
+
+    int32_t bufferCount = GetData<int32_t>();
+    pid_t pid = GetData<pid_t>();
+    uint32_t decRate = GetData<uint32_t>();
+
+    std::unordered_map<std::string, std::string> videoRateInfo;
+    videoRateInfo["pid"] = std::to_string(pid);
+    videoRateInfo["decRate"] = std::to_string(decRate);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
+
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
-    sptr<BufferExtraData> extraData = new BufferExtraDataImpl();
-    extraData->ExtraSet("VIDEO_RATE", rate);
-    buffer->SetExtraData(extraData);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(id, type, buffer);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(id, type, buffer, bufferCount);
     usleep(usleepTime);
     return true;
 }

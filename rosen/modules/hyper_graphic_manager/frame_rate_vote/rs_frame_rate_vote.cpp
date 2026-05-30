@@ -16,6 +16,8 @@
 #include "rs_frame_rate_vote.h"
 
 #include <algorithm>
+#include <charconv>
+#include <chrono>
 
 #include "hgm_core.h"
 #include "platform/common/rs_log.h"
@@ -27,10 +29,10 @@ namespace Rosen {
 namespace {
 const std::string VIDEO_RATE_FLAG = "VIDEO_RATE";
 const std::string VIDEO_VOTE_FLAG = "VOTER_VIDEO";
-// USE DURATION TO DETERMINE BARRAGE AND UI
 constexpr uint64_t FFRT_QOS_INHERIT = 4;
 constexpr uint64_t DANMU_MAX_INTERVAL_TIME = 50;
 constexpr int32_t VIDEO_VOTE_DELAYS_TIME = 1000 * 1000;
+constexpr int32_t MAX_BUFFER_COUNT = 3;
 }
 std::atomic<bool> RSFrameRateVote::isVideoApp_{false};
 
@@ -67,20 +69,23 @@ void RSFrameRateVote::CheckSurfaceAndUi(uint64_t timestamp)
     auto lastUpdateTime = currentUpdateTime_;
     currentUpdateTime_ = timestamp / NS_PER_MS;
     auto duration = currentUpdateTime_ > lastUpdateTime ? currentUpdateTime_ - lastUpdateTime : 0;
-    if (duration < DANMU_MAX_INTERVAL_TIME) {
-        if (lastVotedRate_ == OLED_NULL_HZ) {
-            return;
-        }
-        uint64_t currentId = lastSurfaceNodeId_.load();
-        {
-            std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
-            auto votingAddress = surfaceVideoFrameRateVote_.find(currentId);
-            if (votingAddress != surfaceVideoFrameRateVote_.end() && votingAddress->second) {
-                votingAddress->second->ReSetLastRate();
-            }
-        }
-        SurfaceVideoVote(currentId, 0);
+    if (duration >= DANMU_MAX_INTERVAL_TIME) {
+        return;
     }
+
+    if (lastVotedRate_ == OLED_NULL_HZ) {
+        return;
+    }
+
+    uint64_t currentId = lastSurfaceNodeId_.load();
+    {
+        std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
+        auto votingAddress = surfaceVideoFrameRateVote_.find(currentId);
+        if (votingAddress != surfaceVideoFrameRateVote_.end() && votingAddress->second) {
+            votingAddress->second->ReSetLastRate();
+        }
+    }
+    SurfaceVideoVote(currentId, 0);
 }
 
 void RSFrameRateVote::SetVoterRateFunc(VideoVoterFunc func)
@@ -89,11 +94,17 @@ void RSFrameRateVote::SetVoterRateFunc(VideoVoterFunc func)
 }
 
 void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType,
-    sptr<SurfaceBuffer>& buffer)
+    sptr<SurfaceBuffer>& buffer, int32_t bufferCount)
 {
-    if (!isVideoApp_.load()) {
+    if (!isVideoApp_.load() || !isSwitchOn_ || buffer == nullptr) {
         return;
     }
+
+    if (CheckSurfaceNodeIdChange(surfaceNodeId) || CheckAvailableBufferCount(bufferCount)) {
+        ReleaseSurfaceMap(lastSurfaceNodeId_);
+        return;
+    }
+
     // transactionFlags_ format is [pid, eventId]
     std::string transactionFlags;
     std::string strLastVotedPid;
@@ -102,20 +113,18 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
         transactionFlags = transactionFlags_;
         strLastVotedPid = "[" + std::to_string(lastVotedPid_) + ",";
     }
-    if (sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO ||
-        transactionFlags.find(strLastVotedPid) != std::string::npos) {
+    if (transactionFlags.find(strLastVotedPid) != std::string::npos) {
         hasUiOrSurface = true;
     }
     RS_LOGD("sourceType: %{public}d, hasUiOrSurface: %{public}d", sourceType, hasUiOrSurface);
-    // OH SURFACE SOURCE VIDEO AN UI VOTE
-    if (!isSwitchOn_ || sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || buffer == nullptr) {
-        return;
+
+    uint32_t videoRate = 0;
+    pid_t curPid = ExtractPid(surfaceNodeId);
+    auto rateIt = videoRateInfo_.find(curPid);
+    if (rateIt != videoRateInfo_.end()) {
+        videoRate = rateIt->second;
     }
-    double videoRate = 0.0;
-    sptr<BufferExtraData> extraData = buffer->GetExtraData();
-    if (extraData != nullptr) {
-        extraData->ExtraGet(VIDEO_RATE_FLAG, videoRate);
-    }
+
     auto initTask = [this, surfaceNodeId, videoRate]() {
         std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
         std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote;
@@ -228,6 +237,78 @@ void RSFrameRateVote::CancelVoteRate(pid_t pid, std::string eventName)
         voterRateFunc_("EVENT_NAME", eventName);
         voterRateFunc_("EVENT_STATUS", "false");
     }
+}
+
+void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    if (!isVideoApp_.load()) {
+        return;
+    }
+
+    auto pidIt = videoRateInfo.find("pid");
+    if (pidIt == videoRateInfo.end()) {
+        RS_LOGD("SetVideoRateInfo can not find pid");
+        return;
+    }
+    pid_t pid = 0;
+    auto resultPid = std::from_chars(pidIt->second.data(), pidIt->second.data() + pidIt->second.size(), pid);
+    if (resultPid.ec != std::errc()) {
+        RS_LOGE("SetVideoRateInfo read pid fail");
+        return;
+    }
+
+    auto rateIt = videoRateInfo.find("decRate");
+    if (rateIt == videoRateInfo.end()) {
+        RS_LOGI("SetVideoRateInfo can not find decRate");
+        return;
+    }
+    uint32_t decRate = 0;
+    auto resultRate = std::from_chars(rateIt->second.data(), rateIt->second.data() + rateIt->second.size(), decRate);
+    if (resultRate.ec != std::errc()) {
+        RS_LOGE("SetVideoRateInfo read decRate fail");
+        return;
+    }
+
+    if (decRate == 0) {
+        auto it = videoRateInfo_.find(pid);
+        if (it != videoRateInfo_.end()) {
+            videoRateInfo_.erase(it);
+        }
+        return;
+    }
+    videoRateInfo_[pid] = decRate;
+}
+
+bool RSFrameRateVote::CheckSurfaceNodeIdChange(uint64_t surfaceNodeId)
+{
+    const auto lastUpdateTime = lastSurfaceNodeIdUpdateTime_;
+    lastSurfaceNodeIdUpdateTime_ = static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count());
+    const auto duration = (lastSurfaceNodeIdUpdateTime_ > lastUpdateTime) ?
+        (lastSurfaceNodeIdUpdateTime_ - lastUpdateTime) : 0;
+
+    const uint64_t lastId = lastSurfaceNodeId_.load();
+    if (surfaceNodeId != lastId && static_cast<uint64_t>(duration) < DANMU_MAX_INTERVAL_TIME) {
+        RS_LOGI("sId changed, curId: %{public}" PRIu64 ", lastId: %{public}" PRIu64 ", duration: %{public}lld",
+            surfaceNodeId, lastId, duration);
+        return true;
+    }
+    return false;
+}
+
+bool RSFrameRateVote::CheckAvailableBufferCount(int32_t bufferCount)
+{
+    if (bufferCount > 0) {
+        availableBufferCount_.fetch_add(1, std::memory_order_relaxed);
+        if (availableBufferCount_.load(std::memory_order_relaxed) >= MAX_BUFFER_COUNT) {
+            RS_LOGI("bufferCount > 0 for 3 times");
+            availableBufferCount_.store(0, std::memory_order_relaxed);
+            return true;
+        }
+    } else {
+        availableBufferCount_.store(0, std::memory_order_relaxed);
+    }
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

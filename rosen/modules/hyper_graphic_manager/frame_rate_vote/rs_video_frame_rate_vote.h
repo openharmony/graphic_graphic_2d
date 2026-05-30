@@ -32,11 +32,11 @@ public:
      *
      * @param videoRate the rate of video
      */
-    void StartVideoFrameRateVote(double videoRate);
+    void StartVideoFrameRateVote(uint32_t videoRate);
     void ReSetLastRate();
 
 private:
-    void VoteVideoFrameRate(double videoRate);
+    void VoteVideoFrameRate(uint32_t videoRate);
     void SendDelayTask();
     void CancelDelayTask();
     void DoVoteCallback(uint32_t rate);

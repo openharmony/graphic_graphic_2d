@@ -209,7 +209,7 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
     if (consumer->GetName() != RENDER_NODE_NAME) {
         RS_TRACE_NAME_FMT("video node: %" PRIu64 "", surfaceHandler.GetNodeId());
         DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
-            consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
+            consumer->GetSurfaceSourceType(), surfaceBuffer->buffer, consumer->GetAvailableBufferCount());
     }
     OHSurfaceSource sourceType =  consumer->GetSurfaceSourceType();
     surfaceHandler.SetSourceType(static_cast<uint32_t>(sourceType));
