@@ -294,6 +294,23 @@ DECLARE_SHADER(BorderSDFShader, BORDER_SDF_SHADER,
     ADD_PROPERTY_TAG(BorderSDFShader, Shape)
 );
 
+DECLARE_SHADER(BorderSDFLGColor, BORDER_SDF_LG_COLOR,
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Angle),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Width),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, IsOutline),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, ColorNumber),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Color0),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Color1),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Color2),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Color3),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Color4),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Position0),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Position1),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Position2),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Position3),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Position4),
+    ADD_PROPERTY_TAG(BorderSDFLGColor, Shape)
+);
 DECLARE_SHADER(SpatialPointLight, SPATIAL_POINT_LIGHT,
     ADD_PROPERTY_TAG(SpatialPointLight, LightIntensity),
     ADD_PROPERTY_TAG(SpatialPointLight, LightPosition),

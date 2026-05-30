@@ -500,17 +500,18 @@ bool PreprocessBorderSDFShader(Drawing::Rect& rect, bool isOutline, std::shared_
     std::shared_ptr<RSNGRenderShaderBase> shader)
 {
     switch (shader->GetType()) {
-        case RSNGEffectType::BORDER_SDF_SHADER:
-            std::static_pointer_cast<RSNGRenderBorderSDFShader>(shader)->
-                Setter<BorderSDFShaderShapeRenderTag>(shape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
-            std::static_pointer_cast<RSNGRenderBorderSDFShader>(shader)->
-                Setter<BorderSDFShaderIsOutlineRenderTag>(isOutline);
-            if (isOutline) {
-                float width = std::static_pointer_cast<RSNGRenderBorderSDFShader>(shader)->
-                    Getter<BorderSDFShaderWidthRenderTag>()->Get();
-                rect.MakeOutset(width, width);
-            }
+        case RSNGEffectType::BORDER_SDF_SHADER: {
+            auto borderSdfShader = std::static_pointer_cast<RSNGRenderBorderSDFShader>(shader);
+            borderSdfShader->Setter<BorderSDFShaderShapeRenderTag>(shape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+            borderSdfShader->Setter<BorderSDFShaderIsOutlineRenderTag>(isOutline);
             return true;
+        }
+        case RSNGEffectType::BORDER_SDF_LG_COLOR: {
+            auto borderSdfLGColor = std::static_pointer_cast<RSNGRenderBorderSDFLGColor>(shader);
+            borderSdfLGColor->Setter<BorderSDFLGColorShapeRenderTag>(shape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+            borderSdfLGColor->Setter<BorderSDFLGColorIsOutlineRenderTag>(isOutline);
+            return true;
+        }
         default:
             return false;
     }

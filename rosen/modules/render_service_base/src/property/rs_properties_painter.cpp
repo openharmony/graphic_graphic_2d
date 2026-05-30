@@ -18,6 +18,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "effect/rs_render_shader_base.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
@@ -970,16 +971,36 @@ void RSPropertiesPainter::DrawFrame(
     cmds->Playback(canvas, &frameRect);
 }
 
-RRect RSPropertiesPainter::GetRRectForDrawingBorder(const RSProperties& properties,
-    const std::shared_ptr<RSBorder>& border, const bool isOutline)
+RRect RSPropertiesPainter::GetRRectForDrawingBorder(
+    const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool isOutline)
 {
     if (!border) {
         return RRect();
     }
 
-    return isOutline ?
-        RRect(properties.GetRRect().rect_.MakeOutset(border->GetWidthFour()), border->GetRadiusFour()) :
-        properties.GetRRect();
+    if (!isOutline) {
+        return properties.GetRRect();
+    }
+
+    auto shader = border->GetSDFShader();
+    if (!shader) {
+        return RRect(properties.GetRRect().rect_.MakeOutset(border->GetWidthFour()), border->GetRadiusFour());
+    }
+
+    float outlineWidth = 0.f;
+    switch (shader->GetType()) {
+        case RSNGEffectType::BORDER_SDF_SHADER:
+            outlineWidth = std::static_pointer_cast<RSNGRenderBorderSDFShader>(shader)
+                               ->Getter<BorderSDFShaderWidthRenderTag>()->Get();
+            break;
+        case RSNGEffectType::BORDER_SDF_LG_COLOR:
+            outlineWidth = std::static_pointer_cast<RSNGRenderBorderSDFLGColor>(shader)
+                               ->Getter<BorderSDFLGColorWidthRenderTag>()->Get();
+            break;
+        default:
+            break;
+    }
+    return RRect(properties.GetRRect().rect_.MakeOutset(outlineWidth), border->GetRadiusFour());
 }
 
 RRect RSPropertiesPainter::GetInnerRRectForDrawingBorder(const RSProperties& properties,
