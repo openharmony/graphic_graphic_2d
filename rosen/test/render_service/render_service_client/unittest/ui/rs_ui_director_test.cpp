@@ -166,6 +166,20 @@ HWTEST_F(RSUIDirectorTest, PlatformInit001, TestSize.Level1)
     ASSERT_TRUE(!director->cacheDir_.empty());
 }
 
+/**
+ * @tc.name: SetCacheDir001
+ * @tc.desc: Test SetCacheDir001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorTest, SetCacheDir001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
+    std::string cacheDir;
+    director->SetCacheDir(cacheDir);
+    EXPECT_EQ(director->cacheDir_.empty(), true);
+}
+
 #ifdef RS_ENABLE_VK
 /**
  * @tc.name: Init001
