@@ -81,7 +81,9 @@ const uint8_t DO_NOTIFY_XCOMPONENT_EXPECTED_FRAME_RATE = 3;
 const uint8_t DO_SET_OPTIMIZE_CANVAS_DRITY_PIDLIST = 4;
 const uint8_t DO_SET_GPU_CRCDIRTY_ENABLE_PIDLIST = 5;
 const uint8_t DO_SET_VIRTUAL_SCREEN_AUTO_ROTATION = 6;
-const uint8_t TARGET_SIZE = 7;
+const uint8_t DO_GET_SCREEN_VCP_FEATURE = 7;
+const uint8_t DO_SET_SCREEN_VCP_FEATURE = 8;
+const uint8_t TARGET_SIZE = 9;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -309,6 +311,56 @@ bool DoSetVirtualScreenAutoRotation()
     g_serviceConnection->OnRemoteRequest(code, dataP, reply, option);
     return true;
 }
+
+void DoGetScreenVCPFeature()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_VCP_FEATURE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    uint8_t vcpCode = GetData<uint8_t>();
+    if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!dataParcel.WriteUint64(id)) {
+        return;
+    }
+    if (!dataParcel.WriteUint8(vcpCode)) {
+        return;
+    }
+    if (g_serviceConnection == nullptr) {
+        return;
+    }
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoSetScreenVCPFeature()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_VCP_FEATURE);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    ScreenId id = GetData<uint64_t>();
+    uint8_t vcpCode = GetData<uint8_t>();
+    uint16_t currentValue = GetData<uint16_t>();
+    if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!dataParcel.WriteUint64(id)) {
+        return;
+    }
+    if (!dataParcel.WriteUint8(vcpCode)) {
+        return;
+    }
+    if (!dataParcel.WriteUint16(currentValue)) {
+        return;
+    }
+    if (g_serviceConnection == nullptr) {
+        return;
+    }
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -532,6 +584,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_AUTO_ROTATION:
             OHOS::Rosen::DoSetVirtualScreenAutoRotation();
+            break;
+        case OHOS::Rosen::DO_GET_SCREEN_VCP_FEATURE:
+            OHOS::Rosen::DoGetScreenVCPFeature();
+            break;
+        case OHOS::Rosen::DO_SET_SCREEN_VCP_FEATURE:
+            OHOS::Rosen::DoSetScreenVCPFeature();
             break;
         default:
             return -1;

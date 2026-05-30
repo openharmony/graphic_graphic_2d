@@ -1469,6 +1469,92 @@ HWTEST_F(RSScreenTest, GetScreenBacklight_002, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetScreenVCPFeature_001
+ * @tc.desc: GetScreenVCPFeature Test, hdiScreen_->GetScreenVCPFeature fails
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, GetScreenVCPFeature_001, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_ = std::make_unique<HdiScreen>(0);
+
+    uint16_t currentValue = 0;
+    uint16_t maximumValue = 0;
+    int32_t errorCode = 0;
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenVCPFeature).Times(1).WillOnce(testing::Return(0));
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    auto result = rsScreen->GetScreenVCPFeature(0x10, currentValue, maximumValue, errorCode);
+    ASSERT_EQ(result, 0);
+}
+
+/*
+ * @tc.name: GetScreenVCPFeature_002
+ * @tc.desc: Test GetScreenVCPFeature with null hdiScreen
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, GetScreenVCPFeature_002, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->hdiScreen_ = nullptr;
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_shared<RSScreen>(config);
+    ASSERT_NE(nullptr, virtualScreen);
+
+    uint16_t currentValue = 0;
+    uint16_t maximumValue = 0;
+    int32_t errorCode = 0;
+    ASSERT_NE(rsScreen->GetScreenVCPFeature(0x10, currentValue, maximumValue, errorCode), 0);
+    ASSERT_NE(virtualScreen->GetScreenVCPFeature(0x10, currentValue, maximumValue, errorCode), 0);
+}
+
+/*
+ * @tc.name: SetScreenVCPFeature_001
+ * @tc.desc: SetScreenVCPFeature Test, hdiScreen_->SetScreenVCPFeature success
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, SetScreenVCPFeature_001, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_ = std::make_unique<HdiScreen>(0);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    uint16_t currentValue = 50;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenVCPFeature).Times(1).WillOnce(testing::Return(0));
+
+    auto result = rsScreen->SetScreenVCPFeature(0x10, currentValue);
+    ASSERT_EQ(result, 0);
+}
+
+/*
+ * @tc.name: SetScreenVCPFeature_002
+ * @tc.desc: Test SetScreenVCPFeature with null hdiScreen and virtualScreen
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, SetScreenVCPFeature_002, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->hdiScreen_ = nullptr;
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_shared<RSScreen>(config);
+    ASSERT_NE(nullptr, virtualScreen);
+
+    uint16_t currentValue = 0;
+    ASSERT_NE(rsScreen->SetScreenVCPFeature(0x10, currentValue), 0);
+    ASSERT_NE(virtualScreen->SetScreenVCPFeature(0x10, currentValue), 0);
+}
+
+/*
  * @tc.name: GetScreenSupportedColorGamuts_002
  * @tc.desc: GetScreenSupportedColorGamuts Test, cover conditions: mode.size() =? 0 when not virtual
  * @tc.type: FUNC

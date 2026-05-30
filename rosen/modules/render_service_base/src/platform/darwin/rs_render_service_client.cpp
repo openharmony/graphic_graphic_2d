@@ -326,6 +326,17 @@ void RSRenderServiceClient::SetScreenBacklight(const RsScreenBrightnessData& bri
 {
 }
 
+int32_t RSRenderServiceClient::GetScreenVCPFeature(ScreenId id, uint8_t vcpCode,
+    uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::SetScreenVCPFeature(ScreenId id, uint8_t vcpCode, uint16_t currentValue)
+{
+    return {};
+}
+
 PanelPowerStatus RSRenderServiceClient::GetPanelPowerStatus(ScreenId id)
 {
     return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;

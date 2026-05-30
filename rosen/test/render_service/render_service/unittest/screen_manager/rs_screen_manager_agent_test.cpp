@@ -420,6 +420,47 @@ HWTEST_F(RSScreenManagerAgentTest, GetScreenBacklight001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetScreenVCPFeature001
+ * @tc.desc: Test GetScreenVCPFeature
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, GetScreenVCPFeature001, TestSize.Level1)
+{
+    ScreenId screenId = GenerateScreenId();
+    uint16_t currentValue = 0;
+    uint16_t maximumValue = 0;
+    int32_t errorCode = 0;
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    auto result = screenManagerAgent_->GetScreenVCPFeature(
+        screenId, 0x10, currentValue, maximumValue, errorCode);
+    ASSERT_NE(result, 0);
+
+    screenManagerAgent_->screenManager_ = screenManager;
+    screenManagerAgent_->GetScreenVCPFeature(screenId, 0x10, currentValue, maximumValue, errorCode);
+}
+
+/*
+ * @tc.name: SetScreenVCPFeature001
+ * @tc.desc: Test SetScreenVCPFeature
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, SetScreenVCPFeature001, TestSize.Level1)
+{
+    ScreenId screenId = GenerateScreenId();
+    uint16_t currentValue = 50;
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    auto result = screenManagerAgent_->SetScreenVCPFeature(screenId, 0x10, currentValue);
+    ASSERT_NE(result, 0);
+
+    screenManagerAgent_->screenManager_ = screenManager;
+    screenManagerAgent_->SetScreenVCPFeature(screenId, 0x10, currentValue);
+}
+
+/*
  * @tc.name: SetScreenBacklight001
  * @tc.desc: Test SetScreenBacklight
  * @tc.type: FUNC

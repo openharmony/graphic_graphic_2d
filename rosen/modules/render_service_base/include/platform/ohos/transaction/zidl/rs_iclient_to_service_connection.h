@@ -215,6 +215,11 @@ public:
 
     virtual void SetScreenBacklight(const RsScreenBrightnessData& brightnessData) = 0;
 
+    virtual ErrCode GetScreenVCPFeature(ScreenId id, uint8_t vcpCode,
+        uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode) = 0;
+
+    virtual ErrCode SetScreenVCPFeature(ScreenId id, uint8_t vcpCode, uint16_t currentValue) = 0;
+
     virtual int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) = 0;
 
     virtual int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) = 0;

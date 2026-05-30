@@ -60,6 +60,7 @@ group("test") {
     "render_service/fuzztest/rsscreenmanager05_fuzzer:fuzztest",
     "render_service/fuzztest/rsscreenmanager06_fuzzer:fuzztest",
     "render_service/fuzztest/rsscreenmanager07_fuzzer:fuzztest",
+    "render_service/fuzztest/rsscreenmanager08_fuzzer:fuzztest",
     "render_service/fuzztest/rstransaction_fuzzer:fuzztest",
     "render_service/fuzztest/rsserviceconnectionstub_transaction/bufferAvailableListenerstub_fuzzer:fuzztest",
     "render_service/fuzztest/rsserviceconnectionstub_transaction/bufferClearListenerstub_fuzzer:fuzztest",

@@ -21,6 +21,7 @@
 #include "v1_2/include/idisplay_composer_interface.h"
 #include "v1_3/include/idisplay_composer_interface.h"
 #include "v1_4/include/idisplay_composer_interface.h"
+#include "v1_5/include/idisplay_composer_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,6 +50,9 @@ public:
     int32_t SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus status) override;
     int32_t GetScreenBacklight(uint32_t screenId, uint32_t &level) override;
     int32_t SetScreenBacklight(uint32_t screenId, uint32_t level) override;
+    int32_t GetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode,
+        uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode) override;
+    int32_t SetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode, uint16_t currentValue) override;
     int32_t PrepareScreenLayers(uint32_t screenId, bool &needFlushFb) override;
     int32_t GetScreenCompChange(uint32_t screenId, std::vector<uint32_t> &layersId,
                                 std::vector<int32_t> &types) override;

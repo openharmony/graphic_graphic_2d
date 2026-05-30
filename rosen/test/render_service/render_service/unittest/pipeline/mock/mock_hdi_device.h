@@ -48,6 +48,8 @@ public:
     MOCK_METHOD2(SetScreenPowerStatus, int32_t(uint32_t, GraphicDispPowerStatus));
     MOCK_METHOD2(GetScreenBacklight, int32_t(uint32_t, uint32_t&));
     MOCK_METHOD2(SetScreenBacklight, int32_t(uint32_t, uint32_t));
+    MOCK_METHOD5(GetScreenVCPFeature, int32_t(uint32_t, uint8_t, uint16_t&, uint16_t&, int32_t&));
+    MOCK_METHOD3(SetScreenVCPFeature, int32_t(uint32_t, uint8_t, uint16_t));
     MOCK_METHOD2(GetPanelPowerStatus, int32_t(uint32_t, GraphicPanelPowerStatus&));
     MOCK_METHOD2(PrepareScreenLayers, int32_t(uint32_t, bool&));
     MOCK_METHOD3(GetScreenCompChange, int32_t(uint32_t, std::vector<uint32_t>&, std::vector<int32_t>&));

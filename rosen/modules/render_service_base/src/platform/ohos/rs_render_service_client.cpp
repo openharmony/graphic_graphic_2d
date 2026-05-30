@@ -921,6 +921,27 @@ void RSRenderServiceClient::SetScreenBacklight(const RsScreenBrightnessData& bri
     clientToService->SetScreenBacklight(brightnessData);
 }
 
+int32_t RSRenderServiceClient::GetScreenVCPFeature(ScreenId id, uint8_t vcpCode,
+    uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->GetScreenVCPFeature(id, vcpCode, currentValue, maximumValue, errorCode);
+}
+
+int32_t RSRenderServiceClient::SetScreenVCPFeature(ScreenId id, uint8_t vcpCode, uint16_t currentValue)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->SetScreenVCPFeature(id, vcpCode, currentValue);
+}
+
 PanelPowerStatus RSRenderServiceClient::GetPanelPowerStatus(ScreenId id)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();

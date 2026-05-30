@@ -733,6 +733,27 @@ public:
      */
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
 
+    /**
+     * @brief Get VCP feature of the display.
+     * @param id Id of the screen.
+     * @param vcpCode VCP code to get.
+     * @param currentValue Output parameter for current value.
+     * @param maximumValue Output parameter for maximum value.
+     * @param errorCode Output parameter for error code.
+     * @return 0 success, others failed.
+     */
+    int32_t GetScreenVCPFeature(ScreenId id, uint8_t vcpCode,
+        uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode);
+
+    /**
+     * @brief Set VCP feature of the display.
+     * @param id Id of the screen.
+     * @param vcpCode VCP code to set.
+     * @param currentValue Input parameter for current value.
+     * @return 0 success, others failed.
+     */
+    int32_t SetScreenVCPFeature(ScreenId id, uint8_t vcpCode, uint16_t currentValue);
+
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
     /**

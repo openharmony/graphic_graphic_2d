@@ -49,6 +49,9 @@ public:
     virtual int32_t SetScreenPowerStatus(uint32_t screenId, GraphicDispPowerStatus status) = 0;
     virtual int32_t GetScreenBacklight(uint32_t screenId, uint32_t &level) = 0;
     virtual int32_t SetScreenBacklight(uint32_t screenId, uint32_t level) = 0;
+    virtual int32_t GetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode,
+        uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode) = 0;
+    virtual int32_t SetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode, uint16_t currentValue) = 0;
     virtual int32_t PrepareScreenLayers(uint32_t screenId, bool &needFlushFb) = 0;
     virtual int32_t GetScreenCompChange(uint32_t screenId, std::vector<uint32_t> &layersId,
                                         std::vector<int32_t> &types) = 0;

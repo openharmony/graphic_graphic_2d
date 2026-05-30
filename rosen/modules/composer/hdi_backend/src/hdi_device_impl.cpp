@@ -21,7 +21,7 @@
 #include <mutex>
 #include <scoped_bytrace.h>
 #include <securec.h>
-#include "v1_4/include/idisplay_composer_interface.h"
+#include "v1_5/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
     do {                                                             \
@@ -39,7 +39,8 @@ using namespace OHOS::HDI::Display::Composer::V1_1;
 using namespace OHOS::HDI::Display::Composer::V1_2;
 using namespace OHOS::HDI::Display::Composer::V1_3;
 using namespace OHOS::HDI::Display::Composer::V1_4;
-using IDisplayComposerInterfaceSptr = sptr<Composer::V1_4::IDisplayComposerInterface>;
+using namespace OHOS::HDI::Display::Composer::V1_5;
+using IDisplayComposerInterfaceSptr = sptr<Composer::V1_5::IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
@@ -71,7 +72,7 @@ HdiDeviceImpl::~HdiDeviceImpl()
 bool HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
-        g_composer = Composer::V1_4::IDisplayComposerInterface::Get();
+        g_composer = Composer::V1_5::IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
             return false;
@@ -273,6 +274,19 @@ int32_t HdiDeviceImpl::SetScreenBacklight(uint32_t screenId, uint32_t level)
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetDisplayBacklight(screenId, level);
+}
+
+int32_t HdiDeviceImpl::GetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode,
+    uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->GetDisplayVCPFeature(screenId, vcpCode, currentValue, maximumValue, errorCode);
+}
+
+int32_t HdiDeviceImpl::SetScreenVCPFeature(uint32_t screenId, uint8_t vcpCode, uint16_t currentValue)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetDisplayVCPFeature(screenId, vcpCode, currentValue);
 }
 
 int32_t HdiDeviceImpl::PrepareScreenLayers(uint32_t screenId, bool &needFlush)
