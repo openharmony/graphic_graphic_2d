@@ -25,14 +25,18 @@ namespace Rosen {
 class RSB_EXPORT RSLayerCacheManagerBase {
 public:
     virtual ~RSLayerCacheManagerBase() = default;
-    static std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> layerDrawables_;
-    static std::unordered_map<NodeId, bool> nodeUnSupportLayerStatus_;
-    static int layerFrameCount_;
-    static bool isLayerStatus_;
-    static std::vector<std::weak_ptr<RSRenderNode>> layerNodes_;
     static void ProcessLayerNodes();
     static bool isNodeUnSupportLayer(std::shared_ptr<RSRenderNode> node);
     static bool isNodeUnSupportLayer(RSRenderNode& node);
+
+    static std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> layerDrawables_;
+
+    static std::unordered_map<NodeId, bool> unSupportLayerNodeMap_;
+    static bool isLayerSuggested_;
+    static std::vector<std::weak_ptr<RSRenderNode>> suggestedLayerNodes_;
+
+private:
+    static int layerFrameCount_;
 };
 } // namespace Rosen
 } // namespace OHOS

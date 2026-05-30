@@ -3394,7 +3394,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
                           node.GetRenderProperties().IsColorBlendModeValid() ||
                           node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE;
     if (isUnSupportLayer) {
-        RSLayerCacheManagerBase::nodeUnSupportLayerStatus_[nodeParent->GetId()] = true;
+        RSLayerCacheManagerBase::unSupportLayerNodeMap_[nodeParent->GetId()] = true;
     }
 
     // Handle ColorPickerDrawable - MERGE into filter handling

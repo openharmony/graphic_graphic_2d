@@ -403,25 +403,26 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     // only support canvas node mark
     bool isCanvasNode = (node != nullptr) && (node->GetType() == RSRenderNodeType::CANVAS_NODE);
-    bool isSupportLayer = isCanvasNode && !RSLayerCacheManagerBase::isNodeUnSupportLayer(node);
+    bool isSupportLayer = isLayer && isCanvasNode && !RSLayerCacheManagerBase::isNodeUnSupportLayer(node);
     if (isSupportLayer) {
         RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isLayer:%d id:%llu", isLayer, node->GetId());
         RS_LOGI_IF(
             DEBUG_NODE, "RSRenderNode::MarkLayer isLayer:%{public}d id:%{public}" PRIu64 "", isLayer, node->GetId());
 
-        RSLayerCacheManagerBase::isLayerStatus_ = isLayer;
-        if (isLayer) {
-            RSLayerCacheManagerBase::layerNodes_.emplace_back(node);
-        } else {
-            RSLayerCacheManagerBase::layerNodes_.clear();
-            node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, false, false);
-        }
+        RSLayerCacheManagerBase::isLayerSuggested_ = isLayer;
+        RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
 
         if (RSSystemProperties::GetLayerDebugEnabled()) {
             std::vector<NodeId> nodeIds;
             node->CollectAllChildren(node, nodeIds);
             RS_OPTIONAL_TRACE_NAME_FMT("Layer node childs number:%zu id:%llu", nodeIds.size(), node->GetId());
         }
+    }
+
+    if (!isLayer) {
+        RSLayerCacheManagerBase::isLayerSuggested_ = isLayer;
+        RSLayerCacheManagerBase::suggestedLayerNodes_.clear();
+        node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, false, false);
     }
 }
 
