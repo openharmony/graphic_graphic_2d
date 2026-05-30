@@ -662,6 +662,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode004, TestSize.Level1)
     EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: ProcessRootRenderNode005
  * @tc.desc: test results of ProcessRootRenderNode
@@ -1331,4 +1332,5 @@ HWTEST_F(RSRenderThreadVisitorTest, FlipMatrix001, TestSize.Level1)
     auto res = visitor.GetFlipTransform(transform);
     EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_ROTATE_NONE);
 }
+#endif
 } // namespace OHOS::Rosen

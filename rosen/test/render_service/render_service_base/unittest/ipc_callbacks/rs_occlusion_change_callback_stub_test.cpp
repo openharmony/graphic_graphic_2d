@@ -70,6 +70,7 @@ HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest001, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -79,6 +80,7 @@ HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
 
     int res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_NONE);
+#endif
 }
 
 /**

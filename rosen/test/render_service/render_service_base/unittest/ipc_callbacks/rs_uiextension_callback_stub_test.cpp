@@ -41,6 +41,7 @@ void RSUIExtensionCallbackStubTest::TearDownTestCase() {}
 void RSUIExtensionCallbackStubTest::SetUp() {}
 void RSUIExtensionCallbackStubTest::TearDown() {}
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: OnRemoteRequest001
  * @tc.desc: Verify function OnRemoteRequest
@@ -82,5 +83,5 @@ HWTEST_F(RSUIExtensionCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
     res = rsUiExtensionCallbackStub->OnRemoteRequest(-1, data, reply, option);
     EXPECT_TRUE(res == ERR_INVALID_STATE);
 }
-
+#endif
 } // namespace OHOS::Rosen
