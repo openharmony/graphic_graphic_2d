@@ -656,9 +656,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest018, TestSize.Level1)
         std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
     std::shared_ptr<RSPathAnimationMock> animation2 =
         std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
-    struct RSSurfaceNodeConfig surfaceNodeConfig = {.SurfaceNodeName = "test"};
-    std::shared_ptr<RSNode> node1 = RSSurfaceNode::Create(surfaceNodeConfig, false);
-    std::shared_ptr<RSNode> node2 = RSSurfaceNode::Create(surfaceNodeConfig, true);
+    auto node1 = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     animation1->Start(node1);
     animation1->OnStart();
     animation2->Start(node1);
@@ -720,9 +718,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest019, TestSize.Level1)
 
     std::shared_ptr<RSSpringAnimationMock> animation3 =
         std::make_shared<RSSpringAnimationMock>(rsUiDirector->GetRSUIContext(), property, value1, value2);
-    struct RSSurfaceNodeConfig surfaceNodeConfig = {.SurfaceNodeName = "test"};
-    std::shared_ptr<RSNode> node1 = RSSurfaceNode::Create(surfaceNodeConfig, false);
-    std::shared_ptr<RSNode> node2 = RSSurfaceNode::Create(surfaceNodeConfig, true);
+    auto node1 = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
     animation2->Start(node1);
     animation2->OnStart();
     animation3->Start(node1);
