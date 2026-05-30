@@ -3388,11 +3388,12 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (nodeParent == nullptr) {
         return;
     }
-    bool isUnSupportLayer = RSLayerCacheManagerBase::isNodeUnSupportLayer(node) ||
-                          node.GetOpincRootCache().IsSuggestOpincNode() || node.GetRenderProperties().IsShadowValid() ||
-                          node.GetRenderProperties().IsBgBrightnessValid() ||
-                          node.GetRenderProperties().IsColorBlendModeValid() ||
-                          node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE;
+    bool isUnSupportLayer =
+        RSLayerCacheManagerBase::isLayerSuggested_ &&
+        (RSLayerCacheManagerBase::isNodeUnSupportLayer(node) || node.GetOpincRootCache().IsSuggestOpincNode() ||
+            node.GetRenderProperties().IsShadowValid() || node.GetRenderProperties().IsBgBrightnessValid() ||
+            node.GetRenderProperties().IsColorBlendModeValid() ||
+            node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::unSupportLayerNodeMap_[nodeParent->GetId()] = true;
     }
