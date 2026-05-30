@@ -1111,4 +1111,63 @@ HWTEST_F(RSDrawingFilterTest, SetDisableFilterCache002, TestSize.Level1)
     drawingFilter.SetDisableFilterCache(true);
     EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
 }
+
+/**
+ * @tc.name: NeedForceSubmit001
+ * @tc.desc: test NeedForceSubmit with shaderFilters containing filter that returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, NeedForceSubmit001, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
+
+    EXPECT_FALSE(drawingFilter.NeedForceSubmit());
+
+    auto colorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(AVERAGE, RSColor());
+    drawingFilter.InsertShaderFilter(colorShaderFilter);
+    EXPECT_TRUE(drawingFilter.NeedForceSubmit());
+}
+
+/**
+ * @tc.name: NeedForceSubmit002
+ * @tc.desc: test NeedForceSubmit with empty shaderFilters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, NeedForceSubmit002, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
+
+    EXPECT_FALSE(drawingFilter.NeedForceSubmit());
+}
+
+/**
+ * @tc.name: NeedForceSubmit003
+ * @tc.desc: test NeedForceSubmit with PRE_DEFINED mode mask color filter returning false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, NeedForceSubmit003, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
+
+    auto colorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(PRE_DEFINED, RSColor());
+    drawingFilter.InsertShaderFilter(colorShaderFilter);
+    EXPECT_FALSE(drawingFilter.NeedForceSubmit());
+
+    auto colorShaderFilter2 = std::make_shared<RSMaskColorShaderFilter>(AVERAGE, RSColor());
+    drawingFilter.InsertShaderFilter(colorShaderFilter2);
+    EXPECT_TRUE(drawingFilter.NeedForceSubmit());
+}
 } // namespace OHOS::Rosen
