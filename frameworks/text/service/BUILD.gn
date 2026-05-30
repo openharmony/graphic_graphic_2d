@@ -86,6 +86,10 @@ ohos_source_set("rosen_text_skia") {
   }
 
   if (platform_is_ohos) {
+    if (text_histogram_enable) {
+      external_deps += [ "api_metrics:histogrammanager" ]
+      defines = [ "HISTOGRAM_MANAGEMENT_ENABLE" ]
+    }
     deps += [ "$platform_root:image_native" ]
     external_deps += [
       "c_utils:utils",
