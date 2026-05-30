@@ -368,7 +368,7 @@ void RSRenderThread::RenderLoop()
     ResourceSchedule::ResSchedClient::GetInstance().ReportData(
         ResourceSchedule::ResType::RES_TYPE_REPORT_RENDER_THREAD, getproctid(), payload);
 #endif
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ANDROID)
     tid_ = gettid();
 #endif
     CreateAndInitRenderContextIfNeed();

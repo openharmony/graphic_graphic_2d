@@ -31,6 +31,15 @@ public:
     std::string GetShaderCacheSize() const override;
     std::string CleanAllShaderCache() const override;
     bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) override;
+    #ifdef ROSEN_ARKUI_X
+    void AddSurface();
+    void DeleteSurface();
+    void SetCleanUpHelper(std::function<void()> fun);
+    void DestroySharedSource() ;
+private:
+    std::atomic<int32_t> surface_count_ = 0;
+    std::function<void()> cleanUpHelper_ = nullptr;
+    #endif
 };
 } // namespace Rosen
 } // namespace OHOS
