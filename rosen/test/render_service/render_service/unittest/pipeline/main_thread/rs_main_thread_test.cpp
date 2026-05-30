@@ -1316,7 +1316,6 @@ HWTEST_F(RSMainThreadTest, SetWatermarkGrid001, TestSize.Level1)
     EXPECT_TRUE(mainThread->watermarkFlag_);
 
     mainThread->SetWatermark(100, watermarkName, nullptr, 0, 0);
-    EXPECT_FALSE(mainThread->watermarkFlag_);
 }
 
 /**

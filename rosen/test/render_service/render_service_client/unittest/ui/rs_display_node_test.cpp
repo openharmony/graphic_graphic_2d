@@ -505,4 +505,64 @@ HWTEST_F(RSDisplayNodeTest, SetDisplayContentRect003, TestSize.Level1)
     ASSERT_TRUE(RSTransactionProxy::instance_ == nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
+
+#ifdef RS_ENABLE_UNI_RENDER
+/**
+ * @tc.name: ClearModifierByPid001
+ * @tc.desc: Test ClearModifierByPid with valid pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, ClearModifierByPid001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_TRUE(displayNode != nullptr);
+
+    pid_t testPid = getprocpid();
+    displayNode->ClearModifierByPid(testPid);
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
+}
+
+/**
+ * @tc.name: ClearModifierByPid002
+ * @tc.desc: Test ClearModifierByPid with zero pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, ClearModifierByPid002, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_TRUE(displayNode != nullptr);
+
+    displayNode->ClearModifierByPid(0);
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
+}
+
+/**
+ * @tc.name: ClearModifierByPid003
+ * @tc.desc: Test ClearModifierByPid with negative pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, ClearModifierByPid003, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_TRUE(displayNode != nullptr);
+
+    displayNode->ClearModifierByPid(-1);
+
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->FlushImplicitTransaction();
+    }
+}
+#endif
 } // namespace OHOS::Rosen
