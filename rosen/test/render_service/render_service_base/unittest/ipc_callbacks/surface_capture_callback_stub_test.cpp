@@ -54,6 +54,7 @@ void RSSurfaceCaptureCallbackStubTest::TearDownTestCase()
 void RSSurfaceCaptureCallbackStubTest::SetUp() {}
 void RSSurfaceCaptureCallbackStubTest::TearDown() {}
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: OnRemoteRequest001
  * @tc.desc: Verify function OnRemoteRequest if code exist and data has no content
@@ -340,5 +341,5 @@ HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfigCaptureTypeTe
     res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
     ASSERT_EQ(res, false);
 }
-
+#endif
 } // namespace OHOS::Rosen

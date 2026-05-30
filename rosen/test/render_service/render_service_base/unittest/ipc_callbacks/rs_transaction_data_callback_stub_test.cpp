@@ -41,6 +41,7 @@ void RSTransactionDataCallbackStubTest::TearDownTestCase() {}
 void RSTransactionDataCallbackStubTest::SetUp() {}
 void RSTransactionDataCallbackStubTest::TearDown() {}
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: OnRemoteRequest001
  * @tc.desc: Verify function OnRemoteRequest
@@ -114,4 +115,5 @@ HWTEST_F(RSTransactionDataCallbackStubTest, OnRemoteRequest004, TestSize.Level1)
     int res = RSTransactionDataCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res != ERR_NONE);
 }
+#endif
 } // namespace OHOS::Rosen
