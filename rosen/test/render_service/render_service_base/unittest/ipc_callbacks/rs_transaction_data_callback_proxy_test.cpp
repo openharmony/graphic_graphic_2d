@@ -37,6 +37,7 @@ void RSTransactionDataCallbackProxyTest::TearDownTestCase() {}
 void RSTransactionDataCallbackProxyTest::SetUp() {}
 void RSTransactionDataCallbackProxyTest::TearDown() {}
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: OnAfterProcess001
  * @tc.desc: Verify the OnAfterProcess
@@ -75,5 +76,6 @@ HWTEST_F(RSTransactionDataCallbackProxyTest, OnAfterProcess002, TestSize.Level1)
     ASSERT_EQ(remoteMocker->receivedCode_,
         static_cast<uint32_t>(RSITransactionDataCallbackInterfaceCode::ON_AFTER_PROCESS));
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS
