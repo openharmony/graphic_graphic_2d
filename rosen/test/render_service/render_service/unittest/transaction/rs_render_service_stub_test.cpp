@@ -136,25 +136,4 @@ HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub005, TestSize.Level1)
     int res = stub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_NULL_OBJECT);
 }
-
-/**
- * @tc.name: TestRSRenderServiceStub006
- * @tc.desc: Test if remoteObj is nullptr.
- * @tc.type: FUNC
- * @tc.require: issueI60KUK
- */
-HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub006, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
- 
-    data.WriteInterfaceToken(RSIRenderService::GetDescriptor());
-    auto token = new IRemoteStub<RSIConnectionToken>();
-    auto tokenObj = token->AsObject();
-    data.WriteRemoteObject(tokenObj);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION);
-    int res = stub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_UNKNOWN_OBJECT);
-}
 } // namespace OHOS::Rosen

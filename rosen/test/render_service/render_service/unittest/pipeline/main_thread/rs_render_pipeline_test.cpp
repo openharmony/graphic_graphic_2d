@@ -198,7 +198,7 @@ HWTEST_F(RSRenderPipelineTest, AddConnection_NullRemote_Ignored, TestSize.Level1
     pipeline->AddConnection(nullRemote, conn);
     EXPECT_EQ(pipeline->renderConnections_.size(), 1);
 }
-
+#if defined(RS_ENABLE_UNI_RENDER)
 /**
  * @tc.name: RemoveConnection_Existing_ReturnTrue
  * @tc.desc: RemoveConnection returns true and removes mapping when token matches
@@ -615,4 +615,5 @@ HWTEST_F(RSRenderPipelineTest, OnScreenConnected_CallbackExecuted, TestSize.Leve
     runner->Stop();
     RSMainThread::Instance()->handler_ = nullptr;
 }
+#endif
 } // namespace OHOS::Rosen

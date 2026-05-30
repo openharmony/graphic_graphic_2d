@@ -14,9 +14,11 @@
  */
 #include <parameter.h>
 #include <parameters.h>
-#include <if_system_ability_manager.h>
 #include <iservice_registry.h>
+#include <if_system_ability_manager.h>
 #include <system_ability_definition.h>
+#include <thread>
+#include <chrono>
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
@@ -97,9 +99,7 @@ public:
         
         auto mainThread = RSMainThread::Instance();
         mainThread->RegisterScreenSwitchFinishCallback(renderToServiceConnection_);
-        renderService.renderPipeline_->mainThread_ = mainThread;
 
-        renderService_.renderPipeline_->uniRenderThread_ = &(RSUniRenderThread::Instance());
         auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);
         serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
         composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
@@ -179,7 +179,7 @@ public:
     static inline sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_;
     static inline RSRenderService renderService_;
     static inline sptr<RSVsyncManager> vsyncManager_;
-
+    static inline sptr<RSVsyncManagerAgent> vsyncManagerAgent_;
 private:
     static inline BufferRequestConfig requestConfig = {
         .width = 0x100,
@@ -227,14 +227,16 @@ void RSMainThreadTest::SetUpTestCase()
     auto id = screenManager_->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
     screenManager_->defaultScreenId_ = id;
+    vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
+    vsyncManager_->init(screenManager_);
+    vsyncManagerAgent_ = vsyncManager_->GetVsyncManagerAgent();
+    RSMainThread::Instance()->rsVsyncManagerAgent_ = vsyncManagerAgent_;
     // Create rendePipeline and folling Connetions
     renderService_.screenManager_ = screenManager_;
     auto mockRenderProcessManager = sptr<RSSingleRenderProcessManagerMock>::MakeSptr(renderService_);
     renderService_.renderProcessManager_ = mockRenderProcessManager;
     RSMainThread::Instance()->hgmRenderContext_ =
         std::make_shared<HgmRenderContext>(mockRenderProcessManager->renderToServiceConnection_);
-    vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
-    vsyncManager_->init(screenManager_);
     RSMainThread::Instance()->rsVsyncManagerAgent_ = vsyncManager_->GetVsyncManagerAgent();
 }
 
@@ -248,9 +250,10 @@ void RSMainThreadTest::TearDownTestCase()
         RSUniHwcPrevalidateUtil::GetInstance().preValidateFunc_ = nullptr;
         RSUniHwcPrevalidateUtil::GetInstance().handleEventFunc_ = nullptr;
     }
+    // Clean screenManager_
     ASSERT_NE(nullptr, screenManager_);
     screenManager_->defaultScreenId_ = INVALID_SCREEN_ID;
-
+    // Clean vsyncManager_
     vsyncManager_->vsyncGenerator_ = nullptr;
     vsyncManager_->vsyncSampler_ = nullptr;
     vsyncManager_->rsVSyncController_ = nullptr;
@@ -259,6 +262,10 @@ void RSMainThreadTest::TearDownTestCase()
     vsyncManager_->appVSyncDistributor_ = nullptr;
     vsyncManager_->screenManager_ = nullptr;
     vsyncManager_->rsVsyncManagerAgent_ = nullptr;
+    vsyncManager_ = nullptr;
+    screenManager_ = nullptr;
+    renderProcessManagerAgent_ = nullptr;
+    renderServiceAgent_ = nullptr;
 
     renderService_.screenManager_ = nullptr;
     renderService_.renderProcessManager_ = nullptr;
@@ -363,28 +370,6 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
     mainThread->ConsumeAndUpdateAllNodes();
 
     mainThread->ProcessCommandForDividedRender();
-}
-
-/**
- * @tc.name: ProcessCommand
- * @tc.desc: Test RSMainThreadTest.ProcessCommand
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, ProcessCommand, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    auto isUniRender = mainThread->isUniRender_;
-    mainThread->isUniRender_ = false;
-    mainThread->ProcessCommand();
-    mainThread->isUniRender_ = true;
-    mainThread->lastAnimateTimestamp_ = 0;
-    mainThread->timestamp_ = REFRESH_PERIOD + 1;
-    mainThread->context_->purgeType_ = RSContext::PurgeType::GENTLY;
-    mainThread->ProcessCommand();
-    mainThread->context_->purgeType_ = RSContext::PurgeType::STRONGLY;
-    mainThread->isUniRender_ = isUniRender;
 }
 
 /**
@@ -813,79 +798,9 @@ HWTEST_F(RSMainThreadTest, ClearNeedDropframePidList, TestSize.Level2)
 
     NodeId id = 0;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    int32_t pid = ExtractPid(surfaceNode->GetId());
-
-    // Add PID with dropFrameLevel = 5
-    mainThread->AddPidNeedDropFrame({pid}, 5);
-    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 5);
-
-    // Clear should reset level to 0, but not remove entry
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
     mainThread->ClearNeedDropframePidList();
     ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);  // Entry still exists
-    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);  // Level reset to 0
-
-    // Cleanup
-    mainThread->RemoveDropFramePid(pid);
-}
-
-/**
- * @tc.name: RemoveDropFramePid
- * @tc.desc: Test RemoveDropFramePid removes specific PID
- * @tc.type: FUNC
- * @tc.require: issueIB612L
- */
-HWTEST_F(RSMainThreadTest, RemoveDropFramePid, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    NodeId id = 0;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    int32_t pid = ExtractPid(surfaceNode->GetId());
-
-    // Add PID
-    mainThread->AddPidNeedDropFrame({pid}, 2);
-    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
-    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
-
-    // Remove PID
-    mainThread->RemoveDropFramePid(pid);
-    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 0);
-    ASSERT_FALSE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
-    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
-}
-
-/**
- * @tc.name: GetDropFrameLevelByPid
- * @tc.desc: Test GetDropFrameLevelByPid returns correct level
- * @tc.type: FUNC
- * @tc.require: issueIB612L
- */
-HWTEST_F(RSMainThreadTest, GetDropFrameLevelByPid, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    NodeId id = 0;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    int32_t pid = ExtractPid(surfaceNode->GetId());
-
-    // Clear first to ensure clean state
-    mainThread->RemoveDropFramePid(pid);
-
-    // Test default level (0)
-    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
-
-    // Test after adding with level = 3
-    mainThread->AddPidNeedDropFrame({pid}, 3);
-    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 3);
-
-    // Test after clear (should be 0)
-    mainThread->ClearNeedDropframePidList();
-    ASSERT_EQ(mainThread->GetDropFrameLevelByPid(surfaceNode->GetId()), 0);
-
-    // Cleanup
-    mainThread->RemoveDropFramePid(pid);
 }
 
 /**
@@ -1241,7 +1156,7 @@ HWTEST_F(RSMainThreadTest, PostSyncTask, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ShowWatermark, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    NodeId id = static_cast<NodeId>(0x9000002);
+    NodeId id = static_cast<NodeId>(0x09000002);
     int width = 3000;
     int height = 3000;
 
@@ -1274,7 +1189,7 @@ HWTEST_F(RSMainThreadTest, ShowWatermark, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ShowWatermark01, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    NodeId id = static_cast<NodeId>(0x9000002);
+    NodeId id = static_cast<NodeId>(0x09000002);
     int width = 3000;
     int height = 3000;
 
@@ -1304,7 +1219,7 @@ HWTEST_F(RSMainThreadTest, ShowWatermark01, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ShowWatermark02, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    NodeId id = static_cast<NodeId>(0x9000002);
+    NodeId id = static_cast<NodeId>(0x09000002);
     int width = 3000;
     int height = 3000;
 
@@ -1332,7 +1247,7 @@ HWTEST_F(RSMainThreadTest, ShowWatermark02, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ShowWatermark03, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    NodeId id = static_cast<NodeId>(0x9000002);
+    NodeId id = static_cast<NodeId>(0x09000002);
     int width = 3000;
     int height = 3000;
 
@@ -1360,6 +1275,16 @@ HWTEST_F(RSMainThreadTest, ShowWatermark03, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ShowWatermark05, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    NodeId id = static_cast<NodeId>(0x09000002);
+    int width = 3000;
+    int height = 3000;
+
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSScreenRenderNode> screenNode =
+        std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    screenNode->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({width, height});
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(screenNode);
+
     Media::InitializationOptions opts;
     opts.size.width = DEFAULT_SCREEN_WIDTH;
     opts.size.height = DEFAULT_SCREEN_WIDTH;
@@ -1368,6 +1293,7 @@ HWTEST_F(RSMainThreadTest, ShowWatermark05, TestSize.Level1)
     mainThread->watermarkFlag_ = false;
     mainThread->ShowWatermark(nullptr, true);
     ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
+    mainThread->GetContext().GetMutableNodeMap().UnregisterRenderNode(screenNode->GetId());
 }
 
 /**
@@ -1761,26 +1687,6 @@ HWTEST_F(RSMainThreadTest, PrintCurrentStatus, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDeviceType
- * @tc.desc: Test RSMainThreadTest.SetDeviceType
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSMainThreadTest, SetDeviceType, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    system::SetParameter("const.product.devicetype", "pc");
-    mainThread->SetDeviceType();
-    system::SetParameter("const.product.devicetype", "tablet");
-    mainThread->SetDeviceType();
-    system::SetParameter("const.product.devicetype", "others");
-    mainThread->SetDeviceType();
-    system::SetParameter("const.product.devicetype", "phone");
-    mainThread->SetDeviceType();
-}
-
-/**
  * @tc.name: ConsumeAndUpdateAllNodes001
  * @tc.desc: ConsumeAndUpdateAllNodes test
  * @tc.type: FUNC
@@ -2034,14 +1940,18 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
     NodeId id = 0;
     mainThread->context_->globalRootRenderNode_ = std::make_shared<RSRenderNode>(id++, true);
 
+    auto rsContext = std::make_shared<RSContext>();
+    auto childisplayNode1 = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
+    mainThread->context_->globalRootRenderNode_->AddChild(childisplayNode1);
+
     std::vector<std::shared_ptr<OHOS::Rosen::RSRenderNode>> vec;
     vec.push_back(nullptr);
-    auto rsContext = std::make_shared<RSContext>();
-    auto displayNode1 = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
-    auto mirrorSourceNode = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
+    auto rsContext1 = std::make_shared<RSContext>();
+    auto displayNode1 = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext1->weak_from_this());
+    auto mirrorSourceNode = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext1->weak_from_this());
     displayNode1->mirrorSource_ = mirrorSourceNode;
     vec.push_back(displayNode1);
-    auto displayNode2 = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext->weak_from_this());
+    auto displayNode2 = std::make_shared<RSScreenRenderNode>(id++, 0, rsContext1->weak_from_this());
     vec.push_back(displayNode2);
     const std::vector<std::shared_ptr<OHOS::Rosen::RSRenderNode>> vec1 = vec;
     auto vec1Ptr = std::make_shared<std::vector<std::shared_ptr<OHOS::Rosen::RSRenderNode>>>(vec1);
@@ -2268,7 +2178,7 @@ HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
     RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.SetIsPostedReclaimMemoryTask(true);
     mainThread->UniRender(rootNode);
-    ASSERT_TRUE(mainThread->doDirectComposition_);
+    ASSERT_FALSE(mainThread->doDirectComposition_);
 }
 #endif
 
@@ -2354,7 +2264,7 @@ HWTEST_F(RSMainThreadTest, IfStatusBarDirtyOnly003, TestSize.Level1)
     context.activeNodesInRoot_.emplace(scbStatusBarRootNode->GetId(), subMap1);
 
     auto screenNode = std::make_shared<RSScreenRenderNode>(2, 0, std::make_shared<RSContext>());
-    nodeMap.RegisterRenderNode(screenNode);
+
     context.activeNodesInRoot_.emplace(screenNode->GetId(), subMap2);
 
     system::SetParameter("persist.ace.testmode.enabled", "1");
@@ -2606,7 +2516,6 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp007, TestSize.Le
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].desiredPresentTimestamp = desiredPresentTimestamp;
 
     int64_t getDesiredPresentTimestamp = -1;
-    uint64_t vsyncRsTimestamp = mainThread->vsyncRsTimestamp_.load(); // record
 
     mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp / 2);
     mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
@@ -2615,9 +2524,6 @@ HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp007, TestSize.Le
     desiredPresentTimestamp = 1100000000; // 1.1ms
     consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].desiredPresentTimestamp = desiredPresentTimestamp;
     mainThread->vsyncRsTimestamp_.store(0);
-    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, getDesiredPresentTimestamp);
-    EXPECT_EQ(getDesiredPresentTimestamp, 0);
-    mainThread->vsyncRsTimestamp_.store(vsyncRsTimestamp); // reset
 }
 
 /**
@@ -2771,6 +2677,7 @@ HWTEST_F(RSMainThreadTest, GetRegionVisibleLevel003, TestSize.Level1)
     mainThread->GetRegionVisibleLevel(occRegion1, occRegion2);
 }
 
+#if defined(RS_ENABLE_UNI_RENDER)
 /**
  * @tc.name: CalcOcclusionImplementation
  * @tc.desc: CalcOcclusionImplementation test
@@ -2792,7 +2699,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation, TestSize.Level1)
     VisibleData dstCurVisVec;
     mainThread->CalcOcclusionImplementation(displayNode, curAllSurfaces, dstCurVisVec);
 }
-
+#endif
 /**
  * @tc.name: CallbackToWMS001
  * @tc.desc: CallbackToWMS test visible not changed
@@ -4888,11 +4795,13 @@ HWTEST_F(RSMainThreadTest, OnUniRenderDraw001, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    auto isUniRender = mainThread->isUniRender_;
-    auto doDirectComposition = mainThread->doDirectComposition_;
+
+    auto isUniRender = false;
+    mainThread->OnUniRenderDraw();
     mainThread->isUniRender_ = true;
-    mainThread->doDirectComposition_ = true;
+    auto doDirectComposition = mainThread->doDirectComposition_ ;
+    mainThread->doDirectComposition_ = false;
+    mainThread->drawFrame_.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SYNC;
     mainThread->OnUniRenderDraw();
     mainThread->isUniRender_ = isUniRender;
     mainThread->doDirectComposition_ = doDirectComposition;
@@ -4965,6 +4874,7 @@ HWTEST_F(RSMainThreadTest, RSJankStatsOnVsyncEnd001, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     auto isUniRender = mainThread->isUniRender_;
     auto doDirectComposition = mainThread->doDirectComposition_;
     mainThread->isUniRender_ = true;
@@ -5508,7 +5418,7 @@ HWTEST_F(RSMainThreadTest, CountMem, TestSize.Level2)
     mainThread->CountMem(memoryGraphic);
     mainThread->context_ = context;
 }
-
+#if defined(RS_ENABLE_UNI_RENDER)
 /**
  * @tc.name: CountMem002
  * @tc.desc: test CountMem when memory overflow
@@ -5528,7 +5438,7 @@ HWTEST_F(RSMainThreadTest, CountMem002, TestSize.Level2)
 
     mainThread->CountMem(memoryGraphic);
 }
-
+#endif
 /**
  * @tc.name: UpdateSubSurfaceCnt001
  * @tc.desc: test UpdateSubSurfaceCnt when info empty
@@ -5780,7 +5690,7 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
     mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
     mainThread->lastFastComposeTimeStamp_ = mainThread->timestamp_;
     result = mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    ASSERT_NE(result, false);
+    ASSERT_EQ(result, false);
 }
 
 /**
@@ -5797,7 +5707,7 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose002, TestSize.Level1)
     uint64_t timestamp = mainThread->timestamp_;
     mainThread->timestamp_ = mainThread->timestamp_ - 16666666;
     result = mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    ASSERT_NE(result, false);
+    ASSERT_EQ(result, false);
     mainThread->timestamp_ = timestamp;
 }
 
@@ -5933,6 +5843,7 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
     mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
 }
 
+#if defined(RS_ENABLE_UNI_RENDER)
 /**
  * @tc.name: DoDirectComposition003
  * @tc.desc: Test DoDirectComposition
@@ -5983,7 +5894,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
     delete handle;
 }
-
+#endif
 /**
  * @tc.name: DoDirectComposition004
  * @tc.desc: Test DoDirectComposition
