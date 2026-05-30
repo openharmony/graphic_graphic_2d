@@ -111,9 +111,6 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
         }
 
         RsFrameReport::InitDeadline();
-        if (!cacheDir_.empty()) {
-            RSRenderThread::Instance().SetCacheDir(cacheDir_);
-        }
         RSRenderThread::Instance().Start();
     } else {
         // force fallback animaiions send to RS if no render thread
@@ -497,6 +494,9 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
         RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
     }
 #endif
+    if (!cacheDir_.empty()) {
+        RSRenderThread::Instance().SetCacheDir(cacheDir_);
+    }
 }
 
 bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
