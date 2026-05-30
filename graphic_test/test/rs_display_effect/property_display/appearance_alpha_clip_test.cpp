@@ -54,7 +54,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipRRect_Test_1)
             const int nodeSize = 400;
             const int fontSize = 50;
 
-            auto testFaNode = RSCanvasNode::Create();
+            auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testFaNode->SetAlpha(0.5f * i);
             testFaNode->SetBounds(bounds);
             testFaNode->SetFrame(bounds);
@@ -69,7 +69,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipRRect_Test_1)
             testFaNode->AddModifier(textModifier);
 
             testFaNode->SetClipToBounds(true);
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetAlpha(0.5f * j);
             testNode->SetBounds({ 0.0, fontSize, nodeSize, nodeSize });
             testNode->SetBackgroundColor(0xff00ff00);
@@ -101,7 +101,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipRRect_Test_2)
             const int nodeSize = 400;
             const int nodePosY = 50;
 
-            auto testFaNode = RSCanvasNode::Create();
+            auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testFaNode->SetAlpha(0.4f * i);
             testFaNode->SetBounds(bounds);
             auto imageModifier = std::make_shared<ImageCustomModifier>();
@@ -110,7 +110,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipRRect_Test_2)
             imageModifier->SetPixelMapPath("/data/local/tmp/fg_test.jpg");
             testFaNode->AddModifier(imageModifier);
             testFaNode->SetClipToBounds(false);
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetAlpha(0.4f * j);
             testNode->SetBounds({ 0.0, nodePosY, nodeSize, nodeSize });
             testNode->SetBackgroundColor(0xff00ff00);
@@ -170,7 +170,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_SetClipBounds_RSPath_
     for (int i = 0; i < rowCount; i++) {
         auto clipPath = RSPath::CreateRSPath(drawingPath[i]);
         int y = i * sizeY;
-        auto testNode1 = RSCanvasNode::Create();
+        auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode1->SetAlpha(0.333f * i);
         testNode1->SetBounds({ 0, y, sizeX - 10, sizeY - 10 });
         testNode1->SetBackgroundColor(0xff00ff00);
@@ -199,7 +199,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_001
 {
     Drawing::Path path;
     path.AddRect(0, 0, 200, 450, Drawing::PathDirection::CCW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.9f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -216,7 +216,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_002
 {
     Drawing::Path path;
     path.AddRect(0, 0, 200, 450, Drawing::PathDirection::CCW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.8f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -233,7 +233,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_003
 {
     Drawing::Path path;
     path.AddRect(-50, 50, 200, 200, Drawing::PathDirection::CW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.7f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -250,7 +250,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_004
 {
     Drawing::Path path;
     path.AddRect(50, -50, 200, 200, Drawing::PathDirection::CW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.6f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -267,7 +267,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_005
 {
     Drawing::Path path;
     path.AddRect(-50, -50, 200, 200, Drawing::PathDirection::CW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.5f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -284,7 +284,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_006
 {
     Drawing::Path path;
     path.AddRect(50, 50, 200, -200, Drawing::PathDirection::CW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.4f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -301,7 +301,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_007
 {
     Drawing::Path path;
     path.AddRect(50, 50, -200, -200, Drawing::PathDirection::CW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.3f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -318,7 +318,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_008
 {
     Drawing::Path path;
     path.AddCircle(100, 100, 60, Drawing::PathDirection::CW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.2f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -335,7 +335,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_009
 {
     Drawing::Path path;
     path.AddCircle(100, 100, 0, Drawing::PathDirection::CCW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.1f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -352,7 +352,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_010
 {
     Drawing::Path path;
     path.AddCircle(100, 100, 0, Drawing::PathDirection::CCW_DIRECTION);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.2f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -370,7 +370,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_011
     Drawing::Path path;
     std::vector<Drawing::Point> star = { {0, 0} };
     path.AddPoly(star, 1, true);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.3f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -388,7 +388,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_012
     Drawing::Path path;
     std::vector<Drawing::Point> star = { { 0, 0 }, { 10, 10 } };
     path.AddPoly(star, 2, true);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.4f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);
@@ -406,7 +406,7 @@ GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipToBounds_Test_013
     Drawing::Path path;
     std::vector<Drawing::Point> star = { { 0, 0 }, { 10, 10 }, { 20, 20 }, { 50, 30 }, { 100, 50 }, { 200, 200 } };
     path.AddPoly(star, 6, true);
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetAlpha(0.5f);
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff00ff00);

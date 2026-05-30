@@ -42,7 +42,7 @@ public:
  */
 GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_001)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -74,7 +74,7 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_002)
     };
 
     for (size_t i = 0; i < paramsList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 190 + 50, 50, 180, 180 });
         testNode->SetBackgroundColor(0xffff0000);
 
@@ -103,7 +103,7 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_003)
 
     for (size_t row = 0; row < amplitudeValues.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaList[col]);
@@ -128,7 +128,7 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_003)
  */
 GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_004)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -165,7 +165,7 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_005)
     std::vector<float> rotationList = { 0, 45, 90 };
 
     for (size_t i = 0; i < rotationList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 380 + 50, 50, 300, 300 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetRotation(rotationList[i]);
@@ -197,7 +197,7 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_006)
 
     for (size_t row = 0; row < wavelengthValues.size(); row++) {
         for (size_t col = 0; col < scaleList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetScale(scaleList[col].first, scaleList[col].second);
@@ -229,7 +229,7 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_007)
     };
 
     for (size_t i = 0; i < zeroBounds.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ zeroBounds[i].x_, zeroBounds[i].y_,
             zeroBounds[i].z_, zeroBounds[i].w_ });
         testNode->SetBackgroundColor(0xffff0000);
@@ -261,7 +261,7 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_008)
 
     for (size_t row = 0; row < waveSpeedValues.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaList[col]);
@@ -297,7 +297,7 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_009)
     };
 
     for (size_t i = 0; i < paramsList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetPixelmap(pixelMap);
 
@@ -329,7 +329,7 @@ GRAPHIC_TEST(ParticleRippleTest, CONTENT_DISPLAY_TEST, ParticleRippleTest_010)
     };
 
     for (size_t i = 0; i < extremeParams.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
 

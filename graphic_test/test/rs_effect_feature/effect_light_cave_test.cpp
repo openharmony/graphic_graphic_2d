@@ -165,7 +165,7 @@ GRAPHIC_TEST(LightCaveTest, EFFECT_TEST, Set_Light_Cave_Background_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto node = RSCanvasNode::Create();
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);

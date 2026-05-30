@@ -390,6 +390,17 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
     }
 }
 
+void RSSurfaceNode::OnAlphaValueChanged() const
+{
+    auto alpha = GetStagingProperties().GetAlpha();
+    ROSEN_LOGI("RSSurfaceNode::OnAlphaValueChanged, node=[%{public}" PRIu64 ", %{public}s], alpha=%{public}f",
+        GetId(), GetName().c_str(), alpha);
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (alphaChangedCallback_) {
+        alphaChangedCallback_(alpha);
+    }
+}
+
 void RSSurfaceNode::SetLeashPersistentId(LeashPersistentId leashPersistentId)
 {
     leashPersistentId_ = leashPersistentId;
@@ -577,20 +588,12 @@ void RSSurfaceNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
     boundsChangedCallback_ = callback;
 }
 
-void RSSurfaceNode::SetAnimationFinished()
+void RSSurfaceNode::SetAlphaChangedCallback(AlphaChangedCallback&& callback)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetAnimationFinished>(GetId());
-    auto transaction = GetRSTransaction();
-    if (transaction != nullptr) {
-        transaction->AddCommand(command, true);
-        transaction->FlushImplicitTransaction();
-    } else {
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->AddCommand(command, true);
-            transactionProxy->FlushImplicitTransaction();
-        }
-    }
+    ROSEN_LOGI("RSSurfaceNode::SetAlphaChangedCallback, node=[%{public}" PRIu64 ", %{public}s]",
+        GetId(), GetName().c_str());
+    std::lock_guard<std::mutex> lock(mutex_);
+    alphaChangedCallback_ = callback;
 }
 
 bool RSSurfaceNode::Marshalling(Parcel& parcel) const
@@ -1133,14 +1136,6 @@ void RSSurfaceNode::SetAncoFlags(uint32_t flags)
 {
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetAncoFlags>(GetId(), flags);
-    AddCommand(command, true);
-}
-
-void RSSurfaceNode::SetHDRPresent(bool hdrPresent, NodeId id)
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetHDRPresent>(id, hdrPresent);
-    ROSEN_LOGD("SetHDRPresent  RSSurfaceNode");
     AddCommand(command, true);
 }
 

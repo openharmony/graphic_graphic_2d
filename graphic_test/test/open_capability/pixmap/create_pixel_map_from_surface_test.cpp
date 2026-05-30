@@ -36,12 +36,13 @@ public:
 
         RSSurfaceNodeConfig config;
         config.SurfaceNodeName = "PixelMapCaptureSurface";
-        auto surfaceNode = RSSurfaceNode::Create(config, RSSurfaceNodeType::APP_WINDOW_NODE);
+        auto surfaceNode = RSSurfaceNode::Create(config, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({100, 100, surfaceWidth, surfaceHeight});
         surfaceNode->SetFrame({0, 0, surfaceWidth, surfaceHeight});
         surfaceNode->SetBackgroundColor(SK_ColorBLUE);
 
-        auto child = RSCanvasNode::Create();
+        auto child = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         child->SetBounds({100, 100, 300, 200});
         child->SetBackgroundColor(SK_ColorRED);
         surfaceNode->AddChild(child, -1);

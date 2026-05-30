@@ -36,7 +36,7 @@ public:
 /* ForegroundShader: basic shader */
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
     // Note: SetForegroundShader requires shader configuration
@@ -56,7 +56,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Test_2)
     };
 
     for (const auto& bounds : boundsList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetBackgroundColor(0xff0000ff);
         GetRootNode()->AddChild(testNode);
@@ -75,7 +75,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Test_3)
 /* ForegroundShader: with border */
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Test_4)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetBorderWidth(30);
     testNode->SetBorderColor(0xff00ff00);
@@ -87,7 +87,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Test_4)
 /* ForegroundShader: with shadow */
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Test_5)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetShadowColor(0xff000000);
     testNode->SetShadowRadius(40);
@@ -109,7 +109,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Test_6)
 /* ForegroundShader: corner radius */
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Test_7)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetCornerRadius(50);
     testNode->SetBackgroundColor(0xffff0000);
@@ -128,7 +128,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Extreme_Bounds)
     };
 
     for (const auto& bounds : extremeBounds) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetBackgroundColor(0xffff0000);
         GetRootNode()->AddChild(testNode);
@@ -147,7 +147,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Shader_Zero_Dimensions)
     };
 
     for (const auto& bounds : boundsList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetBackgroundColor(0xffff0000);
         GetRootNode()->AddChild(testNode);

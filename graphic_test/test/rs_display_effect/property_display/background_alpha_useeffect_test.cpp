@@ -47,7 +47,7 @@ GRAPHIC_TEST(BackgroundTest08, CONTENT_DISPLAY_TEST, Alpha_Use_Effect_Test)
     for (int i = 0; i < 2; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto effectNode = RSEffectNode::Create();
+        auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectNode->SetAlpha(0.9f);
         effectNode->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         effectNode->SetFrame({ x, y, sizeX - 10, sizeY - 10 });

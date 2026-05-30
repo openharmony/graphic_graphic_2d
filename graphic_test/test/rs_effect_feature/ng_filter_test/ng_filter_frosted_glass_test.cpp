@@ -119,7 +119,7 @@ public:
         RegisterNode(backgroundTestNode);
 
         // set child node for applying frostedGlassFilter
-        auto childTestNode = RSCanvasNode::Create();
+        auto childTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         childTestNode->SetBounds(bounds);
         childTestNode->SetFrame(bounds);
@@ -587,7 +587,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_C
     for (size_t i = 0; i < NUM_4; i++) {
         size_t x = (i % 2) * nodePos;
         size_t y = (i / 2) * nodePos;
-        auto testNodeColor = RSCanvasNode::Create();
+        auto testNodeColor = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeColor->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeColor->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeColor->SetShadowColor(colorList[i]);
@@ -613,7 +613,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_O
     for (size_t i = 0; i < NUM_4; i++) {
         size_t x = (i % 2) * nodePos;
         size_t y = (i / 2) * nodePos;
-        auto testNodeOffset = RSCanvasNode::Create();
+        auto testNodeOffset = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeOffset->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeOffset->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeOffset->SetShadowColor(COLOR_BLACK);
@@ -658,7 +658,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_O
     for (size_t i = 0; i < NUM_5; i++) {
         size_t x = (i % 2) * nodePos;
         size_t y = (i / 2) * nodePos;
-        auto testNodeOffset = RSCanvasNode::Create();
+        auto testNodeOffset = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeOffset->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeOffset->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeOffset->SetShadowColor(COLOR_BLACK);
@@ -713,7 +713,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_O
     for (size_t i = 0; i < radiusList.size(); i++) {
         size_t x = (i % 2) * nodePos;
         size_t y = (i / 2) * nodePos;
-        auto testNodeOffset = RSCanvasNode::Create();
+        auto testNodeOffset = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeOffset->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeOffset->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeOffset->SetCornerRadius(radiusList[i]);
@@ -768,7 +768,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_A
     for (size_t i = 0; i < alphaList.size(); i++) {
         size_t x = (i % 2) * nodePos;
         size_t y = (i / 2) * nodePos;
-        auto testNodeAlpha = RSCanvasNode::Create();
+        auto testNodeAlpha = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeAlpha->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeAlpha->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeAlpha->SetShadowColor(COLOR_BLACK);
@@ -797,7 +797,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_R
     for (size_t i = 0; i < radiusList.size(); i++) {
         size_t x = (i % 2) * nodePos;
         size_t y = (i / 2) * nodePos;
-        auto testNodeRadius = RSCanvasNode::Create();
+        auto testNodeRadius = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeRadius->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeRadius->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeRadius->SetShadowColor(COLOR_BLACK);
@@ -813,14 +813,14 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_R
     // ClipToBounds
     const size_t yPos = 1250;
     for (size_t i = 0; i < NUM_2; i++) {
-        auto testNodeParent = RSCanvasNode::Create();
+        auto testNodeParent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeParent->SetBounds({ i * nodePos, yPos, nodeSize, nodeSize });
         testNodeParent->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeParent->SetClipToBounds(i);
         GetRootNode()->AddChild(testNodeParent);
         RegisterNode(testNodeParent);
 
-        auto testNodeChild = RSCanvasNode::Create();
+        auto testNodeChild = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeChild->SetBounds({ 0, 0, nodeSize, nodeSize });
         testNodeChild->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeChild->SetShadowColor(COLOR_BLACK);
@@ -846,7 +846,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_R
 
     // First column draw normal shadow radius
     for (size_t i = 0; i < radiusList.size(); i++) {
-        auto testNodeRadius = RSCanvasNode::Create();
+        auto testNodeRadius = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeRadius->SetBounds({ 0, i * nodePos, nodeSize, nodeSize });
         testNodeRadius->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeRadius->SetShadowColor(COLOR_BLACK);
@@ -861,7 +861,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_R
 
     // Second column draw shadow radius with elevation
     for (size_t i = 0; i < radiusList.size(); i++) {
-        auto testNodeRadius = RSCanvasNode::Create();
+        auto testNodeRadius = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeRadius->SetBounds({ nodePos, i * nodePos, nodeSize, nodeSize });
         testNodeRadius->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeRadius->SetShadowColor(COLOR_BLACK);
@@ -890,7 +890,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_F
     for (size_t i = 0; i < NUM_4; i++) {
         size_t x = (i % 2) * nodePos;
         size_t y = (i / 2) * nodePos;
-        auto testNodeFilled = RSCanvasNode::Create();
+        auto testNodeFilled = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeFilled->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeFilled->SetTranslate(nodeOffset, nodeOffset, 0);
         auto imageModifier = std::make_shared<ImageCustomModifier>();
@@ -924,7 +924,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_F
         auto shadowPath = RSPath::CreateRSPath(drawingPath_[i]);
         size_t x = (i % 2) * nodePos;
         size_t y = (i / 2) * nodePos;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ x, y, nodeSize, nodeSize });
         testNode->SetShadowColor(colorList[i]);
         testNode->SetShadowRadius(30);
@@ -949,7 +949,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_F
         auto shadowPath = RSPath::CreateRSPath(drawingPath_[i]);
         size_t x = (i % 2) * nodePos;
         size_t y = (i / 2) * nodePos;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ x, y, nodeSize, nodeSize });
         testNode->SetShadowColor(colorList[i]);
         testNode->SetShadowElevation(30);

@@ -47,7 +47,7 @@ public:
     // Helper function to draw RectI as colored rectangle
     void DrawRectI(const RectI& rect, uint32_t color, int transY = 0)
     {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({rect.left_, rect.top_ + transY, rect.width_, rect.height_});
         testNode->SetBackgroundColor(color);
         GetRootNode()->AddChild(testNode);

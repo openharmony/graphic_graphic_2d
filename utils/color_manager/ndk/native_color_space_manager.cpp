@@ -51,6 +51,7 @@ namespace {
         { ColorSpaceName::DISPLAY_P3_HLG, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_HLG },
         { ColorSpaceName::DISPLAY_P3_PQ, OHOS::ColorManager::ColorSpaceName::DISPLAY_P3_PQ },
         { ColorSpaceName::DISPLAY_BT2020_SRGB, OHOS::ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB },
+        { ColorSpaceName::BT2020_LOG_LIMIT, OHOS::ColorManager::ColorSpaceName::H_LOG },
         { ColorSpaceName::CUSTOM, OHOS::ColorManager::ColorSpaceName::CUSTOM },
     };
 
@@ -83,7 +84,7 @@ static OH_NativeColorSpaceManager* NativeColorSpaceManagerToOHNativeColorSpaceMa
 OH_NativeColorSpaceManager* OH_NativeColorSpaceManager_CreateFromName(
     ColorSpaceName colorSpaceName)
 {
-    if (colorSpaceName > ColorSpaceName::DISPLAY_BT2020_SRGB || colorSpaceName < ColorSpaceName::NONE) {
+    if (colorSpaceName > ColorSpaceName::BT2020_LOG_LIMIT || colorSpaceName < ColorSpaceName::NONE) {
         RS_LOGE("ColorSpaceName is invalid: %{public}d", OHOS::ColorManager::CMErrorCode::CM_ERROR_INVALID_PARAM);
         return nullptr;
     }

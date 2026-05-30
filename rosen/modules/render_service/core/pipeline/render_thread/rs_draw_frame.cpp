@@ -339,6 +339,7 @@ void RSDrawFrame::Sync()
     HveFilter::GetHveFilter().Sync();
 
     unirenderInstance_.Sync(std::move(stagingRenderThreadParams_));
+    RSMainThread::Instance()->GetRSVsyncRateReduceManager().SyncOneFramePeriod();
 #ifdef SUBTREE_PARALLEL_ENABLE
     RSParallelManager::Singleton().Sync();
 #endif

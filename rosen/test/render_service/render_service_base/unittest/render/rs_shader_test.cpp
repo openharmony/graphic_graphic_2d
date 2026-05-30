@@ -122,4 +122,140 @@ HWTEST_F(RSShaderTest, SetDrawingShaderLazyTest001, TestSize.Level1)
     ASSERT_NE(storedShader, nullptr);
     ASSERT_FALSE(storedShader->IsLazy());
 }
+
+/**
+ * @tc.name: MakeDrawingShaderWithProgressTest001
+ * @tc.desc: Verify MakeDrawingShader(const RectF& rect, float progress) on base RSShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, MakeDrawingShaderWithProgressTest001, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    ASSERT_NE(rsShader, nullptr);
+    RectF rect(0.0f, 0.0f, 100.0f, 100.0f);
+    float progress = 0.5f;
+    rsShader->MakeDrawingShader(rect, progress);
+    EXPECT_EQ(rsShader->GetShaderType(), RSShader::ShaderType::DRAWING);
+    EXPECT_EQ(rsShader->GetDrawingShader(), nullptr);
+}
+
+/**
+ * @tc.name: MakeDrawingShaderWithProgressTest002
+ * @tc.desc: Verify MakeDrawingShader with zero rect and zero progress
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, MakeDrawingShaderWithProgressTest002, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    ASSERT_NE(rsShader, nullptr);
+    RectF rect(0.0f, 0.0f, 0.0f, 0.0f);
+    float progress = 0.0f;
+    rsShader->MakeDrawingShader(rect, progress);
+    EXPECT_EQ(rsShader->GetShaderType(), RSShader::ShaderType::DRAWING);
+    EXPECT_EQ(rsShader->GetDrawingShader(), nullptr);
+}
+
+/**
+ * @tc.name: MakeDrawingShaderWithProgressTest003
+ * @tc.desc: Verify MakeDrawingShader with negative progress
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, MakeDrawingShaderWithProgressTest003, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    ASSERT_NE(rsShader, nullptr);
+    RectF rect(10.0f, 20.0f, 300.0f, 400.0f);
+    float progress = -1.0f;
+    rsShader->MakeDrawingShader(rect, progress);
+    EXPECT_EQ(rsShader->GetShaderType(), RSShader::ShaderType::DRAWING);
+    EXPECT_EQ(rsShader->GetDrawingShader(), nullptr);
+}
+
+/**
+ * @tc.name: MakeDrawingShaderWithProgressTest004
+ * @tc.desc: Verify MakeDrawingShader does not modify existing shader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, MakeDrawingShaderWithProgressTest004, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    ASSERT_NE(rsShader, nullptr);
+    auto drShader = Drawing::ShaderEffect::CreateColorShader(0xFF0000FF);
+    rsShader->SetDrawingShader(drShader);
+    ASSERT_NE(rsShader->GetDrawingShader(), nullptr);
+
+    RectF rect(0.0f, 0.0f, 50.0f, 50.0f);
+    float progress = 0.5f;
+    rsShader->MakeDrawingShader(rect, progress);
+    EXPECT_NE(rsShader->GetDrawingShader(), nullptr);
+    EXPECT_EQ(rsShader->GetShaderType(), RSShader::ShaderType::DRAWING);
+}
+
+/**
+ * @tc.name: MakeDrawingShaderWithParamsTest001
+ * @tc.desc: Verify MakeDrawingShader(const RectF& rect, const vector<float>& params) on base RSShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, MakeDrawingShaderWithParamsTest001, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    ASSERT_NE(rsShader, nullptr);
+    RectF rect(0.0f, 0.0f, 100.0f, 100.0f);
+    std::vector<float> params = { 0.5f, 0.5f, 0.5f, 0.5f };
+    rsShader->MakeDrawingShader(rect, params);
+    EXPECT_EQ(rsShader->GetShaderType(), RSShader::ShaderType::DRAWING);
+    EXPECT_EQ(rsShader->GetDrawingShader(), nullptr);
+}
+
+/**
+ * @tc.name: MakeDrawingShaderWithParamsTest002
+ * @tc.desc: Verify MakeDrawingShader with empty params vector
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, MakeDrawingShaderWithParamsTest002, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    ASSERT_NE(rsShader, nullptr);
+    RectF rect(0.0f, 0.0f, 100.0f, 100.0f);
+    std::vector<float> params;
+    rsShader->MakeDrawingShader(rect, params);
+    EXPECT_EQ(rsShader->GetShaderType(), RSShader::ShaderType::DRAWING);
+    EXPECT_EQ(rsShader->GetDrawingShader(), nullptr);
+}
+
+/**
+ * @tc.name: MakeDrawingShaderWithParamsTest003
+ * @tc.desc: Verify MakeDrawingShader with zero rect and single param
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, MakeDrawingShaderWithParamsTest003, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    ASSERT_NE(rsShader, nullptr);
+    RectF rect(0.0f, 0.0f, 0.0f, 0.0f);
+    std::vector<float> params = { 0.0f };
+    rsShader->MakeDrawingShader(rect, params);
+    EXPECT_EQ(rsShader->GetShaderType(), RSShader::ShaderType::DRAWING);
+    EXPECT_EQ(rsShader->GetDrawingShader(), nullptr);
+}
+
+/**
+ * @tc.name: MakeDrawingShaderWithParamsTest004
+ * @tc.desc: Verify MakeDrawingShader with params does not modify existing shader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, MakeDrawingShaderWithParamsTest004, TestSize.Level1)
+{
+    auto rsShader = RSShader::CreateRSShader();
+    ASSERT_NE(rsShader, nullptr);
+    auto drShader = Drawing::ShaderEffect::CreateColorShader(0xFF00FF00);
+    rsShader->SetDrawingShader(drShader);
+    ASSERT_NE(rsShader->GetDrawingShader(), nullptr);
+
+    RectF rect(10.0f, 20.0f, 300.0f, 400.0f);
+    std::vector<float> params = { 0.1f, 0.2f, 0.3f };
+    rsShader->MakeDrawingShader(rect, params);
+    EXPECT_NE(rsShader->GetDrawingShader(), nullptr);
+    EXPECT_EQ(rsShader->GetShaderType(), RSShader::ShaderType::DRAWING);
+}
 } // namespace OHOS::Rosen

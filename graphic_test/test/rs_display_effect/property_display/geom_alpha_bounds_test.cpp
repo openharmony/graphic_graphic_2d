@@ -37,7 +37,7 @@ public:
 /* SetBounds + Alpha: alpha < 0 */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetAlpha(-1.0f); // treated as 0.0f
     testNode->SetBounds({ 100, 100, 300, 300 });
     testNode->SetBackgroundColor(0xffff0000);
@@ -48,7 +48,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_1)
 /* SetBounds + Alpha: alpha = 0 */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_2)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetAlpha(0.0f);
     testNode->SetBounds({ 200, 200, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
@@ -101,7 +101,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_6)
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_7)
 {
     // Bottom node
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 100, 100, 400, 400 });
     testNode1->SetBackgroundColor(0xffff0000);
     testNode1->SetAlpha(1.0f);
@@ -109,7 +109,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_7)
     RegisterNode(testNode1);
 
     // Top node
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({ 200, 200, 400, 400 });
     testNode2->SetBackgroundColor(0xff0000ff);
     testNode2->SetAlpha(0.5f);
@@ -140,7 +140,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_8)
 /* SetBounds + Alpha: update alpha dynamically */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_9)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
     testNode->SetAlpha(0.8f);
@@ -162,7 +162,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_10)
     };
 
     for (const auto& bounds : sizeList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetBackgroundColor(0xff00ff00);
         testNode->SetAlpha(0.6f);
@@ -175,7 +175,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_10)
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Test_11)
 {
     // Background node
-    auto bgNode = RSCanvasNode::Create();
+    auto bgNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     bgNode->SetBounds({ 0, 0, 600, 600 });
     bgNode->SetBackgroundColor(0xffffffff);
     GetRootNode()->AddChild(bgNode);
@@ -195,7 +195,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Matrix_5x
 
     for (size_t row = 0; row < alphaList.size(); row++) {
         for (size_t col = 0; col < sizeList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 240 + 50, (int)row * 180 + 50,
                 sizeList[col], sizeList[col] });
             testNode->SetAlpha(alphaList[row]);
@@ -213,7 +213,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Extreme_A
         0.5f, 0.999f, 1.0f, 1.001f, 2.0f, 100.0f };
 
     for (size_t i = 0; i < extremeAlphas.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 100 + 50, 100, 90, 90 });
         testNode->SetAlpha(extremeAlphas[i]);
         testNode->SetBackgroundColor(0xffff0000);
@@ -256,7 +256,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Zero_Nega
     };
 
     for (const auto& bounds : boundsList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetAlpha(0.8f);
         testNode->SetBackgroundColor(0xffff0000);
@@ -268,7 +268,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Zero_Nega
 /* SetBounds + Alpha: conflict scenario - full alpha with zero bounds */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_Conflict_Test)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 0, 0 }); // 无尺寸
     testNode->SetAlpha(1.0f); // 完全不透明
     testNode->SetBackgroundColor(0xffff0000);
@@ -285,14 +285,14 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Bounds_ParentChi
 
     for (size_t row = 0; row < parentSizes.size(); row++) {
         for (size_t col = 0; col < childAlphas.size(); col++) {
-            auto parent = RSCanvasNode::Create();
+            auto parent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             int size = parentSizes[row];
             parent->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, size, size });
             parent->SetAlpha(0.5f);
             parent->SetBackgroundColor(0xffff0000);
             GetRootNode()->AddChild(parent);
 
-            auto child = RSCanvasNode::Create();
+            auto child = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             child->SetBounds({ 50, 50, size - 100, size - 100 });
             child->SetAlpha(childAlphas[col]);
             child->SetBackgroundColor(0xff0000ff);

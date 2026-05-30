@@ -37,7 +37,7 @@ public:
     static std::shared_ptr<Rosen::RSCanvasNode> CreateUnionNode(Rosen::Vector4f bounds, float spacing = 100.0f,
         int unionMode = 1)
     {
-        auto node = RSUnionNode::Create();
+        auto node = RSUnionNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds(bounds);
         node->SetFrame(bounds);
         node->SetUnionSpacing(spacing);
@@ -48,7 +48,7 @@ public:
     static std::shared_ptr<Rosen::RSCanvasNode> CreateUnionChildNode(Rosen::Vector4f bounds, bool isCenter = false,
         float strength = 30.0f, float hotZone = 200.0f)
     {
-        auto node = RSCanvasNode::Create();
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds(bounds);
         node->SetUseUnion(true);
         node->SetGravityPullCenterFlag(isCenter);
@@ -107,7 +107,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_1)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -136,7 +137,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_2)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -165,7 +167,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_3)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -207,7 +210,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_RRectShape_Test_1)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -237,7 +241,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_TransformShape_Test_1)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -272,7 +277,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_TransformShape_Test_2)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -307,7 +313,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_TransformShape_Test_3)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -345,7 +352,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_TransformShape_Test_4)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -394,7 +402,7 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Spacing_Test)
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
 
-        auto unionNode = RSUnionNode::Create();
+        auto unionNode = RSUnionNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f unionNodeBounds(0, 0, sizeX, sizeY);
         unionNode->SetBounds(unionNodeBounds);
         unionNode->SetFrame(unionNodeBounds);
@@ -403,7 +411,7 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Spacing_Test)
         backgroundTestNode->AddChild(unionNode);
         RegisterNode(unionNode);
 
-        auto childX = RSCanvasNode::Create();
+        auto childX = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto childXRect = rectXParams[0].rect_;
         Rosen::Vector4f childXRectBounds(childXRect.GetLeft(), childXRect.GetTop(), childXRect.GetWidth(),
             childXRect.GetHeight());
@@ -412,7 +420,7 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Spacing_Test)
         unionNode->AddChild(childX);
         RegisterNode(childX);
 
-        auto childY = RSCanvasNode::Create();
+        auto childY = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto childYRect = rectYParams[0].rect_;
         Rosen::Vector4f childYRectBounds(childYRect.GetLeft(), childYRect.GetTop(), childYRect.GetWidth(),
             childYRect.GetHeight());
@@ -439,7 +447,7 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Rect_Test)
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
 
-        auto unionNode = RSUnionNode::Create();
+        auto unionNode = RSUnionNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f unionNodeBounds(0, 0, sizeX, sizeY);
         unionNode->SetBounds(unionNodeBounds);
         unionNode->SetFrame(unionNodeBounds);
@@ -448,7 +456,7 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Rect_Test)
         backgroundTestNode->AddChild(unionNode);
         RegisterNode(unionNode);
 
-        auto childX = RSCanvasNode::Create();
+        auto childX = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto childXRect = rectXParams[i].rect_;
         Rosen::Vector4f childXRectBounds(childXRect.GetLeft(), childXRect.GetTop(), childXRect.GetWidth(),
             childXRect.GetHeight());
@@ -457,7 +465,7 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Rect_Test)
         unionNode->AddChild(childX);
         RegisterNode(childX);
 
-        auto childY = RSCanvasNode::Create();
+        auto childY = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto childYRect = rectYParams[i].rect_;
         Rosen::Vector4f childYRectBounds(childYRect.GetLeft(), childYRect.GetTop(), childYRect.GetWidth(),
             childYRect.GetHeight());
@@ -518,7 +526,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_Test)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -550,7 +559,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_Empty_Test)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -582,7 +592,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_Transform_1_Te
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -619,7 +630,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_Transform_2_Te
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -657,7 +669,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_UNION_OP_Test)
         InitFrostedGlassFilter(frostedGlassFilter);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -671,7 +684,7 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_UNION_OP_Test)
         backgroundTestNode->SetSDFShape(sdfShape);
 
         auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        auto clipNode = RSCanvasNode::Create();
+        auto clipNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         clipNode->SetBounds(bounds);
         clipNode->SetFrame(bounds);
         clipNode->SetClipToBounds(true);
@@ -698,7 +711,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Basic_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -747,7 +761,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_W_Transform_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -799,7 +814,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Pixelmap_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -853,7 +869,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOp_Comparison_Test)
             auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
             InitFrostedGlassFilter(frostedGlassFilter);
 
-            auto backgroundTestNode = RSCanvasNode::Create();
+            auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
             Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
             backgroundTestNode->SetBounds(bounds);
             backgroundTestNode->SetFrame(bounds);
@@ -886,7 +903,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOp_Comparison_Test)
             auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
             InitFrostedGlassFilter(frostedGlassFilter);
 
-            auto backgroundTestNode = RSCanvasNode::Create();
+            auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
             Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
             backgroundTestNode->SetBounds(bounds);
             backgroundTestNode->SetFrame(bounds);
@@ -920,7 +938,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOp_MixedShapes_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -983,7 +1002,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOp_Nested_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1046,7 +1066,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Transform_Rotation_Skew_Perspe
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1094,7 +1115,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOp_BoundaryValues_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1139,7 +1161,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_SmoothUnion_Pixelmap_Test)
             int x = j * sizeX;
             int y = i * sizeY;
 
-            auto backgroundTestNode = RSCanvasNode::Create();
+            auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
             Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
             backgroundTestNode->SetBounds(bounds);
             backgroundTestNode->SetFrame(bounds);
@@ -1180,7 +1203,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_SmoothUnion_Transform_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1223,7 +1247,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_SmoothUnion_Spacing_Boundary_T
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1259,7 +1284,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Nested_Three_Layers_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1361,7 +1387,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Multiple_Union_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1416,7 +1443,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Pixelmap_Union_Comparison_Test
             auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
             InitFrostedGlassFilter(frostedGlassFilter);
 
-            auto backgroundTestNode = RSCanvasNode::Create();
+            auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
             Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
             backgroundTestNode->SetBounds(bounds);
             backgroundTestNode->SetFrame(bounds);
@@ -1455,7 +1483,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Pixelmap_Union_Comparison_Test
             auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
             InitFrostedGlassFilter(frostedGlassFilter);
 
-            auto backgroundTestNode = RSCanvasNode::Create();
+            auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
             Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
             backgroundTestNode->SetBounds(bounds);
             backgroundTestNode->SetFrame(bounds);
@@ -1502,7 +1531,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Transform_InvalidMatrix_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1554,7 +1584,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_Shape_Test
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{ 0, 0, sizeX, sizeY };
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1586,7 +1617,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_Compare_Te
         int x = i * sizeX;
         int y = 0;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{ 0, 0, sizeX, sizeY };
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1628,7 +1660,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_SmoothUnion_ClipPat
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{ 0, 0, sizeX, sizeY };
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1682,7 +1715,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_RRectShape
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1726,7 +1760,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_UnionOpSha
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -1795,7 +1830,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_ShapeVarie
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);

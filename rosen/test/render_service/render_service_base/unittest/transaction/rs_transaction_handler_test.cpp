@@ -1353,6 +1353,7 @@ HWTEST_F(RSTransactionHandlerTest, TestPostTask, TestSize.Level1)
  */
 HWTEST_F(RSTransactionHandlerTest, DumpCommandTest, TestSize.Level1)
 {
+#ifdef RS_ENABLE_UNI_RENDER
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto renderThreadClient = CreateRenderThreadClient();
     transaction->SetRenderThreadClient(renderThreadClient);
@@ -1382,6 +1383,7 @@ HWTEST_F(RSTransactionHandlerTest, DumpCommandTest, TestSize.Level1)
     ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionData") == std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitRemoteTransactionDataStack") == std::string::npos);
     ASSERT_TRUE(dumpString.find("ImplicitCommonTransactionDataStack") == std::string::npos);
+#endif
 }
 
 /**

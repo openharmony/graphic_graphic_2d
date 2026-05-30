@@ -47,7 +47,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Color_Test_
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * nodePos;
         int y = (i / TWO_) * nodePos;
-        auto testNodeColor = RSCanvasNode::Create();
+        auto testNodeColor = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeColor->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeColor->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeColor->SetShadowColor(colorList[i]);
@@ -67,7 +67,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Offset_Test
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * nodePos;
         int y = (i / TWO_) * nodePos;
-        auto testNodeOffset = RSCanvasNode::Create();
+        auto testNodeOffset = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeOffset->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeOffset->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeOffset->SetShadowColor(0xff000000);
@@ -106,7 +106,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Offset_Test
     for (int i = 0; i < FIVE_; i++) {
         int x = (i % TWO_) * nodePos;
         int y = (i / TWO_) * nodePos;
-        auto testNodeOffset = RSCanvasNode::Create();
+        auto testNodeOffset = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeOffset->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeOffset->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeOffset->SetBackgroundColor(0xffc0c0c0);
@@ -155,7 +155,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Offset_Test
     for (int i = 0; i < FIVE_; i++) {
         int x = (i % TWO_) * nodePos;
         int y = (i / TWO_) * nodePos;
-        auto testNodeOffset = RSCanvasNode::Create();
+        auto testNodeOffset = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeOffset->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeOffset->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeOffset->SetBackgroundColor(0xffc0c0c0);
@@ -210,7 +210,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Alpha_Test_
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * nodePos;
         int y = (i / TWO_) * nodePos;
-        auto testNodeAlpha = RSCanvasNode::Create();
+        auto testNodeAlpha = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeAlpha->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeAlpha->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeAlpha->SetBackgroundColor(0xffc0c0c0);
@@ -234,7 +234,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Test
     for (int i = 0; i < THREE_; i++) {
         int x = (i % TWO_) * nodePos;
         int y = (i / TWO_) * nodePos;
-        auto testNodeRadius = RSCanvasNode::Create();
+        auto testNodeRadius = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeRadius->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeRadius->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeRadius->SetBackgroundColor(0xffc0c0c0);
@@ -247,14 +247,14 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Test
     // ClipToBounds
     const int yPos = 1250;
     for (int i = 0; i < 2; i++) {
-        auto testNodeParent = RSCanvasNode::Create();
+        auto testNodeParent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeParent->SetBounds({ i * nodePos, yPos, nodeSize, nodeSize });
         testNodeParent->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeParent->SetClipToBounds(i);
         GetRootNode()->AddChild(testNodeParent);
         RegisterNode(testNodeParent);
 
-        auto testNodeChild = RSCanvasNode::Create();
+        auto testNodeChild = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeChild->SetBounds({ 0, 0, nodeSize, nodeSize });
         testNodeChild->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeChild->SetBackgroundColor(0xffc0c0c0);
@@ -277,7 +277,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Test
     for (int i = 0; i < radiusList.size(); i++) {
         int x = 0; // first column
         int y = i * nodePos;
-        auto testNodeRadius = RSCanvasNode::Create();
+        auto testNodeRadius = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeRadius->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeRadius->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeRadius->SetBackgroundColor(0xffc0c0c0);
@@ -291,7 +291,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Test
     for (int i = 0; i < radiusList.size(); i++) {
         int x = nodePos; // second column's x position
         int y = i * nodePos;
-        auto testNodeRadius = RSCanvasNode::Create();
+        auto testNodeRadius = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeRadius->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeRadius->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeRadius->SetBackgroundColor(0xffc0c0c0);
@@ -316,7 +316,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Strategy_Te
     for (int i = 0; i < SIX_; i++) {
         int x = (i % TWO_) * FIVE_HUNDRED_TEN_;
         int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
-        auto testNodeParent = RSCanvasNode::Create();
+        auto testNodeParent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeParent->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         auto imageModifier = std::make_shared<ImageCustomModifier>();
         imageModifier->SetWidth(FIVE_HUNDRED_);
@@ -326,7 +326,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Strategy_Te
         GetRootNode()->AddChild(testNodeParent);
         RegisterNode(testNodeParent);
 
-        auto testNodeChild = RSCanvasNode::Create();
+        auto testNodeChild = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeChild->SetBounds({ 0, 0, TWO_HUNDRED_FIFTY_, TWO_HUNDRED_FIFTY_ });
         testNodeChild->SetTranslate(ONE_HUNDRED_, ONE_HUNDRED_, 0);
         testNodeChild->SetBackgroundColor(0xffffffff);
@@ -359,7 +359,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Filled_Test
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * nodePos;
         int y = (i / TWO_) * nodePos;
-        auto testNodeFilled = RSCanvasNode::Create();
+        auto testNodeFilled = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeFilled->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeFilled->SetTranslate(nodeOffset, nodeOffset, 0);
         auto imageModifier = std::make_shared<ImageCustomModifier>();
@@ -513,7 +513,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Mask_Strate
 
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_UseShadowBatching_Test)
 {
-    auto backgroundTestNode = RSCanvasNode::Create();
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     backgroundTestNode->SetBackgroundColor(0xffffffff);
     backgroundTestNode->SetBounds({0, 0, 1200, 2000});
     backgroundTestNode->SetFrame({0, 0, 1200, 2000});
@@ -530,12 +530,12 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_UseShadowBa
     const std::vector<uint32_t> shadowColor = { 0xff00ff00, 0xffff0000, 0xffffff00, 0xff0000ff };
     const std::vector<uint32_t> cornerRadius = { 0.0f, 0.0f, 50.0f, 50.0f };
 
-    auto parentTestNode1 = RSCanvasNode::Create();
+    auto parentTestNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentTestNode1);
     GetRootNode()->AddChild(parentTestNode1);
     parentTestNode1->SetBounds({50, 50, 800, 1000});
     for (int i = 0; i < nodeBound.size(); i++) {
-        auto childTestNode = RSCanvasNode::Create();
+        auto childTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         parentTestNode1->RSNode::AddChild(childTestNode);
         RegisterNode(childTestNode);
         childTestNode->SetBounds(nodeBound[i]);
@@ -545,13 +545,13 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_UseShadowBa
         childTestNode->SetCornerRadius(cornerRadius[i]);
     }
 
-    auto parentTestNode2 = RSCanvasNode::Create();
+    auto parentTestNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentTestNode2);
     GetRootNode()->AddChild(parentTestNode2);
     parentTestNode2->SetBounds({50, 1050, 800, 1000});
     parentTestNode2->SetUseShadowBatching(true);
     for (int i = 0; i < nodeBound.size(); i++) {
-        auto childTestNode = RSCanvasNode::Create();
+        auto childTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         parentTestNode2->RSNode::AddChild(childTestNode);
         RegisterNode(childTestNode);
         childTestNode->SetBounds(nodeBound[i]);
@@ -574,7 +574,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Touch_Test_
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * nodePos;
         int y = (i / TWO_) * nodePos;
-        auto testNodeTouch = RSCanvasNode::Create();
+        auto testNodeTouch = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeTouch->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeTouch->SetShadowColor(colorList[i]);
         testNodeTouch->SetShadowRadius(ONE_HUNDRED_);
@@ -604,7 +604,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Filter_Test
         auto shadowPath = RSPath::CreateRSPath(drawingPath[i]);
         int x = (i % 2) * nodePos;
         int y = (i / 2) * nodePos;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ x, y, nodeSize, nodeSize });
         testNode->SetBackgroundColor(0xffc0c0c0);
         testNode->SetShadowColor(colorList[i]);
@@ -636,7 +636,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Filter_Test
         auto shadowPath = RSPath::CreateRSPath(drawingPath[i]);
         int x = (i % 2) * nodePos;
         int y = (i / 2) * nodePos;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ x, y, nodeSize, nodeSize });
         testNode->SetBackgroundColor(0xffc0c0c0);
         testNode->SetShadowColor(colorList[i]);
@@ -777,7 +777,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Zero
     int nodeOffset = ONE_HUNDRED_;
     int nodeSize = FOUR_HUNDRED_;
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ nodePosX, nodePosY, nodeSize, nodeSize });
     testNode->SetTranslate(nodeOffset, nodeOffset, 0);
     testNode->SetBackgroundColor(0xffc0c0c0);
@@ -800,7 +800,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Zero
     int nodeOffset = ONE_HUNDRED_;
     int nodeSize = FOUR_HUNDRED_;
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ nodePosX, nodePosY, nodeSize, nodeSize });
     testNode->SetTranslate(nodeOffset, nodeOffset, 0);
     testNode->SetBackgroundColor(0xffc0c0c0);
@@ -823,7 +823,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Nega
     int nodeOffset = ONE_HUNDRED_;
     int nodeSize = FOUR_HUNDRED_;
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ nodePosX, nodePosY, nodeSize, nodeSize });
     testNode->SetTranslate(nodeOffset, nodeOffset, 0);
     testNode->SetBackgroundColor(0xffc0c0c0);
@@ -846,7 +846,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Nega
     int nodeOffset = ONE_HUNDRED_;
     int nodeSize = FOUR_HUNDRED_;
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ nodePosX, nodePosY, nodeSize, nodeSize });
     testNode->SetTranslate(nodeOffset, nodeOffset, 0);
     testNode->SetBackgroundColor(0xffc0c0c0);
@@ -869,7 +869,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Posi
     int nodeOffset = ONE_HUNDRED_;
     int nodeSize = FOUR_HUNDRED_;
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ nodePosX, nodePosY, nodeSize, nodeSize });
     testNode->SetTranslate(nodeOffset, nodeOffset, 0);
     testNode->SetBackgroundColor(0xffc0c0c0);
@@ -892,7 +892,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Posi
     int nodeOffset = ONE_HUNDRED_;
     int nodeSize = FOUR_HUNDRED_;
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ nodePosX, nodePosY, nodeSize, nodeSize });
     testNode->SetTranslate(nodeOffset, nodeOffset, 0);
     testNode->SetBackgroundColor(0xffc0c0c0);

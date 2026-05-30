@@ -729,7 +729,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateFilterCacheStatusIfNodeStatic, TestSi
 HWTEST_F(RSSurfaceRenderNodeTwoTest, CheckParticipateInOcclusion, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    auto rsnode = std::make_shared<RSRenderNode>(0);
+    auto rsnode = std::make_shared<RSSurfaceRenderNode>(++id);
     rsnode->SetIsScale(true);
     node->parent_ = rsnode;
     node->CheckParticipateInOcclusion(false);
@@ -777,6 +777,24 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, CheckParticipateInOcclusion002, TestSize.Le
     EXPECT_FALSE(node->CheckParticipateInOcclusion(false));
     NodeId idOne = 1;
     node->AddChildBlurBehindWindow(idOne);
+    EXPECT_FALSE(node->CheckParticipateInOcclusion(false));
+}
+
+/**
+ * @tc.name: CheckParticipateInOcclusion003
+ * @tc.desc: test all results of CheckParticipateInOcclusion
+ * @tc.type: FUNC
+ * @tc.require: issue20843
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, CheckParticipateInOcclusion003, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    auto parent1 = std::make_shared<RSCanvasRenderNode>(++id);
+    node->parent_ = parent1;
+    EXPECT_FALSE(node->CheckParticipateInOcclusion(false));
+
+    auto parent2 = std::make_shared<RSSurfaceRenderNode>(++id);
+    node->parent_ = parent2;
     EXPECT_FALSE(node->CheckParticipateInOcclusion(false));
 }
 

@@ -112,7 +112,6 @@ public:
     static void MarkUIHidden(RSContext& context, NodeId nodeId, bool isHidden);
     static void SetSurfaceNodeType(RSContext& context, NodeId nodeId, uint8_t surfaceNodeType);
     static void SetContainerWindow(RSContext& context, NodeId nodeId, bool hasContainerWindow, RRect rrect);
-    static void SetAnimationFinished(RSContext& context, NodeId nodeId);
     static void AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void DetachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId);
     static void SetBootAnimation(RSContext& context, NodeId nodeId, bool isBootAnimation);
@@ -129,7 +128,6 @@ public:
         bool needOffscreen, bool isRelated);
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
     static void SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags);
-    static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
     static void SetWatermarkEnabled(RSContext& context, NodeId nodeId, const std::string& name, bool isEnabled);
     static void SetAbilityState(RSContext& context, NodeId nodeId, RSSurfaceNodeAbilityState abilityState);
@@ -214,9 +212,6 @@ ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
 ADD_COMMAND(RSSurfaceNodeSetContainerWindow,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW,
         SurfaceNodeCommandHelper::SetContainerWindow, NodeId, bool, RRect))
-ADD_COMMAND(RSSurfaceNodeSetAnimationFinished,
-    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_ANIMATION_FINISHED,
-        SurfaceNodeCommandHelper::SetAnimationFinished, NodeId))
 ADD_COMMAND(RSSurfaceNodeAttachToDisplay,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_ATTACH_TO_DISPLAY,
         SurfaceNodeCommandHelper::AttachToDisplay, NodeId, uint64_t))
@@ -253,9 +248,6 @@ ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
 ADD_COMMAND(RSSurfaceNodeSetAncoFlags,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_ANCO_FLAGS,
         SurfaceNodeCommandHelper::SetAncoFlags, NodeId, uint32_t))
-ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
-    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT,
-        SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW,
         SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))

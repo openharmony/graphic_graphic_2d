@@ -206,7 +206,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Filter_Test_1)
         Drawing::Path path;
         GetPathData(strParams[i].c_str(), path);
         PathShapeParam param = { path, defaultOffset, scaleParams[i] };
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto pathBounds = path.GetBounds();
         Rosen::Vector4f bounds = { unifiedOffset.x_, unifiedOffset.y_,
             pathBounds.GetWidth(), pathBounds.GetHeight() };
@@ -236,7 +236,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_ThickFilter_Test
         Drawing::Path path;
         GetPathData(strParams[i].c_str(), path);
         PathShapeParam param = { path, defaultOffset, scaleParams[i] };
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto pathBounds = path.GetBounds();
         Rosen::Vector4f bounds = { unifiedOffset.x_, unifiedOffset.y_,
             pathBounds.GetWidth(), pathBounds.GetHeight() };
@@ -268,7 +268,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Shadow_Test_1)
         Drawing::Path path;
         GetPathData(strParams[i].c_str(), path);
         PathShapeParam param = { path, defaultOffset, scaleParams[i] };
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto pathBounds = path.GetBounds();
         Rosen::Vector4f bounds = { x + unifiedOffset.x_, y + unifiedOffset.y_,
             pathBounds.GetWidth(), pathBounds.GetHeight() };
@@ -299,7 +299,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_Test_1
         Drawing::Path path;
         GetPathData(strParams[0].c_str(), path);
         PathShapeParam param = { path, defaultOffset, defaultScale };
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto pathBounds = path.GetBounds();
         Rosen::Vector4f bounds { offsetParams[i].x_, offsetParams[i].y_,
             pathBounds.GetWidth(), pathBounds.GetHeight() };
@@ -343,7 +343,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_Test_2
         Drawing::Path path;
         GetPathData(strParams[1].c_str(), path);
         PathShapeParam param = { path, defaultOffset, defaultScale };
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto pathBounds = path.GetBounds();
         Rosen::Vector4f bounds { offsetParams[i].x_, offsetParams[i].y_,
             pathBounds.GetWidth(), pathBounds.GetHeight() };
@@ -389,7 +389,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_UnionOp_Test_1)
         Drawing::Path pathY;
         GetPathData(strParams1[i + 1].c_str(), pathY);
 
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto pathXBounds = pathX.GetBounds();
         float widthL = offsetParams1[i].x_ + pathXBounds.GetWidth();
         float heightL = offsetParams1[i].y_ + pathXBounds.GetHeight();
@@ -443,7 +443,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_RRect_UnionOp_Te
         Drawing::Path path;
         GetPathData(strParams[i % strParams.size()].c_str(), path);
 
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds { 0, 0, sizeX, sizeY };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -491,7 +491,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_SmoothUnionOp_Te
         Drawing::Path pathY;
         GetPathData(strParams1[i + 1].c_str(), pathY);
 
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         auto pathXBounds = pathX.GetBounds();
         float widthL = offsetParams1[i].x_ + pathXBounds.GetWidth();
         float heightL = offsetParams1[i].y_ + pathXBounds.GetHeight();
@@ -550,7 +550,7 @@ GRAPHIC_TEST(NGSDFPathShapeTest, EFFECT_TEST, Set_SDF_PathShape_Transform_UnionO
         Drawing::Path pathY;
         GetPathData(strParams[1].c_str(), pathY);
 
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds { 0, 0, sizeX, sizeY };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);

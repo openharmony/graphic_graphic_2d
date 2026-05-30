@@ -56,20 +56,6 @@ HWTEST_F(RSBoundsClipModifierNGTypeTest, SetAndGetCornerRadiusTest, TestSize.Lev
 }
 
 /**
- * @tc.name: SetClipRectWithRadiusTest
- * @tc.desc: Test the function SetClipRectWithRadius
- * @tc.type: FUNC
- */
-HWTEST_F(RSBoundsClipModifierNGTypeTest, SetClipRectWithRadiusTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
-    Vector4f clipRect(100.0f);
-    Vector4f clipRadius(50.0f);
-    modifier->SetClipRectWithRadius(clipRect, clipRadius);
-    EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CLIP_RRECT));
-}
-
-/**
  * @tc.name: SetClipRRectTest
  * @tc.desc: Test the function SetClipRRect
  * @tc.type: FUNC

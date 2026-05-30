@@ -255,6 +255,52 @@ HWTEST_F(PaintTest, SetAlphaF, TestSize.Level1)
     EXPECT_FLOAT_EQ(paint.GetAlphaF(), 0.7f);
 }
 
+/**
+ * @tc.name: OperatorEqualBothNormalColor
+ * @tc.desc: Test operator== when both paints have normal color and isHdrColor_ is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PaintTest, OperatorEqualBothNormalColor, TestSize.Level1)
+{
+    Paint paint1;
+    Paint paint2;
+    paint1.SetColor(Color(100, 150, 200, 255));
+    paint2.SetColor(Color(100, 150, 200, 255));
+    paint1.SetUIColor(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 2.0f));
+    paint2.SetUIColor(UIColor(1.0f, 1.0f, 0.0f, 1.0f, 2.0f));
+    EXPECT_TRUE(paint1 != paint2);
+
+    paint1.SetColor(Color(100, 250, 200, 255));
+    paint2.SetColor(Color(100, 150, 200, 255));
+    paint1.SetUIColor(UIColor(1.0f, 1.0f, 0.0f, 1.0f, 2.0f));
+    paint2.SetUIColor(UIColor(1.0f, 1.0f, 0.0f, 1.0f, 2.0f));
+    EXPECT_TRUE(paint1 == paint2);
+}
+
+/**
+ * @tc.name: CanCombinePaint
+ * @tc.desc: CanCombinePaintTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PaintTest, CanCombinePaint, TestSize.Level1)
+{
+    Paint paint1;
+    Paint paint2;
+    paint1.SetColor(Color(100, 150, 200, 255));
+    paint1.SetUIColor(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 2.0f));
+    paint2.SetColor(Color(100, 150, 200, 255));
+    paint2.SetUIColor(UIColor(1.0f, 1.0f, 0.0f, 1.0f, 2.0f));
+    EXPECT_FALSE(Paint::CanCombinePaint(paint1, paint2));
+
+    paint1.SetColor(Color(100, 230, 200, 255));
+    paint1.SetUIColor(UIColor(1.0f, 1.0f, 0.0f, 1.0f, 2.0f));
+    paint2.SetColor(Color(100, 150, 200, 255));
+    paint2.SetUIColor(UIColor(1.0f, 1.0f, 0.0f, 1.0f, 2.0f));
+    EXPECT_TRUE(Paint::CanCombinePaint(paint1, paint2));
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

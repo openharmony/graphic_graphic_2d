@@ -48,7 +48,8 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawRoundRect
     for (; i < 2; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
         testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(normalRadius[i]);
@@ -61,7 +62,8 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawRoundRect
     for (; i < 4; i++, j++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
         testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(asymmetryRadius[j]);
@@ -75,7 +77,8 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawRoundRect
     for (; i < 8; i++, j++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
         testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(capsuleRadius[j]);
@@ -150,14 +153,16 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_FromDTS_1)
     for (int i = 0; i < 2; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround1 = RSCanvasNode::Create();
+        auto testNodeBackGround1 = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround1->SetBackgroundColor(0xffffffff);
         testNodeBackGround1->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround1->SetBorderStyle(0, 0, 0, 0);
         testNodeBackGround1->SetBorderWidth(1, 1, 1, 1);
         testNodeBackGround1->SetBorderColor(Vector4<Color>(RgbPalette::Blue()));
         RegisterNode(testNodeBackGround1);
-        auto testNodeBackGround2 = RSCanvasNode::Create();
+        auto testNodeBackGround2 = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround2->SetBackgroundColor(0xffffffff);
         testNodeBackGround2->SetBounds({ 0, 0, sizeX - 10, sizeY - 10 });
         testNodeBackGround2->SetBorderStyle(0, 0, 0, 0);
@@ -172,14 +177,16 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_FromDTS_1)
     for (int i = 2; i < 4; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround1 = RSCanvasNode::Create();
+        auto testNodeBackGround1 = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround1->SetBackgroundColor(0xffffffff);
         testNodeBackGround1->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround1->SetBorderStyle(0, 0, 0, 0);
         testNodeBackGround1->SetBorderWidth(10, 10, 10, 10);
         testNodeBackGround1->SetBorderColor(Vector4<Color>(RgbPalette::Blue()));
         RegisterNode(testNodeBackGround1);
-        auto testNodeBackGround2 = RSCanvasNode::Create();
+        auto testNodeBackGround2 = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround2->SetBackgroundColor(0xffffffff);
         testNodeBackGround2->SetBounds({ 0, 0, sizeX - 10, sizeY - 10 });
         testNodeBackGround2->SetBorderStyle(0, 0, 0, 0);
@@ -207,7 +214,8 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_DrawRoundRect_Test_0
         Vector4f cornerRadiusVal = { nodeSize / radiusMultiplier[i], 0, 0, 0 };
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetCornerRadius(cornerRadiusVal);
@@ -231,7 +239,8 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_DrawRoundRect_Test_0
         Vector4f cornerRadiusVal = { nodeSize / (2 * radiusMultiplier[i]), nodeSize / (2 * radiusMultiplier[i]), 0, 0 };
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetCornerRadius(cornerRadiusVal);
@@ -254,7 +263,8 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_DrawRoundRect_Test_0
     for (int i = 0; i < columnCount * rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetCornerRadius(nodeSize / (2 * radiusMultiplier[i]));
@@ -348,7 +358,8 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawNestedRou
     for (; i < 2; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
         testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
@@ -365,7 +376,8 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawNestedRou
     for (; i < 8; i++, j++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
         testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetBorderStyle(0, 0, 0, 0);

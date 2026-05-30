@@ -65,20 +65,20 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config);
+    auto testSurface = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface->SetBounds(DEFAULT_RECT1);
     testSurface->SetBackgroundColor(COLOR_BLUE);
     testSurface->SetSnapshotSkipLayer(true);
     RegisterNode(testSurface);
     GetRootNode()->SetTestSurface(testSurface);
 
-    auto canvasNode0 = RSCanvasNode::Create();
+    auto canvasNode0 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode0->SetBounds(DEFAULT_RECT2);
     canvasNode0->SetBackgroundColor(COLOR_YELLOW);
     RegisterNode(canvasNode0);
     GetRootNode()->AddChild(canvasNode0);
 
-    auto canvasNode1 = RSCanvasNode::Create();
+    auto canvasNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode1->SetBounds(DEFAULT_RECT3);
     canvasNode1->SetBackgroundColor(COLOR_RED);
     RegisterNode(canvasNode1);
@@ -95,20 +95,20 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config);
+    auto testSurface = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface->SetBounds(DEFAULT_RECT1);
     testSurface->SetBackgroundColor(COLOR_BLUE);
     testSurface->SetSnapshotSkipLayer(false);
     RegisterNode(testSurface);
     GetRootNode()->SetTestSurface(testSurface);
 
-    auto canvasNode0 = RSCanvasNode::Create();
+    auto canvasNode0 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode0->SetBounds(DEFAULT_RECT2);
     canvasNode0->SetBackgroundColor(COLOR_YELLOW);
     RegisterNode(canvasNode0);
     GetRootNode()->AddChild(canvasNode0);
 
-    auto canvasNode1 = RSCanvasNode::Create();
+    auto canvasNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode1->SetBounds(DEFAULT_RECT3);
     canvasNode1->SetBackgroundColor(COLOR_RED);
     RegisterNode(canvasNode1);
@@ -126,7 +126,7 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config);
+    auto testSurface = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface->SetBounds(DEFAULT_RECT1);
     testSurface->SetShadowColor(COLOR_BLUE);
     testSurface->SetShadowRadius(FIFTY);
@@ -135,7 +135,7 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
     RegisterNode(testSurface);
     GetRootNode()->SetTestSurface(testSurface);
 
-    auto canvasNode0 = RSCanvasNode::Create();
+    auto canvasNode0 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode0->SetBounds(DEFAULT_RECT2);
     canvasNode0->SetBackgroundColor(COLOR_YELLOW);
     RegisterNode(canvasNode0);
@@ -152,7 +152,7 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config);
+    auto testSurface = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface->SetBounds(DEFAULT_RECT1);
     testSurface->SetShadowColor(COLOR_BLUE);
     testSurface->SetShadowRadius(FIFTY);
@@ -161,7 +161,7 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
     RegisterNode(testSurface);
     GetRootNode()->SetTestSurface(testSurface);
 
-    auto canvasNode0 = RSCanvasNode::Create();
+    auto canvasNode0 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode0->SetBounds(DEFAULT_RECT2);
     canvasNode0->SetBackgroundColor(COLOR_YELLOW);
     RegisterNode(canvasNode0);
@@ -178,7 +178,7 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config);
+    auto testSurface = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface->SetBounds(DEFAULT_RECT1);
     testSurface->SetShadowColor(COLOR_BLUE);
     testSurface->SetShadowRadius(FIFTY);
@@ -187,14 +187,14 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
     RegisterNode(testSurface);
     GetRootNode()->SetTestSurface(testSurface);
 
-    auto canvasNode0 = RSCanvasNode::Create();
+    auto canvasNode0 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode0->SetBounds(DEFAULT_RECT2);
     canvasNode0->SetBackgroundColor(COLOR_YELLOW);
     RegisterNode(canvasNode0);
     GetRootNode()->AddChild(canvasNode0);
 
     config.SurfaceNodeName = "TestSurface2";
-    auto testSurface2 = RSSurfaceNode::Create(config);
+    auto testSurface2 = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface2->SetBounds(DEFAULT_RECT3);
     testSurface2->SetShadowColor(COLOR_GREEN);
     testSurface2->SetShadowRadius(FIFTY);
@@ -214,7 +214,7 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config);
+    auto testSurface = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface->SetBounds(DEFAULT_RECT1);
     testSurface->SetShadowColor(COLOR_BLUE);
     testSurface->SetShadowRadius(FIFTY);
@@ -223,14 +223,14 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
     RegisterNode(testSurface);
     GetRootNode()->SetTestSurface(testSurface);
 
-    auto canvasNode0 = RSCanvasNode::Create();
+    auto canvasNode0 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode0->SetBounds(DEFAULT_RECT2);
     canvasNode0->SetBackgroundColor(COLOR_YELLOW);
     RegisterNode(canvasNode0);
     GetRootNode()->AddChild(canvasNode0);
 
     config.SurfaceNodeName = "TestSurface2";
-    auto testSurface2 = RSSurfaceNode::Create(config);
+    auto testSurface2 = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface2->SetBounds(DEFAULT_RECT3);
     testSurface2->SetShadowColor(COLOR_GREEN);
     testSurface2->SetShadowRadius(FIFTY);
@@ -250,7 +250,7 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config);
+    auto testSurface = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface->SetBounds(DEFAULT_RECT1);
     testSurface->SetCornerRadius(FORTY);
     testSurface->SetBackgroundColor(COLOR_BLUE);
@@ -279,7 +279,7 @@ GRAPHIC_TEST(SnapshotSkipLayerTest, CONTENT_DISPLAY_TEST, Set_Snapshot_Skip_Laye
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config);
+    auto testSurface = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     testSurface->SetBounds(DEFAULT_RECT1);
     testSurface->SetCornerRadius(FORTY);
     testSurface->SetBackgroundColor(COLOR_BLUE);

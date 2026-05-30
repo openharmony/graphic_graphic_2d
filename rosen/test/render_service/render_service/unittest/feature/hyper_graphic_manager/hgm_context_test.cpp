@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 #include "common/rs_background_thread.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
@@ -59,16 +61,6 @@ void HgmContextTest::TearDownTestCase() {}
 void HgmContextTest::SetUp() {}
 
 void HgmContextTest::TearDown() {}
-
-class CustomHgmCallback : public IRemoteStub<RSIHgmConfigChangeCallback> {
-public:
-    explicit CustomHgmCallback() {}
-    ~CustomHgmCallback() override {};
-
-    void OnHgmConfigChanged(std::shared_ptr<RSHgmConfigData> configData) override {}
-    void OnHgmRefreshRateModeChanged(int32_t refreshRateModeName) override {}
-    void OnHgmRefreshRateUpdate(int32_t refreshRateUpdate) override {}
-};
 
 /**
  * @tc.name: InitHgmTaskHandleThreadTest001
@@ -1157,7 +1149,9 @@ HWTEST_F(HgmContextTest, RegisterHgmConfigChangeCallbackTest002, TestSize.Level1
     ASSERT_NE(hgmContext, nullptr);
 
     pid_t pid = 0;
-    sptr<CustomHgmCallback> callback = new CustomHgmCallback();
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIHgmConfigChangeCallback> callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
     EXPECT_EQ(hgmContext->RegisterHgmConfigChangeCallback(pid, callback), StatusCode::SUCCESS);
 }
 
@@ -1189,7 +1183,9 @@ HWTEST_F(HgmContextTest, RegisterHgmRefreshRateModeChangeCallbackTest002, TestSi
     ASSERT_NE(hgmContext, nullptr);
 
     pid_t pid = 0;
-    sptr<CustomHgmCallback> callback = new CustomHgmCallback();
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIHgmConfigChangeCallback> callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
     EXPECT_EQ(hgmContext->RegisterHgmRefreshRateModeChangeCallback(pid, callback), StatusCode::SUCCESS);
 }
 

@@ -109,13 +109,15 @@ GRAPHIC_N_TEST(DirtyRegionTest05, CONTENT_DISPLAY_TEST, SubSurface01)
     rsSurfaceNodeConfig2.SurfaceNodeName = "SubSurface";
     rsSurfaceNodeConfig2.isSync = false;
     RSSurfaceNodeType rsSurfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
-    auto surfaceNode1 = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType);
+    auto surfaceNode1 = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(surfaceNode1);
     surfaceNode1->SetBounds(bounds);
     surfaceNode1->SetBackgroundColor(COLOR_RED);
     surfaceNode1->SetAbilityBGAlpha(255);
 
-    auto surfaceNode2 = RSSurfaceNode::Create(rsSurfaceNodeConfig2, rsSurfaceNodeType);
+    auto surfaceNode2 = RSSurfaceNode::Create(rsSurfaceNodeConfig2, rsSurfaceNodeType, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(surfaceNode2);
     surfaceNode2->SetBounds(bounds);
 
@@ -123,7 +125,7 @@ GRAPHIC_N_TEST(DirtyRegionTest05, CONTENT_DISPLAY_TEST, SubSurface01)
     RegisterNode(filterNode);
     filterNode->SetBackgroundBlurRadius(DEFAULT_BACKROUND_RADIUS);
 
-    auto normalNode = RSCanvasNode::Create();
+    auto normalNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(normalNode);
     normalNode->SetBounds(DEFAULT_BOUNDS);
     normalNode->SetBackgroundColor(COLOR_BLUE);

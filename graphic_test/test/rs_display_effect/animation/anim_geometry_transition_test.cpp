@@ -44,7 +44,7 @@ static std::shared_ptr<RSUIContext> GetRSUIContext()
 
 std::shared_ptr<Rosen::RSCanvasNode> CreateCanvasNode()
 {
-    return RSCanvasNode::Create();
+    return RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
 }
 
 // sharedTransition baseline

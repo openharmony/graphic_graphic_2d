@@ -4698,6 +4698,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetScreenParamsTest001, TestSiz
     ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
     auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     ASSERT_NE(displayParams, nullptr);
+    displayParams->ancestorScreenDrawable_.lock()->nodeType_ = RSRenderNodeType::UNKNOW;
     auto [_, screenParams] = displayDrawable_->GetScreenParams(*displayParams);
     ASSERT_EQ(_, nullptr);
     ASSERT_EQ(screenParams, nullptr);

@@ -88,7 +88,7 @@ public:
 
     void AddSceneBase()
     {
-        auto sceneNode = RSCanvasNode::Create();
+        auto sceneNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         sceneNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         sceneNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         sceneNode->SetBackgroundColor(0xFF0F1A2E);
@@ -98,7 +98,7 @@ public:
 
     void AddTileBase(int x, int y, int width, int height)
     {
-        auto tileNode = RSCanvasNode::Create();
+        auto tileNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         tileNode->SetBounds({x, y, width, height});
         tileNode->SetFrame({x, y, width, height});
         tileNode->SetBackgroundColor(0xFF1C2F4A);

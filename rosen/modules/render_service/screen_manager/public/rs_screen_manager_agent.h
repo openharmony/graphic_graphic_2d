@@ -79,6 +79,11 @@ public:
     RSScreenData GetScreenData(ScreenId id) const;
     int32_t GetScreenBacklight(ScreenId id) const;
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData);
+
+    int32_t GetScreenVCPFeature(ScreenId id, uint8_t vcpCode,
+        uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode) const;
+    int32_t SetScreenVCPFeature(ScreenId id, uint8_t vcpCode, uint16_t currentValue);
+
     void DisablePowerOffRenderControl(ScreenId id);
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const;
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) const;

@@ -1447,20 +1447,6 @@ HWTEST_F(RSSurfaceNodeTest, AttachToDisplay, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAnimationFinished Test
- * @tc.desc: SetAnimationFinished
- * @tc.type: FUNC
- * @tc.require:SR000HSUII
- */
-HWTEST_F(RSSurfaceNodeTest, SetAnimationFinished, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    surfaceNode->SetAnimationFinished();
-    ASSERT_FALSE(surfaceNode->isSkipLayer_);
-}
-
-/**
  * @tc.name: SetForceHardwareAndFixRotation Test
  * @tc.desc: SetForceHardwareAndFixRotation and SetTextureExport
  * @tc.type: FUNC
@@ -1525,7 +1511,7 @@ HWTEST_F(RSSurfaceNodeTest, SetClonedNodeInfo, TestSize.Level1)
 
 /**
  * @tc.name: SetForeground Test
- * @tc.desc: SetForeground and SetForceUIFirst and SetAncoFlags and SetHDRPresent
+ * @tc.desc: SetForeground and SetForceUIFirst and SetAncoFlags
  * @tc.type: FUNC
  * @tc.require:issueI9MWJR
  */
@@ -1537,7 +1523,6 @@ HWTEST_F(RSSurfaceNodeTest, SetForeground, TestSize.Level1)
     surfaceNode->SetForeground(true);
     surfaceNode->SetForceUIFirst(true);
     surfaceNode->SetAncoFlags(1);
-    surfaceNode->SetHDRPresent(true, 0);
     ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
 }
 
@@ -1718,6 +1703,22 @@ HWTEST_F(RSSurfaceNodeTest, OnBoundsSizeChanged, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->OnBoundsSizeChanged();
     ASSERT_NE(surfaceNode, nullptr);
+}
+
+/**
+ * @tc.name: OnAlphaValueChanged Test
+ * @tc.desc: OnAlphaValueChanged
+ * @tc.type: FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSSurfaceNodeTest, OnAlphaValueChanged, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetAlphaChangedCallback([](float alpha) {});
+    surfaceNode->SetAlpha(0.1f);
+    surfaceNode->OnAlphaValueChanged();
 }
 
 /**

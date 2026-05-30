@@ -27,7 +27,9 @@ RSInterfaces* g_rsInterfaces = nullptr;
 namespace {
 const uint8_t DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK = 0;
 const uint8_t DO_GET_BRIGHTNESS_INFO = 1;
-const uint8_t TARGET_SIZE = 2;
+const uint8_t DO_GET_SCREEN_VCP_FEATURE = 2;
+const uint8_t DO_SET_SCREEN_VCP_FEATURE = 3;
+const uint8_t TARGET_SIZE = 4;
 
 void DoSetBrightnessInfoChangeCallback(FuzzedDataProvider& fdp)
 {
@@ -48,6 +50,23 @@ void DoGetBrightnessInfo(FuzzedDataProvider& fdp)
     g_rsInterfaces->GetBrightnessInfo(id, brightnessInfo);
 }
 
+void DoGetScreenVCPFeature(FuzzedDataProvider& fdp)
+{
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    uint8_t vcpCode = fdp.ConsumeIntegral<uint8_t>();
+    uint16_t currentValue = fdp.ConsumeIntegral<uint16_t>();
+    uint16_t maximumValue = fdp.ConsumeIntegral<uint16_t>();
+    int32_t errorCode = fdp.ConsumeIntegral<int32_t>();
+    g_rsInterfaces->GetScreenVCPFeature(id, vcpCode, currentValue, maximumValue, errorCode);
+}
+
+void DoSetScreenVCPFeature(FuzzedDataProvider& fdp)
+{
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    uint8_t vcpCode = fdp.ConsumeIntegral<uint8_t>();
+    uint16_t currentValue = fdp.ConsumeIntegral<uint16_t>();
+    g_rsInterfaces->SetScreenVCPFeature(id, vcpCode, currentValue);
+}
 } // namespace
 
 } // namespace Rosen
@@ -75,6 +94,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_BRIGHTNESS_INFO:
             OHOS::Rosen::DoGetBrightnessInfo(fdp);
+            break;
+        case OHOS::Rosen::DO_GET_SCREEN_VCP_FEATURE:
+            OHOS::Rosen::DoGetScreenVCPFeature(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_SCREEN_VCP_FEATURE:
+            OHOS::Rosen::DoSetScreenVCPFeature(fdp);
             break;
         default:
             return -1;

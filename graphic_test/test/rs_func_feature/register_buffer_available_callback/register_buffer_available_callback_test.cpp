@@ -72,7 +72,8 @@ public:
         rsSurfaceNodeConfig1.SurfaceNodeName = "AppWindow";
         rsSurfaceNodeConfig1.isSync = false;
         RSSurfaceNodeType rsSurfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
-        auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType);
+        auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
         surfaceNode->SetFrame({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
         surfaceNode->SetBackgroundColor(SK_ColorBLACK);
@@ -106,7 +107,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 300, 300 });
         canvasNode->SetFrame({ 0, 0, 300, 300 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -145,7 +146,7 @@ auto surfaceNode = CreateTestSurfaceNode();
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 300, 300 });
         canvasNode->SetFrame({ 0, 0, 300, 300 });
         canvasNode->SetBackgroundColor(SK_ColorGREEN);
@@ -186,7 +187,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 100, 100, 500, 700 });
         canvasNode->SetFrame({ 100, 100, 500, 700 });
         canvasNode->SetBackgroundColor(0xc1cbd700);
@@ -228,7 +229,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 100, 100, 300, 300 });
         canvasNode->SetFrame({ 100, 100, 300, 300 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -270,7 +271,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 700, 700 });
         canvasNode->SetFrame({ 0, 0, 700, 700 });
         canvasNode->SetBackgroundColor(0xc1cbd700);
@@ -329,7 +330,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 800, 800 });
         canvasNode->SetFrame({ 0, 0, 800, 800 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -382,7 +383,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -440,7 +441,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -482,7 +483,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 300, 300 });
         canvasNode->SetFrame({ 0, 0, 300, 300 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -540,7 +541,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 300, 300 });
         canvasNode->SetFrame({ 0, 0, 300, 300 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -584,12 +585,12 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 600, 600 });
         canvasNode->SetFrame({ 0, 0, 600, 600 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
         rootNode->AddChild(canvasNode, -1);
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode->SetBounds({ 100, 100, 300, 300 });
         childNode->SetFrame({ 100, 100, 300, 300 });
         childNode->SetBackgroundColor(SK_ColorBLUE);
@@ -633,12 +634,12 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 600, 600 });
         canvasNode->SetFrame({ 0, 0, 600, 600 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
         rootNode->AddChild(canvasNode, -1);
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode->SetBounds({ 100, 100, 300, 300 });
         childNode->SetFrame({ 100, 100, 300, 300 });
         childNode->SetBackgroundColor(SK_ColorBLUE);
@@ -682,18 +683,18 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
         rootNode->AddChild(canvasNode, -1);
 
-        auto effectNode = RSEffectNode::Create();
+        auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectNode->SetBounds({ 0, 0, 400, 500 });
         effectNode->SetFrame({ 0, 0, 400, 500 });
         effectNode->SetBackgroundColor(SK_ColorYELLOW);
         effectNode->SetBackgroundFilter(RSFilter::CreateBlurFilter(10, 10));
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode->SetBounds({ 0, 0, 200, 300 });
         childNode->SetFrame({ 0, 0, 200, 300 });
         childNode->SetBackgroundColor(SK_ColorBLUE);
@@ -755,7 +756,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -807,7 +808,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -859,7 +860,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -916,7 +917,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -973,7 +974,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1030,7 +1031,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 700, 700 });
         canvasNode->SetFrame({ 0, 0, 700, 700 });
         canvasNode->SetBackgroundColor(0xc1cbd700);
@@ -1089,18 +1090,18 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 600, 600 });
         canvasNode->SetFrame({ 0, 0, 600, 600 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
         rootNode->AddChild(canvasNode, -1);
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode->SetBounds({ 100, 100, 300, 300 });
         childNode->SetFrame({ 100, 100, 300, 300 });
         childNode->SetBackgroundColor(SK_ColorBLUE);
         canvasNode->AddChild(childNode);
         canvasNode->SetBackgroundColor(SK_ColorYELLOW);
-        auto childNode1 = RSCanvasNode::Create();
+        auto childNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode1->SetBounds({ 100, 100, 200, 200 });
         childNode1->SetFrame({ 100, 100, 200, 200 });
         childNode1->SetBackgroundColor(SK_ColorGREEN);
@@ -1145,7 +1146,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1202,7 +1203,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1259,7 +1260,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1316,7 +1317,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1373,7 +1374,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1430,7 +1431,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1488,7 +1489,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1546,7 +1547,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1604,7 +1605,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1662,7 +1663,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1714,7 +1715,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1766,7 +1767,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1818,7 +1819,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1870,7 +1871,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1923,7 +1924,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1976,7 +1977,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2029,7 +2030,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2082,7 +2083,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2135,7 +2136,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2188,7 +2189,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2241,7 +2242,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2293,7 +2294,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2345,7 +2346,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2397,7 +2398,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2449,7 +2450,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2501,7 +2502,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2553,7 +2554,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2605,7 +2606,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2657,7 +2658,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2709,7 +2710,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2761,7 +2762,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2813,7 +2814,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2865,7 +2866,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2917,7 +2918,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -2969,7 +2970,7 @@ GRAPHIC_TEST(
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (execute) {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorWHITE);

@@ -14,6 +14,7 @@
  */
 
 #include "rs_graphic_rootnode.h"
+#include "rs_graphic_test_director.h"
 #include "transaction/rs_interfaces.h"
 #include "rs_graphic_errors.h"
 #include "rs_graphic_log.h"
@@ -24,7 +25,8 @@ RSGraphicRootNode::RSGraphicRootNode()
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestScreenSurface";
-    screenSurfaceNode_ = RSSurfaceNode::Create(config, RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    screenSurfaceNode_ = RSSurfaceNode::Create(config, RSSurfaceNodeType::LEASH_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
 }
 
 void RSGraphicRootNode::SetTestSurface(
@@ -89,7 +91,8 @@ std::shared_ptr<RSSurfaceNode> RSGraphicRootNode::CreateContentNode(
     contentConfig.SurfaceNodeName =
         "SubWindowSurface_" + std::to_string(id);
     auto contentNode = RSSurfaceNode::Create(
-        contentConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
+        contentConfig, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     if (!contentNode) {
         LOGE("RSGraphicRootNode::CreateContentNode create failed");
         return nullptr;
@@ -117,7 +120,8 @@ SubWindowId RSGraphicRootNode::CreateSubWindow(const SubWindowOptions& options)
     RSSurfaceNodeConfig leashConfig;
     leashConfig.SurfaceNodeName = "SubWindow_" + std::to_string(id);
     auto leashNode = RSSurfaceNode::Create(
-        leashConfig, RSSurfaceNodeType::LEASH_WINDOW_NODE);
+        leashConfig, RSSurfaceNodeType::LEASH_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     if (!leashNode) {
         LOGE("RSGraphicRootNode::CreateSubWindow create leash node failed");
         return INVALID_SUB_WINDOW_ID;

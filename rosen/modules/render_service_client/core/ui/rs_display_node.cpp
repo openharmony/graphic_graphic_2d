@@ -208,15 +208,6 @@ void RSDisplayNode::SetDisplayContentRect(const Rect& contentRect)
         GetId(), contentRect.x, contentRect.y, contentRect.w, contentRect.h);
 }
 
-void RSDisplayNode::SetForceCloseHdr(bool isForceCloseHdr)
-{
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeForceCloseHdr>(GetId(), isForceCloseHdr);
-    if (AddCommand(command, true)) {
-        ROSEN_LOGD("RSDisplayNode::SetForceCloseHdr: [%{public}s], displayNodeId:[%{public}" PRIu64 "]",
-            isForceCloseHdr ? "true" : "false", GetId());
-    }
-}
-
 void RSDisplayNode::SetDisplayNodeMirrorConfig(const RSDisplayNodeConfig& displayNodeConfig)
 {
     isMirrorDisplay_ = displayNodeConfig.isMirrored;

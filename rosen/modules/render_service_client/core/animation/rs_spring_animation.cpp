@@ -62,7 +62,7 @@ const RSAnimationTimingCurve& RSSpringAnimation::GetTimingCurve() const
 void RSSpringAnimation::SetZeroThreshold(const float zeroThreshold)
 {
     constexpr float ZERO = 0.0f;
-    if (zeroThreshold_ < ZERO) {
+    if (zeroThreshold < ZERO) {
         ROSEN_LOGE("RSSpringAnimation::SetZeroThreshold: invalid threshold.");
         return;
     }

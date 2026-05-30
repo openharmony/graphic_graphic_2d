@@ -50,7 +50,8 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Color_Test)
     for (int i = 0; i < static_cast<int>(colorList.size()); i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBackgroundColor(colorList[i]);
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetBorderWidth(5);
@@ -74,7 +75,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Brightness_Paramet
                 int x = i * 310;
                 int y = (k + j * 2) * 310;
                 auto testFaNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 300, 300 });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, 300, 300 });
                 testNode->SetBackgroundColor(0xff7d112c);
                 testNode->SetBgBrightnessParams(params);
@@ -102,7 +103,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Brightness_Paramet
                 int x = i * 310;
                 int y = (k + j * 2) * 310;
                 auto testFaNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 300, 300 });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, 300, 300 });
                 testNode->SetBackgroundColor(0xff7d112c);
                 testNode->SetBgBrightnessParams(params);
@@ -130,7 +131,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Brightness_Paramet
                 int x = i * 310;
                 int y = (k + j * 2) * 310;
                 auto testFaNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 300, 300 });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, 300, 300 });
                 testNode->SetBackgroundColor(0xff7d112c);
                 testNode->SetBgBrightnessParams(params);
@@ -158,7 +159,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Brightness_Paramet
                 int x = i * 310;
                 int y = (k + j * 2) * 310;
                 auto testFaNode = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 300, 300 });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, 300, 300 });
                 testNode->SetBackgroundColor(0xff7d112c);
                 testNode->SetBgBrightnessParams(params);
@@ -200,7 +201,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_VisualEffect_Test)
                 int y = (k + j * 2) * 310; // calculate the positon y of the image
                 auto testFaNode = SetUpNodeBgImage(
                     "/data/local/tmp/Images/backGroundImage.jpg", { x, y, 300, 300 }); // 300 is image height and width
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, 300, 300 });  // Set the bounds height and width to 300
                 testNode->SetBackgroundColor(0xff7d112c); // Set the background color
                 testNode->SetVisualEffect(&effect);
@@ -264,7 +265,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Grey_Coef_Test)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test001)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xff000000);
     GetRootNode()->AddChild(testNode1);
@@ -273,7 +274,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test001)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test002)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ -100, 0, 500, 500 });
     testNode1->SetBackgroundColor(0xf0f00000);
     GetRootNode()->AddChild(testNode1);
@@ -282,7 +283,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test002)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test003)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 0, -100, 500, 500 });
     testNode1->SetBackgroundColor(0xf00f0000);
     GetRootNode()->AddChild(testNode1);
@@ -291,7 +292,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test003)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test004)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 0, 0, -500, 500 });
     testNode1->SetBackgroundColor(0xf00f0000);
     GetRootNode()->AddChild(testNode1);
@@ -300,7 +301,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test004)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test005)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 0, 0, 500, -500 });
     testNode1->SetBackgroundColor(0xf000f000);
     GetRootNode()->AddChild(testNode1);
@@ -309,7 +310,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test005)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test006)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 0, 0, -500, -500 });
     testNode1->SetBackgroundColor(0xf0000f00);
     GetRootNode()->AddChild(testNode1);
@@ -318,7 +319,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test006)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test007)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ -100, -100, 500, 500 });
     testNode1->SetBackgroundColor(0xf00000f0);
     GetRootNode()->AddChild(testNode1);
@@ -327,7 +328,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test007)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test008)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ -100, -100, -500, 500 });
     testNode1->SetBackgroundColor(0xf000000f);
     GetRootNode()->AddChild(testNode1);
@@ -336,7 +337,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test008)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test009)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ -100, -100, -500, -500 });
     testNode1->SetBackgroundColor(0x000ff000);
     GetRootNode()->AddChild(testNode1);
@@ -345,7 +346,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test009)
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Color_Test010)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 100, 100, 500, 500 });
     testNode1->SetBackgroundColor(0x000000ff);
     GetRootNode()->AddChild(testNode1);

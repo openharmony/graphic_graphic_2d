@@ -36,7 +36,7 @@ public:
 /* BehindWindowFilter: basic filter */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_BehindWindowFilter_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
     // Note: BehindWindowFilter applies blur effect to content behind the window
@@ -55,7 +55,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_BehindWindowFilter
 /* BehindWindowFilter: with border */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_BehindWindowFilter_Test_3)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetBorderWidth(30);
     testNode->SetBorderColor(0xff00ff00);
@@ -67,7 +67,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_BehindWindowFilter
 /* BehindWindowFilter: corner radius */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_BehindWindowFilter_Test_4)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetCornerRadius(70);
     testNode->SetBackgroundColor(0xffff0000);
@@ -78,7 +78,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_BehindWindowFilter
 /* BehindWindowFilter: shadow */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_BehindWindowFilter_Test_5)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetShadowColor(0xff000000);
     testNode->SetShadowRadius(40);
@@ -126,7 +126,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_BehindWindowFilter
     };
 
     for (const auto& bounds : boundsList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetBackgroundColor(0xffff0000);
         GetRootNode()->AddChild(testNode);

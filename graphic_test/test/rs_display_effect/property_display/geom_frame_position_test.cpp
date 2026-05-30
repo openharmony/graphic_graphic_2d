@@ -104,7 +104,7 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePositionX_Normal_Matr
     };
 
     for (size_t i = 0; i < positions.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>(i * 200 + 50);
         float y = 100;
         testNode->SetBounds({x, y, 150, 150});
@@ -147,7 +147,7 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePositionY_Normal_Matr
     };
 
     for (size_t i = 0; i < positions.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = 100;
         float y = static_cast<float>(i * 200 + 50);
         testNode->SetBounds({x, y, 150, 150});
@@ -318,7 +318,7 @@ GRAPHIC_TEST(FramePositionTest, CONTENT_DISPLAY_TEST, FramePosition_Diagonal)
     };
 
     for (size_t i = 0; i < diagonalPositions.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>(i * 200 + 50);
         float y = 100;
         testNode->SetBounds({x, y, 200, 200});

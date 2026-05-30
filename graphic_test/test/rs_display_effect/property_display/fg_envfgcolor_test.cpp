@@ -35,7 +35,7 @@ public:
 
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, EnvFgColor_Test_1)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testFaNode->SetBounds({ 0, 0, 1200, 2000 });
     testFaNode->SetBackgroundColor(0xff000000);
 
@@ -43,7 +43,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, EnvFgColor_Test_1)
     for (int i = 0; i < 6; i++) {
         int x = (i % 2) * 510;
         int y = (i / 2) * 510;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ x, y, 500, 500 });
         testNode->SetBackgroundColor(0x7dffffff);
         testNode->SetEnvForegroundColor(colorList[i]);
@@ -56,14 +56,14 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, EnvFgColor_Test_1)
 
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, EnvFgColor_Test_2)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testFaNode->SetBounds({ 0, 0, 1200, 2000 });
     testFaNode->SetBackgroundColor(0xff000000);
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetEnvForegroundColor(0xff00ff00);
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({ 250, 250, 500, 500 });
     testNode2->SetEnvForegroundColor(0xff0000ff);
 
@@ -78,17 +78,17 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, EnvFgColor_Test_2)
 
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, EnvFgColor_StrategyTypeTest_1)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testFaNode->SetBounds({ 0, 0, 1200, 2000 });
     testFaNode->SetBackgroundColor(0xff000000);
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 0, 0, 500, 500 });
     testNode1->SetEnvForegroundColorStrategy(ForegroundColorStrategyType::INVALID);
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({ 510, 510, 500, 500 });
     testNode2->SetBackgroundColor(0xff000000);
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetEnvForegroundColorStrategy(ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR);
 
     // addNode

@@ -37,7 +37,7 @@ public:
 /* SetFrame + Alpha: alpha = 0 */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Frame_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetFrame({ 50, 50, 300, 300 });
     testNode->SetAlpha(0.0f);
@@ -134,7 +134,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Frame_Test_7)
     RegisterNode(testNode1);
 
     // Node 2 - overlapping
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({ 200, 200, 400, 400 });
     testNode2->SetFrame({ 50, 50, 300, 300 });
     testNode2->SetBackgroundColor(0xff0000ff);
@@ -169,7 +169,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Frame_Test_9)
     };
 
     for (const auto& offset : offsetList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 100, 100, 400, 400 });
         testNode->SetFrame({ offset.x_, offset.y_, offset.z_, offset.w_ });
         testNode->SetBackgroundColor(0xff00ff00);
@@ -220,7 +220,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Frame_Extreme_Po
 
     float alpha = 0.7f;
     for (const auto& frame : extremeFrames) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 100, 100, 400, 400 });
         testNode->SetFrame({ frame.x_, frame.y_, frame.z_, frame.w_ });
         testNode->SetAlpha(alpha);
@@ -242,7 +242,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Frame_Zero_Negat
     };
 
     for (const auto& frame : frameList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 100, 100, 400, 400 });
         testNode->SetFrame({ frame.x_, frame.y_, frame.z_, frame.w_ });
         testNode->SetAlpha(0.8f);
@@ -271,7 +271,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Frame_Larger_Tha
 /* SetFrame + Alpha: conflict - zero frame with full alpha */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Alpha_Frame_Conflict_Test)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetFrame({ 100, 100, 0, 0 }); // zero frame
     testNode->SetAlpha(1.0f); // full alpha

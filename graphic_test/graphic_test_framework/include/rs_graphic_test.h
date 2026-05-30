@@ -18,6 +18,7 @@
 
 #include "common/rs_color.h"
 #include "common/rs_rect.h"
+#include "rs_graphic_test_director.h"
 #include "rs_graphic_rootnode.h"
 #include "rs_graphic_test_ext.h"
 #include "ui/rs_canvas_node.h"

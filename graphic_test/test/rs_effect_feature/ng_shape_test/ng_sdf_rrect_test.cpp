@@ -172,7 +172,8 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, Set_SDF_RRectShape_NonUniformRadius_Te
     for (int i = 0; i < rowCount; i++) {
         int x = (i % COLUMN_COUNT) * sizeX;
         int y = (i / COLUMN_COUNT) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         SetUpSDFRRectNode(backgroundTestNode, rRectCornerParams[i], sizeX, sizeY);
 
         auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
@@ -193,7 +194,8 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, Set_SDF_RRectShape_NonUniformRadius_Pr
     for (int i = 0; i < rowCount; i++) {
         int x = (i % COLUMN_COUNT) * sizeX;
         int y = (i / COLUMN_COUNT) * sizeY;
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         SetUpSDFRRectNode(backgroundTestNode, rRectCornerParams[i + 1], sizeX, sizeY);
         backgroundTestNode->SetBorderStyle(0, 0, 0, 0);
         backgroundTestNode->SetBorderWidth(5, 5, 5, 5);

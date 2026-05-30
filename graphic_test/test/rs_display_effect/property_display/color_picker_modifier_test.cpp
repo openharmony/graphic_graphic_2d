@@ -48,7 +48,7 @@ static void OnColorPicked(uint32_t color)
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_001)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -77,7 +77,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
     };
 
     for (size_t i = 0; i < paramsList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 220 + 50, 50, 200, 200 });
         testNode->SetBackgroundColor(0xffff0000);
 
@@ -110,7 +110,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
 
     for (size_t row = 0; row < placeholders.size(); row++) {
         for (size_t col = 0; col < strategies.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
 
@@ -133,7 +133,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_004)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -154,7 +154,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_005)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -179,7 +179,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_006)
 {
     // Node with callback
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 50, 50, 400, 400 });
     testNode1->SetBackgroundColor(0xffff0000);
     testNode1->SetColorPickerParams(ColorPlaceholder::SURFACE, ColorPickStrategyType::AVERAGE, 500);
@@ -188,7 +188,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
     RegisterNode(testNode1);
 
     // Node without callback
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({ 500, 50, 400, 400 });
     testNode2->SetBackgroundColor(0xff00ff00);
     testNode2->SetColorPickerParams(ColorPlaceholder::TEXT_CONTRAST, ColorPickStrategyType::DOMINANT, 1000);
@@ -213,7 +213,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
 
     for (size_t row = 0; row < placeholders.size(); row++) {
         for (size_t col = 0; col < intervals.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 280 + 50, (int)row * 350 + 50, 250, 300 });
             testNode->SetBackgroundColor(0xffff0000);
 
@@ -242,7 +242,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
     };
 
     for (size_t i = 0; i < strategies.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 220 + 50, 50, 200, 200 });
         testNode->SetBackgroundColor(0xffff0000);
 
@@ -261,7 +261,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
  */
 GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierTest_009)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -300,7 +300,7 @@ GRAPHIC_TEST(ColorPickerModifierTest, CONTENT_DISPLAY_TEST, ColorPickerModifierT
 
     for (size_t row = 0; row < placeholders.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaList[col]);

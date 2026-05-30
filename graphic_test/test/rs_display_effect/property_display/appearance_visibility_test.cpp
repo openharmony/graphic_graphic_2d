@@ -37,7 +37,7 @@ public:
 /* SetVisible: visible = true */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 300, 300 });
     testNode->SetVisible(true);
     testNode->SetBackgroundColor(0xffff0000);
@@ -48,7 +48,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_1)
 /* SetVisible: visible = false */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_2)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 300, 300 });
     testNode->SetVisible(false); // node not visible
     testNode->SetBackgroundColor(0xffff0000);
@@ -60,7 +60,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_2)
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_3)
 {
     // Visible node
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 100, 100, 300, 300 });
     testNode1->SetVisible(true);
     testNode1->SetBackgroundColor(0xffff0000);
@@ -68,7 +68,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_3)
     RegisterNode(testNode1);
 
     // Invisible node
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({ 500, 100, 300, 300 });
     testNode2->SetVisible(false);
     testNode2->SetBackgroundColor(0xff00ff00);
@@ -92,14 +92,14 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_4)
 /* SetVisible: child visibility when parent is visible */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_5)
 {
-    auto parentNode = RSCanvasNode::Create();
+    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentNode->SetBounds({ 100, 100, 600, 600 });
     parentNode->SetVisible(true);
     parentNode->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(parentNode);
 
     // Child node
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({ 50, 50, 200, 200 });
     childNode->SetVisible(true);
     childNode->SetBackgroundColor(0xff0000ff);
@@ -110,14 +110,14 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_5)
 /* SetVisible: child visibility when parent is invisible */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_6)
 {
-    auto parentNode = RSCanvasNode::Create();
+    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentNode->SetBounds({ 100, 100, 600, 600 });
     parentNode->SetVisible(false); // parent invisible
     parentNode->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(parentNode);
 
     // Child node (even if visible, won't show because parent is invisible)
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({ 50, 50, 200, 200 });
     childNode->SetVisible(true);
     childNode->SetBackgroundColor(0xff0000ff);
@@ -138,7 +138,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_7)
 /* SetVisible: multiple children with mixed visibility */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_8)
 {
-    auto parentNode = RSCanvasNode::Create();
+    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentNode->SetBounds({ 100, 100, 600, 600 });
     parentNode->SetVisible(true);
     parentNode->SetBackgroundColor(0xffff0000);
@@ -146,7 +146,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_8)
 
     // Create 4 children with alternating visibility
     for (int i = 0; i < 4; i++) {
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         int x = (i % 2) * 250;
         int y = (i / 2) * 250;
         childNode->SetBounds({ x, y, 200, 200 });
@@ -160,7 +160,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_8)
 /* SetVisible: node with border and visibility */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_9)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true);
     testNode->SetBorderWidth(20);
@@ -173,7 +173,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_9)
 /* SetVisible: node with shadow and visibility */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Test_10)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true);
     testNode->SetShadowColor(0xff000000);
@@ -203,7 +203,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Toggle_Tes
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Nested_Test)
 {
     // Root - visible
-    auto root = RSCanvasNode::Create();
+    auto root = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     root->SetBounds({ 100, 100, 900, 900 });
     root->SetVisible(true);
     root->SetBackgroundColor(0xffff0000);
@@ -211,7 +211,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Nested_Tes
 
     // Level 1 - mixed visibility
     for (int i = 0; i < 2; i++) {
-        auto l1 = RSCanvasNode::Create();
+        auto l1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         l1->SetBounds({ i * 400, 50, 350, 350 });
         l1->SetVisible(i == 0); // first visible, second invisible
         l1->SetBackgroundColor(0xff00ff00);
@@ -219,7 +219,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Nested_Tes
 
         // Level 2 - under both
         for (int j = 0; j < 2; j++) {
-            auto l2 = RSCanvasNode::Create();
+            auto l2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             l2->SetBounds({ j * 150, 50, 100, 100 });
             l2->SetVisible(true);
             l2->SetBackgroundColor(0xff0000ff);
@@ -240,7 +240,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Content_Ty
     RegisterNode(imgNode);
 
     // Color node
-    auto colorNode = RSCanvasNode::Create();
+    auto colorNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     colorNode->SetBounds({ 450, 100, 300, 300 });
     colorNode->SetVisible(true);
     colorNode->SetBackgroundColor(0xffff0000);
@@ -248,7 +248,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Content_Ty
     RegisterNode(colorNode);
 
     // Border node
-    auto borderNode = RSCanvasNode::Create();
+    auto borderNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     borderNode->SetBounds({ 100, 450, 300, 300 });
     borderNode->SetVisible(true);
     borderNode->SetBorderWidth(20);
@@ -258,7 +258,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Content_Ty
     RegisterNode(borderNode);
 
     // Invisible node
-    auto invNode = RSCanvasNode::Create();
+    auto invNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     invNode->SetBounds({ 450, 450, 300, 300 });
     invNode->SetVisible(false);
     invNode->SetBackgroundColor(0xffff0000);
@@ -277,7 +277,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Extreme_Bo
     };
 
     for (int i = 0; i < 4; i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ extremeBounds[i].x_, extremeBounds[i].y_,
             extremeBounds[i].z_, extremeBounds[i].w_ });
         testNode->SetVisible(i < 3); // 最后一个不可见
@@ -292,7 +292,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Visible_Rapid_Chan
 {
     std::vector<std::shared_ptr<RSCanvasNode>> nodes;
     for (int i = 0; i < 10; i++) {
-        auto node = RSCanvasNode::Create();
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({ i * 110 + 50, 100, 100, 100 });
         node->SetVisible(true);
         node->SetBackgroundColor(0xffff0000);

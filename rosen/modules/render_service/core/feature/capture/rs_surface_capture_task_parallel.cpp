@@ -44,6 +44,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_skia_filter.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -300,7 +301,10 @@ bool RSSurfaceCaptureTaskParallel::Run(
         canvas.SetHdrOn(isHDRCapture);
         canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
         canvas.Clear(captureParam.config.backGroundColor);
+        RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(type);
         surfaceNodeDrawable_->OnCapture(canvas);
+        RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(
+            RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
         if (RSUniRenderThread::GetCaptureParam().hasPrivacyAndSpecialLayer_) {
             errorCode_ = CaptureError::CAPTURE_FAIL_SPECIAL_LAYER;
         }
@@ -913,7 +917,10 @@ void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDr
     // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
     std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
     RSUniRenderThread::Instance().SetBlackList(blackList);
+    RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(type);
     displayNodeDrawable.OnCapture(canvas);
+    RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(
+            RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
     RSUniRenderThread::Instance().SetBlackList({});
 }
 

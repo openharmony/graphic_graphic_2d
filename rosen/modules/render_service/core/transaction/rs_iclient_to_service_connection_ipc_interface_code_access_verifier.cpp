@@ -171,6 +171,14 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_BACK_LIGHT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_VCP_FEATURE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_VCP_FEATURE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_VCP_FEATURE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_VCP_FEATURE");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_CONNECT_TO_RENDER): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_CONNECT_TO_RENDER");
             break;

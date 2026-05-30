@@ -39,6 +39,10 @@
 #include "hisysevent.h"
 #endif
 
+#ifdef USE_PRIMITIVE
+#include "primitive/primitive_adapter.h"
+#endif
+
 namespace OHOS::Rosen::DrawableV2 {
 using namespace TemplateUtils;
 static const size_t CMD_LIST_COUNT_WARNING_LIMIT = 5000;
@@ -241,12 +245,16 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
 
     for (auto i = start; i < end; i++) {
 #ifdef RS_ENABLE_PREFETCH
-            int prefetchIndex = i + 2;
-            if (prefetchIndex < end) {
-                __builtin_prefetch(&drawCmdList_[prefetchIndex], 0, 1);
-            }
+        int prefetchIndex = i + 2;
+        if (prefetchIndex < end) {
+            __builtin_prefetch(&drawCmdList_[prefetchIndex], 0, 1);
+        }
 #endif
+#ifdef USE_PRIMITIVE
+        drawCmdList_[i]->OnDrawPrimitive(&canvas, &rect);
+#else
         drawCmdList_[i]->OnDraw(&canvas, &rect);
+#endif
     }
 }
 
@@ -351,6 +359,13 @@ void RSRenderNodeDrawableAdapter::DrawContent(Drawing::Canvas& canvas, const Dra
 
 void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+#ifdef USE_PRIMITIVE
+    auto& paintFilterCanvas = static_cast<RSPaintFilterCanvas &>(canvas);
+    auto primListAdapter = paintFilterCanvas.primListAdapter_;
+    if (primListAdapter) {
+        primListAdapter->SetChildrenSkipped(false);
+    }
+#endif
     if (drawCmdList_.empty()) {
         return;
     }

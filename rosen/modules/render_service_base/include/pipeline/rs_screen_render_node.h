@@ -314,8 +314,6 @@ public:
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
-    void SetForceCloseHdr(bool isForceCloseHdr);
-
     bool GetForceCloseHdr() const;
 
     void SetHDRPresent(bool hdrPresent);
@@ -553,7 +551,6 @@ private:
     bool isMirroredScreen_ = false;
     bool hasMirroredScreenChanged_ = false;
     bool isSecurityDisplay_ = false;
-    bool isForceCloseHdr_ = false;
     bool isFirstFrameVirtualScreenInit_ = true;
     bool isFixVirtualBuffer10Bit_ = false;
     bool existHWCNode_ = false;

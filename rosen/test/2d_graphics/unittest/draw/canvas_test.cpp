@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "draw/canvas.h"
+#include "draw/prim_list.h"
 #include "draw/ui_color.h"
 #include "effect/particle_builder.h"
 #include "text/font.h"
@@ -1712,6 +1713,107 @@ HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest010, TestSize.Level1)
     canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
     canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
     GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: BeginPrimListCollecting001
+ * @tc.desc: Test for beginning PrimList collecting with valid bounds.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, BeginPrimListCollecting001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Rect bounds(0, 0, 100, 100);
+    canvas->BeginPrimListCollecting(bounds);
+}
+
+/**
+ * @tc.name: BeginPrimListCollecting002
+ * @tc.desc: Test for beginning PrimList collecting with empty bounds.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, BeginPrimListCollecting002, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Rect bounds;
+    canvas->BeginPrimListCollecting(bounds);
+}
+
+/**
+ * @tc.name: EndPrimListCollecting001
+ * @tc.desc: Test for ending PrimList collecting and getting PrimList.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, EndPrimListCollecting001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Rect bounds(0, 0, 100, 100);
+    canvas->BeginPrimListCollecting(bounds);
+    auto primList = canvas->EndPrimListCollecting();
+    EXPECT_TRUE(primList == nullptr);
+}
+
+/**
+ * @tc.name: EndPrimListCollecting002
+ * @tc.desc: Test for ending PrimList collecting without begin.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, EndPrimListCollecting002, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    auto primList = canvas->EndPrimListCollecting();
+    EXPECT_TRUE(primList == nullptr);
+}
+
+/**
+ * @tc.name: DrawPrimList001
+ * @tc.desc: Test for drawing PrimList.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, DrawPrimList001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    PrimList primList;
+    bool result = canvas->DrawPrimList(primList);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: DrawPrimList002
+ * @tc.desc: Test for drawing PrimList after collecting.
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(CanvasTest, DrawPrimList002, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Bitmap bitmap;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bitmap.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format);
+    canvas->Bind(bitmap);
+    Rect bounds(0, 0, BITMAP_WIDTH, BITMAP_HEIGHT);
+    canvas->BeginPrimListCollecting(bounds);
+    Rect rect(10, 10, 50, 50);
+    canvas->DrawRect(rect);
+    auto primList = canvas->EndPrimListCollecting();
+    EXPECT_TRUE(primList == nullptr);
 }
 
 } // namespace Drawing

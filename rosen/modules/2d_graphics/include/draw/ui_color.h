@@ -17,6 +17,7 @@
 #define UI_COLOR_H
 
 #include <cstdint>
+#include <functional>
 #include <stdint.h>
 #include <string>
 
@@ -26,6 +27,9 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
+class UIColor;
+using UIColorRegisterCallback = std::function<bool(const UIColor& srcColor, UIColor& dstColor)>;
+
 class DRAWING_API UIColor {
 public:
     UIColor() noexcept;
@@ -33,6 +37,9 @@ public:
     UIColor(const UIColor& color) noexcept;
 
     ~UIColor() {}
+
+    static void RegisterHdrCallbackFunc(UIColorRegisterCallback func);
+    static UIColorRegisterCallback& GetHdrRegisterCallback();
 
     float GetRed() const;
 

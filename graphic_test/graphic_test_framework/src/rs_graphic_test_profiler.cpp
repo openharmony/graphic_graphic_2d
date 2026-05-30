@@ -351,7 +351,8 @@ void RSGraphicTestProfiler::NodeTreeTestSetUp()
     system("setenforce 0");
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSurface";
-    auto testSurface = RSSurfaceNode::Create(config, RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto testSurface = RSSurfaceNode::Create(config, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
 
     testSurface->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     testSurface->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
@@ -393,7 +394,7 @@ void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath
     // NOT MODIFY THE COMMENTS
     cout << "[   RUN   ] " << filePath << std::endl;
     // 1.add load client node to add file
-    auto loadNode = RSCanvasNode::Create();
+    auto loadNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     loadNode->SetBounds({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
     GetRootNode()->AddChild(loadNode);
     // need flush client node to rs firstly

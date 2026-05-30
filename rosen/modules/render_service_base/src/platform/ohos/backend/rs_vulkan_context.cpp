@@ -72,6 +72,7 @@ static std::vector<const char*> gOptionalDeviceExtensions = {
     VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
     VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
     VK_EXT_DEVICE_FAULT_EXTENSION_NAME,
+    VK_EXT_PIPELINE_CREATION_CACHE_CONTROL_EXTENSION_NAME,
 };
 
 // enabled when persist.sys.graphic.openVkImageMemoryDfx is true

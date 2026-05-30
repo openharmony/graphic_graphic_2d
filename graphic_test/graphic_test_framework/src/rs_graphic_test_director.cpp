@@ -181,13 +181,16 @@ void RSGraphicTestDirector::InitProfilerThread()
 void RSGraphicTestDirector::Run()
 {
     Reset();
-    rsUiDirector_ = RSUIDirector::Create(nullptr, nullptr);
+    screenId_ = RSInterfaces::GetInstance().GetDefaultScreenId();
+    sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId_);
+    rsUiDirector_ = OHOS::Rosen::RSUIDirector::Create(connectToRender);
+    auto rsUIContext = rsUiDirector_->GetRSUIContext();
 
     rsUiDirector_->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {
         if (task) {
             task();
         }
-    });
+    }, INSTANCE_ID_UNDEFINED, true);
 
     runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
     handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner_);
@@ -266,7 +269,9 @@ std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait
     }
 
     auto callback = std::make_shared<TestSurfaceCaptureCallback>();
-    if (!RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(rootNode_->screenSurfaceNode_, callback)) {
+    auto rsInterface = rsUiDirector_->GetRSUIContext()->GetRSRenderInterface();
+    if (!rsInterface->TakeSurfaceCaptureForUI(
+        rootNode_->screenSurfaceNode_, callback)) {
         return nullptr;
     }
 
@@ -456,6 +461,11 @@ void RSGraphicTestDirector::Reset()
 
     // 6. clean EventHandler
     handler_.reset();
+}
+
+std::shared_ptr<RSUIContext> RSGraphicTestDirector::GetRSUIContext() const
+{
+    return rsUiDirector_ ? rsUiDirector_->GetRSUIContext() : nullptr;
 }
 
 } // namespace Rosen

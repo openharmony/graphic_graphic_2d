@@ -94,6 +94,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGBorderSDFShader>();
         }
     },
+    {RSNGEffectType::BORDER_SDF_LG_COLOR, [] {
+            return std::make_shared<RSNGBorderSDFLGColor>();
+        }
+    },
     {RSNGEffectType::SDF_EDGE_LIGHT_EFFECT, [] {
             return std::make_shared<RSNGSDFEdgeLightEffect>();
         }

@@ -56,7 +56,6 @@ public:
     static void RemoveDisplayNodeFromTree(RSContext&, NodeId);
     static void ClearModifiersByPid(RSContext&, NodeId, int32_t pid);
     static void SetVirtualScreenMuteStatus(RSContext&, NodeId, bool);
-    static void SetForceCloseHdr(RSContext&, NodeId, bool);
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,
@@ -92,9 +91,6 @@ ADD_COMMAND(RSDisplayNodeClearModifiersByPid,
 ADD_COMMAND(RSDisplayNodeSetVirtualScreenMuteStatus,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_VIRTUAL_SCREEN_MUTE_STATUS,
         DisplayNodeCommandHelper::SetVirtualScreenMuteStatus, NodeId, bool))
-ADD_COMMAND(RSDisplayNodeForceCloseHdr,
-    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_FORCE_CLOSE_HDR,
-        DisplayNodeCommandHelper::SetForceCloseHdr, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 

@@ -78,7 +78,7 @@ public:
     std::shared_ptr<RSCanvasNode> CreateColoredNode(float x, float y, float w, float h,
         uint32_t bgColor = SK_ColorWHITE)
     {
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Vector4f bounds = {x, y, x + w, y + h};
         Vector4f frame = bounds;
         canvasNode->SetBounds(bounds);

@@ -55,35 +55,35 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Co
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * FOUR_HUNDRED_TWENTY_;
         int y = (i / TWO_) * FOUR_HUNDRED_TWENTY_;
-        auto testNodeColor = RSCanvasNode::Create();
+        auto testNodeColor = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         setNode(testNodeColor, { x, y, FOUR_HUNDRED_, FOUR_HUNDRED_ }, Vector4<Color>(colorList[i]));
         GetRootNode()->AddChild(testNodeColor);
         RegisterNode(testNodeColor);
     }
 
     // parent black, child red color, white border
-    auto testNodeParent = RSCanvasNode::Create();
+    auto testNodeParent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     setNode(
         testNodeParent, { 0, FOUR_HUNDRED_TWENTY_ * 2, FOUR_HUNDRED_, FOUR_HUNDRED_ }, Vector4<Color>(colorList[0]));
     testNodeParent->SetBackgroundColor(0xff000000);
     GetRootNode()->AddChild(testNodeParent);
     RegisterNode(testNodeParent);
 
-    auto testNodeChild = RSCanvasNode::Create();
+    auto testNodeChild = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     setNode(testNodeChild, { FIFTY_, FIFTY_, TWO_HUNDRED_, TWO_HUNDRED_ }, Vector4<Color>(Color(0xffffffff)));
     testNodeChild->SetForegroundColor(0xffff0000);
     testNodeParent->AddChild(testNodeChild);
     RegisterNode(testNodeChild);
 
     // alpha border
-    auto testNodeAlphaColor = RSCanvasNode::Create();
+    auto testNodeAlphaColor = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     setNode(testNodeAlphaColor, { FOUR_HUNDRED_TWENTY_, FOUR_HUNDRED_TWENTY_ * 2, FOUR_HUNDRED_, FOUR_HUNDRED_ },
         Vector4<Color>(Color(0x7dffffff)));
     GetRootNode()->AddChild(testNodeAlphaColor);
     RegisterNode(testNodeAlphaColor);
 
     // four different color
-    auto testNodeFourColor = RSCanvasNode::Create();
+    auto testNodeFourColor = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     setNode(testNodeFourColor, { 0, FOUR_HUNDRED_TWENTY_ * 3, FOUR_HUNDRED_, FOUR_HUNDRED_ },
         Vector4<Color>(colorList[0], colorList[1], colorList[2], colorList[3]));
     GetRootNode()->AddChild(testNodeFourColor);
@@ -101,7 +101,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Wi
     for (int i = 0; i < THREE_; i++) {
         int x = (i % TWO_) * FOUR_HUNDRED_TWENTY_;
         int y = (i / TWO_) * FOUR_HUNDRED_TWENTY_;
-        auto testNodeWidth = RSCanvasNode::Create();
+        auto testNodeWidth = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeWidth->SetBounds({ x, y, FOUR_HUNDRED_, FOUR_HUNDRED_ });
         testNodeWidth->SetTranslate(widthList[i] + TWENTY_, widthList[i] + FIFTY_, 0);
         testNodeWidth->SetOutlineStyle(style);
@@ -112,7 +112,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Wi
     }
 
     // four different width
-    auto testNodeFourWidth = RSCanvasNode::Create();
+    auto testNodeFourWidth = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourWidth->SetBounds({ 0, FOUR_HUNDRED_TWENTY_ * 2, FOUR_HUNDRED_, FOUR_HUNDRED_ });
     testNodeFourWidth->SetTranslate(TWENTY_, FOUR_HUNDRED_, 0);
     testNodeFourWidth->SetOutlineStyle(style);
@@ -135,7 +135,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_St
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
         int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeStyle = RSCanvasNode::Create();
+        auto testNodeStyle = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeStyle->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNodeStyle->SetTranslate(TWENTY_, TWENTY_, 0);
         Vector4<BorderStyle> style = Vector4<BorderStyle>((BorderStyle)i);
@@ -147,7 +147,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_St
     }
 
     // four different style
-    auto testNodeFourStyle = RSCanvasNode::Create();
+    auto testNodeFourStyle = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourStyle->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     testNodeFourStyle->SetTranslate(TWENTY_, TWENTY_, 0);
     Vector4<BorderStyle> style2 = Vector4<BorderStyle>((BorderStyle)0, (BorderStyle)1, (BorderStyle)2, (BorderStyle)3);
@@ -169,7 +169,8 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Da
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
         int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeDashWidth = RSCanvasNode::Create();
+        auto testNodeDashWidth = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeDashWidth->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNodeDashWidth->SetTranslate(TWENTY_, TWENTY_, 0);
         // dash style
@@ -182,7 +183,8 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Da
     }
 
     // four different dash width
-    auto testNodeFourDashWidth = RSCanvasNode::Create();
+    auto testNodeFourDashWidth = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourDashWidth->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     testNodeFourDashWidth->SetTranslate(TWENTY_, TWENTY_, 0);
     testNodeFourDashWidth->SetOutlineStyle(style);
@@ -194,7 +196,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Da
     RegisterNode(testNodeFourDashWidth);
 
     // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
+    auto testNodeSolid = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeSolid->SetBounds({ FIVE_HUNDRED_TWENTY_, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     testNodeSolid->SetTranslate(TWENTY_, TWENTY_, 0);
     // solid style
@@ -216,7 +218,8 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ou
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
         int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeDashWidth = RSCanvasNode::Create();
+        auto testNodeDashWidth = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeDashWidth->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNodeDashWidth->SetTranslate(TWENTY_, TWENTY_, 0);
         // dash style
@@ -229,7 +232,8 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ou
     }
 
     // four different dash width
-    auto testNodeFourDashWidth = RSCanvasNode::Create();
+    auto testNodeFourDashWidth = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourDashWidth->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     testNodeFourDashWidth->SetTranslate(TWENTY_, TWENTY_, 0);
     testNodeFourDashWidth->SetOutlineStyle(style);
@@ -241,7 +245,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ou
     RegisterNode(testNodeFourDashWidth);
 
     // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
+    auto testNodeSolid = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeSolid->SetBounds({ FIVE_HUNDRED_TWENTY_, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     testNodeSolid->SetTranslate(TWENTY_, TWENTY_, 0);
     // solid style
@@ -264,7 +268,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Da
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
         int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeDashGap = RSCanvasNode::Create();
+        auto testNodeDashGap = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeDashGap->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNodeDashGap->SetTranslate(TWENTY_, TWENTY_, 0);
         // dash style
@@ -277,7 +281,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Da
     }
 
     // four different dash width
-    auto testNodeFourDashGap = RSCanvasNode::Create();
+    auto testNodeFourDashGap = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourDashGap->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     testNodeFourDashGap->SetTranslate(TWENTY_, TWENTY_, 0);
     testNodeFourDashGap->SetOutlineStyle(style);
@@ -288,7 +292,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Da
     RegisterNode(testNodeFourDashGap);
 
     // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
+    auto testNodeSolid = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeSolid->SetBounds({ FIVE_HUNDRED_TWENTY_, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     testNodeSolid->SetTranslate(TWENTY_, TWENTY_, 0);
     // solid style
@@ -310,7 +314,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ou
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
         int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
-        auto testNodeDashGap = RSCanvasNode::Create();
+        auto testNodeDashGap = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeDashGap->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNodeDashGap->SetTranslate(TWENTY_, TWENTY_, 0);
         // dash style
@@ -323,7 +327,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ou
     }
 
     // four different dash width
-    auto testNodeFourDashGap = RSCanvasNode::Create();
+    auto testNodeFourDashGap = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourDashGap->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     testNodeFourDashGap->SetTranslate(TWENTY_, TWENTY_, 0);
     testNodeFourDashGap->SetOutlineStyle(style);
@@ -334,7 +338,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Ou
     RegisterNode(testNodeFourDashGap);
 
     // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
+    auto testNodeSolid = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeSolid->SetBounds({ FIVE_HUNDRED_TWENTY_, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     testNodeSolid->SetTranslate(TWENTY_, TWENTY_, 0);
     // solid style
@@ -365,7 +369,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_To
             x -= FIVE_HUNDRED_SIXTY_;
             y += FIVE_HUNDRED_TEN_;
         }
-        auto testNode1 = RSCanvasNode::Create();
+        auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode1->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNode1->SetTranslate(TWENTY_, TWENTY_, 0);
         testNode1->SetBackgroundColor(0xff000000);
@@ -377,7 +381,7 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_To
         GetRootNode()->AddChild(testNode1);
         RegisterNode(testNode1);
 
-        auto testNode2 = RSCanvasNode::Create();
+        auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode2->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNode2->SetTranslate(xList[i], yList[i], 0);
         testNode2->SetBackgroundColor(0xff000000);
@@ -403,7 +407,7 @@ enum {
 
 static RSCanvasNode::SharedPtr OutlineCreate(vector<vector<float>> &vecs)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds(vecs[BOUNDS][0], vecs[BOUNDS][1], vecs[BOUNDS][2], vecs[BOUNDS][3]);
     testNode->SetBackgroundColor(0x8FFF00FF);
     Vector4<Color> outLineColor = {

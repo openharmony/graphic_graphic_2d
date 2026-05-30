@@ -61,7 +61,7 @@ GRAPHIC_TEST(CurtainScreenTest, CONTENT_DISPLAY_TEST, CURTAINSCREEN_ENABLED_TEST
         scale += 0.5;
         auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({gap, gap + (nodeHeight + gap) * i, nodeWidth, nodeHeight});
         canvasNode->SetFrame({gap, gap + (nodeHeight + gap) * i, nodeWidth, nodeHeight});
@@ -95,7 +95,7 @@ GRAPHIC_TEST(CurtainScreenTest, CONTENT_DISPLAY_TEST, CURTAINSCREEN_UNABLED_TEST
         scale += 0.5;
         auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({gap, gap + (nodeHeight + gap) * i, nodeWidth, nodeHeight});
         canvasNode->SetFrame({gap, gap + (nodeHeight + gap) * i, nodeWidth, nodeHeight});

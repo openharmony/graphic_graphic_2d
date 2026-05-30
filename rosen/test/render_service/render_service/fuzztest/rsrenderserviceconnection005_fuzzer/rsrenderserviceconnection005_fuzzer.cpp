@@ -47,14 +47,10 @@
 
 namespace OHOS {
 namespace Rosen {
-int32_t g_pid;
-sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
-[[maybe_unused]] auto& rsRenderNodeGC = RSRenderNodeGC::Instance();
-[[maybe_unused]] auto& rsSurfaceBufferCallbackManager = RSSurfaceBufferCallbackManager::Instance();
-RSMainThread* mainThread_ = RSMainThread::Instance();
-sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
-sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
-sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
+auto g_pid = getpid();
+constexpr const int WAIT_HANDLER_TIME = 1; // 1s
+constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
+
 
 namespace {
 const uint8_t DO_SET_SCREEN_CHANGE_CALLBACK = 0;
@@ -121,7 +117,48 @@ bool Init(const uint8_t* data, size_t size)
     g_pos = 0;
     return true;
 }
+
+void WaitHandlerTask(RSMainThread* mainThread, RSUniRenderThread* uniRenderThread)
+{
+    if (mainThread == nullptr || mainThread->handler_ == nullptr ||
+        uniRenderThread == nullptr || uniRenderThread->handler_ == nullptr) {
+        return;
+    }
+    auto count = 0;
+    auto isMainThreadRunning = !mainThread->handler_->IsIdle();
+    auto isUniRenderThreadRunning = !uniRenderThread->handler_->IsIdle();
+    while (count < WAIT_HANDLER_TIME_COUNT && (isMainThreadRunning || isUniRenderThreadRunning)) {
+        std::this_thread::sleep_for(std::chrono::seconds(WAIT_HANDLER_TIME));
+        isMainThreadRunning = !mainThread->handler_->IsIdle();
+        isUniRenderThreadRunning = !uniRenderThread->handler_->IsIdle();
+        count++;
+    }
+    if (count >= WAIT_HANDLER_TIME_COUNT) {
+        mainThread->handler_->RemoveAllEvents();
+        uniRenderThread->handler_->RemoveAllEvents();
+    }
+}
 } // namespace
+
+// Global variables - ORDER MATTERS for C++ reverse destruction.
+// We declare runners and handlers FIRST so they are destroyed LAST.
+// This ensures connections' destructors (which PostTask to runner threads)
+// always find EventHandler/EventRunner alive.
+std::shared_ptr<AppExecFwk::EventRunner> g_serviceRunner = nullptr;
+std::shared_ptr<AppExecFwk::EventRunner> g_mainRunner = nullptr;
+std::shared_ptr<AppExecFwk::EventRunner> g_uniRunner = nullptr;
+
+// Extra references to EventHandlers so they outlive connections.
+// Without these, the Meyers-singleton RSMainThread may be atexit-destroyed
+// before g_renderConnection, leaving handler_ dangling during ~RSClientToRenderConnection().
+std::shared_ptr<AppExecFwk::EventHandler> g_serviceHandler = nullptr;
+std::shared_ptr<AppExecFwk::EventHandler> g_mainHandler = nullptr;
+std::shared_ptr<AppExecFwk::EventHandler> g_uniHandler = nullptr;
+
+sptr<RSRenderService> g_renderService = nullptr;
+sptr<RSClientToServiceConnection> g_serviceConnection = nullptr;
+sptr<RSClientToRenderConnection> g_renderConnection = nullptr;
+
 
 class CustomTestScreenChangeCallback : public RSScreenChangeCallbackStub {
 public:
@@ -143,7 +180,7 @@ void DoSetScreenChangeCallback()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIScreenChangeCallback_->AsObject());
     dataParcel.RewindRead(0);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetScreenActiveMode()
@@ -158,7 +195,7 @@ void DoSetScreenActiveMode()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint32(modeId);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetScreenRefreshRate()
@@ -175,7 +212,7 @@ void DoSetScreenRefreshRate()
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(sceneId);
     dataParcel.WriteInt32(rate);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetRefreshRateMode()
@@ -188,7 +225,7 @@ void DoSetRefreshRateMode()
     int32_t mode = GetData<int32_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteInt32(mode);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void CreateVSyncConnection(uint64_t id)
@@ -207,7 +244,7 @@ void CreateVSyncConnection(uint64_t id)
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint64(windowNodeID);
     dataParcel.WriteBool(false);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void UnregisterFrameRateLinker(uint64_t id)
@@ -219,7 +256,7 @@ void UnregisterFrameRateLinker(uint64_t id)
 
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSyncFrameRateRange()
@@ -246,7 +283,7 @@ void DoSyncFrameRateRange()
     dataParcel.WriteUint32(componentScene);
     dataParcel.WriteInt32(animatorExpectedFrameRate);
 
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 
     usleep(OHOS::Rosen::WAIT_TASK_RUN_TIME_NS);
     CreateVSyncConnection(id);
@@ -264,7 +301,7 @@ void DoSyncFrameRateRange()
     dataParcel2.WriteUint32(componentScene);
     dataParcel2.WriteInt32(animatorExpectedFrameRate);
 
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel2, replyParcel2, option2);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel2, replyParcel2, option2);
 
     usleep(OHOS::Rosen::WAIT_TASK_RUN_TIME_NS);
     UnregisterFrameRateLinker(id);
@@ -281,7 +318,7 @@ void DoUnregisterFrameRateLinker()
     uint64_t id = (static_cast<NodeId>(OHOS::Rosen::g_pid) << 32) + linkId;
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetScreenCurrentRefreshRate()
@@ -294,7 +331,7 @@ void DoGetScreenCurrentRefreshRate()
     uint64_t id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetCurrentRefreshRateMode()
@@ -304,13 +341,13 @@ void DoGetCurrentRefreshRateMode()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetScreenSupportedRefreshRates()
 {
-    uint32_t code = static_cast<uint32_t>(
-            RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -318,7 +355,7 @@ void DoGetScreenSupportedRefreshRates()
     ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetShowRefreshRateEnabled()
@@ -329,7 +366,7 @@ void DoGetShowRefreshRateEnabled()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetShowRefreshRateEnabled()
@@ -344,7 +381,7 @@ void DoSetShowRefreshRateEnabled()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteBool(enabled);
     dataParcel.WriteInt32(type);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRealtimeRefreshRate()
@@ -357,7 +394,7 @@ void DoGetRealtimeRefreshRate()
     ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRefreshInfoFuzzer()
@@ -370,7 +407,7 @@ void DoGetRefreshInfoFuzzer()
     int32_t pid = GetData<int32_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteInt32(pid);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void CreateSurfaceNode()
@@ -388,7 +425,7 @@ void CreateSurfaceNode()
     dataParcel.WriteUint8(GetData<uint8_t>());
     dataParcel.WriteBool(GetData<bool>());
 
-    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_renderConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRefreshInfoWithoutSurfaceName()
@@ -449,7 +486,7 @@ void DoRegisterHgmRefreshRateUpdateCallback()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteBool(readRemoteObject);
     dataParcel.WriteRemoteObject(rsIHgmConfigChangeCallback->AsObject());
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 class CustomTestFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
@@ -498,7 +535,7 @@ void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
     dataParcel.WriteInt32(dstPid);
     dataParcel.WriteBool(readRemoteObject);
     dataParcel.WriteRemoteObject(fpsUpdateCallback->AsObject());
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoRegisterHgmRefreshRateModeChangeCallback()
@@ -516,7 +553,7 @@ void DoRegisterHgmRefreshRateModeChangeCallback()
 
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIHgmConfigChangeCallback->AsObject());
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRefreshInfoToSP()
@@ -529,66 +566,156 @@ void DoGetRefreshInfoToSP()
     uint64_t nodeId = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(nodeId);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen
 } // namespace OHOS
 
-/* Fuzzer envirement */
-extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
+/* Fallback cleanup registered via atexit, in case LLVMFuzzerFinalize is not invoked. */
+static void FuzzerAtExitCleanup()
 {
-    OHOS::Rosen::g_pid = getpid();
-    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
-    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
-    auto generator = OHOS::Rosen::CreateVSyncGenerator();
-    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
-    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
-        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+    using namespace OHOS::Rosen;
+    using namespace OHOS::AppExecFwk;
+    g_renderConnection = nullptr;
+    g_serviceConnection = nullptr;
+    g_renderService = nullptr;
+    if (g_serviceRunner != nullptr) {
+        g_serviceRunner->Stop();
+    }
+    if (g_mainRunner != nullptr) {
+        g_mainRunner->Stop();
+    }
+    if (g_uniRunner != nullptr) {
+        g_uniRunner->Stop();
+    }
+    auto waitRunnerStopped = [](const std::shared_ptr<EventRunner>& runner) {
+        if (runner == nullptr) {
+            return;
+        }
+        int count = 0;
+        while (runner->IsRunning() && count < 500) { // max 5s
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            count++;
+        }
+    };
+    waitRunnerStopped(g_serviceRunner);
+    waitRunnerStopped(g_mainRunner);
+    waitRunnerStopped(g_uniRunner);
+}
 
-    OHOS::Rosen::renderService_ = new OHOS::Rosen::RSRenderService();
-    OHOS::Rosen::RSUniRenderThread::Instance().InitGrContext();
-    
-    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
-    runner->Run();
-    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+/* Fuzzer environment */
+extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
+{
+    (void)argc;
+    (void)argv;
 
-    OHOS::Rosen::renderService_->vsyncManager_ = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
-    OHOS::Rosen::renderService_->screenManager_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
-    OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token =
+        new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
 
-    OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
-            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
-            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
+    OHOS::Rosen::g_renderService = new OHOS::Rosen::RSRenderService();
+    OHOS::sptr<OHOS::Rosen::RSRenderService>& renderService = OHOS::Rosen::g_renderService;
+    OHOS::Rosen::g_serviceRunner = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::g_serviceRunner->Run();
+    OHOS::Rosen::g_serviceHandler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::g_serviceRunner);
+    renderService->handler_ = OHOS::Rosen::g_serviceHandler;
 
-    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
-    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
-        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
-            OHOS::Rosen::renderService_->renderProcessManager_);
+    renderService->vsyncManager_ = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    renderService->screenManager_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+    renderService->vsyncManager_->init(renderService->screenManager_);
 
-    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
-        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
-    OHOS::Rosen::renderService_->rsRenderComposerManager_ = std::make_shared<OHOS::Rosen::RSRenderComposerManager>(
-        OHOS::Rosen::renderService_->handler_);
+    // Skip RSRenderProcessManager::Create to avoid uncontrollable runner threads.
+    // renderProcessManager is not needed for the interfaces we fuzz.
+    renderService->renderPipeline_ = std::make_shared<OHOS::Rosen::RSRenderPipeline>();
+    OHOS::Rosen::RSMainThread* mainThread = OHOS::Rosen::RSMainThread::Instance();
+    OHOS::Rosen::g_mainRunner = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::g_mainRunner->Run();
+    OHOS::Rosen::g_mainHandler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::g_mainRunner);
+    mainThread->handler_ = OHOS::Rosen::g_mainHandler;
+    renderService->renderPipeline_->mainThread_ = mainThread;
 
-    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
-        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
-        screenManagerAgent_, token_->AsObject(), OHOS::Rosen::renderService_->vsyncManager_->GetVsyncManagerAgent());
+    OHOS::Rosen::RSUniRenderThread* uniRenderThread = &(OHOS::Rosen::RSUniRenderThread::Instance());
+    OHOS::Rosen::g_uniRunner = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::g_uniRunner->Run();
+    OHOS::Rosen::g_uniHandler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::g_uniRunner);
+    uniRenderThread->handler_ = OHOS::Rosen::g_uniHandler;
+    uniRenderThread->runner_ = OHOS::Rosen::g_uniRunner;
+    renderService->renderPipeline_->uniRenderThread_ = uniRenderThread;
 
-    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
-        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
-    OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
-        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
-    OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
-    toRenderConnection->cleanDone_ = true;
+    renderService->rsRenderComposerManager_ =
+        std::make_shared<OHOS::Rosen::RSRenderComposerManager>(renderService->handler_);
 
-    OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection> g_rsConn =
-        OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection>::MakeSptr(
-            renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_);
-    OHOS::Rosen::RSMainThread::Instance()->hgmRenderContext_ =
-        std::make_shared<OHOS::Rosen::HgmRenderContext>(g_rsConn);
+    auto renderServiceAgent = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*renderService);
+    auto screenManagerAgent = OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent>::MakeSptr(renderService->screenManager_);
+    auto vsyncManagerAgent = renderService->vsyncManager_->GetVsyncManagerAgent();
 
-    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
+    OHOS::Rosen::g_serviceConnection = new OHOS::Rosen::RSClientToServiceConnection(
+        getpid(), renderServiceAgent, nullptr,
+        screenManagerAgent, token->AsObject(), vsyncManagerAgent);
+    auto renderPipelineAgent =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(renderService->renderPipeline_);
+    OHOS::Rosen::g_renderConnection = new OHOS::Rosen::RSClientToRenderConnection(
+        getpid(), renderPipelineAgent, token->AsObject());
+
+    // Register atexit cleanup AFTER Meyers-singletons initialize, so it runs
+    // BEFORE their destructors (atexit is LIFO).
+    std::atexit(FuzzerAtExitCleanup);
+
+    return 0;
+}
+
+extern "C" int LLVMFuzzerFinalize(void)
+{
+    using namespace OHOS::Rosen;
+    using namespace OHOS::AppExecFwk;
+
+    g_renderConnection = nullptr;
+    g_serviceConnection = nullptr;
+
+    RSMainThread* mainThread = RSMainThread::Instance();
+    RSUniRenderThread* uniRenderThread = &RSUniRenderThread::Instance();
+    WaitHandlerTask(mainThread, uniRenderThread);
+
+    if (g_serviceRunner != nullptr) {
+        g_serviceRunner->Stop();
+    }
+    if (g_mainRunner != nullptr) {
+        g_mainRunner->Stop();
+    }
+    if (g_uniRunner != nullptr) {
+        g_uniRunner->Stop();
+    }
+
+    auto waitRunnerStopped = [](const std::shared_ptr<EventRunner>& runner) {
+        if (runner == nullptr) {
+            return;
+        }
+        int count = 0;
+        while (runner->IsRunning() && count < 500) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            count++;
+        }
+    };
+    waitRunnerStopped(g_serviceRunner);
+    waitRunnerStopped(g_mainRunner);
+    waitRunnerStopped(g_uniRunner);
+
+    if (mainThread != nullptr) {
+        mainThread->handler_ = nullptr;
+        mainThread->receiver_ = nullptr;
+    }
+    if (uniRenderThread != nullptr) {
+        uniRenderThread->handler_ = nullptr;
+        uniRenderThread->runner_ = nullptr;
+    }
+
+    g_renderService = nullptr;
+    g_serviceRunner.reset();
+    g_mainRunner.reset();
+    g_uniRunner.reset();
+    g_serviceHandler.reset();
+    g_mainHandler.reset();
+    g_uniHandler.reset();
+
     return 0;
 }
 

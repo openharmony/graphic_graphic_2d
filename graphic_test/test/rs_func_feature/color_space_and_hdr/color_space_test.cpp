@@ -42,7 +42,8 @@ private:
         RSSurfaceNodeConfig surfaceNodeConfig;
         surfaceNodeConfig.isSync = true;
         surfaceNodeConfig.SurfaceNodeName = isOpenP3 ? "P3WindowSurface" : "NotP3WindowSurface";
-        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
+        auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({ 0, 0, screenWidth, screenHeight });
         surfaceNode->SetFrame({ 0, 0, screenWidth, screenHeight });
         surfaceNode->SetBackgroundColor(0xFFFFFFFF);
@@ -99,7 +100,8 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "sRGBWindowSurface";
-    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     sRGBWindowSurface->SetBounds({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetFrame({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetBackgroundColor(0xffffffff);
@@ -135,7 +137,8 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "sRGBWindowSurface";
-    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     sRGBWindowSurface->SetBounds({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetFrame({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetBackgroundColor(0xffffffff);
@@ -171,7 +174,8 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInsRGBWindow_
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "sRGBWindowSurface";
-    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     sRGBWindowSurface->SetBounds({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetFrame({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetBackgroundColor(0xffffffff);
@@ -207,7 +211,8 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Te
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "sRGBWindowSurface";
-    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     sRGBWindowSurface->SetBounds({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetFrame({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetBackgroundColor(0xffffffff);
@@ -243,7 +248,8 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Te
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "sRGBWindowSurface";
-    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     sRGBWindowSurface->SetBounds({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetFrame({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetBackgroundColor(0xffffffff);
@@ -279,7 +285,8 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ImageInP3Window_Te
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "sRGBWindowSurface";
-    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto sRGBWindowSurface = RSSurfaceNode::Create(surfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     sRGBWindowSurface->SetBounds({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetFrame({ 0, 0, 100, 100 });
     sRGBWindowSurface->SetBackgroundColor(0xffffffff);
@@ -315,7 +322,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -343,7 +350,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -371,7 +378,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -399,7 +406,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -427,7 +434,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -455,7 +462,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -483,7 +490,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -511,7 +518,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -539,7 +546,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -567,7 +574,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetAndGetScreenCol
         testText = GetColorSpaceName(colorSpace);
     }
 
-    auto testNodeImg = RSCanvasNode::Create();
+    auto testNodeImg = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeImg->SetBounds({ 0, 400, 800, 400 });
     testNodeImg->SetTranslate(0, 100, 0);
     auto textModifier = std::make_shared<TextCustomModifier>();
@@ -692,7 +699,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor
     CreateTestSurfaceNode(true);
     auto p3Color = RSColor(0xFF00FFFF);
     p3Color.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundColor(p3Color);
@@ -710,7 +717,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor
     CreateTestSurfaceNode(false);
     auto p3Color = RSColor(0xFF00FFFF);
     p3Color.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundColor(p3Color);
@@ -727,7 +734,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor
 {
     CreateTestSurfaceNode(true);
     auto srgbColor = RSColor(0xFF00FFFF);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundColor(srgbColor);
@@ -744,7 +751,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_SetBackgroundColor
 {
     CreateTestSurfaceNode(false);
     auto srgbColor = RSColor(0xFF00FFFF);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundColor(srgbColor);
@@ -765,7 +772,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
     auto color = CreateDrawingColor4f(Drawing::Color::COLOR_CYAN);
     auto shaderEffect = OHOS::Rosen::Drawing::ShaderEffect::CreateColorSpaceShader(color, p3ColorSpace);
     auto shader = RSShader::CreateRSShader(shaderEffect);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundShader(shader);
@@ -791,7 +798,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
             CreateDrawingColor4f(Drawing::Color::COLOR_RED) },
         p3ColorSpace, { 0.0, 0.5, 1.0 }, Drawing::TileMode::MIRROR);
     auto shader = RSShader::CreateRSShader(shaderEffect);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundShader(shader);
@@ -817,7 +824,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
             CreateDrawingColor4f(Drawing::Color::COLOR_RED) },
         p3ColorSpace, { 0.0, 0.5, 1.0 }, Drawing::TileMode::MIRROR);
     auto shader = RSShader::CreateRSShader(shaderEffect);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundShader(shader);
@@ -843,7 +850,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
             CreateDrawingColor4f(Drawing::Color::COLOR_RED) },
         p3ColorSpace, { 0.0, 0.5, 1.0 }, Drawing::TileMode::MIRROR);
     auto shader = RSShader::CreateRSShader(shaderEffect);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundShader(shader);
@@ -869,7 +876,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
             CreateDrawingColor4f(Drawing::Color::COLOR_RED) },
         p3ColorSpace, { 0.0, 0.5, 1.0 }, Drawing::TileMode::MIRROR, 0, 90);
     auto shader = RSShader::CreateRSShader(shaderEffect);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundShader(shader);
@@ -895,7 +902,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
             CreateDrawingColor4f(Drawing::Color::COLOR_RED) },
         p3ColorSpace, { 0.0, 0.5, 1.0 }, Drawing::TileMode::MIRROR, 90, 180);
     auto shader = RSShader::CreateRSShader(shaderEffect);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundShader(shader);
@@ -921,7 +928,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_ShaderEffect_Test_
             CreateDrawingColor4f(Drawing::Color::COLOR_RED) },
         p3ColorSpace, { 0.0, 0.5, 1.0 }, Drawing::TileMode::MIRROR, 0, 180);
     auto shader = RSShader::CreateRSShader(shaderEffect);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetBackgroundShader(shader);
@@ -948,7 +955,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_Screen_Test_01)
     } else {
         text = GetColorSpaceName(colorSpaceType);
     }
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetTranslate(0, 200, 0);
@@ -977,7 +984,7 @@ GRAPHIC_TEST(ColorSpaceTest, CONTENT_DISPLAY_TEST, ColorSpace_Screen_Test_02)
     } else if (colorSpaces.size() == 0) {
         errorMsg = "NOT_HAS_SUPPORTED_COLOR_SPACE";
     }
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, screenWidth, screenHeight });
     testNode->SetFrame({ 0, 0, screenWidth, screenHeight });
     testNode->SetTranslate(0, 200, 0);

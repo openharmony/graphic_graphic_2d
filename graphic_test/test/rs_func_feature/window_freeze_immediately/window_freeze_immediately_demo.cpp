@@ -130,7 +130,8 @@ public:
         rsSurfaceNodeConfig1.SurfaceNodeName = "AppWindow";
         rsSurfaceNodeConfig1.isSync = false;
         RSSurfaceNodeType rsSurfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
-        auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType);
+        auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
         surfaceNode->SetFrame({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
         surfaceNode->SetBackgroundColor(SK_ColorBLACK);
@@ -147,7 +148,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 500, 700});
     canvasNode->SetFrame({0, 0, 500, 700});
     canvasNode->SetBackgroundColor(SK_ColorBLUE);
@@ -171,12 +172,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode0 = RSCanvasNode::Create();
+    auto canvasNode0 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode0->SetBounds({0, 0, 100, 100});
     canvasNode0->SetFrame({0, 0, 100, 100});
     canvasNode0->SetBackgroundColor(SK_ColorYELLOW);
 
-    auto canvasNode1 = RSCanvasNode::Create();
+    auto canvasNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode1->SetBounds({0, 0, 200, 200});
     canvasNode1->SetFrame({0, 0, 200, 200});
     canvasNode1->SetBackgroundColor(SK_ColorBLUE);
@@ -184,12 +185,14 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode0";
-    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig);
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode0->SetBounds({0, 0, 100, 100});
     surfaceNode0->SetFrame({0, 0, 100, 100});
 
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode1";
-    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig);
+    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode1->SetBounds({0, 0, 200, 200});
     surfaceNode1->SetFrame({0, 0, 200, 200});
     surfaceNode->RSNode::AddChild(surfaceNode0);
@@ -219,7 +222,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 500, 700});
     canvasNode->SetFrame({0, 0, 500, 700});
     canvasNode->SetBackgroundColor(SK_ColorBLUE);
@@ -256,7 +259,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetBackgroundColor(0x5500ff00);
@@ -282,7 +285,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetBackgroundColor(0x5500ff00);
@@ -308,7 +311,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetBackgroundColor(0x5500ff00);
@@ -334,7 +337,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetBackgroundColor(0x5500ff00);
@@ -376,12 +379,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
 
-    auto canvasNode02 = RSCanvasNode::Create();
+    auto canvasNode02 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode02->SetBounds({0, 0, 200, 200});
     canvasNode02->SetFrame({0, 0, 200, 200});
     canvasNode02->SetBackgroundColor(SK_ColorBLACK);
@@ -409,7 +412,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -435,7 +438,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -461,12 +464,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
 
-    auto canvasNode02 = RSCanvasNode::Create();
+    auto canvasNode02 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode02->SetBounds({0, 0, 200, 200});
     canvasNode02->SetFrame({0, 0, 200, 200});
     canvasNode02->SetBackgroundColor(SK_ColorBLACK);
@@ -494,12 +497,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 400, 500});
     canvasNode->SetFrame({0, 0, 400, 500});
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
 
-    auto canvasNode02 = RSCanvasNode::Create();
+    auto canvasNode02 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode02->SetBounds({100, 100, 600, 600});
     canvasNode02->SetFrame({100, 100, 600, 600});
     canvasNode02->SetBackgroundColor(SK_ColorBLACK);
@@ -526,12 +529,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 400, 500});
     canvasNode->SetFrame({0, 0, 400, 500});
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
 
-    auto canvasNode02 = RSCanvasNode::Create();
+    auto canvasNode02 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode02->SetBounds({0, 0, 200, 300});
     canvasNode02->SetFrame({0, 0, 200, 300});
     canvasNode02->SetBackgroundColor(SK_ColorBLACK);
@@ -557,13 +560,13 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto effectNode = RSEffectNode::Create();
+    auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     effectNode->SetBounds({0, 0, 400, 500});
     effectNode->SetFrame({0, 0, 400, 500});
     effectNode->SetBackgroundColor(SK_ColorYELLOW);
     effectNode->SetBackgroundFilter(RSFilter::CreateBlurFilter(10, 10));
 
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 200, 300});
     canvasNode->SetFrame({0, 0, 200, 300});
     canvasNode->SetBackgroundColor(SK_ColorBLACK);
@@ -589,13 +592,13 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto effectNode = RSEffectNode::Create();
+    auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     effectNode->SetBounds({0, 0, 400, 500});
     effectNode->SetFrame({0, 0, 400, 500});
     effectNode->SetBackgroundColor(SK_ColorYELLOW);
     effectNode->SetBackgroundFilter(RSFilter::CreateBlurFilter(10, 10));
 
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 200, 300});
     canvasNode->SetFrame({0, 0, 200, 300});
     canvasNode->SetBackgroundColor(SK_ColorBLACK);
@@ -621,12 +624,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 400, 500});
     canvasNode->SetFrame({0, 0, 400, 500});
     canvasNode->SetBackgroundColor(SK_ColorLTGRAY);
 
-    auto canvasNode02 = RSCanvasNode::Create();
+    auto canvasNode02 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode02->SetBounds({100, 100, 600, 600});
     canvasNode02->SetFrame({100, 100, 600, 600});
     canvasNode02->SetBackgroundColor(SK_ColorRED);
@@ -654,12 +657,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 400, 500});
     canvasNode->SetFrame({0, 0, 400, 500});
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
 
-    auto canvasNode02 = RSCanvasNode::Create();
+    auto canvasNode02 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode02->SetBounds({100, 100, 600, 600});
     canvasNode02->SetFrame({100, 100, 600, 600});
     canvasNode02->SetBackgroundColor(SK_ColorBLACK);
@@ -690,7 +693,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -724,7 +727,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -758,7 +761,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -788,7 +791,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetBackgroundColor(SK_ColorRED);
@@ -815,7 +818,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetFreeze(true);
@@ -845,7 +848,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -890,7 +893,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -935,7 +938,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -980,7 +983,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1023,7 +1026,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1066,7 +1069,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1109,7 +1112,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1152,7 +1155,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1195,7 +1198,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1238,7 +1241,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1281,7 +1284,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1326,7 +1329,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1371,7 +1374,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1416,7 +1419,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1461,7 +1464,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1506,7 +1509,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1551,7 +1554,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1596,7 +1599,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1637,7 +1640,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 700, 700});
     canvasNode->SetFrame({0, 0, 700, 700});
     canvasNode->SetBackgroundColor(SK_ColorCYAN);
@@ -1663,7 +1666,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 700, 700});
     canvasNode->SetFrame({0, 0, 700, 700});
     canvasNode->SetBackgroundColor(SK_ColorGREEN);
@@ -1689,7 +1692,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 700, 700});
     canvasNode->SetFrame({0, 0, 700, 700});
     canvasNode->SetBackgroundColor(SK_ColorDKGRAY);
@@ -1720,7 +1723,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1756,7 +1759,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1791,7 +1794,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorGRAY);
@@ -1826,7 +1829,7 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto sizeY = SCREEN_HEIGHT - 10;
     int x = 0;
     int y = 0;
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({ x, y, sizeX, sizeY });
     canvasNode->SetFrame({ x, y, sizeX, sizeY });
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -1858,12 +1861,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto surfaceNode = CreateTestSurfaceNode();
     surfaceNode->SetTranslate({ 50, 50 });
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetTranslate({ 50, 50 });
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({0, 0, 300, 300});
     childNode->SetFrame({0, 0, 300, 300});
     childNode->SetBackgroundColor(SK_ColorBLACK);
@@ -1888,12 +1891,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto surfaceNode = CreateTestSurfaceNode();
     surfaceNode->SetTranslateX(50);
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetTranslateX(50);
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({0, 0, 300, 300});
     childNode->SetFrame({0, 0, 300, 300});
     childNode->SetBackgroundColor(SK_ColorBLACK);
@@ -1918,12 +1921,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto surfaceNode = CreateTestSurfaceNode();
     surfaceNode->SetTranslateY(50);
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetTranslateY(50);
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({0, 0, 300, 300});
     childNode->SetFrame({0, 0, 300, 300});
     childNode->SetBackgroundColor(SK_ColorBLACK);
@@ -1948,12 +1951,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
     auto surfaceNode = CreateTestSurfaceNode();
     surfaceNode->SetTranslateZ(50);
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetTranslateZ(50);
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({0, 0, 300, 300});
     childNode->SetFrame({0, 0, 300, 300});
     childNode->SetBackgroundColor(SK_ColorBLACK);
@@ -1977,12 +1980,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetScale(1.5);
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({0, 0, 300, 300});
     childNode->SetFrame({0, 0, 300, 300});
     childNode->SetScale(1.5);
@@ -2007,12 +2010,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetScale(1.5);
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({0, 0, 300, 300});
     childNode->SetFrame({0, 0, 300, 300});
     childNode->SetScale(1.5);
@@ -2037,12 +2040,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetScaleX(1.5);
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({0, 0, 300, 300});
     childNode->SetFrame({0, 0, 300, 300});
     childNode->SetScaleX(1.5);
@@ -2067,12 +2070,12 @@ GRAPHIC_N_TEST(RSFreezeWindowTest, CONTENT_DISPLAY_TEST, WINDOW_FREEZE_IMMEDIATE
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, 600, 600});
     canvasNode->SetFrame({0, 0, 600, 600});
     canvasNode->SetScaleX(1.5);
     canvasNode->SetBackgroundColor(SK_ColorYELLOW);
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({0, 0, 300, 300});
     childNode->SetFrame({0, 0, 300, 300});
     childNode->SetScaleX(1.5);

@@ -37,7 +37,7 @@ public:
 /* SetVisible + Alpha: visible + alpha */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 300, 300 });
     testNode->SetVisible(true);
     testNode->SetAlpha(0.5f);
@@ -49,7 +49,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
 /* SetVisible + Alpha: invisible + alpha (no effect) */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test_2)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 300, 300 });
     testNode->SetVisible(false);
     testNode->SetAlpha(0.5f); // alpha has no effect when invisible
@@ -64,7 +64,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
     std::vector<float> alphaList = { 0.0f, 0.3f, 0.6f, 1.0f };
 
     for (size_t i = 0; i < alphaList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 100, 250, 250 });
         testNode->SetVisible(true);
         testNode->SetAlpha(alphaList[i]);
@@ -91,7 +91,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
 /* SetVisible + Alpha: parent with alpha, child visibility */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test_5)
 {
-    auto parentNode = RSCanvasNode::Create();
+    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentNode->SetBounds({ 100, 100, 600, 600 });
     parentNode->SetVisible(true);
     parentNode->SetAlpha(0.5f);
@@ -109,7 +109,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
 /* SetVisible + Alpha: invisible parent with alpha, visible child */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test_6)
 {
-    auto parentNode = RSCanvasNode::Create();
+    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentNode->SetBounds({ 100, 100, 600, 600 });
     parentNode->SetVisible(false); // parent invisible
     parentNode->SetAlpha(0.5f);
@@ -117,7 +117,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
     GetRootNode()->AddChild(parentNode);
 
     // Child node (won't show even with alpha)
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetBounds({ 100, 100, 400, 400 });
     childNode->SetVisible(true);
     childNode->SetAlpha(1.0f);
@@ -142,7 +142,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
 /* SetVisible + Alpha: border with visibility and alpha */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test_8)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true);
     testNode->SetAlpha(0.7f);
@@ -156,7 +156,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
 /* SetVisible + Alpha: shadow with visibility and alpha */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test_9)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true);
     testNode->SetAlpha(0.8f);
@@ -185,7 +185,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
 /* SetVisible + Alpha: change visibility with alpha */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test_11)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true);
     testNode->SetAlpha(0.6f);
@@ -200,7 +200,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
 /* SetVisible + Alpha: multiple children with mixed properties */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test_12)
 {
-    auto parentNode = RSCanvasNode::Create();
+    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentNode->SetBounds({ 100, 100, 800, 800 });
     parentNode->SetVisible(true);
     parentNode->SetBackgroundColor(0xffff0000);
@@ -208,7 +208,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
 
     // 4 children with different combinations
     for (int i = 0; i < 4; i++) {
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         int x = (i % 2) * 350;
         int y = (i / 2) * 350;
         childNode->SetBounds({ x, y, 300, 300 });
@@ -223,7 +223,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Test
 /* SetVisible + Alpha: boundary values - alpha = 0 (完全透明) */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Boundary_Test_01)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true);
     testNode->SetAlpha(0.0f); // 边界值：完全透明
@@ -235,7 +235,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Boun
 /* SetVisible + Alpha: boundary values - alpha = 1 (完全不透明) */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Boundary_Test_02)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true);
     testNode->SetAlpha(1.0f); // 边界值：完全不透明
@@ -247,7 +247,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Boun
 /* SetVisible + Alpha: abnormal values - alpha < 0 (负值) */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Abnormal_Test_01)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true);
     testNode->SetAlpha(-0.5f); // 异常值：负值alpha
@@ -259,7 +259,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Abno
 /* SetVisible + Alpha: abnormal values - alpha > 1 (超限值) */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Abnormal_Test_02)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true);
     testNode->SetAlpha(1.5f); // 异常值：超限值alpha
@@ -289,7 +289,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Matr
 /* SetVisible + Alpha: conflict scenario - invisible with high alpha */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Conflict_Test_01)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(false); // 冲突：不可见但设置了高alpha
     testNode->SetAlpha(0.9f); // alpha应该无效
@@ -301,7 +301,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Conf
 /* SetVisible + Alpha: conflict scenario - visible with zero alpha */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Conflict_Test_02)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetVisible(true); // 冲突：可见但完全透明
     testNode->SetAlpha(0.0f); // 完全透明，内容不可见
@@ -316,7 +316,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Extr
     std::vector<float> extremeAlphas = { -10.0f, -1.0f, 0.0f, 0.001f, 0.999f, 1.0f, 1.001f, 10.0f };
 
     for (size_t i = 0; i < extremeAlphas.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 140 + 50, 100, 130, 130 });
         testNode->SetVisible(true);
         testNode->SetAlpha(extremeAlphas[i]);
@@ -335,14 +335,14 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Visible_Pare
 
     for (size_t row = 0; row < parentAlphas.size(); row++) {
         for (size_t col = 0; col < childAlphas.size(); col++) {
-            auto parentNode = RSCanvasNode::Create();
+            auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             parentNode->SetBounds({ (int)col * 280 + 50, (int)row * 280 + 50, 250, 250 });
             parentNode->SetVisible(true);
             parentNode->SetAlpha(parentAlphas[row]);
             parentNode->SetBackgroundColor(0xffff0000);
             GetRootNode()->AddChild(parentNode);
 
-            auto childNode = RSCanvasNode::Create();
+            auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             childNode->SetBounds({ 50, 50, 150, 150 });
             childNode->SetVisible(true);
             childNode->SetAlpha(childAlphas[col]);

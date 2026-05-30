@@ -158,7 +158,7 @@ GRAPHIC_TEST(ForegroundTest04, CONTENT_DISPLAY_TEST, Color_Alpha_AiInvert_Test_1
     Vector4f param_list[] = { { 0.0, 1.0, 0.5, 0.2 }, { 0.2, 0.5, 0.2, 0.2 }, { 0.0, 1.0, 0.5, 0.0 } };
     for (int i = 0; i < THREE_; i++) {
         int y = i * THREE_HUNDRED_TEN_;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         testNode->SetBounds({ 0.0, y, ONE_THOUSAND_, THREE_HUNDRED_TEN_ });
         testNode->SetAiInvert(param_list[i]);

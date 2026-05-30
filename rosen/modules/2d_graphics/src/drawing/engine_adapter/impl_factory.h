@@ -56,6 +56,7 @@
 #include "impl_interface/text_blob_builder_impl.h"
 #include "impl_interface/trace_memory_dump_impl.h"
 #include "impl_interface/memory_stream_impl.h"
+#include "impl_interface/prim_list_impl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -116,6 +117,7 @@ public:
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl(
         const void* data, size_t length, DataReleaseProc proc, void* context);
     static std::shared_ptr<ResourceHolderImpl> CreateResourceHolderImpl();
+    static std::unique_ptr<PrimListImpl> CreatePrimListImpl();
 };
 } // namespace Drawing
 } // namespace Rosen

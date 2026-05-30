@@ -52,7 +52,7 @@ public:
         const std::vector<RectI>& advancedDirtyRegion, uint32_t backgroundColor, int transY = 0)
     {
         for (const RectI& rect : advancedDirtyRegion) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({rect.left_, rect.top_ + transY, rect.width_, rect.height_});
             testNode->SetBackgroundColor(backgroundColor);
             GetRootNode()->AddChild(testNode);
@@ -105,12 +105,12 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test01)
     RectI rect1 = {100, 100, 300, 300};
     RectI rect2 = {500, 200, 300, 300};
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);
@@ -119,7 +119,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test01)
     rsDirtyManager->MergeDirtyRect(rect2);
     RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds(
         {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
     testNode3->SetBackgroundColor(COLOR_RED);
@@ -142,12 +142,12 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test02)
     RectI rect1 = {100, 100, 300, 300};
     RectI rect2 = {300, 200, 300, 300};
     
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);
@@ -156,7 +156,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test02)
     rsDirtyManager->MergeDirtyRect(rect2);
     RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds(
         {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
     testNode3->SetBackgroundColor(COLOR_RED);
@@ -179,12 +179,12 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test03)
     RectI rect1 = {-100, 100, 300, 300};
     RectI rect2 = {500, 200, 300, 300};
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);
@@ -193,7 +193,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test03)
     rsDirtyManager->MergeDirtyRect(rect2);
     RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds(
         {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
     testNode3->SetBackgroundColor(COLOR_RED);
@@ -217,17 +217,17 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test04)
     RectI rect2 = {500, 200, 300, 300};
     RectI rect3 = {900, 300, 300, 300};
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds({rect3.left_, rect3.top_, rect3.width_, rect3.height_});
     testNode3->SetBackgroundColor(COLOR_DKGRAY);
     GetRootNode()->AddChild(testNode3);
@@ -237,7 +237,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test04)
     rsDirtyManager->MergeDirtyRect(rect3);
     RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     
-    auto testNode4 = RSCanvasNode::Create();
+    auto testNode4 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode4->SetBounds(
         {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
     testNode4->SetBackgroundColor(COLOR_RED);
@@ -262,17 +262,17 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test05)
     RectI rect2 = {500, 200, 300, 300};
     RectI rect3 = {900, 300, 300, 300};
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds({rect3.left_, rect3.top_, rect3.width_, rect3.height_});
     testNode3->SetBackgroundColor(COLOR_DKGRAY);
     GetRootNode()->AddChild(testNode3);
@@ -305,22 +305,22 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_Test06)
     RectI rect3 = {900, 300, 300, 300};
     RectI rect4 = {100, 700, 300, 300};
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds({rect3.left_, rect3.top_, rect3.width_, rect3.height_});
     testNode3->SetBackgroundColor(COLOR_DKGRAY);
     GetRootNode()->AddChild(testNode3);
 
-    auto testNode4 = RSCanvasNode::Create();
+    auto testNode4 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode4->SetBounds({rect4.left_, rect4.top_, rect4.width_, rect4.height_});
     testNode4->SetBackgroundColor(COLOR_CYAN);
     GetRootNode()->AddChild(testNode4);
@@ -356,14 +356,14 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Intersect_Dirty_Rect_Test0
     Vector4<BorderStyle> style = Vector4<BorderStyle>(BorderStyle::SOLID);
     Vector4f borderWidth = { 10, 10, 10, 10 };
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBorderStyle(style);
     testNode1->SetBorderWidth(borderWidth);
     testNode1->SetBorderColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBorderStyle(style);
     testNode2->SetBorderWidth(borderWidth);
@@ -374,7 +374,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Intersect_Dirty_Rect_Test0
     rsDirtyManager->IntersectDirtyRect(rect2);
     RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds(
         {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
     testNode3->SetBackgroundColor(COLOR_RED);
@@ -401,21 +401,21 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Intersect_Dirty_Rect_Test0
     Vector4<BorderStyle> style = Vector4<BorderStyle>(BorderStyle::SOLID);
     Vector4f borderWidth = { 10, 10, 10, 10 };
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBorderStyle(style);
     testNode1->SetBorderWidth(borderWidth);
     testNode1->SetBorderColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBorderStyle(style);
     testNode2->SetBorderWidth(borderWidth);
     testNode2->SetBorderColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds({rect3.left_, rect3.top_, rect3.width_, rect3.height_});
     testNode3->SetBorderStyle(style);
     testNode3->SetBorderWidth(borderWidth);
@@ -452,7 +452,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     RectI subRect2 = {900, 500, 200, 200};
     
     Vector4f mainBounds = {mainRect.left_, mainRect.top_, mainRect.width_, mainRect.height_};
-    auto mainNode = RSCanvasNode::Create();
+    auto mainNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     mainNode->SetBounds(mainBounds);
     mainNode->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(mainNode);
@@ -463,7 +463,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts1.contentBgColor = 0x80FF0000;
     auto subId1 = CreateSubWindow(subOpts1);
     
-    auto subNode1 = RSCanvasNode::Create();
+    auto subNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode1->SetBounds({0, 0, 200, 200});
     subNode1->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChildToSubWindow(subId1, subNode1);
@@ -474,7 +474,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts2.contentBgColor = 0x800000FF;
     auto subId2 = CreateSubWindow(subOpts2);
     
-    auto subNode2 = RSCanvasNode::Create();
+    auto subNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode2->SetBounds({0, 0, 150, 150});
     subNode2->SetBackgroundColor(COLOR_RED);
     GetRootNode()->AddChildToSubWindow(subId2, subNode2);
@@ -486,7 +486,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     rsDirtyManager->ResetDirtyAsSurfaceSize();
     RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     
-    auto testNode4 = RSCanvasNode::Create();
+    auto testNode4 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode4->SetBounds(
         {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
     testNode4->SetBackgroundColor(COLOR_CYAN);
@@ -526,7 +526,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts1.contentBgColor = 0x80000000;
     auto subId1 = CreateSubWindow(subOpts1);
     
-    auto subNode1 = RSCanvasNode::Create();
+    auto subNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode1->SetBounds({0, 0, 300, 300});
     subNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChildToSubWindow(subId1, subNode1);
@@ -538,7 +538,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts2.contentBgColor = 0x80000000;
     auto subId2 = CreateSubWindow(subOpts2);
     
-    auto subNode2 = RSCanvasNode::Create();
+    auto subNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode2->SetBounds({0, 0, 250, 250});
     subNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChildToSubWindow(subId2, subNode2);
@@ -583,7 +583,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts.contentBgColor = 0x80FF0000;
     auto subId = CreateSubWindow(subOpts);
     
-    auto subNode = RSCanvasNode::Create();
+    auto subNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode->SetBounds({0, 0, 200, 200});
     subNode->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChildToSubWindow(subId, subNode);
@@ -592,7 +592,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     rsDirtyManager->MergeDirtyRect(subRect);
     RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds(
         {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
     testNode->SetBackgroundColor(COLOR_CYAN);
@@ -619,7 +619,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     RectI subRect1 = {600, 200, 300, 300};
     RectI subRect2 = {900, 500, 200, 200};
     
-    auto mainNode = RSCanvasNode::Create();
+    auto mainNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     mainNode->SetBounds({mainRect.left_, mainRect.top_, mainRect.width_, mainRect.height_});
     mainNode->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(mainNode);
@@ -630,7 +630,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts1.contentBgColor = 0x80FF0000;
     auto subId1 = CreateSubWindow(subOpts1);
     
-    auto subNode1 = RSCanvasNode::Create();
+    auto subNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode1->SetBounds({0, 0, 200, 200});
     subNode1->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChildToSubWindow(subId1, subNode1);
@@ -641,7 +641,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts2.contentBgColor = 0x800000FF;
     auto subId2 = CreateSubWindow(subOpts2);
     
-    auto subNode2 = RSCanvasNode::Create();
+    auto subNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode2->SetBounds({0, 0, 150, 150});
     subNode2->SetBackgroundColor(COLOR_RED);
     GetRootNode()->AddChildToSubWindow(subId2, subNode2);
@@ -653,7 +653,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     rsDirtyManager->ResetDirtyAsSurfaceSize();
     RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds(
         {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
     testNode->SetBackgroundColor(COLOR_CYAN);
@@ -692,7 +692,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts1.contentBgColor = 0x80FF0000;
     auto subId1 = CreateSubWindow(subOpts1);
     
-    auto subNode1 = RSCanvasNode::Create();
+    auto subNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode1->SetBounds({0, 0, 200, 200});
     subNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChildToSubWindow(subId1, subNode1);
@@ -703,7 +703,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts2.contentBgColor = 0x800000FF;
     auto subId2 = CreateSubWindow(subOpts2);
     
-    auto subNode2 = RSCanvasNode::Create();
+    auto subNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode2->SetBounds({0, 0, 200, 200});
     subNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChildToSubWindow(subId2, subNode2);
@@ -715,7 +715,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts3.contentBgColor = 0x800000FF;
     auto subId3 = CreateSubWindow(subOpts3);
     
-    auto subNode3 = RSCanvasNode::Create();
+    auto subNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode3->SetBounds({0, 0, 180, 180});
     subNode3->SetBackgroundColor(COLOR_RED);
     GetRootNode()->AddChildToSubWindow(subId3, subNode3);
@@ -749,7 +749,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     RectI subRect1 = {600, 200, 300, 300};
     RectI subRect2 = {900, 500, 200, 200};
     
-    auto mainNode = RSCanvasNode::Create();
+    auto mainNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     mainNode->SetBounds({mainRect.left_, mainRect.top_, mainRect.width_, mainRect.height_});
     mainNode->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(mainNode);
@@ -760,7 +760,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts1.contentBgColor = 0x80FF0000;
     auto subId1 = CreateSubWindow(subOpts1);
     
-    auto subNode1 = RSCanvasNode::Create();
+    auto subNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode1->SetBounds({0, 0, 200, 200});
     subNode1->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChildToSubWindow(subId1, subNode1);
@@ -771,7 +771,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     subOpts2.contentBgColor = 0x800000FF;
     auto subId2 = CreateSubWindow(subOpts2);
     
-    auto subNode2 = RSCanvasNode::Create();
+    auto subNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     subNode2->SetBounds({0, 0, 150, 150});
     subNode2->SetBackgroundColor(COLOR_RED);
     GetRootNode()->AddChildToSubWindow(subId2, subNode2);
@@ -783,7 +783,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     rsDirtyManager->ResetDirtyAsSurfaceSize();
     RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
     
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds(
         {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
     testNode->SetBackgroundColor(COLOR_CYAN);

@@ -47,7 +47,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetScreenId)
 
     for (size_t i = 0; i < screenIds.size(); i++) {
         RSDisplayNodeConfig config;
-        auto displayNode = RSDisplayNode::Create(config);
+        auto displayNode = RSDisplayNode::Create(config, RSGraphicTestDirector::Instance().GetRSUIContext());
         displayNode->SetScreenId(screenIds[i]);
 
         // Create a child node to visualize the display
@@ -73,7 +73,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetScreenId_Boun
 
     for (size_t i = 0; i < boundaryIds.size(); i++) {
         RSDisplayNodeConfig config;
-        auto displayNode = RSDisplayNode::Create(config);
+        auto displayNode = RSDisplayNode::Create(config, RSGraphicTestDirector::Instance().GetRSUIContext());
         displayNode->SetScreenId(boundaryIds[i]);
 
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
@@ -86,48 +86,6 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetScreenId_Boun
     }
 }
 
-/* SetForceCloseHdr: normal values - 1x2 matrix */
-GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetForceCloseHdr_Matrix_1x2)
-{
-    std::vector<bool> forceCloseHdrList = {false, true};
-
-    for (size_t i = 0; i < forceCloseHdrList.size(); i++) {
-        RSDisplayNodeConfig config;
-        auto displayNode = RSDisplayNode::Create(config);
-        displayNode->SetForceCloseHdr(forceCloseHdrList[i]);
-
-        auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-            {static_cast<float>(i * 500 + 50), 50.0f, 400.0f, 400.0f});
-        displayNode->AddChild(canvasNode);
-        RegisterNode(displayNode);
-        RegisterNode(canvasNode);
-    }
-}
-
-/* SetForceCloseHdr: combined with rotation - matrix 2x2 */
-GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_ForceCloseHdr_Rotation_Matrix_2x2)
-{
-    std::vector<bool> forceCloseHdrList = {false, true};
-    std::vector<uint32_t> rotations = {0, 90};
-
-    for (size_t row = 0; row < forceCloseHdrList.size(); row++) {
-        for (size_t col = 0; col < rotations.size(); col++) {
-            RSDisplayNodeConfig config;
-            auto displayNode = RSDisplayNode::Create(config);
-            displayNode->SetForceCloseHdr(forceCloseHdrList[row]);
-            displayNode->SetScreenRotation(rotations[col]);
-
-            auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                {static_cast<float>(col * 300 + 100),
-                 static_cast<float>(row * 300 + 100),
-                 200.0f, 200.0f});
-            displayNode->AddChild(canvasNode);
-            RegisterNode(displayNode);
-            RegisterNode(canvasNode);
-        }
-    }
-}
-
 /* SetVirtualScreenMuteStatus: normal values - 1x2 matrix */
 GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetVirtualScreenMuteStatus_Matrix_1x2)
 {
@@ -135,7 +93,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_SetVirtualScreen
 
     for (size_t i = 0; i < muteStatusList.size(); i++) {
         RSDisplayNodeConfig config;
-        auto displayNode = RSDisplayNode::Create(config);
+        auto displayNode = RSDisplayNode::Create(config, RSGraphicTestDirector::Instance().GetRSUIContext());
         displayNode->SetVirtualScreenMuteStatus(muteStatusList[i]);
 
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
@@ -156,9 +114,8 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_Combined_Propert
         for (size_t j = 0; j < boolValues.size(); j++) {
             for (size_t k = 0; k < screenIds.size(); k++) {
                 RSDisplayNodeConfig config;
-                auto displayNode = RSDisplayNode::Create(config);
+                auto displayNode = RSDisplayNode::Create(config, RSGraphicTestDirector::Instance().GetRSUIContext());
                 displayNode->SetScreenId(screenIds[k]);
-                displayNode->SetForceCloseHdr(boolValues[i]);
                 displayNode->SetVirtualScreenMuteStatus(boolValues[j]);
 
                 auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
@@ -179,7 +136,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_Multiple_Screens
     // Create multiple display nodes with different screen IDs
     for (size_t i = 0; i < 3; i++) {
         RSDisplayNodeConfig config;
-        auto displayNode = RSDisplayNode::Create(config);
+        auto displayNode = RSDisplayNode::Create(config, RSGraphicTestDirector::Instance().GetRSUIContext());
         displayNode->SetScreenId(i);
 
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
@@ -197,7 +154,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_ClearModifierByP
 
     for (size_t i = 0; i < pids.size(); i++) {
         RSDisplayNodeConfig config;
-        auto displayNode = RSDisplayNode::Create(config);
+        auto displayNode = RSDisplayNode::Create(config, RSGraphicTestDirector::Instance().GetRSUIContext());
         displayNode->ClearModifierByPid(pids[i]);
 
         auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
@@ -212,7 +169,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_ClearModifierByP
 GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_Rapid_State_Changes)
 {
     RSDisplayNodeConfig config;
-    auto displayNode = RSDisplayNode::Create(config);
+    auto displayNode = RSDisplayNode::Create(config, RSGraphicTestDirector::Instance().GetRSUIContext());
 
     auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
         {100.0f, 100.0f, 400.0f, 400.0f});
@@ -221,13 +178,10 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_Rapid_State_Chan
     RegisterNode(canvasNode);
 
     // Rapid state changes
-    displayNode->SetForceCloseHdr(false);
     displayNode->SetVirtualScreenMuteStatus(false);
 
-    displayNode->SetForceCloseHdr(true);
     displayNode->SetVirtualScreenMuteStatus(true);
 
-    displayNode->SetForceCloseHdr(false);
     displayNode->SetVirtualScreenMuteStatus(false);
 }
 
@@ -250,7 +204,7 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_ScreenId_Rotatio
 
     for (size_t i = 0; i < testCases.size(); i++) {
         RSDisplayNodeConfig config;
-        auto displayNode = RSDisplayNode::Create(config);
+        auto displayNode = RSDisplayNode::Create(config, RSGraphicTestDirector::Instance().GetRSUIContext());
         displayNode->SetScreenId(testCases[i].screenId);
         displayNode->SetScreenRotation(testCases[i].rotation);
 
@@ -263,31 +217,4 @@ GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_ScreenId_Rotatio
         RegisterNode(canvasNode);
     }
 }
-
-/* SetVirtualScreenMuteStatus: boundary and normal combined */
-GRAPHIC_TEST(DisplayNodeTest, CONTENT_DISPLAY_TEST, DisplayNode_VirtualScreenMute_Combined)
-{
-    std::vector<bool> muteStatus = {false, true};
-    std::vector<bool> forceCloseHdr = {false, true};
-    std::vector<uint64_t> screenIds = {0, 100};
-
-    for (size_t i = 0; i < muteStatus.size(); i++) {
-        for (size_t j = 0; j < forceCloseHdr.size(); j++) {
-            RSDisplayNodeConfig config;
-            auto displayNode = RSDisplayNode::Create(config);
-            displayNode->SetScreenId(screenIds[i]);
-            displayNode->SetVirtualScreenMuteStatus(muteStatus[i]);
-            displayNode->SetForceCloseHdr(forceCloseHdr[j]);
-
-            auto canvasNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg",
-                {static_cast<float>(j * 300 + 100),
-                 static_cast<float>(i * 300 + 100),
-                 200, 200});
-            displayNode->AddChild(canvasNode);
-            RegisterNode(displayNode);
-            RegisterNode(canvasNode);
-        }
-    }
-}
-
 } // namespace OHOS::Rosen

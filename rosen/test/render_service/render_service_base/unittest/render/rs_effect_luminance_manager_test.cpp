@@ -53,6 +53,47 @@ HWTEST_F(RSEffectLuminanceManagerTest, HeadroomSetGetTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CurrentScreenIdSetGetTest
+ * @tc.desc: test results of SetCurrentScreenId & GetCurrentScreenId
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectLuminanceManagerTest, CurrentScreenIdSetGetTest, TestSize.Level1)
+{
+    auto& manager = RSEffectLuminanceManager::GetInstance();
+    ScreenId screenId = Rosen::INVALID_SCREEN_ID;
+    EXPECT_EQ(manager.GetCurrentScreenId(), screenId);
+    screenId = 0;
+    manager.SetCurrentScreenId(screenId);
+    EXPECT_EQ(manager.GetCurrentScreenId(), screenId);
+}
+
+/**
+ * @tc.name: CurrentScreenshotTypeSetGetTest
+ * @tc.desc: test results of SetCurrentScreenshotType & GetCurrentScreenshotType
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectLuminanceManagerTest, CurrentScreenshotTypeSetGetTest, TestSize.Level1)
+{
+    auto& manager = RSEffectLuminanceManager::GetInstance();
+    EXPECT_EQ(manager.GetCurrentScreenshotType(), RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
+    manager.SetCurrentScreenshotType(RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
+    EXPECT_EQ(manager.GetCurrentScreenshotType(), RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT);
+}
+
+/**
+ * @tc.name: HdrPipelineStatusSetGetTest
+ * @tc.desc: test results of SetHdrPipelineStatus & GetHdrPipelineStatus
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectLuminanceManagerTest, HdrPipelineStatusSetGetTest, TestSize.Level1)
+{
+    auto& manager = RSEffectLuminanceManager::GetInstance();
+    EXPECT_EQ(manager.GetHdrPipelineStatus(), false);
+    manager.SetHdrPipelineStatus(true);
+    EXPECT_EQ(manager.GetHdrPipelineStatus(), true);
+}
+
+/**
  * @tc.name: GetEnableHdrEffectEdgeLightTest
  * @tc.desc: test results of GetEnableHdrEffectEdgeLight
  * @tc.type: FUNC

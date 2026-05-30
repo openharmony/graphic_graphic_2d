@@ -24,7 +24,7 @@ using namespace OHOS;
 bool BootCompatibleDisplayStrategy::PrepareScreenConfig(BootAnimationConfig& config)
 {
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
-    config.screenId = interface.GetDefaultScreenId();
+    config.screenId = connectToRenderMap_.begin()->first;
     if (config.rotateScreenId >= 0) {
         SubscribeActiveScreenIdChanged();
         Rosen::ScreenId activeScreenId = GetActiveScreenId();
@@ -80,7 +80,7 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
     }
 
     GetConnectToRenderMap(configs.size());
-    if (!noScreen_) {
+    if (!noScreen_ || connectToRenderMap_.empty()) {
         PrepareScreenConfig(configs[0]);
         RunAnimationAndOta(configs[0], duration);
     } else {

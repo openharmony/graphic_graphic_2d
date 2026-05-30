@@ -210,7 +210,7 @@ GRAPHIC_TEST(ClipRadiusTest, CONTENT_DISPLAY_TEST, ClipRectWithRadius_Invalid_Fl
     };
 
     for (size_t i = 0; i < invalidRadii.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>((i % 2) * 400 + 50);
         float y = static_cast<float>((i / 2) * 400 + 50);
         testNode->SetBounds({x, y, 200, 200});

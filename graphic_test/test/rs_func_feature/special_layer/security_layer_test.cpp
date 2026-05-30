@@ -58,7 +58,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test01)
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSecuritySurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(config);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(config, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     securitySurfaceNode->SetBounds(DEFAULT_RECT1);
     securitySurfaceNode->SetBackgroundColor(COLOR_BLUE);
     securitySurfaceNode->SetSecurityLayer(true);
@@ -77,7 +78,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test02)
 {
     RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "TestSecuritySurface02";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(config);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(config, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     securitySurfaceNode->SetBounds(DEFAULT_RECT1);
     securitySurfaceNode->SetBackgroundColor(COLOR_BLUE);
     securitySurfaceNode->SetSecurityLayer(false);
@@ -97,7 +99,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test03)
 {
     RSSurfaceNodeConfig securityConfig;
     securityConfig.SurfaceNodeName = "TestSecuritySurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     securitySurfaceNode->SetBounds(DEFAULT_RECT1);
     securitySurfaceNode->SetBackgroundColor(COLOR_BLUE);
     securitySurfaceNode->SetSecurityLayer(true);
@@ -106,7 +109,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test03)
 
     RSSurfaceNodeConfig skipConfig;
     skipConfig.SurfaceNodeName = "TestSkipSurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> skipSurfaceNode = RSSurfaceNode::Create(skipConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> skipSurfaceNode = RSSurfaceNode::Create(skipConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     skipSurfaceNode->SetBounds(DEFAULT_RECT2);
     skipSurfaceNode->SetBackgroundColor(COLOR_RED);
     skipSurfaceNode->SetSkipLayer(true);
@@ -125,7 +129,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test04)
 {
     RSSurfaceNodeConfig securityConfig;
     securityConfig.SurfaceNodeName = "TestSecuritySurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     securitySurfaceNode->SetBounds(DEFAULT_RECT1);
     securitySurfaceNode->SetBackgroundColor(COLOR_BLUE);
     securitySurfaceNode->SetSecurityLayer(true);
@@ -134,7 +139,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test04)
 
     RSSurfaceNodeConfig skipConfig;
     skipConfig.SurfaceNodeName = "TestSkipSurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> skipSurfaceNode = RSSurfaceNode::Create(skipConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> skipSurfaceNode = RSSurfaceNode::Create(skipConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     skipSurfaceNode->SetBounds(DEFAULT_RECT2);
     skipSurfaceNode->SetBackgroundColor(COLOR_RED);
     skipSurfaceNode->SetSnapshotSkipLayer(true);
@@ -152,7 +158,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test05)
 {
     RSSurfaceNodeConfig securityConfig;
     securityConfig.SurfaceNodeName = "TestSecuritySurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     securitySurfaceNode->SetBounds(DEFAULT_RECT1);
     securitySurfaceNode->SetShadowColor(COLOR_BLUE);
     securitySurfaceNode->SetShadowRadius(FIFTY);
@@ -163,7 +170,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test05)
 
     RSSurfaceNodeConfig skipConfig;
     skipConfig.SurfaceNodeName = "TestSkipSurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> skipSurfaceNode = RSSurfaceNode::Create(skipConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> skipSurfaceNode = RSSurfaceNode::Create(skipConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     skipSurfaceNode->SetBounds(DEFAULT_RECT2);
     skipSurfaceNode->SetShadowColor(COLOR_BLUE);
     skipSurfaceNode->SetShadowRadius(FIFTY);
@@ -183,7 +191,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test06)
 {
     RSSurfaceNodeConfig securityConfig;
     securityConfig.SurfaceNodeName = "TestSecuritySurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     securitySurfaceNode->SetBounds(DEFAULT_RECT1);
     securitySurfaceNode->SetShadowColor(COLOR_GREEN);
     securitySurfaceNode->SetShadowRadius(FORTY);
@@ -194,7 +203,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test06)
 
     RSSurfaceNodeConfig skipConfig;
     skipConfig.SurfaceNodeName = "TestSkipSurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> skipSurfaceNode = RSSurfaceNode::Create(skipConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> skipSurfaceNode = RSSurfaceNode::Create(skipConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     skipSurfaceNode->SetBounds(DEFAULT_RECT2);
     skipSurfaceNode->SetShadowColor(COLOR_BLUE);
     skipSurfaceNode->SetShadowRadius(FIFTY);
@@ -214,7 +224,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test07)
 {
     RSSurfaceNodeConfig securityConfig;
     securityConfig.SurfaceNodeName = "TestSecuritySurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     securitySurfaceNode->SetBounds(DEFAULT_RECT1);
     securitySurfaceNode->SetBackgroundColor(COLOR_BLUE);
     securitySurfaceNode->SetSecurityLayer(true);
@@ -242,7 +253,8 @@ GRAPHIC_TEST(SecurityLayerTest, CONTENT_DISPLAY_TEST, Set_Security_Layer_Test08)
 {
     RSSurfaceNodeConfig securityConfig;
     securityConfig.SurfaceNodeName = "TestSecuritySurface01";
-    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig);
+    std::shared_ptr<OHOS::Rosen::RSSurfaceNode> securitySurfaceNode = RSSurfaceNode::Create(securityConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     securitySurfaceNode->SetBounds(DEFAULT_RECT1);
     securitySurfaceNode->SetBackgroundColor(COLOR_BLUE);
     securitySurfaceNode->SetSecurityLayer(false);

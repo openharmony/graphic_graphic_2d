@@ -56,7 +56,7 @@ public:
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_1)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -85,7 +85,7 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_1)
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_2)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -115,7 +115,7 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_2)
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_3)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -145,7 +145,7 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestText_3)
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSymbol_1)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -183,7 +183,7 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSymbol_1)
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSymbol_2)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -221,7 +221,7 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSymbol_2)
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSVG_1)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -255,7 +255,7 @@ GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSVG_1)
  */
 GRAPHIC_TEST(HybridRenderTest, HYBRID_RENDER_TEST, HybridRender_TestSVG_2)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);

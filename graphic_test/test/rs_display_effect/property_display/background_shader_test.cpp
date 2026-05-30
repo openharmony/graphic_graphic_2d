@@ -100,7 +100,8 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Shader_Test)
     for (int i = 0; i < shaderEffectList.size(); i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         auto currentShader = RSShader::CreateRSShader(shaderEffectList[i]);
         testNodeBackGround->SetBackgroundShader(currentShader);
@@ -160,7 +161,8 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_N
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetFrame({ x, y, sizeX - 10, sizeY - 10 });
         dotMatShader->Setter<Rosen::DotMatrixShaderProgressTag>(1.0f);
@@ -222,7 +224,8 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_R
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetFrame({ x, y, sizeX - 10, sizeY - 10 });
         dotMatShader->Setter<Rosen::DotMatrixShaderProgressTag>(progressList[i]);
@@ -296,7 +299,8 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_R
             testParam.startPointsList[i], testParam.pathWidthList[i], testParam.inverseEffectList[i]);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetFrame({x, y, sizeX - 10, sizeY - 10});
         dotMatShader->Setter<Rosen::DotMatrixShaderProgressTag>(progressList[i]);
@@ -345,7 +349,8 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_FlowLightSweep_Sha
         }
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
+        auto testNodeBackGround = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
         testNodeBackGround->SetBackgroundShader(flowLightShader);
         testNodeBackGround->SetBackgroundShaderProgress(progressList[i % progressList.size()]);

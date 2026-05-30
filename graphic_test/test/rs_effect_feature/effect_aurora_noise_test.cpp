@@ -80,7 +80,7 @@ GRAPHIC_TEST(AuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Background_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto node = RSCanvasNode::Create();
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000033);
@@ -105,7 +105,7 @@ GRAPHIC_TEST(AuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Foreground_Test)
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto containerNode = RSCanvasNode::Create();
+        auto containerNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         containerNode->SetBounds({x, y, sizeX, sizeY});
         containerNode->SetFrame({x, y, sizeX, sizeY});
         containerNode->SetBackgroundColor(0xff102040);

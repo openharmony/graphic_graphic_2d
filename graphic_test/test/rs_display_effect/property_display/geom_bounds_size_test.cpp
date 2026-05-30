@@ -41,7 +41,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Normal_Matrix_3x3)
 
     for (size_t row = 0; row < heights.size(); row++) {
         for (size_t col = 0; col < widths.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             float x = static_cast<float>(col * 350 + 50);
             float y = static_cast<float>(row * 350 + 50);
             testNode->SetBounds({x, y, widths[col], heights[row]});
@@ -80,7 +80,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Boundary_Minimum)
     };
 
     for (size_t i = 0; i < minSizes.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>((i % 2) * 600 + 50);
         float y = static_cast<float>((i / 2) * 200 + 50);
         testNode->SetBounds({x, y, 100, 100});
@@ -123,7 +123,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Extreme_Large)
     };
 
     for (size_t i = 0; i < largeSizes.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = 50;
         float y = static_cast<float>(i * 200 + 50);
         testNode->SetBounds({x, y, 100, 100});
@@ -147,7 +147,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Invalid_Float)
     };
 
     for (size_t i = 0; i < invalidSizes.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>((i % 2) * 500 + 50);
         float y = static_cast<float>((i / 2) * 300 + 50);
         testNode->SetBounds({x, y, 100, 100});
@@ -193,7 +193,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Rapid_Updates)
 /* SetBoundsSize: size before position */
 GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Before_Position)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBackgroundColor(0xff00ffff);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -251,7 +251,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Shape_Variation)
     };
 
     for (size_t i = 0; i < shapes.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>((i % 3) * 300 + 50);
         float y = static_cast<float>((i / 3) * 300 + 50);
         testNode->SetBounds({x, y, 200, 200});
@@ -265,7 +265,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Shape_Variation)
 GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Hierarchical)
 {
     // Parent node
-    auto parentNode = RSCanvasNode::Create();
+    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentNode->SetBounds({50, 50, 500, 500});
     parentNode->SetBackgroundColor(0xffcccccc);
     GetRootNode()->AddChild(parentNode);
@@ -280,7 +280,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Hierarchical)
     };
 
     for (size_t i = 0; i < childSizes.size(); i++) {
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode->SetBounds({static_cast<float>(i * 110 + 10),
                              static_cast<float>(i * 110 + 10),
                              childSizes[i].x_, childSizes[i].y_});
@@ -322,7 +322,7 @@ GRAPHIC_TEST(BoundsSizeTest, CONTENT_DISPLAY_TEST, BoundsSize_Fractional)
     };
 
     for (size_t i = 0; i < fractionalSizes.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>((i % 3) * 300 + 50);
         float y = static_cast<float>((i / 3) * 200 + 50);
         testNode->SetBounds({x, y, 200, 200});

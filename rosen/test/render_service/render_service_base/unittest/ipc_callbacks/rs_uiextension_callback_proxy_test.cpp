@@ -24,8 +24,10 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 
+#ifdef RS_ENABLE_UNI_RENDER
 constexpr auto code = static_cast<uint32_t>(RSIUIExtensionCallbackInterfaceCode::ON_UIEXTENSION);
 constexpr uint64_t userId = 0;
+#endif
 class RSUIExtensionCallbackProxyTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -39,6 +41,7 @@ void RSUIExtensionCallbackProxyTest::TearDownTestCase() {}
 void RSUIExtensionCallbackProxyTest::SetUp() {}
 void RSUIExtensionCallbackProxyTest::TearDown() {}
 
+#ifdef RS_ENABLE_UNI_RENDER
 /**
  * @tc.name: OnUIExtension001
  * @tc.desc: Verify the OnUIExtension
@@ -81,5 +84,6 @@ HWTEST_F(RSUIExtensionCallbackProxyTest, OnUIExtension003, TestSize.Level1)
     ASSERT_NE(onUIExtensionCallbackProxy, nullptr);
     onUIExtensionCallbackProxy->OnUIExtension(std::make_shared<RSUIExtensionData>(), userId);
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

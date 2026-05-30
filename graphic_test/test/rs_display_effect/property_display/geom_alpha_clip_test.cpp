@@ -49,7 +49,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, Geometry_Alpha_ClipFlame_Test
     };
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            auto testFaNode = RSCanvasNode::Create();
+            auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testFaNode->SetAlpha(0.5f);
             testFaNode->SetBounds({ i * 410.0, j * 500.0, 400.0, 400.0 });
             testFaNode->SetFrame({ i * 410.0, j * 500.0, 400.0, 400.0 });
@@ -63,7 +63,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, Geometry_Alpha_ClipFlame_Test
             textModifier->SetFontSize(50.0);
             testFaNode->AddModifier(textModifier);
             testFaNode->SetClipToFrame(true);
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetAlpha(0.5f);
             testNode->SetFrame({ 0.0, 50.0, 400.0, 400.0 });
             testNode->SetBackgroundColor(0xff00ff00);
@@ -90,7 +90,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, Geometry_Alpha_ClipFlame_Test
     };
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            auto testFaNode = RSCanvasNode::Create();
+            auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testFaNode->SetAlpha(0.5f);
             testFaNode->SetFrame(i * 410.0, j * 500.0, 400.0, 400.0);
             auto imageModifier = std::make_shared<ImageCustomModifier>();
@@ -99,7 +99,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, Geometry_Alpha_ClipFlame_Test
             imageModifier->SetPixelMapPath("/data/local/tmp/fg_test.jpg");
             testFaNode->AddModifier(imageModifier);
             testFaNode->SetClipToFrame(false);
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetAlpha(0.5f);
 
             // testNode->SetFrame({ 0.0, 50.0, 400.0, 400.0 }) convert to SetFramePositionXY
@@ -141,7 +141,7 @@ static void ClipRect(
 
 GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_001)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     ClipRect(testFaNode, { -50, 0, 200, 200 }, { 20, 0, 20, 20 });
     GetRootNode()->AddChild(testFaNode);
     RegisterNode(testFaNode);
@@ -149,7 +149,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_001)
 
 GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_002)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     ClipRect(testFaNode, { 0, -50, 200, 200 }, { 0, 20, 20, 20 });
     GetRootNode()->AddChild(testFaNode);
     RegisterNode(testFaNode);
@@ -157,7 +157,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_002)
 
 GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_003)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     ClipRect(testFaNode, { 0, 0, -200, 200 }, { 20, 20, 0, 20 });
     GetRootNode()->AddChild(testFaNode);
     RegisterNode(testFaNode);
@@ -165,7 +165,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_003)
 
 GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_004)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     ClipRect(testFaNode, { 0, 0, 200, -200 }, { 20, 20, 20, 0 });
     GetRootNode()->AddChild(testFaNode);
     RegisterNode(testFaNode);
@@ -173,7 +173,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_004)
 
 GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_005)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     ClipRect(testFaNode, { 0, 0, 200, 200 }, { 50, 50, 20, 20 });
     GetRootNode()->AddChild(testFaNode);
     RegisterNode(testFaNode);
@@ -181,7 +181,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_005)
 
 GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_006)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     ClipRect(testFaNode, { 0, 0, 200, 200 }, { 20, 20, 20, 20 }, false);
     GetRootNode()->AddChild(testFaNode);
     RegisterNode(testFaNode);
@@ -189,7 +189,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_006)
 
 GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_007)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     ClipRect(testFaNode, { -50, -50, 200, 200 }, { 0, 0, 0, 0 });
     GetRootNode()->AddChild(testFaNode);
     RegisterNode(testFaNode);
@@ -197,7 +197,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_007)
 
 GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_008)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     ClipRect(testFaNode, { 50, 50, 200, 200 }, { 20, 20, 20, 20 });
     GetRootNode()->AddChild(testFaNode);
     RegisterNode(testFaNode);
@@ -205,7 +205,7 @@ GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_008)
 
 GRAPHIC_TEST(GeometryTest01, CONTENT_DISPLAY_TEST, ClipRRect_Alpha_Test_009)
 {
-    auto testFaNode = RSCanvasNode::Create();
+    auto testFaNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     ClipRect(testFaNode, { 50, 50, -200, -200 }, { 20, 20, 20, 20 });
     GetRootNode()->AddChild(testFaNode);
     RegisterNode(testFaNode);

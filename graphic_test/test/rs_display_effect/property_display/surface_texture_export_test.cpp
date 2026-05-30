@@ -42,7 +42,7 @@ public:
 GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExportTest_001)
 {
     RSSurfaceNodeConfig config;
-    auto surfaceNode = RSSurfaceNode::Create(config);
+    auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -62,7 +62,7 @@ GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExpor
 GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExportTest_002)
 {
     RSSurfaceNodeConfig config;
-    auto surfaceNode = RSSurfaceNode::Create(config);
+    auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -87,7 +87,7 @@ GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExpor
     for (size_t row = 0; row < exportStates.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
             RSSurfaceNodeConfig config;
-        auto surfaceNode = RSSurfaceNode::Create(config);
+        auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
             surfaceNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             surfaceNode->SetBackgroundColor(0xffff0000);
             surfaceNode->SetAlpha(alphaList[col]);
@@ -107,7 +107,7 @@ GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExpor
 GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExportTest_004)
 {
     RSSurfaceNodeConfig config;
-    auto surfaceNode = RSSurfaceNode::Create(config);
+    auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetBackgroundColor(0xffff0000);
 
@@ -136,7 +136,7 @@ GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExpor
 
     for (size_t i = 0; i < rotationList.size(); i++) {
         RSSurfaceNodeConfig config;
-        auto surfaceNode = RSSurfaceNode::Create(config);
+        auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         surfaceNode->SetBackgroundColor(0xffff0000);
         surfaceNode->SetRotation(rotationList[i]);
@@ -164,7 +164,7 @@ GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExpor
     for (size_t row = 0; row < exportStates.size(); row++) {
         for (size_t col = 0; col < scaleList.size(); col++) {
             RSSurfaceNodeConfig config;
-        auto surfaceNode = RSSurfaceNode::Create(config);
+        auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
             surfaceNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             surfaceNode->SetBackgroundColor(0xffff0000);
             surfaceNode->SetScale(scaleList[col].first, scaleList[col].second);
@@ -191,7 +191,7 @@ GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExpor
 
     for (const auto& bounds : zeroBounds) {
         RSSurfaceNodeConfig config;
-        auto surfaceNode = RSSurfaceNode::Create(config);
+        auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         surfaceNode->SetBackgroundColor(0xffff0000);
         surfaceNode->SetTextureExport(true);
@@ -214,7 +214,7 @@ GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExpor
     for (size_t row = 0; row < exportStates.size(); row++) {
         for (size_t col = 0; col < blurRadius.size(); col++) {
             RSSurfaceNodeConfig config;
-        auto surfaceNode = RSSurfaceNode::Create(config);
+        auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
             surfaceNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             surfaceNode->SetBackgroundColor(0xffff0000);
             surfaceNode->SetBackgroundBlurRadius(blurRadius[col]);
@@ -238,7 +238,7 @@ GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExpor
 
     for (size_t i = 0; i < exportStates.size(); i++) {
         RSSurfaceNodeConfig config;
-        auto surfaceNode = RSSurfaceNode::Create(config);
+        auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         surfaceNode->SetBackgroundColor(0xffff0000);
         surfaceNode->SetAlpha(alphaList[i]);
@@ -258,7 +258,7 @@ GRAPHIC_TEST(SurfaceTextureExportTest, CONTENT_DISPLAY_TEST, SurfaceTextureExpor
 {
     for (int i = 0; i < 5; i++) {
         RSSurfaceNodeConfig config;
-        auto surfaceNode = RSSurfaceNode::Create(config);
+        auto surfaceNode = RSSurfaceNode::Create(config, true, RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({ (int)i * 220 + 50, 50, 200, 200 });
         surfaceNode->SetBackgroundColor(0xffff0000 - i * 0x00200000);
         surfaceNode->SetTextureExport(i % 2 == 0);

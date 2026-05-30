@@ -480,6 +480,45 @@ HWTEST_F(RSNGRenderShaderBaseTest, CreateBorderSDFShader001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateBorderSDFLGColor001
+ * @tc.desc: Verify that Create returns a non-null instance for BORDER_SDF_LG_COLOR type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, CreateBorderSDFLGColor001, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_LG_COLOR);
+    EXPECT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::BORDER_SDF_LG_COLOR);
+}
+
+/**
+ * @tc.name: BorderSDFLGColorPropertyTags001
+ * @tc.desc: Test setting and getting properties on BorderSDFLGColor shader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderShaderBaseTest, BorderSDFLGColorPropertyTags001, TestSize.Level1)
+{
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_LG_COLOR);
+    ASSERT_NE(shader, nullptr);
+    auto lgColor = std::static_pointer_cast<RSNGRenderBorderSDFLGColor>(shader);
+
+    lgColor->Setter<BorderSDFLGColorAngleRenderTag>(45.0f, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_FLOAT_EQ(lgColor->Getter<BorderSDFLGColorAngleRenderTag>()->Get(), 45.0f);
+
+    lgColor->Setter<BorderSDFLGColorWidthRenderTag>(5.0f, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    EXPECT_FLOAT_EQ(lgColor->Getter<BorderSDFLGColorWidthRenderTag>()->Get(), 5.0f);
+
+    lgColor->Setter<BorderSDFLGColorIsOutlineRenderTag>(true);
+    EXPECT_EQ(lgColor->Getter<BorderSDFLGColorIsOutlineRenderTag>()->Get(), true);
+
+    lgColor->Setter<BorderSDFLGColorIsOutlineRenderTag>(false);
+    EXPECT_EQ(lgColor->Getter<BorderSDFLGColorIsOutlineRenderTag>()->Get(), false);
+
+    lgColor->Setter<BorderSDFLGColorColorNumberRenderTag>(3);
+    EXPECT_EQ(lgColor->Getter<BorderSDFLGColorColorNumberRenderTag>()->Get(), 3);
+}
+
+/**
 * @tc.name: DistortChromaShaderCreate
  * @tc.desc: Test creating DistortChroma shader and verify type
  * @tc.type: FUNC

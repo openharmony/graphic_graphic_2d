@@ -153,7 +153,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, DrawRegion01)
     Drawing::PointF point1 = { 0, 450 };
     Drawing::PointF point2 = { 400, 450 };
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode);
     testNode->SetBounds(DEFAULT_BOUNDS);
     testNode->SetBackgroundColor(COLOR_YELLOW);
@@ -181,7 +181,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shader01)
         OHOS::Rosen::Drawing::ShaderEffect::CreateLinearGradient({ 10, 10 }, { 100, 100 },
         { Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_RED }, { 0.0f, 0.5f, 1.0f },
         Drawing::TileMode::MIRROR);
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode);
     testNode->SetBounds(DEFAULT_BOUNDS);
     testNode->SetTranslate({ 0, 0 });

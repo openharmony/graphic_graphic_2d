@@ -41,7 +41,7 @@ public:
     std::shared_ptr<RSEffectNode> SetUpEffectNode()
     {
         auto backgroundTestNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
-        auto effectNode = RSEffectNode::Create();
+        auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         std::shared_ptr<Rosen::RSFilter> backFilter = Rosen::RSFilter::CreateMaterialFilter(BLUR_RADIUS, 1, 1, 0,

@@ -64,7 +64,7 @@ GRAPHIC_TEST(ContentEffectNodeTest, CONTENT_DISPLAY_TEST, EffectNode_Use_Effect_
     for (int i = 0; i < columnCount * rowCount; i++) {
         float x = (i % columnCount) * sizeX;
         float y = (i / columnCount) * sizeY;
-        auto testFaNode = RSEffectNode::Create();
+        auto testFaNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         std::shared_ptr<Media::PixelMap> pixelmap =
             DecodePixelMap("/data/local/tmp/Images/backGroundImage.jpg", Media::AllocatorType::SHARE_MEM_ALLOC);
         auto image = std::make_shared<Rosen::RSImage>();

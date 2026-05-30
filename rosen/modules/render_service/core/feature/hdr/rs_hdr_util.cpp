@@ -30,6 +30,7 @@
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "aihdr_enhancer.h"
 #include "render/rs_colorspace_convert.h"
+#include "render/rs_effect_luminance_manager.h"
 #endif
 
 namespace OHOS {
@@ -467,6 +468,47 @@ bool RSHdrUtil::NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& su
     // When the main screen uses F16 buffer and the window color space is not sRGB,
     // the window freeze capture can use F16 format to optimize performance.
     return (isHDROn || isScRGBEnable) && colorGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+}
+
+bool RSHdrUtil::HDRColorHeadroomMapping(const Drawing::UIColor& srcColor, Drawing::UIColor& dstColor)
+{
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+     auto aiHDREnhancer = OHOS::Media::VideoProcessingEngine::AihdrEnhancer::Create();
+    if (aiHDREnhancer == nullptr) {
+        RS_LOGE("RSHdrUtil::HDRColorHeadroomMapping aiHDREnhancer is null");
+        return false;
+    }
+    float displayHeadroom = 1.0f;
+    bool isHdrPipelineOn = RSEffectLuminanceManager::GetInstance().GetHdrPipelineStatus();
+    RSPaintFilterCanvas::ScreenshotType type = RSEffectLuminanceManager::GetInstance().GetCurrentScreenshotType();
+    if (isHdrPipelineOn &&
+        type != RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT &&
+        type != RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT &&
+        type != RSPaintFilterCanvas::ScreenshotType::SDR_UICAPTURE) {
+        ScreenId screenId = RSEffectLuminanceManager::GetInstance().GetCurrentScreenId();
+        displayHeadroom =
+            RSLuminanceControl::Get().GetDisplayNits(screenId) / RSLuminanceControl::Get().GetSdrDisplayNits(screenId);
+    }
+    Media::VideoProcessingEngine::NonLinearRGB inputRgb = {
+        srcColor.GetRed(), srcColor.GetGreen(), srcColor.GetBlue() };
+    Media::VideoProcessingEngine::NonLinearRGB outputRgb = { 0.0f, 0.0f, 0.0f };
+    Media::Format aihdrParameter {};
+    aihdrParameter.PutFloatValue("expectedHeadroom", srcColor.GetHeadroom());
+    aihdrParameter.PutFloatValue("actualHeadroom", displayHeadroom);
+    aiHDREnhancer->SetParameter(aihdrParameter);
+    if (aiHDREnhancer->ProcessHDRColor(inputRgb, outputRgb) != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
+        RS_LOGE("RSHdrUtil::HDRColorHeadroomMapping aiHDREnhancer ProcessHDRColor failed");
+        return false;
+    }
+    dstColor.SetRgba(outputRgb.r, outputRgb.g, outputRgb.b, srcColor.GetAlpha());
+    RS_LOGD("RSHdrUtil::HDRColorHeadroomMapping isHdrOn:%{public}d ScreenshotType:%{public}d actHeadroom:%{public}f "
+        "expHeadroom:%{public}f inRgb:(%{public}f,%{public}f,%{public}f) outRgb:(%{public}f,%{public}f,%{public}f)",
+        isHdrPipelineOn, type, displayHeadroom, srcColor.GetHeadroom(),
+        inputRgb.r, inputRgb.g, inputRgb.b, outputRgb.r, outputRgb.g, outputRgb.b);
+    return true;
+#else
+    return false;
+#endif
 }
 
 void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)

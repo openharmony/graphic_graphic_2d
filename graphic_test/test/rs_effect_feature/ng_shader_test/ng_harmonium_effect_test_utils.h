@@ -96,7 +96,7 @@ std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const int i, const int colum
     int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
 
     // set effect child node
-    auto effectChildNode = RSCanvasNode::Create();
+    auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     effectChildNode->SetBounds(x, y, sizeX, sizeY);
     effectChildNode->SetFrame(x, y, sizeX, sizeY);
     effectChildNode->SetCornerRadius(cornerRadiusVec[i]);

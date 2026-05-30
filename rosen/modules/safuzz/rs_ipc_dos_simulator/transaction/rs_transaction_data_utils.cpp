@@ -158,7 +158,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetIsTextureExportNode),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSurfaceNodeType),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetContainerWindow),
-    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAnimationFinished),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeAttachToDisplay),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeDetachToDisplay),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSurfaceNodeSetSurfaceId),
@@ -167,7 +166,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetForeground),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetForceUIFirst),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAncoFlags),
-    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetHDRPresent),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetDarkColorMode),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSkipDraw),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetWatermarkEnabled),
@@ -208,7 +206,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeAddToTree),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeRemoveFromTree),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeClearModifiersByPid),
-    DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeForceCloseHdr),
 
     /********** RSEffectNodeCommand **********/
     DECLARE_ADD_RANDOM(RSEffectNodeCommand, RSEffectNodeCreate),

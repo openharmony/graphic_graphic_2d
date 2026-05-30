@@ -38,7 +38,8 @@ private:
         RSSurfaceNodeConfig clonedSurfaceNodeConfig;
         clonedSurfaceNodeConfig.isSync = true;
         clonedSurfaceNodeConfig.SurfaceNodeName = "clonedSurfaceNode";
-        auto clonedSurfaceNode = RSSurfaceNode::Create(clonedSurfaceNodeConfig, type);
+        auto clonedSurfaceNode = RSSurfaceNode::Create(clonedSurfaceNodeConfig, type, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         if (!clonedSurfaceNode) {
             LOGE("CreateClonedNodeWithImageCanvas failed");
             return nullptr;
@@ -47,7 +48,7 @@ private:
         clonedSurfaceNode->SetFrame(bounds);
         clonedSurfaceNode->SetBackgroundColor(colorValue);
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({0, 0, bounds[2], bounds[3]});
         canvasNode->SetFrame({0, 0, bounds[2], bounds[3]});
@@ -68,7 +69,8 @@ private:
         RSSurfaceNodeConfig cloneSurfaceNodeConfig;
         cloneSurfaceNodeConfig.isSync = true;
         cloneSurfaceNodeConfig.SurfaceNodeName = name;
-        auto cloneSurfaceNode = RSSurfaceNode::Create(cloneSurfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE);
+        auto cloneSurfaceNode = RSSurfaceNode::Create(cloneSurfaceNodeConfig, RSSurfaceNodeType::APP_WINDOW_NODE,
+            true, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         if (!cloneSurfaceNode) {
             LOGE("CreateSurfaceNode failed");
             return nullptr;

@@ -46,7 +46,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector4f bounds = { 100.0f, 150.0f, 300.0f, 400.0f };
     modifier->SetBounds(bounds);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -74,7 +74,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector4f bounds = { 0.0f, 0.0f, 0.0f, 0.0f };
     modifier->SetBounds(bounds);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -102,7 +102,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector4f bounds = { -100.0f, -200.0f, 300.0f, 400.0f };
     modifier->SetBounds(bounds);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -130,7 +130,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector4f bounds = { 0.0f, 0.0f, 1920.0f, 1080.0f };
     modifier->SetBounds(bounds);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -158,7 +158,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector4f bounds = { 100.5f, 150.7f, 300.3f, 400.9f };
     modifier->SetBounds(bounds);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -186,7 +186,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector4f bounds = { 100.0f, 150.0f, 300.0f, 400.0f };
     modifier->SetBounds(bounds);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = nullptr;
@@ -207,7 +207,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
 {
     auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -242,7 +242,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBounds(boundsList[i]);
 
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 50, 50, 400, 400 });
 
         std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -279,7 +279,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBounds(boundsList[i]);
 
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 50, 50, 400, 400 });
 
         std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -308,7 +308,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector2f size = { 350.0f, 450.0f };
     modifier->SetBoundsSize(size);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -336,7 +336,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector2f position = { 200.0f, 300.0f };
     modifier->SetBoundsPosition(position);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -364,7 +364,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->SetBoundsWidth(380.0f);
     modifier->SetBoundsHeight(420.0f);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -392,7 +392,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     modifier->SetBoundsPositionX(180.0f);
     modifier->SetBoundsPositionY(280.0f);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -418,7 +418,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
 {
     auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -453,7 +453,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector4f bounds = { 100.0f, 100.0f, 1.0f, 1.0f };
     modifier->SetBounds(bounds);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -490,7 +490,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBounds(boundsList[i]);
 
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         int yOffset = (i / 3) * 350;
         int xOffset = (i % 3) * 380;
         testNode->SetBounds({ xOffset + 50, yOffset + 50, 400, 400 });
@@ -528,7 +528,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBounds(boundsList[i]);
 
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 50, 50, 400, 400 });
 
         std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -557,7 +557,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     Vector4f bounds = { 100.1f, 150.2f, 0.9f, 1.1f };
     modifier->SetBounds(bounds);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -583,7 +583,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
 {
     auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -625,7 +625,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBounds(boundsList[i]);
 
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 50, 50, 400, 400 });
 
         std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -729,7 +729,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     for (size_t i = 0; i < positions.size(); i++) {
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBoundsPositionX(positions[i]);
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({static_cast<float>(i * 200 + 50), 100, 150, 150});
         testNode->SetBackgroundColor(0xff00ff00);
         std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -752,7 +752,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     for (size_t i = 0; i < positions.size(); i++) {
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBoundsPositionY(positions[i]);
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({100, static_cast<float>(i * 200 + 50), 150, 150});
         testNode->SetBackgroundColor(0xff0000ff);
         std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();
@@ -802,7 +802,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     for (size_t i = 0; i < fractionalPositions.size(); i++) {
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBoundsPosition(fractionalPositions[i]);
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>((i % 3) * 300 + 50);
         float y = static_cast<float>((i / 3) * 200 + 50);
         testNode->SetBounds({x, y, 200, 200});
@@ -853,7 +853,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     for (size_t i = 0; i < diagonalPositions.size(); i++) {
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBoundsPosition(diagonalPositions[i]);
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>(i * 200 + 50);
         float y = 100;
         testNode->SetBounds({x, y, 200, 200});
@@ -904,7 +904,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
  */
 GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModifierApplyGeometry_031)
 {
-    auto parentNode = RSCanvasNode::Create();
+    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentNode->SetBounds({50, 50, 500, 500});
     parentNode->SetBackgroundColor(0xffcccccc);
     GetRootNode()->AddChild(parentNode);
@@ -913,7 +913,7 @@ GRAPHIC_TEST(ModifierBoundsApplyGeometryTest, CONTENT_DISPLAY_TEST, RSBoundsModi
     for (size_t i = 0; i < childPositions.size(); i++) {
         auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
         modifier->SetBoundsPosition(childPositions[i]);
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode->SetBounds({childPositions[i].x_, childPositions[i].y_, 100, 100});
         childNode->SetBackgroundColor(0xffff0000);
         std::shared_ptr<RSObjAbsGeometry> geometry = std::make_shared<RSObjAbsGeometry>();

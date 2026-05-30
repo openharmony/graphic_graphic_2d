@@ -499,7 +499,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
     context.nodeMap.logicalDisplayNodeMap_[0]->isOnTheTree_ = false;
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
 
-    context.nodeMap.logicalDisplayNodeMap_[0]->isOnTheTree_ = false;
+    context.nodeMap.logicalDisplayNodeMap_[0]->isOnTheTree_ = true;
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
     EXPECT_EQ(context.nodeMap.logicalDisplayNodeMap_[0]->children_.size(), 0);
 }
@@ -570,23 +570,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, MarkUIHidden001, TestSize.Level1)
     NodeId id2 = 10;
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::MarkUIHidden(context, id2, available);
-    ASSERT_EQ(id2, static_cast<NodeId>(10));
-}
-
-/**
- * @tc.name: SetAnimationFinished001
- * @tc.desc: SetIsNotifyUIBufferAvailable test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceNodeCommandTest, SetAnimationFinished001, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = -10;
-    SurfaceNodeCommandHelper::SetAnimationFinished(context, id);
-    ASSERT_EQ(id, static_cast<NodeId>(-10));
-    NodeId id2 = 10;
-    SurfaceNodeCommandHelper::Create(context, id2);
-    SurfaceNodeCommandHelper::SetAnimationFinished(context, id2);
     ASSERT_EQ(id2, static_cast<NodeId>(10));
 }
 
@@ -720,21 +703,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetAncoSrcCropTest, TestSize.Level1)
     SurfaceNodeCommandHelper::SetAncoSrcCrop(context, 0, rect);
     SurfaceNodeCommandHelper::Create(context, 1);
     SurfaceNodeCommandHelper::SetAncoSrcCrop(context, 1, rect);
-    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
-}
-
-/**
- * @tc.name: SetHDRPresentTest
- * @tc.desc: Verify function SetHDRPresent
- * @tc.type:FUNC
- * @tc.require: issueI9SBEZ
- */
-HWTEST_F(RSSurfaceNodeCommandTest, SetHDRPresentTest, TestSize.Level1)
-{
-    RSContext context;
-    SurfaceNodeCommandHelper::SetHDRPresent(context, 0, false);
-    SurfaceNodeCommandHelper::Create(context, 1);
-    SurfaceNodeCommandHelper::SetHDRPresent(context, 1, false);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
 }
 

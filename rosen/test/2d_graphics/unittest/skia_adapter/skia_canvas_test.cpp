@@ -1307,6 +1307,20 @@ HWTEST_F(SkiaCanvasTest, GetOpsPercentTest001, TestSize.Level1)
     tmp->Init(m->ExportSkiaMatrix());
     ASSERT_EQ(tmp->GetOpsPercent(), 0);
 }
+
+/**
+ * @tc.name: DrawUIColor001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaCanvasTest, DrawUIColor001, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    UIColor uiColor(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    skiaCanvas->DrawUIColor(uiColor, BlendMode::SRC_OVER);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

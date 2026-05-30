@@ -173,6 +173,19 @@ int32_t HdiScreen::GetScreenBacklight(uint32_t &level) const
     return device_->GetScreenBacklight(screenId_, level);
 }
 
+int32_t HdiScreen::GetScreenVCPFeature(uint8_t vcpCode,
+    uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode) const
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->GetScreenVCPFeature(screenId_, vcpCode, currentValue, maximumValue, errorCode);
+}
+
+int32_t HdiScreen::SetScreenVCPFeature(uint8_t vcpCode, uint16_t currentValue)
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->SetScreenVCPFeature(screenId_, vcpCode, currentValue);
+}
+
 int32_t HdiScreen::SetScreenVsyncEnabled(bool enabled) const
 {
     CHECK_DEVICE_NULL(device_);

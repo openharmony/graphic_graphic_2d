@@ -384,11 +384,11 @@ HWTEST_F(FontConfigTest, ParseFileIndexMapTest, TestSize.Level0)
 }
 
 /**
- * @tc.name: ParseFileDumpTest
- * @tc.desc: test ParseFile and Dump function
+ * @tc.name: ParseFileValidConfigTest
+ * @tc.desc: test ParseFile with valid config
  * @tc.type: FUNC
  */
-HWTEST_F(FontConfigTest, ParseFileDumpTest, TestSize.Level0)
+HWTEST_F(FontConfigTest, ParseFileValidConfigTest, TestSize.Level0)
 {
     std::string tempFile = CreateTempConfigFile(VALID_FONT_CONFIG_JSON);
     ASSERT_FALSE(tempFile.empty()) << "Failed to create temp config file";
@@ -397,9 +397,6 @@ HWTEST_F(FontConfigTest, ParseFileDumpTest, TestSize.Level0)
     int result = fontConfigJson.ParseFile(tempFile.c_str());
 
     EXPECT_EQ(result, 0);
-
-    // Dump should not crash
-    fontConfigJson.Dump();
 
     // Clean up
     unlink(tempFile.c_str());

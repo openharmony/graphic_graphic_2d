@@ -37,7 +37,7 @@ public:
 /* SetBounds: normal bounds */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 300, 300 });
     testNode->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(testNode);
@@ -75,7 +75,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_3)
     };
 
     for (const auto& bounds : sizeList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetBackgroundColor(0xff0000ff);
         GetRootNode()->AddChild(testNode);
@@ -86,7 +86,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_3)
 /* SetBounds: width == 0 */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_4)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 0, 300 }); // width = 0, not visible
     testNode->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(testNode);
@@ -96,7 +96,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_4)
 /* SetBounds: height == 0 */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_5)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 300, 0 }); // height = 0, not visible
     testNode->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(testNode);
@@ -106,7 +106,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_5)
 /* SetBounds: negative width (treated as 0) */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_6)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, -100, 300 }); // negative width
     testNode->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(testNode);
@@ -132,7 +132,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_8)
     };
 
     for (const auto& bounds : boundsList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetBackgroundColor(0xff00ff00);
         GetRootNode()->AddChild(testNode);
@@ -161,13 +161,13 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_9)
 /* SetBounds: bounds overlap test */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_10)
 {
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({ 100, 100, 400, 400 });
     testNode1->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(testNode1);
     RegisterNode(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({ 300, 300, 400, 400 });
     testNode2->SetBackgroundColor(0xff0000ff);
     GetRootNode()->AddChild(testNode2);
@@ -177,7 +177,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_10)
 /* SetBounds: update bounds dynamically */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Test_11)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 200, 200 });
     testNode->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(testNode);
@@ -216,7 +216,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Extreme_Size)
     };
 
     for (const auto& bounds : extremeSizes) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetBackgroundColor(0xffff0000);
         GetRootNode()->AddChild(testNode);
@@ -235,7 +235,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Negative_Combo)
     };
 
     for (const auto& bounds : boundsList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetBackgroundColor(0xffff0000);
         GetRootNode()->AddChild(testNode);
@@ -253,7 +253,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Matrix_4x3)
 
     for (size_t row = 0; row < positions.size(); row++) {
         for (size_t col = 0; col < sizes.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             int x = positions[row].x_ + (int)col * 280;
             int y = positions[row].y_ + (int)row * 50;
             testNode->SetBounds({ x, y, sizes[col], sizes[col] });
@@ -267,7 +267,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Matrix_4x3)
 /* SetBounds: bounds with all zero components */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_All_Zero)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 0, 0 }); // 全零
     testNode->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(testNode);
@@ -277,7 +277,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_All_Zero)
 /* SetBounds: rapid bounds changes */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Bounds_Rapid_Change)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBackgroundColor(0xffff0000);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);

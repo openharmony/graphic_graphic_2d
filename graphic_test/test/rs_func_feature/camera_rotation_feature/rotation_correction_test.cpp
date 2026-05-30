@@ -55,7 +55,8 @@ public:
         rsSurfaceNodeConfig1.SurfaceNodeName = "AppWindow";
         rsSurfaceNodeConfig1.isSync = false;
         RSSurfaceNodeType rsSurfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
-        auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType);
+        auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
         surfaceNode->SetFrame({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
         surfaceNode->SetBackgroundColor(SK_ColorBLACK);
@@ -174,7 +175,8 @@ public:
         rsSurfaceNodeConfig1.SurfaceNodeName = "SelfDrawingNode";
         rsSurfaceNodeConfig1.isSync = false;
         RSSurfaceNodeType rsSurfaceNodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
-        auto selfDrawingNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType);
+        auto selfDrawingNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         selfDrawingNode->SetBounds({ 0, 0, 960, 960 });
         selfDrawingNode->SetFrame({ 0, 0, 960, 960 });
         selfDrawingNode->SetHardwareEnabled(true);

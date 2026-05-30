@@ -16,6 +16,7 @@
 #include "core_canvas.h"
 
 #include "config/DrawingConfig.h"
+#include "draw/prim_list.h"
 #include "impl_factory.h"
 #include "text/glyph_cache.h"
 #include "utils/log.h"
@@ -949,6 +950,21 @@ void CoreCanvas::InsertOpaqueRegion(const std::vector<RectI>& rects)
 bool CoreCanvas::IsOpaque() const
 {
     return impl_->IsOpaque();
+}
+
+void CoreCanvas::BeginPrimListCollecting(const Rect& bounds)
+{
+    impl_->BeginPrimListCollecting(bounds);
+}
+
+std::shared_ptr<PrimList> CoreCanvas::EndPrimListCollecting()
+{
+    return impl_->EndPrimListCollecting();
+}
+
+bool CoreCanvas::DrawPrimList(const PrimList& primList)
+{
+    return impl_->DrawPrimList(primList);
 }
 } // namespace Drawing
 } // namespace Rosen

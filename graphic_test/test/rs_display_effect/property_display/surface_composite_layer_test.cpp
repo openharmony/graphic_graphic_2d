@@ -45,7 +45,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
     std::vector<float> alphaValues = { 0.0f, 0.3f, 0.6f, 1.0f };
 
     for (size_t i = 0; i < alphaValues.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetAlpha(alphaValues[i]);
@@ -74,7 +74,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
     };
 
     for (size_t i = 0; i < boundaryAlphas.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 140 + 50, 50, 130, 130 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetAlpha(boundaryAlphas[i]);
@@ -96,7 +96,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
 
     for (size_t row = 0; row < alphaValues.size(); row++) {
         for (size_t col = 0; col < scaleList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaValues[row]);
@@ -115,7 +115,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
  */
 GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLayerTest_004)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -145,7 +145,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
 
     for (size_t row = 0; row < alphaValues.size(); row++) {
         for (size_t col = 0; col < rotationList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaValues[row]);
@@ -172,7 +172,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
     };
 
     for (size_t i = 0; i < scaleList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetScale(scaleList[i].first, scaleList[i].second);
@@ -197,7 +197,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
     };
 
     for (size_t i = 0; i < zeroBounds.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ zeroBounds[i].x_, zeroBounds[i].y_,
             zeroBounds[i].z_, zeroBounds[i].w_ });
         testNode->SetBackgroundColor(0xffff0000);
@@ -220,7 +220,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
 
     for (size_t row = 0; row < alphaValues.size(); row++) {
         for (size_t col = 0; col < blurRadius.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaValues[row]);
@@ -245,7 +245,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
     std::vector<float> alphaValues = { 0.3f, 0.6f, 1.0f, 0.5f, 0.8f };
 
     for (size_t i = 0; i < alphaValues.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 230 + 50, 50, 200, 200 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetAlpha(alphaValues[i]);
@@ -263,7 +263,7 @@ GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLa
 GRAPHIC_TEST(SurfaceCompositeLayerTest, CONTENT_DISPLAY_TEST, SurfaceCompositeLayerTest_010)
 {
     for (int i = 0; i < 6; i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 190 + 50, 50, 180, 180 });
         testNode->SetBackgroundColor(0xffff0000 - i * 0x00200000);
         testNode->SetAlpha((i % 3 + 1) * 0.3f);

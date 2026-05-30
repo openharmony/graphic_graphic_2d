@@ -114,7 +114,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter01)
     RegisterNode(testNode);
     testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -142,7 +142,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter02)
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -170,7 +170,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter03)
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -178,7 +178,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter03)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 0, 800, 400, 400 };
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode3);
     testNode3->SetBounds(bounds3);
     testNode3->SetTranslate({ 0, 0 });
@@ -208,7 +208,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter04)
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
     testNode->SetAlpha(DEFAULT_ALPHA);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -236,7 +236,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter05)
     testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(bounds2);
     testNode2->SetTranslate({ 0, 0 });
@@ -270,7 +270,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter06)
     RegisterNode(testNode);
     testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -304,7 +304,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter07)
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -338,7 +338,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter08)
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -372,14 +372,14 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter09)
     RegisterNode(testNode);
     testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetBackgroundColor(COLOR_RED);
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode3);
     testNode3->SetBounds(bounds);
     testNode3->SetBackgroundColor(COLOR_BLUE);
@@ -408,14 +408,14 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter10)
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetBackgroundColor(COLOR_RED);
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode3);
     testNode3->SetBounds(bounds);
     testNode3->SetForegroundColor(COLOR_BLUE);
@@ -444,7 +444,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter11)
     RegisterNode(testNode);
     testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -452,7 +452,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter11)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 0, 800, 400, 400 };
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode3);
     testNode3->SetBounds(bounds3);
     testNode3->SetTranslate({ 0, 0 });
@@ -481,7 +481,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter12)
     RegisterNode(testNode);
     testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -489,7 +489,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter12)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 0, 800, 400, 400 };
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode3);
     testNode3->SetBounds(bounds3);
     testNode3->SetTranslate({ 0, 0 });
@@ -518,7 +518,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter13)
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_BOUNDS);
     testNode2->SetTranslate({ 0, 0 });
@@ -526,7 +526,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter13)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 0, 800, 400, 400 };
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode3);
     testNode3->SetBounds(bounds3);
     testNode3->SetTranslate({ 0, 0 });
@@ -554,7 +554,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
     RegisterNode(testNode);
     GetRootNode()->AddChild(testNode);
 
-    auto movingNode = RSCanvasNode::Create();
+    auto movingNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(movingNode);
     movingNode->SetBounds(DEFAULT_BOUNDS);
     movingNode->SetTranslate({ 0, 0 });
@@ -568,7 +568,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
     opts.contentBgColor = 0x80000000; // semi-transparent black background
     auto subId = CreateSubWindow(opts);
 
-    auto blurNode = RSCanvasNode::Create();
+    auto blurNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(blurNode);
     blurNode->SetBounds({ 0, 0, 300, 300 }); // partial coverage within sub-window
     blurNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
@@ -601,7 +601,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
     opts.contentBgColor = 0x80000000; // semi-transparent black background
     auto subId = CreateSubWindow(opts);
 
-    auto subContent = RSCanvasNode::Create();
+    auto subContent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(subContent);
     subContent->SetBounds({ 0, 0, 300, 300 }); // partial coverage within sub-window
     subContent->SetBackgroundColor(COLOR_BLUE);
@@ -633,7 +633,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
     opts1.contentBgColor = 0x80000000; // semi-transparent black background
     auto subId1 = CreateSubWindow(opts1);
 
-    auto blurNode1 = RSCanvasNode::Create();
+    auto blurNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(blurNode1);
     blurNode1->SetBounds({ 0, 0, 300, 300 }); // partial coverage within sub-window
     blurNode1->SetBackgroundBlurRadius(DEFAULT_RADIUS);
@@ -649,7 +649,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
     opts2.contentBgColor = 0x80000000; // semi-transparent black background
     auto subId2 = CreateSubWindow(opts2);
 
-    auto blurNode2 = RSCanvasNode::Create();
+    auto blurNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(blurNode2);
     blurNode2->SetBounds({ 0, 0, 300, 300 }); // partial coverage within sub-window
     blurNode2->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
@@ -682,7 +682,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
     opts.contentBgColor = 0x80000000; // semi-transparent black background
     auto subId = CreateSubWindow(opts);
 
-    auto movingNode = RSCanvasNode::Create();
+    auto movingNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(movingNode);
     movingNode->SetBounds(DEFAULT_BOUNDS);
     movingNode->SetTranslate({ 0, 0 });
@@ -691,7 +691,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
     GetRootNode()->AddChildToSubWindow(subId, movingNode);
 
     Vector4f bounds3 = { 0, 800, 400, 400 }; // second moving node, below the first one
-    auto movingNode2 = RSCanvasNode::Create();
+    auto movingNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(movingNode2);
     movingNode2->SetBounds(bounds3);
     movingNode2->SetTranslate({ 0, 0 });

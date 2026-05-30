@@ -63,6 +63,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr int32_t INSTANCE_ID_UNDEFINED_TASK_RUNNER = 0;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 static std::once_flag g_isResidentProcessFlag;
@@ -111,9 +112,6 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
         }
 
         RsFrameReport::InitDeadline();
-        if (!cacheDir_.empty()) {
-            RSRenderThread::Instance().SetCacheDir(cacheDir_);
-        }
         RSRenderThread::Instance().Start();
     } else {
         // force fallback animaiions send to RS if no render thread
@@ -497,6 +495,9 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
         RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
     }
 #endif
+    if (!cacheDir_.empty()) {
+        RSRenderThread::Instance().SetCacheDir(cacheDir_);
+    }
 }
 
 bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
@@ -567,8 +568,9 @@ bool RSUIDirector::HasUIRunningAnimation()
 
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t instanceId, bool useMultiInstance)
 {
-    if (!useMultiInstance) {
+    if (!useMultiInstance || !RSSystemProperties::GetUniRenderEnabled()) {
         std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex_);
+        ROSEN_LOGI("RSUIDirector::SetUITaskRunner:%{public}d", instanceId);
         instanceId_ = instanceId;
         uiTaskRunners_[this] = uiTaskRunner;
         if (!isHgmConfigChangeCallbackReg_) {
@@ -731,17 +733,29 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
     static uint32_t messageId = 0;
     std::map<int32_t, std::vector<std::unique_ptr<RSCommand>>> instanceCmdMap;
     std::map<uint64_t, std::vector<std::unique_ptr<RSCommand>>> uiContextCmdMap;
-    for (auto& [id, _, cmd] : cmds->GetPayload()) {
-        uint64_t token = cmd->GetToken();
-        if (token == 0) {
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        for (auto& [id, _, cmd] : cmds->GetPayload()) {
             NodeId realId = (id == 0 && cmd) ? cmd->GetNodeId() : id;
             int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
             if (instanceId == INSTANCE_ID_UNDEFINED) {
                 instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
+                instanceId = (instanceId == INSTANCE_ID_UNDEFINED) ? INSTANCE_ID_UNDEFINED_TASK_RUNNER : instanceId;
             }
             instanceCmdMap[instanceId].push_back(std::move(cmd));
-        } else {
-            uiContextCmdMap[token].push_back(std::move(cmd));
+        }
+    } else {
+        for (auto& [id, _, cmd] : cmds->GetPayload()) {
+            uint64_t token = cmd->GetToken();
+            if (token == 0) {
+                NodeId realId = (id == 0 && cmd) ? cmd->GetNodeId() : id;
+                int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
+                if (instanceId == INSTANCE_ID_UNDEFINED) {
+                    instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
+                }
+                instanceCmdMap[instanceId].push_back(std::move(cmd));
+            } else {
+                uiContextCmdMap[token].push_back(std::move(cmd));
+            }
         }
     }
     auto msgId = ++messageId;
@@ -835,7 +849,7 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t toke
 
 void RSUIDirector::PostFrameRateTask(const std::function<void()>& task, bool useMultiInstance)
 {
-    if (!useMultiInstance) {
+    if (!useMultiInstance || !RSSystemProperties::GetUniRenderEnabled()) {
         PostTask(task);
         return;
     }

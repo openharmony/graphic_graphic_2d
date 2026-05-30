@@ -48,7 +48,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
     ASSERT_NE(pixelMap, nullptr);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetPixelmap(pixelMap);
 
@@ -63,7 +63,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
  */
 GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetPixelmapTest_002)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -100,7 +100,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     };
 
     for (const auto& bounds : boundsList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetPixelmap(pixelMap);
         GetRootNode()->AddChild(testNode);
@@ -127,7 +127,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     };
 
     for (const auto& bounds : zeroBounds) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetPixelmap(pixelMap);
         GetRootNode()->AddChild(testNode);
@@ -153,7 +153,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     };
 
     for (const auto& bounds : outBounds) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetPixelmap(pixelMap);
         GetRootNode()->AddChild(testNode);
@@ -178,7 +178,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     std::vector<float> alphaList = { 0.0f, 0.3f, 0.5f, 0.7f, 1.0f };
 
     for (size_t i = 0; i < alphaList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 220 + 50, 50, 200, 200 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetAlpha(alphaList[i]);
@@ -200,7 +200,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     std::vector<float> extremeAlphas = { -1.0f, -0.5f, 0.0f, 0.001f, 0.5f, 1.0f, 1.5f, 2.0f };
 
     for (size_t i = 0; i < extremeAlphas.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 140 + 50, 50, 130, 130 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetAlpha(extremeAlphas[i]);
@@ -220,7 +220,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
     // Background layer
-    auto bgNode = RSCanvasNode::Create();
+    auto bgNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     bgNode->SetBounds({ 50, 50, 1100, 1100 });
     bgNode->SetBackgroundColor(0xffffffff);
     GetRootNode()->AddChild(bgNode);
@@ -229,7 +229,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
 
     for (size_t row = 0; row < 3; row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetPixelmap(pixelMap);
             testNode->SetAlpha(alphaList[col]);
@@ -258,7 +258,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
 
     for (size_t row = 0; row < alphaList.size(); row++) {
         for (size_t col = 0; col < rotationList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 200 + 50, (int)row * 400 + 50, 180, 180 });
             testNode->SetPixelmap(pixelMap);
             testNode->SetRotation(rotationList[col]);
@@ -282,7 +282,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     std::vector<float> extremeRotations = { -360, -270, -180, -90, -45, 0, 45, 90, 180, 270, 360 };
 
     for (size_t i = 0; i < extremeRotations.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 110 + 50, 50, 100, 100 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetRotation(extremeRotations[i]);
@@ -321,7 +321,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     };
 
     for (size_t i = 0; i < scaleList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 90 + 50, 50, 80, 80 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetScale(scaleList[i].first, scaleList[i].second);
@@ -348,7 +348,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     };
 
     for (size_t i = 0; i < extremeScales.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetScale(extremeScales[i].first, extremeScales[i].second);
@@ -384,7 +384,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     };
 
     for (size_t i = 0; i < translateList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 130 + 50, 50, 120, 120 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetTranslate(Vector2f(translateList[i].first, translateList[i].second));
@@ -409,7 +409,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     auto pixelMap2 = DecodePixelMap("/data/local/tmp/geom_test.jpg",
                                     Media::AllocatorType::SHARE_MEM_ALLOC);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetPixelmap(pixelMap1); // Initial pixelmap
 
@@ -433,7 +433,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     auto pixelMap = DecodePixelMap("/data/local/tmp/appearance_test.jpg",
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetPixelmap(pixelMap);
 
@@ -458,7 +458,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
     for (int i = 0; i < 9; i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 50 + (i % 3) * 380, 50 + (i / 3) * 380, 300, 300 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetAlpha(0.5f + i * 0.05f);
@@ -483,13 +483,13 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
     // Root node
-    auto root = RSCanvasNode::Create();
+    auto root = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     root->SetBounds({ 50, 50, 1100, 1100 });
     root->SetBackgroundColor(0xffff0000);
 
     // Level 1 children
     for (int i = 0; i < 3; i++) {
-        auto level1 = RSCanvasNode::Create();
+        auto level1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         level1->SetBounds({ 50 + i * 350, 50, 330, 330 });
         level1->SetBackgroundColor(0xff00ff00);
         level1->SetPixelmap(pixelMap);
@@ -497,7 +497,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
 
         // Level 2 children
         for (int j = 0; j < 2; j++) {
-            auto level2 = RSCanvasNode::Create();
+            auto level2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             level2->SetBounds({ 50 + j * 160, 50, 150, 250 });
             level2->SetBackgroundColor(0xff0000ff);
             level2->SetPixelmap(pixelMap);
@@ -522,13 +522,13 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     auto pixelMap = DecodePixelMap("/data/local/tmp/appearance_test.jpg",
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
-    auto parent = RSCanvasNode::Create();
+    auto parent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parent->SetBounds({ 50, 50, 600, 600 });
     parent->SetBackgroundColor(0xffff0000);
 
     // Create overlapping children with pixelmap
     for (int i = 0; i < 4; i++) {
-        auto child = RSCanvasNode::Create();
+        auto child = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         child->SetBounds({ 100 + i * 100, 100 + i * 50, 250, 250 });
         child->SetPixelmap(pixelMap);
         child->SetAlpha(0.7f - i * 0.1f);
@@ -558,7 +558,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
 
     for (size_t row = 0; row < rotations.size(); row++) {
         for (size_t col = 0; col < scales.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetPixelmap(pixelMap);
             testNode->SetRotation(rotations[row]);
@@ -594,7 +594,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     };
 
     for (size_t i = 0; i < pivots.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 130 + 50, 50, 120, 120 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetPivot(pivots[i].first, pivots[i].second);
@@ -623,7 +623,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
 
     for (size_t row = 0; row < blurRadius.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetPixelmap(pixelMap);
             testNode->SetBackgroundBlurRadius(blurRadius[row]);
@@ -649,7 +649,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
 
     for (size_t row = 0; row < shadowRadius.size(); row++) {
         for (size_t col = 0; col < offsetX.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetPixelmap(pixelMap);
             testNode->SetShadowRadius(shadowRadius[row]);
@@ -675,7 +675,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     std::vector<float> radiusValues = { 0, 10, 20, 30, 40, 50, 60, 80, 100 };
 
     for (size_t i = 0; i < radiusValues.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 130 + 50, 50, 120, 120 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetCornerRadius(radiusValues[i]);
@@ -706,7 +706,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     };
 
     for (const auto& bounds : largeBounds) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ bounds.x_, bounds.y_, bounds.z_, bounds.w_ });
         testNode->SetPixelmap(pixelMap);
         GetRootNode()->AddChild(testNode);
@@ -724,7 +724,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     auto pixelMap = DecodePixelMap("/data/local/tmp/appearance_test.jpg",
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
 
     // Rapid updates
@@ -747,7 +747,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     auto pixelMap = DecodePixelMap("/data/local/tmp/appearance_test.jpg",
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
-    auto surfaceNode = RSCanvasNode::Create();
+    auto surfaceNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode->SetBounds({ 50, 50, 400, 400 });
     surfaceNode->SetPixelmap(pixelMap);
     surfaceNode->SetAlpha(0.8f);
@@ -779,7 +779,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     };
 
     for (size_t i = 0; i < 9; i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 50, 50, 200, 200 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetFrame({ framePositions[i].first, framePositions[i].second, 200, 200 });

@@ -564,7 +564,7 @@ ohos_source_set("render_service_base_src") {
     if (!use_libfuzzer) {
       cflags += [ "-flto=thin" ]
     }
-    if (enhanced_opt && !use_libfuzzer) {
+    if (enhanced_opt) {
       if (!use_libfuzzer) {
         cflags += [ "-fwhole-program-vtables" ]
       }
@@ -712,6 +712,14 @@ ohos_source_set("render_service_base_src") {
 
   if (graphic_2d_feature_subtree_parallel_enable) {
     include_dirs += [ "$graphic_2d_ext_root/subtree" ]
+  }
+
+  if (graphic_2d_feature_enable_primitive) {
+    include_dirs += graphic_2d_subtree_configs.librender_service_primitive_include
+    sources += graphic_2d_subtree_configs.librender_service_primitive_sources
+    sources += [
+      "src/drawable/rs_drawable_primitive.cpp",
+    ]
   }
 
   if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable
@@ -936,7 +944,7 @@ ohos_shared_library("librender_service_base") {
     "$graphic_2d_root/utils/socketpair:socketpair_public_config",
     "$graphic_2d_root/rosen/modules/composer/vsync:vsync_public_config",
   ]
-  if (enhanced_opt && !use_libfuzzer) {
+  if (enhanced_opt) {
     configs = [ ":render_service_base_link_config" ]
   }
 

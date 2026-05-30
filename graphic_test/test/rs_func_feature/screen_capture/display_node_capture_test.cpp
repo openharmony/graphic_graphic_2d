@@ -125,12 +125,12 @@ public:
  */
 GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_TEST_001)
 {
-    auto canvasNode0 = RSCanvasNode::Create();
+    auto canvasNode0 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode0->SetBounds({0, 0, 100, 100});
     canvasNode0->SetFrame({0, 0, 100, 100});
     canvasNode0->SetBackgroundColor(SK_ColorYELLOW);
 
-    auto canvasNode1 = RSCanvasNode::Create();
+    auto canvasNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode1->SetBounds({0, 0, 200, 200});
     canvasNode1->SetFrame({0, 0, 200, 200});
     canvasNode1->SetBackgroundColor(SK_ColorBLUE);
@@ -138,12 +138,14 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode0";
-    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig);
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode0->SetBounds({0, 0, 100, 100});
     surfaceNode0->SetFrame({0, 0, 100, 100});
 
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode1";
-    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig);
+    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode1->SetBounds({0, 0, 200, 200});
     surfaceNode1->SetFrame({0, 0, 200, 200});
 
@@ -163,7 +165,7 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
     }
 
     RSDisplayNodeConfig displayNodeConfig = {screenId, false, 0, true};
-    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     if (!displayNode) {
         LOGE("displayNode is nullptr");
         return;
@@ -192,12 +194,12 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
  */
 GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_TEST_002)
 {
-    auto canvasNode0 = RSCanvasNode::Create();
+    auto canvasNode0 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode0->SetBounds({0, 0, 100, 100});
     canvasNode0->SetFrame({0, 0, 100, 100});
     canvasNode0->SetBackgroundColor(SK_ColorYELLOW);
 
-    auto canvasNode1 = RSCanvasNode::Create();
+    auto canvasNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode1->SetBounds({0, 0, 200, 200});
     canvasNode1->SetFrame({0, 0, 200, 200});
     canvasNode1->SetBackgroundColor(SK_ColorBLUE);
@@ -205,12 +207,14 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode0";
-    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig);
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode0->SetBounds({0, 0, 100, 100});
     surfaceNode0->SetFrame({0, 0, 100, 100});
 
     surfaceNodeConfig.SurfaceNodeName = "TestSurfaceNode1";
-    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig);
+    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     surfaceNode1->SetBounds({0, 0, 200, 200});
     surfaceNode1->SetFrame({0, 0, 200, 200});
 
@@ -230,7 +234,7 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
     }
 
     RSDisplayNodeConfig displayNodeConfig = {screenId, false, 0, true};
-    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     if (!displayNode) {
         LOGE("displayNode is nullptr");
         return;

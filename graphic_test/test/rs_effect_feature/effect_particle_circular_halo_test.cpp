@@ -92,7 +92,7 @@ GRAPHIC_TEST(ParticleCircularHaloTest, EFFECT_TEST, Set_Particle_Circular_Halo_B
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto node = RSCanvasNode::Create();
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);

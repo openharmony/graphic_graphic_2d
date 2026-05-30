@@ -59,7 +59,7 @@ GRAPHIC_TEST(BackgroundTest07, CONTENT_DISPLAY_TEST, Alpha_Color_Blend_Mode)
         childNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
         childNode1->SetAlpha(0.3f);
         RegisterNode(childNode1);
-        auto childNode2 = RSCanvasNode::Create();
+        auto childNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode2->SetBounds({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
         childNode2->SetBackgroundColor(0xff00ff00);
         childNode2->SetBackgroundBlurRadius(30);
@@ -68,7 +68,7 @@ GRAPHIC_TEST(BackgroundTest07, CONTENT_DISPLAY_TEST, Alpha_Color_Blend_Mode)
         childNode2->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
         childNode2->SetAlpha(0.5f);
         RegisterNode(childNode2);
-        auto childNode3 = RSCanvasNode::Create();
+        auto childNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode3->SetBounds({ sizeX * 3 / 4, sizeY * 3 / 4, sizeX / 3, sizeY / 3 });
         childNode3->SetBackgroundColor(0xff00ffff);
         childNode3->SetBackgroundBlurRadius(30);

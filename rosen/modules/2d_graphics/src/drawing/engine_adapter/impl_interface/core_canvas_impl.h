@@ -61,6 +61,7 @@ struct Lattice;
 class Canvas;
 struct HpsBlurParameter;
 enum class QuadAAFlags;
+class PrimList;
 
 class CoreCanvasImpl : public BaseImpl {
 public:
@@ -208,6 +209,10 @@ public:
     virtual void InsertOpaqueRegion(const std::vector<RectI>& opaqueRects) = 0;
 
     virtual bool IsOpaque() = 0;
+
+    virtual void BeginPrimListCollecting(const Rect& bounds) = 0;
+    virtual std::shared_ptr<PrimList> EndPrimListCollecting() = 0;
+    virtual bool DrawPrimList(const PrimList& primList) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

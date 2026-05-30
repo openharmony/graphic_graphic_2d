@@ -90,7 +90,7 @@ private:
         GetRootNode()->AddChild(parentNode);
         RegisterNode(parentNode);
 
-        auto effectNode = RSEffectNode::Create();
+        auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectNode->SetBounds({0, 0, sizeX, sizeY});
         effectNode->SetFrame({0, 0, sizeX, sizeY});
         effectNode->SetBackgroundColor(0xffff0000);
@@ -101,7 +101,7 @@ private:
         harmoniumEffect->Setter<HarmoniumEffectMaskTag>(std::static_pointer_cast<RSNGMaskBase>(radialGradientMask));
         harmoniumEffect->Setter<HarmoniumEffectDistortProgressTag>(1.0f);
 
-        auto effectChildNode = RSCanvasNode::Create();
+        auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectChildNode->SetBounds({0, 0, sizeX, sizeY});
         effectChildNode->SetFrame({0, 0, sizeX, sizeY});
         effectChildNode->SetBackgroundNGShader(harmoniumEffect);

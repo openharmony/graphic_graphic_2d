@@ -88,6 +88,10 @@
 #include "rs_parallel_manager.h"
 #endif
 
+#ifdef USE_PRIMITIVE
+#include "primitive/primitive_adapter.h"
+#endif
+
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -777,6 +781,12 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+#ifdef USE_PRIMITIVE
+    auto primListAdapter = std::make_shared<PrimListAdapter>();
+    curCanvas_->primListAdapter_ = primListAdapter;
+    AutoDirtyTypesRestore autoDirtyTypesRestore(primListAdapter, *this);
+#endif
+
     auto& layerCacheManager = RSLayerCacheManager::Instance();
     layerCacheManager.HandleLayerDrawables(*curCanvas_);
 
@@ -796,6 +806,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #endif
     RSFilterCacheMemoryController::Instance().SetScreenRectInfo({0, 0, screenInfo.width, screenInfo.height});
     UpdateSurfaceDrawRegion(curCanvas_, params);
+
+#ifdef USE_PRIMITIVE
+    primListAdapter->PrimDrawSuspend();
+#endif
 
     // canvas draw
     {
@@ -817,6 +831,17 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             } else {
                 curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
             }
+#ifdef USE_PRIMITIVE
+            bool isRegionClipped = uniParam->IsOpDropped() && !uniParam->IsDirtyAlignEnabled();
+            primListAdapter->ClipDirtyProcess(isRegionClipped, lastIsRegionClipped_, damageRegionrects,
+                lastDamageRegionrects_);
+            if (isRegionClipped) {
+                lastDamageRegionrects_ = damageRegionrects;
+            } else {
+                lastDamageRegionrects_.clear();
+            }
+            lastIsRegionClipped_ = isRegionClipped;
+#endif
             // just used in SubTree, used for check whether a new Surface needs to be created in the SubTree thread.
             curCanvas_->SetWeakSurface(drSurface);
 
@@ -875,6 +900,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable Flush");
     RsFrameReport::CheckBeginFlushPoint();
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
+
+#ifdef USE_PRIMITIVE
+    primListAdapter->PrimDrawResume();
+#endif
 
     renderFrame->Flush();
     bufferGuard.SetAcquireFence(renderFrame->GetAcquireFence());

@@ -231,6 +231,13 @@ private:
     float dynamicLightUpDeg_ = 0.0f;
     float stagingDynamicLightUpRate_ = 0.0f;
     float stagingDynamicLightUpDeg_ = 0.0f;
+
+#ifdef USE_PRIMITIVE
+    bool UsePrimList() const override
+    {
+        return true;
+    }
+#endif
 };
 
 class RSMaterialFilterDrawable : public RSFilterDrawable {

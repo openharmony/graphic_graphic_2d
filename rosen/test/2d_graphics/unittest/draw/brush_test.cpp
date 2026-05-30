@@ -871,6 +871,29 @@ HWTEST_F(BrushTest, GetBlueF, TestSize.Level1)
     brush.SetARGB(255, 64, 96, 160);
     EXPECT_FLOAT_EQ(brush.GetBlueF(), 160.0f / 255.0f);
 }
+
+/**
+ * @tc.name: OperatorEqualBothNormalColor
+ * @tc.desc: Test operator== when both brushes have normal color and isHdrColor_ is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, OperatorEqualBothNormalColor, TestSize.Level1)
+{
+    Brush brush1;
+    Brush brush2;
+    brush1.SetColor(Color(100, 150, 200, 255));
+    brush2.SetColor(Color(100, 150, 200, 255));
+    brush1.SetUIColor(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 2), nullptr);
+    brush2.SetUIColor(UIColor(1.0f, 1.0f, 0.0f, 1.0f, 2), nullptr);
+    EXPECT_TRUE(brush1 != brush2);
+
+    brush1.SetColor(Color(100, 150, 255, 255));
+    brush2.SetColor(Color(100, 150, 200, 255));
+    brush1.SetUIColor(UIColor(1.0f, 1.0f, 0.0f, 1.0f, 2), nullptr);
+    brush2.SetUIColor(UIColor(1.0f, 1.0f, 0.0f, 1.0f, 2), nullptr);
+    EXPECT_TRUE(brush1 == brush2);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

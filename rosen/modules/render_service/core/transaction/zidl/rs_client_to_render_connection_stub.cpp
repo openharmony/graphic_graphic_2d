@@ -551,6 +551,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        // LCOV_EXCL_START
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
             pid_t pid = GetCallingPid();
             RS_PROFILER_PATCH_PID(data, pid);
@@ -567,6 +568,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             RegisterApplicationAgent(pid, app);
             break;
         }
+        // LCOV_EXCL_STOP
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER): {
             NodeId id{0};
             if (!data.ReadUint64(id)) {

@@ -67,8 +67,7 @@
         "graphic_2d_feature_enable_memory_downtree",
         "graphic_2d_feature_enable_drm",
         "graphic_2d_feature_enable_mediacommon",
-        "graphic_2d_feature_enable_image_detail_enhancer",
-        "graphic_2d_feature_enable_rs_proxy"
+        "graphic_2d_feature_enable_image_detail_enhancer"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -316,6 +315,16 @@
                 "rs_window_animation_target.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/include"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": [
+              ]
             }
           },
           {

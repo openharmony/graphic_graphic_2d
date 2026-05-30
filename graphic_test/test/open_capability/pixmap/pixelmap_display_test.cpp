@@ -314,7 +314,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_TEST
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -386,7 +386,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ROTATE_TES
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -453,7 +453,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_FLIP_TEST)
         rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
         auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap,
@@ -532,7 +532,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_CROP_TEST)
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -619,7 +619,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_TRANSLATE_
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -688,7 +688,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ALPHA_TEST
         rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
         auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap,
@@ -751,7 +751,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_PIXEL_FORM
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -806,7 +806,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ALPHA_TYPE
         rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
         auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap,
@@ -861,7 +861,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SIZE_TEST)
             rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
             auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (500 + gap) * i,
@@ -933,7 +933,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_ROTA
             rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
             auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * j,
@@ -1005,7 +1005,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ROTATE_FLI
             rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
             auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * j,
@@ -1078,7 +1078,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_CROP
             rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
             auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * j,
@@ -1145,7 +1145,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_TRANSLATE_
             rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
             auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * j,
@@ -1215,7 +1215,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_ROTA
             rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
             auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * j,
@@ -1292,7 +1292,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_ROTA
                 int32_t row = index / column;
                 int32_t col = index % column;
 
-                auto canvasNode = RSCanvasNode::Create();
+                auto canvasNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
                 canvasNode->SetClipToBounds(true);
                 canvasNode->SetBounds({
                     gap + (nodeWidth + gap) * col,
@@ -1378,7 +1379,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_CROP_ROTAT
                 int32_t row = index / column;
                 int32_t col = index % column;
 
-                auto canvasNode = RSCanvasNode::Create();
+                auto canvasNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
                 canvasNode->SetClipToBounds(true);
                 canvasNode->SetBounds({
                     gap + (nodeWidth + gap) * col,
@@ -1475,7 +1477,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ALL_TRANSF
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -1552,7 +1554,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_IMAGE
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -1622,7 +1624,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_SCALE
             int32_t row = i * fitCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -1693,7 +1695,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_ROTAT
             int32_t row = i * fitCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -1769,7 +1771,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_FLIP_
             int32_t row = i * fitCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -1838,7 +1840,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_SIZE_
             int32_t row = i * fitCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -1926,7 +1928,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_ALL_T
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -1995,7 +1997,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_REPEA
             int32_t row = i * fitCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -2069,7 +2071,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_FORMAT
             int32_t row = i * fitCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -2139,7 +2141,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_SIZE_V
             int32_t row = i * sizeCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -2213,7 +2215,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_COLORSPACE
             int32_t row = i * fitCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -2294,7 +2296,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_COLORSPACE
                 int32_t row = baseRow + (i * rotCount + j) / column;
                 int32_t col = (i * rotCount + j) % column;
 
-                auto canvasNode = RSCanvasNode::Create();
+                auto canvasNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
                 canvasNode->SetClipToBounds(true);
                 canvasNode->SetBounds({
                     gap + (nodeWidth + gap) * col,
@@ -2374,7 +2377,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             int32_t row = i * fitCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -2448,7 +2451,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             int32_t row = i * outFormatCount / column + j / column;
             int32_t col = j % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -2512,7 +2515,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
             auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * 0,
@@ -2542,7 +2545,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             rosenImage->SetImageFit(static_cast<int>(ImageFit::CONTAIN));
             auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(frameRect);
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * 1,
@@ -2634,7 +2637,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             int32_t row = baseRow + i / column;
             int32_t col = i % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -2723,7 +2726,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -2812,7 +2815,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -2887,7 +2890,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -2974,7 +2977,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
             int32_t row = index / column;
             int32_t col = index % column;
 
-            auto canvasNode = RSCanvasNode::Create();
+            auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             canvasNode->SetClipToBounds(true);
             canvasNode->SetBounds({
                 gap + (nodeWidth + gap) * col,
@@ -3061,7 +3064,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -3129,7 +3132,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CON
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -3222,7 +3225,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_MAR
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -3313,7 +3316,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_DEC
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -3410,7 +3413,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_HDR
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -3545,7 +3548,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_AST
         int32_t row = i / column;
         int32_t col = i % column;
 
-        auto canvasNode = RSCanvasNode::Create();
+        auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
         canvasNode->SetBounds({
             gap + (nodeWidth + gap) * col,
@@ -3630,7 +3633,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_YUV
     int32_t row = 0;
     int32_t col = 0;
 
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetClipToBounds(true);
     canvasNode->SetBounds({
         gap + (nodeWidth + gap) * col,
@@ -3714,7 +3717,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_YUV
     int32_t row = 0;
     int32_t col = 0;
 
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetClipToBounds(true);
     canvasNode->SetBounds({
         gap + (nodeWidth + gap) * col,

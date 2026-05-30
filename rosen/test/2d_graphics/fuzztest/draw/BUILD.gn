@@ -32,6 +32,7 @@ group("fuzztest") {
     "shadereffect_fuzzer:fuzztest",
     "textblob_fuzzer:fuzztest",
     "textblobbuilder_fuzzer:fuzztest",
+    "primlist_fuzzer:fuzztest",
     "typeface_fuzzer:fuzztest",
   ]
 }

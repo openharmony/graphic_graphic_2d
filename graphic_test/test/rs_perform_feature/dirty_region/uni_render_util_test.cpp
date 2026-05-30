@@ -48,7 +48,7 @@ public:
     // Helper function to draw RectI as colored rectangle
     void DrawRectI(const RectI& rect, uint32_t color, int transY = 0)
     {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({rect.left_, rect.top_ + transY, rect.width_, rect.height_});
         testNode->SetBackgroundColor(color);
         GetRootNode()->AddChild(testNode);
@@ -78,12 +78,12 @@ GRAPHIC_TEST(DirtyRegionTest09, CONTENT_DISPLAY_TEST, ExpandDamageRegionToSingle
     RectI rect1 = {100, 100, 300, 300};
     RectI rect2 = {500, 200, 300, 300};
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);

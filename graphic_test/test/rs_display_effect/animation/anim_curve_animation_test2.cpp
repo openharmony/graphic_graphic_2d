@@ -60,7 +60,7 @@ void CreateAnimateWithCurrentOptions(float endValue, RSCanvasNode::SharedPtr nod
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 500, 500 });
     auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(animationCustomModifier);
@@ -84,7 +84,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_1)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_2)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 500, 500 });
     auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(animationCustomModifier);
@@ -108,7 +108,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_2)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_3)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -131,7 +131,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_3)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_4)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -155,7 +155,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_4)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_5)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -179,7 +179,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_5)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_6)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -203,7 +203,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_6)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_7)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -227,7 +227,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_7)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_8)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -251,7 +251,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_8)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_9)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -275,7 +275,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_9)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_10)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -299,7 +299,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_10)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_11)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -323,7 +323,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_11)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_12)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -347,7 +347,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_12)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_13)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -371,7 +371,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_13)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_14)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -395,7 +395,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_14)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_15)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -419,7 +419,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_15)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_16)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -443,7 +443,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_16)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_17)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -467,7 +467,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_17)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_18)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -491,7 +491,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_18)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_19)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -515,7 +515,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_19)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_20)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -539,7 +539,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_20)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_21)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -563,7 +563,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_21)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_22)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -587,7 +587,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_22)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_23)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -611,7 +611,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_23)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_24)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -635,7 +635,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_24)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_25)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -659,7 +659,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_25)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_26)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -683,7 +683,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_26)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_27)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -707,7 +707,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_27)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_28)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -731,7 +731,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_28)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_29)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -755,7 +755,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_29)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_30)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -779,7 +779,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_30)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_31)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -803,7 +803,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_31)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_32)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -827,7 +827,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_32)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_33)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -851,7 +851,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_33)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_34)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -875,7 +875,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_34)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_35)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -899,7 +899,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_35)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_36)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -923,7 +923,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_36)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_37)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -947,7 +947,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_37)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_38)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -971,7 +971,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_38)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_39)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -995,7 +995,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_39)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_40)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -1019,7 +1019,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_40)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_41)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -1043,7 +1043,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_41)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_42)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -1067,7 +1067,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_42)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_43)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);
@@ -1091,7 +1091,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_43)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_44)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);
@@ -1115,7 +1115,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_44)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_45)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);
@@ -1139,7 +1139,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_45)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_46)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);
@@ -1163,7 +1163,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_46)
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_47)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 0, 0, 1200, 2000 });
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);

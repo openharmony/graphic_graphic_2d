@@ -94,7 +94,6 @@ bool DoSurfacenodecommand(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::MarkUIHidden(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, GetData<uint8_t>());
     SurfaceNodeCommandHelper::SetContainerWindow(context, id, GetData<bool>(), GetData<RRect>());
-    SurfaceNodeCommandHelper::SetAnimationFinished(context, id);
     SurfaceNodeCommandHelper::AttachToDisplay(context, id, screenId);
     SurfaceNodeCommandHelper::DetachToDisplay(context, id, screenId);
     SurfaceNodeCommandHelper::SetBootAnimation(context, id, GetData<bool>());
@@ -103,7 +102,6 @@ bool DoSurfacenodecommand(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetSurfaceId(context, id, surfaceId);
     SurfaceNodeCommandHelper::SetForceUIFirst(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetAncoFlags(context, id, GetData<uint32_t>());
-    SurfaceNodeCommandHelper::SetHDRPresent(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetDarkColorMode(context, id, GetData<bool>());
     return true;
 }
@@ -133,7 +131,6 @@ bool DoSurfacenodecommand002(const uint8_t* data, size_t size)
     bool isOpaque = GetData<bool>();
     bool isDarkColorMode = GetData<bool>();
     SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id, isEnabled);
-    SurfaceNodeCommandHelper::SetAnimationFinished(context, id);
     SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, surfaceNodeType);
     SurfaceNodeCommandHelper::MarkUIHidden(context, id, isHidden);
     SurfaceNodeCommandHelper::SetDarkColorMode(context, id, isDarkColorMode);

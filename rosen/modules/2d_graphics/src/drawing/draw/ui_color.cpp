@@ -60,6 +60,22 @@ UIColor::UIColor(float red, float green, float blue, float alpha, float headroom
     headroom_ = headroom < 1.0 ? 1.0 : headroom;
 }
 
+static UIColorRegisterCallback& GetHdrRegisterCallbackHolder()
+{
+    static UIColorRegisterCallback callback = nullptr;
+    return callback;
+}
+
+void UIColor::RegisterHdrCallbackFunc(UIColorRegisterCallback func)
+{
+    GetHdrRegisterCallbackHolder() = func;
+}
+
+UIColorRegisterCallback& UIColor::GetHdrRegisterCallback()
+{
+    return GetHdrRegisterCallbackHolder();
+}
+
 float UIColor::GetRed() const
 {
     return red_;

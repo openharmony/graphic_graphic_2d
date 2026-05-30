@@ -226,13 +226,6 @@ void SurfaceNodeCommandHelper::SetContainerWindow(
     }
 }
 
-void SurfaceNodeCommandHelper::SetAnimationFinished(RSContext& context, NodeId nodeId)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetStartAnimationFinished();
-    }
-}
-
 void SurfaceNodeCommandHelper::AttachToDisplay(RSContext& context, NodeId nodeId, uint64_t screenId)
 {
     const auto& nodeMap = context.GetNodeMap();
@@ -337,13 +330,6 @@ void SurfaceNodeCommandHelper::SetAncoFlags(RSContext& context, NodeId nodeId, u
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetAncoFlags(flags);
-    }
-}
-
-void SurfaceNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetHDRPresent(hdrPresent);
     }
 }
 

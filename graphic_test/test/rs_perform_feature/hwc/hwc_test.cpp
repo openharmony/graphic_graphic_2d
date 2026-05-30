@@ -72,7 +72,8 @@ public:
     {
         RSSurfaceNodeConfig config;
         config.SurfaceNodeName = name;
-        auto surfaceNode = RSSurfaceNode::Create(config, RSSurfaceNodeType::SELF_DRAWING_NODE);
+        auto surfaceNode = RSSurfaceNode::Create(config, RSSurfaceNodeType::SELF_DRAWING_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         if (surfaceNode == nullptr) {
             return nullptr;
         }
@@ -134,7 +135,8 @@ public:
     {
         RSSurfaceNodeConfig config;
         config.SurfaceNodeName = name;
-        auto surfaceNode = RSSurfaceNode::Create(config, RSSurfaceNodeType::SELF_DRAWING_NODE);
+        auto surfaceNode = RSSurfaceNode::Create(config, RSSurfaceNodeType::SELF_DRAWING_NODE, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         if (surfaceNode == nullptr) {
             return nullptr;
         }
@@ -296,17 +298,17 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Surface_With_Canvas_Child_Test_1
     auto surfaceNode = CreateSurfaceNodeWithBuffer("Hwc_Surface_With_Child", 100, 100, 500, 400, 0xFF808080);
     GetRootNode()->SetTestSurface(surfaceNode);
 
-    auto child1 = RSCanvasNode::Create();
+    auto child1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     child1->SetBounds({120, 120, 150, 150});
     child1->SetBackgroundColor(SK_ColorRED);
     GetRootNode()->AddChild(child1, -1);
 
-    auto child2 = RSCanvasNode::Create();
+    auto child2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     child2->SetBounds({300, 120, 150, 150});
     child2->SetBackgroundColor(SK_ColorGREEN);
     GetRootNode()->AddChild(child2, -1);
 
-    auto child3 = RSCanvasNode::Create();
+    auto child3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     child3->SetBounds({210, 300, 150, 150});
     child3->SetBackgroundColor(SK_ColorBLUE);
     GetRootNode()->AddChild(child3, -1);
@@ -560,7 +562,7 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Tall_Surface_Test_1)
 GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Translucent_With_Bg_Test_1)
 {
 #ifdef ROSEN_OHOS
-    auto bgNode = RSCanvasNode::Create();
+    auto bgNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     bgNode->SetBounds({100, 100, 500, 400});
     bgNode->SetBackgroundColor(SK_ColorBLUE);
     GetRootNode()->AddChild(bgNode, -1);
@@ -857,7 +859,7 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Occlusion_Corner_Test_1)
 GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Clip_Parent_Test_1)
 {
 #ifdef ROSEN_OHOS
-    auto parentCanvas = RSCanvasNode::Create();
+    auto parentCanvas = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentCanvas->SetBounds({100, 100, 500, 400});
     parentCanvas->SetBackgroundColor(SK_ColorGRAY);
     parentCanvas->SetClipToBounds(true);
@@ -880,13 +882,13 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Clip_Parent_Test_1)
 GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Clip_Nested_Test_1)
 {
 #ifdef ROSEN_OHOS
-    auto outerClip = RSCanvasNode::Create();
+    auto outerClip = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     outerClip->SetBounds({50, 50, 600, 500});
     outerClip->SetClipToBounds(true);
     outerClip->SetBackgroundColor(SK_ColorLTGRAY);
     GetRootNode()->AddChild(outerClip, -1);
 
-    auto innerClip = RSCanvasNode::Create();
+    auto innerClip = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     innerClip->SetBounds({100, 100, 400, 300});
     innerClip->SetClipToBounds(true);
     innerClip->SetBackgroundColor(SK_ColorDKGRAY);
@@ -1015,7 +1017,7 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Corner_Radius_Multi_Test_1)
 GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Clip_Corner_Radius_Test_1)
 {
 #ifdef ROSEN_OHOS
-    auto clipNode = RSCanvasNode::Create();
+    auto clipNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     clipNode->SetBounds({150, 150, 500, 400});
     clipNode->SetClipToBounds(true);
     clipNode->SetCornerRadius(50.0f);
@@ -1086,7 +1088,7 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Filter_Blur_Multi_Test_1)
 GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Filter_Bg_Alpha_Test_1)
 {
 #ifdef ROSEN_OHOS
-    auto bgCanvas = RSCanvasNode::Create();
+    auto bgCanvas = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     bgCanvas->SetBounds({100, 100, 600, 500});
     bgCanvas->SetBackgroundColor(0x80000000); // Semi-transparent black
     GetRootNode()->AddChild(bgCanvas, -1);
@@ -1371,7 +1373,7 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Offscreen_Test_1)
 GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Prepare_Clip_Test_1)
 {
 #ifdef ROSEN_OHOS
-    auto clipContainer = RSCanvasNode::Create();
+    auto clipContainer = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     clipContainer->SetBounds({150, 150, 500, 400});
     clipContainer->SetClipToBounds(true);
     GetRootNode()->AddChild(clipContainer, -1);
@@ -1443,7 +1445,7 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Multi_Small_Test_1)
 GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Global_Pos_Test_1)
 {
 #ifdef ROSEN_OHOS
-    auto container = RSCanvasNode::Create();
+    auto container = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     container->SetBounds({100, 100, 600, 500});
     container->SetTranslate({50, 50});
     GetRootNode()->AddChild(container, -1);
@@ -1542,7 +1544,7 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Comprehensive_Test_1)
 
     // ==================== Region 4: Mixed CanvasNode + SurfaceNode ====================
     // Background CanvasNode
-    auto bgCanvas = RSCanvasNode::Create();
+    auto bgCanvas = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     bgCanvas->SetBounds({100, 700, 400, 300});
     bgCanvas->SetBackgroundColor(SK_ColorLTGRAY);
     bgCanvas->SetCornerRadius(20.0f);
@@ -1555,13 +1557,13 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Comprehensive_Test_1)
     GetRootNode()->SetTestSurface(overlayNode);
 
     // Small accent CanvasNodes
-    auto accent1 = RSCanvasNode::Create();
+    auto accent1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     accent1->SetBounds({120, 720, 60, 60});
     accent1->SetBackgroundColor(SK_ColorRED);
     accent1->SetCornerRadius(10.0f);
     GetRootNode()->AddChild(accent1, -1);
 
-    auto accent2 = RSCanvasNode::Create();
+    auto accent2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     accent2->SetBounds({420, 920, 60, 60});
     accent2->SetBackgroundColor(SK_ColorGREEN);
     accent2->SetCornerRadius(10.0f);
@@ -1582,7 +1584,7 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Comprehensive_Test_1)
     RegisterNode(pivotNode);
 
     // ==================== Region 6: Clip with overflow ====================
-    auto clipContainer = RSCanvasNode::Create();
+    auto clipContainer = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     clipContainer->SetBounds({900, 650, 250, 350});
     clipContainer->SetClipToBounds(true);
     clipContainer->SetBackgroundColor(SK_ColorYELLOW);
@@ -2115,7 +2117,7 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Mixed_Enable_Disable_Test_1)
 GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Clip_Overlap_Test_1)
 {
 #ifdef ROSEN_OHOS
-    auto clipContainer = RSCanvasNode::Create();
+    auto clipContainer = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     clipContainer->SetBounds({150, 150, 500, 400});
     clipContainer->SetClipToBounds(true);
     clipContainer->SetBackgroundColor(SK_ColorGRAY);

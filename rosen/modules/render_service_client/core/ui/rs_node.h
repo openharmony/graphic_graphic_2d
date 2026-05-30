@@ -60,6 +60,7 @@ using ExportTypeChangedCallback = std::function<void(bool)>;
 using DrawNodeChangeCallback = std::function<void(std::shared_ptr<RSNode> rsNode, bool isPositionZ)>;
 using PropertyNodeChangeCallback = std::function<void()>;
 using ColorPickerCallback = std::function<void(uint32_t)>;
+using AlphaChangedCallback = std::function<void(float)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -1816,6 +1817,8 @@ public:
 
     virtual void SetBoundsChangedCallback(BoundsChangedCallback callback) {}
 
+    virtual void SetAlphaChangedCallback(AlphaChangedCallback&& callback) {}
+
     bool IsTextureExportNode() const
     {
         return isTextureExportNode_;
@@ -2027,6 +2030,8 @@ protected:
      */
     virtual void OnRemoveChildren();
 
+    virtual void OnAlphaValueChanged() const {};
+
     virtual bool NeedForcedSendToRemote() const
     {
         return false;
@@ -2231,8 +2236,6 @@ private:
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
-
-    void DetachUIFilterProperties(const std::shared_ptr<ModifierNG::RSModifier>& modifier);
 
     std::shared_ptr<ModifierNG::RSModifier> GetModifierCreatedBySetter(ModifierNG::RSModifierType modifierType);
 

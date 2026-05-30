@@ -37,7 +37,7 @@ public:
 /* SetFrame: normal frame */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Frame_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetFrame({ 50, 50, 300, 300 });
     testNode->SetBackgroundColor(0xffff0000);
@@ -66,7 +66,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Frame_Test_3)
     };
 
     for (const auto& frame : frameList) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 100, 100, 400, 400 });
         testNode->SetFrame({ frame.x_, frame.y_, frame.z_, frame.w_ });
         testNode->SetBackgroundColor(0xff0000ff);
@@ -87,7 +87,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Frame_Test_4)
 /* SetFrame: frame with zero width/height */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Frame_Test_5)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetFrame({ 50, 50, 0, 0 }); // zero size frame
     testNode->SetBackgroundColor(0xffff0000);
@@ -135,7 +135,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Frame_Test_8)
 /* SetFrame: update frame dynamically */
 GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Frame_Test_9)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetFrame({ 50, 50, 300, 300 });
     testNode->SetBackgroundColor(0xffff0000);
@@ -170,7 +170,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Frame_Extreme_Values)
     };
 
     for (const auto& frame : extremeFrames) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 100, 100, 400, 400 });
         testNode->SetFrame({ frame.x_, frame.y_, frame.z_, frame.w_ });
         testNode->SetBackgroundColor(0xffff0000);
@@ -206,7 +206,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Frame_Matrix_4x3)
 
     for (size_t row = 0; row < positions.size(); row++) {
         for (size_t col = 0; col < sizes.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ 100, 100, 400, 400 });
             testNode->SetFrame({ positions[row], positions[row],
                 sizes[col], sizes[col] });
@@ -260,7 +260,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Frame_Zero_Edges)
     };
 
     for (const auto& frame : zeroEdgeFrames) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ 100, 100, 400, 400 });
         testNode->SetFrame({ frame.x_, frame.y_, frame.z_, frame.w_ });
         testNode->SetBackgroundColor(0xffff0000);

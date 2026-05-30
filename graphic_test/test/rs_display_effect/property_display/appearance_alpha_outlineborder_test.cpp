@@ -45,7 +45,7 @@ public:
         float alpha = 1.0f,
         uint32_t bgColor = 0x8FFF00FF)
     {
-        auto node = RSCanvasNode::Create();
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetAlpha(alpha);
         node->SetBounds(bounds);
         node->SetFrame(bounds);

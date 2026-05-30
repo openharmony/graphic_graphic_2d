@@ -14,6 +14,7 @@
  */
 
 #include "rs_graphic_test_img.h"
+#include "rs_graphic_test_director.h"
 
 #include "drawing/draw/core_canvas.h"
 #include "image/bitmap.h"
@@ -73,7 +74,7 @@ std::shared_ptr<Rosen::RSCanvasNode> SetUpNodeBgImage(const std::string& pathNam
     auto image = std::make_shared<Rosen::RSImage>();
     image->SetPixelMap(pixelmap);
     image->SetImageFit((int)ImageFit::FILL);
-    auto node = Rosen::RSCanvasNode::Create();
+    auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     node->SetBounds(bounds);
     node->SetFrame(bounds);
     node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);
@@ -87,7 +88,7 @@ std::shared_ptr<Rosen::RSCanvasNode> SetUpNodeBgImage(const uint8_t* data, uint3
     auto image = std::make_shared<Rosen::RSImage>();
     image->SetPixelMap(pixelmap);
     image->SetImageFit((int)ImageFit::FILL);
-    auto node = Rosen::RSCanvasNode::Create();
+    auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     node->SetBounds(bounds);
     node->SetFrame(bounds);
     node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);

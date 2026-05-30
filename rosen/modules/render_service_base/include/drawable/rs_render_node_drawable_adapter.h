@@ -37,6 +37,9 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include <iconsumer_surface.h>
 #endif
+#ifdef USE_PRIMITIVE
+#include "foundation/graphic/graphic_2d_ext/subtree/primitive/primitive_dirty_type.h"
+#endif
 
 namespace OHOS::Rosen {
 class RSRenderNode;
@@ -279,6 +282,29 @@ public:
     void AddRectToUnifiedFilterRegion(const Drawing::RectI& rect);
     bool IntersectsWithUnifiedRegion(const Drawing::RectI& rect) const;
 
+#ifdef USE_PRIMITIVE
+    PrimitiveDirtyBitmap* GetSelfPrimDirtyBitmap()
+    {
+        return &selfPrimDirtyBitmap_;
+    }
+    PrimitiveDirtyBitmap* GetInfectiousPrimDirtyBitmap()
+    {
+        return &infectiousPrimDirtyBitmap_;
+    }
+    void MergeInfectiousDirtyTypes(const PrimitiveDirtyBitmap* dirtyBitmap)
+    {
+        if (LIKELY(dirtyBitmap)) {
+            selfPrimDirtyBitmap_ |= *dirtyBitmap;
+            infectiousPrimDirtyBitmap_ |= *dirtyBitmap;
+        }
+    }
+    void ResetDirtyTypes()
+    {
+        selfPrimDirtyBitmap_.reset();
+        infectiousPrimDirtyBitmap_.reset();
+    }
+#endif
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -361,6 +387,11 @@ protected:
 
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
+
+#ifdef USE_PRIMITIVE
+    PrimitiveDirtyBitmap selfPrimDirtyBitmap_;
+    PrimitiveDirtyBitmap infectiousPrimDirtyBitmap_;
+#endif
 private:
     const static size_t MAX_FILTER_CACHE_TYPES = 3;
     using RSCacheDrawableArray = std::array<std::shared_ptr<DrawableV2::RSFilterDrawable>, MAX_FILTER_CACHE_TYPES>;

@@ -111,4 +111,17 @@ HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreateBorderSDFShader, TestSize.Level
     EXPECT_NE(shader, nullptr);
     EXPECT_EQ(shader->GetType(), RSNGEffectType::BORDER_SDF_SHADER);
 }
+
+/**
+ * @tc.name: RSNGShaderBaseCreateBorderSDFLGColor
+ * @tc.desc: Calling Create(RSNGEffectType::BORDER_SDF_LG_COLOR)
+ *           should return a non-null RSNGBorderSDFLGColor instance
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreateBorderSDFLGColor, TestSize.Level1)
+{
+    auto shader = RSNGShaderBase::Create(RSNGEffectType::BORDER_SDF_LG_COLOR);
+    EXPECT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::BORDER_SDF_LG_COLOR);
+}
 } // namespace OHOS::Rosen

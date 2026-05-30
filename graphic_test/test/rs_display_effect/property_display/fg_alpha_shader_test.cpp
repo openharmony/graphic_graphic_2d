@@ -36,7 +36,7 @@ public:
 /* Shader + Alpha: alpha = 0.5 */
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Alpha_Shader_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetAlpha(0.5f);
     testNode->SetBackgroundColor(0xffff0000);
@@ -61,7 +61,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Alpha_Shader_Test_2)
 /* Shader + Alpha: with border */
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Alpha_Shader_Test_3)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetAlpha(0.7f);
     testNode->SetBorderWidth(25);
@@ -74,7 +74,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Alpha_Shader_Test_3)
 /* Shader + Alpha: corner radius */
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Alpha_Shader_Test_4)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetAlpha(0.6f);
     testNode->SetCornerRadius(60);
@@ -86,7 +86,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Alpha_Shader_Test_4)
 /* Shader + Alpha: shadow */
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Alpha_Shader_Test_5)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetAlpha(0.8f);
     testNode->SetShadowColor(0xff000000);
@@ -130,7 +130,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FG_Alpha_Shader_Matrix_3x3)
 
     for (size_t row = 0; row < alphaList.size(); row++) {
         for (size_t col = 0; col < radii.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 280 + 50, 330, 230 });
             testNode->SetAlpha(alphaList[row]);
             testNode->SetCornerRadius(radii[col]);

@@ -130,7 +130,7 @@ public:
  */
 GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestText_1)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -159,7 +159,7 @@ GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestText_1)
  */
 GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestText_2)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -188,7 +188,7 @@ GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestText_2)
  */
 GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestText_3)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -217,7 +217,7 @@ GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestText_3)
  */
 GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSymbol_1)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -255,7 +255,7 @@ GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSymbol_1)
  */
 GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSymbol_2)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -292,7 +292,7 @@ GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSymbol_2)
  */
 GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSVG_1)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -326,7 +326,7 @@ GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSVG_1)
  */
 GRAPHIC_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSVG_2)
 {
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds(DEFAULT_BOUNDS);
     canvasNode->SetFrame(DEFAULT_FRAME);
     canvasNode->SetBackgroundColor(SK_ColorWHITE);
@@ -364,14 +364,14 @@ GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip01
     Vector4f bounds = { 0, 2188, 1316, 210 };
     Vector4f bounds2 = { 0, 0, 1316, 210 };
 
-    auto canvasNode1 = RSCanvasNode::Create();
+    auto canvasNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(canvasNode1);
     canvasNode1->SetBounds(bounds);
     canvasNode1->SetFrame(bounds);
     canvasNode1->SetBackgroundColor(COLOR_BLUE);
 
     Vector4f bounds3 = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds3);
     backgroundNode->SetFrame(bounds3);
@@ -381,7 +381,7 @@ GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip01
     auto imgNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds4);
     RegisterNode(imgNode);
 
-    auto canvasNode2 = RSCanvasNode::Create();
+    auto canvasNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(canvasNode2);
     canvasNode2->SetBounds(bounds2);
     canvasNode2->SetFrame(bounds2);
@@ -396,7 +396,7 @@ GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip01
     int duration = 10000;
     DoAnimation(animateNode, translate3, duration);
 
-    auto pureCanvas = RSCanvasNode::Create();
+    auto pureCanvas = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(pureCanvas);
     pureCanvas->SetBounds(bounds2);
     pureCanvas->SetFrame(bounds2);
@@ -406,7 +406,7 @@ GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip01
     RegisterNode(canvasNode3);
     canvasNode3->SetTranslate({ 0, 0 });
 
-    auto canvasNode4 = RSCanvasNode::Create();
+    auto canvasNode4 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(canvasNode4);
     canvasNode4->SetBounds(bounds2);
     canvasNode4->SetBackgroundColor(COLOR_YELLOW);
@@ -451,14 +451,14 @@ GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip01
 GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip02)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
@@ -473,7 +473,7 @@ GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip02
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -503,14 +503,14 @@ GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip02
 GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip03)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
@@ -525,7 +525,7 @@ GRAPHIC_N_TEST(GpuComposerTest, GPU_COMPOSER_TEST, GpuComposer_TestSubTreeSkip03
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);

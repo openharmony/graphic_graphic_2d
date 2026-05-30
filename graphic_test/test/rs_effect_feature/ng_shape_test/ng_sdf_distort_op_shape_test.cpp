@@ -90,7 +90,8 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -143,7 +144,8 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -196,7 +198,8 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -240,7 +243,8 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -288,7 +292,8 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -333,7 +338,8 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);
@@ -378,7 +384,8 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto backgroundTestNode = RSCanvasNode::Create();
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
         backgroundTestNode->SetBounds(bounds);
         backgroundTestNode->SetFrame(bounds);

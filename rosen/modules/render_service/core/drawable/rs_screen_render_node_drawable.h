@@ -224,6 +224,11 @@ private:
 
     bool accumulateDirtyInSkipFrame_ = false;
 
+#ifdef USE_PRIMITIVE
+    std::vector<RectI> lastDamageRegionrects_;
+    bool lastIsRegionClipped_ = false;
+#endif
+
     friend class RSMultiScreenUtil;
 };
 } // namespace DrawableV2

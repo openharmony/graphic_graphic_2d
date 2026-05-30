@@ -548,7 +548,13 @@ void SkiaCanvas::DrawColor(ColorQuad color, BlendMode mode)
 
 void SkiaCanvas::DrawUIColor(UIColor color, BlendMode mode)
 {
-    LOGD("SKIA does not support HDR color. %{public}d", __LINE__);
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    Color generalColor;
+    generalColor.SetRgbF(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
+    skCanvas_->drawColor(static_cast<SkColor>(generalColor.CastToColorQuad()), static_cast<SkBlendMode>(mode));
 }
 
 void SkiaCanvas::DrawParticle(std::shared_ptr<ParticleEffect> particle)
@@ -1522,6 +1528,23 @@ bool SkiaCanvas::IsOpaque()
         return false;
     }
     return skCanvas_->isOpaque();
+}
+
+void SkiaCanvas::BeginPrimListCollecting(const Rect& bounds)
+{
+    LOGD("SkiaCanvas does not support BeginPrimListCollecting");
+}
+
+std::shared_ptr<PrimList> SkiaCanvas::EndPrimListCollecting()
+{
+    LOGD("SkiaCanvas does not support EndPrimListCollecting");
+    return nullptr;
+}
+
+bool SkiaCanvas::DrawPrimList(const PrimList& primList)
+{
+    LOGD("SkiaCanvas does not support DrawPrimList");
+    return false;
 }
 } // namespace Drawing
 } // namespace Rosen

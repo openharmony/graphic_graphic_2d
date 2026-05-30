@@ -810,16 +810,6 @@
     "connectionType": 0
   },
   {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_083",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSSurfaceNodeSetAnimationFinished*100",
-    "commandListRepeat": 1,
-    "connectionType": 0
-  },
-  {
     "testCaseDesc": "COMMIT_TRANSACTION_TEST_084",
     "interfaceName": "COMMIT_TRANSACTION",
     "inputParams": "WriteRSTransactionData",
@@ -896,16 +886,6 @@
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
     "commandList": "RSSurfaceNodeSetAncoFlags*100",
-    "commandListRepeat": 1,
-    "connectionType": 0
-  },
-  {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_092",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSSurfaceNodeSetHDRPresent*100",
     "commandListRepeat": 1,
     "connectionType": 0
   },
@@ -1596,16 +1576,6 @@
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
     "commandList": "RSSurfaceNodeSetSurfaceBufferOpaque*100",
-    "commandListRepeat": 1,
-    "connectionType": 0
-  },
-  {
-    "testCaseDesc": "COMMIT_TRANSACTION_TEST_162",
-    "interfaceName": "COMMIT_TRANSACTION",
-    "inputParams": "WriteRSTransactionData",
-    "writeInterfaceToken": false,
-    "messageOption": "TF_ASYNC",
-    "commandList": "RSDisplayNodeForceCloseHdr*100",
     "commandListRepeat": 1,
     "connectionType": 0
   },

@@ -161,22 +161,6 @@ void DisplayNodeCommandHelper::SetDisplayContentRect(RSContext& context, NodeId 
     }
 }
 
-void DisplayNodeCommandHelper::SetForceCloseHdr(RSContext& context, NodeId id, bool isForceCloseHdr)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {
-        auto screenId = node->GetScreenId();
-        auto lambda = [isForceCloseHdr] (auto& node) {
-            node->SetForceCloseHdr(isForceCloseHdr);
-        };
-        if (!TrySetScreenNodeByScreenId(context, screenId, lambda)) {
-            RS_LOGE("%{public}s Invalid ScreenId NodeId: %{public}" PRIu64
-            ", curNodeId: %{public}" PRIu64, __func__, screenId, id);
-        }
-    } else {
-        RS_LOGE("%{public}s Invalid NodeId curNodeId: %{public}" PRIu64, __func__, id);
-    }
-}
-
 void DisplayNodeCommandHelper::SetScreenRotation(RSContext& context, NodeId id, const ScreenRotation& screenRotation)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {

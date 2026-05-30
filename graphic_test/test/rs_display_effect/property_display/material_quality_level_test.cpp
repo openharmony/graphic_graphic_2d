@@ -48,7 +48,7 @@ public:
  */
 GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLevelTest_001)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -77,7 +77,7 @@ GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLeve
     };
 
     for (size_t i = 0; i < qualityLevels.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 180 + 50, 50, 170, 170 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetMaterialWithQualityLevel(nullptr, IntToFilterQuality(qualityLevels[i]));
@@ -99,7 +99,7 @@ GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLeve
 
     for (size_t row = 0; row < qualityLevels.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaList[col]);
@@ -118,7 +118,7 @@ GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLeve
  */
 GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLevelTest_004)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -148,7 +148,7 @@ GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLeve
 
     for (size_t row = 0; row < qualityLevels.size(); row++) {
         for (size_t col = 0; col < rotationList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetRotation(rotationList[col]);
@@ -175,7 +175,7 @@ GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLeve
     };
 
     for (size_t i = 0; i < scaleList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetScale(scaleList[i].first, scaleList[i].second);
@@ -201,7 +201,7 @@ GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLeve
     };
 
     for (size_t i = 0; i < zeroBounds.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ zeroBounds[i].x_, zeroBounds[i].y_,
             zeroBounds[i].z_, zeroBounds[i].w_ });
         testNode->SetBackgroundColor(0xffff0000);
@@ -225,7 +225,7 @@ GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLeve
 
     for (size_t row = 0; row < qualityLevels.size(); row++) {
         for (size_t col = 0; col < blurRadius.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetBackgroundBlurRadius(blurRadius[col]);
@@ -254,7 +254,7 @@ GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLeve
     };
 
     for (size_t i = 0; i < qualityLevels.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 230 + 50, 50, 200, 200 });
         testNode->SetPixelmap(pixelMap);
         testNode->SetMaterialWithQualityLevel(nullptr, qualityLevels[i]);
@@ -271,14 +271,14 @@ GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLeve
  */
 GRAPHIC_TEST(MaterialQualityLevelTest, CONTENT_DISPLAY_TEST, MaterialQualityLevelTest_010)
 {
-    auto parent = RSCanvasNode::Create();
+    auto parent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parent->SetBounds({ 50, 50, 1100, 500 });
     parent->SetBackgroundColor(0xffff0000);
     parent->SetMaterialWithQualityLevel(nullptr, FilterQuality::DEFAULT);
 
     // Add children with different quality levels
     for (int i = 0; i < 3; i++) {
-        auto child = RSCanvasNode::Create();
+        auto child = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         child->SetBounds({ 50 + i * 350, 50, 300, 400 });
         child->SetBackgroundColor(0xff00ff00);
         child->SetMaterialWithQualityLevel(nullptr,

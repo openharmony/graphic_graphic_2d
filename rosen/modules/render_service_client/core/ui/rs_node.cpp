@@ -831,6 +831,7 @@ void RSNode::SetAlpha(float alpha)
         SetDrawNode();
         SetDrawNodeType(DrawNodeType::DrawPropertyType);
     }
+    OnAlphaValueChanged();
 }
 
 void RSNode::SetAlphaOffscreen(bool alphaOffscreen)

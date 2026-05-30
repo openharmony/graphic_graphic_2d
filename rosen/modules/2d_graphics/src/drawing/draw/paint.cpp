@@ -111,18 +111,16 @@ Paint& Paint::operator=(const Paint& other)
 
 bool Paint::CanCombinePaint(const Paint& pen, const Paint& brush)
 {
-    return pen.antiAlias_ == brush.antiAlias_ &&
-        pen.color_ == brush.color_ &&
+    return pen.antiAlias_ == brush.antiAlias_ && pen.isHdrColor_ == brush.isHdrColor_ &&
+        (pen.isHdrColor_ ? (pen.hdrColor_ == brush.hdrColor_) : (pen.color_ == brush.color_)) &&
         pen.blendMode_ == brush.blendMode_ &&
         pen.hasFilter_ == brush.hasFilter_ &&
         pen.filter_ == brush.filter_ &&
-        pen.colorSpace_ == brush.colorSpace_ &&
+        (pen.colorSpace_ ? pen.colorSpace_->Equals(brush.colorSpace_) : (pen.colorSpace_ == brush.colorSpace_)) &&
         pen.shaderEffect_ == brush.shaderEffect_ &&
         pen.blender_ == brush.blender_ &&
         pen.blenderEnabled_ == brush.blenderEnabled_ &&
-        pen.blurDrawLooper_ == brush.blurDrawLooper_ &&
-        pen.hdrColor_ == brush.hdrColor_ &&
-        pen.isHdrColor_ == brush.isHdrColor_;
+        pen.blurDrawLooper_ == brush.blurDrawLooper_;
 }
 
 void Paint::AttachBrush(const Brush& brush)
@@ -158,7 +156,7 @@ void Paint::AttachPen(const Pen& pen)
         hdrColor_ = pen.GetUIColor();
         isHdrColor_ = pen.HasUIColor();
     } else {
-    color_ = pen.GetColor();
+        color_ = pen.GetColor();
         isHdrColor_ = false;
     }
     blendMode_ = pen.GetBlendMode();
@@ -356,8 +354,8 @@ void Paint::Disable()
 
 bool operator==(const Paint& p1, const Paint& p2)
 {
-    return p1.antiAlias_ == p2.antiAlias_ &&
-        p1.color_ == p2.color_ &&
+    return p1.antiAlias_ == p2.antiAlias_ && p1.isHdrColor_ == p2.isHdrColor_ &&
+        (p1.isHdrColor_ ? (p1.hdrColor_ == p2.hdrColor_) : (p1.color_ == p2.color_)) &&
         p1.blendMode_ == p2.blendMode_ &&
         p1.style_ == p2.style_ &&
         IsScalarAlmostEqual(p1.width_, p2.width_) &&
@@ -365,20 +363,19 @@ bool operator==(const Paint& p1, const Paint& p2)
         p1.join_ == p2.join_ &&
         p1.cap_ == p2.cap_ &&
         p1.filter_ == p2.filter_ &&
-        p1.colorSpace_ == p2.colorSpace_ &&
+        (p1.colorSpace_ ? p1.colorSpace_->Equals(p2.colorSpace_) : (p1.colorSpace_ == p2.colorSpace_)) &&
         p1.shaderEffect_ == p2.shaderEffect_ &&
         p1.pathEffect_ == p2.pathEffect_ &&
         p1.blender_ == p2.blender_ &&
         p1.blenderEnabled_ == p2.blenderEnabled_ &&
-        p1.blurDrawLooper_ == p2.blurDrawLooper_ &&
-        p1.hdrColor_ == p2.hdrColor_ &&
-        p1.isHdrColor_ == p2.isHdrColor_;
+        p1.blurDrawLooper_ == p2.blurDrawLooper_;
 }
 
 bool operator!=(const Paint& p1, const Paint& p2)
 {
     return p1.antiAlias_ != p2.antiAlias_ ||
-        p1.color_ != p2.color_ ||
+        !(p1.isHdrColor_ == p2.isHdrColor_ &&
+        (p1.isHdrColor_ ? (p1.hdrColor_ == p2.hdrColor_) : (p1.color_ == p2.color_))) ||
         p1.blendMode_ != p2.blendMode_ ||
         p1.style_ != p2.style_ ||
         !IsScalarAlmostEqual(p1.width_, p2.width_) ||
@@ -386,14 +383,12 @@ bool operator!=(const Paint& p1, const Paint& p2)
         p1.join_ != p2.join_ ||
         p1.cap_ != p2.cap_ ||
         p1.filter_ != p2.filter_ ||
-        p1.colorSpace_ != p2.colorSpace_ ||
+        !(p1.colorSpace_ ? p1.colorSpace_->Equals(p2.colorSpace_) : (p1.colorSpace_ == p2.colorSpace_)) ||
         p1.shaderEffect_ != p2.shaderEffect_ ||
         p1.pathEffect_ != p2.pathEffect_ ||
         p1.blender_ != p2.blender_ ||
         p1.blenderEnabled_ != p2.blenderEnabled_ ||
-        p1.blurDrawLooper_ != p2.blurDrawLooper_ ||
-        p1.hdrColor_ != p2.hdrColor_ ||
-        p1.isHdrColor_ != p2.isHdrColor_;
+        p1.blurDrawLooper_ != p2.blurDrawLooper_;
 }
 
 void Paint::Dump(std::string& out) const

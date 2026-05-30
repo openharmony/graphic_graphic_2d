@@ -278,7 +278,6 @@ HWTEST_F(RsGameFrameHandlerTest, HandleGameSceneChanged006, TestSize.Level1)
     hgmCore.appPhaseOffset_.store(UNI_RENDER_VSYNC_OFFSET_TEST_VALUE);
     handler->hasGameScene_.store(false);
     FrameReport::GetInstance().activelyPid_.store(1);
-    EXPECT_EQ(RSUniRenderJudgement::uniRenderEnabledType_, UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
     handler->HandleGameSceneChanged();
     EXPECT_EQ(vsyncManager->rsVSyncController_->GetPhaseOffset(), UNI_RENDER_VSYNC_OFFSET_TEST_VALUE);
     EXPECT_EQ(vsyncManager->appVSyncController_->GetPhaseOffset(), UNI_RENDER_VSYNC_OFFSET_TEST_VALUE);
@@ -315,7 +314,6 @@ HWTEST_F(RsGameFrameHandlerTest, HandleGameSceneChanged007, TestSize.Level1)
     hgmCore.appPhaseOffset_.store(UNI_RENDER_VSYNC_OFFSET_TEST_VALUE);
     handler->hasGameScene_.store(false);
     FrameReport::GetInstance().activelyPid_.store(1);
-    EXPECT_EQ(RSUniRenderJudgement::uniRenderEnabledType_, UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
     handler->HandleGameSceneChanged();
     EXPECT_EQ(vsyncManager->rsVSyncController_->GetPhaseOffset(), UNI_RENDER_VSYNC_OFFSET_TEST_VALUE);
     EXPECT_EQ(vsyncManager->appVSyncController_->GetPhaseOffset(), UNI_RENDER_VSYNC_OFFSET_TEST_VALUE);
@@ -352,10 +350,13 @@ HWTEST_F(RsGameFrameHandlerTest, HandleGameSceneChanged008, TestSize.Level1)
     hgmCore.appPhaseOffset_.store(UNI_RENDER_VSYNC_OFFSET_TEST_VALUE);
     handler->hasGameScene_.store(true);
     FrameReport::GetInstance().activelyPid_.store(0);
-    EXPECT_EQ(RSUniRenderJudgement::uniRenderEnabledType_, UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
     handler->HandleGameSceneChanged();
-    EXPECT_EQ(vsyncManager->rsVSyncController_->GetPhaseOffset(), UNI_RENDER_VSYNC_OFFSET_DELAY_MODE);
-    EXPECT_EQ(vsyncManager->appVSyncController_->GetPhaseOffset(), UNI_RENDER_VSYNC_OFFSET_DELAY_MODE);
+    int64_t offset = 0;
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        offset = UNI_RENDER_VSYNC_OFFSET_DELAY_MODE;
+    }
+    EXPECT_EQ(vsyncManager->rsVSyncController_->GetPhaseOffset(), offset);
+    EXPECT_EQ(vsyncManager->appVSyncController_->GetPhaseOffset(), offset);
 }
 
 /**
@@ -389,10 +390,13 @@ HWTEST_F(RsGameFrameHandlerTest, HandleGameSceneChanged009, TestSize.Level1)
     hgmCore.appPhaseOffset_.store(UNI_RENDER_VSYNC_OFFSET_TEST_VALUE);
     handler->hasGameScene_.store(true);
     FrameReport::GetInstance().activelyPid_.store(0);
-    EXPECT_EQ(RSUniRenderJudgement::uniRenderEnabledType_, UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
     handler->HandleGameSceneChanged();
-    EXPECT_EQ(vsyncManager->rsVSyncController_->GetPhaseOffset(), UNI_RENDER_VSYNC_OFFSET);
-    EXPECT_EQ(vsyncManager->appVSyncController_->GetPhaseOffset(), UNI_RENDER_VSYNC_OFFSET);
+    int64_t offset = 0;
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        offset = UNI_RENDER_VSYNC_OFFSET;
+    }
+    EXPECT_EQ(vsyncManager->rsVSyncController_->GetPhaseOffset(), offset);
+    EXPECT_EQ(vsyncManager->appVSyncController_->GetPhaseOffset(), offset);
 }
 } // namespace Rosen
 } // namespace OHOS

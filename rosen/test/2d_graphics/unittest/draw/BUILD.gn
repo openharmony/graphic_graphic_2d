@@ -28,6 +28,7 @@ ohos_unittest("2d_graphics_draw_test") {
     "path_iterator_test.cpp",
     "path_test.cpp",
     "pen_test.cpp",
+    "prim_list_test.cpp",
     "surface_test.cpp",
     "ui_color_test.cpp",
   ]

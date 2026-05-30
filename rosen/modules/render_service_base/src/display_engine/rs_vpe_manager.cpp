@@ -131,6 +131,10 @@ bool RSVpeManager::SetVpeVideoParameter(std::shared_ptr<VpeVideo> vpeVideo,
 sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface>& RSSurface,
     const RSSurfaceRenderNodeConfig& config)
 {
+    if (!VpeVideo::IsSurfaceSupported(type, RSSurface)) {
+        RS_LOGE("surface type is not support");
+        return RSSurface;
+    }
     std::shared_ptr<VpeVideo> vpeVideo = GetVpeVideo(type, config);
     if (vpeVideo == nullptr) {
         RS_LOGE("GetVpeVideo failed");

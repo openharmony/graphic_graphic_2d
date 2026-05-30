@@ -745,6 +745,10 @@ void RSScreen::CapabilityTypeDump(GraphicInterfaceType capabilityType, std::stri
             dumpString += "DISP_INTF_GPMI, ";
             break;
         }
+        case GRAPHIC_DISP_INTF_VGA: {
+            dumpString += "DISP_INTF_VGA, ";
+            break;
+        }
         default:
             dumpString += "INVALID_DISP_INTF, ";
             break;
@@ -956,6 +960,33 @@ int32_t RSScreen::GetScreenBacklight() const
         return INVALID_BACKLIGHT_VALUE;
     }
     return static_cast<int32_t>(level);
+}
+
+int32_t RSScreen::GetScreenVCPFeature(uint8_t vcpCode,
+    uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode) const
+{
+    if (IsVirtual()) {
+        RS_LOGW("%{public}s: virtual screen not support GetScreenVCPFeature.", __func__);
+        return StatusCode::VIRTUAL_SCREEN;
+    }
+    if (!hdiScreen_) {
+        RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    return hdiScreen_->GetScreenVCPFeature(vcpCode, currentValue, maximumValue, errorCode);
+}
+
+int32_t RSScreen::SetScreenVCPFeature(uint8_t vcpCode, uint16_t currentValue)
+{
+    if (IsVirtual()) {
+        RS_LOGW("%{public}s: virtual screen not support SetScreenVCPFeature.", __func__);
+        return StatusCode::VIRTUAL_SCREEN;
+    }
+    if (!hdiScreen_) {
+        RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    return hdiScreen_->SetScreenVCPFeature(vcpCode, currentValue);
 }
 
 PanelPowerStatus RSScreen::GetPanelPowerStatus() const

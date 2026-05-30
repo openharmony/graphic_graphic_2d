@@ -36,7 +36,7 @@ public:
 /* Alpha Test: alpha = 0.5 */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetAlpha(0.5f);
     testNode->SetBackgroundColor(0xffff0000);
@@ -64,7 +64,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_T
     std::vector<float> radii = { 150, 250, 350 };
 
     for (size_t i = 0; i < radii.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 350 + 50, 100, 300, 300 });
         testNode->SetAlpha(0.6f);
         testNode->SetBorderWidth((int)radii[i] / 10);
@@ -85,7 +85,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_T
 
     // Add multiple child nodes to simulate multiple light sources
     for (int i = 0; i < 4; i++) {
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         int x = (i % 2) * 300;
         int y = (i / 2) * 300;
         childNode->SetBounds({ x, y, 200, 200 });
@@ -99,7 +99,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_T
 /* Alpha Test: change alpha dynamically */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_Test_5)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetAlpha(0.8f);
     testNode->SetBackgroundColor(0xffff0000);
@@ -112,7 +112,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_T
 /* Alpha Test: boundary values - alpha = 0 */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_Boundary_01)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetAlpha(0.0f);
     testNode->SetBackgroundColor(0xffff0000);
@@ -123,7 +123,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_B
 /* Alpha Test: boundary values - alpha = 1 */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_Boundary_02)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetAlpha(1.0f);
     testNode->SetBackgroundColor(0xffff0000);
@@ -137,7 +137,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_E
     std::vector<int> borderWidths = { 0, 10, 20, 40, 80, 160 };
 
     for (size_t i = 0; i < borderWidths.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 180 + 50, 400, 150, 150 });
         testNode->SetAlpha(0.7f);
         testNode->SetBorderWidth(borderWidths[i]);
@@ -156,7 +156,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_M
 
     for (size_t row = 0; row < alphaList.size(); row++) {
         for (size_t col = 0; col < borderWidths.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 280 + 50, 330, 230 });
             testNode->SetAlpha(alphaList[row]);
             testNode->SetBorderWidth(borderWidths[col]);
@@ -178,7 +178,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_P
     // 3x3 grid of child nodes to simulate light positions
     for (int x = 0; x < 3; x++) {
         for (int y = 0; y < 3; y++) {
-            auto childNode = RSCanvasNode::Create();
+            auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             childNode->SetBounds({ 200 + x * 200, 200 + y * 200, 150, 150 });
             childNode->SetAlpha(0.9f);
             childNode->SetBackgroundColor(0xffffffff);
@@ -194,7 +194,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_A
     std::vector<float> abnormalAlphas = { -1.0f, -0.5f, 0.0f, 1.0f, 1.5f, 2.0f };
 
     for (size_t i = 0; i < abnormalAlphas.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 190 + 50, 700, 180, 180 });
         testNode->SetAlpha(abnormalAlphas[i]);
         testNode->SetBackgroundColor(0xffff0000);
@@ -209,7 +209,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_PointLight_Z
     std::vector<float> alphaList = { 0.2f, 0.5f, 0.8f };
 
     for (size_t i = 0; i < alphaList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 350 + 50, 1000, 300, 300 });
         testNode->SetAlpha(alphaList[i]);
         testNode->SetBorderWidth(0);

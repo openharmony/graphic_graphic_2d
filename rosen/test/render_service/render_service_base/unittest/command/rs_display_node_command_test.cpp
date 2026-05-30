@@ -165,24 +165,6 @@ HWTEST_F(RSDisplayNodeCommandTest, SetBootAnimation001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetForceCloseHdrTest
- * @tc.desc: SetForceCloseHdr test.
- * @tc.type: FUNC
- */
-HWTEST_F(RSDisplayNodeCommandTest, SetForceCloseHdrTest, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
-    DisplayNodeCommandHelper::SetScreenId(context, id, 1);
-    DisplayNodeCommandHelper::SetForceCloseHdr(context, id, true);
-
-    RSDisplayNodeConfig config { 0, false, 0 };
-    DisplayNodeCommandHelper::Create(context, id, config);
-    DisplayNodeCommandHelper::SetForceCloseHdr(context, id, true);
-    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
-}
-
-/**
  * @tc.name: SetScreenRotation001
  * @tc.desc: SetScreenId test.
  * @tc.type: FUNC

@@ -369,6 +369,16 @@ public:
         isRotating_ = false;
     }
 
+    bool IsScale() const
+    {
+        return isScale_;
+    }
+
+    void SetIsScale(bool isScale)
+    {
+        isScale_ = isScale;
+    }
+
     void ResetCurrentFrameHardwareEnabledState()
     {
         isLastFrameHardwareEnabled_ = isCurrentFrameHardwareEnabled_;
@@ -799,12 +809,12 @@ public:
         uifirstState_.forceUpdate = b;
     }
 
-    RSUIFirstSwitch GetUIFirstSwitch() const override
+    RSUIFirstSwitch GetUIFirstSwitch() const
     {
         return uifirstState_.switchMode;
     }
 
-    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch) override
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
     {
         uifirstState_.switchMode = uiFirstSwitch;
     }
@@ -1288,8 +1298,6 @@ public:
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
     void DealWithDrawBehindWindowTransparentRegion();
 
-    bool IsStartAnimationFinished() const;
-    void SetStartAnimationFinished();
     // if surfacenode's buffer has been consumed, it should be set dirty
     bool UpdateDirtyIfFrameBufferConsumed();
 
@@ -2040,7 +2048,6 @@ private:
     bool isOccludedByFilterCache_ = false;
     bool isFilterCacheStatusChanged_ = false;
     bool isTreatedAsTransparent_ = false;
-    bool startAnimationFinished_ = false;
     bool isContainerWindowTransparent_ = false;
     // only used in hardware enabled pointer window, when gpu -> hardware composer
     bool isNodeDirtyInLastFrame_ = true;
@@ -2072,6 +2079,7 @@ private:
     bool existTransparentHardwareEnabledNode_ = false;
     bool animateState_ = false;
     bool isRotating_ = false;
+    bool isScale_ = false;
     bool isParentScaling_ = false;
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;

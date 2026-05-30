@@ -36,7 +36,7 @@ public:
 /* ParticleEffect + Alpha: alpha = 0.5 */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_ParticleEffect_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetAlpha(0.5f);
     testNode->SetBackgroundColor(0xffff0000);
@@ -61,7 +61,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_ParticleEffe
 /* ParticleEffect + Alpha: with border */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_ParticleEffect_Test_3)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetAlpha(0.7f);
     testNode->SetBorderWidth(20);
@@ -102,7 +102,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_ParticleEffe
     std::vector<float> abnormalAlphas = { -1.5f, -0.5f, 1.5f, 2.0f };
 
     for (size_t i = 0; i < abnormalAlphas.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 100, 250, 250 });
         testNode->SetAlpha(abnormalAlphas[i]);
         testNode->SetBackgroundColor(0xffff0000);

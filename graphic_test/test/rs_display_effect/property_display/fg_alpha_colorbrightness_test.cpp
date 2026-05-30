@@ -53,7 +53,7 @@ GRAPHIC_TEST(ForegroundTest04, CONTENT_DISPLAY_TEST, FgBrightnessParams_Alpha_Fr
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetAlpha(0.5f);
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
@@ -83,7 +83,7 @@ GRAPHIC_TEST(ForegroundTest04, CONTENT_DISPLAY_TEST, FgBrightnessParams_Alpha_Fr
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetAlpha(0.5f);
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
@@ -113,7 +113,7 @@ GRAPHIC_TEST(ForegroundTest04, CONTENT_DISPLAY_TEST, FgBrightnessParams_Alpha_Fr
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetAlpha(0.5f);
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
@@ -143,7 +143,7 @@ GRAPHIC_TEST(ForegroundTest04, CONTENT_DISPLAY_TEST, FgBrightnessParams_Alpha_Fr
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetAlpha(0.5f);
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
@@ -180,7 +180,7 @@ GRAPHIC_TEST(ForegroundTest04, CONTENT_DISPLAY_TEST, Foreground_Alpha_SetBlender
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetAlpha(0.5f);
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
@@ -216,7 +216,7 @@ GRAPHIC_TEST(ForegroundTest04, CONTENT_DISPLAY_TEST, Foreground_Alpha_SetBlender
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetAlpha(0.5f);
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
@@ -252,7 +252,7 @@ GRAPHIC_TEST(ForegroundTest04, CONTENT_DISPLAY_TEST, Foreground_Alpha_SetBlender
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetAlpha(0.5f);
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);

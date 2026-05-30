@@ -129,7 +129,8 @@ HWTEST_F(RSMaterialShaderDrawableTest, RSMaterialShaderDrawable004, TestSize.Lev
 HWTEST_F(RSMaterialShaderDrawableTest, RSMaterialShaderDrawable005, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSMaterialShaderDrawable>();
-    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto baseCanvas = std::make_shared<Drawing::Canvas>();
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(baseCanvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
     
     drawable->OnDraw(nullptr, rect.get());
@@ -181,7 +182,8 @@ HWTEST_F(RSMaterialShaderDrawableTest, RSMaterialShaderDrawable006, TestSize.Lev
 HWTEST_F(RSMaterialShaderDrawableTest, RSMaterialShaderDrawable007, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSMaterialShaderDrawable>();
-    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto baseCanvas = std::make_shared<Drawing::Canvas>();
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(baseCanvas.get());
     auto rect = std::make_shared<Drawing::Rect>(0, 0, 100, 100);
     
     drawable->visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
@@ -240,7 +242,8 @@ HWTEST_F(RSMaterialShaderDrawableTest, RSMaterialShaderDrawable009, TestSize.Lev
     drawable->OnSync();
     EXPECT_NE(drawable->visualEffectContainer_, nullptr);
     
-    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto baseCanvas = std::make_shared<Drawing::Canvas>();
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(baseCanvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
     drawable->OnDraw(canvas.get(), rect.get());
     ASSERT_TRUE(true);

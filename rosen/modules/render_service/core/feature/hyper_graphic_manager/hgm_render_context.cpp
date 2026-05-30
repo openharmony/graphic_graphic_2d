@@ -132,7 +132,6 @@ void HgmRenderContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> ser
     uint32_t& pendingScreenRefreshRate, uint64_t& pendingConstraintRelativeTime)
 {
     if (serviceToProcessInfo == nullptr) {
-        HGM_LOGW("serviceToProcessInfo is null");
         return;
     }
 

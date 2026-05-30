@@ -43,7 +43,6 @@ void DoRSBoundsClipModifierFuzzTest(FuzzedDataProvider& fdp)
     modifier->MarkNodeDirty();
     Vector4f randomVec4F{fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
         fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()};
-    modifier->SetClipRectWithRadius(randomVec4F, randomVec4F);
     auto rrect = std::make_shared<RRect>();
     modifier->SetClipRRect(rrect);
     auto clipToBounds = std::make_shared<RSPath>();

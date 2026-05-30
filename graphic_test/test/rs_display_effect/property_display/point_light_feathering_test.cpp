@@ -35,7 +35,7 @@ public:
 
 GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Feathering_Basic_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     Rosen::Vector4f bounds{ 100, 100, 400, 400 };
     testNode->SetBounds(bounds);
     testNode->SetFrame(bounds);
@@ -56,7 +56,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     for (size_t i = 0; i < 4; i++) {
         int x = (i % 2) * 550 + 50;
         int y = (i / 2) * 550 + 50;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{ x, y, 500, 500 };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -78,7 +78,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     for (size_t i = 0; i < 6; i++) {
         int x = (i % 3) * 380 + 50;
         int y = (i / 3) * 380 + 50;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{ x, y, 350, 350 };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -100,7 +100,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     for (size_t i = 0; i < 4; i++) {
         int x = (i % 2) * 550 + 50;
         int y = (i / 2) * 550 + 50;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{ x, y, 500, 500 };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -123,7 +123,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     for (size_t i = 0; i < 3; i++) {
         int x = (i % 3) * 380 + 50;
         int y = 50;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{ x, y, 350, 350 };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -145,7 +145,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     for (size_t i = 0; i < 6; i++) {
         int x = (i % 3) * 380 + 50;
         int y = (i / 3) * 380 + 50;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{ x, y, 350, 350 };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -167,7 +167,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     for (size_t i = 0; i < 6; i++) {
         int x = (i % 3) * 380 + 50;
         int y = (i / 3) * 380 + 50;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{ x, y, 350, 350 };
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -192,7 +192,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         for (size_t col = 0; col < 3; col++) {
             int x = col * 380 + 50;
             int y = row * 380 + 50;
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             Rosen::Vector4f bounds{ x, y, 350, 350 };
             testNode->SetBounds(bounds);
             testNode->SetFrame(bounds);
@@ -218,7 +218,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         for (size_t col = 0; col < 3; col++) {
             int x = col * 380 + 50;
             int y = row * 380 + 50;
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             Rosen::Vector4f bounds{ x, y, 350, 350 };
             testNode->SetBounds(bounds);
             testNode->SetFrame(bounds);
@@ -237,7 +237,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
 
 GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Feathering_Multiple_Nodes)
 {
-    auto parentNode = RSCanvasNode::Create();
+    auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     Rosen::Vector4f parentBounds{ 100, 100, 800, 800 };
     parentNode->SetBounds(parentBounds);
     parentNode->SetFrame(parentBounds);
@@ -248,7 +248,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     for (int i = 0; i < 4; i++) {
         int x = (i % 2) * 400;
         int y = (i / 2) * 400;
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f childBounds{ x + 50, y + 50, 300, 300 };
         childNode->SetBounds(childBounds);
         childNode->SetFrame(childBounds);
@@ -266,7 +266,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
 
 GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Feathering_Edge_Positions)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     Rosen::Vector4f bounds{ 100, 100, 600, 600 };
     testNode->SetBounds(bounds);
     testNode->SetFrame(bounds);
@@ -279,7 +279,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     };
     
     for (size_t i = 0; i < positions.size(); i++) {
-        auto childNode = RSCanvasNode::Create();
+        auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f childBounds{ 0, 0, 600, 600 };
         childNode->SetBounds(childBounds);
         childNode->SetFrame(childBounds);
@@ -297,7 +297,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
 
 GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Feathering_Zero_Intensity)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     Rosen::Vector4f bounds{ 100, 100, 400, 400 };
     testNode->SetBounds(bounds);
     testNode->SetFrame(bounds);
@@ -314,7 +314,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
 
 GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Feathering_Zero_BorderWidth)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     Rosen::Vector4f bounds{ 100, 100, 400, 400 };
     testNode->SetBounds(bounds);
     testNode->SetFrame(bounds);

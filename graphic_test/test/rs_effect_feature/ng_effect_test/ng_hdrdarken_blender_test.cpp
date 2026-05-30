@@ -61,7 +61,7 @@ public:
 
     RSCanvasNode::SharedPtr SetUpEffectNode()
     {
-        auto effectNode = RSCanvasNode::Create();
+        auto effectNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         effectNode->SetBackgroundColor(0xFF333333);
@@ -96,7 +96,7 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
         childNode1->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
         childNode1->SetAlpha(0.4f);
         RegisterNode(childNode1);
-        auto childNode2 = RSCanvasNode::Create();
+        auto childNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode2->SetBounds({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
         childNode2->SetBackgroundColor(0xff00ff00);
         childNode2->SetBackgroundBlurRadius(30);
@@ -105,7 +105,7 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
         childNode2->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
         childNode2->SetAlpha(0.5f);
         RegisterNode(childNode2);
-        auto childNode3 = RSCanvasNode::Create();
+        auto childNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode3->SetBounds({ sizeX * 3 / 4, sizeY * 3 / 4, sizeX / 3, sizeY / 3 });
         childNode3->SetBackgroundColor(0xff00ffff);
         childNode3->SetBackgroundBlurRadius(30);
@@ -152,7 +152,7 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
         childNode1->SetBorderColor(Vector4<Color>(RgbPalette::Blue()));
         childNode1->SetAlpha(0.4f);
         RegisterNode(childNode1);
-        auto childNode2 = RSCanvasNode::Create();
+        auto childNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode2->SetBounds({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
         childNode2->SetBackgroundColor(0xff00ff00);
         childNode2->SetBackgroundBlurRadius(30);
@@ -198,7 +198,7 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
         childNode1->SetBorderColor(Vector4<Color>(RgbPalette::Blue()));
         childNode1->SetAlpha(0.2f);
         RegisterNode(childNode1);
-        auto childNode2 = RSCanvasNode::Create();
+        auto childNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode2->SetBounds({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
         childNode2->SetBackgroundColor(0xff00ff00);
         childNode2->SetBackgroundBlurRadius(30);
@@ -244,7 +244,7 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
         childNode1->SetBorderColor(Vector4<Color>(RgbPalette::Blue()));
         childNode1->SetAlpha(0.3f);
         RegisterNode(childNode1);
-        auto childNode2 = RSCanvasNode::Create();
+        auto childNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode2->SetBounds({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
         childNode2->SetBackgroundColor(0xff00ff00);
         childNode2->SetBackgroundBlurRadius(30);
@@ -290,7 +290,7 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
         childNode1->SetBorderColor(Vector4<Color>(RgbPalette::Black()));
         childNode1->SetAlpha(0.7f);
         RegisterNode(childNode1);
-        auto childNode2 = RSCanvasNode::Create();
+        auto childNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode2->SetBounds({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
         childNode2->SetBackgroundColor(0xff00ff00);
         childNode2->SetBackgroundBlurRadius(30);
@@ -336,7 +336,7 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
         childNode1->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
         childNode1->SetAlpha(0.5f);
         RegisterNode(childNode1);
-        auto childNode2 = RSCanvasNode::Create();
+        auto childNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         childNode2->SetBounds({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
         childNode2->SetBackgroundColor(0xff00ff00);
         childNode2->SetBackgroundBlurRadius(30);

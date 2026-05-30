@@ -153,13 +153,6 @@ public:
     bool GetSecurityDisplay() const;
 
     /**
-     * @brief Set whether to forcibly close HDR.
-     *
-     * @param isForceCloseHdr true if HDR should be forcibly closed; false otherwise.
-     */
-    void SetForceCloseHdr(bool isForceCloseHdr);
-
-    /**
      * @brief Gets whether the screen mode is mirroring.
      *
      * @return true if the screen mode is mirroring; false otherwise.

@@ -62,7 +62,6 @@ bool BootAnimationStrategy::CheckExitAnimationExt()
     void *handler = dlopen(CHECK_EXIT_ANIMATION_EXT_PATH, RTLD_LAZY | RTLD_NODELETE);
     if (handler == nullptr) {
         LOGI("CheckExitAnimationExt Dlopen failed, reason: %{public}s", dlerror());
-        dlclose(handler);
         return true;
     }
 

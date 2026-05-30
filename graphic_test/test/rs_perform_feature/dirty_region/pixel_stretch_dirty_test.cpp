@@ -114,7 +114,7 @@ GRAPHIC_N_TEST(DirtyRegionTest06, CONTENT_DISPLAY_TEST, PixelStretch01)
     RegisterNode(testNode);
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH_BOUNDS, Drawing::TileMode::CLAMP);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_SMALL_BOUNDS_TOP);
     testNode2->SetBackgroundColor(COLOR_RED);
@@ -141,7 +141,7 @@ GRAPHIC_N_TEST(DirtyRegionTest06, CONTENT_DISPLAY_TEST, PixelStretch02)
     RegisterNode(testNode);
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH_BOUNDS, Drawing::TileMode::CLAMP);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_SMALL_BOUNDS_TOP);
     testNode2->SetBackgroundColor(COLOR_RED);
@@ -168,7 +168,7 @@ GRAPHIC_N_TEST(DirtyRegionTest06, CONTENT_DISPLAY_TEST, PixelStretch03)
     RegisterNode(testNode);
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH_BOUNDS, Drawing::TileMode::CLAMP);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_SMALL_BOUNDS_BOTTOM);
     testNode2->SetBackgroundColor(COLOR_RED);
@@ -195,7 +195,7 @@ GRAPHIC_N_TEST(DirtyRegionTest06, CONTENT_DISPLAY_TEST, PixelStretch04)
     RegisterNode(testNode);
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH_BOUNDS, Drawing::TileMode::CLAMP);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_SMALL_BOUNDS_BOTTOM);
     testNode2->SetBackgroundColor(COLOR_RED);
@@ -222,7 +222,7 @@ GRAPHIC_N_TEST(DirtyRegionTest06, CONTENT_DISPLAY_TEST, PixelStretch05)
     RegisterNode(testNode);
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH_BOUNDS, Drawing::TileMode::REPEAT);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_SMALL_BOUNDS_TOP);
     testNode2->SetBackgroundColor(COLOR_RED);
@@ -249,7 +249,7 @@ GRAPHIC_N_TEST(DirtyRegionTest06, CONTENT_DISPLAY_TEST, PixelStretch06)
     RegisterNode(testNode);
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH_BOUNDS, Drawing::TileMode::MIRROR);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_SMALL_BOUNDS_BOTTOM);
     testNode2->SetBackgroundColor(COLOR_RED);
@@ -276,7 +276,7 @@ GRAPHIC_N_TEST(DirtyRegionTest06, CONTENT_DISPLAY_TEST, PixelStretch07)
     RegisterNode(testNode);
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH_BOUNDS, Drawing::TileMode::DECAL);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(testNode2);
     testNode2->SetBounds(DEFAULT_SMALL_BOUNDS_BOTTOM);
     testNode2->SetBackgroundColor(COLOR_RED);

@@ -178,8 +178,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
         "LOGICAL_DISPLAY_NODE_TEST_001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode0, nullptr);
     ASSERT_NE(displayNode1, nullptr);
     displayNode0->SetBounds({ 0, 0, 500, 500 });
@@ -213,8 +213,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
         "LOGICAL_DISPLAY_NODE_TEST_002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode0, nullptr);
     ASSERT_NE(displayNode1, nullptr);
     displayNode0->SetBounds({ 0, 0, 500, 500 });
@@ -256,8 +256,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode0, nullptr);
     ASSERT_NE(displayNode1, nullptr);
     displayNode0->SetBounds({ 0, 0, 500, 500 });
@@ -290,8 +290,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
         "LOGICAL_DISPLAY_NODE_TEST_004", width, height, psurface0, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId0, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig0 = { screenId0, false, 0, true };
-    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig0);
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig0);
+    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig0, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig0, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode0, nullptr);
     ASSERT_NE(displayNode1, nullptr);
     displayNode0->SetBounds({ 0, 0, 500, 500 });
@@ -317,7 +317,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
     EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, true, displayNode1->GetId(), true };
-    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig1);
+    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig1, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode2, nullptr);
     displayNode2->SetBounds({ 0, 0, width, height });
     displayNode2->SetFrame({ 0, 0, width, height });
@@ -344,10 +344,10 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
         "LOGICAL_DISPLAY_NODE_TEST_005", width, height, psurface0, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId0, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId0, false, 0, true };
-    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode3 = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode3 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode0, nullptr);
     ASSERT_NE(displayNode1, nullptr);
     ASSERT_NE(displayNode2, nullptr);
@@ -381,7 +381,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
     EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig mirrorDisplayNodeConfig = { screenId1, true, displayNode1->GetId(), true };
-    auto mirrorDisplayNode = RSDisplayNode::Create(mirrorDisplayNodeConfig);
+    auto mirrorDisplayNode = RSDisplayNode::Create(mirrorDisplayNodeConfig,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(mirrorDisplayNode, nullptr);
     mirrorDisplayNode->SetBounds({ 0, 0, width, height });
     mirrorDisplayNode->SetFrame({ 0, 0, width, height });
@@ -412,10 +413,10 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
         "LOGICAL_DISPLAY_NODE_TEST_006", width, height, psurface, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode3 = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode3 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode0, nullptr);
     ASSERT_NE(displayNode1, nullptr);
     ASSERT_NE(displayNode2, nullptr);
@@ -458,10 +459,10 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
         "LOGICAL_DISPLAY_NODE_TEST_007", width, height, psurface, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode3 = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode3 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode0, nullptr);
     ASSERT_NE(displayNode1, nullptr);
     ASSERT_NE(displayNode2, nullptr);
@@ -501,10 +502,10 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
         "LOGICAL_DISPLAY_NODE_TEST_008", width, height, psurface, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig);
-    auto displayNode3 = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode0 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto displayNode3 = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode0, nullptr);
     ASSERT_NE(displayNode1, nullptr);
     ASSERT_NE(displayNode2, nullptr);
@@ -546,7 +547,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
         "SetSecurityDisplayTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
     LOGI("SetSecurityDisplayTest001 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
         screenId, displayNode->GetId());
@@ -558,7 +559,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
     displayNode->SetSecurityDisplay(true);
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
-    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
@@ -592,7 +594,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
         "SetSecurityDisplayTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
     LOGI("SetSecurityDisplayTest002 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
         screenId, displayNode->GetId());
@@ -604,7 +606,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
     displayNode->SetSecurityDisplay(false);
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
-    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
@@ -638,7 +641,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
         "SetSecurityDisplayTest003", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
     LOGI("SetSecurityDisplayTest003 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
         screenId, displayNode->GetId());
@@ -650,7 +653,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
     displayNode->SetSecurityDisplay(true);
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
-    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
@@ -684,7 +688,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
         "SetSecurityDisplayTest004", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
     LOGI("SetSecurityDisplayTest004 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
         screenId, displayNode->GetId());
@@ -696,7 +700,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
     displayNode->SetSecurityDisplay(false);
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
-    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
@@ -730,7 +735,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetDisplayNodeMir
         "SetDisplayNodeMirrorConfigTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
-    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode, nullptr);
     LOGI("SetDisplayNodeMirrorConfigTest001 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
         screenId, displayNode->GetId());
@@ -748,7 +753,8 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetDisplayNodeMir
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
-    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
@@ -783,11 +789,12 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetDisplayNodeMir
     EXPECT_NE(screenId1, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
-    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode1, nullptr);
 
     RSSurfaceNodeConfig surfaceNodeConfig;
-    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig);
+    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(surfaceNode1, nullptr);
     surfaceNode1->SetBounds({ 0, 0, 300, 400 });
     surfaceNode1->SetFrame({ 0, 0, 300, 400 });
@@ -813,7 +820,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetDisplayNodeMir
     EXPECT_NE(screenId2, INVALID_SCREEN_ID);
 
     RSDisplayNodeConfig displayNodeConfig2 = { screenId2, false, 0, true };
-    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
+    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2, RSGraphicTestDirector::Instance().GetRSUIContext());
     ASSERT_NE(displayNode2, nullptr);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();

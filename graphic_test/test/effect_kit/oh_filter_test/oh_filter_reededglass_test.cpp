@@ -37,7 +37,7 @@ public:
         auto image = std::make_shared<Rosen::RSImage>();
         image->SetPixelMap(pixelmap);
         image->SetImageFit((int)ImageFit::FILL);
-        auto node = Rosen::RSCanvasNode::Create();
+        auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds(bounds);
         node->SetFrame(bounds);
         node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);

@@ -171,6 +171,11 @@ public:
 
     void SetScreenBacklight(const RsScreenBrightnessData& brightnessData) override;
 
+    ErrCode GetScreenVCPFeature(ScreenId id, uint8_t vcpCode,
+        uint16_t& currentValue, uint16_t& maximumValue, int32_t& errorCode) override;
+
+    ErrCode SetScreenVCPFeature(ScreenId id, uint8_t vcpCode, uint16_t currentValue) override;
+
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) override;
 
     int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) override;

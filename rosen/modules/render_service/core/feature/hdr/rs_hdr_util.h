@@ -79,6 +79,7 @@ public:
     static void UpdateHDRCastProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool hdrCastColorGamut);
     static bool IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfig& renderFrameConfig);
     static bool NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
+    static bool HDRColorHeadroomMapping(const Drawing::UIColor& srcColor, Drawing::UIColor& dstColor);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
         const Drawing::SamplingOptions& sampling, std::shared_ptr<Drawing::Surface>& surface,

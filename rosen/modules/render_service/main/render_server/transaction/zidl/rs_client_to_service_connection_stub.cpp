@@ -79,6 +79,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_VCP_FEATURE),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_VCP_FEATURE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK),
@@ -1448,6 +1450,40 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetScreenBacklight(brightnessData);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_VCP_FEATURE): {
+            ScreenId id{INVALID_SCREEN_ID};
+            uint8_t vcpCode{0};
+            if (!data.ReadUint64(id) || !data.ReadUint8(vcpCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_VCP_FEATURE Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint16_t currentValue{0};
+            uint16_t maximumValue{0};
+            int32_t errorCode{0};
+            if (GetScreenVCPFeature(id, vcpCode, currentValue, maximumValue, errorCode) != ERR_OK ||
+                !reply.WriteUint16(currentValue) || !reply.WriteUint16(maximumValue) ||
+                !reply.WriteInt32(errorCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_VCP_FEATURE Write failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_VCP_FEATURE): {
+            ScreenId id{INVALID_SCREEN_ID};
+            uint8_t vcpCode{0};
+            uint16_t currentValue{0};
+            if (!data.ReadUint64(id) || !data.ReadUint8(vcpCode) || !data.ReadUint16(currentValue)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_VCP_FEATURE Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (SetScreenVCPFeature(id, vcpCode, currentValue) != ERR_OK) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_VCP_FEATURE failed!");
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS): {

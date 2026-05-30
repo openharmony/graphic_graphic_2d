@@ -51,7 +51,7 @@ public:
         const std::vector<RectI>& advancedDirtyRegion, uint32_t backgroundColor, int transY = 0)
     {
         for (const RectI& rect : advancedDirtyRegion) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({rect.left_, rect.top_ + transY, rect.width_, rect.height_});
             testNode->SetBackgroundColor(backgroundColor);
             GetRootNode()->AddChild(testNode);
@@ -80,18 +80,18 @@ GRAPHIC_TEST(DirtyRegionTest02, CONTENT_DISPLAY_TEST, Update_Dirty_Test01)
     rsDirtyManager->UpdateDirty();
     RectI dirtyRegion = rsDirtyManager->GetDirtyRegion();
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds(
         {dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_});
     testNode1->SetBackgroundColor(COLOR_GREEN);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode2->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode2);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode3->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode3);
@@ -122,22 +122,22 @@ GRAPHIC_TEST(DirtyRegionTest02, CONTENT_DISPLAY_TEST, Update_Dirty_Test02)
     RectI dirtyRegion = rsDirtyManager->GetDirtyRegion();
     rsDirtyManager->Clear();
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds({rect3.left_, rect3.top_, rect3.width_, rect3.height_});
     testNode3->SetBackgroundColor(COLOR_DKGRAY);
     GetRootNode()->AddChild(testNode3);
 
-    auto testNode4 = RSCanvasNode::Create();
+    auto testNode4 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode4->SetBounds(
         {dirtyRegion.left_, dirtyRegion.top_ + DEFAULT_TRANS_Y, dirtyRegion.width_, dirtyRegion.height_});
     testNode4->SetBackgroundColor(COLOR_RED);
@@ -148,7 +148,7 @@ GRAPHIC_TEST(DirtyRegionTest02, CONTENT_DISPLAY_TEST, Update_Dirty_Test02)
     dirtyRegion = rsDirtyManager->GetDirtyRegion();
     rsDirtyManager->Clear();
 
-    auto testNode5 = RSCanvasNode::Create();
+    auto testNode5 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode5->SetBounds(
         {dirtyRegion.left_, dirtyRegion.top_ + DEFAULT_TRANS_Y_2, dirtyRegion.width_, dirtyRegion.height_});
     testNode5->SetBackgroundColor(COLOR_RED);
@@ -159,7 +159,7 @@ GRAPHIC_TEST(DirtyRegionTest02, CONTENT_DISPLAY_TEST, Update_Dirty_Test02)
     dirtyRegion = rsDirtyManager->GetDirtyRegion();
     rsDirtyManager->Clear();
 
-    auto testNode6 = RSCanvasNode::Create();
+    auto testNode6 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode6->SetBounds(
         {dirtyRegion.left_, dirtyRegion.top_ + DEFAULT_TRANS_Y_3, dirtyRegion.width_, dirtyRegion.height_});
     testNode6->SetBackgroundColor(COLOR_RED);
@@ -194,23 +194,23 @@ GRAPHIC_TEST(DirtyRegionTest02, CONTENT_DISPLAY_TEST, Update_Dirty_Test03)
     RectI dirtyRegion = rsDirtyManager->GetDirtyRegion();
     rsDirtyManager->Clear();
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds(
         {dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_});
     testNode1->SetBackgroundColor(COLOR_GREEN);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode2->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode2);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode3->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode3);
 
-    auto testNode4 = RSCanvasNode::Create();
+    auto testNode4 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode4->SetBounds({rect3.left_, rect3.top_, rect3.width_, rect3.height_});
     testNode4->SetBackgroundColor(COLOR_DKGRAY);
     GetRootNode()->AddChild(testNode4);
@@ -220,7 +220,7 @@ GRAPHIC_TEST(DirtyRegionTest02, CONTENT_DISPLAY_TEST, Update_Dirty_Test03)
     dirtyRegion = rsDirtyManager->GetDirtyRegion();
     rsDirtyManager->Clear();
 
-    auto testNode5 = RSCanvasNode::Create();
+    auto testNode5 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode5->SetBounds(
         {dirtyRegion.left_, dirtyRegion.top_ + DEFAULT_TRANS_Y_2, dirtyRegion.width_, dirtyRegion.height_});
     testNode5->SetBackgroundColor(COLOR_RED);
@@ -231,7 +231,7 @@ GRAPHIC_TEST(DirtyRegionTest02, CONTENT_DISPLAY_TEST, Update_Dirty_Test03)
     dirtyRegion = rsDirtyManager->GetDirtyRegion();
     rsDirtyManager->Clear();
 
-    auto testNode6 = RSCanvasNode::Create();
+    auto testNode6 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode6->SetBounds(
         {dirtyRegion.left_, dirtyRegion.top_ + DEFAULT_TRANS_Y_3, dirtyRegion.width_, dirtyRegion.height_});
     testNode6->SetBackgroundColor(COLOR_RED);
@@ -270,17 +270,17 @@ GRAPHIC_TEST(DirtyRegionTest02, CONTENT_DISPLAY_TEST, Update_Dirty_Test04)
 
     DrawAdvancedDirtyRegion(advancedDirtyRegion, COLOR_GREEN);
 
-    auto testNode1 = RSCanvasNode::Create();
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode1->SetBounds({rect1.left_, rect1.top_, rect1.width_, rect1.height_});
     testNode1->SetBackgroundColor(COLOR_YELLOW);
     GetRootNode()->AddChild(testNode1);
 
-    auto testNode2 = RSCanvasNode::Create();
+    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode2->SetBounds({rect2.left_, rect2.top_, rect2.width_, rect2.height_});
     testNode2->SetBackgroundColor(COLOR_BLUE);
     GetRootNode()->AddChild(testNode2);
 
-    auto testNode3 = RSCanvasNode::Create();
+    auto testNode3 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode3->SetBounds({rect3.left_, rect3.top_, rect3.width_, rect3.height_});
     testNode3->SetBackgroundColor(COLOR_DKGRAY);
     GetRootNode()->AddChild(testNode3);

@@ -30,6 +30,7 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "static_factory.h"
 
 // dfx
@@ -166,6 +167,8 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     const auto& processor = uniParam->GetRSProcessor();
     auto mirroredDrawable = params->GetMirrorSourceDrawable().lock();
     ScreenId paramScreenId = params->GetScreenId();
+    RSEffectLuminanceManager::GetInstance().SetCurrentScreenId(paramScreenId);
+    RSEffectLuminanceManager::GetInstance().SetHdrPipelineStatus(screenParams->GetHDRPresent());
     auto mirroredRenderParams = mirroredDrawable ? mirroredDrawable->GetRenderParams().get() : nullptr;
     if (mirroredRenderParams) {
         RSMultiScreenUtil::HandleMirrorDisplay(*this, *params, processor);

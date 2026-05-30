@@ -42,7 +42,7 @@ public:
  */
 GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_001)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -73,7 +73,7 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
     };
 
     for (size_t i = 0; i < paramsList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 190 + 50, 50, 180, 180 });
         testNode->SetBackgroundColor(0xffff0000);
 
@@ -101,7 +101,7 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
 
     for (size_t row = 0; row < velocityValues.size(); row++) {
         for (size_t col = 0; col < alphaList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 350 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetAlpha(alphaList[col]);
@@ -126,7 +126,7 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
  */
 GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_004)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -163,7 +163,7 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
     std::vector<float> rotationList = { 0, 45, 90, 135 };
 
     for (size_t i = 0; i < rotationList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetRotation(rotationList[i]);
@@ -197,7 +197,7 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
 
     for (size_t row = 0; row < velocityScale.size(); row++) {
         for (size_t col = 0; col < scaleList.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
             testNode->SetScale(scaleList[col].first, scaleList[col].second);
@@ -229,7 +229,7 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
     };
 
     for (size_t i = 0; i < zeroBounds.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ zeroBounds[i].x_, zeroBounds[i].y_,
             zeroBounds[i].z_, zeroBounds[i].w_ });
         testNode->SetBackgroundColor(0xffff0000);
@@ -262,7 +262,7 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
     };
 
     for (size_t i = 0; i < translateList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetTranslate(Vector2f(translateList[i].first, translateList[i].second));
@@ -295,7 +295,7 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_00
     };
 
     for (size_t i = 0; i < extremeParams.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
 
@@ -329,7 +329,7 @@ GRAPHIC_TEST(ParticleVelocityTest, CONTENT_DISPLAY_TEST, ParticleVelocityTest_01
     };
 
     for (size_t i = 0; i < paramsList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetPixelmap(pixelMap);
 

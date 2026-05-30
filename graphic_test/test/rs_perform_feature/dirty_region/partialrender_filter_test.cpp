@@ -113,12 +113,12 @@ public:
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter01)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
-    auto mainNode = RSCanvasNode::Create();
+    auto mainNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(mainNode);
     mainNode->SetBounds(DEFAULT_BOUNDS);
     mainNode->SetBackgroundColor(COLOR_YELLOW);
@@ -133,7 +133,7 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter01)
     opts.contentBgColor = 0x00FFFFFF;
     auto subId = CreateSubWindow(opts);
 
-    auto subNode = RSCanvasNode::Create();
+    auto subNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(subNode);
     subNode->SetBounds({ 200, 0, 200, 200 });
     subNode->SetTranslate({ 0, 0 });
@@ -157,13 +157,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter01)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter02)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -194,13 +194,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter02)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter03)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -231,13 +231,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter03)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter04)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -269,13 +269,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter04)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter05)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -312,13 +312,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter05)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter06)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -355,13 +355,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter06)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter07)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -394,13 +394,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter07)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter08)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -437,13 +437,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter09)
     RegisterNode(backgroundNode);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
     translateNode->SetTranslate({ 0, 0 });
 
-    auto effectNode = RSEffectNode::Create();
+    auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(effectNode);
     effectNode->SetBounds(DEFAULT_BOUNDS);
     effectNode->SetFrame(DEFAULT_BOUNDS);
@@ -451,7 +451,7 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter09)
     effectNode->SetBackgroundFilter(RSFilter::CreateBlurFilter(10, 10));
 
     Vector4f contentRect = { 0, 0, 800, 800 };
-    auto mainNode = RSEffectNode::Create();
+    auto mainNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(mainNode);
     mainNode->SetBounds(contentRect);
     mainNode->SetUseEffect(true);
@@ -482,13 +482,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter10)
     RegisterNode(backgroundNode);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
     translateNode->SetTranslate({ 0, 0 });
 
-    auto effectNode = RSEffectNode::Create();
+    auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(effectNode);
     effectNode->SetBounds(DEFAULT_BOUNDS);
     effectNode->SetFrame(DEFAULT_BOUNDS);
@@ -496,7 +496,7 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter10)
     effectNode->SetBackgroundFilter(RSFilter::CreateBlurFilter(10, 10));
 
     Vector4f contentRect = { 0, 0, 800, 800 };
-    auto mainNode = RSEffectNode::Create();
+    auto mainNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(mainNode);
     mainNode->SetBounds(contentRect);
     mainNode->SetUseEffect(true);
@@ -527,13 +527,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter11)
     RegisterNode(backgroundNode);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
     translateNode->SetTranslate({ 0, 0 });
 
-    auto effectNode = RSEffectNode::Create();
+    auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(effectNode);
     effectNode->SetBounds(DEFAULT_BOUNDS);
     effectNode->SetFrame(DEFAULT_BOUNDS);
@@ -543,7 +543,7 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter11)
     effectNode->SetBackgroundNGFilter(frostedGlassBlurFilter);
 
     Vector4f contentRect = { 0, 0, 800, 800 };
-    auto mainNode = RSEffectNode::Create();
+    auto mainNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(mainNode);
     mainNode->SetBounds(contentRect);
     mainNode->SetUseEffect(true);
@@ -574,13 +574,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter12)
     RegisterNode(backgroundNode);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
     translateNode->SetTranslate({ 0, 0 });
 
-    auto effectNode = RSEffectNode::Create();
+    auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(effectNode);
     effectNode->SetBounds(DEFAULT_BOUNDS);
     effectNode->SetFrame(DEFAULT_BOUNDS);
@@ -590,7 +590,7 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter12)
     effectNode->SetBackgroundNGFilter(frostedGlassBlurFilter);
 
     Vector4f contentRect = { 0, 0, 800, 800 };
-    auto mainNode = RSEffectNode::Create();
+    auto mainNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(mainNode);
     mainNode->SetBounds(contentRect);
     mainNode->SetUseEffect(true);
@@ -617,13 +617,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter12)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter13)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -656,13 +656,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter13)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter14)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -695,13 +695,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter14)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter15)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);
@@ -734,13 +734,13 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter15)
  */
 GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter16)
 {
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     backgroundNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f translateBounds = { 400, 0, 200, 200 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(translateBounds);
     translateNode->SetBackgroundColor(COLOR_BLUE);

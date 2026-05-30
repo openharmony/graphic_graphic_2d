@@ -461,9 +461,6 @@ HWTEST_F(RSSurfaceRenderNodeFourUtilTest, CheckOpaqueRegionBaseInfo, TestSize.Le
 HWTEST_F(RSSurfaceRenderNodeFourUtilTest, NeedSetCallbackForRenderThreadRefresh, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->SetStartAnimationFinished();
-    ASSERT_TRUE(node->IsStartAnimationFinished());
-
     node->SetCallbackForRenderThreadRefresh(true);
     ASSERT_FALSE(node->NeedSetCallbackForRenderThreadRefresh());
 }

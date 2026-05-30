@@ -101,7 +101,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBorderLight01)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -133,7 +133,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBorderLight02)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -164,7 +164,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaContentLight01)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -196,7 +196,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaContentLight02)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -227,7 +227,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBorderContentLight0
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -259,7 +259,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBorderContentLight0
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -290,7 +290,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBlendBorderLight01)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -322,7 +322,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBlendBorderLight02)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -353,7 +353,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBlendContentLight01
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -385,7 +385,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBlendContentLight02
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -416,7 +416,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBlendBorderContentL
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -448,7 +448,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaBlendBorderContentL
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -479,7 +479,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaNormalBorderContent
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
@@ -511,7 +511,7 @@ GRAPHIC_TEST(ForegroundTest05, CONTENT_DISPLAY_TEST, SDFAlphaNormalBorderContent
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);

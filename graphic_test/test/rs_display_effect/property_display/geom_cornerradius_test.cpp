@@ -293,7 +293,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     const int nodeOffsetY = 500;
     const int nodeSize = 400;
 
-    auto backgroundTestNode = RSCanvasNode::Create();
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     backgroundTestNode->SetBackgroundColor(0xff000000);
     backgroundTestNode->SetBounds({0, 0, 1200, 2000});
     backgroundTestNode->SetFrame({0, 0, 1200, 2000});
@@ -335,7 +335,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     const int nodeOffsetY = 500;
     const int nodeSize = 400;
  
-    auto backgroundTestNode = RSCanvasNode::Create();
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     backgroundTestNode->SetBackgroundColor(0xff000000);
     backgroundTestNode->SetBounds({ 0, 0, 1200, 2000 });
     backgroundTestNode->SetFrame({ 0, 0, 1200, 2000 });
@@ -377,7 +377,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     const int nodeOffsetY = 500;
     const int nodeSize = 400;
 
-    auto backgroundTestNode = RSCanvasNode::Create();
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     backgroundTestNode->SetBackgroundColor(0xff000000);
     backgroundTestNode->SetBounds({0, 0, 1200, 2000});
     backgroundTestNode->SetFrame({0, 0, 1200, 2000});
@@ -420,7 +420,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     const int nodeOffsetY = 500;
     const float nodeSize = 400.7f;
 
-    auto backgroundTestNode = RSCanvasNode::Create();
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     backgroundTestNode->SetBackgroundColor(0xff000000);
     backgroundTestNode->SetBounds({ 0, 0, 1200, 2000 });
     backgroundTestNode->SetFrame({ 0, 0, 1200, 2000 });
@@ -462,7 +462,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     const int nodeOffsetY = 450;
     const std::vector<float> nodeSize = { 400.0f, 400.3f, 400.4f, 400.5f };
 
-    auto backgroundTestNode = RSCanvasNode::Create();
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     backgroundTestNode->SetBackgroundColor(0xffffff00);
     backgroundTestNode->SetBounds({ 0, 0, 1200, 2000 });
     backgroundTestNode->SetFrame({ 0, 0, 1200, 2000 });
@@ -470,7 +470,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     RegisterNode(backgroundTestNode);
 
     for (int i = 0; i < nodeSize.size(); i++) {
-        auto parentTestNode = RSCanvasNode::Create();
+        auto parentTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         RegisterNode(parentTestNode);
         GetRootNode()->AddChild(parentTestNode);
         parentTestNode->SetBounds({ nodePosX, nodePosY + nodeOffsetY * i, nodeSize[i], nodeSize[i] });
@@ -478,7 +478,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
         parentTestNode->SetCornerRadius(50);
         parentTestNode->SetClipToBounds(true);
 
-        auto childTestNode = RSCanvasNode::Create();
+        auto childTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         parentTestNode->RSNode::AddChild(childTestNode);
         RegisterNode(childTestNode);
         childTestNode->SetBounds({ 0, 0, nodeSize[i], nodeSize[i] });
@@ -486,7 +486,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     }
 
     for (int i = 0; i < nodeSize.size(); i++) {
-        auto parentTestNode = RSCanvasNode::Create();
+        auto parentTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         RegisterNode(parentTestNode);
         GetRootNode()->AddChild(parentTestNode);
         parentTestNode->SetBounds({ nodePosX + nodeOffsetX, nodePosY + nodeOffsetY * i, nodeSize[i], nodeSize[i] });
@@ -495,7 +495,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
         parentTestNode->SetClipToBounds(true);
         parentTestNode->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
 
-        auto childTestNode = RSCanvasNode::Create();
+        auto childTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         parentTestNode->RSNode::AddChild(childTestNode);
         RegisterNode(childTestNode);
         childTestNode->SetBounds({ 0, 0, nodeSize[i], nodeSize[i] });
@@ -511,7 +511,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     const int nodeOffsetY = 500;
     const std::vector<float> nodeSize = { 400.0f, 400.3f, 400.4f, 400.5f };
  
-    auto backgroundTestNode = RSCanvasNode::Create();
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     backgroundTestNode->SetBackgroundColor(0xffffff00);
     backgroundTestNode->SetBounds({ 0, 0, 1200, 2000 });
     backgroundTestNode->SetFrame({ 0, 0, 1200, 2000 });
@@ -519,7 +519,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     RegisterNode(backgroundTestNode);
  
     for (int i = 0; i < nodeSize.size(); i++) {
-        auto parentTestNode = RSCanvasNode::Create();
+        auto parentTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         RegisterNode(parentTestNode);
         GetRootNode()->AddChild(parentTestNode);
         parentTestNode->SetBounds({ nodePosX, nodePosY + nodeOffsetY * i, nodeSize[i], nodeSize[i] });
@@ -536,7 +536,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
     }
  
     for (int i = 0; i < nodeSize.size(); i++) {
-        auto parentTestNode = RSCanvasNode::Create();
+        auto parentTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         RegisterNode(parentTestNode);
         GetRootNode()->AddChild(parentTestNode);
         parentTestNode->SetBounds({ nodePosX + nodeOffsetX, nodePosY + nodeOffsetY * i, nodeSize[i], nodeSize[i] });

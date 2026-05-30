@@ -194,7 +194,8 @@ HWTEST_F(RSServiceClientTest, CreatePixelMapFromSurfaceId001, TestSize.Level1)
     ASSERT_NE(psurface, nullptr);
     SurfaceUtils::GetInstance()->Add(psurface->GetUniqueId(), psurface);
     Rect srcRect = {0, 0, 100, 100};
-    rsClient->CreatePixelMapFromSurfaceId(psurface->GetUniqueId(), srcRect);
+    rsClient->CreatePixelMapFromSurfaceId(psurface->GetUniqueId(), srcRect, false);
+    rsClient->CreatePixelMapFromSurfaceId(psurface->GetUniqueId(), srcRect, true);
 }
 
 /**

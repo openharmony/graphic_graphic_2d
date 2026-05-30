@@ -56,7 +56,8 @@ public:
         rsSurfaceNodeConfig1.SurfaceNodeName = "watermarkAppWindow";
         rsSurfaceNodeConfig1.isSync = false;
         RSSurfaceNodeType rsSurfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
-        auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType);
+        auto surfaceNode = RSSurfaceNode::Create(rsSurfaceNodeConfig1, rsSurfaceNodeType, true, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         surfaceNode->SetBounds({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
         surfaceNode->SetFrame({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
         surfaceNode->SetBackgroundColor(0x00CC00FF);
@@ -980,7 +981,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     GetRootNode()->AddChild(surfaceNode);
     RegisterNode(surfaceNode);
     watermarkName_ = "App_Surface_Watermark_Test24";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     surfaceNode->AddChild(canvasNode, -1);
@@ -1004,7 +1005,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     GetRootNode()->AddChild(surfaceNode);
     RegisterNode(surfaceNode);
     watermarkName_ = "App_Surface_Watermark_Test25";
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     surfaceNode->AddChild(canvasNode, -1);

@@ -64,34 +64,34 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     for (int i = 0; i < nodeCount; i++) {
         int x = (i % columnCount) * nodePos;
         int y = (i / columnCount) * nodePos;
-        auto testNodeColor = RSCanvasNode::Create();
+        auto testNodeColor = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         setNode(testNodeColor, { x, y, nodeSize, nodeSize }, Vector4<Color>(colorList[i]));
         GetRootNode()->AddChild(testNodeColor);
         RegisterNode(testNodeColor);
     }
 
     // parent black, child red color, white border
-    auto testNodeParent = RSCanvasNode::Create();
+    auto testNodeParent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     setNode(testNodeParent, { 0, nodePos * 2, nodeSize, nodeSize }, Vector4<Color>(colorList[0]));
     testNodeParent->SetBackgroundColor(0xff000000);
     GetRootNode()->AddChild(testNodeParent);
     RegisterNode(testNodeParent);
 
     const int testPos = 50;
-    auto testNodeChild = RSCanvasNode::Create();
+    auto testNodeChild = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     setNode(testNodeChild, { testPos, testPos, nodeHalfSize, nodeHalfSize }, Vector4<Color>(Color(0xffffffff)));
     testNodeChild->SetForegroundColor(0xffff0000);
     testNodeParent->AddChild(testNodeChild);
     RegisterNode(testNodeChild);
 
     // alpha border
-    auto testNodeAlphaColor = RSCanvasNode::Create();
+    auto testNodeAlphaColor = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     setNode(testNodeAlphaColor, { nodePos, nodePos * 2, nodeSize, nodeSize }, Vector4<Color>(Color(0x7dffffff)));
     GetRootNode()->AddChild(testNodeAlphaColor);
     RegisterNode(testNodeAlphaColor);
 
     // four different color
-    auto testNodeFourColor = RSCanvasNode::Create();
+    auto testNodeFourColor = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     setNode(testNodeFourColor, { 0, nodePos * 3, nodeSize, nodeSize },
         Vector4<Color>(colorList[0], colorList[1], colorList[2], colorList[3]));
     GetRootNode()->AddChild(testNodeFourColor);
@@ -117,7 +117,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     for (int i = 0; i < nodeCount; i++) {
         int x = (i % columnCount) * nodePos;
         int y = (i / columnCount) * nodePos;
-        auto testNodeWidth = RSCanvasNode::Create();
+        auto testNodeWidth = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeWidth->SetAlpha(0.5f * i);
         testNodeWidth->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeWidth->SetTranslate(widthList[i] + offsetVal, widthList[i] + radiusVal, 0);
@@ -130,7 +130,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     }
 
     // four different width
-    auto testNodeFourWidth = RSCanvasNode::Create();
+    auto testNodeFourWidth = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourWidth->SetAlpha(0.9f);
     testNodeFourWidth->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
     testNodeFourWidth->SetTranslate(offsetVal, offsetVal2, 0);
@@ -160,7 +160,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     for (int i = 0; i < nodeCount; i++) {
         int x = (i % columnCount) * nodePos;
         int y = (i / columnCount) * nodePos;
-        auto testNodeWidth = RSCanvasNode::Create();
+        auto testNodeWidth = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeWidth->SetAlpha(0.4f * i);
         testNodeWidth->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeWidth->SetTranslate(widthList[i] + offsetVal, widthList[i] + radiusVal, 0);
@@ -173,7 +173,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     }
 
     // four different width
-    auto testNodeFourWidth = RSCanvasNode::Create();
+    auto testNodeFourWidth = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourWidth->SetAlpha(0.8f);
     testNodeFourWidth->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
     testNodeFourWidth->SetTranslate(offsetVal, offsetVal2, 0);
@@ -206,7 +206,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     for (int i = 0; i < nodeCount; i++) {
         int x = (i % columnCount) * nodePos;
         int y = (i / columnCount) * nodePos;
-        auto testNodeStyle = RSCanvasNode::Create();
+        auto testNodeStyle = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeStyle->SetAlpha(0.333f * i);
         testNodeStyle->SetBounds({ x, y, nodeSize, nodeSize });
         testNodeStyle->SetTranslate(tranlateVal, tranlateVal, 0);
@@ -220,7 +220,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     }
 
     // four different style
-    auto testNodeFourStyle = RSCanvasNode::Create();
+    auto testNodeFourStyle = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourStyle->SetAlpha(0.7f);
     testNodeFourStyle->SetBounds({ 0, nodePos * 2, nodeSize, nodeSize });
     testNodeFourStyle->SetTranslate(tranlateVal, tranlateVal, 0);
@@ -244,7 +244,8 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     for (int i = 0; i < 4; i++) {
         int x = (i % 2) * 520;
         int y = (i / 2) * 520;
-        auto testNodeDashWidth = RSCanvasNode::Create();
+        auto testNodeDashWidth = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeDashWidth->SetAlpha(0.333f * i);
         testNodeDashWidth->SetBounds({ x, y, 500, 500 });
         testNodeDashWidth->SetTranslate(20, 20, 0);
@@ -259,7 +260,8 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     }
 
     // four different dash width
-    auto testNodeFourDashWidth = RSCanvasNode::Create();
+    auto testNodeFourDashWidth = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourDashWidth->SetAlpha(0.6f);
     testNodeFourDashWidth->SetBounds({ 0, 520 * 2, 500, 500 });
     testNodeFourDashWidth->SetTranslate(20, 20, 0);
@@ -273,7 +275,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     RegisterNode(testNodeFourDashWidth);
 
     // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
+    auto testNodeSolid = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeSolid->SetAlpha(0.5f);
     testNodeSolid->SetBounds({ 520, 520 * 2, 500, 500 });
     testNodeSolid->SetTranslate(20, 20, 0);
@@ -297,7 +299,8 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     for (int i = 0; i < 5; i++) {
         int x = (i % 2) * 520;
         int y = (i / 2) * 520;
-        auto testNodeDashWidth = RSCanvasNode::Create();
+        auto testNodeDashWidth = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeDashWidth->SetAlpha(0.25f * i);
         testNodeDashWidth->SetBounds({ x, y, 500, 500 });
         testNodeDashWidth->SetTranslate(20, 20, 0);
@@ -312,7 +315,8 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     }
 
     // four different dash width
-    auto testNodeFourDashWidth = RSCanvasNode::Create();
+    auto testNodeFourDashWidth = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourDashWidth->SetAlpha(0.4f);
     testNodeFourDashWidth->SetBounds({ 0, 520 * 3, 500, 500 });
     testNodeFourDashWidth->SetTranslate(20, 20, 0);
@@ -326,7 +330,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     RegisterNode(testNodeFourDashWidth);
 
     // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
+    auto testNodeSolid = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeSolid->SetAlpha(0.3f);
     testNodeSolid->SetBounds({ 520, 520 * 3, 500, 500 });
     testNodeSolid->SetTranslate(20, 20, 0);
@@ -351,7 +355,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     for (int i = 0; i < 4; i++) {
         int x = (i % 2) * 520;
         int y = (i / 2) * 520;
-        auto testNodeDashGap = RSCanvasNode::Create();
+        auto testNodeDashGap = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeDashGap->SetAlpha(0.333f * i);
         testNodeDashGap->SetBounds({ x, y, 500, 500 });
         testNodeDashGap->SetTranslate(20, 20, 0);
@@ -366,7 +370,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     }
 
     // four different dash width
-    auto testNodeFourDashGap = RSCanvasNode::Create();
+    auto testNodeFourDashGap = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourDashGap->SetAlpha(0.2f);
     testNodeFourDashGap->SetBounds({ 0, 520 * 2, 500, 500 });
     testNodeFourDashGap->SetTranslate(20, 20, 0);
@@ -379,7 +383,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     RegisterNode(testNodeFourDashGap);
 
     // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
+    auto testNodeSolid = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeSolid->SetAlpha(0.1f);
     testNodeSolid->SetBounds({ 520, 520 * 2, 500, 500 });
     testNodeSolid->SetTranslate(20, 20, 0);
@@ -403,7 +407,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     for (int i = 0; i < 5; i++) {
         int x = (i % 2) * 520;
         int y = (i / 2) * 520;
-        auto testNodeDashGap = RSCanvasNode::Create();
+        auto testNodeDashGap = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeDashGap->SetAlpha(0.25f * i);
         testNodeDashGap->SetBounds({ x, y, 500, 500 });
         testNodeDashGap->SetTranslate(20, 20, 0);
@@ -418,7 +422,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     }
 
     // four different dash width
-    auto testNodeFourDashGap = RSCanvasNode::Create();
+    auto testNodeFourDashGap = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeFourDashGap->SetAlpha(0.2f);
     testNodeFourDashGap->SetBounds({ 0, 520 * 3, 500, 500 });
     testNodeFourDashGap->SetTranslate(20, 20, 0);
@@ -431,7 +435,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
     RegisterNode(testNodeFourDashGap);
 
     // not dash style, set dash width
-    auto testNodeSolid = RSCanvasNode::Create();
+    auto testNodeSolid = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeSolid->SetAlpha(0.3f);
     testNodeSolid->SetBounds({ 520, 520 * 3, 500, 500 });
     testNodeSolid->SetTranslate(20, 20, 0);
@@ -464,7 +468,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
             x -= 560;
             y += 510;
         }
-        auto testNode1 = RSCanvasNode::Create();
+        auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode1->SetAlpha(0.333f * i);
         testNode1->SetBounds({ x, y, 500, 500 });
         testNode1->SetTranslate(20, 20, 0);
@@ -478,7 +482,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_OutlineBor
         GetRootNode()->AddChild(testNode1);
         RegisterNode(testNode1);
 
-        auto testNode2 = RSCanvasNode::Create();
+        auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode2->SetAlpha(0.333f * i);
         testNode2->SetBounds({ x, y, 500, 500 });
         testNode2->SetTranslate(xList[i], yList[i], 0);
@@ -497,7 +501,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Ra
 {
     vector<float> vecs = {-20, 0, 20, 150, 500};
     for (int i = 0; i < vecs.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.25f * i);
         testNode->SetBounds({380, i * 350 + 20, 400, 300});
         testNode->SetOutlineRadius(vecs[i]);
@@ -511,7 +515,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Ra
 {
     vector<Vector4f> vecs = {{0, 20, 50, 80}, {50, 100, 50, 80}};
     for (int i = 0; i < vecs.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.4f);
         testNode->SetBounds({380, i * 350 + 20, 400, 300});
         testNode->SetOutlineRadius(vecs[i]);
@@ -537,7 +541,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_Outline_Ba
     for (int i = 0; i < vecs1.size(); i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.2f * i);
         testNode->SetBounds({x, y, sizeX - 10, sizeY - 10});
         testNode->SetBackgroundColor(0x8F0000FF);
@@ -558,7 +562,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_CornerRadi
 {
     vector<float> vecs = {-20, 0, 20, 150, 160};
     for (int i = 0; i < vecs.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.25f * i);
         testNode->SetBounds({380, i * 350 + 20, 400, 300});
         testNode->SetBackgroundColor(0x8F0000FF);
@@ -572,7 +576,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_CornerRadi
 {
     vector<Vector4f> vecs = {{0, 20, 50, 80}, {50, 100, 50, 80}};
     for (int i = 0; i < vecs.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         testNode->SetBounds({380, i * 350 + 20, 400, 300});
         testNode->SetBackgroundColor(0x8F0000FF);
@@ -587,7 +591,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_CornerRadi
     vector<float> vecs1 = {20, 150, 500};
     vector<float> vecs2 = {20, 500, 150};
     for (int i = 0; i < vecs1.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.4f * i);
         testNode->SetBounds({380, i * 350 + 20, 400, 300});
         testNode->SetOutlineRadius(vecs1[i]);
@@ -603,7 +607,7 @@ GRAPHIC_TEST(AppearanceTest08, CONTENT_DISPLAY_TEST, Appearance_Alpha_CornerRadi
     vector<Vector4f> vecs1 = {{0, 20, 50, 80}, {50, 100, 50, 80}};
     vector<Vector4f> vecs2 = {{0, 20, 50, 80}, {100, 50, 80, 50}};
     for (int i = 0; i < vecs1.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetAlpha(0.5f);
         testNode->SetBounds({380, i * 350 + 20, 400, 300});
         testNode->SetOutlineRadius(vecs1[i]);

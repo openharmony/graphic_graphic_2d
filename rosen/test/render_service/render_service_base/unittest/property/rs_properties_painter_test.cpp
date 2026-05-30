@@ -21,6 +21,7 @@
 #include "skia_runtime_effect.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -922,6 +923,103 @@ HWTEST_F(RSPropertiesPainterTest, GetRRectForDrawingBorder001, TestSize.Level1)
     RSPropertiesPainter::GetRRectForDrawingBorder(properties, border, isOutline);
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: GetRRectForDrawingBorder002
+ * @tc.desc: test GetRRectForDrawingBorder with isOutline=false
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetRRectForDrawingBorder002, TestSize.Level1)
+{
+    RSProperties properties;
+    auto border = std::make_shared<RSBorder>();
+    auto result = RSPropertiesPainter::GetRRectForDrawingBorder(properties, border, false);
+    EXPECT_EQ(result.rect_.left_, properties.GetRRect().rect_.left_);
+    EXPECT_EQ(result.rect_.top_, properties.GetRRect().rect_.top_);
+}
+
+/**
+ * @tc.name: GetRRectForDrawingBorder003
+ * @tc.desc: test GetRRectForDrawingBorder with BORDER_SDF_SHADER outline
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetRRectForDrawingBorder003, TestSize.Level1)
+{
+    RSProperties properties;
+    auto border = std::make_shared<RSBorder>();
+    constexpr float borderWidth = 5.0f;
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    std::static_pointer_cast<RSNGRenderBorderSDFShader>(shader)->Setter<BorderSDFShaderWidthRenderTag>(
+        borderWidth, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    border->SetSDFShader(shader);
+    auto result = RSPropertiesPainter::GetRRectForDrawingBorder(properties, border, true);
+    auto expectedRect = properties.GetRRect().rect_.MakeOutset(borderWidth);
+    EXPECT_FLOAT_EQ(result.rect_.left_, expectedRect.left_);
+    EXPECT_FLOAT_EQ(result.rect_.top_, expectedRect.top_);
+}
+
+/**
+ * @tc.name: GetRRectForDrawingBorder004
+ * @tc.desc: test GetRRectForDrawingBorder with BORDER_SDF_LG_COLOR outline
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetRRectForDrawingBorder004, TestSize.Level1)
+{
+    RSProperties properties;
+    auto border = std::make_shared<RSBorder>();
+    constexpr float outlineWidth = 8.0f;
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_LG_COLOR);
+    ASSERT_NE(shader, nullptr);
+    std::static_pointer_cast<RSNGRenderBorderSDFLGColor>(shader)->Setter<BorderSDFLGColorWidthRenderTag>(
+        outlineWidth, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    border->SetSDFShader(shader);
+    auto result = RSPropertiesPainter::GetRRectForDrawingBorder(properties, border, true);
+    auto expectedRect = properties.GetRRect().rect_.MakeOutset(outlineWidth);
+    EXPECT_FLOAT_EQ(result.rect_.left_, expectedRect.left_);
+    EXPECT_FLOAT_EQ(result.rect_.top_, expectedRect.top_);
+}
+
+/**
+ * @tc.name: GetRRectForDrawingBorder005
+ * @tc.desc: test GetRRectForDrawingBorder with unknown SDF shader type (default branch)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetRRectForDrawingBorder005, TestSize.Level1)
+{
+    RSProperties properties;
+    auto border = std::make_shared<RSBorder>();
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_SDF_SHADER);
+    ASSERT_NE(shader, nullptr);
+    border->SetSDFShader(shader);
+    border->SetWidthFour(Vector4f(10.0f, 10.0f, 10.0f, 10.0f));
+    auto result = RSPropertiesPainter::GetRRectForDrawingBorder(properties, border, true);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetRRectForDrawingBorder006
+ * @tc.desc: test GetRRectForDrawingBorder outline without SDF shader
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetRRectForDrawingBorder006, TestSize.Level1)
+{
+    RSProperties properties;
+    auto border = std::make_shared<RSBorder>();
+    constexpr float borderW = 6.0f;
+    border->SetWidthFour(Vector4f(borderW, borderW, borderW, borderW));
+    border->SetRadiusFour(Vector4f(4.0f, 4.0f, 4.0f, 4.0f));
+    auto result = RSPropertiesPainter::GetRRectForDrawingBorder(properties, border, true);
+    auto expectedRect = properties.GetRRect().rect_.MakeOutset(border->GetWidthFour());
+    EXPECT_FLOAT_EQ(result.rect_.left_, expectedRect.left_);
+    EXPECT_FLOAT_EQ(result.rect_.top_, expectedRect.top_);
+}
+
 
 /**
  * @tc.name: GetInnerRRectForDrawingBorder001

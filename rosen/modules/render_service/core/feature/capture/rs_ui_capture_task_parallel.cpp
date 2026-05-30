@@ -45,6 +45,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_effect_luminance_manager.h"
 #include "render/rs_skia_filter.h"
 #include "transaction/rs_client_to_service_connection.h"
 #include <unistd.h>
@@ -369,6 +370,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, false, false, false, false, false,
         captureConfig_.uiCaptureInRangeParam.endNodeId));
     DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
+    RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(shotType);
     RSUniRenderThread::BufferManagerGuard bufferGuard;
     if (HasEndNodeRect() && !isStartEndNodeSame_) {
         auto offScreenWidth = nodeParams->GetBounds().GetWidth();
@@ -438,6 +440,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         captureConfig_.colorSpace.first, captureConfig_.colorSpace.second,
         captureConfig_.dynamicRangeMode.first, captureConfig_.dynamicRangeMode.second, isHdrCapture_);
     DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
+    RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(
+        RSPaintFilterCanvas::ScreenshotType::NON_SHOT);
     RSUniRenderThread::ResetCaptureParam();
 #ifdef RS_PROFILER_ENABLED
     // finish capturing if started

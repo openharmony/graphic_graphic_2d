@@ -43,7 +43,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_1)
     for (int i = 0; i < FOUR_; i++) {
         int x = (i % TWO_) * FIVE_HUNDRED_TEN_;
         int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
-        auto testNodeSpherize = RSCanvasNode::Create();
+        auto testNodeSpherize = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNodeSpherize->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         auto imageModifier = std::make_shared<ImageCustomModifier>();
         imageModifier->SetWidth(FIVE_HUNDRED_);
@@ -59,7 +59,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_1)
 // first fg blur, then Spherize degree
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Spherize_Test_2)
 {
-    auto testNodeSpherizeBlur = RSCanvasNode::Create();
+    auto testNodeSpherizeBlur = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNodeSpherizeBlur->SetBounds({ 0, 0, FIVE_HUNDRED_, FIVE_HUNDRED_ });
     auto imageModifier2 = std::make_shared<ImageCustomModifier>();
     imageModifier2->SetWidth(FIVE_HUNDRED_);

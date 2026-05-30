@@ -66,7 +66,7 @@ std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const int i, const int colum
     int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
     int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
 
-    auto effectChildNode = RSCanvasNode::Create();
+    auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     effectChildNode->SetBounds(x, y, sizeX, sizeY);
     effectChildNode->SetFrame(x, y, sizeX, sizeY);
     effectChildNode->SetOverlayNGShader(particleCircularHalo);
@@ -92,7 +92,7 @@ public:
     std::shared_ptr<RSEffectNode> SetUpEffectNode()
     {
         auto backgroundTestNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
-        auto effectNode = RSEffectNode::Create();
+        auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         std::shared_ptr<Rosen::RSFilter> backFilter = Rosen::RSFilter::CreateMaterialFilter(10.f, 1, 1, 0,

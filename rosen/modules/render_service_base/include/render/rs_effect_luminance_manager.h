@@ -39,10 +39,26 @@ public:
 
     static bool GetEnableHdrEffect(std::shared_ptr<RSNGRenderShaderBase> renderShader);
 
+    void SetCurrentScreenId(ScreenId id);
+
+    ScreenId GetCurrentScreenId() const;
+
+    void SetCurrentScreenshotType(RSPaintFilterCanvas::ScreenshotType type);
+
+    RSPaintFilterCanvas::ScreenshotType GetCurrentScreenshotType() const;
+
+    void SetHdrPipelineStatus(bool isHdrOn);
+
+    bool GetHdrPipelineStatus() const;
+
 private:
     RSEffectLuminanceManager() = default;
 
     std::map<uint64_t, float> displayHeadroomMap_;
+    std::atomic<ScreenId> currentScreenId_ = Rosen::INVALID_SCREEN_ID;
+    std::atomic<RSPaintFilterCanvas::ScreenshotType> currentScreenshotType_ =
+        RSPaintFilterCanvas::ScreenshotType::NON_SHOT;
+    std::atomic<bool> isHdrPipelineOn_ = false;
 };
 } // Rosen
 } // OHOS

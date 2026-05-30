@@ -38,6 +38,7 @@
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "colorspace_converter_display.h"
 #include "render/rs_colorspace_convert.h"
+#include "render/rs_effect_luminance_manager.h"
 #endif
 
 using namespace testing;
@@ -402,6 +403,29 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest, TestSize.Level1)
     node->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
     ASSERT_EQ(retUpdateNit, false); // context from surfaceNode is nullptr
+}
+
+/**
+ * @tc.name: HDRColorHeadroomMapping
+ * @tc.desc: Test HDRColorHeadroomMapping
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSHdrUtilTest, HDRColorHeadroomMapping, TestSize.Level1)
+{
+    Drawing::UIColor srcColor = Drawing::UIColor(0.5f, 0.5f, 0.5f, 1.0f);
+    Drawing::UIColor dstColor;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    RSEffectLuminanceManager::GetInstance().SetCurrentScreenId(0);
+    RSEffectLuminanceManager::GetInstance().SetHdrPipelineStatus(true);
+    bool ret = RSHdrUtil::HDRColorHeadroomMapping(srcColor, dstColor);
+    ASSERT_EQ(ret, true);
+    EXPECT_FLOAT_EQ(dstColor.GetRed(), 0.5f);
+    EXPECT_FLOAT_EQ(dstColor.GetGreen(), 0.5f);
+    EXPECT_FLOAT_EQ(dstColor.GetBlue(), 0.5f);
+#else
+    bool ret = RSHdrUtil::HDRColorHeadroomMapping(srcColor, dstColor);
+    ASSERT_EQ(ret, false);
+#endif
 }
 
 /**

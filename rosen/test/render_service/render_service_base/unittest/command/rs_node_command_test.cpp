@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 #include "include/command/rs_canvas_node_command.h"
 #include "include/command/rs_node_command.h"
+#include "include/command/rs_surface_node_command.h"
+#include "include/pipeline/rs_surface_render_node.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_render_params.h"
 #include "parameters.h"
@@ -808,5 +810,38 @@ HWTEST_F(RSNodeCommandTest, ReSortChildrenByZIndexTest, TestSize.Level1)
     RSNodeCommandHelper::ReSortChildrenByZIndex(context, nodeId);
     ASSERT_NE(canvasNode, nullptr);
     ASSERT_FALSE(canvasNode->isFullChildrenListValid_);
+}
+
+/**
+ * @tc.name: SetUIFirstSwitchTest001
+ * @tc.desc: SetUIFirstSwitch test with valid RSSurfaceRenderNode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, SetUIFirstSwitchTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    RSNodeCommandHelper::SetUIFirstSwitch(context, nodeId, RSUIFirstSwitch::FORCE_ENABLE);
+    auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_EQ(surfaceNode->GetUIFirstSwitch(), RSUIFirstSwitch::FORCE_ENABLE);
+}
+
+/**
+ * @tc.name: SetUIFirstSwitchTest002
+ * @tc.desc: SetUIFirstSwitch test with RSRenderNode (not RSSurfaceRenderNode).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, SetUIFirstSwitchTest002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 2;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    RSNodeCommandHelper::SetUIFirstSwitch(context, nodeId, RSUIFirstSwitch::FORCE_DISABLE);
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(canvasNode, nullptr);
+    auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    ASSERT_EQ(surfaceNode, nullptr);
 }
 } // namespace OHOS::Rosen

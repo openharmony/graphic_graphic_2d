@@ -43,7 +43,7 @@ public:
 GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     RSCanvasNodeGetBitmapTest_001)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xff0000ff);
 
@@ -72,7 +72,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     };
 
     for (size_t i = 0; i < boundsList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds(
             { boundsList[i].x_, boundsList[i].y_, boundsList[i].z_, boundsList[i].w_ });
         testNode->SetBackgroundColor(0xff00ff00);
@@ -96,7 +96,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     std::vector<float> alphaList = { 0.0f, 0.3f, 0.5f, 0.7f, 1.0f };
 
     for (size_t i = 0; i < alphaList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 220 + 50, 50, 200, 200 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetAlpha(alphaList[i]);
@@ -117,7 +117,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
 GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     RSCanvasNodeGetPixelmapTest_001)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -135,7 +135,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
 GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     RSCanvasNodeGetPixelmapTest_002)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 500, 500 });
     testNode->SetBackgroundColor(0xff0000ff);
 
@@ -170,7 +170,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     };
 
     for (size_t i = 0; i < boundsList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds(
             { boundsList[i].x_, boundsList[i].y_, boundsList[i].z_, boundsList[i].w_ });
         testNode->SetBackgroundColor(0xff00ff00);
@@ -200,7 +200,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     std::vector<float> alphaList = { 0.0f, 0.3f, 0.5f, 0.7f, 1.0f };
 
     for (size_t i = 0; i < alphaList.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 220 + 50, 50, 200, 200 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetAlpha(alphaList[i]);
@@ -227,7 +227,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
 GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     RSCanvasNodeGetPixelmapTest_005)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xff0000ff);
 
@@ -248,7 +248,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
 {
     int width = 400;
     int height = 400;
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, width, height });
     testNode->SetBackgroundColor(0xff0000ff);
     testNode->SetHybridRenderCanvas(true);
@@ -277,7 +277,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     for (size_t i = 0; i < sizeList.size(); i++) {
         int width = sizeList[i].z_;
         int height = sizeList[i].w_;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds(
             { sizeList[i].x_, sizeList[i].y_, sizeList[i].z_, sizeList[i].w_ });
         testNode->SetBackgroundColor(0xff00ff00);
@@ -297,7 +297,7 @@ GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
 GRAPHIC_TEST(RSCanvasNodeGetBitmapGetPixelmapTest, CONTENT_DISPLAY_TEST,
     RSCanvasNodeResetSurfaceTest_003)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
     testNode->ResetSurface(400, 400);

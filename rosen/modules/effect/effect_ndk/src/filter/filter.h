@@ -40,20 +40,23 @@ public:
     bool MapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions);
     bool GammaCorrection(float gamma);
     bool SetColorMatrix(const Drawing::ColorMatrix& matrix);
+    bool WaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params);
+    bool ReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& params);
     bool MaskTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
         const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse);
     bool WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
         const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
-    bool WaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params);
-    bool ReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& params);
-    bool RenderNativeBuffer(bool forceCPU, OH_NativeBuffer* dstNativeBuffer);
+    bool RenderNativeBuffer(
+        bool forceCPU, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext);
     bool Scale(float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode);
+
 private:
     void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);
     bool Render(bool forceCPU);
     std::vector<std::shared_ptr<EffectImageFilter>> effectFilters_;
     std::shared_ptr<OHOS::Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<OHOS::Media::PixelMap> dstPixelMap_ = nullptr;
+    std::shared_ptr<OH_NativeBuffer> dstNativeBuffer_ = nullptr;
 };
 }
 }

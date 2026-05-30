@@ -44,7 +44,7 @@ public:
  */
 GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPropertyTest_001)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -65,7 +65,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
  */
 GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPropertyTest_002)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -89,7 +89,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
 
     for (size_t row = 0; row < 3; row++) {
         for (size_t col = 0; col < alphaValues.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
 
@@ -115,7 +115,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
     std::vector<float> rotationValues = { 0, 45, 90, 135 };
 
     for (size_t i = 0; i < rotationValues.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
 
@@ -144,7 +144,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
     };
 
     for (size_t i = 0; i < scaleValues.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
 
@@ -173,7 +173,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
     };
 
     for (size_t i = 0; i < translateValues.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
 
@@ -194,7 +194,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
  */
 GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPropertyTest_007)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -222,7 +222,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
  */
 GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPropertyTest_008)
 {
-    auto parent = RSCanvasNode::Create();
+    auto parent = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parent->SetBounds({ 50, 50, 600, 600 });
     parent->SetBackgroundColor(0xffff0000);
 
@@ -233,7 +233,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
 
     // Add children with properties
     for (int i = 0; i < 4; i++) {
-        auto child = RSCanvasNode::Create();
+        auto child = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         child->SetBounds({ 50 + (i % 2) * 300, 50 + (i / 2) * 300, 200, 200 });
         child->SetBackgroundColor(0xff00ff00);
 
@@ -256,7 +256,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
  */
 GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPropertyTest_009)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 50, 50, 400, 400 });
     testNode->SetBackgroundColor(0xffff0000);
 
@@ -290,7 +290,7 @@ GRAPHIC_TEST(ModifierAttachPropertyTest, CONTENT_DISPLAY_TEST, ModifierAttachPro
 
     for (size_t row = 0; row < 3; row++) {
         for (size_t col = 0; col < pivotValues.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 380 + 50, 300, 300 });
             testNode->SetBackgroundColor(0xffff0000);
 

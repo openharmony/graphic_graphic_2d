@@ -569,7 +569,7 @@ public:
 
     std::shared_ptr<RSEffectNode> SetDefaultFrostedGlassBlurEffectNode()
     {
-        auto effectNode = RSEffectNode::Create();
+        auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectNode->SetBounds({0, 0, screenWidth, screenHeight});
         effectNode->SetFrame({0, 0, screenWidth, screenHeight});
  
@@ -596,7 +596,7 @@ public:
         int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
 
         // set effect child node
-        auto effectChildNode = RSCanvasNode::Create();
+        auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectChildNode->SetBounds(x, y, sizeX, sizeY);
         effectChildNode->SetFrame(x, y, sizeX, sizeY);
 
@@ -826,7 +826,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Backgroun
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
+        auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
         node->SetBackgroundNGShader(circleFlowlight);
@@ -924,7 +924,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
         circleFlowlight->Append(roundedRectFlowlight);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
+        auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
         node->SetBackgroundNGShader(circleFlowlight);
@@ -958,7 +958,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
         roundedRectFlowlight->Append(circleFlowlight);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
+        auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
         node->SetBackgroundNGShader(roundedRectFlowlight);
@@ -981,7 +981,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_1)
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
+        auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
         node->SetBackgroundNGShader(aiBarRectHalo);
@@ -1004,7 +1004,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_2)
         SetAIBarRectHaloParams(aiBarRectHalo, 4 + i); // invalid LTWH params
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
+        auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
         node->SetBackgroundNGShader(aiBarRectHalo);
@@ -1028,7 +1028,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Foreground
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
+        auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
         node->SetForegroundShader(aiBarRectHalo);
@@ -1058,7 +1058,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Backgro
             std::static_pointer_cast<RSNGMaskBase>(noisyFrameGradientMask));
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto node = Rosen::RSCanvasNode::Create();
+        auto node = Rosen::RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
         node->SetBackgroundNGShader(colorGradient);

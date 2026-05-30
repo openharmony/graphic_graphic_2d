@@ -104,14 +104,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip01)
     Vector4f bounds = { 0, 2188, 1316, 210 };
     Vector4f bounds2 = { 0, 0, 1316, 210 };
 
-    auto canvasNode1 = RSCanvasNode::Create();
+    auto canvasNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(canvasNode1);
     canvasNode1->SetBounds(bounds);
     canvasNode1->SetFrame(bounds);
     canvasNode1->SetBackgroundColor(COLOR_BLUE);
 
     Vector4f bounds3 = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds3);
     backgroundNode->SetFrame(bounds3);
@@ -121,7 +121,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip01)
     auto imgNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds4);
     RegisterNode(imgNode);
 
-    auto canvasNode2 = RSCanvasNode::Create();
+    auto canvasNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(canvasNode2);
     canvasNode2->SetBounds(bounds2);
     canvasNode2->SetFrame(bounds2);
@@ -136,7 +136,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip01)
     int duration = 2500; // duration 2.5s
     DoAnimation(animateNode, translate3, duration);
 
-    auto pureCanvas = RSCanvasNode::Create();
+    auto pureCanvas = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(pureCanvas);
     pureCanvas->SetBounds(bounds2);
     pureCanvas->SetFrame(bounds2);
@@ -146,7 +146,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip01)
     RegisterNode(canvasNode3);
     canvasNode3->SetTranslate({ 0, 0 });
 
-    auto canvasNode4 = RSCanvasNode::Create();
+    auto canvasNode4 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(canvasNode4);
     canvasNode4->SetBounds(bounds2);
     canvasNode4->SetBackgroundColor(COLOR_YELLOW);
@@ -191,14 +191,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip01)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip02)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
@@ -213,7 +213,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip02)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -243,14 +243,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip02)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip03)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
@@ -265,7 +265,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip03)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -294,14 +294,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip03)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip04)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetVisible(false);
@@ -317,7 +317,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip04)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -346,14 +346,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip04)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip05)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
@@ -368,7 +368,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip05)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -397,14 +397,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip05)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip06)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetClipToBounds(true);
@@ -420,7 +420,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip06)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -449,14 +449,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip06)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip07)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -472,7 +472,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip07)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -501,14 +501,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip07)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip08)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -525,7 +525,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip08)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -554,14 +554,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip08)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip09)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -577,7 +577,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip09)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -609,14 +609,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip09)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip10)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -636,7 +636,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip10)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -668,14 +668,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip10)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip11)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -691,7 +691,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip11)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -722,14 +722,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip11)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip12)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -748,7 +748,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip12)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -779,14 +779,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip12)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip13)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     float alpha = 0.1f;
@@ -803,7 +803,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip13)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -833,14 +833,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip13)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip14)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetClipToBounds(true);
@@ -856,7 +856,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip14)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -892,14 +892,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip14)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip15)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -916,7 +916,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip15)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -952,14 +952,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip15)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip16)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -979,7 +979,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip16)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1018,14 +1018,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip16)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip17)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -1044,7 +1044,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip17)
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1081,14 +1081,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip17)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip18)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -1100,7 +1100,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip18)
     RegisterNode(pictureNode);
 
     Vector4f bounds4 = { 200, 200, 800, 800 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1129,14 +1129,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip18)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip19)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -1147,7 +1147,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip19)
     RegisterNode(pictureNode);
 
     Vector4f bounds4 = { 200, 200, 800, 800 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1176,14 +1176,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip19)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip20)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -1195,7 +1195,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip20)
     RegisterNode(pictureNode);
 
     Vector4f bounds4 = { 200, 200, 800, 800 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1224,14 +1224,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip20)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip21)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -1242,7 +1242,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip21)
     RegisterNode(pictureNode);
 
     Vector4f bounds4 = { 200, 200, 800, 800 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1271,14 +1271,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip21)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip22)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -1289,7 +1289,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip22)
     RegisterNode(pictureNode);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1320,14 +1320,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip22)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip23)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -1341,7 +1341,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip23)
     RegisterNode(pictureNode);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1373,14 +1373,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip23)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip24)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -1391,7 +1391,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip24)
     RegisterNode(pictureNode);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1423,14 +1423,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip24)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip25)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds2 = { 300, 300, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(bounds2);
@@ -1445,7 +1445,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip25)
     RegisterNode(pictureNode);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1477,7 +1477,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip25)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip26)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
@@ -1485,7 +1485,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip26)
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
     Vector4f frame = { 500, 500, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(frame);
@@ -1493,14 +1493,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip26)
     parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
 
     Vector4f bounds3 = { 0, 0, 200, 200 };
-    auto animateNode = RSCanvasNode::Create();
+    auto animateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(animateNode);
     animateNode->SetBounds(bounds3);
     animateNode->SetBackgroundColor(COLOR_RED);
     animateNode->SetTranslate({ 0, 0 });
 
     Vector4f bounds4 = { 0, 0, 600, 600 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1531,7 +1531,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip26)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip27)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
@@ -1539,7 +1539,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip27)
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
     Vector4f frame = { 500, 500, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(frame);
@@ -1548,14 +1548,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip27)
     parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
 
     Vector4f bounds3 = { 0, 0, 200, 200 };
-    auto animateNode = RSCanvasNode::Create();
+    auto animateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(animateNode);
     animateNode->SetBounds(bounds3);
     animateNode->SetBackgroundColor(COLOR_RED);
     animateNode->SetTranslate({ 0, 0 });
 
     Vector4f bounds4 = { 0, 0, 800, 800 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
@@ -1586,21 +1586,21 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip27)
 GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip28)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto backgroundNode = RSCanvasNode::Create();
+    auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds(bounds);
     backgroundNode->SetFrame(bounds);
     backgroundNode->SetBackgroundColor(COLOR_CYAN);
 
     Vector4f bounds1 = { 100, 100, 900, 900 };
-    auto translateNode = RSCanvasNode::Create();
+    auto translateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(translateNode);
     translateNode->SetBounds(bounds1);
     translateNode->SetBackgroundColor(COLOR_RED);
 
     Vector4f bounds2 = { 300, 300, 800, 800 };
     Vector4f frame = { 500, 500, 500, 500 };
-    auto parentCanvasNode = RSCanvasNode::Create();
+    auto parentCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(parentCanvasNode);
     parentCanvasNode->SetBounds(bounds2);
     parentCanvasNode->SetFrame(frame);
@@ -1608,14 +1608,14 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip28)
     parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
 
     Vector4f bounds3 = { 0, 0, 200, 200 };
-    auto animateNode = RSCanvasNode::Create();
+    auto animateNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(animateNode);
     animateNode->SetBounds(bounds3);
     animateNode->SetBackgroundColor(COLOR_RED);
     animateNode->SetTranslate({ 0, 0 });
 
     Vector4f bounds4 = { 0, 0, 800, 800 };
-    auto childCanvasNode = RSCanvasNode::Create();
+    auto childCanvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(childCanvasNode);
     childCanvasNode->SetBounds(bounds4);
     childCanvasNode->SetBackgroundColor(COLOR_YELLOW);

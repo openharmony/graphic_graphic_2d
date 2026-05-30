@@ -63,7 +63,7 @@ std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const int i, const int colum
     int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
     int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
 
-    auto effectChildNode = RSCanvasNode::Create();
+    auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     effectChildNode->SetBounds(x, y, sizeX, sizeY);
     effectChildNode->SetFrame(x, y, sizeX, sizeY);
     effectChildNode->SetCornerRadius(0.f);
@@ -93,7 +93,7 @@ GRAPHIC_TEST(NGMaskImageTest, EFFECT_TEST, Set_NG_Mask_Image_Test)
     GetRootNode()->AddChild(parentNode);
     RegisterNode(parentNode);
     
-    auto effectNode = RSEffectNode::Create();
+    auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     effectNode->SetBounds({ 0, 0, sizeX - 10, sizeY - 10 });
     effectNode->SetFrame({ 0, 0, sizeX - 10, sizeY - 10 });
     effectNode->SetBackgroundColor(0xffff0000);
@@ -101,7 +101,7 @@ GRAPHIC_TEST(NGMaskImageTest, EFFECT_TEST, Set_NG_Mask_Image_Test)
     parentNode->AddChild(effectNode);
     RegisterNode(effectNode);
 
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     childNode->SetFrame({ (sizeX - 763*1.5) / 2, (sizeY - 243*1.5) / 2, 763*1.5, 243*1.5 });
     childNode->SetUseEffect(false);
     childNode->SetBorderStyle(0, 0, 0, 0);

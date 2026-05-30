@@ -32,6 +32,8 @@ enum class SrcRectConstraint {
     FAST_SRC_RECT_CONSTRAINT,
 };
 
+class PrimList;
+
 struct HpsBlurParameter {
     Rect src;
     Rect dst;
@@ -827,6 +829,32 @@ public:
      * @return Return true if the current layer that drawn into the device is opaque, otherwise return false.
      */
     virtual bool IsOpaque() const;
+
+    /**
+     * @brief Begins collecting primitives into a PrimList.
+     *        After calling this, all drawing operations will be collected
+     *        into an internal PrimList instead of being drawn directly.
+     * @param bounds The bounding rect for collecting primitives.
+     *                Primitives outside this rect may be clipped or optimized.
+     */
+    virtual void BeginPrimListCollecting(const Rect& bounds);
+
+    /**
+     * @brief Ends collecting primitives and returns the PrimList.
+     *        After calling this, drawing operations will be drawn directly
+     *        again instead of being collected.
+     * @return Returns the collected PrimList containing all drawing operations.
+     */
+    virtual std::shared_ptr<PrimList> EndPrimListCollecting();
+
+    /**
+     * @brief Draws a collected PrimList onto the canvas.
+     *        The PrimList contains collected drawing operations that will be
+     *        replayed onto this canvas.
+     * @param primList The PrimList to draw.
+     * @return Returns true if drawing succeeded, false otherwise.
+     */
+    virtual bool DrawPrimList(const PrimList& primList);
 
 protected:
     CoreCanvas(int32_t width, int32_t height);

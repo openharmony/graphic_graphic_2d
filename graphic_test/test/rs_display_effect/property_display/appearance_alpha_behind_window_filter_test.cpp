@@ -36,7 +36,7 @@ public:
 /* BehindWindowFilter + Alpha: alpha = 0.5 */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_BehindWindowFilter_Test_1)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 400, 400 });
     testNode->SetAlpha(0.5f);
     testNode->SetBackgroundColor(0xffff0000);
@@ -61,7 +61,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_BehindWindow
 /* BehindWindowFilter + Alpha: with border */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_BehindWindowFilter_Test_3)
 {
-    auto testNode = RSCanvasNode::Create();
+    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     testNode->SetBounds({ 100, 100, 500, 500 });
     testNode->SetAlpha(0.7f);
     testNode->SetBorderWidth(25);
@@ -104,7 +104,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_BehindWindow
 
     for (size_t row = 0; row < alphaList.size(); row++) {
         for (size_t col = 0; col < borderWidths.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             testNode->SetBounds({ (int)col * 380 + 50, (int)row * 280 + 50, 330, 230 });
             testNode->SetAlpha(alphaList[row]);
             testNode->SetBorderWidth(borderWidths[col]);

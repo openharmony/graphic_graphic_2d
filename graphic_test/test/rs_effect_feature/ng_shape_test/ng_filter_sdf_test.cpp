@@ -49,7 +49,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Test_1)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -78,7 +78,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Test_2)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -107,7 +107,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Border_Test_1)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -133,7 +133,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Border_Test_
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -162,7 +162,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Border_Test_
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -190,7 +190,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Clip_Test_1)
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -204,7 +204,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Clip_Test_1)
             testNode->SetShadowColor(0xff00ff00);
         }
         testNode->SetClipToBounds((i % columnCount) == 0);
-        auto testChlidNode = RSCanvasNode::Create();
+        auto testChlidNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f childBounds{0, 200, sizeX, 150}; // 0, 200 is offect x y, 150 is height
         testChlidNode->SetBounds(childBounds);
         testChlidNode->SetFrame(childBounds);
@@ -228,7 +228,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Shadow_Tes
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -261,7 +261,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Border_Tes
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);
@@ -292,7 +292,7 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Shadow_Bor
     for (int i = 0; i < rowCount; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         Rosen::Vector4f bounds{x, y, sizeX, sizeY};
         testNode->SetBounds(bounds);
         testNode->SetFrame(bounds);

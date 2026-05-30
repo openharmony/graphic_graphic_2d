@@ -53,6 +53,10 @@
 #include "property/rs_properties.h"
 #include "screen_manager/screen_types.h"
 
+#ifdef USE_PRIMITIVE
+#include "foundation/graphic/graphic_2d_ext/subtree/primitive/primitive_dirty_type.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace DrawableV2 {
@@ -688,15 +692,6 @@ public:
         commandExecuted_ = commandExecuted;
     }
 
-    bool IsScale() const
-    {
-        return isScale_;
-    }
-    void SetIsScale(bool isScale)
-    {
-        isScale_ = isScale;
-    }
-
     void SetDrawRegion(const std::shared_ptr<RectF>& rect);
     void SetOutOfParent(OutOfParentType outOfParent);
     OutOfParentType GetOutOfParent() const;
@@ -948,8 +943,6 @@ public:
 
     // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
-    virtual void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
-    virtual RSUIFirstSwitch GetUIFirstSwitch() const { return RSUIFirstSwitch::NONE; }
 
     const RectI GetFilterCachedRegion() const;
     virtual bool EffectNodeShouldPaint() const { return true; };
@@ -1242,6 +1235,12 @@ protected:
     // Enable HWCompose
     RSHwcRecorder hwcRecorder_;
 
+#ifdef USE_PRIMITIVE
+    bool isTransformDirty_ = false;
+    PrimitiveDirtyBitmap stagingSelfPrimDirtyBitmap_;
+    PrimitiveDirtyBitmap stagingInfectiousPrimDirtyBitmap_;
+#endif
+
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
     // mark cross node in physical extended screen model
@@ -1287,7 +1286,6 @@ private:
     bool lastFrameHasChildrenOutOfRect_ = false;
     CacheType cacheType_ = CacheType::NONE;
     bool isDrawingCacheChanged_ = false;
-    bool isScale_ = false;
     bool backgroundFilterRegionChanged_ = false;
     bool backgroundFilterInteractWithDirty_ = false;
     // for UIExtension info collection

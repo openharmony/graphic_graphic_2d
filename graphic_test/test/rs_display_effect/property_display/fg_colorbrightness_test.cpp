@@ -53,7 +53,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgBrightnessParams_Fraction_T
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
                 testNode->SetFgBrightnessParams(params);
@@ -82,7 +82,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgBrightnessParams_Fraction_T
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
                 testNode->SetFgBrightnessParams(params);
@@ -111,7 +111,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgBrightnessParams_Fraction_T
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
                 testNode->SetFgBrightnessParams(params);
@@ -140,7 +140,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgBrightnessParams_Fraction_T
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
                 testNode->SetFgBrightnessParams(params);
@@ -176,7 +176,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Foreground_SetBlender_Test_1)
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
                 testNode->SetBlender(blenderPara.get());
@@ -211,7 +211,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Foreground_SetBlender_Test_2)
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
                 testNode->SetBlender(blenderPara.get());
@@ -246,7 +246,7 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Foreground_SetBlender_Test_3)
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;
                 auto testFaNode =
                     SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
-                auto testNode = RSCanvasNode::Create();
+                auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
                 testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
                 testNode->SetForegroundColor(0xff7d112c);
                 testNode->SetBlender(blenderPara.get());

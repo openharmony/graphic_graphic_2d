@@ -189,11 +189,6 @@ protected:
 
 private:
     /**
-     * @brief Creates a proxy render node for rendering operations.
-     */
-    void CreateProxyRenderNode();
-    
-    /**
      * @brief Registers the node in the node map.
      */
     void RegisterNodeMap() override;

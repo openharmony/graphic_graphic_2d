@@ -77,6 +77,10 @@ namespace OHOS {
         uint64_t frameId = GetData<uint64_t>();
         uint64_t timestamp = GetData<uint64_t>();
         uint32_t type = GetData<uint32_t>();
+        uint8_t vcpCode = GetData<uint8_t>();
+        uint16_t currentValue = GetData<uint16_t>();
+        uint16_t maximumValue = GetData<uint16_t>();
+        int32_t errorCode = GetData<int32_t>();
 
         g_hdiScreen->SetScreenGamutMap(gamutMap);
         g_hdiScreen->GetScreenGamutMap(gamutMap);
@@ -88,6 +92,9 @@ namespace OHOS {
         g_hdiScreen->GetScreenSupportedColorGamuts(gamuts);
         g_hdiScreen->GetSupportedMetaDataKey(keys);
         g_hdiScreen->SetScreenConstraint(frameId, timestamp, type);
+
+        g_hdiScreen->GetScreenVCPFeature(vcpCode, currentValue, maximumValue, errorCode);
+        g_hdiScreen->SetScreenVCPFeature(vcpCode, currentValue);
         g_hdiScreen = nullptr;
     }
 

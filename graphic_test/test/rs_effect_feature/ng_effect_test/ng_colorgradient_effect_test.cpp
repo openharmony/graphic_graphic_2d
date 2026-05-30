@@ -33,7 +33,7 @@ public:
 
     RSCanvasNode::SharedPtr SetUpEffectNode()
     {
-        auto effectNode = RSCanvasNode::Create();
+        auto effectNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         effectNode->SetBackgroundColor(0xFF333333);
@@ -143,7 +143,7 @@ GRAPHIC_TEST(NGColorGradientEffectTest, EFFECT_TEST, Set_NG_ColorGradient_Effect
     InitColorGradientEffect(colorGradientEffect, THREECOLORSPARAMS);
     colorGradientEffect->Setter<ColorGradientEffectBlendTag>(0.8f);
 
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetBackgroundNGShader(colorGradientEffect);
@@ -159,7 +159,7 @@ GRAPHIC_TEST(NGColorGradientEffectTest, EFFECT_TEST, Set_NG_ColorGradient_Effect
     InitColorGradientEffect(colorGradientEffect, THREECOLORSPARAMS);
     colorGradientEffect->Setter<ColorGradientEffectBlendKTag>(1.5f);
 
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetBackgroundNGShader(colorGradientEffect);
@@ -175,7 +175,7 @@ GRAPHIC_TEST(NGColorGradientEffectTest, EFFECT_TEST, Set_NG_ColorGradient_Effect
     InitColorGradientEffect(colorGradientEffect, THREECOLORSPARAMS);
     colorGradientEffect->Setter<ColorGradientEffectBrightnessTag>(1.2f);
 
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetBackgroundNGShader(colorGradientEffect);
@@ -191,7 +191,7 @@ GRAPHIC_TEST(NGColorGradientEffectTest, EFFECT_TEST, Set_NG_ColorGradient_Effect
     InitColorGradientEffect(colorGradientEffect, FIVECOLORSPARAMS);
     colorGradientEffect->Setter<ColorGradientEffectColorNumberTag>(5.0f);
 
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetBackgroundNGShader(colorGradientEffect);
@@ -210,7 +210,7 @@ GRAPHIC_TEST(NGColorGradientEffectTest, EFFECT_TEST, Set_NG_ColorGradient_Effect
     colorGradientEffect->Setter<ColorGradientEffectMaskTag>(
         std::static_pointer_cast<RSNGMaskBase>(imageMask));
 
-    auto canvasNode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     canvasNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     canvasNode->SetBackgroundNGShader(colorGradientEffect);

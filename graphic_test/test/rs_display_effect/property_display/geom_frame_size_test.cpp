@@ -41,7 +41,7 @@ GRAPHIC_TEST(FrameSizeTest, CONTENT_DISPLAY_TEST, FrameSize_Normal_Matrix_3x3)
 
     for (size_t row = 0; row < heights.size(); row++) {
         for (size_t col = 0; col < widths.size(); col++) {
-            auto testNode = RSCanvasNode::Create();
+            auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
             float x = static_cast<float>(col * 400 + 50);
             float y = static_cast<float>(row * 400 + 50);
             testNode->SetBounds({x, y, 400, 400});
@@ -83,7 +83,7 @@ GRAPHIC_TEST(FrameSizeTest, CONTENT_DISPLAY_TEST, FrameSize_Boundary_Extreme)
     };
 
     for (size_t i = 0; i < extremeSizes.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>((i % 2) * 600 + 50);
         float y = static_cast<float>((i / 2) * 600 + 50);
         testNode->SetBounds({x, y, 500, 500});
@@ -126,7 +126,7 @@ GRAPHIC_TEST(FrameSizeTest, CONTENT_DISPLAY_TEST, FrameSize_Abnormal_Invalid_Flo
     };
 
     for (size_t i = 0; i < invalidSizes.size(); i++) {
-        auto testNode = RSCanvasNode::Create();
+        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         float x = static_cast<float>((i % 2) * 600 + 50);
         float y = static_cast<float>((i / 2) * 600 + 50);
         testNode->SetBounds({x, y, 500, 500});

@@ -790,6 +790,47 @@ HWTEST_F(RSInterfacesTest, GetScreenBacklight002, Function | SmallTest | Level2)
 }
 
 /*
+ * Function: GetScreenVCPFeature
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call GetScreenVCPFeature
+ *                  2. check return value
+ */
+HWTEST_F(RSInterfacesTest, GetScreenVCPFeature001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint16_t currentValue = 0;
+    uint16_t maximumValue = 0;
+    int32_t errorCode = 0;
+    auto ret = rsInterfaces->GetScreenVCPFeature(INVALID_SCREEN_ID, 0x10,
+        currentValue, maximumValue, errorCode);
+    ASSERT_NE(ret, 0);
+    auto defaultId = rsInterfaces->GetDefaultScreenId();
+    rsInterfaces->GetScreenVCPFeature(defaultId, 0x10,
+        currentValue, maximumValue, errorCode);
+}
+
+/*
+ * Function: SetScreenVCPFeature
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetScreenVCPFeature
+ *                  2. check return value
+ */
+HWTEST_F(RSInterfacesTest, SetScreenVCPFeature001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint16_t currentValue = 50;
+    ScreenId id = INVALID_SCREEN_ID;
+    auto ret = rsInterfaces->SetScreenVCPFeature(id, 0x10, currentValue);
+    ASSERT_NE(ret, 0);
+    auto defaultId = rsInterfaces->GetDefaultScreenId();
+    rsInterfaces->SetScreenVCPFeature(defaultId, 0x10, currentValue);
+}
+
+/*
  * Function: GetPanelPowerStatus
  * Type: Function
  * Rank: Important(2)
@@ -1692,36 +1733,6 @@ HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest,
 }
 
 /*
- * @tc.name: RegisterSurfaceOcclusionChangeCallback001
- * @tc.desc: RegisterOcclusionChangeCallback interface test.
- * @tc.type: FUNC
- * @tc.require: issueI851VR
- */
-HWTEST_F(RSInterfacesTest, RegisterSurfaceOcclusionChangeCallback001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    NodeId id = 0;
-    SurfaceOcclusionChangeCallback cb = [](float) {};
-    std::vector<float> partitionPoints;
-    int32_t ret = rsInterfaces->RegisterSurfaceOcclusionChangeCallback(id, cb, partitionPoints);
-    EXPECT_NE(ret, 0); // Unable to access IPC due to lack of permissions.
-}
-
-/*
- * @tc.name: UnRegisterSurfaceOcclusionChangeCallback001
- * @tc.desc: UnRegisterSurfaceOcclusionChangeCallback interface test.
- * @tc.type: FUNC
- * @tc.require: issueI851VR
- */
-HWTEST_F(RSInterfacesTest, UnRegisterSurfaceOcclusionChangeCallback001, Function | SmallTest | Level2)
-{
-    ASSERT_NE(rsInterfaces, nullptr);
-    NodeId id = 0;
-    int32_t ret = rsInterfaces->UnRegisterSurfaceOcclusionChangeCallback(id);
-    EXPECT_EQ(ret, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
-}
-
-/*
  * @tc.name: ResizeVirtualScreen001
  * @tc.desc: ResizeVirtualScreen interface test.
  * @tc.type: FUNC
@@ -2264,17 +2275,6 @@ HWTEST_F(RSInterfacesTest, SetScreenCorrection, Function | SmallTest | Level2)
 {
     int32_t ret = rsInterfaces->SetScreenCorrection(INVALID_SCREEN_ID, ScreenRotation::INVALID_SCREEN_ROTATION);
     ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
-}
-
-/*
- * @tc.name: SetSystemAnimatedScenes
- * @tc.desc: Test SetSystemAnimatedScenes
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSInterfacesTest, SetSystemAnimatedScenes, Function | SmallTest | Level2)
-{
-    ASSERT_TRUE(rsInterfaces->SetSystemAnimatedScenes(SystemAnimatedScenes::OTHERS));
 }
 
 /*

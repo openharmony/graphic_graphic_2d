@@ -33,7 +33,6 @@ constexpr uint8_t DO_SET_FOREGROUND = 4;
 constexpr uint8_t DO_SET_FORCE_UI_FIRST = 5;
 constexpr uint8_t DO_SET_ANCO_FLAGS = 6;
 constexpr uint8_t DO_SET_WATERMARK = 7;
-constexpr uint8_t DO_SET_HDR_PRESENT = 8;
 constexpr uint8_t DO_RS_SURFACE_NODE = 9;
 constexpr uint8_t MAX_CASE_NUM = 10;
 
@@ -187,19 +186,6 @@ bool DoSetWatermark(FuzzedDataProvider& fdp)
     return true;
 }
 
-bool DoSetHDRPresent(FuzzedDataProvider& fdp)
-{
-    auto config = GetRSSurfaceNodeConfigFromData(fdp);
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    if (surfaceNode == nullptr) {
-        return false;
-    }
-    bool hdrPresent = fdp.ConsumeBool();
-    NodeId id = fdp.ConsumeIntegral<NodeId>();
-    surfaceNode->SetHDRPresent(hdrPresent, id);
-    return true;
-}
-
 bool DoRSSurfaceNode(FuzzedDataProvider& fdp)
 {
     auto config = GetRSSurfaceNodeConfigFromData(fdp);
@@ -243,9 +229,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_WATERMARK:
             OHOS::Rosen::DoSetWatermark(fdp);
-            break;
-        case OHOS::Rosen::DO_SET_HDR_PRESENT:
-            OHOS::Rosen::DoSetHDRPresent(fdp);
             break;
         case OHOS::Rosen::DO_RS_SURFACE_NODE:
             OHOS::Rosen::DoRSSurfaceNode(fdp);

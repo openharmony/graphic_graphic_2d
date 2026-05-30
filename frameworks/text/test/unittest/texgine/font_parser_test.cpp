@@ -114,7 +114,6 @@ HWTEST_F(FontParserTest, FontConfigTest1, TestSize.Level0)
     auto info = fontConfigJson.GetFontConfigJsonInfo();
     ASSERT_NE(info, nullptr);
     EXPECT_EQ(info->fontDirSet.size(), 1);
-    fontConfigJson.Dump();
 }
 
 /**
@@ -134,7 +133,6 @@ HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level0)
         std::string end = it.second.substr(it.second.size() - 3, 3);
         EXPECT_TRUE(end == "ttf" || end == "oft" || end == "ttc");
     }
-    fontConfigJson.Dump();
 }
 
 /**
@@ -1485,7 +1483,7 @@ HWTEST_F(FontParserTest, ParserFontDescriptorsFromPathLanguagesTest, TestSize.Le
 
     auto desc = descriptors[0];
     ASSERT_NE(desc, nullptr);
-    EXPECT_EQ(desc->languages.size(), 48);
+    EXPECT_EQ(desc->languages.size(), 56);
 
     // Test case 2: Invalid font file path
     auto invalidDescriptors = FontParser::ParserFontDescriptorsFromPath(NON_EXISTENT_PATH);
