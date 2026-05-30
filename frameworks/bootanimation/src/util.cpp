@@ -233,6 +233,10 @@ cJSON* ParseFileConfig(const std::string& path)
 
     std::ifstream configFile;
     configFile.open(newpath);
+    if (!configFile.is_open()) {
+        LOGE("failed to open config file: %{public}s", newpath);
+        return nullptr;
+    }
     std::stringstream JFilterParamsStream;
     JFilterParamsStream << configFile.rdbuf();
     configFile.close();
@@ -355,6 +359,9 @@ bool ReadImageFile(const unzFile zipFile, const std::string& fileName, ImageStru
         if (memcpy_s(imageStruct->memPtr.memBuffer + totalLen, size - totalLen, \
             readBuffer, readLen) == EOK) {
             totalLen += readLen;
+        } else {
+            LOGE("memcpy_s failed.");
+            return false;
         }
     } while (readLen > 0);
 

@@ -22,8 +22,7 @@
 using namespace OHOS;
 
 namespace {
-    const bool IS_COORDINATION_SUPPORT =
-        system::GetBoolParameter("const.window.foldabledevice.is_coordination_support", false);
+    constexpr const char* IS_COORDINATION_SUPPORT = "const.window.foldabledevice.is_coordination_support";
 }
 
 void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootAnimationConfig>& configs)
@@ -95,6 +94,7 @@ bool BootAssociativeDisplayStrategy::IsExtraVideoExist(const std::vector<BootAni
 
 bool BootAssociativeDisplayStrategy::IsSupportCoordination()
 {
+    bool isCoordinationSupport = system::GetBoolParameter(IS_COORDINATION_SUPPORT, false);
     // only psd return false
-    return IS_COORDINATION_SUPPORT || !(!FOLD_SCREEN_TYPE.empty() && FOLD_SCREEN_TYPE[0] == '2');
+    return isCoordinationSupport || !(!FOLD_SCREEN_TYPE.empty() && FOLD_SCREEN_TYPE[0] == '2');
 }

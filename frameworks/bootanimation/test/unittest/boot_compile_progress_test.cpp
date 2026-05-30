@@ -458,4 +458,22 @@ HWTEST_F(BootCompileProgressTest, SetSpecialProgressFrame_NegativeConfig_Execute
     progress->SetSpecialProgressFrame(TEST_MAX_LENGTH, TEST_SCREEN_STATUS_1);
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: SetSpecialProgressFrame_ScreenIdNotFound_ReturnEarly
+ * @tc.desc: Verify SetSpecialProgressFrame returns early when screenId not in map.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, SetSpecialProgressFrame_ScreenIdNotFound_ReturnEarly, TestSize.Level1)
+{
+    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    progress->rsCanvasNode_ = Rosen::RSCanvasNode::Create();
+    progress->progressConfigsMap_.clear();
+    progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
+    progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
+    constexpr int32_t INVALID_SCREEN_ID = 999;
+    progress->SetSpecialProgressFrame(TEST_MAX_LENGTH, INVALID_SCREEN_ID);
+    EXPECT_TRUE(true);
+}
 }

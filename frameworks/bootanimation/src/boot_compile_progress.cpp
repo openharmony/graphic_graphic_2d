@@ -391,7 +391,12 @@ void BootCompileProgress::RecordDeviceType()
 
 void BootCompileProgress::SetSpecialProgressFrame(int32_t maxLength, int32_t screenId)
 {
-    BootAnimationProgressConfig progressConfig = progressConfigsMap_.find(screenId)->second;
+    auto it = progressConfigsMap_.find(screenId);
+    if (it == progressConfigsMap_.end()) {
+        LOGE("SetSpecialProgressFrame screenId not fount: %{public}d", screenId);
+        return;
+    }
+    BootAnimationProgressConfig progressConfig = it->second;
     float positionX = progressConfig.progressOffset == -1 ? 0 : progressConfig.progressOffset;
     float positionY = progressConfig.progressHeight == -1 ? windowHeight_ - maxLength * OFFSET_Y_PERCENT
         : progressConfig.progressHeight;

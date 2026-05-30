@@ -79,7 +79,7 @@ private:
     float currentRadius_ = 0.0f;
     int32_t screenStatus_ = -1;
 
-    volatile bool isUpdateOptEnd_ = false;
+    std::atomic<bool> isUpdateOptEnd_{false};
     bool isWearable_ = false;
     bool isOther_ = false;
     bool isUpdateText_ = false;
