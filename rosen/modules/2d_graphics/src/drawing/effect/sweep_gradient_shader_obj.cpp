@@ -54,7 +54,7 @@ SweepGradientShaderObj::SweepGradientShaderObj(const Point& centerPt,
     const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
     scalar endAngle, const Matrix* matrix)
     : GradientShaderObjBase(static_cast<int32_t>(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT),
-        colors, colorSpace, pos, mode, matrix), centerPt_(centerPt), startAngle_(startAngle), endAngle_(endAngle)
+      colors, colorSpace, pos, mode, matrix), centerPt_(centerPt), startAngle_(startAngle), endAngle_(endAngle)
 {
 }
 

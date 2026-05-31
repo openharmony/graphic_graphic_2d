@@ -52,7 +52,7 @@ RadialGradientShaderObj::RadialGradientShaderObj(const Point& centerPt, scalar r
     const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
     const std::vector<scalar>& pos, TileMode mode, const Matrix* matrix)
     : GradientShaderObjBase(static_cast<int32_t>(ShaderEffect::ShaderEffectType::RADIAL_GRADIENT),
-        colors, colorSpace, pos, mode, matrix), centerPt_(centerPt), radius_(radius)
+      colors, colorSpace, pos, mode, matrix), centerPt_(centerPt), radius_(radius)
 {
 }
 

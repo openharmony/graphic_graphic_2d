@@ -54,8 +54,8 @@ ConicalGradientShaderObj::ConicalGradientShaderObj(const Point& startPt, scalar 
     std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
     TileMode mode, const Matrix* matrix)
     : GradientShaderObjBase(static_cast<int32_t>(ShaderEffect::ShaderEffectType::CONICAL_GRADIENT),
-        colors, colorSpace, pos, mode, matrix), startPt_(startPt), startRadius_(startRadius),
-        endPt_(endPt), endRadius_(endRadius)
+      colors, colorSpace, pos, mode, matrix), startPt_(startPt), startRadius_(startRadius),
+      endPt_(endPt), endRadius_(endRadius)
 {
 }
 
