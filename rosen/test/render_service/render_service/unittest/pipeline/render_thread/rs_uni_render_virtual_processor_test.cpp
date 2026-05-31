@@ -424,7 +424,11 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread003, TestSize.Level
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
     virtualProcessor->virtualScreenId_ = screenId;
-    ASSERT_NE(screenManager_->GetProducerSurface(virtualProcessor->virtualScreenId_), nullptr);
+    auto screen = screenManager_->GetScreen(virtualProcessor->virtualScreenId_);
+    ASSERT_NE(screen, nullptr);
+    auto surfaceConfigs = screen->GetMultiSurfaceConfigs();
+    ASSERT_FALSE(surfaceConfigs.empty());
+    ASSERT_NE(surfaceConfigs[0].surface, nullptr);
 
     auto csurf = IConsumerSurface::Create();
     auto producer = csurf->GetProducer();

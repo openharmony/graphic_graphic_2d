@@ -124,7 +124,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
             virtualScreenId_);
         return false;
     }
-    needOffscreenRender_ = !params->IsMirrorScreen() &&surfaceFrames_.size() > 1;
+    needsOffscreenRender_ = !params->IsMirrorScreen() &&surfaceFrames_.size() > 1;
     
     canvas_ = surfaceFrames_[0].canvas;
     if (canvas_ == nullptr) {
@@ -137,7 +137,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed, colorSpace: %d.",
         renderFrameConfig_.colorGamut);
     // Apply color space to all surfaces
-    if (!surfaceFrames_.empty() && surfaceFrames_[0].frame) {
+    if (surfaceFrames_[0].frame) {
         auto rsSurface = surfaceFrames_[0].frame->GetSurface();
         if (rsSurface) {
             if (SetColorSpaceForMetadata(rsSurface->GetColorSpace()) != GSERROR_OK) {
@@ -308,12 +308,6 @@ GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut 
         RS_LOGD("RSUniRenderVirtualProcessor::SetColorSpaceForMetadata ConvertMetadataToVec failed.");
         return GSERROR_API_FAILED;
     }
-    return SetColorSpaceVecForMetadata(colorSpaceVec);
-}
-
-GSError RSUniRenderVirtualProcessor::SetColorSpaceVecForMetadata(const std::vector<uint8_t>& colorSpaceVec)
-{
-    using namespace HDI::Display::Graphic::Common::V1_0;
     return SetMetadataForAllSurfaces(ATTRKEY_COLORSPACE_INFO, colorSpaceVec);
 }
 

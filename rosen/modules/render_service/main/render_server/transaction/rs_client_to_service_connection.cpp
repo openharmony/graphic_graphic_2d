@@ -514,7 +514,6 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
             EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
             NotifyRefreshRateEvent(event);
             ROSEN_LOGI("%{public}s vote 60hz", __func__);
-        }
     }
     return screenId;
 }

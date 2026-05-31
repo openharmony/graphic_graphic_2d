@@ -2579,7 +2579,7 @@ HWTEST_F(RSScreenTest, GetVirtualSecLayerOption001, testing::ext::TestSize.Level
     configs.name = "virtualScreen02";
     configs.width = 480;
     configs.height = 320;
-    configs.surface = psurface;
+    configs.surfaceConfigs = { SurfaceRegionConfig{ psurface, RectI(0, 0, 480, 320) } };
     configs.flags = 1;
     auto rsScreen = std::make_shared<RSScreen>(configs);
     ASSERT_NE(nullptr, rsScreen);

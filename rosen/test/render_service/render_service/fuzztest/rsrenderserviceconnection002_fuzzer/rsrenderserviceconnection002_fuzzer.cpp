@@ -613,7 +613,7 @@ void DoAddVirtualScreenSurface()
             return;
         }
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP1, reply1, option1);
+    g_serviceConnection->OnRemoteRequest(code, dataP1, reply1, option1);
 
     // Test 2: Short parcel - missing configCount
     MessageParcel dataP2;
@@ -624,7 +624,7 @@ void DoAddVirtualScreenSurface()
         !dataP2.WriteUint64(screenId)) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP2, reply2, option2);
+    g_serviceConnection->OnRemoteRequest(code, dataP2, reply2, option2);
 
     // Test 3: Zero configCount
     MessageParcel dataP3;
@@ -635,7 +635,7 @@ void DoAddVirtualScreenSurface()
         !dataP3.WriteUint64(screenId) || !dataP3.WriteUint32(0)) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP3, reply3, option3);
+    g_serviceConnection->OnRemoteRequest(code, dataP3, reply3, option3);
 
     // Test 4: Large configCount (exceeds MAX_SURFACE_REGION_CONFIG_COUNT)
     MessageParcel dataP4;
@@ -646,7 +646,7 @@ void DoAddVirtualScreenSurface()
         !dataP4.WriteUint64(screenId) || !dataP4.WriteUint32(MAX_SURFACE_REGION_CONFIG_COUNT + 1)) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP4, reply4, option4);
+    g_serviceConnection->OnRemoteRequest(code, dataP4, reply4, option4);
 
     // Test 5: INVALID_SCREEN_ID
     MessageParcel dataP5;
@@ -664,7 +664,7 @@ void DoAddVirtualScreenSurface()
         !dataP5.WriteInt32(100) || !dataP5.WriteInt32(100)) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP5, reply5, option5);
+    g_serviceConnection->OnRemoteRequest(code, dataP5, reply5, option5);
 
     // Test 6: Missing fields in region (short parcel mid-config)
     MessageParcel dataP6;
@@ -681,7 +681,7 @@ void DoAddVirtualScreenSurface()
     if (!dataP6.WriteRemoteObject(bp6->AsObject())) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP6, reply6, option6);
+    g_serviceConnection->OnRemoteRequest(code, dataP6, reply6, option6);
 }
 
 void DoRemoveVirtualScreenSurface()
@@ -707,7 +707,7 @@ void DoRemoveVirtualScreenSurface()
             return;
         }
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP1, reply1, option1);
+    g_serviceConnection->OnRemoteRequest(code, dataP1, reply1, option1);
 
     // Test 2: Short parcel - missing surfaceCount
     MessageParcel dataP2;
@@ -718,7 +718,7 @@ void DoRemoveVirtualScreenSurface()
         !dataP2.WriteUint64(screenId)) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP2, reply2, option2);
+    g_serviceConnection->OnRemoteRequest(code, dataP2, reply2, option2);
 
     // Test 3: Zero surfaceCount
     MessageParcel dataP3;
@@ -729,7 +729,7 @@ void DoRemoveVirtualScreenSurface()
         !dataP3.WriteUint64(screenId) || !dataP3.WriteUint32(0)) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP3, reply3, option3);
+    g_serviceConnection->OnRemoteRequest(code, dataP3, reply3, option3);
 
     // Test 4: Large surfaceCount (exceeds MAX_SURFACE_REGION_CONFIG_COUNT)
     MessageParcel dataP4;
@@ -740,7 +740,7 @@ void DoRemoveVirtualScreenSurface()
         !dataP4.WriteUint64(screenId) || !dataP4.WriteUint32(MAX_SURFACE_REGION_CONFIG_COUNT + 1)) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP4, reply4, option4);
+    g_serviceConnection->OnRemoteRequest(code, dataP4, reply4, option4);
 
     // Test 5: INVALID_SCREEN_ID
     MessageParcel dataP5;
@@ -754,7 +754,7 @@ void DoRemoveVirtualScreenSurface()
         !dataP5.WriteRemoteObject(bp5->AsObject())) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP5, reply5, option5);
+    g_serviceConnection->OnRemoteRequest(code, dataP5, reply5, option5);
 
     // Test 6: Missing surface remote object (short parcel mid-loop)
     MessageParcel dataP6;
@@ -766,7 +766,7 @@ void DoRemoveVirtualScreenSurface()
         return;
     }
     // Deliberately don't write the remote object - tests short parcel
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP6, reply6, option6);
+    g_serviceConnection->OnRemoteRequest(code, dataP6, reply6, option6);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -797,15 +797,18 @@ int32_t RSScreenManager::AddVirtualScreenSurface(
     std::unordered_set<uint64_t> usedSurfaceIds = CollectVirtualScreenSurfaceIds();
     for (const auto& config : validConfigs) {
         if (!usedSurfaceIds.insert(config.surface->GetUniqueId()).second) {
-            RS_LOGE("%{public}s: Surface[%{public}" PRIu64 "] already used, add failed for screen[%{public}" PRIu64 "]!",
+            RS_LOGE("%{public}s: Surface[%{public}" PRIu64 "] already used, "
+                    "add failed for screen[%{public}" PRIu64 "]!",
                 __func__, config.surface->GetUniqueId(), id);
             return SURFACE_NOT_UNIQUE;
         }
+        RS_LOGI("%{public}s: Added %{public}zu surfaces to screen[%{public}" PRIu64 "]"
+            "region [%{public}d, %{public}d, %{public}d, %{public}d]",
+            __func__, validConfigs.size(), id,
+            config.region.left_, config.region.top_, config.region.width_, config.region.height_);
     }
 
     screen->AddSurfaceConfigs(validConfigs);
-    RS_LOGI("%{public}s: Added %{public}zu surfaces to screen[%{public}" PRIu64 "]",
-        __func__, validConfigs.size(), id);
     return SUCCESS;
 }
 

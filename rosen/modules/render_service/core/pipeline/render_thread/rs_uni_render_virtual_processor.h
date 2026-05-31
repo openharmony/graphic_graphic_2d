@@ -129,7 +129,6 @@ private:
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
     bool EnableSlrScale();
     GSError SetColorSpaceForMetadata(GraphicColorGamut colorSpace);
-    GSError SetColorSpaceVecForMetadata(const std::vector<uint8_t>& colorSpaceVec);
     GSError SetMetadataForAllSurfaces(uint32_t key, const std::vector<uint8_t>& data);
 
     // Multi-surface private methods

@@ -1956,7 +1956,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenSurface001, TestS
     EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
     std::vector<SurfaceRegionConfig> configs;
     ScreenId screenId = 1;
-    std::vector<SurfaceRegionConfig> configs;
     auto ret = mockProxy->AddVirtualScreenSurface(screenId, configs);
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
