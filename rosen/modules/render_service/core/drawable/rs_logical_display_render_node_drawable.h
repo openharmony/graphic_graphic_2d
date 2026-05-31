@@ -26,11 +26,11 @@
 #include "params/rs_logical_display_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_render_node.h"
+#include "feature/multi_screen/rs_multi_screen_util.h"
 
 namespace OHOS::Rosen {
 class RSScreenRenderParams;
 namespace DrawableV2 {
-class RSMultiScreenUtil;
 
 class RSLogicalDisplayRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
@@ -74,16 +74,10 @@ private:
     void UpdateMainSizeFromContentRect(RSLogicalDisplayRenderParams* params, float& mainWidth, float& mainHeight);
     void ScaleAndRotateMirrorForWiredScreen(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
     void RotateMirrorCanvas(ScreenRotation& rotation, float width, float height);
-    void WiredScreenProjection(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawMirror(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser,
         RSRenderThreadParams& uniParam);
     void DrawMirrorCopy(RSLogicalDisplayRenderParams& params,
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
-    void DrawWiredMirrorCopy(
-        RSLogicalDisplayRenderNodeDrawable& mirroredDrawable, RSLogicalDisplayRenderParams& params);
-    void DrawWiredMirrorOnDraw(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable,
-        RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    void DrawMirrorScreen(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawExpandDisplay(RSLogicalDisplayRenderParams& params);
     void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false,
         bool useCanvasSize = true, bool fixFormat = false);
@@ -107,8 +101,6 @@ private:
         sptr<SurfaceBuffer> virtualBuffer = nullptr, sptr<SyncFence> virtualFence = nullptr);
     void DrawAdditionalContent(RSPaintFilterCanvas& canvas);
     void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, const Drawing::Rect& drawRegion = {0.f, 0.f, 0.f, 0.f});
-
-    void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
 
     void SetScreenRotationForPointLight(RSLogicalDisplayRenderParams& params);
 
@@ -151,8 +143,8 @@ private:
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::LOGICAL_DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
 
-    // mirror display drawing path dfx
-    std::optional<bool> mirrorRedraw_;
+    // display drawing path dfx
+    DrawingPath lastFrameDrawingPath_ = DrawingPath::INVALID;
 
     friend class RSMultiScreenUtil;
 };

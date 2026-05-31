@@ -16,14 +16,40 @@
 #ifndef RENDER_SERVICE_CORE_FEATURE_MULTI_SCREEN_RS_MULTI_SCREEN_UTIL_H
 #define RENDER_SERVICE_CORE_FEATURE_MULTI_SCREEN_RS_MULTI_SCREEN_UTIL_H
 
+#include <bitset>
 #include <memory>
+#include <string>
 
 #include "common/rs_common_def.h"
 #include "params/rs_logical_display_render_params.h"
+#include "params/rs_render_thread_params.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/rs_processor.h"
 
-namespace OHOS::Rosen::DrawableV2 {
+namespace OHOS::Rosen {
+
+class RSUniRenderVirtualProcessor;
+
+namespace DrawableV2 {
+
+enum class DrawingPath : int {
+    INVALID = -1,  // Initial state
+    DRAW_AS_MAIN_SCREEN = 0,
+    DRAW_VIRTUAL_EXTEND_DISPLAY = 1,
+    DRAW_VIRTUAL_MIRROR_COPY = 2,
+    DRAW_VIRTUAL_MIRROR_REBUILD = 3,
+    DRAW_WIRED_MIRROR_COPY = 4,
+    DRAW_WIRED_MIRROR_REBUILD = 5
+};
+
+struct MultiScreenParams {
+    std::shared_ptr<RSScreenRenderNodeDrawable> screenDrawable;
+    RSScreenRenderParams* screenParams;
+    std::shared_ptr<RSLogicalDisplayRenderNodeDrawable> mirrorSourceDisplayDrawable;
+    RSLogicalDisplayRenderParams* mirrorSourceDisplayParams;
+    std::shared_ptr<RSScreenRenderNodeDrawable> mirrorSourceScreenDrawable;
+    RSScreenRenderParams* mirrorSourceScreenParams;
+};
 
 class RSLogicalDisplayRenderNodeDrawable;
 class RSScreenRenderNodeDrawable;
@@ -50,8 +76,37 @@ public:
         RSScreenRenderNodeDrawable& drawable,
         RSScreenRenderParams& params,
         const std::shared_ptr<RSProcessor>& processor);
+    
+    static void DumpDrawingPath(
+        RSLogicalDisplayRenderNodeDrawable& drawable,
+        ScreenId screenId,
+        DrawingPath path,
+        const std::string& reason);
+
+private:
+    static void DrawWiredMirrorDisplay(
+        RSLogicalDisplayRenderNodeDrawable& drawable,
+        RSLogicalDisplayRenderParams& params,
+        const std::shared_ptr<RSProcessor>& processor);
+
+    static void DrawWiredMirrorCopy(
+        RSLogicalDisplayRenderNodeDrawable& drawable,
+        RSLogicalDisplayRenderParams& params);
+
+    static void DrawWiredMirrorRebuild(
+        RSLogicalDisplayRenderNodeDrawable& drawable,
+        RSLogicalDisplayRenderParams& params,
+        const std::shared_ptr<RSProcessor>& processor);
+
+    static void DrawVirtualMirrorDisplay(
+        RSLogicalDisplayRenderNodeDrawable& drawable,
+        RSLogicalDisplayRenderParams& params,
+        const std::shared_ptr<RSProcessor>& processor);
+
+    static std::pair<MultiScreenParams, bool> GetMultiScreenParams(RSLogicalDisplayRenderParams& params);
 };
 
 } // namespace OHOS::Rosen::DrawableV2
+} // namespace OHOS::Rosen
 
 #endif // RENDER_SERVICE_CORE_FEATURE_MULTI_SCREEN_RS_MULTI_SCREEN_UTIL_H

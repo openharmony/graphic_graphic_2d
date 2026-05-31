@@ -52,7 +52,9 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     const auto& screenProperty = params->GetScreenProperty();
     auto screenStatus = screenProperty.GetVirtualScreenStatus();
     if (screenStatus == VIRTUAL_SCREEN_PAUSE) {
-        RS_LOGD("RSUniRenderVirtualProcessor::Init screenStatus is pause");
+        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s ScreenId[%" PRIu64 "] paused", __func__, virtualScreenId_);
+        RS_LOGD("RSUniRenderVirtualProcessor::%{public}s, ScreenId[%{public}" PRIu64 "] paused",
+            __func__, virtualScreenId_);
         return false;
     }
 
