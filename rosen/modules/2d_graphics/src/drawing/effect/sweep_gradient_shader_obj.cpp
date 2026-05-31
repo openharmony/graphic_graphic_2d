@@ -64,7 +64,7 @@ std::shared_ptr<void> SweepGradientShaderObj::GenerateBaseObject()
         return nullptr;
     }
 
-    auto gradientShader = ShaderEffect::CreateSweepGradient(centerPt_, colors_, colorSpace_, pos_, mode_,
+    auto gradientShader = ShaderEffect::CreateSweepGradientNotLazy(centerPt_, colors_, colorSpace_, pos_, mode_,
         startAngle_, endAngle_, matrix_.get());
     return std::static_pointer_cast<void>(gradientShader);
 }
@@ -104,7 +104,8 @@ bool SweepGradientShaderObj::Unmarshalling(Parcel& parcel, bool& isValid, int32_
     }
 
     // Read center point
-    scalar centerX, centerY;
+    scalar centerX;
+    scalar centerY;
     if (!parcel.ReadFloat(centerX) || !parcel.ReadFloat(centerY)) {
         LOGE("SweepGradientShaderObj::Unmarshalling, failed to read center point");
         return false;

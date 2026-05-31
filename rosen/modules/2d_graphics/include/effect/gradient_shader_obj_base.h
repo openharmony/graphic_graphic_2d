@@ -17,6 +17,7 @@
 #define GRADIENT_SHADER_OBJ_BASE_H
 
 #include "draw/ui_color.h"
+#include "effect/shader_effect.h"
 #include "effect/shader_effect_obj.h"
 
 #ifdef ROSEN_OHOS
