@@ -62,7 +62,7 @@ std::shared_ptr<void> RadialGradientShaderObj::GenerateBaseObject()
         return nullptr;
     }
 
-    auto gradientShader = ShaderEffect::CreateRadialGradient(centerPt_, radius_, colors_, colorSpace_, pos_,
+    auto gradientShader = ShaderEffect::CreateRadialGradientNotLazy(centerPt_, radius_, colors_, colorSpace_, pos_,
         mode_, matrix_.get());
     return std::static_pointer_cast<void>(gradientShader);
 }
@@ -96,7 +96,8 @@ bool RadialGradientShaderObj::Unmarshalling(Parcel& parcel, bool& isValid, int32
     }
 
     // Read center point
-    scalar centerX, centerY;
+    scalar centerX;
+    scalar centerY;
     if (!parcel.ReadFloat(centerX) || !parcel.ReadFloat(centerY)) {
         LOGE("RadialGradientShaderObj::Unmarshalling, failed to read center point");
         return false;
