@@ -62,7 +62,7 @@ std::shared_ptr<void> LinearGradientShaderObj::GenerateBaseObject()
         return nullptr;
     }
 
-    auto gradientShader = ShaderEffect::CreateLinearGradient(startPt_, endPt_, colors_, colorSpace_, pos_,
+    auto gradientShader = ShaderEffect::CreateLinearGradientNotLazy(startPt_, endPt_, colors_, colorSpace_, pos_,
         mode_, matrix_.get());
     return std::static_pointer_cast<void>(gradientShader);
 }
@@ -96,7 +96,8 @@ bool LinearGradientShaderObj::Unmarshalling(Parcel& parcel, bool& isValid, int32
     }
 
     // Read start point
-    scalar startX, startY;
+    scalar startX;
+    scalar startY;
     if (!parcel.ReadFloat(startX) || !parcel.ReadFloat(startY)) {
         LOGE("LinearGradientShaderObj::Unmarshalling, failed to read start point");
         return false;
@@ -104,7 +105,8 @@ bool LinearGradientShaderObj::Unmarshalling(Parcel& parcel, bool& isValid, int32
     startPt_ = Point(startX, startY);
 
     // Read end point
-    scalar endX, endY;
+    scalar endX;
+    scalar endY;
     if (!parcel.ReadFloat(endX) || !parcel.ReadFloat(endY)) {
         LOGE("LinearGradientShaderObj::Unmarshalling, failed to read end point");
         return false;
