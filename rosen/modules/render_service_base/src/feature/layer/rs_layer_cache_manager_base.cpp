@@ -36,7 +36,7 @@ namespace Rosen {
         if (layerFrameCount_ == ENABLE_LAYER_FRAME_NUM) {
             for (auto node : suggestedLayerNodes_) {
                 auto nodePtr = node.lock();
-                bool isSupportLayer = nodePtr && (!isNodeUnSupportLayer(nodePtr));
+                bool isSupportLayer = nodePtr && (!IsNodeUnSupportLayer(nodePtr));
                 if (isSupportLayer) {
                     nodePtr->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, true, false);
                 }
@@ -44,14 +44,14 @@ namespace Rosen {
         }
     }
 
-    bool RSLayerCacheManagerBase::isNodeUnSupportLayer(std::shared_ptr<RSRenderNode> node)
+    bool RSLayerCacheManagerBase::IsNodeUnSupportLayer(std::shared_ptr<RSRenderNode> node)
     {
         bool isUnSupportLayer = unSupportLayerNodeMap_.find(node->GetId()) != unSupportLayerNodeMap_.end() &&
                                 unSupportLayerNodeMap_[node->GetId()];
         return isUnSupportLayer;
     }
 
-    bool RSLayerCacheManagerBase::isNodeUnSupportLayer(RSRenderNode& node)
+    bool RSLayerCacheManagerBase::IsNodeUnSupportLayer(RSRenderNode& node)
     {
         bool isUnSupportLayer = unSupportLayerNodeMap_.find(node.GetId()) != unSupportLayerNodeMap_.end() &&
                                 unSupportLayerNodeMap_[node.GetId()];

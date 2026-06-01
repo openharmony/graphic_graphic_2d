@@ -3390,7 +3390,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     }
     bool isUnSupportLayer =
         RSLayerCacheManagerBase::isLayerSuggested_ &&
-        (RSLayerCacheManagerBase::isNodeUnSupportLayer(node) || node.GetOpincRootCache().IsSuggestOpincNode() ||
+        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || node.GetOpincRootCache().IsSuggestOpincNode() ||
             node.GetRenderProperties().IsShadowValid() || node.GetRenderProperties().IsBgBrightnessValid() ||
             node.GetRenderProperties().IsColorBlendModeValid() ||
             node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);

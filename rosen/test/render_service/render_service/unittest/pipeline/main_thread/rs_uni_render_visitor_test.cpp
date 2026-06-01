@@ -4384,7 +4384,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo002, TestSize.Level2)
     node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, true, false);
     bool isUnSupportLayer =
         RSLayerCacheManagerBase::isLayerSuggested_ &&
-        (RSLayerCacheManagerBase::isNodeUnSupportLayer(node) ||
+        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) ||
             node->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
     EXPECT_TRUE(isUnSupportLayer);
     rsUniRenderVisitor->CollectEffectInfo(*node);

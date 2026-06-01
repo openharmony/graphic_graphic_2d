@@ -843,7 +843,7 @@ HWTEST_F(RSLayerCacheManagerTest, ShouldEnableLayerCacheTest, TestSize.Level1)
 
 /**
  * @tc.name: ProcessLayerNodesTest
- * @tc.desc: Test ProcessLayerNodes & isNodeUnSupportLayer
+ * @tc.desc: Test ProcessLayerNodes & IsNodeUnSupportLayer
  * @tc.type: FUNC
  */
 HWTEST_F(RSLayerCacheManagerTest, ProcessLayerNodesTest, TestSize.Level1)
@@ -866,7 +866,7 @@ HWTEST_F(RSLayerCacheManagerTest, ProcessLayerNodesTest, TestSize.Level1)
         parent->InitRenderParams();
         parent->AddChild(node);
         RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
-        EXPECT_TRUE(!RSLayerCacheManagerBase::isNodeUnSupportLayer(node));
+        EXPECT_TRUE(!RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
         RSLayerCacheManagerBase::ProcessLayerNodes();
         EXPECT_TRUE(RSLayerCacheManagerBase::layerFrameCount_ == 3);
     }
@@ -882,7 +882,7 @@ HWTEST_F(RSLayerCacheManagerTest, ProcessLayerNodesTest, TestSize.Level1)
         parent->InitRenderParams();
         parent->AddChild(node);
         RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
-        EXPECT_TRUE(!RSLayerCacheManagerBase::isNodeUnSupportLayer(node));
+        EXPECT_TRUE(!RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
         RSLayerCacheManagerBase::ProcessLayerNodes();
         EXPECT_TRUE(RSLayerCacheManagerBase::layerFrameCount_ == 6);
     }
@@ -890,7 +890,7 @@ HWTEST_F(RSLayerCacheManagerTest, ProcessLayerNodesTest, TestSize.Level1)
 
 /**
  * @tc.name: ProcessLayerNodesTest001
- * @tc.desc: Test ProcessLayerNodes & isNodeUnSupportLayer
+ * @tc.desc: Test ProcessLayerNodes & IsNodeUnSupportLayer
  * @tc.type: FUNC
  */
 HWTEST_F(RSLayerCacheManagerTest, ProcessLayerNodesTest001, TestSize.Level1)
@@ -913,7 +913,7 @@ HWTEST_F(RSLayerCacheManagerTest, ProcessLayerNodesTest001, TestSize.Level1)
         parent->InitRenderParams();
         parent->AddChild(node);
         RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
-        EXPECT_TRUE(!RSLayerCacheManagerBase::isNodeUnSupportLayer(node));
+        EXPECT_TRUE(!RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
         RSLayerCacheManagerBase::ProcessLayerNodes();
         EXPECT_TRUE(RSLayerCacheManagerBase::layerFrameCount_ == 3);
     }
@@ -930,7 +930,7 @@ HWTEST_F(RSLayerCacheManagerTest, ProcessLayerNodesTest001, TestSize.Level1)
         parent->AddChild(node);
         RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
         RSLayerCacheManagerBase::unSupportLayerNodeMap_[node->GetId()] = true;
-        EXPECT_FALSE(!RSLayerCacheManagerBase::isNodeUnSupportLayer(node));
+        EXPECT_FALSE(!RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
         RSLayerCacheManagerBase::ProcessLayerNodes();
         EXPECT_TRUE(RSLayerCacheManagerBase::layerFrameCount_ == 3);
     }

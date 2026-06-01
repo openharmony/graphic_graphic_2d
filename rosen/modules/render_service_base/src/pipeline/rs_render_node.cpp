@@ -4753,7 +4753,7 @@ void RSRenderNode::OnSync()
                        stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
     if (isLayerNode) {
         bool isLayerCacheDisabled =
-            RSLayerCacheManagerBase::isNodeUnSupportLayer(shared_from_this()) || IsNodeParentHasUIFirstCache();
+            RSLayerCacheManagerBase::IsNodeUnSupportLayer(shared_from_this()) || IsNodeParentHasUIFirstCache();
         if (isLayerCacheDisabled) {
             stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         } else {

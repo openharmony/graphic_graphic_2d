@@ -411,7 +411,7 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
     }
     // only support canvas node mark
     bool isCanvasNode = node->GetType() == RSRenderNodeType::CANVAS_NODE;
-    bool isSupportLayer = isLayer && isCanvasNode && !RSLayerCacheManagerBase::isNodeUnSupportLayer(node);
+    bool isSupportLayer = isLayer && isCanvasNode && !RSLayerCacheManagerBase::IsNodeUnSupportLayer(node);
     if (isSupportLayer) {
         RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isLayer:%d id:%llu", isLayer, node->GetId());
         RS_LOGI_IF(

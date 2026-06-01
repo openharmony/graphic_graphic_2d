@@ -26,8 +26,8 @@ class RSB_EXPORT RSLayerCacheManagerBase {
 public:
     virtual ~RSLayerCacheManagerBase() = default;
     static void ProcessLayerNodes();
-    static bool isNodeUnSupportLayer(std::shared_ptr<RSRenderNode> node);
-    static bool isNodeUnSupportLayer(RSRenderNode& node);
+    static bool IsNodeUnSupportLayer(std::shared_ptr<RSRenderNode> node);
+    static bool IsNodeUnSupportLayer(RSRenderNode& node);
 
     static std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> layerDrawables_;
 

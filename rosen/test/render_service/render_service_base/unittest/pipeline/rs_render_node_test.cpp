@@ -1244,7 +1244,7 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
     bool isLayerNode = node->nodeGroupType_ == RSRenderNode::NodeGroupType::GROUPED_BY_LAYER &&
  	                        node->stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
     EXPECT_TRUE(isLayerNode);
-    EXPECT_TRUE(RSLayerCacheManagerBase::isNodeUnSupportLayer(node));
+    EXPECT_TRUE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);
@@ -1293,7 +1293,7 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest1, TestSize.Level1)
     bool isLayerNode = node->nodeGroupType_ == RSRenderNode::NodeGroupType::GROUPED_BY_LAYER &&
  	                        node->stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
     EXPECT_TRUE(isLayerNode);
-    EXPECT_FALSE(RSLayerCacheManagerBase::isNodeUnSupportLayer(node));
+    EXPECT_FALSE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);
