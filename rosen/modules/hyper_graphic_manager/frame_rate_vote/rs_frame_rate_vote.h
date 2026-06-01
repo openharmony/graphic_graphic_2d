@@ -17,6 +17,7 @@
 #define RS_FRAME_RATE_VOTE_H
 
 #include <iconsumer_surface.h>
+#include <array>
 
 #include "ffrt.h"
 #include "hgm_frame_rate_manager.h"
@@ -27,7 +28,10 @@ namespace OHOS {
 namespace Rosen {
 using VideoVoterFunc = std::function<void(const std::string& key, const std::string& value)>;
 class RSFrameRateVote {
+    static constexpr int32_t BUFFER_COUNT_HISTORY_SIZE = 7;
+    static constexpr int32_t BUFFER_COUNT_THRESHOLD = 4;
     DECLARE_DELAYED_SINGLETON(RSFrameRateVote);
+
 
 public:
     /**
@@ -59,7 +63,7 @@ private:
     std::atomic<uint32_t> lastVotedRate_{ OLED_NULL_HZ };
     bool hasUiOrSurface = true;
     bool isVoted_{ false };
-    std::atomic<uint64_t> lastSurfaceNodeId_ { 0 };
+    std::atomic<uint64_t> lastSurfaceNodeId_{ 0 };
     uint64_t currentUpdateTime_{ 0 };
     std::string transactionFlags_;
     std::unordered_map<uint64_t, std::shared_ptr<RSVideoFrameRateVote>> surfaceVideoFrameRateVote_{};
@@ -72,7 +76,8 @@ private:
     static std::atomic<bool> isVideoApp_;
     std::unordered_map<pid_t, uint32_t> videoRateInfo_;
     std::atomic<int64_t> lastSurfaceNodeIdUpdateTime_{ 0 };
-    std::atomic<int32_t> availableBufferCount_{ 0 };
+    std::array<int32_t, BUFFER_COUNT_HISTORY_SIZE> bufferCountHistory_{};
+    int32_t bufferCountIndex_{ 0 };
 
     friend class HgmEnergyConsumptionPolicy;
 };
