@@ -55,7 +55,9 @@ ohos_fuzztest("EffectFilterFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "image_framework:image_native",
+    "image_framework:pixelmap",
     "image_framework:pixelmap_ndk",
+    "napi:ace_napi",
   ]
 }
 
