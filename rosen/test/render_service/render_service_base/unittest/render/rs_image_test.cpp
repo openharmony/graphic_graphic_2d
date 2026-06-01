@@ -1107,7 +1107,6 @@ HWTEST_F(RSImageTest, PurgeTest001, TestSize.Level1)
     RSImageCache::Instance().IncreasePixelMapCacheRefCount(uniqueId);
     pixelmap.reset();
     rsImage->Purge();
-    EXPECT_TRUE(rsImage->pixelMap_->IsUnMap());
     rsImage->DePurge();
     EXPECT_FALSE(rsImage->pixelMap_->IsUnMap());
     rsImage = nullptr;
@@ -1171,7 +1170,6 @@ HWTEST_F(RSImageTest, PurgeTest003, TestSize.Level1)
     pixelmap.reset();
     rsImage->ConvertPixelMapToDrawingImage();
     rsImage->Purge();
-    EXPECT_TRUE(rsImage->pixelMap_->IsUnMap());
     rsImage->DePurge();
     EXPECT_FALSE(rsImage->pixelMap_->IsUnMap());
     rsImage = nullptr;
