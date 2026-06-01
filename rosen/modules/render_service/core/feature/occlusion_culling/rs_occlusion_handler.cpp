@@ -73,8 +73,8 @@ void RSOcclusionHandler::CollectNodeInner(const RSRenderNode& node)
     }
     auto itParent = occlusionNodes_.find(parent->GetId());
     auto itNode = occlusionNodes_.find(node.GetId());
-    if (itParent == occlusionNodes_.end() || itParent->second == nullptr || itParent->second->IsSubTreeIgnored()) {
-        // If the parent is not collected or ignored, but the node is already collected,
+    if (itParent == occlusionNodes_.end() || itParent->second == nullptr) {
+        // If the parent is not collected, but the node is already collected,
         // we should delete the node and its subtree.
         if (itNode != occlusionNodes_.end() && itNode->second != nullptr) {
             itNode->second->RemoveSubTree(occlusionNodes_);
@@ -129,8 +129,8 @@ void RSOcclusionHandler::CollectSubTreeInner(const RSRenderNode& node)
 {
     CollectNodeInner(node);
     auto itNode = occlusionNodes_.find(node.GetId());
-    // If the node is not collected or ignored, return.
-    if (itNode == occlusionNodes_.end() || itNode->second == nullptr || itNode->second->IsSubTreeIgnored()) {
+    // If the node is not collected, return.
+    if (itNode == occlusionNodes_.end() || itNode->second == nullptr) {
         return;
     }
     auto sortChildren = *(node.GetSortedChildren());
@@ -198,8 +198,8 @@ void RSOcclusionHandler::DumpSubTreeOcclusionInfo(const RSRenderNode& node)
     auto ocNode = it->second;
     bool isNodeCulled = culledNodes_.count(ocNode->GetId()) > 0;
     bool isSubtreeCulled = culledEntireSubtree_.count(ocNode->GetId()) > 0;
-    RS_TRACE_NAME_FMT("%s isNodeCulled %d isSubtreeCulled %d",
-        ocNode->GetOcclusionNodeInfoString().c_str(), isNodeCulled, isSubtreeCulled);
+    RS_TRACE_NAME_FMT("%s isSubtreeCulled:%d isNodeCulled:%d",
+        ocNode->GetOcclusionNodeInfoString().c_str(), isSubtreeCulled, isNodeCulled);
     for (const auto& child : *sortChildren) {
         DumpSubTreeOcclusionInfo(*child);
     }

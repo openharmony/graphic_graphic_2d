@@ -106,7 +106,7 @@ void RSRenderThreadVisitor::SetPartialRenderStatus(PartialRenderType status, boo
     dfxDirtyType_ = RSSystemProperties::GetDirtyRegionDebugType();
     isEglSetDamageRegion_ = !isRenderForced_ && (status != PartialRenderType::DISABLED);
     isOpDropped_ = (dfxDirtyType_ == DirtyRegionDebugType::DISABLED) && !isRenderForced_ &&
-        (status == PartialRenderType::SET_DAMAGE_AND_DROP_OP);
+        (status == PartialRenderType::SET_DAMAGE_AND_CLIP_AND_DROP_OP);
     if (partialRenderStatus_ != status) {
         ROSEN_LOGD("PartialRenderStatus: %{public}d->%{public}d, isRenderForced_=%{public}d, dfxDirtyType_=%{public}d,\
             isEglSetDamageRegion_=%{public}d, isOpDropped_=%{public}d", partialRenderStatus_, status,

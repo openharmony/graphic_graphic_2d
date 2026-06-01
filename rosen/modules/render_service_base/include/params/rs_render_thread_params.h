@@ -91,6 +91,18 @@ public:
         return isPartialRenderEnabled_;
     }
 
+    bool NeedClipForPartialRender() const noexcept
+    {
+        return partialRenderType_ >= PartialRenderType::CLIP;
+    }
+
+    bool NeedSetDamageForPartialRender() const noexcept
+    {
+        return partialRenderType_ == PartialRenderType::SET_DAMAGE_AND_CLIP_AND_DROP_OP ||
+            partialRenderType_ == PartialRenderType::SET_DAMAGE ||
+            partialRenderType_ == PartialRenderType::FORCE_FULL_SCREEN_DIRTY_REGION;
+    }
+
     bool IsRegionDebugEnabled() const
     {
         return isRegionDebugEnabled_;
@@ -657,6 +669,7 @@ private:
     uint32_t defaultScreenRefreshRate_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
+    PartialRenderType partialRenderType_ = PartialRenderType::DISABLED;
     bool hasDisplayHdrOn_ = false;
     bool isMirrorScreen_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;

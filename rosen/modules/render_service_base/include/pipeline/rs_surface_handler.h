@@ -476,6 +476,16 @@ public:
         bufferDropped_ = dropped;
     }
 
+    bool GetAndResetBufferDropped()
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (bufferDropped_) {
+            bufferDropped_ = false;
+            return true;
+        }
+        return false;
+    }
+
     bool GetBufferTransformTypeChanged() const
     {
         return bufferTransformTypeChanged_;

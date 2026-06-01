@@ -238,7 +238,7 @@ HWTEST_F(RSSystemPropertiesTest, GetPartialRenderEnabled, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
 {
     ASSERT_EQ(
-        RSSystemProperties::GetUniPartialRenderEnabled(), PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY);
+        RSSystemProperties::GetUniPartialRenderEnabled(), PartialRenderType::SET_DAMAGE_AND_CLIP_AND_DROP_OP);
 }
 
 /**

@@ -272,10 +272,8 @@ Region Region::GetAlignedRegion(int alignmentWidth, int alignmentHeight) const
 {
     Region alignedRegion;
     for (const auto& rect : rects_) {
-        Rect alignedRect(AlignDown(rect.left_, alignmentWidth), AlignDown(rect.top_, alignmentHeight),
-            AlignUp(rect.right_, alignmentWidth), AlignUp(rect.bottom_, alignmentHeight));
-        Region alignedSubRegion{alignedRect};
-        alignedRegion.OrSelf(alignedSubRegion);
+        alignedRegion.OrSelf(Region(Rect(AlignDown(rect.left_, alignmentWidth), AlignDown(rect.top_, alignmentHeight),
+            AlignUp(rect.right_, alignmentWidth), AlignUp(rect.bottom_, alignmentHeight))));
     }
     return alignedRegion;
 }

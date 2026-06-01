@@ -395,4 +395,95 @@ HWTEST_F(RSOcclusionHandlerTest, DebugPostOcclusionProcessing, TestSize.Level1)
     EXPECT_EQ(rsOcclusionHandler->occlusionNodes_.size(), expectSize);
 }
 
+/*
+ * @tc.name: CollectNodeInner_ParentIgnoredChildStillCollected
+ * @tc.desc: Test CollectNodeInner collects child even when parent is ignored
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionHandlerTest, CollectNodeInner_ParentIgnoredChildStillCollected, TestSize.Level1)
+{
+    nodePtr->instanceRootNodeId_ = firstNodeId;
+    rsOcclusionHandler->rootNodeId_ = firstNodeId;
+    rsOcclusionHandler->CollectNode(*nodePtr);
+
+    std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSRenderNode>(secondNodeId);
+    parentNode->parent_ = nodePtr;
+    parentNode->instanceRootNodeId_ = firstNodeId;
+    parentNode->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
+    rsOcclusionHandler->CollectNode(*parentNode);
+
+    auto itParent = rsOcclusionHandler->occlusionNodes_.find(secondNodeId);
+    ASSERT_NE(itParent, rsOcclusionHandler->occlusionNodes_.end());
+    EXPECT_TRUE(itParent->second->IsSubTreeIgnored());
+
+    std::shared_ptr<RSRenderNode> childNode = std::make_shared<RSRenderNode>(thirdNodeId);
+    childNode->parent_ = parentNode;
+    childNode->instanceRootNodeId_ = firstNodeId;
+    childNode->renderProperties_.SetBounds(Vector4f{0, 0, 100, 100});
+    rsOcclusionHandler->CollectNode(*childNode);
+
+    auto itChild = rsOcclusionHandler->occlusionNodes_.find(thirdNodeId);
+    EXPECT_NE(itChild, rsOcclusionHandler->occlusionNodes_.end());
+    EXPECT_TRUE(itChild->second->IsSubTreeIgnored());
+}
+
+/*
+ * @tc.name: CollectSubTreeInner_IgnoredNodeChildrenStillCollected
+ * @tc.desc: Test CollectSubTreeInner collects children of ignored nodes
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionHandlerTest, CollectSubTreeInner_IgnoredNodeChildrenStillCollected, TestSize.Level1)
+{
+    nodePtr->instanceRootNodeId_ = firstNodeId;
+    rsOcclusionHandler->rootNodeId_ = firstNodeId;
+    rsOcclusionHandler->CollectNode(*nodePtr);
+
+    std::shared_ptr<RSRenderNode> ignoredNode = std::make_shared<RSRenderNode>(secondNodeId);
+    ignoredNode->parent_ = nodePtr;
+    ignoredNode->instanceRootNodeId_ = firstNodeId;
+    ignoredNode->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
+    ignoredNode->renderProperties_.SetBounds(Vector4f{0, 0, 100, 100});
+
+    std::shared_ptr<RSRenderNode> grandChildNode = std::make_shared<RSRenderNode>(thirdNodeId);
+    grandChildNode->parent_ = ignoredNode;
+    grandChildNode->instanceRootNodeId_ = firstNodeId;
+    grandChildNode->renderProperties_.SetBounds(Vector4f{0, 0, 50, 50});
+
+    ignoredNode->AddChild(grandChildNode);
+    auto childrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    childrenList->emplace_back(grandChildNode);
+    std::atomic_store_explicit(&(ignoredNode->fullChildrenList_),
+        std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>(std::move(childrenList)),
+        std::memory_order_release);
+
+    rsOcclusionHandler->CollectSubTreeInner(*ignoredNode);
+
+    auto itIgnored = rsOcclusionHandler->occlusionNodes_.find(secondNodeId);
+    ASSERT_NE(itIgnored, rsOcclusionHandler->occlusionNodes_.end());
+    EXPECT_TRUE(itIgnored->second->IsSubTreeIgnored());
+
+    auto itGrandChild = rsOcclusionHandler->occlusionNodes_.find(thirdNodeId);
+    EXPECT_NE(itGrandChild, rsOcclusionHandler->occlusionNodes_.end());
+    EXPECT_TRUE(itGrandChild->second->IsSubTreeIgnored());
+}
+
+/*
+ * @tc.name: CollectSubTreeInner_NodeNotCollectedEarlyReturn
+ * @tc.desc: Test CollectSubTreeInner early returns when node is not collected
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionHandlerTest, CollectSubTreeInner_NodeNotCollectedEarlyReturn, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> orphanParent = std::make_shared<RSRenderNode>(secondNodeId);
+    std::shared_ptr<RSRenderNode> orphanNode = std::make_shared<RSRenderNode>(thirdNodeId);
+    orphanNode->parent_ = orphanParent;
+    orphanNode->instanceRootNodeId_ = firstNodeId;
+    orphanNode->renderProperties_.SetBounds(Vector4f{0, 0, 50, 50});
+    rsOcclusionHandler->CollectSubTreeInner(*orphanNode);
+    auto it = rsOcclusionHandler->occlusionNodes_.find(thirdNodeId);
+    EXPECT_EQ(it, rsOcclusionHandler->occlusionNodes_.end());
+}
 }  // namespace OHOS::Rosen

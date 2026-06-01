@@ -2006,12 +2006,11 @@ void RSRenderNode::UpdateBufferDirtyRegion()
         SetHasSurfaceBuffer(true);
         // if the buffer size changed or buffer dropped, use the node size as dirty rect
         auto surfaceHandle = surfaceNode->GetRSSurfaceHandler();
-        if (surfaceHandle->GetBufferSizeChanged() || surfaceHandle->GetBufferDropped()) {
+        auto bufferDropped = surfaceHandle->GetAndResetBufferDropped();
+        if (surfaceHandle->GetBufferSizeChanged() || bufferDropped) {
             RS_OPTIONAL_TRACE_NAME_FMT("%s reset dirty rect. id:%" PRIu64 ", bufferSizeChanged:%d, bufferDropped:%d",
-                surfaceNode->GetName().c_str(), GetId(), surfaceHandle->GetBufferSizeChanged(),
-                surfaceHandle->GetBufferDropped());
+                surfaceNode->GetName().c_str(), GetId(), surfaceHandle->GetBufferSizeChanged(), bufferDropped);
             selfDrawingNodeDirtyRect_ = selfDrawRect_;
-            surfaceHandle->SetBufferDropped(false);
             return;
         }
         // Use the matrix from buffer to relative coordinate and the absolute matrix

@@ -83,6 +83,11 @@ protected:
         return static_cast<int16_t>(std::clamp(value, static_cast<float>(INT16_MIN), static_cast<float>(INT16_MAX)));
     }
 
+    int16_t SafeCast(int value) const
+    {
+        return static_cast<int16_t>(std::clamp(value, INT16_MIN, INT16_MAX));
+    }
+
     RectI16 ComputeOuter(const RectF& drawRect) const
     {
         if (drawRect.IsEmpty()) {
@@ -92,6 +97,18 @@ protected:
         auto right = SafeCast(std::ceil(drawRect.GetRight()));
         auto top = SafeCast(std::floor(drawRect.GetTop()));
         auto bottom = SafeCast(std::ceil(drawRect.GetBottom()));
+        return (left >= right || top >= bottom) ? RectI16() : RectI16(left, top, right - left, bottom - top);
+    }
+
+    RectI16 ComputeOuter(const RectI& drawRect) const
+    {
+        if (drawRect.IsEmpty()) {
+            return RectI16();
+        }
+        auto left = SafeCast(drawRect.GetLeft());
+        auto right = SafeCast(drawRect.GetRight());
+        auto top = SafeCast(drawRect.GetTop());
+        auto bottom = SafeCast(drawRect.GetBottom());
         return (left >= right || top >= bottom) ? RectI16() : RectI16(left, top, right - left, bottom - top);
     }
 
@@ -141,7 +158,7 @@ private:
     bool IsOutOfRootRect(const RectI16 &rect);
     bool IsSubTreeShouldIgnored(const RSRenderNode& node, const RSProperties& renderProperties);
     bool IsOpaque() const {
-        return isBgOpaque_ && !isAlphaNeed_;
+        return isBgOpaque_ && !isAlphaNeed_ && !isSubTreeIgnored_;
     }
     OcclusionCoverageInfo DetectOcclusionInner(OcclusionCoverageInfo& globalCoverInfo,
         std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& culledEntireSubtree,
@@ -154,6 +171,7 @@ private:
 
     uint64_t id_ = INVALID_NODEID;
     uint64_t occludedById_ = INVALID_NODEID;
+    uint64_t occludedSubTreeById_ = INVALID_NODEID;
     RSRenderNodeType type_ = RSRenderNodeType::UNKNOW;
     bool isSubTreeIgnored_ = false;
     bool hasChildrenOutOfRect_ = false;
@@ -176,6 +194,7 @@ private:
     float accumulatedAlpha_ = 1.0f;
     Vector4f cornerRadius_;
     RectF drawRect_;
+    RectI16 filterRect_;
     RectI16 clipOuterRect_;
     RectI16 clipInnerRect_;
     RectI16 outerRect_;

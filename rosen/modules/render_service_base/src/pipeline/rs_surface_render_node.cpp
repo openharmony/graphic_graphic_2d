@@ -2905,6 +2905,9 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
 {
     if (!onTree) {
         screenId_ = INVALID_SCREEN_ID;
+        if (occlusionParams_ != nullptr) {
+            occlusionParams_->SetOcclusionHandler(nullptr);
+        }
     }
 
 #ifdef RS_MEMORY_INFO_MANAGER

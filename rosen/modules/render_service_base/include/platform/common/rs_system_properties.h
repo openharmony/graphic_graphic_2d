@@ -66,12 +66,12 @@ enum class SurfaceRegionDebugType {
 };
 
 enum class PartialRenderType {
-    DISABLED = 0,                               // 0, disable partial render, including set damage region
-    SET_DAMAGE,                                 // 1, set damageregion, without draw_op dropping
-    SET_DAMAGE_AND_DROP_OP,                     // 2, drop draw_op if node is not in dirty region
-    SET_DAMAGE_AND_DROP_OP_OCCLUSION,           // 3, drop draw_op if node is not in visible region (unirender)
-    SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY,    // 4, drop draw_op if node is not in visible dirty region (unirender)
-    SET_DAMAGE_BUT_COMPLETE_RENDER,             // 5, set full screen dirty region and set damage
+    DISABLED = 0,                    // 0, disable partial render
+    SET_DAMAGE,                      // 1, only set damage
+    CLIP,                            // 2, only clip
+    CLIP_AND_DROP_OP,                // 3, clip and drop op
+    SET_DAMAGE_AND_CLIP_AND_DROP_OP, // 4, set damage, clip and drop op
+    FORCE_FULL_SCREEN_DIRTY_REGION,  // 5, force setting full screen dirty region for set damage, clip and drop op
 };
 
 enum class StencilPixelOcclusionCullingType {

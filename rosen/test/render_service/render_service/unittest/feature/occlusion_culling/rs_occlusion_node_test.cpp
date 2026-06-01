@@ -637,6 +637,51 @@ HWTEST_F(RSOcclusionNodeTest, UpdateSubTreePropWithRing, TestSize.Level1)
 }
 
 /*
+ * @tc.name: UpdateSubTreePropWithoutParent
+ * @tc.desc: Test UpdateSubTreeProp when parentOcNode_ is empty, CalculateNodeAllBounds should be skipped
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, UpdateSubTreePropWithoutParent, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    rootNode->drawRect_ = { 60.0f, 60.0f, 300.0f, 300.0f };
+    // parentOcNode_ is empty by default, parentShared will be null
+    rootNode->UpdateSubTreeProp();
+    EXPECT_EQ(rootNode->isValidInCurrentFrame_, true);
+    EXPECT_EQ(rootNode->innerRect_, RectI16());
+    EXPECT_EQ(rootNode->outerRect_, RectI16());
+}
+
+/*
+ * @tc.name: UpdateSubTreePropWithIgnoredSubTree
+ * @tc.desc: Test UpdateSubTreeProp when isSubTreeIgnored_ is true, CalculateNodeAllBounds should be skipped
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, UpdateSubTreePropWithIgnoredSubTree, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<OcclusionNode> parentOcNode =
+        std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
+    parentOcNode->localScale_ = { 0.5f, 0.5f };
+    parentOcNode->absPositions_ = { 50.0f, 100.0f };
+    parentOcNode->clipOuterRect_ = { 60.0f, 60.0f, 300.0f, 300.0f };
+    parentOcNode->clipInnerRect_ = { 60.0f, 60.0f, 300.0f, 300.0f };
+    rootNode->parentOcNode_ = parentOcNode;
+    rootNode->localPosition_ = { 60.0f, 110.0f };
+    rootNode->drawRect_ = { 60.0f, 60.0f, 300.0f, 300.0f };
+    rootNode->isSubTreeIgnored_ = true;
+    // parentShared is valid but isSubTreeIgnored_ is true, CalculateNodeAllBounds should be skipped
+    rootNode->UpdateSubTreeProp();
+    EXPECT_EQ(rootNode->isValidInCurrentFrame_, true);
+    EXPECT_EQ(rootNode->innerRect_, RectI16());
+    EXPECT_EQ(rootNode->outerRect_, RectI16());
+}
+
+/*
  * @tc.name: DetectOcclusion_WithIsValidInCurrentFrame_EqualsFalse
  * @tc.desc: Test DetectOcclusion when isValidInCurrentFrame_ is false
  * @tc.type: FUNC
@@ -1051,19 +1096,20 @@ HWTEST_F(RSOcclusionNodeTest, UpdateCoverageInfoTest001, TestSize.Level1)
     EXPECT_EQ(globalCoverage.rect_, srcRect);
 
     occlusionNode->needFilter_ = true;
-    occlusionNode->outerRect_ = clipRectThatNotIntersectSrcRect;
+    occlusionNode->filterRect_ = clipRectThatNotIntersectSrcRect;
     occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
     EXPECT_EQ(globalCoverage.rect_, srcRect);
 
-    occlusionNode->outerRect_ = clipRectThatInssideOfSrcRect;
+    occlusionNode->filterRect_ = clipRectThatInssideOfSrcRect;
     occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
-    EXPECT_EQ(globalCoverage.rect_, srcRect);
+    EXPECT_EQ(globalCoverage.rect_, RectI16(70, 10, 40, 100));
 
-    occlusionNode->outerRect_ = clipRectThatIntersectSrcRect;
+    globalCoverage.rect_ = srcRect;
+    occlusionNode->filterRect_ = clipRectThatIntersectSrcRect;
     occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
     EXPECT_EQ(globalCoverage.rect_, RectI16(10, 10, 20, 100));
 
-    occlusionNode->outerRect_ = clipRectThatContainSrcRect;
+    occlusionNode->filterRect_ = clipRectThatContainSrcRect;
     occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
     EXPECT_EQ(globalCoverage.rect_.IsEmpty(), true);
 }
@@ -1087,7 +1133,7 @@ HWTEST_F(RSOcclusionNodeTest, UpdateCoverageInfoTest002, TestSize.Level1)
     OcclusionCoverageInfo selfCoverage;
 
     occlusionNode->needFilter_ = true;
-    occlusionNode->outerRect_ = clipRect;
+    occlusionNode->filterRect_ = clipRect;
     occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
     EXPECT_EQ(globalCoverage.rect_, srcRect);
 }
@@ -1556,5 +1602,259 @@ HWTEST_F(RSOcclusionNodeTest, TransformToAbsoluteCoord_WithNormalValues, TestSiz
     EXPECT_FLOAT_EQ(rect.top_, 70.0f);
     EXPECT_FLOAT_EQ(rect.width_, 200.0f);
     EXPECT_FLOAT_EQ(rect.height_, 200.0f);
+}
+
+/*
+ * @tc.name: CollectNodeProperties_FilterRectCollectedWhenIgnored
+ * @tc.desc: Test that filterRect_ is collected even when node is ignored
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_FilterRectCollectedWhenIgnored, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::ROOT_NODE);
+    std::shared_ptr<OcclusionNode> childNode =
+        std::make_shared<OcclusionNode>(firstNodeId, RSRenderNodeType::CANVAS_NODE);
+    childNode->parentOcNode_ = rootNode;
+
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(firstNodeId);
+    renderNode->renderProperties_.SetBounds(Vector4f{10, 10, 100, 100});
+
+    renderNode->GetFilterRegionInfo().filterRegion_ = RectI(5, 5, 50, 50);
+
+    renderNode->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
+
+    childNode->CollectNodeProperties(*renderNode);
+
+    EXPECT_TRUE(childNode->isSubTreeIgnored_);
+    EXPECT_FALSE(childNode->filterRect_.IsEmpty());
+}
+
+/*
+ * @tc.name: CollectNodeProperties_ParentIgnoredPropagation
+ * @tc.desc: Test that isSubTreeIgnored_ propagates from parent to child
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_ParentIgnoredPropagation, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> parentNode =
+        std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
+    parentNode->isSubTreeIgnored_ = true;
+
+    std::shared_ptr<OcclusionNode> childNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    childNode->parentOcNode_ = parentNode;
+
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(nodeId);
+    renderNode->renderProperties_.SetBounds(Vector4f{10, 10, 100, 100});
+    renderNode->renderProperties_.SetBackgroundColor(RgbPalette::White());
+
+    childNode->CollectNodeProperties(*renderNode);
+
+    EXPECT_TRUE(childNode->isSubTreeIgnored_);
+}
+
+/*
+ * @tc.name: CalculateDrawRect_EarlyReturnWhenIgnored
+ * @tc.desc: Test CalculateDrawRect returns early when isSubTreeIgnored_ is true
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, CalculateDrawRect_EarlyReturnWhenIgnored, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<OcclusionNode> parentOcNode =
+        std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
+    rootNode->parentOcNode_ = parentOcNode;
+    rootNode->isSubTreeIgnored_ = true;
+
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(nodeId);
+    renderNode->renderProperties_.SetBounds(Vector4f{10, 10, 100, 100});
+
+    RectF originalDrawRect = rootNode->drawRect_;
+    rootNode->CalculateDrawRect(*renderNode, renderNode->renderProperties_);
+
+    EXPECT_EQ(rootNode->drawRect_, originalDrawRect);
+    EXPECT_TRUE(rootNode->drawRect_.IsEmpty());
+}
+
+/*
+ * @tc.name: CalculateDrawRect_WithFrameOffsetX
+ * @tc.desc: Test CalculateDrawRect applies FrameOffsetX to localPosition_
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, CalculateDrawRect_WithFrameOffsetX, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<OcclusionNode> parentOcNode =
+        std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
+    rootNode->parentOcNode_ = parentOcNode;
+
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(nodeId);
+    renderNode->renderProperties_.SetBounds(Vector4f{0, 0, 100, 100});
+    renderNode->renderProperties_.frameOffsetX_ = 10.0f;
+
+    rootNode->CollectNodeProperties(*renderNode);
+
+    EXPECT_FLOAT_EQ(rootNode->localPosition_.x_, 10.0f);
+}
+
+/*
+ * @tc.name: CalculateDrawRect_WithFrameOffsetY
+ * @tc.desc: Test CalculateDrawRect applies FrameOffsetY to localPosition_
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, CalculateDrawRect_WithFrameOffsetY, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> rootNode =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    std::shared_ptr<OcclusionNode> parentOcNode =
+        std::make_shared<OcclusionNode>(parentId, RSRenderNodeType::ROOT_NODE);
+    rootNode->parentOcNode_ = parentOcNode;
+
+    std::shared_ptr<RSRenderNode> renderNode = std::make_shared<RSRenderNode>(nodeId);
+    renderNode->renderProperties_.SetBounds(Vector4f{0, 0, 100, 100});
+    renderNode->renderProperties_.frameOffsetY_ = 20.0f;
+
+    rootNode->CollectNodeProperties(*renderNode);
+
+    EXPECT_FLOAT_EQ(rootNode->localPosition_.y_, 20.0f);
+}
+
+/*
+ * @tc.name: CheckNodeOcclusion_IgnoredNodeNotCulled
+ * @tc.desc: Test CheckNodeOcclusion(1-arg) returns early for ignored nodes
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, CheckNodeOcclusion_IgnoredNodeNotCulled, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> node =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    node->isSubTreeIgnored_ = true;
+    node->isOutOfRootRect_ = true;
+    node->isNeedClip_ = false;
+
+    OcclusionCoverageInfo coverageInfo;
+    coverageInfo.rect_ = RectI16(0, 0, 1000, 1000);
+    std::unordered_set<NodeId> culledNodes;
+
+    node->CheckNodeOcclusion(coverageInfo, culledNodes);
+
+    EXPECT_TRUE(culledNodes.empty());
+}
+
+/*
+ * @tc.name: CheckNodeOcclusion_WithSubtree_IgnoredNodeNotCulled
+ * @tc.desc: Test CheckNodeOcclusion(2-arg) returns early for ignored nodes
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, CheckNodeOcclusion_WithSubtree_IgnoredNodeNotCulled, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> node =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    node->isSubTreeIgnored_ = true;
+    node->isOutOfRootRect_ = true;
+    node->hasChildrenOutOfRect_ = false;
+
+    OcclusionCoverageInfo coverageInfo;
+    coverageInfo.rect_ = RectI16(0, 0, 1000, 1000);
+    std::unordered_set<NodeId> culledNodes;
+    std::unordered_set<NodeId> culledEntireSubtree;
+
+    node->CheckNodeOcclusion(coverageInfo, culledNodes, culledEntireSubtree);
+
+    EXPECT_TRUE(culledNodes.empty());
+    EXPECT_TRUE(culledEntireSubtree.empty());
+}
+
+/*
+ * @tc.name: CheckNodeOcclusion_OccludedSubTreeByIdSet
+ * @tc.desc: Test occludedSubTreeById_ is set when subtree is culled
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, CheckNodeOcclusion_OccludedSubTreeByIdSet, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> node =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    node->isSubTreeIgnored_ = false;
+    node->isOutOfRootRect_ = true;
+    node->hasChildrenOutOfRect_ = false;
+
+    OcclusionCoverageInfo coverageInfo;
+    coverageInfo.id_ = 999;
+    coverageInfo.rect_ = RectI16(0, 0, 1000, 1000);
+    std::unordered_set<NodeId> culledNodes;
+    std::unordered_set<NodeId> culledEntireSubtree;
+
+    node->CheckNodeOcclusion(coverageInfo, culledNodes, culledEntireSubtree);
+
+    EXPECT_EQ(culledEntireSubtree.count(nodeId), 1u);
+    EXPECT_EQ(node->occludedSubTreeById_, 999u);
+    EXPECT_EQ(node->occludedById_, INVALID_NODEID);
+}
+
+/*
+ * @tc.name: CheckNodeOcclusion_OccludedByIdSet
+ * @tc.desc: Test occludedById_ is set only when single node is culled
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, CheckNodeOcclusion_OccludedByIdSet, TestSize.Level1)
+{
+    std::shared_ptr<OcclusionNode> node =
+        std::make_shared<OcclusionNode>(nodeId, RSRenderNodeType::CANVAS_NODE);
+    node->isSubTreeIgnored_ = false;
+    node->isOutOfRootRect_ = true;
+    node->hasChildrenOutOfRect_ = true;
+    node->isNeedClip_ = false;
+
+    OcclusionCoverageInfo coverageInfo;
+    coverageInfo.id_ = 888;
+    coverageInfo.rect_ = RectI16(0, 0, 1000, 1000);
+    std::unordered_set<NodeId> culledNodes;
+    std::unordered_set<NodeId> culledEntireSubtree;
+
+    node->CheckNodeOcclusion(coverageInfo, culledNodes, culledEntireSubtree);
+
+    EXPECT_EQ(culledNodes.count(nodeId), 1u);
+    EXPECT_TRUE(culledEntireSubtree.empty());
+    EXPECT_EQ(node->occludedById_, 888u);
+    EXPECT_EQ(node->occludedSubTreeById_, INVALID_NODEID);
+}
+
+/*
+ * @tc.name: UpdateCoverageInfo_OccludedFilterNodeSkipsClipping
+ * @tc.desc: Test filter node skips clipping when occludedSubTreeById_ is set
+ * @tc.type: FUNC
+ * @tc.require: issue24033
+ */
+HWTEST_F(RSOcclusionNodeTest, UpdateCoverageInfo_OccludedFilterNodeSkipsClipping, TestSize.Level1)
+{
+    const RectI16 srcRect{10, 10, 100, 100};
+    const RectI16 filterRect{30, 0, 100, 100};
+
+    std::shared_ptr<OcclusionNode> occlusionNode =
+        std::make_shared<OcclusionNode>(firstNodeId, RSRenderNodeType::CANVAS_NODE);
+    occlusionNode->isBgOpaque_ = false;
+    occlusionNode->needFilter_ = true;
+    occlusionNode->filterRect_ = filterRect;
+    occlusionNode->occludedSubTreeById_ = 123;
+
+    OcclusionCoverageInfo globalCoverage;
+    globalCoverage.rect_ = srcRect;
+    OcclusionCoverageInfo selfCoverage;
+
+    occlusionNode->UpdateCoverageInfo(globalCoverage, selfCoverage);
+
+    EXPECT_EQ(globalCoverage.rect_, srcRect);
 }
 } // namespace OHOS::Rosen

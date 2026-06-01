@@ -289,6 +289,8 @@ void RSMultiScreenUtil::HandleVirtualExtendScreen(
             Drawing::Region clipRegion = RSUniDirtyComputeUtil::GetFlippedRegion(damageRegionRects, screenInfo);
             RSUniDirtyComputeUtil::ClipRegion(*curCanvas, clipRegion);
         }
+    } else {
+        curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
     RSUniDirtyComputeUtil::ClearVirtualExpandScreenAccumulatedDirtyRegions(drawable, params);
     drawable.RSRenderNodeDrawable::OnDraw(*curCanvas);
