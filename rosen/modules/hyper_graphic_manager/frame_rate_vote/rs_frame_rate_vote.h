@@ -28,10 +28,9 @@ namespace OHOS {
 namespace Rosen {
 using VideoVoterFunc = std::function<void(const std::string& key, const std::string& value)>;
 class RSFrameRateVote {
-    static constexpr int32_t BUFFER_COUNT_HISTORY_SIZE = 7;
-    static constexpr int32_t BUFFER_COUNT_THRESHOLD = 4;
+    constexpr int32_t BUFFER_COUNT_HISTORY_SIZE = 7;
+    constexpr int32_t BUFFER_COUNT_THRESHOLD = 4;
     DECLARE_DELAYED_SINGLETON(RSFrameRateVote);
-
 
 public:
     /**
