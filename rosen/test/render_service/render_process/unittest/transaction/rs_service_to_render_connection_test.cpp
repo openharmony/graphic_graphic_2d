@@ -45,7 +45,7 @@ constexpr ScreenId TEST_SCREEN_ID_2 = 2;
 std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
 sptr<RSServiceToRenderConnection> g_rsConn = nullptr;
 sptr<RSRenderProcess> renderProcess = nullptr;
-sptr<RSServiceToRenderConnection g_rsConn_1 = nullptr;
+sptr<RSServiceToRenderConnection> g_rsConn_1 = nullptr;
 }
 
 class RSServiceToRenderConnectionTest : public testing::Test {
@@ -109,7 +109,8 @@ void RSServiceToRenderConnectionTest::TearDownTestCase()
     renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
     renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderPipeline->uniRenderThread_ = nullptr;
-    
+
+    renderProcess->runner_->Stop();
     renderProcess->handler_ = nullptr;
     renderProcess->runner_ = nullptr;
     renderProcess = nullptr;
@@ -363,7 +364,7 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenConnectInfoToRenderTest001
 
     g_rsConn_1->NotifyScreenConnectInfoToRender(
         screenProperty, renderToComposerConn, composerToRenderConn);
-    std::this_thread::sleep_for(std::chrono::millisecondes(SLEEP_TIME));
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     ASSERT_TRUE(g_rsConn_1 != nullptr);
 }
 
