@@ -181,6 +181,8 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSScreenRender
             RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
                 damageRegion, drawnRegion, screenDrawable, std::nullopt, true);
         }
+        Occlusion::Region surfaceRect = Occlusion::Region(Occlusion::Rect(dirtyManager->GetSurfaceRect()));
+        damageRegion.AndSelf(surfaceRect);
     }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // overlay display expand dirty region
