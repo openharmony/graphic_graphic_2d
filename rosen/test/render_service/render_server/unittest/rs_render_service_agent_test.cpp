@@ -116,7 +116,7 @@ HWTEST_F(RSRenderServiceAgentTest, ScheduleTask001, TestSize.Level1)
     auto renderService = sptr<RSRenderService>::MakeSptr();
     renderService->runner_ = AppExecFwk::EventRunner::Create(false);
     renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(renderService->runner_);
-    sptr<RRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
     auto task = []() {};
     auto future = renderServiceAgent->ScheduleTask(std::move(task));
     ASSERT_EQ(future.valid(), true);
