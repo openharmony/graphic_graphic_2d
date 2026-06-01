@@ -71,7 +71,7 @@ private:
     VideoVoterFunc voterRateFunc_ = nullptr;
     static std::atomic<bool> isVideoApp_;
     std::unordered_map<pid_t, uint32_t> videoRateInfo_;
-    int64_t lastSurfaceNodeIdUpdateTime_{ 0 };
+    std::atomic<int64_t> lastSurfaceNodeIdUpdateTime_{ 0 };
     std::atomic<int32_t> availableBufferCount_{ 0 };
 
     friend class HgmEnergyConsumptionPolicy;
