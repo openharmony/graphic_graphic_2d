@@ -129,7 +129,8 @@ void RSServiceToRenderConnectionTest::WaitHandlerTask()
     auto isMainThreadRunning = !renderPipeline->mainThread_->handler_->IsIdle();
     auto isUniRenderThreadRunning = !renderPipeline->uniRenderThread_->handler_->IsIdle();
     auto isRenderProcessRunning = !renderProcess->handler_->IsIdle();
-    while (count < WAIT_HANDLER_TIME_COUNT && (isMainThreadRunning || isUniRenderThreadRunning || isRenderProcessRunning)) {
+    while (count < WAIT_HANDLER_TIME_COUNT &&
+        (isMainThreadRunning || isUniRenderThreadRunning || isRenderProcessRunning)) {
         std::this_thread::sleep_for(std::chrono::seconds(WAIT_HANDLER_TIME));
         count++;
     }
