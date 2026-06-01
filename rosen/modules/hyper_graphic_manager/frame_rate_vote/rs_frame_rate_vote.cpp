@@ -255,8 +255,8 @@ void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std
     }
     pid_t pid = 0;
     auto resultPid = std::from_chars(pidIt->second.data(), pidIt->second.data() + pidIt->second.size(), pid);
-    if (resultPid.ec != std::errc()) {
-        RS_LOGE("SetVideoRateInfo read pid fail");
+    if (resultPid.ec != std::errc() || pid <= 0) {
+        RS_LOGE("SetVideoRateInfo read pid fail or invalid pid value");
         return;
     }
 
@@ -267,8 +267,8 @@ void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std
     }
     uint32_t decRate = 0;
     auto resultRate = std::from_chars(rateIt->second.data(), rateIt->second.data() + rateIt->second.size(), decRate);
-    if (resultPid.ec != std::errc() || pid <= 0) {
-        RS_LOGE("SetVideoRateInfo read pid fail or invalid pid value");
+    if (resultPid.ec != std::errc()) {
+        RS_LOGE("SetVideoRateInfo read decRate fail");
         return;
     }
 
