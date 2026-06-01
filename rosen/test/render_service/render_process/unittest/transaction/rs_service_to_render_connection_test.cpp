@@ -110,7 +110,6 @@ void RSServiceToRenderConnectionTest::TearDownTestCase()
     renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderPipeline->uniRenderThread_ = nullptr;
 
-    renderProcess->runner_->Stop();
     renderProcess->handler_ = nullptr;
     renderProcess->runner_ = nullptr;
     renderProcess = nullptr;
