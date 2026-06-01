@@ -465,6 +465,8 @@ public:
     /**
      * @brief Set callback for render process died event.
      * @param callback Callback function triggered when render process dies.
+     * @note The callback may be invoked from a different thread. Callers must ensure
+     *       that variables accessed within the callback are thread-safe.
      */
     void SetOnRenderProcessDiedCallback(const std::function<void()>& callback);
 
