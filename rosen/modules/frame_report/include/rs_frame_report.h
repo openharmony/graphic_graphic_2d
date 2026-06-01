@@ -70,6 +70,7 @@ private:
     static bool InitializeVulkanExtensions();
     static uint32_t FindQueueFamilyIndex(VkPhysicalDevice physicalDevice);
     static std::atomic<bool> isInit;
+    static uint32_t initCount_;
     static VkDevice device_;
     static VkInstance instance_;
     static std::shared_mutex initMutex_;

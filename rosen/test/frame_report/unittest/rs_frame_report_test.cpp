@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <string>
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 #include <dlfcn.h>
 #include <gmock/gmock.h>
 #endif
@@ -39,7 +39,7 @@ void RsFrameReportTest::SetUpTestCase() {}
 void RsFrameReportTest::TearDownTestCase() {}
 void RsFrameReportTest::SetUp() {}
 void RsFrameReportTest::TearDown() {}
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 class MockDlopen {
 public:
     MOCK_METHOD(void*, dlopen, (const char* filename, int flag));
@@ -193,7 +193,7 @@ HWTEST_F(RsFrameReportTest, ReportUnmarshalData001, TestSize.Level1)
     ASSERT_TRUE(RsFrameReport::IsInitSchedCompleted());
 }
 
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 /**
  * @tc.name: ReportWindowInfo001
  * @tc.desc: test
@@ -204,6 +204,19 @@ HWTEST_F(RsFrameReportTest, ReportWindowInfo001, TestSize.Level1)
 {
     RsFrameReport::isInit.store(false);
     RsFrameReport::mSetFrontWindowStatusHUAWEI = nullptr;
+    RsFrameReport::ReportWindowInfo(false, "com.test.app");
+    EXPECT_TRUE(RsFrameReport::isInit.load());
+}
+
+/**
+ * @tc.name: ReportWindowInfo002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsFrameReportTest, ReportWindowInfo002, TestSize.Level1)
+{
+    RsFrameReport::initCount_ = 3;
     RsFrameReport::ReportWindowInfo(false, "com.test.app");
     EXPECT_TRUE(RsFrameReport::isInit.load());
 }

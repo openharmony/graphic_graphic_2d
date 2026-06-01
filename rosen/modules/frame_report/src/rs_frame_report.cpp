@@ -32,8 +32,9 @@ namespace Rosen {
 #define LOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 #define LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 namespace {
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 const std::string LIB_VULKAN_PATH = "/system/lib64/libvulkan.so";
+const uint32_t MAX_INITIALIZATION_COUNT = 3;
 #endif
 }
 
@@ -219,8 +220,9 @@ void RsFrameReport::ReportDelScreenId(const int screenId)
     GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DEL_SCREENID, {});
 }
 
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 std::atomic<bool> isInit{false};
+uint32_t RsFrameReport::initCount_ = 0;
 VkDevice RsFrameReport::device_ = VK_NULL_HANDLE;
 VkInstance RsFrameReport::instance_ = VK_NULL_HANDLE;
 std::shared_mutex RsFrameReport::initMutex_;
@@ -387,7 +389,6 @@ bool RsFrameReport::GetSetFrontWindowStatusHUAWEI()
  
 bool RsFrameReport::InitializeVulkanExtensions()
 {
-    std::unique_lock<std::shared_mutex> lock(initMutex_);
     if (isInit.load() && mSetFrontWindowStatusHUAWEI) {
         return true;
     }
@@ -400,23 +401,32 @@ bool RsFrameReport::InitializeVulkanExtensions()
     }
     if (!CreateVulkanDevice()) {
         vkDestroyInstance(instance_, nullptr);
+        instance_ = VK_NULL_HANDLE;
         vkhandle.reset();
         return false;
     }
     if (!GetSetFrontWindowStatusHUAWEI()) {
         vkDestroyDevice(device_, nullptr);
+        device_ = VK_NULL_HANDLE;
         vkDestroyInstance(instance_, nullptr);
+        instance_ = VK_NULL_HANDLE;
         vkhandle.reset();
         return false;
     }
+    initCount_ = 0;
     isInit.store(true);
     return true;
 }
 
 void RsFrameReport::ReportWindowInfo(bool isSingleFullScreenApp, const char* firstFrontBundleName)
 {
+    std::unique_lock<std::shared_mutex> lock(initMutex_);
+    if (initCount_ >= MAX_INITIALIZATION_COUNT) {
+        return;
+    }
     if (!InitializeVulkanExtensions()) {
         LOGE("Failed to initialize Vulkan extensions");
+        initCount_++;
         isInit.store(false);
         return;
     }
