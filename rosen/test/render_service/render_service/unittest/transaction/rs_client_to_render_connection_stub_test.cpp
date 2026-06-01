@@ -63,7 +63,7 @@
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 using namespace testing;
 using namespace testing::ext;
-
+#if defined(RS_ENABLE_UNI_RENDER)
 namespace {
 constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
@@ -4773,3 +4773,4 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest003, Te
     ASSERT_EQ(res, ERR_NONE);
 }
 } // namespace OHOS::Rosen
+#endif
