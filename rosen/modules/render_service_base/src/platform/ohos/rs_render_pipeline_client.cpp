@@ -87,6 +87,10 @@ RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRen
     }
 }
 
+void RSRenderPipelineClient::SetOnRenderProcessDiedCallback(const OnRenderProcessDiedCallback& callback)
+{
+}
+
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
     if (clientToRenderConnection_ != nullptr) {

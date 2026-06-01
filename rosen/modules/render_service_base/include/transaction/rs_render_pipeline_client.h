@@ -221,6 +221,8 @@ public:
         const FrameStabilityTarget& oldTarget,
         const FrameStabilityTarget& newTarget
     );
+
+    void SetOnRenderProcessDiedCallback(const OnRenderProcessDiedCallback& callback);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
@@ -278,6 +280,7 @@ private:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<RSIClientToRenderConnection> clientToRenderConnection_;
     sptr<RSIConnectionToken> token_;
+    uint64_t tokenMaskId_ = INVALID_TOKEN_MASK_ID;
 #endif
     friend class SurfaceCaptureCallbackDirector;
     friend class SurfaceBufferCallbackDirector;
