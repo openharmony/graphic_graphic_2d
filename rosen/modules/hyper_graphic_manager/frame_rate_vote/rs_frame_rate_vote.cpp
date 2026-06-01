@@ -309,10 +309,10 @@ bool RSFrameRateVote::CheckAvailableBufferCount(int32_t bufferCount)
 {
     std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
     bufferCountHistory_[bufferCountIndex_] = bufferCount;
-    bufferCountIndex_ = (bufferCountIndex_ + 1) % BufferCountHistorySize;
+    bufferCountIndex_ = (bufferCountIndex_ + 1) % BUFFER_COUNT_HISTORY_SIZE;
 
     int32_t count = 0;
-    for (int32_t i = 0; i < BufferCountHistorySize; i++) {
+    for (int32_t i = 0; i < BUFFER_COUNT_HISTORY_SIZE; i++) {
         if (bufferCountHistory_[i] > NORMAL_BUFFER_COUNT) {
             count++;
         }
