@@ -173,7 +173,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Test)
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
         borderLight->Setter<BorderLightWidthTag>(50.0f);
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -198,7 +198,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Intensity_Bo
         borderLight->Setter<BorderLightIntensityTag>(borderLightIntensities[i]);
         borderLight->Setter<BorderLightWidthTag>(50.0f);
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -223,7 +223,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Width_Bounda
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
         borderLight->Setter<BorderLightWidthTag>(borderLightWidths[i]);
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -249,7 +249,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Rotation_Ang
         borderLight->Setter<BorderLightWidthTag>(50.0f);
         borderLight->Setter<BorderLightRotationAngleTag>(borderLightRotationAngles[i]);
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -275,7 +275,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Corner_Radiu
         borderLight->Setter<BorderLightWidthTag>(50.0f);
         borderLight->Setter<BorderLightCornerRadiusTag>(borderLightCornerRadii[i]);
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -300,7 +300,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Intens
         borderLight->Setter<BorderLightIntensityTag>(std::get<2>(borderLightColorIntensityWidthCombinations[i]));
         borderLight->Setter<BorderLightWidthTag>(std::get<3>(borderLightColorIntensityWidthCombinations[i]));
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -326,7 +326,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Intensity_Ex
         borderLight->Setter<BorderLightIntensityTag>(borderLightExtremeIntensities[i]);
         borderLight->Setter<BorderLightWidthTag>(50.0f);
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -352,7 +352,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Width_Extrem
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
         borderLight->Setter<BorderLightWidthTag>(borderLightExtremeWidths[i]);
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
