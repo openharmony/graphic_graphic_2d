@@ -406,8 +406,11 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
 
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node == nullptr) {
+        return;
+    }
     // only support canvas node mark
-    bool isCanvasNode = (node != nullptr) && (node->GetType() == RSRenderNodeType::CANVAS_NODE);
+    bool isCanvasNode = node->GetType() == RSRenderNodeType::CANVAS_NODE;
     bool isSupportLayer = isLayer && isCanvasNode && !RSLayerCacheManagerBase::isNodeUnSupportLayer(node);
     if (isSupportLayer) {
         RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isLayer:%d id:%llu", isLayer, node->GetId());
@@ -424,8 +427,7 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
         }
     }
 
-    bool isCancelLayer = node && (!isLayer);
-    if (isCancelLayer) {
+    if (!isLayer) {
         RSLayerCacheManagerBase::isLayerSuggested_ = isLayer;
         RSLayerCacheManagerBase::suggestedLayerNodes_.clear();
         node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, false, false);

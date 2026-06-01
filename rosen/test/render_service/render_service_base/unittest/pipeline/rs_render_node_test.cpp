@@ -1168,6 +1168,38 @@ HWTEST_F(RSRenderNodeTest, UpdateSrcOrClipedAbsDrawRectChangeStateTest, TestSize
 }
 
 /**
+ * @tc.name: IsNodeParentHasUIFirstCacheTest
+ * @tc.desc: IsNodeParentHasUIFirstCache Test
+ * @tc.type: FUNC
+ * @tc.require: issueIA5Y41
+ */
+
+HWTEST_F(RSRenderNodeTest, IsNodeParentHasUIFirstCacheTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(20);
+    EXPECT_NE(node, nullptr);
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(10086);
+    EXPECT_NE(surfaceNode, nullptr);
+
+    node->uifirstRootNodeId_ = 10086;
+    auto sContext = std::make_shared<RSContext>();
+
+    node->context_ = sContext;
+    auto& nodeMap = sContext->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
+
+    auto uiFirstRootNode =
+        node->uiFirstRootNodeId_ != INVALID_NODEID ? node->GetUifirstRootNode() : node->GetFirstLevelNode();
+    EXPECT_TRUE(uiFirstRootNode);
+
+    surfaceNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
+    EXPECT_TRUE(surfaceNode && surfaceNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE);
+
+    EXPECT_TRUE(uiFirstRootNode == surfaceNode);
+    EXPECT_TRUE(node->IsNodeParentHasUIFirstCache());
+}
+
+/**
  * @tc.name: OnSyncTest
  * @tc.desc: OnSync Test
  * @tc.type: FUNC

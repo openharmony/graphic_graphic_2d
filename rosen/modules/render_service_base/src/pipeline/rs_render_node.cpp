@@ -4708,9 +4708,8 @@ bool RSRenderNode::IsNodeParentHasUIFirstCache()
     auto uiFirstRootNode = uifirstRootNodeId_ != INVALID_NODEID ? GetUifirstRootNode() : GetFirstLevelNode();
     if (uiFirstRootNode) {
         auto surfaceNode = uiFirstRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceNode && surfaceNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
-            return true;
-        }
+        bool isUiFirst = surfaceNode && (surfaceNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE);
+        return isUiFirst;
     }
     return false;
 }
