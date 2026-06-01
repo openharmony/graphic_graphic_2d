@@ -329,6 +329,7 @@ public:
     static bool GetOpincCacheMemThresholdEnabled();
     static bool GetLayerPartRenderEnabled();
     static bool GetLayerPartRenderDebugEnabled();
+    static bool GetLayerEnabled();
     static bool GetLayerDebugEnabled();
     static bool GetFilterCacheMemThresholdEnabled();
     static bool GetSkipDisplayIfScreenOffEnabled();

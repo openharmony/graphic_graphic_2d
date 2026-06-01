@@ -28,6 +28,7 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/layer/rs_layer_cache_manager_base.h"
 #include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
@@ -4379,6 +4380,13 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo002, TestSize.Level2)
     parent->AddChild(node);
     node->GetMutableRenderProperties().needFilter_ = true;
     node->SetChildHasVisibleFilter(true);
+    RSLayerCacheManagerBase::isLayerSuggested_ = true;
+    node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, true, false);
+    bool isUnSupportLayer =
+        RSLayerCacheManagerBase::isLayerSuggested_ &&
+        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) ||
+            node->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+    EXPECT_TRUE(isUnSupportLayer);
     rsUniRenderVisitor->CollectEffectInfo(*node);
     ASSERT_TRUE(parent->ChildHasVisibleFilter());
 }
