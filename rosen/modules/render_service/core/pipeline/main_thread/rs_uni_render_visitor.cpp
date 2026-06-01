@@ -3397,6 +3397,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (isUnSupportLayer) {
         RSLayerCacheManagerBase::unSupportLayerNodeMap_[nodeParent->GetId()] = true;
     }
+
     // Handle ColorPickerDrawable - MERGE into filter handling
     if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter() ||
         node.GetColorPickerDrawable()) {
