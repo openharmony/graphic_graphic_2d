@@ -305,16 +305,16 @@ bool RSFrameRateVote::CheckSurfaceNodeIdChange(uint64_t surfaceNodeId)
 bool RSFrameRateVote::CheckAvailableBufferCount(int32_t bufferCount)
 {
     if (bufferCount > 0) {
-       int32_t prevCount = availableBufferCount_.fetch_add(1, std::memory_order_relaxed);
-       if (prevCount + 1 >= MAX_BUFFER_COUNT) {
-           RS_LOGI("bufferCount > 0 for 3 times");
-           availableBufferCount_.store(0, std::memory_order_relaxed);
-           return true;
-       }
-   } else {
-       availableBufferCount_.store(0, std::memory_order_relaxed);
-   }
-   return false;
+        int32_t prevCount = availableBufferCount_.fetch_add(1, std::memory_order_relaxed);
+        if (prevCount + 1 >= MAX_BUFFER_COUNT) {
+            RS_LOGI("bufferCount > 0 for 3 times");
+            availableBufferCount_.store(0, std::memory_order_relaxed);
+            return true;
+        }
+    } else {
+        availableBufferCount_.store(0, std::memory_order_relaxed);
+    }
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS
