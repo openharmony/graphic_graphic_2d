@@ -282,8 +282,6 @@ void RSOverlayNGShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::R
     RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSPOINTLIGHTDRAWABLE);
 #endif
-    canvas->Save();
-    canvas->ResetClip();
     if (visualEffectContainer_ != nullptr && rect != nullptr) {
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
 
@@ -295,7 +293,6 @@ void RSOverlayNGShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::R
     } else {
         DrawLight(canvas);
     }
-    canvas->Restore();
 }
 
 bool RSOverlayNGShaderDrawable::OnUpdate(const RSRenderNode& node)
