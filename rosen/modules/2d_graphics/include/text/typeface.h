@@ -39,6 +39,7 @@
 #include "text/font_style.h"
 #include "utils/data.h"
 #include "utils/memory_stream.h"
+#include "include/core/SkGraphics.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,7 +66,14 @@ struct SharedTypeface;
 class DRAWING_API Typeface {
 public:
     explicit Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept;
-    virtual ~Typeface() = default;
+    virtual ~Typeface()
+    {
+#ifdef USE_M133_SKIA
+        if (typefaceImpl_) {
+            SkGraphics::RemoveCacheByUniqueId(typefaceImpl_->GetUniqueID());
+        }
+#endif
+    }
 
     static std::shared_ptr<Typeface> MakeDefault();
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], int index = 0);
