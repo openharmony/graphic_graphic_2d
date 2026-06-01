@@ -99,10 +99,6 @@ void RSAnimationBaseTest::DestoryAnimationWindow()
     std::cout << "DestoryAnimationWindow start" << std::endl;
     animationSurfaceNode = nullptr;
     rootNode = nullptr;
-    rsUiDirector->GetRSUIContext()->animations_.clear();
-    rsUiDirector->GetRSUIContext()->animatingPropertyNum_.clear();
-    rsUiDirector->GetRSUIContext()->interactiveImplictAnimators_.clear();
-    rsUiDirector->Destroy();
     rsUiDirector = nullptr;
     std::cout << "DestoryAnimationWindow end" << std::endl;
 }
