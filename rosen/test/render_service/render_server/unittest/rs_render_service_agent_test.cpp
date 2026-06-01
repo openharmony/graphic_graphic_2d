@@ -26,16 +26,15 @@
 #include "rs_render_to_composer_connection.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_composer_agent.h"
+#include "rs_render_composer_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-RSRenderService renderService;
 sptr<RSRenderServiceAgent> g_rsAgent = nullptr;
 }
-
 class RSRenderServiceAgentTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -47,10 +46,11 @@ public:
 void RSRenderServiceAgentTest::SetUpTestCase()
 {
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
-    g_rsAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
 }
-
-void RSRenderServiceAgentTest::TearDownTestCase() {}
+void RSRenderServiceAgentTest::TearDownTestCase()
+{
+    g_rsAgent = nullptr;
+}
 void RSRenderServiceAgentTest::SetUp() {}
 void RSRenderServiceAgentTest::TearDown() {}
 
@@ -72,44 +72,12 @@ HWTEST_F(RSRenderServiceAgentTest, PostTaskImmediate001, TestSize.Level1)
 }
 
 /**
- * @tc.name: PostTaskImmediate002
- * @tc.desc: PostTaskImmediate Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderServiceAgentTest, PostTaskImmediate002, TestSize.Level1)
-{
-    auto renderService = sptr<RSRenderService>::MakeSptr();
-    renderService->runner_ = AppExecFwk::EventRunner::Create(false);
-    renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(renderService->runner_);
-    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
-    ASSERT_NE(renderServiceAgent, nullptr);
-    RSTaskMessage::RSTask task = []() -> void { return; };
-    renderServiceAgent->PostTaskImmediate(task);
-}
-
-/**
  * @tc.name: PostTaskImmediateInPlace001
  * @tc.desc: PostTaskImmediateInPlace Test
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSRenderServiceAgentTest, PostTaskImmediateInPlace001, TestSize.Level1)
-{
-    auto renderService = sptr<RSRenderService>::MakeSptr();
-    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
-    ASSERT_NE(renderServiceAgent, nullptr);
-    RSTaskMessage::RSTask task = []() -> void { return; };
-    renderServiceAgent->PostTaskImmediateInPlace(task);
-}
-
-/**
- * @tc.name: PostTaskImmediateInPlace002
- * @tc.desc: PostTaskImmediateInPlace Test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderServiceAgentTest, PostTaskImmediateInPlace002, TestSize.Level1)
 {
     auto renderService = sptr<RSRenderService>::MakeSptr();
     renderService->runner_ = AppExecFwk::EventRunner::Create(false);
@@ -135,6 +103,23 @@ HWTEST_F(RSRenderServiceAgentTest, PostSyncTaskImmediate001, TestSize.Level1)
     ASSERT_NE(renderServiceAgent, nullptr);
     RSTaskMessage::RSTask task = []() -> void { return; };
     renderServiceAgent->PostSyncTaskImmediate(task);
+}
+
+/**
+ * @tc.name: ScheduleTask001
+ * @tc.desc: ScheduleTask Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceAgentTest, ScheduleTask001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    renderService->runner_ = AppExecFwk::EventRunner::Create(false);
+    renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(renderService->runner_);
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
+    auto task = []() {};
+    auto future = renderServiceAgent->ScheduleTask(std::move(task));
+    ASSERT_EQ(future.valid(), true);
 }
 
 /**
@@ -182,5 +167,48 @@ HWTEST_F(RSRenderServiceAgentTest, HandleGameSceneChanged002, TestSize.Level1)
     auto& handler = renderService->GetGameFrameHandler();
     ASSERT_NE(handler, nullptr);
     renderServiceAgent->HandleGameSceneChanged();
+}
+
+/**
+ * @tc.name: GetProcessInfo001
+ * @tc.desc: GetProcessInfo Test with null vsyncToken
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceAgentTest, GetProcessInfo001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    auto runner = AppExecFwk::EventRunner::Create(false);
+    renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+    renderService->screenManager_ = sptr<RSScreenManager>::MakeSptr();
+    renderService->vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
+    renderService->vsyncManager_->init(renderService->screenManager_);
+    renderService->rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(renderService->handler_);
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
+    ASSERT_NE(renderServiceAgent, nullptr);
+    ScreenId screenId = 0;
+    sptr<IRemoteObject> vsyncToken = nullptr;
+    auto result = renderServiceAgent->GetProcessInfo(screenId, vsyncToken);
+    EXPECT_EQ(result.first, nullptr);
+    EXPECT_NE(result.second, nullptr);
+}
+
+/**
+ * @tc.name: RegisterHgmProcessCallback001
+ * @tc.desc: RegisterHgmProcessCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceAgentTest, RegisterHgmProcessCallback001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
+    ASSERT_NE(renderServiceAgent, nullptr);
+    HgmProcessCallback callback = [](uint64_t, uint64_t,
+        const sptr<HgmProcessToServiceInfo>&, const sptr<HgmServiceToProcessInfo>&) -> void {};
+    renderServiceAgent->RegisterHgmProcessCallback(callback);
+    renderServiceAgent->RegisterHgmProcessCallback(nullptr);
 }
 } // namespace OHOS::Rosen

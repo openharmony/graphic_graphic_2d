@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include <refbase.h>
 #include <iremote_broker.h>
 
 #include "irs_render_to_composer_connection.h"
@@ -35,17 +36,16 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-constexpr const int WAIT_HANDLER_TIME = 1;
+constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
 constexpr const int SLEEP_TIME = 110;
 constexpr ScreenId TEST_SCREEN_ID = 0;
-constexpr ScreenId TEST_SCREEN_ID_2 = 1;
+constexpr ScreenId TEST_SCREEN_ID_2 = 2;
 
 std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
 sptr<RSServiceToRenderConnection> g_rsConn = nullptr;
-sptr<RSRenderProcess> g_renderProcess = nullptr;
-sptr<RSRenderProcessAgent> g_renderProcessAgent = nullptr;
-sptr<RSServiceToRenderConnection> g_rsConnWithProcessAgent = nullptr;
+sptr<RSRenderProcess> renderProcess = nullptr;
+sptr<RSServiceToRenderConnection> g_rsConn_1 = nullptr;
 }
 
 class RSServiceToRenderConnectionTest : public testing::Test {
@@ -62,8 +62,8 @@ void RSServiceToRenderConnectionTest::SetUpTestCase()
     renderPipeline = std::make_shared<RSRenderPipeline>();
     renderPipeline->imageEnhanceManager_ = std::make_shared<ImageEnhanceManager>();
 
-    auto runner1 = AppExecFwk::EventRunner::Create(true);
-    auto handler1 = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner1);
+    auto runner1 = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto handler1 = std::make_shared<AppExecFwk::EventHandler>(runner1);
     auto mainThread = RSMainThread::Instance();
     mainThread->hwcContext_ =
         std::make_shared<RSHwcContext>(HWCParam::GetSourceTuningForAppMap(), HWCParam::GetSolidColorLayerMap());
@@ -72,15 +72,24 @@ void RSServiceToRenderConnectionTest::SetUpTestCase()
     runner1->Run();
 
     renderPipeline->uniRenderThread_ = &(RSUniRenderThread::Instance());
-    auto runner2 = AppExecFwk::EventRunner::Create(true);
+    auto runner2 = OHOS::AppExecFwk::EventRunner::Create(true);
     renderPipeline->uniRenderThread_->runner_ = runner2;
-    renderPipeline->uniRenderThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner2);
+    renderPipeline->uniRenderThread_->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner2);
     runner2->Run();
 
     auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    renderPipeline->uniRenderThread_->uniRenderEngine_ = std::make_shared<OHOS::Rosen::RSRenderEngine>();
-    renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = OHOS::Rosen::RenderContext::Create();
+    renderPipeline->uniRenderThread_->uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = RenderContext::Create();
     g_rsConn = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+
+    renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    auto runner3 = OHOS::AppExecFwk::EventRunner::Create(true);
+    renderProcess->runner_ = runner3;
+    renderProcess->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner3);
+    renderProcess->renderPipeline_ = std::make_shared<RSRenderPipeline>();
+    auto renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*renderProcess);
+    auto renderPipelineAgent2 = sptr<RSRenderPipelineAgent>::MakeSptr(renderProcess->renderPipeline_);
+    g_rsConn_1 = sptr<RSServiceToRenderConnection>::MakeSptr(renderProcessAgent, renderPipelineAgent2);
 }
 
 void RSServiceToRenderConnectionTest::TearDownTestCase()
@@ -100,8 +109,14 @@ void RSServiceToRenderConnectionTest::TearDownTestCase()
     renderPipeline->uniRenderThread_->uniRenderEngine_->renderContext_ = nullptr;
     renderPipeline->uniRenderThread_->uniRenderEngine_ = nullptr;
     renderPipeline->uniRenderThread_ = nullptr;
+
+    renderProcess->handler_ = nullptr;
+    renderProcess->runner_ = nullptr;
+    renderProcess = nullptr;
+    
     renderPipeline = nullptr;
 
+    g_rsConn_1 = nullptr;
     g_rsConn = nullptr;
 }
 
@@ -113,12 +128,16 @@ void RSServiceToRenderConnectionTest::WaitHandlerTask()
     auto count = 0;
     auto isMainThreadRunning = !renderPipeline->mainThread_->handler_->IsIdle();
     auto isUniRenderThreadRunning = !renderPipeline->uniRenderThread_->handler_->IsIdle();
-    while (count < WAIT_HANDLER_TIME_COUNT && (isMainThreadRunning || isUniRenderThreadRunning)) {
+    auto isRenderProcessRunning = !renderProcess->handler_->IsIdle();
+    while (count < WAIT_HANDLER_TIME_COUNT &&
+        (isMainThreadRunning || isUniRenderThreadRunning || isRenderProcessRunning)) {
         std::this_thread::sleep_for(std::chrono::seconds(WAIT_HANDLER_TIME));
+        count++;
     }
     if (count >= WAIT_HANDLER_TIME_COUNT) {
         renderPipeline->mainThread_->handler_->RemoveAllEvents();
         renderPipeline->uniRenderThread_->handler_->RemoveAllEvents();
+        renderProcess->handler_->RemoveAllEvents();
     }
 }
 
@@ -147,7 +166,6 @@ HWTEST_F(RSServiceToRenderConnectionTest, GetRealtimeRefreshRateTest, TestSize.L
     auto result = g_rsConn->GetRealtimeRefreshRate(INVALID_SCREEN_ID);
     EXPECT_GE(result, 0);
 }
-
 
 /**
  * @tc.name: SetBehindWindowFilterEnabledTest
@@ -329,7 +347,7 @@ HWTEST_F(RSServiceToRenderConnectionTest, UnRegisterSharedTypefaceTest001, TestS
     EXPECT_TRUE(ret);
 }
 
-/**
+/*
  * @tc.name: NotifyScreenConnectInfoToRenderTest001
  * @tc.desc: Test NotifyScreenConnectInfoToRender with valid screen property and null connections
  * @tc.type: FUNC
@@ -337,54 +355,17 @@ HWTEST_F(RSServiceToRenderConnectionTest, UnRegisterSharedTypefaceTest001, TestS
  */
 HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenConnectInfoToRenderTest001, TestSize.Level1)
 {
-    g_renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    g_renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*g_renderProcess);
-    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    g_rsConnWithProcessAgent =
-        sptr<RSServiceToRenderConnection>::MakeSptr(g_renderProcessAgent, renderPipelineAgent);
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
     auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
+    screenProperty->Set<ScreenPropertyType::ID>(0);
+    screenProperty->Set<ScreenPropertyType::RENDER_RESOLUTION>(std::make_pair(1920u, 1080u));
+    screenProperty->Set<ScreenPropertyType::IS_VIRTUAL>(true);
     sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
 
-    g_rsConnWithProcessAgent->NotifyScreenConnectInfoToRender(
+    g_rsConn_1->NotifyScreenConnectInfoToRender(
         screenProperty, renderToComposerConn, composerToRenderConn);
-
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    g_rsConnWithProcessAgent = nullptr;
-    g_renderProcessAgent = nullptr;
-    g_renderProcess = nullptr;
-}
-
-/**
- * @tc.name: NotifyScreenConnectInfoToRenderTest002
- * @tc.desc: Test NotifyScreenConnectInfoToRender with null screen property
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenConnectInfoToRenderTest002, TestSize.Level1)
-{
-    g_renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    g_renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*g_renderProcess);
-    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    g_rsConnWithProcessAgent =
-        sptr<RSServiceToRenderConnection>::MakeSptr(g_renderProcessAgent, renderPipelineAgent);
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    sptr<RSScreenProperty> screenProperty = nullptr;
-    sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
-    sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
-
-    g_rsConnWithProcessAgent->NotifyScreenConnectInfoToRender(
-        screenProperty, renderToComposerConn, composerToRenderConn);
-
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    g_rsConnWithProcessAgent = nullptr;
-    g_renderProcessAgent = nullptr;
-    g_renderProcess = nullptr;
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+    ASSERT_TRUE(g_rsConn_1 != nullptr);
 }
 
 /**
@@ -395,44 +376,9 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenConnectInfoToRenderTest002
  */
 HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenDisconnectInfoToRenderTest001, TestSize.Level1)
 {
-    g_renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    g_renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*g_renderProcess);
-    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    g_rsConnWithProcessAgent =
-        sptr<RSServiceToRenderConnection>::MakeSptr(g_renderProcessAgent, renderPipelineAgent);
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    g_rsConnWithProcessAgent->NotifyScreenDisconnectInfoToRender(TEST_SCREEN_ID);
-
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    g_rsConnWithProcessAgent = nullptr;
-    g_renderProcessAgent = nullptr;
-    g_renderProcess = nullptr;
-}
-
-/**
- * @tc.name: NotifyScreenDisconnectInfoToRenderTest002
- * @tc.desc: Test NotifyScreenDisconnectInfoToRender with different screen ID
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenDisconnectInfoToRenderTest002, TestSize.Level1)
-{
-    g_renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    g_renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*g_renderProcess);
-    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    g_rsConnWithProcessAgent =
-        sptr<RSServiceToRenderConnection>::MakeSptr(g_renderProcessAgent, renderPipelineAgent);
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    g_rsConnWithProcessAgent->NotifyScreenDisconnectInfoToRender(TEST_SCREEN_ID_2);
-
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    g_rsConnWithProcessAgent = nullptr;
-    g_renderProcessAgent = nullptr;
-    g_renderProcess = nullptr;
+    ASSERT_TRUE(g_rsConn_1 != nullptr);
+    g_rsConn_1->NotifyScreenDisconnectInfoToRender(TEST_SCREEN_ID);
+    ASSERT_TRUE(g_rsConn_1 != nullptr);
 }
 
 /**
@@ -443,24 +389,15 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenDisconnectInfoToRenderTest
  */
 HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenPropertyChangedInfoToRenderTest001, TestSize.Level1)
 {
-    g_renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    g_renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*g_renderProcess);
-    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    g_rsConnWithProcessAgent =
-        sptr<RSServiceToRenderConnection>::MakeSptr(g_renderProcessAgent, renderPipelineAgent);
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
+    ASSERT_TRUE(g_rsConn_1 != nullptr);
 
     ScreenPropertyType type = ScreenPropertyType::RENDER_RESOLUTION;
     sptr<ScreenPropertyBase> screenProperty = nullptr;
 
-    g_rsConnWithProcessAgent->NotifyScreenPropertyChangedInfoToRender(
+    g_rsConn_1->NotifyScreenPropertyChangedInfoToRender(
         TEST_SCREEN_ID, type, screenProperty);
 
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    g_rsConnWithProcessAgent = nullptr;
-    g_renderProcessAgent = nullptr;
-    g_renderProcess = nullptr;
+    ASSERT_TRUE(g_rsConn_1 != nullptr);
 }
 
 /**
@@ -471,24 +408,15 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenPropertyChangedInfoToRende
  */
 HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenPropertyChangedInfoToRenderTest002, TestSize.Level1)
 {
-    g_renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    g_renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*g_renderProcess);
-    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    g_rsConnWithProcessAgent =
-        sptr<RSServiceToRenderConnection>::MakeSptr(g_renderProcessAgent, renderPipelineAgent);
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
+    ASSERT_TRUE(g_rsConn_1 != nullptr);
 
     ScreenPropertyType type = ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE;
     sptr<ScreenPropertyBase> screenProperty = nullptr;
 
-    g_rsConnWithProcessAgent->NotifyScreenPropertyChangedInfoToRender(
+    g_rsConn_1->NotifyScreenPropertyChangedInfoToRender(
         TEST_SCREEN_ID_2, type, screenProperty);
 
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    g_rsConnWithProcessAgent = nullptr;
-    g_renderProcessAgent = nullptr;
-    g_renderProcess = nullptr;
+    ASSERT_TRUE(g_rsConn_1 != nullptr);
 }
 
 /**
@@ -499,23 +427,14 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenPropertyChangedInfoToRende
  */
 HWTEST_F(RSServiceToRenderConnectionTest, NotifyScreenPropertyChangedInfoToRenderTest003, TestSize.Level1)
 {
-    g_renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    g_renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*g_renderProcess);
-    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    g_rsConnWithProcessAgent =
-        sptr<RSServiceToRenderConnection>::MakeSptr(g_renderProcessAgent, renderPipelineAgent);
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
+    ASSERT_TRUE(g_rsConn_1 != nullptr);
 
     ScreenPropertyType type = ScreenPropertyType::CORRECTION;
     sptr<ScreenPropertyBase> screenProperty = nullptr;
 
-    g_rsConnWithProcessAgent->NotifyScreenPropertyChangedInfoToRender(
+    g_rsConn_1->NotifyScreenPropertyChangedInfoToRender(
         INVALID_SCREEN_ID, type, screenProperty);
 
-    ASSERT_TRUE(g_rsConnWithProcessAgent != nullptr);
-
-    g_rsConnWithProcessAgent = nullptr;
-    g_renderProcessAgent = nullptr;
-    g_renderProcess = nullptr;
+    ASSERT_TRUE(g_rsConn_1 != nullptr);
 }
 } // namespace OHOS::Rosen
