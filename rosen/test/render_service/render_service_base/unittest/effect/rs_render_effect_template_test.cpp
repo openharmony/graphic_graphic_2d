@@ -93,6 +93,9 @@ HWTEST_F(RSNGRenderEffectTemplateTest, GetEffectTypeStringForSDFShapeTypes, Test
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_UNION_OP_SHAPE), "SDFUnionOpShape");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE),
         "SDFSmoothUnionOpShape");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_SUB_OP_SHAPE), "SDFSubOpShape");
+    EXPECT_EQ(
+        RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_SMOOTH_SUB_OP_SHAPE), "SDFSmoothSubOpShape");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_RRECT_SHAPE), "SDFRRectShape");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_TRIANGLE_SHAPE), "SDFTriangleShape");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_PIXELMAP_SHAPE), "SDFPixelmapShape");

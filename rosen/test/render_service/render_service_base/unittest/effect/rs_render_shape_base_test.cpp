@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "gtest/gtest.h"
 #include "ge_visual_effect_container.h"
+#include "gtest/gtest.h"
 #include "parcel.h" // Assumed definition of Parcel
 
 #include "effect/rs_render_shape_base.h"
@@ -52,8 +52,8 @@ HWTEST_F(RSRenderShapeBaseTest, RSNGRenderShapeBaseUnmarshallingTest010, TestSiz
     Parcel parcel;
     head->Marshalling(parcel);
 
-    RSNGEffectTypeUnderlying sdfUnionOpShape = static_cast<RSNGEffectTypeUnderlying>(
-        RSNGEffectType::SDF_UNION_OP_SHAPE);
+    RSNGEffectTypeUnderlying sdfUnionOpShape =
+        static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::SDF_UNION_OP_SHAPE);
     parcel.WriteUint32(sdfUnionOpShape);
 
     std::shared_ptr<RSNGRenderShapeBase> result;
@@ -77,8 +77,8 @@ HWTEST_F(RSRenderShapeBaseTest, RSNGRenderShapeBaseUnmarshallingTest011, TestSiz
     Parcel parcel;
     head->Marshalling(parcel);
 
-    RSNGEffectTypeUnderlying sdfUnionOpShape = static_cast<RSNGEffectTypeUnderlying>(
-        RSNGEffectType::SDF_UNION_OP_SHAPE);
+    RSNGEffectTypeUnderlying sdfUnionOpShape =
+        static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::SDF_UNION_OP_SHAPE);
     parcel.WriteUint32(sdfUnionOpShape);
 
     std::shared_ptr<RSNGRenderShapeBase> result;
@@ -117,6 +117,36 @@ HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFSmoothUnionOpShape_ReturnsBound, Tes
 {
     RectF bound(50.0f, 60.0f, 150.0f, 250.0f);
     auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFSubOpShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(15.0f, 25.0f, 120.0f, 220.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_SUB_OP_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFSmoothSubOpShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(30.0f, 40.0f, 140.0f, 240.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_SMOOTH_SUB_OP_SHAPE);
 
     ASSERT_NE(shape, nullptr);
 

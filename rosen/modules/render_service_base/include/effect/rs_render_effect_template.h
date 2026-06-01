@@ -102,6 +102,8 @@ public:
             case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
             case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
             case RSNGEffectType::SDF_DISTORT_OP_SHAPE: return "SDFDistortOpShape";
+            case RSNGEffectType::SDF_SUB_OP_SHAPE: return "SDFSubOpShape";
+            case RSNGEffectType::SDF_SMOOTH_SUB_OP_SHAPE: return "SDFSmoothSubOpShape";
             case RSNGEffectType::IMAGE_MASK: return "ImageMask";
             case RSNGEffectType::USE_EFFECT_MASK: return "UseEffectMask";
             case RSNGEffectType::AIBAR_GLOW: return "AIBarGlow";

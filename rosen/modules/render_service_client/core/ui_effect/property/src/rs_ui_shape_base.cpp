@@ -34,6 +34,14 @@ static thread_local std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT 
             return std::make_shared<RSNGSDFSmoothUnionOpShape>();
         }
     },
+    {RSNGEffectType::SDF_SUB_OP_SHAPE, [] {
+            return std::make_shared<RSNGSDFSubOpShape>();
+        }
+    },
+    {RSNGEffectType::SDF_SMOOTH_SUB_OP_SHAPE, [] {
+            return std::make_shared<RSNGSDFSmoothSubOpShape>();
+        }
+    },
     {RSNGEffectType::SDF_RRECT_SHAPE, [] {
             return std::make_shared<RSNGSDFRRectShape>();
         }
