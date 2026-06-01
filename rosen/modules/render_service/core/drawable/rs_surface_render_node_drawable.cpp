@@ -1275,7 +1275,7 @@ bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot(
     }
     // Check black list.
     const auto& blackList = RSUniRenderThread::Instance().GetBlackList();
-    if (surfaceParams.IsLeashWindow() && blackList.find(surfaceParams.GetLeashPersistentId()) != blackList.end()) {
+    if (blackList.find(surfaceParams.GetLeashPersistentId()) != blackList.end()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
             "(LeashPersistentId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetLeashPersistentId());
         return true;

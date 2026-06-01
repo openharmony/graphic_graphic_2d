@@ -1171,6 +1171,8 @@ protected:
     void RemoveUIExtensionChild(SharedPtr child);
     bool NeedRoutedBasedOnUIExtension(SharedPtr child);
 
+    bool IsNodeParentHasUIFirstCache();
+
     void UpdateDrawableVecV2();
     void ClearDrawableVec2();
     void UpdateDrawableEnableEDR();

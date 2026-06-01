@@ -26,6 +26,7 @@
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
+#include "feature/layer/rs_layer_cache_manager_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -1167,6 +1168,38 @@ HWTEST_F(RSRenderNodeTest, UpdateSrcOrClipedAbsDrawRectChangeStateTest, TestSize
 }
 
 /**
+ * @tc.name: IsNodeParentHasUIFirstCacheTest
+ * @tc.desc: IsNodeParentHasUIFirstCache Test
+ * @tc.type: FUNC
+ * @tc.require: issueIA5Y41
+ */
+
+HWTEST_F(RSRenderNodeTest, IsNodeParentHasUIFirstCacheTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(20);
+    EXPECT_NE(node, nullptr);
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(10086);
+    EXPECT_NE(surfaceNode, nullptr);
+
+    node->uifirstRootNodeId_ = 10086;
+    auto sContext = std::make_shared<RSContext>();
+
+    node->context_ = sContext;
+    auto& nodeMap = sContext->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
+
+    auto uiFirstRootNode =
+        node->uiFirstRootNodeId_ != INVALID_NODEID ? node->GetUifirstRootNode() : node->GetFirstLevelNode();
+    EXPECT_TRUE(uiFirstRootNode);
+
+    surfaceNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
+    EXPECT_TRUE(surfaceNode && surfaceNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE);
+
+    EXPECT_TRUE(uiFirstRootNode == surfaceNode);
+    EXPECT_TRUE(node->IsNodeParentHasUIFirstCache());
+}
+
+/**
  * @tc.name: OnSyncTest
  * @tc.desc: OnSync Test
  * @tc.type: FUNC
@@ -1203,9 +1236,15 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
     node->SetNeedClearRenderGroupCache(true);
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
     node->GetOpincRootCache().isOpincRootFlag_ = true;
+
     node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_LAYER;
-    Vector4f value {0.5f, 0.5f, 0.5f, 0.5f};
-    node->renderProperties_.SetBgBrightnessRates(value);
+    node->stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
+    RSLayerCacheManagerBase::unSupportLayerNodeMap_[node->GetId()] = true;
+    node->stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
+    bool isLayerNode = node->nodeGroupType_ == RSRenderNode::NodeGroupType::GROUPED_BY_LAYER &&
+ 	                        node->stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
+    EXPECT_TRUE(isLayerNode);
+    EXPECT_TRUE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);
@@ -1250,6 +1289,11 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest1, TestSize.Level1)
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
     node->GetOpincRootCache().isOpincRootFlag_ = true;
     node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_LAYER;
+    node->stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
+    bool isLayerNode = node->nodeGroupType_ == RSRenderNode::NodeGroupType::GROUPED_BY_LAYER &&
+ 	                        node->stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
+    EXPECT_TRUE(isLayerNode);
+    EXPECT_FALSE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);

@@ -4703,6 +4703,17 @@ void RSRenderNode::NodeDrawLargeAreaBlur(std::pair<bool, bool>& nodeDrawLargeAre
     nodeDrawLargeAreaBlur.second = flagCurrent;
 }
 
+bool RSRenderNode::IsNodeParentHasUIFirstCache()
+{
+    auto uiFirstRootNode = uifirstRootNodeId_ != INVALID_NODEID ? GetUifirstRootNode() : GetFirstLevelNode();
+    if (uiFirstRootNode) {
+        auto surfaceNode = uiFirstRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+        bool isUiFirst = surfaceNode && (surfaceNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE);
+        return isUiFirst;
+    }
+    return false;
+}
+
 void RSRenderNode::OnSync()
 {
     addedToPendingSyncList_ = false;
@@ -4738,9 +4749,12 @@ void RSRenderNode::OnSync()
         drawCmdListNeedSync_ = false;
     }
 
-    if (nodeGroupType_ == NodeGroupType::GROUPED_BY_LAYER) {
-        // when node has BgBrightness disable layer cache
-        if (GetRenderProperties().GetBgBrightnessParams().has_value()) {
+    bool isLayerNode = nodeGroupType_ == NodeGroupType::GROUPED_BY_LAYER &&
+                       stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
+    if (isLayerNode) {
+        bool isLayerCacheDisabled =
+            RSLayerCacheManagerBase::IsNodeUnSupportLayer(shared_from_this()) || IsNodeParentHasUIFirstCache();
+        if (isLayerCacheDisabled) {
             stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         } else {
             RSLayerCacheManagerBase::layerDrawables_.emplace_back(renderDrawable_);
