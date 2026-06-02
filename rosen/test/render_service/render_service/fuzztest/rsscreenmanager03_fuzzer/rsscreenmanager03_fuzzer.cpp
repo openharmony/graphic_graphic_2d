@@ -17,6 +17,7 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
+#include <string>
 
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
@@ -41,20 +42,35 @@ constexpr uint8_t TARGET_SIZE = 10;
 
 constexpr uint8_t DUAL_SCREEN_STATUS_SIZE = 3;
 constexpr uint8_t GRAPHIC_CM_COLOR_SPACE_TYPE_SIZE = 10;
+constexpr uint32_t FUZZ_VSCREEN_DEFAULT_DIMENSION = 100;
+constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
 
 void DoSetScreenActiveRect(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    bool useExistingScreen = fdp.ConsumeBool();
+    ScreenId id;
+    if (useExistingScreen) {
+        std::string name = "fuzz_vscreen";
+        sptr<Surface> surface;
+        id = g_screenManager->CreateVirtualScreen(name, FUZZ_VSCREEN_DEFAULT_DIMENSION,
+            FUZZ_VSCREEN_DEFAULT_DIMENSION, surface, 0, 0, {});
+    } else {
+        id = fdp.ConsumeIntegral<ScreenId>();
+    }
     Rect activeRect;
     activeRect.x = fdp.ConsumeIntegral<int32_t>();
     activeRect.y = fdp.ConsumeIntegral<int32_t>();
     activeRect.w = fdp.ConsumeIntegral<int32_t>();
     activeRect.h = fdp.ConsumeIntegral<int32_t>();
     g_screenManager->SetScreenActiveRect(id, activeRect);
+    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+        g_screenManager->RemoveVirtualScreen(id);
+    }
 }
 
 void DoSetPhysicalScreenResolution(FuzzedDataProvider& fdp)
 {
+    fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
@@ -63,7 +79,7 @@ void DoSetPhysicalScreenResolution(FuzzedDataProvider& fdp)
 
 void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
+    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, FUZZ_SCREEN_ID_RANGE_MAX);
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
     g_screenManager->SetRogScreenResolution(id, width, height);

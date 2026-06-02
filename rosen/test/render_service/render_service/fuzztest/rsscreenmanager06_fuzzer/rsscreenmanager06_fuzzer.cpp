@@ -47,12 +47,25 @@ constexpr uint8_t SCREEN_HDR_METADATA_KEY_SIZE = 14;
 constexpr uint8_t GRAPHIC_CM_COLOR_SPACE_TYPE_SIZE = 10;
 constexpr uint8_t GRAPHIC_PIXEL_FORMAT_SIZE = 8;
 constexpr uint8_t MAX_FUZZ_ENUM_VECTOR_SIZE = 8;
+constexpr uint32_t FUZZ_VSCREEN_DEFAULT_DIMENSION = 100;
 
 void DoGetScreenColorGamut(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    bool useExistingScreen = fdp.ConsumeBool();
+    ScreenId id;
+    if (useExistingScreen) {
+        std::string name = "fuzz_vscreen";
+        sptr<Surface> surface;
+        id = g_screenManager->CreateVirtualScreen(name, FUZZ_VSCREEN_DEFAULT_DIMENSION,
+            FUZZ_VSCREEN_DEFAULT_DIMENSION, surface, 0, 0, {});
+    } else {
+        id = fdp.ConsumeIntegral<ScreenId>();
+    }
     ScreenColorGamut mode = static_cast<ScreenColorGamut>(fdp.ConsumeIntegral<uint8_t>() % SCREEN_COLOR_GAMUT_SIZE);
     g_screenManager->GetScreenColorGamut(id, mode);
+    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+        g_screenManager->RemoveVirtualScreen(id);
+    }
 }
 
 void DoGetScreenSupportedColorGamuts(FuzzedDataProvider& fdp)

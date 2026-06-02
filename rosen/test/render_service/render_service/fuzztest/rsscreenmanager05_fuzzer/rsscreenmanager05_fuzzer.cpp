@@ -17,6 +17,7 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
+#include <string>
 
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
@@ -42,6 +43,17 @@ constexpr uint8_t TARGET_SIZE = 10;
 constexpr uint8_t MAX_FUZZ_LIST_SIZE = 8;
 constexpr uint8_t MAX_FUZZ_TYPE_LIST_SIZE = 31;
 constexpr uint8_t SCREEN_POWER_STATUS_SIZE = 11;
+constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
+constexpr uint32_t FUZZ_STRING_OFFSET_LEN = 8;
+
+ScreenId FuzzConsumeScreenId(FuzzedDataProvider& fdp)
+{
+    bool useInvalidId = fdp.ConsumeBool();
+    if (useInvalidId) {
+        return INVALID_SCREEN_ID;
+    }
+    return fdp.ConsumeIntegral<ScreenId>();
+}
 
 void DoSetCastScreenEnableSkipWindow(FuzzedDataProvider& fdp)
 {
@@ -52,8 +64,7 @@ void DoSetCastScreenEnableSkipWindow(FuzzedDataProvider& fdp)
 
 void DoAddVirtualScreenBlackList(FuzzedDataProvider& fdp)
 {
-    fdp.ConsumeBool();
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    ScreenId id = FuzzConsumeScreenId(fdp);
     uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MAX_FUZZ_LIST_SIZE;
     std::vector<uint64_t> bList;
     for (uint8_t i = 0; i < count; i++) {
@@ -64,7 +75,8 @@ void DoAddVirtualScreenBlackList(FuzzedDataProvider& fdp)
 
 void DoRemoveVirtualScreenBlackList(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    fdp.ConsumeIntegral<uint8_t>();
+    ScreenId id = FuzzConsumeScreenId(fdp);
     uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MAX_FUZZ_LIST_SIZE;
     std::vector<uint64_t> bList;
     for (uint8_t i = 0; i < count; i++) {
@@ -75,7 +87,7 @@ void DoRemoveVirtualScreenBlackList(FuzzedDataProvider& fdp)
 
 void DoSetVirtualScreenTypeBlackList(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
+    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, FUZZ_SCREEN_ID_RANGE_MAX);
     uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MAX_FUZZ_TYPE_LIST_SIZE;
     std::vector<uint8_t> typeBList;
     for (uint8_t i = 0; i < count; i++) {
@@ -98,8 +110,8 @@ void DoRemoveVirtualScreenWhiteList(FuzzedDataProvider& fdp)
 
 void DoSetVirtualScreenSecurityExemptionList(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    fdp.ConsumeBool();
+    fdp.ConsumeRandomLengthString(FUZZ_STRING_OFFSET_LEN);
+    ScreenId id = FuzzConsumeScreenId(fdp);
     uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MAX_FUZZ_LIST_SIZE;
     std::vector<uint64_t> securityExemptionList;
     for (uint8_t i = 0; i < count; i++) {
@@ -130,7 +142,7 @@ void DoUpdateVsyncEnabledScreenId(FuzzedDataProvider& fdp)
 
 void DoJudgeVSyncEnabledScreenWhilePowerStatusChanged(FuzzedDataProvider& fdp)
 {
-    ScreenId screenId = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
+    ScreenId screenId = fdp.ConsumeIntegralInRange<ScreenId>(0, FUZZ_SCREEN_ID_RANGE_MAX);
     ScreenPowerStatus status = static_cast<ScreenPowerStatus>(
         fdp.ConsumeIntegral<uint8_t>() % SCREEN_POWER_STATUS_SIZE);
     uint64_t enabledScreenId = fdp.ConsumeIntegral<uint64_t>();

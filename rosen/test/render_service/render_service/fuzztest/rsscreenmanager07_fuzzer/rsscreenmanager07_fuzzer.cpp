@@ -42,19 +42,31 @@ constexpr uint8_t DO_GET_SCREEN_VSYNC_ENABLE_BY_ID = 8;
 constexpr uint8_t DO_DISPLAY_DUMP = 9;
 constexpr uint8_t TARGET_SIZE = 10;
 
+constexpr uint32_t FUZZ_VSCREEN_DEFAULT_DIMENSION = 100;
+constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
+constexpr int32_t FUZZ_MAX_MODE_ID = 31;
+constexpr uint32_t FUZZ_DUMP_STRING_MAX_LEN = 64;
+
+ScreenId FuzzConsumeScreenId(FuzzedDataProvider& fdp)
+{
+    if (fdp.ConsumeBool()) {
+        return INVALID_SCREEN_ID;
+    }
+    return fdp.ConsumeIntegral<ScreenId>();
+}
+
 void DoGetDefaultScreenActiveMode(FuzzedDataProvider& fdp)
 {
     RSScreenModeInfo screenModeInfo;
     screenModeInfo.SetScreenHeight(fdp.ConsumeIntegral<int32_t>());
     screenModeInfo.SetScreenRefreshRate(fdp.ConsumeIntegral<uint32_t>());
-    int32_t maxModeId = 31;
-    screenModeInfo.SetScreenModeId(fdp.ConsumeIntegralInRange<int32_t>(0, maxModeId));
+    screenModeInfo.SetScreenModeId(fdp.ConsumeIntegralInRange<int32_t>(0, FUZZ_MAX_MODE_ID));
     g_screenManager->GetDefaultScreenActiveMode(screenModeInfo);
 }
 
 void DoGetDisplayIdentificationData(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
+    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, FUZZ_SCREEN_ID_RANGE_MAX);
     uint8_t outPort = fdp.ConsumeIntegral<uint8_t>();
     std::vector<uint8_t> edidData;
     g_screenManager->GetDisplayIdentificationData(id, outPort, edidData);
@@ -70,12 +82,23 @@ void DoGetRogScreenResolution(FuzzedDataProvider& fdp)
 
 void DoGetVirtualScreenResolution(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    fdp.ConsumeBool();
+    bool useExistingScreen = fdp.ConsumeBool();
+    ScreenId id;
+    if (useExistingScreen) {
+        std::string name = "fuzz_vscreen";
+        sptr<Surface> surface;
+        id = g_screenManager->CreateVirtualScreen(name, FUZZ_VSCREEN_DEFAULT_DIMENSION,
+            FUZZ_VSCREEN_DEFAULT_DIMENSION, surface, 0, 0, {});
+    } else {
+        id = fdp.ConsumeIntegral<ScreenId>();
+    }
     RSVirtualScreenResolution virtualScreenResolution;
     virtualScreenResolution.SetVirtualScreenWidth(fdp.ConsumeIntegral<uint32_t>());
     virtualScreenResolution.SetVirtualScreenHeight(fdp.ConsumeIntegral<uint32_t>());
     g_screenManager->GetVirtualScreenResolution(id, virtualScreenResolution);
+    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+        g_screenManager->RemoveVirtualScreen(id);
+    }
 }
 
 void DoGetCanvasRotation(FuzzedDataProvider& fdp)
@@ -93,6 +116,7 @@ void DoGetVirtualScreenAutoRotation(FuzzedDataProvider& fdp)
 
 void DoUpdateFoldScreenConnectStatusLocked(FuzzedDataProvider& fdp)
 {
+    fdp.ConsumeIntegral<uint32_t>();
     ScreenId screenId = fdp.ConsumeIntegral<ScreenId>();
     bool connected = fdp.ConsumeBool();
     g_screenManager->UpdateFoldScreenConnectStatusLocked(screenId, connected);
@@ -100,7 +124,7 @@ void DoUpdateFoldScreenConnectStatusLocked(FuzzedDataProvider& fdp)
 
 void DoSetScreenVsyncEnableById(FuzzedDataProvider& fdp)
 {
-    ScreenId vsyncEnabledScreenId = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
+    ScreenId vsyncEnabledScreenId = FuzzConsumeScreenId(fdp);
     ScreenId screenId = fdp.ConsumeIntegral<ScreenId>();
     bool enabled = fdp.ConsumeBool();
     g_screenManager->SetScreenVsyncEnableById(vsyncEnabledScreenId, screenId, enabled);
@@ -109,13 +133,13 @@ void DoSetScreenVsyncEnableById(FuzzedDataProvider& fdp)
 void DoGetScreenVsyncEnableById(FuzzedDataProvider& fdp)
 {
     fdp.ConsumeIntegral<uint8_t>();
-    ScreenId vsyncEnabledScreenId = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
+    ScreenId vsyncEnabledScreenId = fdp.ConsumeIntegralInRange<ScreenId>(0, FUZZ_SCREEN_ID_RANGE_MAX);
     g_screenManager->GetScreenVsyncEnableById(vsyncEnabledScreenId);
 }
 
 void DoDisplayDump(FuzzedDataProvider& fdp)
 {
-    std::string dumpString = fdp.ConsumeRandomLengthString(64);
+    std::string dumpString = fdp.ConsumeRandomLengthString(FUZZ_DUMP_STRING_MAX_LEN);
     g_screenManager->DisplayDump(dumpString);
 }
 

@@ -17,6 +17,7 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
+#include <string>
 
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
@@ -41,12 +42,26 @@ constexpr uint8_t DO_GET_SCREEN_DATA = 9;
 constexpr uint8_t TARGET_SIZE = 10;
 
 constexpr uint8_t SCREEN_SCREEN_TYPE_SIZE = 4;
+constexpr uint32_t FUZZ_VSCREEN_DEFAULT_DIMENSION = 100;
+constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
 
 void DoGetScreenType(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    bool useExistingScreen = fdp.ConsumeBool();
+    ScreenId id;
+    if (useExistingScreen) {
+        std::string name = "fuzz_vscreen";
+        sptr<Surface> surface;
+        id = g_screenManager->CreateVirtualScreen(name, FUZZ_VSCREEN_DEFAULT_DIMENSION,
+            FUZZ_VSCREEN_DEFAULT_DIMENSION, surface, 0, 0, {});
+    } else {
+        id = fdp.ConsumeIntegral<ScreenId>();
+    }
     RSScreenType type = static_cast<RSScreenType>(fdp.ConsumeIntegral<uint8_t>() % SCREEN_SCREEN_TYPE_SIZE);
     g_screenManager->GetScreenType(id, type);
+    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+        g_screenManager->RemoveVirtualScreen(id);
+    }
 }
 
 void DoGetScreenActiveMode(FuzzedDataProvider& fdp)
@@ -62,9 +77,21 @@ void DoGetScreenActiveMode(FuzzedDataProvider& fdp)
 
 void DoGetScreenSupportedModes(FuzzedDataProvider& fdp)
 {
-    fdp.ConsumeBool();
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    fdp.ConsumeIntegral<uint16_t>();
+    bool useExistingScreen = fdp.ConsumeBool();
+    ScreenId id;
+    if (useExistingScreen) {
+        std::string name = "fuzz_vscreen";
+        sptr<Surface> surface;
+        id = g_screenManager->CreateVirtualScreen(name, FUZZ_VSCREEN_DEFAULT_DIMENSION,
+            FUZZ_VSCREEN_DEFAULT_DIMENSION, surface, 0, 0, {});
+    } else {
+        id = fdp.ConsumeIntegral<ScreenId>();
+    }
     g_screenManager->GetScreenSupportedModes(id);
+    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+        g_screenManager->RemoveVirtualScreen(id);
+    }
 }
 
 void DoGetScreenCapability(FuzzedDataProvider& fdp)
@@ -75,7 +102,7 @@ void DoGetScreenCapability(FuzzedDataProvider& fdp)
 
 void DoGetScreenPowerStatus(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
+    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, FUZZ_SCREEN_ID_RANGE_MAX);
     g_screenManager->GetScreenPowerStatus(id);
 }
 
