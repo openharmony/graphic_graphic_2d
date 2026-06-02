@@ -112,7 +112,7 @@ std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const size_t i, const size_t
     int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
 
     auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    if (!effectChildNode) {
+    if (!effectChildNode || !effectNode) {
         return nullptr;
     }
     effectChildNode->SetBounds(x, y, sizeX, sizeY);
