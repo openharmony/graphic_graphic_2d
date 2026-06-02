@@ -7282,6 +7282,95 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
 }
 
 /*
+ * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache_FilterNodeNotOnTree
+ * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache skips filter node not on the tree
+ * @tc.type: FUNC
+ * @tc.require: issueIBE0XP
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_FilterNodeNotOnTree, TestSize.Level2)
+{
+    constexpr NodeId FILTER_NODE_ID_NOT_ON_TREE = 1001;
+    constexpr NodeId SCREEN_NODE_ID = 0;
+    constexpr NodeId LOGICAL_DISPLAY_ID = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(SCREEN_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(rsRootRenderNode, nullptr);
+    rsRootRenderNode->InitRenderParams();
+
+    auto effectNode = std::make_shared<RSEffectRenderNode>(FILTER_NODE_ID_NOT_ON_TREE);
+    ASSERT_NE(effectNode, nullptr);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
+    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(
+        SCREEN_NODE_ID, SCREEN_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    RSDisplayNodeConfig config;
+    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(LOGICAL_DISPLAY_ID, config);
+    rsUniRenderVisitor->curLogicalDisplayNode_ = logicalDisplayNode;
+    logicalDisplayNode->InitRenderParams();
+
+    EXPECT_FALSE(effectNode->IsOnTheTree());
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    EXPECT_FALSE(dirtyManager.IsCurrentFrameDirty());
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(FILTER_NODE_ID_NOT_ON_TREE);
+}
+
+/*
+ * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache_FilterNodeOnTheTree
+ * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache processes filter node on the tree
+ * @tc.type: FUNC
+ * @tc.require: issueIBE0XP
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_FilterNodeOnTheTree, TestSize.Level2)
+{
+    constexpr NodeId FILTER_NODE_ID_ON_TREE = 1002;
+    constexpr NodeId SCREEN_NODE_ID = 0;
+    constexpr NodeId LOGICAL_DISPLAY_ID = 0;
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(SCREEN_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(rsRootRenderNode, nullptr);
+    rsRootRenderNode->InitRenderParams();
+
+    auto effectNode = std::make_shared<RSEffectRenderNode>(FILTER_NODE_ID_ON_TREE);
+    ASSERT_NE(effectNode, nullptr);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
+    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().needFilter_ = true;
+    effectNode->SetIsOnTheTree(true);
+    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(
+        SCREEN_NODE_ID, SCREEN_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    RSDisplayNodeConfig config;
+    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(LOGICAL_DISPLAY_ID, config);
+    rsUniRenderVisitor->curLogicalDisplayNode_ = logicalDisplayNode;
+    logicalDisplayNode->InitRenderParams();
+
+    EXPECT_TRUE(effectNode->IsOnTheTree());
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+
+    EXPECT_FALSE(effectNode->ChildHasVisibleEffectWithoutEmptyRect());
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(FILTER_NODE_ID_ON_TREE);
+}
+
+/*
  * @tc.name: CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache001
  * @tc.desc: Test CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache
  * @tc.type: FUNC
