@@ -31,6 +31,7 @@
 
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
+#include "include/core/SkGraphics.h"
 #else
 #include "src/core/SkOpts.h"
 #endif
@@ -85,6 +86,15 @@ MappedFile::~MappedFile()
 #endif
 }
 Typeface::Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept : typefaceImpl_(typefaceImpl) {}
+
+Typeface::~Typeface()
+{
+#ifdef USE_M133_SKIA
+    if (typefaceImpl_) {
+        SkGraphics::RemoveCacheByUniqueId(typefaceImpl_->GetUniqueID());
+    }
+#endif
+}
 
 std::shared_ptr<Typeface> Typeface::MakeDefault()
 {
