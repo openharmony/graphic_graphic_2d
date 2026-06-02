@@ -35,6 +35,8 @@ void InitFrostedGlassEffect(std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlas
     frostedGlassEffect->Setter<FrostedGlassEffectWeightsEmbossTag>(Vector2f{1.0f, 0.5f});
     // WeightsEdl
     frostedGlassEffect->Setter<FrostedGlassEffectWeightsEdlTag>(Vector2f{1.0f, 1.0f});
+    // AntiAlias
+    frostedGlassEffect->Setter<FrostedGlassEffectAntiAliasTag>(Vector2f{-1.0f, 1.0f});
     // BgRates
     frostedGlassEffect->Setter<FrostedGlassEffectBgRatesTag>(Vector2f{-1.8792225f, 2.7626955f});
     // BgKBS
