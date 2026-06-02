@@ -2565,7 +2565,7 @@ void RSMainThread::ProcessWindowCapTasks()
         auto windowCapTask = std::get<1>(windowCapTasks_.front());
         windowCapTasks_.pop();
         RS_TRACE_NAME_FMT("RSMainThread::ProcessWindowCapTasks doing windowCapTask");
-        RSUniRenderThread::Instance().PostTask(windowCapTask);
+        RSMainThread::Instance()->PostTask(windowCapTask);
     }
 }
 
