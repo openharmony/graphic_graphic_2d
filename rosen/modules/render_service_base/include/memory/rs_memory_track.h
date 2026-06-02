@@ -82,6 +82,8 @@ private:
     size_t drawableNodeSize_ = 0;
 };
 
+using NodeInfoCallback = std::function<void(const NodeId&, const MemoryInfo&)>;
+
 class RSB_EXPORT MemoryTrack {
 public:
     static MemoryTrack& Instance();
@@ -109,6 +111,7 @@ public:
     size_t GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type);
     void DumpMemoryPicStatisticsForReport(DfxString& log, const pid_t pid);
     size_t GetNodeNumOfPid(const pid_t pid);
+    void GetNodeInfo(NodeInfoCallback callback);
 
 private:
     MemoryTrack() = default;

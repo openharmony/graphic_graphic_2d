@@ -1362,4 +1362,57 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsForReportTest005, testing::ex
 
     MemoryTrack::Instance().RemovePictureRecord(addr);
 }
+
+/**
+ * @tc.name: GetNodeInfoTest001
+ * @tc.desc: Test GetNodeInfo with empty memNodeMap.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeInfoTest001, testing::ext::TestSize.Level1)
+{
+    size_t callCount = 0;
+    MemoryTrack::Instance().GetNodeInfo([&callCount](const NodeId& nodeId, const MemoryInfo& info) {
+        callCount++;
+    });
+    size_t expectedSize =  MemoryTrack::Instance().GetMemNodeMap().size();
+    EXPECT_EQ(callCount, expectedSize);
+}
+
+/**
+ * @tc.name: GetNodeInfoTest002
+ * @tc.desc: Test GetNodeInfo with single node.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, GetNodeInfoTest002, testing::ext::TestSize.Level1)
+{
+    NodeId testId = 5001;
+    pid_t testPid = 50001;
+    size_t testSize = 1024;
+    MemoryInfo testInfo = {testSize, testPid, testId, 0, MEMORY_TYPE::MEM_RENDER_NODE};
+
+    MemoryTrack::Instance().AddNodeRecord(testId, testInfo);
+
+    size_t callCount = 0;
+    NodeId receivedId = 0;
+    pid_t receivedPid = 0;
+    size_t receivedSize = 0;
+
+    MemoryTrack::Instance().GetNodeInfo([&](const NodeId& nodeId, const MemoryInfo& info) {
+        if (nodeId == 5001) {
+            callCount++;
+            receivedId = nodeId;
+            receivedPid = info.pid;
+            receivedSize = info.size;
+        }
+    });
+
+    EXPECT_EQ(callCount, 1);
+    EXPECT_EQ(receivedId, testId);
+    EXPECT_EQ(receivedPid, testPid);
+    EXPECT_EQ(receivedSize, testSize);
+
+    MemoryTrack::Instance().RemoveNodeRecord(testId);
+}
 } // namespace OHOS::Rosen

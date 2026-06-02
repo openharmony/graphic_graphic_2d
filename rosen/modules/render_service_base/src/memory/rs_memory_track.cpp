@@ -622,5 +622,14 @@ size_t MemoryTrack::GetNodeNumOfPid(const pid_t pid)
     }
     return itr->second.size();
 }
+
+void MemoryTrack::GetNodeInfo(NodeInfoCallback callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    RS_TRACE_NAME_FMT("MemoryTrack::GetNodeInfo MemNodeMap size:%zu", memNodeMap_.size());
+    for (auto& [nodeId, info] : memNodeMap_) {
+        callback(nodeId, info);
+    }
+}
 }
 }

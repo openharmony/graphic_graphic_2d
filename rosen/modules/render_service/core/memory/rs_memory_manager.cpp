@@ -129,8 +129,8 @@ static std::string Data2String(std::string data, uint32_t targetNumber)
 void MemoryManager::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
     std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize)
 {
-    RS_TRACE_NAME_FMT("MemoryManager::GetNodeInfo MemNodeMap size:%zu", MemoryTrack::Instance().GetMemNodeMap().size());
-    for (auto& [nodeId, info] : MemoryTrack::Instance().GetMemNodeMap()) {
+    RS_TRACE_NAME("MemoryManager::GetNodeInfo");
+    MemoryTrack::Instance().GetNodeInfo([&](const NodeId& nodeId, const MemoryInfo& info) {
         auto node = RSMainThread::Instance()->GetContext().GetMutableNodeMap().GetRenderNode(nodeId);
         int pid = info.pid;
         if (node) {
@@ -149,7 +149,7 @@ void MemoryManager::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& no
                 nullnode_info[pid] = 1;
             }
         }
-    }
+    });
 }
 // LCOV_EXCL_STOP
 
