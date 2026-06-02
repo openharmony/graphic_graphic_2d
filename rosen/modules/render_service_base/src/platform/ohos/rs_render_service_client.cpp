@@ -1726,6 +1726,16 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
         clientToService->SetOnRemoteDiedCallback(callback);
     }
 }
+
+int32_t RSRenderServiceClient::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->SendVideoRateInfo(videoRateInfo);
+}
+
 #ifndef ENABLE_RS_PROXY
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
