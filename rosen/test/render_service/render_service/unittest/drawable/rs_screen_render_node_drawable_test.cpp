@@ -389,7 +389,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest003, TestSize.Le
         RSUifirstManager::Instance().hasForceUpdateNode_ = false;
         ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
         RSUifirstManager::Instance().hasForceUpdateNode_ = true;
-        ASSERT_FALSE(screenDrawable_->CheckScreenNodeSkip(*params,uniProcessor));
+        ASSERT_FALSE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
     }
 
 /**

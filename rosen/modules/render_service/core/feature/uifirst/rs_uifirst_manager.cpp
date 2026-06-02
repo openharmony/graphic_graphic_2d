@@ -377,9 +377,9 @@ void RSUifirstManager::ProcessDoneNodeInner()
             RenderGroupUpdate(drawable);
             SetNodeNeedForceUpdateFlag(true);
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
- 	        if (surfaceParams) {
- 	            hasForceUpdateScreen_.insert(surfaceParams->GetScreenId());
- 	        }
+            if (surfaceParams) {
+                hasForceUpdateScreen_.insert(surfaceParams->GetScreenId());
+            }
             pendingForceUpdateNode_.push_back(id);
         }
         NotifyUIStartingWindow(id, false, drawable, true);

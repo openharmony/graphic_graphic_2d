@@ -116,12 +116,12 @@ public:
     }
 
      bool HasForceUpdateNode(ScreenId screenId)
- 	{
- 	    if (UNLIKELY(uifirstType_ == UiFirstCcmType::MULTI)) {
- 	        return hasForceUpdateScreen_.find(screenId) != hasForceUpdateScreen_.end();
- 	    }
- 	    return hasForceUpdateNode_;
- 	}
+    {
+        if (UNLIKELY(uifirstType_ == UiFirstCcmType::MULTI)) {
+            return hasForceUpdateScreen_.find(screenId) != hasForceUpdateScreen_.end();
+        }
+        return hasForceUpdateNode_;
+    }
 
     void MergeOldDirty(NodeId id);
     void MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRenderNode>& node);
