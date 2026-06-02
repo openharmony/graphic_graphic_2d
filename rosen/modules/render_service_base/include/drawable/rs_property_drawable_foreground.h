@@ -162,12 +162,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-#ifdef USE_PRIMITIVE
-    bool UsePrimList() const override
-    {
-        return true;
-    }
-#endif
 };
 
 class RSForegroundShaderDrawable : public RSDrawable {
@@ -206,6 +200,10 @@ public:
     RSBorderDrawable() = default;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    static bool IsSDFBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border);
+#ifdef USE_PRIMITIVE
+    void OnSync() override;
+#endif
 
 private:
     static void DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
@@ -214,10 +212,9 @@ private:
         std::shared_ptr<RSNGRenderShapeBase> shape, std::shared_ptr<RSNGRenderShaderBase> shader);
 
 #ifdef USE_PRIMITIVE
-    bool UsePrimList() const override
-    {
-        return true;
-    }
+    bool UsePrimList() const override;
+    bool stagingIsSDFBorder_ = false;
+    bool isSDFBorder_ = false;
 #endif
 };
 
@@ -229,12 +226,15 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
 
+#ifdef USE_PRIMITIVE
+    void OnSync() override;
+#endif
+
 private:
 #ifdef USE_PRIMITIVE
-    bool UsePrimList() const override
-    {
-        return true;
-    }
+    bool UsePrimList() const override;
+    bool stagingIsSDFOutline_ = false;
+    bool isSDFOutline_ = false;
 #endif
 };
 

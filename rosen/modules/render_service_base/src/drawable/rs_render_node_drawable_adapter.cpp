@@ -360,10 +360,12 @@ void RSRenderNodeDrawableAdapter::DrawContent(Drawing::Canvas& canvas, const Dra
 void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
 #ifdef USE_PRIMITIVE
-    auto& paintFilterCanvas = static_cast<RSPaintFilterCanvas &>(canvas);
-    auto primListAdapter = paintFilterCanvas.primListAdapter_;
-    if (primListAdapter) {
-        primListAdapter->SetChildrenSkipped(false);
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    if (paintFilterCanvas) {
+        auto primListAdapter = paintFilterCanvas->primListAdapter_;
+        if (primListAdapter) {
+            primListAdapter->SetChildrenSkipped(false);
+        }
     }
 #endif
     if (drawCmdList_.empty()) {

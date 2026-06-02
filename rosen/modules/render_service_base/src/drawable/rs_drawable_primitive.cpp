@@ -27,6 +27,7 @@ namespace OHOS::Rosen {
 void RSDrawable::OnDrawPrimitive(Drawing::Canvas* canvas, const Drawing::Rect* rect)
 {
     if (!UsePrimList()) {
+        primList_ = nullptr;
 #ifdef PRIMITIVE_PROFILER
         ROSEN_LOGI("RSDrawable::OnDrawPrimitive, UsePrimList return false");
 #endif
@@ -34,7 +35,12 @@ void RSDrawable::OnDrawPrimitive(Drawing::Canvas* canvas, const Drawing::Rect* r
         return;
     }
 
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas *>(canvas);
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    if (!paintFilterCanvas) {
+        OnDraw(canvas, rect);
+        return;
+    }
+
     auto primListAdapter = paintFilterCanvas->primListAdapter_;
     if (primListAdapter == nullptr) {
         OnDraw(canvas, rect);
@@ -69,15 +75,15 @@ PRIM_COLLECTING:
     primList_ = primListAdapter->EndPrimCollecting(*canvas);
     return;
 }
- 
+
 void RSDrawable::OnPrimitiveSync()
 {
     OnSync();
     isDirty_ = isDirty_ || stagingIsDirty_;
     stagingIsDirty_ = false;
-    RS_TRACE_NAME_FMT("RSDrawable::OnPrimitiveSync, isDirty_[%d]", isDirty_);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSDrawable::OnPrimitiveSync, isDirty_[%d]", isDirty_);
 }
- 
+
 void DrawableV2::RSChildrenDrawable::OnDrawPrimitive(Drawing::Canvas* canvas, const Drawing::Rect* rect)
 {
     OnDraw(canvas, rect);

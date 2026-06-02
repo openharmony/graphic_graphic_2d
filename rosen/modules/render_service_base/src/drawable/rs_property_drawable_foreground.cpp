@@ -491,9 +491,32 @@ bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
     }
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
+#ifdef USE_PRIMITIVE
+    stagingIsSDFBorder_ = IsSDFBorder(properties, border);
+#endif
     DrawBorder(properties, *updater.GetRecordingCanvas(), border, false);
     return true;
 }
+
+bool RSBorderDrawable::IsSDFBorder(const RSProperties& properties,
+    const std::shared_ptr<RSBorder>& border)
+{
+    return properties.GetSDFShape() && border->GetSDFShader() ? true : false;
+}
+ 
+#ifdef USE_PRIMITIVE
+void RSBorderDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    std::swap(drawCmdList_, stagingDrawCmdList_);
+    propertyDescription_ = stagingPropertyDescription_;
+    stagingPropertyDescription_.clear();
+    isSDFBorder_ = stagingIsSDFBorder_;
+    needSync_ = false;
+}
+#endif
 
 namespace {
 bool PreprocessBorderSDFShader(Drawing::Rect& rect, bool isOutline, std::shared_ptr<RSNGRenderShapeBase> shape,
@@ -518,6 +541,16 @@ bool PreprocessBorderSDFShader(Drawing::Rect& rect, bool isOutline, std::shared_
 }
 }
 
+#ifdef USE_PRIMITIVE
+    bool RSBorderDrawable::UsePrimList() const
+    {
+        if (isSDFBorder_) {
+            return false;
+        }
+        return true;
+    }
+#endif
+
 void RSBorderDrawable::DrawBorderSDFShader(Drawing::Canvas& canvas, Drawing::Rect& rect, const bool& isOutline,
     std::shared_ptr<RSNGRenderShapeBase> shape, std::shared_ptr<RSNGRenderShaderBase> shader)
 {
@@ -534,7 +567,7 @@ void RSBorderDrawable::DrawBorderSDFShader(Drawing::Canvas& canvas, Drawing::Rec
 void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
-    if (properties.GetSDFShape() && border->GetSDFShader()) {
+    if (IsSDFBorder(properties, border)) {
         Drawing::Rect sdfShaderRect(0.f, 0.f, properties.GetFrameWidth(), properties.GetFrameHeight());
         RSBorderDrawable::DrawBorderSDFShader(canvas, sdfShaderRect, isOutline,
             properties.GetSDFShape(), border->GetSDFShader());
@@ -607,9 +640,35 @@ bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
     }
     // regenerate stagingDrawCmdList_
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
+#ifdef USE_PRIMITIVE
+    stagingIsSDFOutline_ = RSBorderDrawable::IsSDFBorder(properties, outline);
+#endif
     RSBorderDrawable::DrawBorder(properties, *updater.GetRecordingCanvas(), outline, true);
     return true;
 }
+
+#ifdef USE_PRIMITIVE
+void RSOutlineDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    std::swap(drawCmdList_, stagingDrawCmdList_);
+    propertyDescription_ = stagingPropertyDescription_;
+    stagingPropertyDescription_.clear();
+    isSDFOutline_ = stagingIsSDFOutline_;
+    needSync_ = false;
+}
+ 
+ 
+bool RSOutlineDrawable::UsePrimList() const
+{
+    if (isSDFOutline_) {
+        return false;
+    }
+    return true;
+}
+#endif
 
 RSDrawable::Ptr RSParticleDrawable::OnGenerate(const RSRenderNode& node)
 {
