@@ -118,7 +118,7 @@ public:
     static SharedPtr CreateSurfaceNode(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
 
     bool SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfig,
-    RSSurfaceNodeType type, bool isWindow, bool unobscured);
+        RSSurfaceNodeType type, bool isWindow, bool unobscured);
  
     /**
      * @brief Creates a new instance of RSSurfaceNode with the specified configuration.
