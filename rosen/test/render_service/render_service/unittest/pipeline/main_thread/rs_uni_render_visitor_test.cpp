@@ -7303,7 +7303,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_F
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
     effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     effectNode->GetMutableRenderProperties().needFilter_ = true;
-    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+    rsRootRenderNode->visibleFilterChild_.push_back(FILTER_NODE_ID_NOT_ON_TREE);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -7317,6 +7317,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_F
     logicalDisplayNode->InitRenderParams();
 
     EXPECT_FALSE(effectNode->IsOnTheTree());
+    EXPECT_EQ(rsRootRenderNode->GetVisibleFilterChild().size(), 1U);
 
     RSDirtyRegionManager dirtyManager;
     rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
@@ -7348,7 +7349,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_F
     effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     effectNode->GetMutableRenderProperties().needFilter_ = true;
     effectNode->SetIsOnTheTree(true);
-    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+    rsRootRenderNode->visibleFilterChild_.push_back(FILTER_NODE_ID_ON_TREE);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -7362,6 +7363,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_F
     logicalDisplayNode->InitRenderParams();
 
     EXPECT_TRUE(effectNode->IsOnTheTree());
+    EXPECT_EQ(rsRootRenderNode->GetVisibleFilterChild().size(), 1U);
 
     RSDirtyRegionManager dirtyManager;
     rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
