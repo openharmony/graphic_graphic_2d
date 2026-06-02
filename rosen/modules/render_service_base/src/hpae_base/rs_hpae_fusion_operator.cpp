@@ -129,9 +129,9 @@ HaePixel RSHpaeFusionOperator::GetHaePixel(const std::shared_ptr<RSDrawingFilter
             filter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR));
         if (maskColorShaderFilter) {
             RSColor maskColors = maskColorShaderFilter->GetMaskColor();
-            haePixel.a = std::min<uint16_t>(maskColors.GetAlpha() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);	 
-            haePixel.r = std::min<uint16_t>(maskColors.GetRed() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);	 
-            haePixel.g = std::min<uint16_t>(maskColors.GetGreen() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);	 
+            haePixel.a = std::min<uint16_t>(maskColors.GetAlpha() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);
+            haePixel.r = std::min<uint16_t>(maskColors.GetRed() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);
+            haePixel.g = std::min<uint16_t>(maskColors.GetGreen() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX); 
             haePixel.b = std::min<uint16_t>(maskColors.GetBlue() * HPAE_COLOR_MASK_SCALE, HPAE_COLOR_MASK_MAX);
         }
     }
