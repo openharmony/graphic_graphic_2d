@@ -48,6 +48,9 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
 #include "feature/special_layer/rs_special_layer_utils.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
@@ -1703,6 +1706,17 @@ ErrCode RSRenderPipelineAgent::SetOverlayDisplayMode(int32_t mode)
     }
     RS_LOGI("RSRenderPipelineAgent::SetOverlayDisplayMode: mode: [%{public}d]", mode);
     return RSOverlayDisplayManager::Instance().SetOverlayDisplayMode(mode) == 0 ? ERR_OK : ERR_INVALID_VALUE;
+}
+#endif
+
+#ifdef RS_ENABLE_TV_PQ_METADATA
+ErrCode RSRenderPipelineAgent::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (pipeline != nullptr) {
+        return RSTvMetadataManager::SendVideoRateInfo(videoRateInfo) == 0 ? ERR_OK : ERR_INVALID_VALUE;
+    }
+    return ERR_INVALID_VALUE;
 }
 #endif
 
