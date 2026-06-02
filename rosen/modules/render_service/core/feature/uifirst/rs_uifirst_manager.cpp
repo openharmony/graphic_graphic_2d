@@ -376,7 +376,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
             drawable->GetRsSubThreadCache().UpdateCompletedCacheSurface();
             RenderGroupUpdate(drawable);
             SetNodeNeedForceUpdateFlag(true);
-            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().Get());
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
  	        if (surfaceParams) {
  	            hasForceUpdateScreen_.insert(surfaceParams->GetScreenId());
  	        }
