@@ -24,8 +24,8 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
     
 namespace {
-constexpr size_t screenWidth = 1200;
-constexpr size_t screenHeight = 2000;
+const int32_t SCREEN_WIDTH = 1200;
+const int32_t SCREEN_HEIGHT = 2000;
 
 struct WavyRippleLightParams {
     Vector2f center;
@@ -67,12 +67,8 @@ class NGShaderWavyRippleLightTest : public RSGraphicTest {
 public:
     void BeforeEach() override
     {
-        SetScreenSize(screenWidth, screenHeight);
+        SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
-
-private:
-    const int screenWidth_ = screenWidth;
-    const int screenHeight_ = screenHeight;
 };
 
 void SetWavyRippleLightParams(const std::shared_ptr<RSNGWavyRippleLight>& shader,
@@ -90,8 +86,8 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Cen
 {
     const size_t columnCount = 2;
     const size_t rowCount = wavyRippleLightParamsCenter.size();
-    auto sizeX = screenWidth_ / columnCount;
-    auto sizeY = screenHeight_ * columnCount / rowCount;
+    auto sizeX = SCREEN_WIDTH / columnCount;
+    auto sizeY = SCREEN_HEIGHT * columnCount / rowCount;
 
     for (size_t i = 0; i < wavyRippleLightParamsCenter.size(); ++i) {
         auto shader = std::make_shared<RSNGWavyRippleLight>();
@@ -116,8 +112,8 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Rad
 {
     const size_t columnCount = 2;
     const size_t rowCount = wavyRippleLightParamsRadius.size();
-    auto sizeX = screenWidth_ / columnCount;
-    auto sizeY = screenHeight_ * columnCount / rowCount;
+    auto sizeX = SCREEN_WIDTH / columnCount;
+    auto sizeY = SCREEN_HEIGHT * columnCount / rowCount;
 
     for (size_t i = 0; i < wavyRippleLightParamsRadius.size(); ++i) {
         auto shader = std::make_shared<RSNGWavyRippleLight>();
@@ -142,8 +138,8 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Thi
 {
     const size_t columnCount = 2;
     const size_t rowCount = wavyRippleLightParamsThickness.size();
-    auto sizeX = screenWidth_ / columnCount;
-    auto sizeY = screenHeight_ * columnCount / rowCount;
+    auto sizeX = SCREEN_WIDTH / columnCount;
+    auto sizeY = SCREEN_HEIGHT * columnCount / rowCount;
 
     for (size_t i = 0; i < wavyRippleLightParamsThickness.size(); ++i) {
         auto shader = std::make_shared<RSNGWavyRippleLight>();
@@ -168,8 +164,8 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Inv
 {
     const size_t columnCount = 2;
     const size_t rowCount = wavyRippleLightParamsInvalidValues.size();
-    auto sizeX = screenWidth_ / columnCount;
-    auto sizeY = screenHeight_ * columnCount / rowCount;
+    auto sizeX = SCREEN_WIDTH / columnCount;
+    auto sizeY = SCREEN_HEIGHT * columnCount / rowCount;
 
     for (size_t i = 0; i < wavyRippleLightParamsInvalidValues.size(); ++i) {
         auto shader = std::make_shared<RSNGWavyRippleLight>();
