@@ -47,36 +47,36 @@ void InitContourDiagonalFlowLight(std::shared_ptr<RSNGContourDiagonalFlowLight>&
         Vector2f{0.070457, 0.698242}, Vector2f{0.062967, 0.734686}, Vector2f{0.066406, 0.771484},
         Vector2f{0.071382, 0.808030}, Vector2f{0.073496, 0.844727}, Vector2f{0.076234, 0.852934},
         Vector2f{0.068866, 0.859375}, Vector2f{0.063638, 0.869408}, 
-        Vector2f{0.055122, 0.877713}, Vector2f{0.032138, 0.892197}, Vector2f{0.019097, 0.913086}, 
-        Vector2f{0.011010, 0.921940}, Vector2f{0.008536, 0.932617}, Vector2f{0.007380, 0.937471}, 
-        Vector2f{0.007957, 0.942383}, Vector2f{0.014872, 0.954917}, Vector2f{0.023438, 0.966797}, 
-        Vector2f{0.022116, 0.976836}, Vector2f{0.025897, 0.986328}, Vector2f{0.029415, 0.991230}, 
-        Vector2f{0.033276, 0.995985}, Vector2f{0.037547, 0.999953}, Vector2f{0.044271, 0.999023}, 
-        Vector2f{0.438151, 0.999023}, Vector2f{0.832031, 0.999023}, Vector2f{0.838542, 0.999023}, 
-        Vector2f{0.845052, 0.999023}, Vector2f{0.848307, 0.999023}, Vector2f{0.851563, 0.999023}, 
-        Vector2f{0.854022, 0.998481}, Vector2f{0.856482, 0.997938}, Vector2f{0.856337, 0.996040}, 
-        Vector2f{0.856192, 0.994141}, Vector2f{0.852706, 0.989490}, Vector2f{0.850695, 0.984375}, 
-        Vector2f{0.832893, 0.939715},
-        Vector2f{0.809317, 0.296484}, Vector2f{0.799994, 0.877343}, Vector2f{0.780093, 0.864692},
-        Vector2f{0.773769, 0.861201}, Vector2f{0.772280, 0.855469}, Vector2f{0.771753, 0.850365},
-        Vector2f{0.774595, 0.845703}, Vector2f{0.798601, 0.766116}, Vector2f{0.811057, 0.684570},
-        Vector2f{0.811274, 0.679689}, Vector2f{0.811202, 0.674805}, Vector2f{0.811202, 0.672363},
-        Vector2f{0.811202, 0.669922}, Vector2f{0.811780, 0.667480}, Vector2f{0.812359, 0.665039},
-        Vector2f{0.813733, 0.664225}, Vector2f{0.815108, 0.663411}, Vector2f{0.815759, 0.665202},
-        Vector2f{0.816410, 0.666992}, Vector2f{0.816050, 0.671905}, Vector2f{0.817133, 0.676758},
-        Vector2f{0.818146, 0.678114}, Vector2f{0.819158, 0.679471}, Vector2f{0.820244, 0.678114},
-        Vector2f{0.821329, 0.676758}, Vector2f{0.822341, 0.674316}, Vector2f{0.823354, 0.671875},
-        Vector2f{0.824652, 0.667035}, Vector2f{0.824222, 0.662109}, Vector2f{0.824565, 0.649629},
-        Vector2f{0.819593, 0.637695}, Vector2f{0.816373, 0.627546}, Vector2f{0.810189, 0.618164},
-        Vector2f{0.806704, 0.613836}, Vector2f{0.803534, 0.609375}, Vector2f{0.801797, 0.607042},
-        Vector2f{0.800061, 0.604709}, Vector2f{0.799121, 0.604438}, Vector2f{0.798181, 0.604167},
-        Vector2f{0.799338, 0.606283}, Vector2f{0.800496, 0.608398}, Vector2f{0.803682, 0.613163},
-        Vector2f{0.806138, 0.618164}, Vector2f{0.807512, 0.620605}, Vector2f{0.808887, 0.623047},
-        Vector2f{0.810117, 0.625488}, Vector2f{0.811346, 0.627930}, Vector2f{0.810912, 0.629666},
-        Vector2f{0.810478, 0.631402}, Vector2f{0.808163, 0.630588}, Vector2f{0.805849, 0.629774},
-        Vector2f{0.803606, 0.627387}, Vector2f{0.801364, 0.625000}, Vector2f{0.797670, 0.620021},
-        Vector2f{0.793551, 0.615234}, Vector2f{0.789764, 0.610527}, Vector2f{0.786896, 0.605469},
-        Vector2f{0.783653, 0.600816}, Vector2f{0.781543, 0.595812}, Vector2f{0.786908, 0.593851},
+        Vector2f{0.055122, 0.877713}, Vector2f{0.032138, 0.892197}, Vector2f{0.019097, 0.913086},
+        Vector2f{0.011010, 0.921940}, Vector2f{0.008536, 0.932617}, Vector2f{0.007380, 0.937471},
+        Vector2f{0.007957, 0.942383}, Vector2f{0.014872, 0.954917}, Vector2f{0.023438, 0.966797},
+        Vector2f{0.022116, 0.976836}, Vector2f{0.025897, 0.986328}, Vector2f{0.029415, 0.991230},
+        Vector2f{0.033276, 0.995985}, Vector2f{0.037547, 0.999953}, Vector2f{0.044271, 0.999023},
+        Vector2f{0.438151, 0.999023}, Vector2f{0.832031, 0.999023}, Vector2f{0.838542, 0.999023},
+        Vector2f{0.845052, 0.999023}, Vector2f{0.848307, 0.999023}, Vector2f{0.851563, 0.999023},
+        Vector2f{0.854022, 0.998481}, Vector2f{0.856482, 0.997938}, Vector2f{0.856337, 0.996040},
+        Vector2f{0.856192, 0.994141}, Vector2f{0.852706, 0.989490}, Vector2f{0.850695, 0.984375},
+        Vector2f{0.832893, 0.939715}, Vector2f{0.809317, 0.296484}, Vector2f{0.799994, 0.877343},
+        Vector2f{0.780093, 0.864692}, Vector2f{0.773769, 0.861201}, Vector2f{0.772280, 0.855469},
+        Vector2f{0.771753, 0.850365}, Vector2f{0.774595, 0.845703}, Vector2f{0.798601, 0.766116},
+        Vector2f{0.811057, 0.684570}, Vector2f{0.811274, 0.679689}, Vector2f{0.811202, 0.674805},
+        Vector2f{0.811202, 0.672363}, Vector2f{0.811202, 0.669922}, Vector2f{0.811780, 0.667480},
+        Vector2f{0.812359, 0.665039}, Vector2f{0.813733, 0.664225}, Vector2f{0.815108, 0.663411},
+        Vector2f{0.815759, 0.665202}, Vector2f{0.816410, 0.666992}, Vector2f{0.816050, 0.671905},
+        Vector2f{0.817133, 0.676758}, Vector2f{0.818146, 0.678114},
+        Vector2f{0.819158, 0.679471}, Vector2f{0.820244, 0.678114}, Vector2f{0.821329, 0.676758},
+        Vector2f{0.822341, 0.674316}, Vector2f{0.823354, 0.671875}, Vector2f{0.824652, 0.667035},
+        Vector2f{0.824222, 0.662109}, Vector2f{0.824565, 0.649629}, Vector2f{0.819593, 0.637695},
+        Vector2f{0.816373, 0.627546}, Vector2f{0.810189, 0.618164}, Vector2f{0.806704, 0.613836},
+        Vector2f{0.803534, 0.609375}, Vector2f{0.801797, 0.607042}, Vector2f{0.800061, 0.604709},
+        Vector2f{0.799121, 0.604438}, Vector2f{0.798181, 0.604167}, Vector2f{0.799338, 0.606283},
+        Vector2f{0.800496, 0.608398}, Vector2f{0.803682, 0.613163}, Vector2f{0.806138, 0.618164},
+        Vector2f{0.807512, 0.620605}, Vector2f{0.808887, 0.623047}, Vector2f{0.810117, 0.625488},
+        Vector2f{0.811346, 0.627930}, Vector2f{0.810912, 0.629666}, Vector2f{0.810478, 0.631402},
+        Vector2f{0.808163, 0.630588}, Vector2f{0.805849, 0.629774}, Vector2f{0.803606, 0.627387},
+        Vector2f{0.801364, 0.625000}, Vector2f{0.797670, 0.620021}, Vector2f{0.793551, 0.615234},
+        Vector2f{0.789764, 0.610527}, Vector2f{0.786896, 0.605469}, Vector2f{0.783653, 0.600816},
+        Vector2f{0.781543, 0.595812}, Vector2f{0.786908, 0.593851},
         Vector2f{0.788343, 0.591797}, Vector2f{0.784427, 0.586662}, Vector2f{0.779518, 0.582031},
         Vector2f{0.769707, 0.573498}, Vector2f{0.758250, 0.566298}, Vector2f{0.733814, 0.551521},
         Vector2f{0.705733, 0.541233}, Vector2f{0.678167, 0.534987}, Vector2f{0.653650, 0.523872},
@@ -263,12 +263,15 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext()); 
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!node) {
+            return;
+        }
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
         node->SetBackgroundNGShader(contourLight);
-        GetRootNode->AddChild(node);
+        GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
 }
@@ -288,12 +291,15 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
-        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext()); 
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!node) {
+            return;
+        }
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
         node->SetBackgroundNGShader(contourLight);
-        GetRootNode->AddChild(node);
+        GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
 }
@@ -313,12 +319,15 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         
-        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext()); 
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!node) {
+            return;
+        }
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
         node->SetBackgroundNGShader(contourLight);
-        GetRootNode->AddChild(node);
+        GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
 }
@@ -337,12 +346,15 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         
-        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext()); 
+        auto node = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!node) {
+            return;
+        }
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
         node->SetBackgroundNGShader(contourLight);
-        GetRootNode->AddChild(node);
+        GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
 }
