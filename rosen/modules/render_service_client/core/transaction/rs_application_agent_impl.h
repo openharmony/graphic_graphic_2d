@@ -46,7 +46,8 @@ public:
     void RegisterRSApplicationAgent(std::shared_ptr<RSUIContext> rsUIContext);
 
     RSApplicationAgentImpl() = default;
-    virtual ~RSApplicationAgentImpl() = default;
+    virtual ~RSApplicationAgentImpl();
+    static void Destory();
 
 private:
     RSApplicationAgentImpl(const RSApplicationAgentImpl&) = delete;
