@@ -4367,7 +4367,7 @@ void RSProperties::SetGrayScale(const std::optional<float>& grayScale)
 
 const std::optional<float>& RSProperties::GetGrayScale() const
 {
-    static const RS_HIDDEN std::optional<float> defaultValue = std::nullopt;
+    const RS_HIDDEN std::optional<float> defaultValue = std::nullopt;
     if (effect_) {
         return effect_->grayScale_;
     }
