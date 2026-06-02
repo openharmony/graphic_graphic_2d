@@ -762,7 +762,7 @@ int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t 
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
         return RS_CONNECTION_ERROR;
@@ -771,9 +771,16 @@ int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t 
         ROSEN_LOGE("%{public}s WriteInt32 failed.", __func__);
         return INVALID_ARGUMENTS;
     }
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        ROSEN_LOGE("%{public}s WriteRemoteObject callback->AsObject() err.", __func__);
-        return WRITE_PARCEL_ERR;
+    if (callback) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed.", __func__);
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);
+            return WRITE_PARCEL_ERR;
+        }
     }
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK);
@@ -781,7 +788,12 @@ int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t 
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    return SUCCESS;
+    int32_t result = 0;
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("%{public}s Read result failed", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    return result;
 }
 
 ErrCode RSServiceToRenderConnectionProxy::GetPixelMapByProcessId(

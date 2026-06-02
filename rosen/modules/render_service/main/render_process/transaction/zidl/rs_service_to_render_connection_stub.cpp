@@ -153,13 +153,22 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK ReadRemoteObject failed!");
-                ret = ERR_NULL_OBJECT;
+            bool hasCallback = false;
+            if (!data.ReadBool(hasCallback)) {
+                RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK ReadBool failed!");
+                ret = ERR_INVALID_DATA;
                 break;
             }
-            sptr<RSIBrightnessInfoChangeCallback> callback = iface_cast<RSIBrightnessInfoChangeCallback>(remoteObject);
+            sptr<RSIBrightnessInfoChangeCallback> callback = nullptr;
+            if (hasCallback) {
+                if (auto remoteObject = data.ReadRemoteObject()) {
+                    callback = iface_cast<RSIBrightnessInfoChangeCallback>(remoteObject);
+                } else {
+                    RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK ReadRemoteObject failed!");
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+            }
             int32_t status = SetBrightnessInfoChangeCallback(pid, callback);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK Write status failed!");

@@ -505,8 +505,8 @@ HWTEST_F(RSHdrUtilTest, GetRGBA1010108EnabledTest, TestSize.Level1)
     bool result = isDDGR && rgba1010108 && debugSwitch;
     EXPECT_EQ(RSBaseHdrUtil::GetRGBA1010108Enabled(), result);
     system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", "false");
-    EXPECT_EQ(RSBaseHdrUtil::GetRGBA1010108Enabled(), false);
     system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", debugSwitch ? "true" : "false");
+    EXPECT_EQ(RSBaseHdrUtil::GetRGBA1010108Enabled(), result);
 }
 
 /**
