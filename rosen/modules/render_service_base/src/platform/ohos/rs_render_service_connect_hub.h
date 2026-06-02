@@ -98,7 +98,7 @@ private:
     static std::once_flag flag_;
     static sptr<RSRenderServiceConnectHub> instance_;
     static OnConnectCallback onConnectCallback_;
-    static std::mutex OnDiedCallbacksMutex_;
+    static std::mutex onDiedCallbacksMutex_;
     static std::unordered_map<int32_t, std::function<void()>> OnDiedCallbacks_;
     friend class RSRenderPipelineClient;
 };

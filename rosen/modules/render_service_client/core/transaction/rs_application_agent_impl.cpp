@@ -55,7 +55,8 @@ RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
 #endif
 }
 
-void RSApplicationAgentImpl::Destory() {
+void RSApplicationAgentImpl::Destory() 
+{
 #ifdef OHOS_PLATFORM
     gRSApplicationAgentImplInstance = nullptr;
 #endif

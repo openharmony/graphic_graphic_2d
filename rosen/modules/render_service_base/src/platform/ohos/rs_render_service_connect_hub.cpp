@@ -36,7 +36,7 @@ namespace Rosen {
 std::once_flag RSRenderServiceConnectHub::flag_;
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::instance_ = nullptr;
 OnConnectCallback RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
-std::mutex RSRenderServiceConnectHub::OnDiedCallbacksMutex_;
+std::mutex RSRenderServiceConnectHub::onDiedCallbacksMutex_;
 std::unordered_map<int32_t, std::function<void()>> RSRenderServiceConnectHub::OnDiedCallbacks_;
 constexpr int32_t TOKEN_STRONG_REF_COUNT = 1;
 constexpr int32_t WAIT_TIME_FOR_DEC_STRONG_REF = 50;
@@ -64,14 +64,14 @@ RSRenderServiceConnectHub::RSRenderServiceConnectHub()
 
 void RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode code, std::function<void()> cb)
 {
-    std::lock_guard<std::mutex> lock(OnDiedCallbacksMutex_);
+    std::lock_guard<std::mutex> lock(onDiedCallbacksMutex_);
     OnDiedCallbacks_[static_cast<int32_t>(code)] = cb;
     ROSEN_LOGI("RSRenderServiceConnectHub::SetOnDiedCallback, code:%{public}d", code);
 }
 
 void RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode code)
 {
-    std::lock_guard<std::mutex> lock(OnDiedCallbacksMutex_);
+    std::lock_guard<std::mutex> lock(onDiedCallbacksMutex_);
     OnDiedCallbacks_.erase(static_cast<int32_t>(code));
     ROSEN_LOGI("RSRenderServiceConnectHub::RemoveOnDiedCallback, code:%{public}d", code);
 }
@@ -80,7 +80,7 @@ void RSRenderServiceConnectHub::ExecuteAndClearDiedCallbacks()
 {
     std::unordered_map<int32_t, std::function<void()>> callbacks;
     {
-        std::lock_guard<std::mutex> lock(OnDiedCallbacksMutex_);
+        std::lock_guard<std::mutex> lock(onDiedCallbacksMutex_);
         callbacks = std::move(OnDiedCallbacks_);
     }
     for (auto& [code, cb] : callbacks) {
