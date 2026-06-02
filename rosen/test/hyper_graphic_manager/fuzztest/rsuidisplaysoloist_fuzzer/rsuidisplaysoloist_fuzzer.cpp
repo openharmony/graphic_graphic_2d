@@ -145,10 +145,7 @@ void DoSoloistFindRefreshRateFactors(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloist soloist(id);
-    int32_t refreshRate = fdp.ConsumeIntegral<int32_t>();
-    if (refreshRate < 1) {
-        refreshRate = 1;
-    }
+    int32_t refreshRate = fdp.ConsumeIntegral<int32_t>() % 360;
     soloist.FindRefreshRateFactors(refreshRate);
 }
 
