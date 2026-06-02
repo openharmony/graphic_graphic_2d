@@ -27,8 +27,8 @@ config("effect_SKeffectChian_config") {
     "-Wno-missing-field-initializers",
     "-Wno-c++11-narrowing",
   ]
-  if (target_os == "ios") { 
-    cflags += ["-Wno-ignored-qualifiers"] 
+  if (target_os == "ios") {
+    cflags += ["-Wno-ignored-qualifiers"]
   }
 
   include_dirs = [
@@ -93,9 +93,9 @@ if (is_arkui_x) {
     ]
 
     if (target_os == "android") {
-      defines = [	 
-        "ANDROID_PLATFORM", 
-        "ROSEN_ARKUI_X", 
+      defines = [
+        "ANDROID_PLATFORM",
+        "ROSEN_ARKUI_X",
       ]
     } else if (target_os == "ios") {
       defines = [
