@@ -68,6 +68,9 @@ std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const size_t i, const size_t
     int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
 
     auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    if (effectChildNode) {
+        return nullptr;
+    }
     effectChildNode->SetBounds(x, y, sizeX, sizeY);
     effectChildNode->SetFrame(x, y, sizeX, sizeY);
     effectChildNode->SetOverlayNGShader(particleCircularHalo);
@@ -94,6 +97,10 @@ public:
     {
         auto backgroundTestNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!backgroundTestNode || !effectNode) {
+            return nullptr;
+        }
+
         effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         std::shared_ptr<Rosen::RSFilter> backFilter = Rosen::RSFilter::CreateMaterialFilter(10.f, 1, 1, 0,
@@ -150,7 +157,7 @@ GRAPHIC_TEST(NGShaderParticleCircularHaloTest, EFFECT_TEST, Set_Particle_Circula
 
 GRAPHIC_TEST(NGShaderParticleCircularHaloTest, EFFECT_TEST, Set_Particle_Circular_Halo_Extreme_Values_Test)
 {
-    const size_t columnCount = 4;
+    const size_t columnCount = 1;
     const size_t rowCount = static_cast<size_t>(extremeValues.size());
     auto effectNode = SetUpEffectNode();
     if (!effectNode) {
@@ -162,6 +169,7 @@ GRAPHIC_TEST(NGShaderParticleCircularHaloTest, EFFECT_TEST, Set_Particle_Circula
         InitParticleCircularHalo(particleHalo);
         particleHalo->Setter<ParticleCircularHaloCenterTag>(Vector2f{600.0f, 1000.0f});
         particleHalo->Setter<ParticleCircularHaloRadiusTag>(extremeValues[i]);
+
         SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, particleHalo);
     }
 }
