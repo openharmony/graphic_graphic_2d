@@ -35,6 +35,7 @@
         _ZTVNSt3__h18basic_stringstreamIcNS_11char_traitsIcEENS_9allocatorIcEEEE;
         _ZTVNSt3__h19basic_istringstreamIcNS_11char_traitsIcEENS_9allocatorIcEEEE;
         _ZTVNSt3__h19basic_ostringstreamIcNS_11char_traitsIcEENS_9allocatorIcEEEE;
+
         _ZTCN4OHOS11IRemoteStubINS_5Rosen18RSIConnectionTokenEEE0_NS_13IPCObjectStubE;
         _ZTCN4OHOS11IRemoteStubINS_5Rosen18RSIConnectionTokenEEE0_NS_13IRemoteObjectE;
         _ZTCN4OHOS11IRemoteStubINS_5Rosen18RSIConnectionTokenEEE120_NS1_18RSIConnectionTokenE;
