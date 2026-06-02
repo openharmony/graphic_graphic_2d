@@ -269,7 +269,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
 }
 
 GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
-    Set_Contour_Diagonal_Flow_Contour_LightWeight_Test)
+    Set_Contour_Diagonal_Flow_Light_Contour_LightWeight_Test)
 {
     const size_t columnCount = 2;
     const size_t rowCount = lightWeightValues.size();
