@@ -46,16 +46,17 @@ void InitContourDiagonalFlowLight(std::shared_ptr<RSNGContourDiagonalFlowLight>&
         Vector2f{0.088528, 0.669341}, Vector2f{0.080151, 0.678711}, Vector2f{0.074248, 0.688205},
         Vector2f{0.070457, 0.698242}, Vector2f{0.062967, 0.734686}, Vector2f{0.066406, 0.771484},
         Vector2f{0.071382, 0.808030}, Vector2f{0.073496, 0.844727}, Vector2f{0.076234, 0.852934},
-        Vector2f{0.068866, 0.859375}, Vector2f{0.063638, 0.869408}, Vector2f{0.055122, 0.877713},
-        Vector2f{0.032138, 0.892197}, Vector2f{0.019097, 0.913086}, Vector2f{0.011010, 0.921940},
-        Vector2f{0.008536, 0.932617}, Vector2f{0.007380, 0.937471}, Vector2f{0.007957, 0.942383},
-        Vector2f{0.014872, 0.954917}, Vector2f{0.023438, 0.966797}, Vector2f{0.022116, 0.976836},
-        Vector2f{0.025897, 0.986328}, Vector2f{0.029415, 0.991230}, Vector2f{0.033276, 0.995985},
-        Vector2f{0.037547, 0.999953}, Vector2f{0.044271, 0.999023}, Vector2f{0.438151, 0.999023},
-        Vector2f{0.832031, 0.999023}, Vector2f{0.838542, 0.999023}, Vector2f{0.845052, 0.999023},
-        Vector2f{0.848307, 0.999023}, Vector2f{0.851563, 0.999023}, Vector2f{0.854022, 0.998481},
-        Vector2f{0.856482, 0.997938}, Vector2f{0.856337, 0.996040}, Vector2f{0.856192, 0.994141},
-        Vector2f{0.852706, 0.989490}, Vector2f{0.850695, 0.984375}, Vector2f{0.832893, 0.939715},
+        Vector2f{0.068866, 0.859375}, Vector2f{0.063638, 0.869408}, 
+        Vector2f{0.055122, 0.877713}, Vector2f{0.032138, 0.892197}, Vector2f{0.019097, 0.913086}, 
+        Vector2f{0.011010, 0.921940}, Vector2f{0.008536, 0.932617}, Vector2f{0.007380, 0.937471}, 
+        Vector2f{0.007957, 0.942383}, Vector2f{0.014872, 0.954917}, Vector2f{0.023438, 0.966797}, 
+        Vector2f{0.022116, 0.976836}, Vector2f{0.025897, 0.986328}, Vector2f{0.029415, 0.991230}, 
+        Vector2f{0.033276, 0.995985}, Vector2f{0.037547, 0.999953}, Vector2f{0.044271, 0.999023}, 
+        Vector2f{0.438151, 0.999023}, Vector2f{0.832031, 0.999023}, Vector2f{0.838542, 0.999023}, 
+        Vector2f{0.845052, 0.999023}, Vector2f{0.848307, 0.999023}, Vector2f{0.851563, 0.999023}, 
+        Vector2f{0.854022, 0.998481}, Vector2f{0.856482, 0.997938}, Vector2f{0.856337, 0.996040}, 
+        Vector2f{0.856192, 0.994141}, Vector2f{0.852706, 0.989490}, Vector2f{0.850695, 0.984375}, 
+        Vector2f{0.832893, 0.939715},
         Vector2f{0.809317, 0.296484}, Vector2f{0.799994, 0.877343}, Vector2f{0.780093, 0.864692},
         Vector2f{0.773769, 0.861201}, Vector2f{0.772280, 0.855469}, Vector2f{0.771753, 0.850365},
         Vector2f{0.774595, 0.845703}, Vector2f{0.798601, 0.766116}, Vector2f{0.811057, 0.684570},
@@ -247,7 +248,8 @@ private:
 };
 
 
-GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_Contour_thicknessValues_Test)
+GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
+    Set_Contour_Diagonal_Flow_Light_Contour_thicknessValues_Test)
 {
     const int columnCount = 1;
     const int rowCount = thicknessValues.size();
@@ -271,7 +273,8 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
     }
 }
 
-GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_ContourValues_Test)
+GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
+    Set_Contour_Diagonal_Flow_Light_ContourValues_Test)
 {
     const size_t columnCount = 1;
     const size_t rowCount = contourValues.size();
@@ -295,7 +298,8 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
     }
 }
 
-GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Light_Contour_haloRadiusValues_Test)
+GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
+    Set_Contour_Diagonal_Flow_Light_Contour_haloRadiusValues_Test)
 {
     const size_t columnCount = 2;
     const size_t rowCount = haloRadiusValues.size();
@@ -313,13 +317,14 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
-        node->SetBackgroundNGShader(shader);
+        node->SetBackgroundNGShader(contourLight);
         GetRootNode->AddChild(node);
         RegisterNode(node);
     }
 }
 
-GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diagonal_Flow_Contour_LightWeight_Test)
+GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
+    Set_Contour_Diagonal_Flow_Contour_LightWeight_Test)
 {
     const size_t columnCount = 2;
     const size_t rowCount = lightWeightValues.size();
@@ -336,7 +341,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST, Set_Contour_Diag
         node->SetBounds({x, y, sizeX, sizeY});
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
-        node->SetBackgroundNGShader(shader);
+        node->SetBackgroundNGShader(contourLight);
         GetRootNode->AddChild(node);
         RegisterNode(node);
     }
