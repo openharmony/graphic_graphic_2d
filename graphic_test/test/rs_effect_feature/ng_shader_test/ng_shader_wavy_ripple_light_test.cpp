@@ -22,22 +22,8 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-
-// void InitWavyRippleLight(std::shared_ptr<RSNGWavyRippleLight>& wavyRippleLight)
-// {
-//     if (!wavyRippleLight) {
-//         return;
-//     }
-//     // Center
-//     wavyRippleLight->Setter<WavyRippleLightCenterTag>(Vector2f{0.5f, 0.5f});
-//     // Radius
-//     wavyRippleLight->Setter<WavyRippleLightRadiusTag>(50.0f);
-//     // Thickness
-//     wavyRippleLight->Setter<WavyRippleLightThicknessTag>(10.0f);
-// }
-
+    
 namespace {
-// const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 constexpr size_t screenWidth = 1200;
 constexpr size_t screenHeight = 2000;
 
