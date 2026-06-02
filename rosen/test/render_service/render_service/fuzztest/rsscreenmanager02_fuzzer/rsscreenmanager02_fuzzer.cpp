@@ -27,7 +27,6 @@ namespace OHOS {
 namespace Rosen {
 
 sptr<RSScreenManager> g_screenManager;
-std::shared_ptr<RSScreen> g_virtualScreen;
 
 namespace {
 constexpr uint8_t DO_CREATE_VIRTUAL_SCREEN = 0;
@@ -104,7 +103,7 @@ void DoResizeVirtualScreen(FuzzedDataProvider& fdp)
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
     g_screenManager->ResizeVirtualScreen(id, width, height);
-    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+    if (useExistingScreen) {
         g_screenManager->RemoveVirtualScreen(id);
     }
 }
@@ -123,7 +122,7 @@ void DoSetVirtualMirrorScreenCanvasRotation(FuzzedDataProvider& fdp)
     }
     bool canvasRotation = fdp.ConsumeBool();
     g_screenManager->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
-    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+    if (useExistingScreen) {
         g_screenManager->RemoveVirtualScreen(id);
     }
 }
@@ -143,7 +142,7 @@ void DoSetVirtualScreenAutoRotation(FuzzedDataProvider& fdp)
     }
     bool isAutoRotation = fdp.ConsumeBool();
     g_screenManager->SetVirtualScreenAutoRotation(id, isAutoRotation);
-    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+    if (useExistingScreen) {
         g_screenManager->RemoveVirtualScreen(id);
     }
 }
@@ -163,7 +162,7 @@ void DoSetVirtualMirrorScreenScaleMode(FuzzedDataProvider& fdp)
     ScreenScaleMode scaleMode = static_cast<ScreenScaleMode>(
         fdp.ConsumeIntegral<uint8_t>() % SCREEN_SCALE_MODE_SIZE);
     g_screenManager->SetVirtualMirrorScreenScaleMode(id, scaleMode);
-    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+    if (useExistingScreen) {
         g_screenManager->RemoveVirtualScreen(id);
     }
 }
@@ -183,7 +182,7 @@ void DoSetVirtualScreenStatus(FuzzedDataProvider& fdp)
     VirtualScreenStatus screenStatus = static_cast<VirtualScreenStatus>(
         fdp.ConsumeIntegralInRange<uint8_t>(0, VIRTUAL_SCREEN_STATUS_SIZE));
     g_screenManager->SetVirtualScreenStatus(id, screenStatus);
-    if (useExistingScreen && id != INVALID_SCREEN_ID) {
+    if (useExistingScreen) {
         g_screenManager->RemoveVirtualScreen(id);
     }
 }
