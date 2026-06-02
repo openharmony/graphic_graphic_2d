@@ -112,6 +112,12 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
+#ifdef USE_PRIMITIVE
+    bool UsePrimList() const override
+    {
+        return true;
+    }
+#endif
 };
 
 class RSBackgroundNGShaderDrawable : public RSDrawable {

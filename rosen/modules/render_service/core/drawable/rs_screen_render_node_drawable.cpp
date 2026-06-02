@@ -806,7 +806,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     UpdateSurfaceDrawRegion(curCanvas_, params);
 
 #ifdef USE_PRIMITIVE
-    primListAdapter->PrimDrawSuspend();
+    primListAdapter->PrimDrawResume();
 #endif
 
     // canvas draw
@@ -900,7 +900,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
 
 #ifdef USE_PRIMITIVE
-    primListAdapter->PrimDrawResume();
+    primListAdapter->PrimDrawSuspend();
 #endif
 
     renderFrame->Flush();
