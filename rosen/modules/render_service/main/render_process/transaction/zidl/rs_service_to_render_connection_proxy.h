@@ -96,7 +96,9 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
-
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) override;
+#endif
     // Energy Consumption
     int32_t RegisterSelfDrawingNodeRectChangeCallback(pid_t remotePid, const RectConstraint& constraint,
         sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
