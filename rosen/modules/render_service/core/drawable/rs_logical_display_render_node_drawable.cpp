@@ -962,11 +962,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false);
 #ifdef RS_PROFILER_ENABLED
-    if (auto canvas =
-            RSCaptureRecorder::GetInstance().TryInstantCapture(
-                static_cast<float>(virtualProcesser->GetCanvas()->GetWidth()),
-                static_cast<float>(virtualProcesser->GetCanvas()->GetHeight()), SkpCaptureType::IMG_CACHED)) {
-        if (virtualProcesser && virtualProcesser->GetCanvas()) {
+    if (virtualProcesser && virtualProcesser->GetCanvas()) {
+        auto width = static_cast<float>(virtualProcesser->GetCanvas()->GetWidth());
+        auto height = static_cast<float>(virtualProcesser->GetCanvas()->GetHeight());
+        auto canvas = RSCaptureRecorder::GetInstance().TryInstantCapture(width, height, SkpCaptureType::IMG_CACHED);
+        if (canvas) {
             virtualProcesser->GetCanvas()->AddCanvas(canvas);
         }
     }

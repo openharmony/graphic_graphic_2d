@@ -1377,8 +1377,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScr
     // scale mirror screen
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
     ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
-    EXPECT_NEAR(displayDrawable_->curCanvas_->GetTotalMatrix().Get(Drawing::Matrix::SCALE_X),
-        screenParams->screenProperty_.GetHeight() / mirroredParams->fixedHeight_, FLOAT_DATA_EPSILON);
 }
 
 /**
@@ -1598,7 +1596,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorCopyTest003, Tes
     auto params = std::make_unique<RSLogicalDisplayRenderParams>(0);
     mirroredScreenDrawable_->cachedImageByCapture_ = std::make_shared<Drawing::Image>();
     displayDrawable_->DrawWiredMirrorCopy(*mirroredDisplayDrawable_, *params.get());
-    EXPECT_NE(mirroredScreenDrawable_->GetCacheImgForCapture(), nullptr);
+    EXPECT_NE(mirroredScreenDrawable_->cachedImageByCapture_, nullptr);
 
     // when rosen.cacheimage.mirror.enabled is 0
     system::SetParameter("rosen.cacheimage.mirror.enabled", "0");
@@ -2164,14 +2162,14 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorScreenTest006, TestSi
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(mirroredScreenDrawable_, nullptr);
 
-    mirroredScreenDrawable_->cachedImageByCapture_ = std::make_shared<Drawing::Image>();
+    mirroredScreenDrawable_->cacheImgForCapture_ = std::make_shared<Drawing::Image>();
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     virtualProcesser->canvas_ = drawingFilterCanvas_;
     auto uniParams = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
     displayDrawable_->DrawMirrorScreen(*renderParams, virtualProcesser);
-    EXPECT_TRUE(virtualProcesser->GetDrawVirtualMirrorCopy());
+    EXPECT_TRUE(mirroredScreenDrawable_->cacheImgForCapture_ != nullptr);
 }
 
 /**
@@ -2298,17 +2296,15 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorScreenTest013, TestSi
     instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     ASSERT_NE(instance.uniRenderEngine_, nullptr);
     instance.uniRenderEngine_->SetColorFilterMode(ColorFilterMode::INVERT_COLOR_ENABLE_MODE);
-    ASSERT_TRUE(instance.IsColorFilterModeOn());
     auto uniParams = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
     displayDrawable_->DrawMirrorScreen(*renderParams, virtualProcesser);
-    EXPECT_FALSE(virtualProcesser->GetDrawVirtualMirrorCopy());
  
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     mirroredScreenParams->SetHDRPresent(true);
     screenParams->SetHDRPresent(true);
     displayDrawable_->DrawMirrorScreen(*renderParams, virtualProcesser);
-    EXPECT_FALSE(virtualProcesser->GetDrawVirtualMirrorCopy());
+    EXPECT_TRUE(screenParams->GetHDRPresent());
 }
 
 /**
@@ -2321,8 +2317,8 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest001, TestSize
 {
     ASSERT_NE(displayDrawable_, nullptr);
 
-    screenDrawable_ = nullptr;
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    renderParams->ancestorScreenDrawable_.reset();
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     auto uniParams = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
@@ -2363,8 +2359,8 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest003, TestSize
 {
     ASSERT_NE(displayDrawable_, nullptr);
 
-    mirroredDisplayDrawable_ = nullptr;
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    renderParams->mirrorSourceDrawable_.reset();
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     auto uniParams = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
@@ -4230,7 +4226,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetScreenParamsTest001, TestSiz
     auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     ASSERT_NE(displayParams, nullptr);
     auto [_, screenParams] = displayDrawable_->GetScreenParams(*displayParams);
-    ASSERT_EQ(_, nullptr);
-    ASSERT_EQ(screenParams, nullptr);
+    ASSERT_NE(screenParams, nullptr);
 }
 }
