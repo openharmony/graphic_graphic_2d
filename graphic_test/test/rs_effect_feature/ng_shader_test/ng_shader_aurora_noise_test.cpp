@@ -37,8 +37,8 @@ void InitAuroraNoise(std::shared_ptr<RSNGAuroraNoise>& auroraNoise)
 
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
-const int SCREEN_WIDTH = 1200;
-const int SCREEN_HEIGHT = 2000;
+const int32_t SCREEN_WIDTH = 1200;
+const int32_t SCREEN_HEIGHT = 2000;
 
 // Noise values
 const std::vector<float> noiseValues = {0.0f, 0.3f, 0.5f, 0.7f, 1.0f};
