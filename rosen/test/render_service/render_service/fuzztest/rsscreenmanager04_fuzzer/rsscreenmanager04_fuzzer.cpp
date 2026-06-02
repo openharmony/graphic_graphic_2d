@@ -44,7 +44,6 @@ constexpr uint8_t DO_GET_SCREEN_DATA = 9;
 constexpr uint8_t TARGET_SIZE = 10;
 
 constexpr uint8_t SCREEN_SCREEN_TYPE_SIZE = 4;
-constexpr uint32_t FUZZ_VSCREEN_DEFAULT_DIMENSION = 100;
 constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
 
 void DoGetScreenType(FuzzedDataProvider& fdp)

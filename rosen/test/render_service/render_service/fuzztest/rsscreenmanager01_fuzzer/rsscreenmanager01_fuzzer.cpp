@@ -17,7 +17,6 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
-#include <string>
 
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -87,8 +86,6 @@ void DoSetScreenBacklight(FuzzedDataProvider& fdp)
     }
     uint32_t level = fdp.ConsumeIntegralInRange<uint32_t>(0, FUZZ_BACKLIGHT_LEVEL_MAX);
     g_screenManager->SetScreenBacklight(RsScreenBrightnessData(id, level));
-    uint32_t level2 = fdp.ConsumeIntegralInRange<uint32_t>(0, FUZZ_BACKLIGHT_LEVEL_MAX);
-    g_screenManager->SetScreenBacklight(RsScreenBrightnessData(id, level2));
     if (useExistingScreen) {
         g_screenManager->screens_[id] = nullptr;
     }
