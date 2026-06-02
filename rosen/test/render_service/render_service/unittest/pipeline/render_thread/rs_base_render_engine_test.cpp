@@ -1479,7 +1479,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, FlushGpu_NullSurfaceFrame, TestSize.Level1)
 
 /**
  * @tc.name: FlushGpu_ValidSurface
- * @tc.desc: Test FlushGpu with valid surface sets flushPhaseActive_ and returns surface result
+ * @tc.desc: Test FlushGpu with valid surface sets flushPhaseActive_ to true
  * @tc.type: FUNC
  */
 HWTEST_F(RSBaseRenderEngineUnitTest, FlushGpu_ValidSurface, TestSize.Level1)
@@ -1492,9 +1492,9 @@ HWTEST_F(RSBaseRenderEngineUnitTest, FlushGpu_ValidSurface, TestSize.Level1)
     auto renderFrame = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
     ASSERT_NE(renderFrame->GetSurface(), nullptr);
     ASSERT_NE(renderFrame->GetFrame(), nullptr);
-    // RSSurfaceOhosRaster does not override FlushGpu, base falls back to FlushFrame which fails on invalid frame
-    EXPECT_FALSE(renderFrame->FlushGpu());
-    // After FlushGpu, flushPhaseActive_ should be true; verify by calling Reset
+    EXPECT_FALSE(renderFrame->flushPhaseActive_);
+    renderFrame->FlushGpu();
+    EXPECT_TRUE(renderFrame->flushPhaseActive_);
     renderFrame->Reset();
     EXPECT_EQ(renderFrame->GetSurface(), nullptr);
     EXPECT_EQ(renderFrame->GetFrame(), nullptr);

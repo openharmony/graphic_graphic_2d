@@ -1702,6 +1702,7 @@ HWTEST_F(RSScreenManagerAgentTest, GetPanelPowerStatus001, TestSize.Level1)
  */
 HWTEST_F(RSScreenManagerAgentTest, AddVirtualScreenSurface001, TestSize.Level2)
 {
+    GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
     ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
         "virtual_add_agent", 480, 320, nullptr, INVALID_SCREEN_ID, 0, {});
@@ -1736,6 +1737,7 @@ HWTEST_F(RSScreenManagerAgentTest, AddVirtualScreenSurface001, TestSize.Level2)
  */
 HWTEST_F(RSScreenManagerAgentTest, RemoveVirtualScreenSurface001, TestSize.Level2)
 {
+    GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
     auto csurface = IConsumerSurface::Create("RmVirtualSurfaceAgent");
     ASSERT_NE(csurface, nullptr);

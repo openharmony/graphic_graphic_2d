@@ -397,7 +397,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
 
         // Get offscreen image and blit to each surface
-        auto offscreenImage = GetOffscreenImage();
+        auto offscreenImage = offscreenSurface_ ? offscreenSurface_->GetImageSnapshot() : nullptr;
         if (offscreenImage) {
             virtualProcessor->BlitRegionsToSurfaces(offscreenImage);
         } else {

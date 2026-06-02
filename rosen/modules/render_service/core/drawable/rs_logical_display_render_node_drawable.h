@@ -57,18 +57,6 @@ public:
         return isFirstTimeToProcessor_;
     }
 
-    // Get the offscreen surface image for multi-surface extend mode
-    std::shared_ptr<Drawing::Image> GetOffscreenImage() const
-    {
-        if (offscreenSurface_ == nullptr) {
-            return nullptr;
-        }
-        return offscreenSurface_->GetImageSnapshot();
-    }
-
-    // Check if offscreen surface is available
-    bool HasOffscreenSurface() const { return offscreenSurface_ != nullptr; }
-
     RSRenderNodeDrawableType GetDrawableType() const override
     {
         return RSRenderNodeDrawableType::LOGICAL_DISPLAY_NODE_DRAWABLE;
