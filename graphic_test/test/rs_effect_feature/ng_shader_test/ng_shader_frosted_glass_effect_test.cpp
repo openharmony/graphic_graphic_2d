@@ -135,11 +135,11 @@ public:
     std::shared_ptr<RSEffectNode> SetDefaultFrostedGlassBlurEffectNode()
     {
         auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-        effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
-        effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         if (!effectNode) {
             return nullptr;
         }
+        effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
  
         auto frostedGlassBlurFilter = std::make_shared<RSNGFrostedGlassBlurFilter>();
         frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(40.0f);
@@ -157,8 +157,8 @@ public:
     void SetEffectChildNode(const size_t i, const size_t columnCount, const size_t rowCount,
         std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlass)
     {
-        auto sizeX = (columnCount != 0) ? (screenWidth / columnCount) : screenWidth;
-        auto sizeY = (rowCount != 0) ? (screenHeight * columnCount / rowCount) : screenHeight;
+        auto sizeX = (columnCount != 0) ? (SCREEN_WIDTH / columnCount) : SCREEN_WIDTH;
+        auto sizeY = (rowCount != 0) ? (SCREEN_HEIGHT * columnCount / rowCount) : SCREEN_HEIGHT;
 
         int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
         int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
