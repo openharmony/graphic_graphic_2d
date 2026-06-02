@@ -178,7 +178,7 @@ void EffectImageChain::UpdateCanvas()
     }
 }
 
-##if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 DrawingError EffectImageChain::PrepareNativeBuffer(
     const std::shared_ptr<Media::PixelMap> &srcPixelMap, std::shared_ptr<OH_NativeBuffer> &dstNativeBuffer)
 {
