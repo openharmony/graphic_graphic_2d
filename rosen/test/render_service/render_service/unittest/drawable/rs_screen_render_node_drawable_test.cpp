@@ -368,6 +368,31 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest002, TestSize.Le
 }
 
 /**
+* @tc.name: CheckScreenNodeSkipTest003
+* @tc.desc: Test CheckScreenNodeSkip
+* @tc.type: FUNC
+* @tc.require: #24063
+*/
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckScreenNodeSkipTest003, TestSize.level1)
+    {
+        ASSERT_NE(renderNode_, nullptr);
+        ASSERT_NE(screenDrawable_, nullptr);
+        ASSERT_NE(screenDrawable_->renderParams, nullptr);
+        auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams.Get());
+        ASSERT_NE(params, nullptr);
+        RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+        auto process = RSProcessorFactory::CreateProcessor(Params->GetCompositeType(), params->GetScreenId());
+        auto uniProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
+        RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+        
+        params->SetMainAndLeashSurfaceDirty(false);
+        RSUifrstManager::Instance().hasForceUpdateNode_ = false;
+        ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
+        RSUifirstManager::Instance().hasForceUpdateNode_ = true;
+        ASSERT_FALSE(screenDrawable_->CheckScreenNodeSkip(*params,uniProcessor));
+    }
+
+/**
  * @tc.name: CheckFilterCacheFullyCovered
  * @tc.desc: Test CheckFilterCacheFullyCovered
  * @tc.type: FUNC

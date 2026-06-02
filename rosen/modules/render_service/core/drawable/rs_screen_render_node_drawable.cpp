@@ -294,7 +294,8 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
         return false;
     }
     if (GetSyncDirtyManager()->IsCurrentFrameDirty() ||
-        (params.GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasForceUpdateNode()) ||
+        (params.GetMainAndLeashSurfaceDirty() || 
+        RSUifirstManager::Instance().HasForceUpdateNode(params.GetScreenId())) ||
         RSMainThread::Instance()->GetDirtyFlag()) {
         return false;
     }

@@ -1457,6 +1457,11 @@ HWTEST_F(RSUifirstManagerTest2, ProcessDoneNodeInnerTest, TestSize.Level1)
     uifirstManager_.ProcessDoneNodeInner();
     ASSERT_EQ(uifirstManager_.pendingForceUpdateNode_.size(), 1);
 
+    uifirstManager_.subthreadProcessDoneNode_ = tmp;
+    drawable->renderParams_ = nullptr;
+    uifirstManager_.ProcessDoneNodeInner();
+    ASSERT_EQ(uifirstManager_.pendingForceUpdateNode_.size(), 2);
+
     uifirstManager_.subthreadProcessDoneNode_.clear();
     uifirstManager_.pendingForceUpdateNode_.clear();
 }

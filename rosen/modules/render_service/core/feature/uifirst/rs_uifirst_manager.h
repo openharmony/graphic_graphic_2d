@@ -115,10 +115,13 @@ public:
         hasForceUpdateNode_ = flag;
     }
 
-    bool HasForceUpdateNode()
-    {
-        return hasForceUpdateNode_;
-    }
+     bool HasForceUpdateNode(ScreenId screenId)
+ 	{
+ 	    if (UNLIKELY(uifirstType_ == UIFirstCcmType::MULTI)) {
+ 	        return hasForceUpdateScreen_.find(screenId) != hasForceUpdateScreen_.end();
+ 	    }
+ 	    return hasForceUpdateNode_;
+ 	}
 
     void MergeOldDirty(NodeId id);
     void MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRenderNode>& node);
@@ -381,6 +384,7 @@ private:
 
     std::set<NodeId> collectedCardNodes_;
     bool hasForceUpdateNode_ = false;
+    std::set<ScreenId> hasForceUpdateScreen_;
     // event list
     std::mutex globalFrameEventMutex_;
     std::vector<EventInfo> globalFrameEvent_; // <time, data>

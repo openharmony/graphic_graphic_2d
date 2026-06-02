@@ -171,6 +171,7 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     if (SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE)) {
         // enable ->disable
         SetNodeNeedForceUpdateFlag(true);
+        hasForceUpdateScreen_.insert(nodePtr->GetScreenId());
         pendingForceUpdateNode_.push_back(nodePtr->GetId());
     }
     RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
@@ -375,6 +376,10 @@ void RSUifirstManager::ProcessDoneNodeInner()
             drawable->GetRsSubThreadCache().UpdateCompletedCacheSurface();
             RenderGroupUpdate(drawable);
             SetNodeNeedForceUpdateFlag(true);
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().Get());
+ 	        if (surfaceParams) {
+ 	            hasForceUpdateScreen_.insert(surfaceParams->GetScreenId());
+ 	        }
             pendingForceUpdateNode_.push_back(id);
         }
         NotifyUIStartingWindow(id, false, drawable, true);
@@ -451,6 +456,7 @@ void RSUifirstManager::ProcessDoneNode()
     __builtin_prefetch(&pendingResetNodes_, 0, 1);
 #endif
     SetNodeNeedForceUpdateFlag(false);
+    hasForceUpdateScreen_.clear();
     ProcessDoneNodeInner();
 
     // reset node when node is not doing
