@@ -32,9 +32,12 @@
 #include "surface_buffer.h"
 
 #ifdef RS_ENABLE_VK
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/native_buffer_utils.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #endif
 
 namespace OHOS::Rosen {
