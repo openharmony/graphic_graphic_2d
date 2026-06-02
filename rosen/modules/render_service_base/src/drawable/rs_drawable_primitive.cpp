@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifdef USE_PRIMITIVE
 #include "common/rs_common_def.h"
 #include "drawable/rs_drawable.h"
@@ -22,7 +22,7 @@
 #include "platform/common/rs_log.h"
 #include "primitive/primitive_adapter.h"
 #include "rs_trace.h"
- 
+
 namespace OHOS::Rosen {
 void RSDrawable::OnDrawPrimitive(Drawing::Canvas* canvas, const Drawing::Rect* rect)
 {
