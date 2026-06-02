@@ -6930,4 +6930,21 @@ HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_DelayOverflowClamp001
 
     GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 end";
 }
+/**
+ * @tc.name: InitCreatePipelineTimeCallbackTest001
+ * @tc.desc: Test InitCreatePipelineTimeCallback with nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMainThreadTest, InitCreatePipelineTimeCallbackTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSMainThreadTest InitCreatePipelineTimeCallbackTest001 start";
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->InitCreatePipelineTimeCallback(nullptr);
+
+    GTEST_LOG_(INFO) << "RSMainThreadTest InitCreatePipelineTimeCallbackTest001 end";
+}
+
 } // namespace OHOS::Rosen

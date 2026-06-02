@@ -270,6 +270,15 @@ public:
     void RegisterVulkanErrorCallback(
         const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback);
 
+
+    /**
+     * @brief                             Register callback function for pipeline creation time monitoring.
+     *                                    This callback is invoked when a GPU pipeline is created to report timing info.
+     * @param createPipelineTimeCallback  Callback function that receives creation time parameters.
+     */
+    void RegisterCreatePipelineTimeCallback(
+        const std::function<void(int64_t, int64_t, bool)>& createPipelineTimeCallback);
+
     /**
      * @brief                       Purge unlocked resources in every frame
      * @param scratchResourcesOnly  Whether to scratch the resources only or not.

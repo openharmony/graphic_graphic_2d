@@ -89,6 +89,9 @@ public:
     virtual void RegisterVulkanErrorCallback(
         const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback) = 0;
 
+    virtual void RegisterCreatePipelineTimeCallback(
+        const std::function<void(int64_t, int64_t, bool)>& createPipelineTimeCallback) = 0;
+
     virtual void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback) = 0;
 
     virtual void PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,

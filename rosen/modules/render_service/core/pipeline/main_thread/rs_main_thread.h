@@ -411,6 +411,7 @@ public:
     }
     void SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart);
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
+    void InitCreatePipelineTimeCallback(Drawing::GPUContext* gpuContext);
 #ifdef RS_ENABLE_GPU
     void InitGPUCacheManager();
 #endif

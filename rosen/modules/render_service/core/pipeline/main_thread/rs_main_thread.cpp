@@ -1182,6 +1182,18 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
     });
 }
 
+void RSMainThread::InitCreatePipelineTimeCallback(Drawing::GPUContext* gpuContext)
+{
+    if (gpuContext == nullptr) {
+        RS_LOGE("InitCreatePipelineTimeCallback gpuContext is nullptr");
+        return;
+    }
+    gpuContext->RegisterCreatePipelineTimeCallback(
+        std::bind(&RSJankStats::OnGraphicsPipelineCreated, &RSJankStats::GetInstance(),
+            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+    );
+}
+
 void RSMainThread::RsEventParamDump(std::string& dumpString)
 {
     rsEventManager_.DumpAllEventParam(dumpString);

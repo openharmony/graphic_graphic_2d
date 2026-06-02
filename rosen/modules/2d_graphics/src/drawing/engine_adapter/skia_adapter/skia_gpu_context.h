@@ -107,6 +107,9 @@ public:
     void RegisterVulkanErrorCallback(
         const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback) override;
 
+    void RegisterCreatePipelineTimeCallback(
+        const std::function<void(int64_t, int64_t, bool)>& createPipelineTimeCallback) override;
+
     void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback) override;
 
     void PurgeUnlockAndSafeCacheGpuResources() override;
