@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 
@@ -26,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 
 sptr<RSScreenManager> g_screenManager;
+std::shared_ptr<RSScreen> g_virtualScreen;
 
 namespace {
 constexpr uint8_t DO_SET_SCREEN_ACTIVE_RECT = 0;
@@ -42,20 +44,14 @@ constexpr uint8_t TARGET_SIZE = 10;
 
 constexpr uint8_t DUAL_SCREEN_STATUS_SIZE = 3;
 constexpr uint8_t GRAPHIC_CM_COLOR_SPACE_TYPE_SIZE = 10;
-constexpr uint32_t FUZZ_VSCREEN_DEFAULT_DIMENSION = 100;
 constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
 
 void DoSetScreenActiveRect(FuzzedDataProvider& fdp)
 {
     bool useExistingScreen = fdp.ConsumeBool();
-    ScreenId id;
+    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     if (useExistingScreen) {
-        std::string name = "fuzz_vscreen";
-        sptr<Surface> surface;
-        id = g_screenManager->CreateVirtualScreen(name, FUZZ_VSCREEN_DEFAULT_DIMENSION,
-            FUZZ_VSCREEN_DEFAULT_DIMENSION, surface, 0, 0, {});
-    } else {
-        id = fdp.ConsumeIntegral<ScreenId>();
+        g_screenManager->screens_[id] = g_virtualScreen;
     }
     Rect activeRect;
     activeRect.x = fdp.ConsumeIntegral<int32_t>();
@@ -63,8 +59,8 @@ void DoSetScreenActiveRect(FuzzedDataProvider& fdp)
     activeRect.w = fdp.ConsumeIntegral<int32_t>();
     activeRect.h = fdp.ConsumeIntegral<int32_t>();
     g_screenManager->SetScreenActiveRect(id, activeRect);
-    if (useExistingScreen && id != INVALID_SCREEN_ID) {
-        g_screenManager->RemoveVirtualScreen(id);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
     }
 }
 
@@ -152,6 +148,9 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     OHOS::Rosen::g_screenManager->Init(handler);
+
+    OHOS::Rosen::VirtualScreenConfigs configs;
+    OHOS::Rosen::g_virtualScreen = std::make_shared<OHOS::Rosen::RSScreen>(configs);
     return 0;
 }
 

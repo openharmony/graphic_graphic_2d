@@ -17,7 +17,6 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
-#include <string>
 
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"

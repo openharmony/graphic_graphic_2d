@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_screen_mode_info.h"
@@ -28,6 +29,7 @@ namespace OHOS {
 namespace Rosen {
 
 sptr<RSScreenManager> g_screenManager;
+std::shared_ptr<RSScreen> g_virtualScreen;
 
 namespace {
 constexpr uint8_t DO_GET_DEFAULT_SCREEN_ACTIVE_MODE = 0;
@@ -42,7 +44,6 @@ constexpr uint8_t DO_GET_SCREEN_VSYNC_ENABLE_BY_ID = 8;
 constexpr uint8_t DO_DISPLAY_DUMP = 9;
 constexpr uint8_t TARGET_SIZE = 10;
 
-constexpr uint32_t FUZZ_VSCREEN_DEFAULT_DIMENSION = 100;
 constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
 constexpr int32_t FUZZ_MAX_MODE_ID = 31;
 constexpr uint32_t FUZZ_DUMP_STRING_MAX_LEN = 64;
@@ -83,21 +84,16 @@ void DoGetRogScreenResolution(FuzzedDataProvider& fdp)
 void DoGetVirtualScreenResolution(FuzzedDataProvider& fdp)
 {
     bool useExistingScreen = fdp.ConsumeBool();
-    ScreenId id;
+    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     if (useExistingScreen) {
-        std::string name = "fuzz_vscreen";
-        sptr<Surface> surface;
-        id = g_screenManager->CreateVirtualScreen(name, FUZZ_VSCREEN_DEFAULT_DIMENSION,
-            FUZZ_VSCREEN_DEFAULT_DIMENSION, surface, 0, 0, {});
-    } else {
-        id = fdp.ConsumeIntegral<ScreenId>();
+        g_screenManager->screens_[id] = g_virtualScreen;
     }
     RSVirtualScreenResolution virtualScreenResolution;
     virtualScreenResolution.SetVirtualScreenWidth(fdp.ConsumeIntegral<uint32_t>());
     virtualScreenResolution.SetVirtualScreenHeight(fdp.ConsumeIntegral<uint32_t>());
     g_screenManager->GetVirtualScreenResolution(id, virtualScreenResolution);
-    if (useExistingScreen && id != INVALID_SCREEN_ID) {
-        g_screenManager->RemoveVirtualScreen(id);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
     }
 }
 
@@ -127,6 +123,7 @@ void DoSetScreenVsyncEnableById(FuzzedDataProvider& fdp)
     ScreenId vsyncEnabledScreenId = FuzzConsumeScreenId(fdp);
     ScreenId screenId = fdp.ConsumeIntegral<ScreenId>();
     bool enabled = fdp.ConsumeBool();
+    g_screenManager->screens_.clear();
     g_screenManager->SetScreenVsyncEnableById(vsyncEnabledScreenId, screenId, enabled);
 }
 
@@ -157,6 +154,9 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     OHOS::Rosen::g_screenManager->Init(handler);
+
+    OHOS::Rosen::VirtualScreenConfigs configs;
+    OHOS::Rosen::g_virtualScreen = std::make_shared<OHOS::Rosen::RSScreen>(configs);
     return 0;
 }
 

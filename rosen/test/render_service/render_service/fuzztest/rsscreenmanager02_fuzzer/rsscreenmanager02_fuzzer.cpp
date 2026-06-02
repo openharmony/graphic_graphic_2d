@@ -17,15 +17,17 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
-#include <string>
 
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_surface_region_config.h"
 #include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
 
 sptr<RSScreenManager> g_screenManager;
+std::shared_ptr<RSScreen> g_virtualScreen;
 
 namespace {
 constexpr uint8_t DO_CREATE_VIRTUAL_SCREEN = 0;
@@ -43,7 +45,6 @@ constexpr uint8_t TARGET_SIZE = 10;
 constexpr uint8_t SCREEN_SCALE_MODE_SIZE = 3;
 constexpr uint8_t VIRTUAL_SCREEN_STATUS_SIZE = 3;
 constexpr uint8_t MAX_FUZZ_LIST_SIZE = 8;
-constexpr uint32_t FUZZ_VSCREEN_DEFAULT_DIMENSION = 100;
 constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
 constexpr uint32_t FUZZ_VSCREEN_NAME_MAX_LEN = 32;
 
@@ -199,7 +200,8 @@ void DoSetVirtualScreenBlackList(FuzzedDataProvider& fdp)
 
 void DoAddVirtualScreenWhiteList(FuzzedDataProvider& fdp)
 {
-    ScreenId id = FuzzConsumeScreenId(fdp);
+    fdp.ConsumeBool();
+    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     uint8_t count = fdp.ConsumeIntegral<uint8_t>() % MAX_FUZZ_LIST_SIZE;
     std::vector<NodeId> whiteList;
     for (uint8_t i = 0; i < count; i++) {
