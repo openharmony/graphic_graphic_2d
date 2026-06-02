@@ -220,11 +220,13 @@ public:
     DrawingError Render(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
         const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU,
         std::shared_ptr<Media::PixelMap>& dstPixelMap);
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     DrawingError RenderNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
         std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer,
         const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters,
         int32_t* syncFenceFd,
         bool releaseGpuContext);
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // EFFECT_IMAGE_RENDER_H
