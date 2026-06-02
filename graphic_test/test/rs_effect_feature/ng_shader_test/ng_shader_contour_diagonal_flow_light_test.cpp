@@ -187,8 +187,8 @@ private:
 GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
     Set_Contour_Diagonal_Flow_Light_Contour_thicknessValues_Test)
 {
-    const int columnCount = 1;
-    const int rowCount = thicknessValues.size();
+    const size_t columnCount = 1;
+    const size_t rowCount = thicknessValues.size();
     auto sizeX = SCREEN_WIDTH / columnCount;
     auto sizeY = SCREEN_HEIGHT * columnCount / rowCount;
 
@@ -220,7 +220,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
     auto sizeX = SCREEN_WIDTH / columnCount;
     auto sizeY = SCREEN_HEIGHT * columnCount / rowCount;
 
-    for (size_t i = 0; i < contourValues.size(); i++) {
+    for (size_t i = 0; i < contourValues.size(); ++i) {
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
         InitContourDiagonalFlowLight(contourLight);
         contourLight->Setter<ContourDiagonalFlowLightContourTag>(contourValues[i]);
@@ -278,6 +278,7 @@ GRAPHIC_TEST(NGShaderContourDiagonalFlowLightTest, EFFECT_TEST,
 
     for (size_t i = 0; i < lightWeightValues.size(); ++i) {
         auto contourLight = std::make_shared<RSNGContourDiagonalFlowLight>();
+        InitContourDiagonalFlowLight(contourLight);
         contourLight->Setter<ContourDiagonalFlowLightLightWeightTag>(lightWeightValues[i]);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
