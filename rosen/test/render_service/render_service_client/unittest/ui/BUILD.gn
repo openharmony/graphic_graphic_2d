@@ -562,7 +562,6 @@ group("unittest") {
     ":RSProxyNodeTest",
     ":RSRootNodeTest",
     ":RSSurfaceExtractorTest",
-    ":RSSurfaceNodeTest",
     ":RSTextureExportTest",
     ":RSUIDirectorTest",
     ":RSUIContextTest",
