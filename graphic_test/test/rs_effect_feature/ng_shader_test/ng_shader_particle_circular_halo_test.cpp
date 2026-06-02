@@ -39,8 +39,8 @@ void InitParticleCircularHalo(std::shared_ptr<RSNGParticleCircularHalo>& particl
 
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
-const int SCREEN_WIDTH = 1200;
-const int SCREEN_HEIGHT = 2000;
+const int32_t SCREEN_WIDTH = 1200;
+const int32_t SCREEN_HEIGHT = 2000;
 
 // Center positions
 const std::vector<Vector2f> centers = {
