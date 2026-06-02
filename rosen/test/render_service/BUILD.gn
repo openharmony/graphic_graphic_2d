@@ -105,7 +105,7 @@ group("test") {
     "render_service_base/fuzztest/platform/ohos/rsrenderserviceclient_transaction/createNode_fuzzer:fuzztest",
     "render_service_base/fuzztest/platform/ohos/rsrenderserviceclient_transaction/createDisplayNode_fuzzer:fuzztest",
     "render_service_base/fuzztest/render/rspixelmapshader_fuzzer:fuzztest",
-    "render_service_base/fuzztest/render/rspixelmapshaderobj_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsaibarshaderfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsanimationbase_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsanimationcurve_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsanimationfraction_fuzzer:fuzztest",
