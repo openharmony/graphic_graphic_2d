@@ -103,7 +103,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Cen
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
         node->SetBackgroundNGShader(shader);
-        GetRootNode->AddChild(node);
+        GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
 }
@@ -126,7 +126,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Rad
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
         node->SetBackgroundNGShader(shader);
-        GetRootNode->AddChild(node);
+        GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
 }
@@ -149,7 +149,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Thi
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
         node->SetBackgroundNGShader(shader);
-        GetRootNode->AddChild(node);
+        GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
 }
@@ -172,7 +172,7 @@ GRAPHIC_TEST(NGShaderWavyRippleLightTest, EFFECT_TEST, Set_Wavy_Ripple_Light_Rad
         node->SetFrame({x, y, sizeX, sizeY});
         node->SetBackgroundColor(0xff000000);
         node->SetBackgroundNGShader(shader);
-        GetRootNode->AddChild(node);
+        GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
 }
