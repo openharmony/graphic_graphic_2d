@@ -152,7 +152,7 @@ public:
     }
 
     void SetEffectChildNode(const size_t i, const size_t columnCount, const size_t rowCount,
-        std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlassEffect)
+        std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlass)
     {
         auto sizeX = (columnCount != 0) ? (screenWidth / columnCount) : screenWidth;
         auto sizeY = (rowCount != 0) ? (screenHeight * columnCount / rowCount) : screenHeight;
@@ -166,7 +166,7 @@ public:
         effectChildNode->SetFrame(x, y, sizeX, sizeY);
 
         // apply frostedGlassEffect on child node
-        effectChildNode->SetBackgroundNGShader(frostedGlassEffect);
+        effectChildNode->SetBackgroundNGShader(frostedGlass);
 
         //  apply sdf on effect effect child node
         const RRect defaultRectParam = {
@@ -193,7 +193,7 @@ GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effe
         InitFrostedGlassEffect(frostedGlass);
         frostedGlass->Setter<FrostedGlassEffectMaterialColorTag>(materialColors[i]);
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, frostedGlass);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, frostedGlass);
     }
 }
 
@@ -210,7 +210,7 @@ GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effe
         frostedGlass->Setter<FrostedGlassEffectMaterialColorTag>(Vector4f{0.8f, 0.8f, 0.8f, 1.0f});
         frostedGlass->Setter<FrostedGlassEffectShapeTag>(shapeValues[i]);
 
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, frostedGlass);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, frostedGlass);
     }
 }
 
@@ -229,7 +229,8 @@ GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effe
         auto frostedGlass = std::make_shared<RSNGFrostedGlassEffect>();
         InitFrostedGlassEffect(frostedGlass);
         frostedGlass->Setter<FrostedGlassEffectMaterialColorTag>(extremeColors[i]);
-        SetUpTestNode(static_cast<size_t>(i), columnCount, rowCount, frostedGlass);
+
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, frostedGlass);
     }
 }
 
