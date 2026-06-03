@@ -1430,13 +1430,6 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop, bool isTopLayerForceRefresh)
 void RSSurfaceRenderNode::SetHdrForceHwcEnabled(bool isHdrForceHwcEnabled)
 {
     isHdrForceHwcEnabled_ = isHdrForceHwcEnabled;
-    SetContentDirty();
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams == nullptr) {
-        return;
-    }
-    surfaceParams->SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
-    AddToPendingSyncList();
 }
 
 void RSSurfaceRenderNode::SetForceRefresh(bool isForceRefresh)

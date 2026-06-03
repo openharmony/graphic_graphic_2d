@@ -461,7 +461,7 @@ public:
 
     void CollectHdrStatus(NodeId id, HdrStatus hdrStatus);
 
-    const std::unordered_map<NodeId, HdrStatus>& GetDisplayHdrStatusMap() const;
+    const std::unordered_map<NodeId, uint32_t>& GetDisplayHdrStatusMap() const;
 
     void ResetDisplayHdrStatus();
 
@@ -544,6 +544,7 @@ protected:
     void OnSync() override;
 private:
     void InitRenderParams() override;
+    void CollectHdrStatusMap(NodeId id, HdrStatus hdrStatus);
 
     bool hasChildCrossNode_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
@@ -623,6 +624,7 @@ private:
     // Enable HWCompose
     RSHwcDisplayRecorder hwcDisplayRecorder_;
 
+    std::unordered_map<NodeId, uint32_t> displayHDRStatusMap_ = {};
     bool hasForceHwcHdrSurface_ = false;
 };
 } // namespace Rosen

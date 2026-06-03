@@ -519,9 +519,12 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurface
 void RSUniHwcVisitor::CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
     std::unordered_set<pid_t>& hdrForceHwcNodes)
 {
+    if (!RSSystemProperties::GetXcomponentEdrEnabled() || RSBaseHdrUtil::GetRGBA1010108Enabled()) {
+        return;
+    }
     // Collect HDR_VIDEO status first
     uniRenderVisitor_.curScreenNode_->CollectHdrStatus(hwcNode->GetId(), hwcNode->GetVideoHdrStatus());
-    if (!RSBaseHdrUtil::GetRGBA1010108Enabled() && hwcNode->IsHdrForceHwcEnabled()) {
+    if (hwcNode->IsHdrForceHwcEnabled()) {
         hdrForceHwcNodes.emplace(ExtractPid(hwcNode->GetId()));
     }
 }

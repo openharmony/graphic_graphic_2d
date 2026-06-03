@@ -541,20 +541,6 @@ bool RSSurfaceRenderParams::IsLayerTop() const
     return isLayerTop_;
 }
 
-void RSSurfaceRenderParams::SetHdrForceHwcEnabled(bool isHdrForceHwcEnabled)
-{
-    if (isHdrForceHwcEnabled_ == isHdrForceHwcEnabled) {
-        return;
-    }
-    isHdrForceHwcEnabled_ = isHdrForceHwcEnabled;
-    needSync_ = true;
-}
-
-bool RSSurfaceRenderParams::isHdrForceHwcEnabled() const
-{
-    return isHdrForceHwcEnabled_;
-}
-
 void RSSurfaceRenderParams::SetForceRefresh(bool isForceRefresh)
 {
     if (isForceRefresh_ == isForceRefresh) {
@@ -728,7 +714,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->ancoFlags_ = ancoFlags_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
-    targetSurfaceParams->isHdrForceHwcEnabled_ = isHdrForceHwcEnabled_;
     targetSurfaceParams->isForceRefresh_ = isForceRefresh_;
     targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
