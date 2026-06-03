@@ -479,7 +479,6 @@ group("unittest") {
 
     deps = [
         ":RSRenderServiceAgentTest",
-        ":RSRenderProcessManagerAgentTest",
         ":RSRenderSingleProcessManagerTest",
         ":RSRenderModeConfigParserTest",
         ":RSMultiRenderProcessManagerTest",
