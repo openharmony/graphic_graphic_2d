@@ -6038,7 +6038,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_RemoveVirtualScree
     ASSERT_EQ(ERR_NONE, connectionStub_->OnRemoteRequest(code, data, reply, option));
 }
 
-
 /**
  * @tc.name: SendVideoRateInfo_ReadMapFiled
  * @tc.desc: Test SendVideoRateInfo stub when read map size failed.
