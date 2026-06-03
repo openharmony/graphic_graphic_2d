@@ -281,9 +281,6 @@ void RSRenderThread::Stop()
     }
 
     thread_ = nullptr;
-#ifdef ROSEN_IOS
-    renderThreadId_ = {};
-#endif
     ROSEN_LOGD("RSRenderThread stopped.");
 }
 
@@ -327,13 +324,6 @@ int32_t RSRenderThread::GetTid()
     return tid_;
 }
 
-#ifdef ROSEN_IOS
-bool RSRenderThread::IsCurrentRenderThread() const
-{
-    return std::this_thread::get_id() == renderThreadId_;
-}
-#endif
-
 void RSRenderThread::CreateAndInitRenderContextIfNeed()
 {
 #if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
@@ -373,9 +363,6 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 void RSRenderThread::RenderLoop()
 {
     SystemCallSetThreadName("RSRenderThread");
-#ifdef ROSEN_IOS
-    renderThreadId_ = std::this_thread::get_id();
-#endif
 
 #ifdef OHOS_RSS_CLIENT
     std::unordered_map<std::string, std::string> payload;
