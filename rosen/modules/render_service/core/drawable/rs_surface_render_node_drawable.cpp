@@ -486,6 +486,8 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     auto image = offscreenRotationInfo_->offscreenSurface_->GetImageSnapshot();
     if (image == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::FinishOffscreenRender, Surface::GetImageSnapshot is nullptr");
+        offscreenRotationInfo_->arc_ = nullptr;
+        curCanvas_ = offscreenRotationInfo_->canvasBackup_;
         return;
     }
 #ifdef RS_ENABLE_GPU
