@@ -44,7 +44,7 @@
 #include "ui/rs_ui_director.h"
 using namespace testing;
 using namespace testing::ext;
-
+#if defined(RS_ENABLE_UNI_RENDER)
 namespace OHOS::Rosen {
 class RSRenderThreadVisitorTest : public testing::Test {
 public:
@@ -1338,3 +1338,4 @@ HWTEST_F(RSRenderThreadVisitorTest, FlipMatrix001, TestSize.Level1)
 }
 #endif
 } // namespace OHOS::Rosen
+#endif

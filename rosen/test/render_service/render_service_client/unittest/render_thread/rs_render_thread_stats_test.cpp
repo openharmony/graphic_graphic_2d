@@ -41,7 +41,7 @@
 
 using namespace testing;
 using namespace testing::ext;
-
+#if defined(RS_ENABLE_UNI_RENDER)
 namespace OHOS::Rosen {
 class RSRenderThreadStatsTest : public testing::Test {
 public:
@@ -490,3 +490,4 @@ HWTEST_F(RSRenderThreadStatsTest, AddStaticInfo007, TestSize.Level1)
 }
 #endif
 } // namespace OHOS::Rosen
+#endif

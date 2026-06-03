@@ -70,7 +70,7 @@
 #include "../test/unittest/mock_vsync_distributor.h"
 using namespace testing;
 using namespace testing::ext;
-
+#if defined(RS_ENABLE_UNI_RENDER)
 namespace OHOS::Rosen {
 constexpr int32_t INVALID_VALUE = -1;
 constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
@@ -6931,3 +6931,4 @@ HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_DelayOverflowClamp001
     GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 end";
 }
 } // namespace OHOS::Rosen
+#endif
