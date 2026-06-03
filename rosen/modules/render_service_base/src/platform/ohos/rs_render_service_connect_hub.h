@@ -45,7 +45,7 @@ public:
     }
 
     static void SetOnDiedCallback(RSOnDiedCallbackCode code, std::function<void()> cb);
-    static void RemoveOnDiedCallback(RSOnDiedCallbackCode code);
+    static void RemoveOnDiedCallback(RSOnDiedCallbackCode code, bool isDestreuctionProcess);
 
     static sptr<RSRenderServiceConnectHub> GetConnectHubInstance()
     {
@@ -98,8 +98,8 @@ private:
     static std::once_flag flag_;
     static sptr<RSRenderServiceConnectHub> instance_;
     static OnConnectCallback onConnectCallback_;
-    static std::mutex onDiedCallbacksMutex_;
-    static std::unordered_map<int32_t, std::function<void()>> OnDiedCallbacks_;
+    std::mutex onDiedCallbacksMutex_;
+    std::unordered_map<int32_t, std::function<void()>> OnDiedCallbacks_;
     friend class RSRenderPipelineClient;
 };
 } // namespace Rosen

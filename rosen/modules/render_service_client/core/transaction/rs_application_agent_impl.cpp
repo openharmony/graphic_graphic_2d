@@ -32,7 +32,7 @@ static sptr<RSApplicationAgentImpl> gRSApplicationAgentImplInstance;
 RSApplicationAgentImpl::~RSApplicationAgentImpl()
 {
 #ifdef OHOS_PLATFORM
-    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT);
+    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, isDestreuctionProcess_);
 #endif
 }
 
@@ -58,8 +58,16 @@ RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
 void RSApplicationAgentImpl::Destory()
 {
 #ifdef OHOS_PLATFORM
-    gRSApplicationAgentImplInstance = nullptr;
+    if (gRSApplicationAgentImplInstance) {
+        gRSApplicationAgentImplInstance->SetDestreuctionProcess(true);
+        gRSApplicationAgentImplInstance = nullptr;
+    }
 #endif
+}
+
+void RSApplicationAgentImpl::SetDestreuctionProcess(bool isDestreuctionProcess)
+{
+    isDestreuctionProcess_ = isDestreuctionProcess;
 }
 
 void RSApplicationAgentImpl::RegisterRSApplicationAgent(std::shared_ptr<RSUIContext> rsUIContext)
