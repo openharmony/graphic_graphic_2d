@@ -1242,6 +1242,11 @@ ohos_unittest("LppVideoHandlerTest") {
 ## Build RSAncoManagerTest
 ohos_unittest("RSAncoManagerTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "anco_manager/rs_anco_manager_test.cpp",
