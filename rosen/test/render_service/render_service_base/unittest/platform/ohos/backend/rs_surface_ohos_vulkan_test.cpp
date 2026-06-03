@@ -814,9 +814,12 @@ HWTEST_F(RSSurfaceOhosVulkanTest, FlushBuffer_BufferKeyNull, TestSize.Level2)
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
     RSSurfaceOhosVulkan rsSurface(pSurface);
 
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkSemaphore semaphore = vkContext.RequireSemaphore();
+    auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
     rsSurface.flushState_.valid = true;
     rsSurface.flushState_.bufferKey = nullptr;
-    rsSurface.flushState_.callbackInfo = reinterpret_cast<RsVulkanInterface::CallbackSemaphoreInfo*>(0x1);
+    rsSurface.flushState_.callbackInfo = callbackInfo;
     std::unique_ptr<RSSurfaceFrame> frame = nullptr;
     EXPECT_FALSE(rsSurface.FlushBuffer(frame, 0));
 }
@@ -856,9 +859,12 @@ HWTEST_F(RSSurfaceOhosVulkanTest, FlushBuffer_BufferNotInMap, TestSize.Level2)
     RSSurfaceOhosVulkan rsSurface(pSurface);
 
     NativeWindowBuffer fakeBuffer;
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkSemaphore semaphore = vkContext.RequireSemaphore();
+    auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
     rsSurface.flushState_.valid = true;
     rsSurface.flushState_.bufferKey = &fakeBuffer;
-    rsSurface.flushState_.callbackInfo = reinterpret_cast<RsVulkanInterface::CallbackSemaphoreInfo*>(0x1);
+    rsSurface.flushState_.callbackInfo = callbackInfo;
     ASSERT_TRUE(rsSurface.mSurfaceMap.empty());
     std::unique_ptr<RSSurfaceFrame> frame = nullptr;
     EXPECT_FALSE(rsSurface.FlushBuffer(frame, 0));
