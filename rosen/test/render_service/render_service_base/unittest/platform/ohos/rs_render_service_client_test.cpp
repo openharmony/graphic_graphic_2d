@@ -1453,5 +1453,23 @@ HWTEST_F(RSServiceClientTest, RemoveVirtualScreenSurface002, TestSize.Level1)
         StatusCode::RENDER_SERVICE_NULL);
 }
 
+ 
+/**
+ * @tc.name: SendVideoRateInfo
+ * @tc.desc: Test SendVideoRateInfo
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSServiceClientTest, SendVideoRateInfo001, TestSize.Level1)
+{
+    RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::Destroy();
+    std::unordered_map<std::string, std::string> videoRateInfo;
+    EXPECT_EQ(rsRenderServiceClient->SendVideoRateInfo(videoRateInfo),
+        StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_NE(rsRenderServiceClient->SendVideoRateInfo(videoRateInfo),
+        StatusCode::RENDER_SERVICE_NULL);
+}
+
 } // namespace Rosen
 } // namespace OHOS
