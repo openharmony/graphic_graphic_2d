@@ -115,8 +115,11 @@ public:
         hasForceUpdateNode_ = flag;
     }
 
-    bool HasForceUpdateNode()
+    bool HasForceUpdateNode(ScreenId screenId)
     {
+        if (UNLIKELY(uifirstType_ == UiFirstCcmType::MULTI)) {
+            return hasForceUpdateScreen_.find(screenId) != hasForceUpdateScreen_.end();
+        }
         return hasForceUpdateNode_;
     }
 
@@ -381,6 +384,7 @@ private:
 
     std::set<NodeId> collectedCardNodes_;
     bool hasForceUpdateNode_ = false;
+    std::set<ScreenId> hasForceUpdateScreen_;
     // event list
     std::mutex globalFrameEventMutex_;
     std::vector<EventInfo> globalFrameEvent_; // <time, data>
