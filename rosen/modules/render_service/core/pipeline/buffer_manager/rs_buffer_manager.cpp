@@ -233,7 +233,7 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
     }
     auto bufferId = buffer->GetBufferId();
     RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::AddPendingReleaseBuffer(with consumer) bufferId %" PRIu64
-        " seq %u fence %d", bufferId, uint32_t(buffer->GetSeqNum()), fence->Get());
+        " seq %u fence %d", bufferId, uint32_t(buffer->GetSeqNum()), fence ? fence->Get() : -1);
     std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
     auto iter = pendingReleaseBuffers_.find(bufferId);
     if (iter == pendingReleaseBuffers_.end()) {
@@ -417,7 +417,11 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     auto mergedFence = TryMergeFence(info.mergedFences_);
     RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseBufferById bufferId %" PRIu64 " Fence %d",
         buffer->GetBufferId(), mergedFence ? mergedFence->Get() : -1);
-    consumer->ReleaseBuffer(buffer, mergedFence);
+    auto ret = consumer->ReleaseBuffer(buffer, mergedFence);
+    if (ret != OHOS::SURFACE_ERROR_OK) {
+        RS_LOGD("RSBufferManager::ReleaseBufferById ReleaseBuffer failed(bufferId:%{public}" PRIu64
+            ", ret:%{public}d)", bufferId, ret);
+    }
     pendingReleaseBuffers_.erase(iter);
 }
 } // OHOS
