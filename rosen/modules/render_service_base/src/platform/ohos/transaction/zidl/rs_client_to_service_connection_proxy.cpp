@@ -40,6 +40,7 @@ static constexpr uint32_t EDID_DATA_MAX_SIZE = 64 * 1024;
 static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map size not exceed 100
 static constexpr int ZERO = 0; // empty map size
 #endif
+static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 }
 
 RSClientToServiceConnectionProxy::RSClientToServiceConnectionProxy(const sptr<IRemoteObject>& impl)
