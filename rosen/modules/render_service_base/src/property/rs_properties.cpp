@@ -3434,8 +3434,8 @@ void RSProperties::GenerateBackgroundBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    float backgroundBlurRadiusXForHash = GetBackgroundBlurRadiusX();
-    uint32_t hash = hashFunc(&backgroundBlurRadiusXForHash, sizeof(backgroundBlurRadiusXForHash), 0);
+    float backgroundBlurRadiusX_ = GetBackgroundBlurRadiusX();
+    uint32_t hash = hashFunc(&backgroundBlurRadiusX_, sizeof(backgroundBlurRadiusX_), 0);
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
     if (NeedLightBlur(GetBgBlurDisableSystemAdaptation())) {
@@ -3565,8 +3565,8 @@ void RSProperties::GenerateForegroundBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    float foregroundBlurRadiusXForHash = GetForegroundBlurRadiusX();
-    uint32_t hash = hashFunc(&foregroundBlurRadiusXForHash, sizeof(foregroundBlurRadiusXForHash), 0);
+    float foregroundBlurRadiusX_ = GetForegroundBlurRadiusX();
+    uint32_t hash = hashFunc(&foregroundBlurRadiusX_, sizeof(foregroundBlurRadiusX_), 0);
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
     // fuse grey-adjustment and pixel-stretch with blur filter
@@ -3622,8 +3622,8 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    float foregroundBlurRadiusForHash = GetForegroundBlurRadius();
-    uint32_t hash = hashFunc(&foregroundBlurRadiusForHash, sizeof(foregroundBlurRadiusForHash), 0);
+    float foregroundBlurRadius_ = GetForegroundBlurRadius();
+    uint32_t hash = hashFunc(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         GetForegroundBlurSaturation(), GetForegroundBlurBrightness());
     if (NeedLightBlur(GetFgBlurDisableSystemAdaptation())) {
@@ -3658,10 +3658,10 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
             originalFilter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
-        float saturationForHash = GetForegroundBlurSaturation();
-        float brightnessForHash = GetForegroundBlurBrightness();
-        hash = hashFunc(&saturationForHash, sizeof(saturationForHash), hash);
-        hash = hashFunc(&brightnessForHash, sizeof(brightnessForHash), hash);
+        float foregroundBlurSaturation_ = GetForegroundBlurSaturation();
+        float foregroundBlurBrightness_ = GetForegroundBlurBrightness();
+        hash = hashFunc(&foregroundBlurSaturation_, sizeof(foregroundBlurSaturation_), hash);
+        hash = hashFunc(&foregroundBlurBrightness_, sizeof(foregroundBlurBrightness_), hash);
         originalFilter = originalFilter?
             originalFilter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }
@@ -3691,8 +3691,8 @@ void RSProperties::GenerateBackgroundMaterialFuzedBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    float foregroundBlurRadiusForHash = GetForegroundBlurRadius();
-    uint32_t hash = hashFunc(&foregroundBlurRadiusForHash, sizeof(foregroundBlurRadiusForHash), 0);
+    float backgroundBlurRadius_ = GetBackgroundBlurRadius();
+    uint32_t hash = hashFunc(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         GetBackgroundBlurSaturation(), GetBackgroundBlurBrightness());
     auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -3721,7 +3721,7 @@ void RSProperties::GenerateCompositingMaterialFuzedBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    const auto& foregroundBlurRadius_ = GetEffect().foregroundBlurPara_->radius;
+    float foregroundBlurRadius_ = GetForegroundBlurRadius();
     uint32_t hash = hashFunc(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         GetForegroundBlurSaturation(), GetForegroundBlurBrightness());
