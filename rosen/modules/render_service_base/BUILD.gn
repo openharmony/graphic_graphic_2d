@@ -999,10 +999,12 @@ ohos_source_set("librender_service_base_static") {
     sources = [ "src/common/rs_common_hook.cpp" ]
   }
 
-  deps = [ "$rosen_root/modules/platform:eventhandler" ]
-  public_deps = [
-    ":render_service_base_src",
+  deps = [ 
+    "$rosen_root/modules/platform:eventhandler",
     "src/platform:platform",
+  ]
+  public_deps = [
+    ":render_service_base_src",    
   ]
 
   external_deps = [ "hilog:libhilog" ]

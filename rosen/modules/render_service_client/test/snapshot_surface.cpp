@@ -24,6 +24,8 @@
 #include "png.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "transaction/rs_interfaces.h"
+#include "ui/rs_ui_context.h"
+#include "ui/rs_ui_director.h"
 
 using namespace OHOS::Rosen;
 using namespace OHOS::Media;
@@ -37,8 +39,8 @@ class SurfaceCaptureFuture : public SurfaceCaptureCallback {
         {
             pixelMap_ = pixelmap;
         }
-        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
-            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<OHOS::Media::PixelMap> pixelMap,
+            std::shared_ptr<OHOS::Media::PixelMap> pixelMapHDR) override {}
         shared_ptr<PixelMap> GetPixelMap()
         {
             return pixelMap_;

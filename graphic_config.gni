@@ -198,59 +198,6 @@ if (graphic_2d_feature_tv_metadata_enable) {
   gpu_defines += [ "RS_ENABLE_TV_PQ_METADATA" ]
 }
 
-check_graphic_ext_file_script = "//build/ohos/file_exists.py"
-
-check_ddgr_ext_file_args = [
-  "--filename",
-  rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/config.gni"),
-]
-check_delegator_ext_file_args = [
-  "--filename",
-  rebase_path("//foundation/graphic/graphic_2d_ext/delegator/config.gni"),
-]
-check_broker_ext_file_args = [
-  "--filename",
-  rebase_path(
-      "//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni"),
-]
-check_math_tools_ext_file_args = [
-  "--filename",
-  rebase_path(
-      "//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools_config.gni"),
-]
-check_frame_stability_ext_file_args = [
-  "--filename",
-  rebase_path(
-      "//foundation/graphic/graphic_2d_ext/frame_stability/build/frame_stability_config.gni"),
-]
-check_hgm_ext_file_args = [
-  "--filename",
-  rebase_path(
-      "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni"),
-]
-check_modifiers_draw_ext_file_args = [
-  "--filename",
-  rebase_path(
-      "//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifiers_draw_config.gni"),
-]
-
-check_subtree_ext_file_args = [
-  "--filename",
-  rebase_path(
-    "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config.gni"),
-]
-check_hetero_hdr_ext_file_args = [
-  "--filename",
-  rebase_path(
-    "//foundation/graphic/graphic_2d_ext/hetero_hdr/build/hetero_hdr_config.gni"),
-]
-
-check_mhc_ext_file_args = [
-  "--filename",
-  rebase_path(
-    "//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni"),
-]
-
 if (path_exists("//foundation/graphic/graphic_2d_ext/dvsync/BUILD.gn")) {
   graphic_2d_feature_enable_dvsync = true
 }
@@ -343,10 +290,7 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/subtree/build/subtree_confi
 
 graphic_2d_hetero_hdr_configs = {}
 
-if (exec_script(check_graphic_ext_file_script,
-                check_hetero_hdr_ext_file_args,
-                "string") == "True") {
-
+if (path_exists("//foundation/graphic/graphic_2d_ext/hetero_hdr/build/hetero_hdr_config.gni")) {
   graphic_2d_hetero_hdr_configs = {
     import(
       "//foundation/graphic/graphic_2d_ext/hetero_hdr/build/hetero_hdr_config.gni")

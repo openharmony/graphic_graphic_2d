@@ -42,6 +42,7 @@
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_texture_export.h"
+#include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
 #include "window.h"
 
