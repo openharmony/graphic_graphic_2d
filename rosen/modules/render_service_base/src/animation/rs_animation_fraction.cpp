@@ -33,6 +33,14 @@ static constexpr int INFINITE = -1;
 static constexpr int REVERSE_COUNT = 2;
 static constexpr int MAX_SPEED = 1000000;
 constexpr const char* ANIMATION_SCALE_NAME = "persist.sys.graphic.animationscale";
+
+class RSAnimationFractionCleanup {
+public:
+    ~RSAnimationFractionCleanup()
+    {
+        RSAnimationFraction::UnInit();
+    }
+};
 } // namespace
 
 std::atomic<bool> RSAnimationFraction::isInitialized_ = false;
@@ -50,7 +58,17 @@ void RSAnimationFraction::Init()
     }
     SetAnimationScale(RSSystemProperties::GetAnimationScale());
     RSSystemProperties::WatchSystemProperty(ANIMATION_SCALE_NAME, OnAnimationScaleChangedCallback, nullptr);
+    static RSAnimationFractionCleanup cleanup;
     isInitialized_ = true;
+}
+
+void RSAnimationFraction::UnInit()
+{
+    if (!isInitialized_) {
+        return;
+    }
+    RSSystemProperties::RemoveWatchSystemProperty(ANIMATION_SCALE_NAME, OnAnimationScaleChangedCallback, nullptr);
+    isInitialized_ = false;
 }
 
 float RSAnimationFraction::GetAnimationScale()

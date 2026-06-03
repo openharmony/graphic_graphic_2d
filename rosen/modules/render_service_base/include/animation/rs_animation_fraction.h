@@ -34,6 +34,7 @@ public:
     ~RSAnimationFraction() = default;
 
     static void Init();
+    static void UnInit();
     static float GetAnimationScale();
     static void SetAnimationScale(float animationScale);
     static void OnAnimationScaleChangedCallback(const char *key, const char *value, void *context);

@@ -1005,6 +1005,21 @@ HWTEST_F(RSSystemPropertiesTest, WatchSystemProperty, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RemoveWatchSystemProperty
+ * @tc.desc: RemoveWatchSystemProperty Test
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSystemPropertiesTest, RemoveWatchSystemProperty, TestSize.Level1)
+{
+    OnSystemPropertyChanged func = [](const char*, const char*, void*) {};
+    int context = 1;
+    ASSERT_EQ(RSSystemProperties::WatchSystemProperty(
+        std::string("noNameRemove").c_str(), func, &context), 0);
+    ASSERT_EQ(RSSystemProperties::RemoveWatchSystemProperty(
+        std::string("noNameRemove").c_str(), func, &context), 0);
+}
+
+/**
  * @tc.name: GetSyncTransactionEnabled
  * @tc.desc: GetSyncTransactionEnabled Test
  * @tc.type:FUNC

@@ -446,6 +446,11 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
     return {};
 }
 
+int RSSystemProperties::RemoveWatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
+{
+    return {};
+}
+
 bool RSSystemProperties::GetAFBCEnabled()
 {
     return {};

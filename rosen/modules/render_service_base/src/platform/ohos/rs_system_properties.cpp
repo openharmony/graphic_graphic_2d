@@ -1163,6 +1163,11 @@ int RSSystemProperties::WatchSystemProperty(const char* name, OnSystemPropertyCh
     return WatchParameter(name, func, context);
 }
 
+int RSSystemProperties::RemoveWatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context)
+{
+    return RemoveParameterWatcher(name, func, context);
+}
+
 bool RSSystemProperties::IsSuperFoldDisplay()
 {
     static const std::string foldScreenType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");

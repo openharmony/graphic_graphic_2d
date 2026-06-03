@@ -276,6 +276,7 @@ public:
     static bool GetNewTunnelEnabled();
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
+    static int RemoveWatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();
     static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
     static bool GetSingleDrawableLockerEnabled();

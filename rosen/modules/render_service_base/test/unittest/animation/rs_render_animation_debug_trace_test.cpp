@@ -404,5 +404,18 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, GetNodeTypeString, TestSize.Level1)
 
     EXPECT_EQ(RSAnimationTraceUtils::GetInstance().GetNodeTypeString(static_cast<RSUINodeType>(-1)), "UNKNOW");
 }
+
+/**
+ * @tc.name: RemoveSystemPropertyWatchers_001
+ * @tc.desc: Verify RemoveSystemPropertyWatchers removes property
+ *           watchers without crash
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderAnimationDebugTraceTest, RemoveSystemPropertyWatchers_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderAnimationDebugTraceTest RemoveSystemPropertyWatchers_001 start";
+    RSAnimationTraceUtils::GetInstance().RemoveSystemPropertyWatchers();
+    GTEST_LOG_(INFO) << "RSRenderAnimationDebugTraceTest RemoveSystemPropertyWatchers_001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

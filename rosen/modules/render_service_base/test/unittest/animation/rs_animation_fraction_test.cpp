@@ -1128,5 +1128,51 @@ HWTEST_F(RSAnimationFractionTest, HandleStartDelayPhase_DelayPassed_OffTree001, 
     GTEST_LOG_(INFO) << "RSAnimationFractionTest HandleStartDelayPhase_DelayPassed_OffTree001 end";
 }
 
+/**
+ * @tc.name: UnInit_001
+ * @tc.desc: Verify UnInit when isInitialized_ is true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, UnInit_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest UnInit_001 start";
+    RSAnimationFraction::isInitialized_ = true;
+    RSAnimationFraction::UnInit();
+    EXPECT_FALSE(RSAnimationFraction::isInitialized_);
+    RSAnimationFraction::isInitialized_ = true;
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest UnInit_001 end";
+}
+
+/**
+ * @tc.name: UnInit_002
+ * @tc.desc: Verify UnInit when isInitialized_ is false (skip branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, UnInit_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest UnInit_002 start";
+    RSAnimationFraction::isInitialized_ = false;
+    RSAnimationFraction::UnInit();
+    EXPECT_FALSE(RSAnimationFraction::isInitialized_);
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest UnInit_002 end";
+}
+
+/**
+ * @tc.name: UnInit_DoubleCall_001
+ * @tc.desc: Verify calling UnInit twice does not crash (idempotent)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, UnInit_DoubleCall_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest UnInit_DoubleCall_001 start";
+    RSAnimationFraction::isInitialized_ = true;
+    RSAnimationFraction::UnInit();
+    EXPECT_FALSE(RSAnimationFraction::isInitialized_);
+    RSAnimationFraction::UnInit();
+    EXPECT_FALSE(RSAnimationFraction::isInitialized_);
+    RSAnimationFraction::isInitialized_ = true;
+    GTEST_LOG_(INFO) << "RSAnimationFractionTest UnInit_DoubleCall_001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

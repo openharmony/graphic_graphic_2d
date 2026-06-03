@@ -60,7 +60,7 @@ public:
 
 private:
     RSAnimationTraceUtils();
-    ~RSAnimationTraceUtils() = default;
+    ~RSAnimationTraceUtils();
     RSAnimationTraceUtils(const RSAnimationTraceUtils&) = delete;
     RSAnimationTraceUtils& operator=(const RSAnimationTraceUtils&) = delete;
 
@@ -69,6 +69,7 @@ private:
     std::string GetColorString(const Color& value) const;
 
     static void OnAnimationTraceEnabledChangedCallback(const char* key, const char* value, void* context);
+    static void RemoveSystemPropertyWatchers();
     std::string GetAnimationTypeString(ImplicitAnimationParamType type) const;
     std::string GetNodeTypeString(RSUINodeType type) const;
 

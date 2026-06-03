@@ -42,6 +42,19 @@ RSAnimationTraceUtils::RSAnimationTraceUtils()
         GRAPHIC_TEST_MODE_TRACE_NAME, OnAnimationTraceEnabledChangedCallback, nullptr);
 }
 
+RSAnimationTraceUtils::~RSAnimationTraceUtils()
+{
+    RemoveSystemPropertyWatchers();
+}
+
+void RSAnimationTraceUtils::RemoveSystemPropertyWatchers()
+{
+    RSSystemProperties::RemoveWatchSystemProperty(
+        ANIMATION_TRACE_ENABLE_NAME, OnAnimationTraceEnabledChangedCallback, nullptr);
+    RSSystemProperties::RemoveWatchSystemProperty(
+        GRAPHIC_TEST_MODE_TRACE_NAME, OnAnimationTraceEnabledChangedCallback, nullptr);
+}
+
 RSAnimationTraceUtils& RSAnimationTraceUtils::GetInstance()
 {
     static RSAnimationTraceUtils instance;
