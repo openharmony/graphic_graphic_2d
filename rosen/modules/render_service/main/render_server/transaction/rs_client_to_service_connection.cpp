@@ -437,16 +437,21 @@ ErrCode RSClientToServiceConnection::CreateNode(const RSDisplayNodeConfig& displ
         success = false;
         return ERR_INVALID_VALUE;
     }
-    std::function<void()> registerNode = [this, nodeId, node, displayNodeConfig]() {
+
+    std::function<void()> registerNode = [
+        weakThis = wptr<RSClientToServiceConnection>(this), nodeId, node, displayNodeConfig]() {
         RS_TRACE_NAME_FMT("RSRenderServiceConnection::CreateNode, nodeId[%" PRIu64 "], screenId[%" PRIu64 "]",
             nodeId, displayNodeConfig.screenId);
-        if (mainThread_ == nullptr) {
+        sptr<RSClientToServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            RS_LOGE("registerNode failed. NodeID: %{public}" PRIu64 ", screenID: %{public}" PRIu64,
+                nodeId, displayNodeConfig.screenId);
             return;
         }
         RS_LOGI("On registerNode scheduled by mainThread. NodeID: %{public}" PRIu64 ", screenID: %{public}" PRIu64,
                 nodeId, displayNodeConfig.screenId);
 
-        auto& context = mainThread_->GetContext();
+        auto& context = connection->mainThread_->GetContext();
         auto& nodeMap = context.GetMutableNodeMap();
         nodeMap.RegisterRenderNode(node);
 
