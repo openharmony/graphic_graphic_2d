@@ -18,6 +18,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
 
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_screen_mode_info.h"
@@ -26,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 
 sptr<RSScreenManager> g_screenManager;
+std::shared_ptr<RSScreen> g_virtualScreen;
 
 namespace {
 constexpr uint8_t DO_GET_SCREEN_TYPE = 0;
@@ -41,12 +43,20 @@ constexpr uint8_t DO_GET_SCREEN_DATA = 9;
 constexpr uint8_t TARGET_SIZE = 10;
 
 constexpr uint8_t SCREEN_SCREEN_TYPE_SIZE = 4;
+constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
 
 void DoGetScreenType(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     RSScreenType type = static_cast<RSScreenType>(fdp.ConsumeIntegral<uint8_t>() % SCREEN_SCREEN_TYPE_SIZE);
     g_screenManager->GetScreenType(id, type);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoGetScreenActiveMode(FuzzedDataProvider& fdp)
@@ -62,9 +72,16 @@ void DoGetScreenActiveMode(FuzzedDataProvider& fdp)
 
 void DoGetScreenSupportedModes(FuzzedDataProvider& fdp)
 {
-    fdp.ConsumeBool();
+    fdp.ConsumeIntegral<uint16_t>();
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     g_screenManager->GetScreenSupportedModes(id);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoGetScreenCapability(FuzzedDataProvider& fdp)
@@ -75,7 +92,7 @@ void DoGetScreenCapability(FuzzedDataProvider& fdp)
 
 void DoGetScreenPowerStatus(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
+    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, FUZZ_SCREEN_ID_RANGE_MAX);
     g_screenManager->GetScreenPowerStatus(id);
 }
 
@@ -128,6 +145,9 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     OHOS::Rosen::g_screenManager->Init(handler);
+
+    OHOS::Rosen::VirtualScreenConfigs configs;
+    OHOS::Rosen::g_virtualScreen = std::make_shared<OHOS::Rosen::RSScreen>(configs);
     return 0;
 }
 

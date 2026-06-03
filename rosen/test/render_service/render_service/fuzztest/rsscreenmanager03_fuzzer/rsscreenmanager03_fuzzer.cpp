@@ -18,6 +18,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
 
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 
@@ -25,6 +26,7 @@ namespace OHOS {
 namespace Rosen {
 
 sptr<RSScreenManager> g_screenManager;
+std::shared_ptr<RSScreen> g_virtualScreen;
 
 namespace {
 constexpr uint8_t DO_SET_SCREEN_ACTIVE_RECT = 0;
@@ -41,20 +43,29 @@ constexpr uint8_t TARGET_SIZE = 10;
 
 constexpr uint8_t DUAL_SCREEN_STATUS_SIZE = 3;
 constexpr uint8_t GRAPHIC_CM_COLOR_SPACE_TYPE_SIZE = 10;
+constexpr uint32_t FUZZ_SCREEN_ID_RANGE_MAX = 255;
 
 void DoSetScreenActiveRect(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     Rect activeRect;
     activeRect.x = fdp.ConsumeIntegral<int32_t>();
     activeRect.y = fdp.ConsumeIntegral<int32_t>();
     activeRect.w = fdp.ConsumeIntegral<int32_t>();
     activeRect.h = fdp.ConsumeIntegral<int32_t>();
     g_screenManager->SetScreenActiveRect(id, activeRect);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetPhysicalScreenResolution(FuzzedDataProvider& fdp)
 {
+    fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
@@ -63,7 +74,7 @@ void DoSetPhysicalScreenResolution(FuzzedDataProvider& fdp)
 
 void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, 255);
+    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, FUZZ_SCREEN_ID_RANGE_MAX);
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
     g_screenManager->SetRogScreenResolution(id, width, height);
@@ -136,6 +147,9 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     OHOS::Rosen::g_screenManager->Init(handler);
+
+    OHOS::Rosen::VirtualScreenConfigs configs;
+    OHOS::Rosen::g_virtualScreen = std::make_shared<OHOS::Rosen::RSScreen>(configs);
     return 0;
 }
 

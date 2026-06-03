@@ -18,6 +18,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
 
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_screen_hdr_capability.h"
@@ -26,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 
 sptr<RSScreenManager> g_screenManager;
+std::shared_ptr<RSScreen> g_virtualScreen;
 
 namespace {
 constexpr uint8_t DO_GET_SCREEN_COLOR_GAMUT = 0;
@@ -50,9 +52,16 @@ constexpr uint8_t MAX_FUZZ_ENUM_VECTOR_SIZE = 8;
 
 void DoGetScreenColorGamut(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     ScreenColorGamut mode = static_cast<ScreenColorGamut>(fdp.ConsumeIntegral<uint8_t>() % SCREEN_COLOR_GAMUT_SIZE);
     g_screenManager->GetScreenColorGamut(id, mode);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoGetScreenSupportedColorGamuts(FuzzedDataProvider& fdp)
@@ -153,6 +162,9 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     OHOS::Rosen::g_screenManager->Init(handler);
+
+    OHOS::Rosen::VirtualScreenConfigs configs;
+    OHOS::Rosen::g_virtualScreen = std::make_shared<OHOS::Rosen::RSScreen>(configs);
     return 0;
 }
 

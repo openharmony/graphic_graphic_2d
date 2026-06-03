@@ -18,6 +18,7 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
 
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 
@@ -25,6 +26,7 @@ namespace OHOS {
 namespace Rosen {
 
 sptr<RSScreenManager> g_screenManager;
+std::shared_ptr<RSScreen> g_virtualScreen;
 
 namespace {
 constexpr uint8_t DO_SET_SCREEN_ACTIVE_MODE = 0;
@@ -44,82 +46,155 @@ constexpr uint8_t SCREEN_ROTATION_SIZE = 5;
 constexpr uint8_t SCREEN_GAMUT_MAP_SIZE = 4;
 constexpr uint8_t SCREEN_CONSTRAINT_TYPE_SIZE = 4;
 constexpr uint8_t GRAPHIC_PIXEL_FORMAT_SIZE = 8;
+constexpr uint32_t FUZZ_BACKLIGHT_LEVEL_MAX = 255;
 
 void DoSetScreenActiveMode(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     uint32_t modeId = fdp.ConsumeIntegral<uint32_t>();
     g_screenManager->SetScreenActiveMode(id, modeId);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetScreenPowerStatus(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     ScreenPowerStatus status = static_cast<ScreenPowerStatus>(
         fdp.ConsumeIntegral<uint8_t>() % SCREEN_POWER_STATUS_SIZE);
     g_screenManager->SetScreenPowerStatus(id, status);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetScreenBacklight(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
-    uint32_t level = fdp.ConsumeIntegralInRange<uint32_t>(0, 255);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
+    uint32_t level = fdp.ConsumeIntegralInRange<uint32_t>(0, FUZZ_BACKLIGHT_LEVEL_MAX);
     g_screenManager->SetScreenBacklight(RsScreenBrightnessData(id, level));
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetScreenColorGamut(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     int32_t modeIdx = fdp.ConsumeIntegral<int32_t>();
     g_screenManager->SetScreenColorGamut(id, modeIdx);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetScreenGamutMap(FuzzedDataProvider& fdp)
 {
+    fdp.ConsumeIntegral<uint16_t>();
+    bool useExistingScreen = fdp.ConsumeBool();
+    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     ScreenGamutMap mode = static_cast<ScreenGamutMap>(
         fdp.ConsumeIntegral<uint8_t>() % SCREEN_GAMUT_MAP_SIZE);
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     g_screenManager->SetScreenGamutMap(id, mode);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetScreenHDRFormat(FuzzedDataProvider& fdp)
 {
-    int32_t modeIdx = fdp.ConsumeIntegral<int32_t>();
+    fdp.ConsumeIntegral<uint32_t>();
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
+    int32_t modeIdx = fdp.ConsumeIntegral<int32_t>();
     g_screenManager->SetScreenHDRFormat(id, modeIdx);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetScreenCorrection(FuzzedDataProvider& fdp)
 {
-    ScreenId id = fdp.ConsumeIntegralInRange<ScreenId>(0, INVALID_SCREEN_ID - 1);
+    bool useExistingScreen = fdp.ConsumeBool();
+    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     ScreenRotation screenRotation = static_cast<ScreenRotation>(
         fdp.ConsumeIntegral<uint8_t>() % SCREEN_ROTATION_SIZE);
     g_screenManager->SetScreenCorrection(id, screenRotation);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetPixelFormat(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
+    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(
         fdp.ConsumeIntegralInRange<uint8_t>(0, GRAPHIC_PIXEL_FORMAT_SIZE));
-    ScreenId id = fdp.ConsumeIntegral<ScreenId>();
     g_screenManager->SetPixelFormat(id, pixelFormat);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetScreenConstraint(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     uint64_t timestamp = fdp.ConsumeIntegral<uint64_t>();
     ScreenConstraintType type = static_cast<ScreenConstraintType>(
         fdp.ConsumeIntegral<uint8_t>() % SCREEN_CONSTRAINT_TYPE_SIZE);
     g_screenManager->SetScreenConstraint(id, timestamp, type);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 void DoSetVirtualScreenResolution(FuzzedDataProvider& fdp)
 {
+    bool useExistingScreen = fdp.ConsumeBool();
     ScreenId id = fdp.ConsumeIntegral<ScreenId>();
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = g_virtualScreen;
+    }
     uint32_t width = fdp.ConsumeIntegral<uint32_t>();
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
     g_screenManager->SetVirtualScreenResolution(id, width, height);
+    if (useExistingScreen) {
+        g_screenManager->screens_[id] = nullptr;
+    }
 }
 
 } // namespace
@@ -137,6 +212,9 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
     auto runner = OHOS::AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     OHOS::Rosen::g_screenManager->Init(handler);
+
+    OHOS::Rosen::VirtualScreenConfigs configs;
+    OHOS::Rosen::g_virtualScreen = std::make_shared<OHOS::Rosen::RSScreen>(configs);
     return 0;
 }
 
