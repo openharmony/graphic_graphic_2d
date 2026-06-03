@@ -1071,7 +1071,7 @@ ErrCode RSServiceToRenderConnectionProxy::SendVideoRateInfo(
     }
  
     for (auto const &it : videoRateInfo) {
-        if(!data.WriteString(it.first) || !data.WriteString(it.second)) {
+        if (!data.WriteString(it.first) || !data.WriteString(it.second)) {
             ROSEN_LOGE("%{public}s: write key value failed!", __func__);
             return ERR_INVALID_VALUE;
         }
