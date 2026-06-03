@@ -26,6 +26,7 @@
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
+#include "render_context/render_context.h"
 
 using namespace OHOS::Rosen;
 using namespace OHOS::Media;
@@ -150,7 +151,12 @@ int main()
     cin >> input;
     shared_ptr<SurfaceCaptureFuture> callback = make_shared<SurfaceCaptureFuture>();
     RSSurfaceCaptureConfig captureConfig;
-    RSInterfaces::GetInstance().TakeSurfaceCapture(input, callback, captureConfig);
+    auto screenId = OHOS::Rosen::RSInterfaces::GetInstance().GetDefaultScreenId();
+    auto connectToRender =
+        OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    std::shared_ptr<OHOS::Rosen::RSUIDirector> rsUiDirector = OHOS::Rosen::RSUIDirector::Create(connectToRender);
+    auto rsRenderInterfaces = rsUiDirector->GetRSUIContext()->GetRSRenderInterface();
+    rsRenderInterfaces->TakeSurfaceCapture(input, callback, captureConfig);
     sleep(2);
     shared_ptr<PixelMap> pixelmap = callback->GetPixelMap();
     if (pixelmap == nullptr) {
