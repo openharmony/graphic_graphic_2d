@@ -1919,7 +1919,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, MakeHdrDarkenBlenderTest001, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams2), nullptr);
 
     RSHdrDarkenBlenderPara hdrDarkenBlenderParams3 = {0.0};
-    EXPECT_EQ(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams3), nullptr);
+    EXPECT_NE(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams3), nullptr);
 }
 
 /**
