@@ -2137,7 +2137,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenSurface004, Te
     EXPECT_EQ(ret, 0);
 }
 
- 
 /**
  * @tc.name: SendVideoRateInfo_SendRequestFailed
  * @tc.desc: Test SendVideoRateInfo when SendRequest fails, expect ERR_INVALID_VALUE
