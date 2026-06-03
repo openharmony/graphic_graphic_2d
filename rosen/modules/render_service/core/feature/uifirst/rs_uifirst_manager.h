@@ -115,7 +115,7 @@ public:
         hasForceUpdateNode_ = flag;
     }
 
-     bool HasForceUpdateNode(ScreenId screenId)
+    bool HasForceUpdateNode(ScreenId screenId)
     {
         if (UNLIKELY(uifirstType_ == UiFirstCcmType::MULTI)) {
             return hasForceUpdateScreen_.find(screenId) != hasForceUpdateScreen_.end();
