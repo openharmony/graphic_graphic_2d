@@ -14,10 +14,10 @@
  */
 
 #include "rs_graphic_test.h"
-#include "rs_graphic_test_img.h"
-#include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ui/rs_effect_node.h"
 #include "rs_graphic_test_director.h"
+#include "rs_graphic_test_img.h"
+#include "ui/rs_effect_node.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -37,13 +37,15 @@ void InitAuroraNoise(std::shared_ptr<RSNGAuroraNoise>& auroraNoise)
 
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
-const int SCREEN_WIDTH = 1200;
-const int SCREEN_HEIGHT = 2000;
+const int32_t SCREEN_WIDTH = 1200;
+const int32_t SCREEN_HEIGHT = 2000;
 
 // Noise values
 const std::vector<float> noiseValues = {0.0f, 0.3f, 0.5f, 0.7f, 1.0f};
+// ExtremeNoise values
+const std::vector<float> extremeNoiseValues = {-1.0f, -0.5f, 2.0f, 9999.0f};
 
-std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const int i, const int columnCount, const int rowCount,
+std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const size_t i, const size_t columnCount, const size_t rowCount,
     std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGAuroraNoise>& auroraNoise)
 {
     auto sizeX = (columnCount != 0) ? (SCREEN_WIDTH / columnCount) : SCREEN_WIDTH;
@@ -53,6 +55,9 @@ std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const int i, const int colum
     int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
 
     auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    if (!effectChildNode || !effectNode) {
+        return nullptr;
+    }
     effectChildNode->SetBounds(x, y, sizeX, sizeY);
     effectChildNode->SetFrame(x, y, sizeX, sizeY);
     effectChildNode->SetOverlayNGShader(auroraNoise);
@@ -68,7 +73,7 @@ public:
         SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
-    void SetEffectChildNode(const int i, const int columnCount, const int rowCount,
+    void SetEffectChildNode(const size_t i, const size_t columnCount, const size_t rowCount,
         std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGAuroraNoise>& auroraNoise)
     {
         auto effectChildNode = CreateEffectChildNode(i, columnCount, rowCount, effectNode, auroraNoise);
@@ -79,6 +84,9 @@ public:
     {
         auto backgroundTestNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!backgroundTestNode || !effectNode) {
+            return nullptr;
+        }
         effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
         std::shared_ptr<Rosen::RSFilter> backFilter = Rosen::RSFilter::CreateMaterialFilter(10.f, 1, 1, 0,
@@ -91,24 +99,6 @@ public:
         RegisterNode(backgroundTestNode);
         return effectNode;
     }
-
-private:
-    void SetUpTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
-        std::shared_ptr<RSNGAuroraNoise>& auroraNoise)
-    {
-        if (columnCount == 0 || rowCount == 0) {
-            return;  // Invalid test configuration
-        }
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
-
-        auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {x, y, sizeX, sizeY});
-        testNode->SetBackgroundNGShader(auroraNoise);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
-    }
 };
 
 /*
@@ -116,16 +106,19 @@ private:
  */
 GRAPHIC_TEST(NGShaderAuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(noiseValues.size());
     auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < noiseValues.size(); i++) {
         auto auroraNoise = std::make_shared<RSNGAuroraNoise>();
         InitAuroraNoise(auroraNoise);
         auroraNoise->Setter<AuroraNoiseNoiseTag>(noiseValues[i]);
 
-        SetEffectChildNode(i, columnCount, rowCount, effectNode, auroraNoise);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, auroraNoise);
     }
 }
 
@@ -135,18 +128,19 @@ GRAPHIC_TEST(NGShaderAuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Test)
  */
 GRAPHIC_TEST(NGShaderAuroraNoiseTest, EFFECT_TEST, Set_Aurora_Noise_Extreme_Values_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(extremeNoiseValues.size());
     auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
-    const std::vector<float> extremeNoise = {-1.0f, -0.5f, 2.0f, 9999.0f};
-
-    for (size_t i = 0; i < extremeNoise.size(); i++) {
+    for (size_t i = 0; i < extremeNoiseValues.size(); i++) {
         auto auroraNoise = std::make_shared<RSNGAuroraNoise>();
         InitAuroraNoise(auroraNoise);
-        auroraNoise->Setter<AuroraNoiseNoiseTag>(extremeNoise[i]);
+        auroraNoise->Setter<AuroraNoiseNoiseTag>(extremeNoiseValues[i]);
 
-        SetEffectChildNode(i, columnCount, rowCount, effectNode, auroraNoise);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, auroraNoise);
     }
 }
 

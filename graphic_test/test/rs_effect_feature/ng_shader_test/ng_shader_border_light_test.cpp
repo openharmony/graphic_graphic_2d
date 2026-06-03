@@ -14,7 +14,9 @@
  */
 
 #include "rs_graphic_test.h"
+#include "rs_graphic_test_director.h"
 #include "rs_graphic_test_img.h"
+#include "ui/rs_effect_node.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
@@ -28,17 +30,17 @@ void InitBorderLight(std::shared_ptr<RSNGBorderLight>& borderLight)
         return;
     }
     // Position (x, y, z)
-    borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 1.0f});
+    borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
     // Color
-    borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
     // Intensity
     borderLight->Setter<BorderLightIntensityTag>(1.0f);
     // Width
-    borderLight->Setter<BorderLightWidthTag>(10.0f);
+    borderLight->Setter<BorderLightWidthTag>(50.0f);
     // RotationAngle (x, y, z)
-    borderLight->Setter<BorderLightRotationAngleTag>(Vector3f{0.0f, 0.0f, 0.0f});
+    borderLight->Setter<BorderLightRotationAngleTag>(Vector3f{45.0f, 45.0f, 45.0f});
     // CornerRadius
-    borderLight->Setter<BorderLightCornerRadiusTag>(10.0f);
+    borderLight->Setter<BorderLightCornerRadiusTag>(5.0f);
 }
 
 namespace {
@@ -99,6 +101,26 @@ const std::vector<float> borderLightExtremeWidths = {
     1000.0f,       // Extremely large
     std::numeric_limits<float>::quiet_NaN()  // NaN
 };
+
+std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const size_t i, const size_t columnCount, const size_t rowCount,
+    std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGBorderLight>& borderLight)
+{
+    auto sizeX = (columnCount != 0) ? (SCREEN_WIDTH / columnCount) : SCREEN_WIDTH;
+    auto sizeY = (rowCount != 0) ? (SCREEN_HEIGHT * columnCount / rowCount) : SCREEN_HEIGHT;
+
+    int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
+    int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
+
+    auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    if (!effectChildNode || !effectNode) {
+        return nullptr;
+    }
+    effectChildNode->SetBounds(x, y, sizeX, sizeY);
+    effectChildNode->SetFrame(x, y, sizeX, sizeY);
+    effectChildNode->SetOverlayNGShader(borderLight);
+    effectNode->AddChild(effectChildNode);
+    return effectChildNode;
+}
 }
 
 class NGShaderBorderLightTest : public RSGraphicTest {
@@ -108,22 +130,31 @@ public:
         SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
-private:
-    void SetUpTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
-        std::shared_ptr<RSNGBorderLight>& borderLight)
+    void SetEffectChildNode(const size_t i, const size_t columnCount, const size_t rowCount,
+        std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGBorderLight>& borderLight)
     {
-        if (columnCount == 0 || rowCount == 0) {
-            return;  // Invalid test configuration
+        auto effectChildNode = CreateEffectChildNode(i, columnCount, rowCount, effectNode, borderLight);
+        RegisterNode(effectChildNode);
+    }
+ 
+    std::shared_ptr<RSEffectNode> SetUpEffectNode()
+    {
+        auto backgroundTestNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!backgroundTestNode || !effectNode) {
+            return nullptr;
         }
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
-
-        auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {x, y, sizeX, sizeY});
-        testNode->SetBackgroundNGShader(borderLight);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
+        effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        std::shared_ptr<Rosen::RSFilter> backFilter = Rosen::RSFilter::CreateMaterialFilter(10.f, 1, 1, 0,
+            BLUR_COLOR_MODE::DEFAULT, true);
+        effectNode->SetBackgroundFilter(backFilter);
+        effectNode->SetClipToBounds(false);
+        GetRootNode()->AddChild(backgroundTestNode);
+        backgroundTestNode->AddChild(effectNode);
+        RegisterNode(effectNode);
+        RegisterNode(backgroundTestNode);
+        return effectNode;
     }
 };
 
@@ -133,8 +164,12 @@ private:
  */
 GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(borderLightColors.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < borderLightColors.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
@@ -144,7 +179,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Test)
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
         borderLight->Setter<BorderLightWidthTag>(50.0f);
 
-        SetUpTestNode(i, columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -154,18 +189,22 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Test)
  */
 GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Intensity_Boundary_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(borderLightIntensities.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < borderLightIntensities.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
         InitBorderLight(borderLight);
-        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(borderLightIntensities[i]);
         borderLight->Setter<BorderLightWidthTag>(50.0f);
 
-        SetUpTestNode(i, columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -175,18 +214,22 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Intensity_Bo
  */
 GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Width_Boundary_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(borderLightWidths.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < borderLightWidths.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
         InitBorderLight(borderLight);
-        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
         borderLight->Setter<BorderLightWidthTag>(borderLightWidths[i]);
 
-        SetUpTestNode(i, columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -196,19 +239,23 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Width_Bounda
  */
 GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Rotation_Angle_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(borderLightRotationAngles.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < borderLightRotationAngles.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
         InitBorderLight(borderLight);
-        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
         borderLight->Setter<BorderLightWidthTag>(50.0f);
         borderLight->Setter<BorderLightRotationAngleTag>(borderLightRotationAngles[i]);
 
-        SetUpTestNode(i, columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -218,19 +265,23 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Rotation_Ang
  */
 GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Corner_Radius_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(borderLightCornerRadii.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < borderLightCornerRadii.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
         InitBorderLight(borderLight);
-        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
         borderLight->Setter<BorderLightWidthTag>(50.0f);
         borderLight->Setter<BorderLightCornerRadiusTag>(borderLightCornerRadii[i]);
 
-        SetUpTestNode(i, columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -240,8 +291,12 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Corner_Radiu
  */
 GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Intensity_Width_Combination_Test)
 {
-    const size_t columnCount = 3;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(borderLightColorIntensityWidthCombinations.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < borderLightColorIntensityWidthCombinations.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
@@ -251,7 +306,7 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Intens
         borderLight->Setter<BorderLightIntensityTag>(std::get<2>(borderLightColorIntensityWidthCombinations[i]));
         borderLight->Setter<BorderLightWidthTag>(std::get<3>(borderLightColorIntensityWidthCombinations[i]));
 
-        SetUpTestNode(i, columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -262,18 +317,22 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Color_Intens
  */
 GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Intensity_Extreme_Values_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(borderLightExtremeIntensities.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < borderLightExtremeIntensities.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
         InitBorderLight(borderLight);
-        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(borderLightExtremeIntensities[i]);
         borderLight->Setter<BorderLightWidthTag>(50.0f);
 
-        SetUpTestNode(i, columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 
@@ -284,18 +343,22 @@ GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Intensity_Ex
  */
 GRAPHIC_TEST(NGShaderBorderLightTest, EFFECT_TEST, Set_Border_Light_Width_Extreme_Values_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(borderLightExtremeWidths.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < borderLightExtremeWidths.size(); i++) {
         auto borderLight = std::make_shared<RSNGBorderLight>();
         InitBorderLight(borderLight);
-        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+        borderLight->Setter<BorderLightColorTag>(Vector4f{1.0f, 0.0f, 0.0f, 1.0f});
         borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
         borderLight->Setter<BorderLightIntensityTag>(1.0f);
         borderLight->Setter<BorderLightWidthTag>(borderLightExtremeWidths[i]);
 
-        SetUpTestNode(i, columnCount, rowCount, borderLight);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, borderLight);
     }
 }
 

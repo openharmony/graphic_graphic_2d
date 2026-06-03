@@ -14,7 +14,9 @@
  */
 
 #include "rs_graphic_test.h"
+#include "rs_graphic_test_director.h"
 #include "rs_graphic_test_img.h"
+#include "ui/rs_effect_node.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
@@ -89,6 +91,29 @@ const std::vector<float> blendValues = {0.0f, 0.5f, 1.0f};
 
 // Color number values
 const std::vector<float> colorNumberValues = {2.0f, 4.0f, 6.0f, 8.0f};
+
+// Extreme values
+const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
+
+std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const size_t i, const size_t columnCount, const size_t rowCount,
+    std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGColorGradientEffect>& colorGradient)
+{
+    auto sizeX = (columnCount != 0) ? (SCREEN_WIDTH / columnCount) : SCREEN_WIDTH;
+    auto sizeY = (rowCount != 0) ? (SCREEN_HEIGHT * columnCount / rowCount) : SCREEN_HEIGHT;
+
+    int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
+    int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
+
+    auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    if (!effectChildNode || !effectNode) {
+        return nullptr;
+    }
+    effectChildNode->SetBounds(x, y, sizeX, sizeY);
+    effectChildNode->SetFrame(x, y, sizeX, sizeY);
+    effectChildNode->SetOverlayNGShader(colorGradient);
+    effectNode->AddChild(effectChildNode);
+    return effectChildNode;
+}
 }
 
 class NGShaderColorGradientEffectTest : public RSGraphicTest {
@@ -98,29 +123,42 @@ public:
         SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
-private:
-    void SetUpTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
-        std::shared_ptr<RSNGColorGradientEffect>& colorGradient)
+    void SetEffectChildNode(const size_t i, const size_t columnCount, const size_t rowCount,
+        std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGColorGradientEffect>& colorGradient)
     {
-        if (columnCount == 0 || rowCount == 0) {
-            return;  // Invalid test configuration
+        auto effectChildNode = CreateEffectChildNode(i, columnCount, rowCount, effectNode, colorGradient);
+        RegisterNode(effectChildNode);
+    }
+ 
+    std::shared_ptr<RSEffectNode> SetUpEffectNode()
+    {
+        auto backgroundTestNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!backgroundTestNode || !effectNode) {
+            return nullptr;
         }
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
-
-        auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {x, y, sizeX, sizeY});
-        testNode->SetBackgroundNGShader(colorGradient);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
+        effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        std::shared_ptr<Rosen::RSFilter> backFilter = Rosen::RSFilter::CreateMaterialFilter(10.f, 1, 1, 0,
+            BLUR_COLOR_MODE::DEFAULT, true);
+        effectNode->SetBackgroundFilter(backFilter);
+        effectNode->SetClipToBounds(false);
+        GetRootNode()->AddChild(backgroundTestNode);
+        backgroundTestNode->AddChild(effectNode);
+        RegisterNode(effectNode);
+        RegisterNode(backgroundTestNode);
+        return effectNode;
     }
 };
 
 GRAPHIC_TEST(NGShaderColorGradientEffectTest, EFFECT_TEST, Set_Color_Gradient_Effect_Brightness_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(brightnessValues.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < brightnessValues.size(); i++) {
         auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
@@ -132,14 +170,18 @@ GRAPHIC_TEST(NGShaderColorGradientEffectTest, EFFECT_TEST, Set_Color_Gradient_Ef
         colorGradient->Setter<ColorGradientEffectColor2Tag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
         colorGradient->Setter<ColorGradientEffectColor3Tag>(Vector4f{1.0f, 1.0f, 0.0f, 1.0f});
 
-        SetUpTestNode(i, columnCount, rowCount, colorGradient);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, colorGradient);
     }
 }
 
 GRAPHIC_TEST(NGShaderColorGradientEffectTest, EFFECT_TEST, Set_Color_Gradient_Effect_Blend_Brightness_Combination_Test)
 {
-    const size_t columnCount = 3;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(blendValues.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < blendValues.size(); i++) {
         auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
@@ -152,21 +194,26 @@ GRAPHIC_TEST(NGShaderColorGradientEffectTest, EFFECT_TEST, Set_Color_Gradient_Ef
         colorGradient->Setter<ColorGradientEffectColor2Tag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
         colorGradient->Setter<ColorGradientEffectColor3Tag>(Vector4f{1.0f, 1.0f, 0.0f, 1.0f});
 
-        SetUpTestNode(i, columnCount, rowCount, colorGradient);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, colorGradient);
     }
 }
 
 GRAPHIC_TEST(NGShaderColorGradientEffectTest, EFFECT_TEST, Set_Color_Gradient_Effect_Extreme_Values_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
-    const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(extremeValues.size());
+    auto effectNode = SetUpEffectNode();
+    if (!effectNode) {
+        return;
+    }
+
     for (size_t i = 0; i < extremeValues.size(); i++) {
         auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
         InitColorGradientEffect(colorGradient);
         colorGradient->Setter<ColorGradientEffectBrightnessTag>(extremeValues[i]);
         colorGradient->Setter<ColorGradientEffectColorNumberTag>(4.0f);
-        SetUpTestNode(i, columnCount, rowCount, colorGradient);
+        
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, colorGradient);
     }
 }
 

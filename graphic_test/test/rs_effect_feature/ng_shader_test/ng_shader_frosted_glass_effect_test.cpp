@@ -14,8 +14,12 @@
  */
 
 #include "rs_graphic_test.h"
+#include "rs_graphic_test_director.h"
 #include "rs_graphic_test_img.h"
+#include "ui/rs_effect_node.h"
+#include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "../ng_shape_test/ng_sdf_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,6 +35,8 @@ void InitFrostedGlassEffect(std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlas
     frostedGlassEffect->Setter<FrostedGlassEffectWeightsEmbossTag>(Vector2f{1.0f, 0.5f});
     // WeightsEdl
     frostedGlassEffect->Setter<FrostedGlassEffectWeightsEdlTag>(Vector2f{1.0f, 1.0f});
+    // AntiAlias
+    frostedGlassEffect->Setter<FrostedGlassEffectAntiAliasTag>(Vector2f{-1.0f, 1.0f});
     // BgRates
     frostedGlassEffect->Setter<FrostedGlassEffectBgRatesTag>(Vector2f{-1.8792225f, 2.7626955f});
     // BgKBS
@@ -39,6 +45,8 @@ void InitFrostedGlassEffect(std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlas
     frostedGlassEffect->Setter<FrostedGlassEffectBgPosTag>(Vector3f{0.3f, 0.5f, 0.5f});
     // BgNeg
     frostedGlassEffect->Setter<FrostedGlassEffectBgNegTag>(Vector3f{0.5f, 1.0f, 1.0f});
+    // BgAlpha
+    frostedGlassEffect->Setter<FrostedGlassEffectBgAlphaTag>(0.8f);
     // RefractParams
     frostedGlassEffect->Setter<FrostedGlassEffectRefractParamsTag>(Vector3f{1.0f, 0.3f, 0.3f});
     // SdParams
@@ -98,6 +106,14 @@ const std::vector<std::shared_ptr<RSNGRenderShapeBase>> shapeValues = {
     nullptr,  // Placeholder - should be actual shape objects
     nullptr   // Placeholder - should be actual shape objects
 };
+
+// Extreme material colors
+const std::vector<Vector4f> extremeColors = {
+    Vector4f{-1.0f, -1.0f, -1.0f, -1.0f},   // All negative
+    Vector4f{10.0f, 10.0f, 10.0f, 10.0f},    // Above max (1.0)
+    Vector4f{9999.0f, 9999.0f, 9999.0f, 1.0f}, // Extremely large
+    Vector4f{0.5f, 1e10f, 0.5f, 0.5f}        // Mixed extreme
+};
 }
 
 class NGShaderFrostedGlassEffectTest : public RSGraphicTest {
@@ -107,43 +123,101 @@ public:
         SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     }
 
-private:
-    void SetUpTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
-        std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlass)
+    std::shared_ptr<Rosen::RSCanvasNode> SetCommonBackgroundNode()
     {
-        if (columnCount == 0 || rowCount == 0) {
-            return;  // Invalid test configuration
-        }
-        const size_t sizeX = SCREEN_WIDTH / columnCount;
-        const size_t sizeY = SCREEN_HEIGHT / rowCount;
-        const size_t x = (i % columnCount) * sizeX;
-        const size_t y = (i / columnCount) * sizeY;
+        // set background node
+        auto backgroundTestNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        return backgroundTestNode;
+    }
 
-        auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {x, y, sizeX, sizeY});
-        testNode->SetBackgroundNGShader(frostedGlass);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
+    std::shared_ptr<RSEffectNode> SetDefaultFrostedGlassBlurEffectNode()
+    {
+        auto effectNode = RSEffectNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!effectNode) {
+            return nullptr;
+        }
+        effectNode->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+        effectNode->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
+ 
+        auto frostedGlassBlurFilter = std::make_shared<RSNGFrostedGlassBlurFilter>();
+        frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(40.0f);
+        frostedGlassBlurFilter->Setter<FrostedGlassBlurRefractOutPxTag>(20.0f);
+        frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusScaleKTag>(1.0f);
+        effectNode->SetBackgroundNGFilter(frostedGlassBlurFilter);
+
+        effectNode->SetClipToBounds(true);
+        GetRootNode()->AddChild(effectNode);
+        RegisterNode(effectNode);
+ 
+        return effectNode;
+    }
+
+    void SetEffectChildNode(const size_t i, const size_t columnCount, const size_t rowCount,
+        std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlass)
+    {
+        auto sizeX = (columnCount != 0) ? (SCREEN_WIDTH / columnCount) : SCREEN_WIDTH;
+        auto sizeY = (rowCount != 0) ? (SCREEN_HEIGHT * columnCount / rowCount) : SCREEN_HEIGHT;
+
+        int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
+        int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
+
+        // set effect child node
+        auto effectChildNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        if (!effectChildNode || !effectNode) {
+            return;
+        }
+        effectChildNode->SetBounds(x, y, sizeX, sizeY);
+        effectChildNode->SetFrame(x, y, sizeX, sizeY);
+
+        // apply frostedGlassEffect on child node
+        effectChildNode->SetBackgroundNGShader(frostedGlass);
+
+        //  apply sdf on effect effect child node
+        const RRect defaultRectParam = {
+            RectT<float>{sizeX / 4, sizeY / 4, sizeX / 2, sizeY / 2}, sizeX / 16, sizeX / 16
+        };
+        std::shared_ptr<RSNGShapeBase> sdfShape;
+        InitSmoothUnionShapes(sdfShape, defaultRectParam, defaultRectParam, 0.0);
+        if (!sdfShape) {
+            return;
+        }
+        effectChildNode->SetSDFShape(sdfShape);
+
+        effectNode->AddChild(effectChildNode);
+        RegisterNode(effectChildNode);
     }
 };
 
 GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effect_Material_Color_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(materialColors.size());
+    auto backgroundTestNode = SetCommonBackgroundNode();
+    auto effectNode = SetDefaultFrostedGlassBlurEffectNode();
+    if (!backgroundTestNode || !effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < materialColors.size(); i++) {
         auto frostedGlass = std::make_shared<RSNGFrostedGlassEffect>();
         InitFrostedGlassEffect(frostedGlass);
         frostedGlass->Setter<FrostedGlassEffectMaterialColorTag>(materialColors[i]);
 
-        SetUpTestNode(i, columnCount, rowCount, frostedGlass);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, frostedGlass);
     }
 }
 
 GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effect_Shape_Test)
 {
-    const size_t columnCount = 3;
-    const size_t rowCount = 1;
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(shapeValues.size());
+    auto backgroundTestNode = SetCommonBackgroundNode();
+    auto effectNode = SetDefaultFrostedGlassBlurEffectNode();
+    if (!backgroundTestNode || !effectNode) {
+        return;
+    }
 
     for (size_t i = 0; i < shapeValues.size(); i++) {
         auto frostedGlass = std::make_shared<RSNGFrostedGlassEffect>();
@@ -151,7 +225,7 @@ GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effe
         frostedGlass->Setter<FrostedGlassEffectMaterialColorTag>(Vector4f{0.8f, 0.8f, 0.8f, 1.0f});
         frostedGlass->Setter<FrostedGlassEffectShapeTag>(shapeValues[i]);
 
-        SetUpTestNode(i, columnCount, rowCount, frostedGlass);
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, frostedGlass);
     }
 }
 
@@ -161,19 +235,20 @@ GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effe
  */
 GRAPHIC_TEST(NGShaderFrostedGlassEffectTest, EFFECT_TEST, Set_Frosted_Glass_Effect_Extreme_Values_Test)
 {
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
-    const std::vector<Vector4f> extremeColors = {
-        Vector4f{-1.0f, -1.0f, -1.0f, -1.0f},   // All negative
-        Vector4f{10.0f, 10.0f, 10.0f, 10.0f},    // Above max (1.0)
-        Vector4f{9999.0f, 9999.0f, 9999.0f, 1.0f}, // Extremely large
-        Vector4f{0.5f, 1e10f, 0.5f, 0.5f}        // Mixed extreme
-    };
+    const size_t columnCount = 1;
+    const size_t rowCount = static_cast<size_t>(extremeColors.size());
+    auto backgroundTestNode = SetCommonBackgroundNode();
+    auto effectNode = SetDefaultFrostedGlassBlurEffectNode();
+    if (!backgroundTestNode || !effectNode) {
+        return;
+    }
+
     for (size_t i = 0; i < extremeColors.size(); i++) {
         auto frostedGlass = std::make_shared<RSNGFrostedGlassEffect>();
         InitFrostedGlassEffect(frostedGlass);
         frostedGlass->Setter<FrostedGlassEffectMaterialColorTag>(extremeColors[i]);
-        SetUpTestNode(i, columnCount, rowCount, frostedGlass);
+
+        SetEffectChildNode(static_cast<size_t>(i), columnCount, rowCount, effectNode, frostedGlass);
     }
 }
 
