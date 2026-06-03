@@ -1642,6 +1642,41 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText007, TestS
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographySplitRunsText008
+ * @tc.desc: test for split run in balanced strategy with special characters, no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText008, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.verticalAlignment = TextVerticalAlign::CENTER;
+    typographyStyle.breakStrategy = BreakStrategy::BALANCED;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    // Special font size 76 for normal English characters situation
+    style.fontSize = 76;
+    style.letterSpacing = 25;
+    style.fontStyle = FontStyle::ITALIC;
+    std::u16string text = u"\u{0033}\u{0031}\u{007d}\u{007d}\u{007d}\u{5fa3}\u{000d}\u{007d}";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(39.5);
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
+    size_t expectRunSize = 8;
+    EXPECT_EQ(runs.size(), expectRunSize);
+    size_t expectLineSize = 7;
+    EXPECT_EQ(paragraph->GetLineCount(), expectLineSize);
+}
+
+/*
  * @tc.name: OH_Drawing_TypographyRtlClusterIndexOffset001
  * @tc.desc: test for rtl's text adjusting textRange
  * @tc.type: FUNC
