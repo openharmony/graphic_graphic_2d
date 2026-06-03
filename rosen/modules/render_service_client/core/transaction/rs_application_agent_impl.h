@@ -48,7 +48,8 @@ public:
     RSApplicationAgentImpl() = default;
     virtual ~RSApplicationAgentImpl();
     static void Destory();
-
+    void SetDestreuctionProcess(bool isDestreuctionProcess);
+    bool isDestreuctionProcess_ = false;
 private:
     RSApplicationAgentImpl(const RSApplicationAgentImpl&) = delete;
     RSApplicationAgentImpl(const RSApplicationAgentImpl&&) = delete;
