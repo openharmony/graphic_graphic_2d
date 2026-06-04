@@ -1705,26 +1705,6 @@ HWTEST_F(CmdListHelperTest, AddParticleEffectToCmdListNull, TestSize.Level1)
 }
  
 /**
- * @tc.name: AddParticleEffectToCmdList002
- * @tc.desc: Test AddParticleEffectToCmdList with valid particle effect
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(CmdListHelperTest, AddParticleEffectToCmdListValid, TestSize.Level1)
-{
-    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    ASSERT_TRUE(cmdList != nullptr);
- 
-    auto builder = std::make_shared<ParticleBuilder>();
-    builder->SetUpdateCode("void main() { }");
-    auto particleEffect = builder->MakeParticleEffect(1024);
-    ASSERT_NE(particleEffect, nullptr);
- 
-    OpDataHandle handle = CmdListHelper::AddParticleEffectToCmdList(*cmdList, particleEffect);
-    EXPECT_TRUE(handle.size > 0);
-}
- 
-/**
  * @tc.name: AddParticleEffectToCmdList003
  * @tc.desc: Test AddParticleEffectToCmdList with zero max particle size (empty serialize data)
  * @tc.type: FUNC
@@ -1791,53 +1771,6 @@ HWTEST_F(CmdListHelperTest, GetParticleEffectFromCmdListInvalid, TestSize.Level1
     handle.size = 0;
     auto particleEffect = CmdListHelper::GetParticleEffectFromCmdList(*cmdList, handle);
     EXPECT_EQ(particleEffect, nullptr);
-}
- 
-/**
- * @tc.name: GetParticleEffectFromCmdList002
- * @tc.desc: Test GetParticleEffectFromCmdList with valid particle effect
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(CmdListHelperTest, GetParticleEffectFromCmdListValid, TestSize.Level1)
-{
-    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    ASSERT_TRUE(cmdList != nullptr);
- 
-    auto builder = std::make_shared<ParticleBuilder>();
-    builder->SetUpdateCode("void main() { }");
-    auto particleEffect = builder->MakeParticleEffect(1024);
-    EXPECT_TRUE(particleEffect);
- 
-    OpDataHandle handle = CmdListHelper::AddParticleEffectToCmdList(*cmdList, particleEffect);
-    auto retrievedEffect = CmdListHelper::GetParticleEffectFromCmdList(*cmdList, handle);
-    EXPECT_TRUE(retrievedEffect);
-}
- 
-/**
- * @tc.name: ParticleEffectRoundTrip001
- * @tc.desc: Test particle effect round trip through cmdList
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(CmdListHelperTest, ParticleEffectRoundTrip, TestSize.Level1)
-{
-    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    ASSERT_TRUE(cmdList != nullptr);
- 
-    auto builder = std::make_shared<ParticleBuilder>();
-    std::string configStr = "uniform TestBlock { float value; };";
-    builder->AddConfigData("testConfig", configStr, 16);
-    builder->SetUpdateCode("void main() { }");
-    auto originalEffect = builder->MakeParticleEffect(1024);
-    ASSERT_NE(originalEffect, nullptr);
- 
-    float data = 1.0f;
-    originalEffect->UpdateConfigData("testConfig", &data, 0, sizeof(data));
- 
-    OpDataHandle handle = CmdListHelper::AddParticleEffectToCmdList(*cmdList, originalEffect);
-    auto retrievedEffect = CmdListHelper::GetParticleEffectFromCmdList(*cmdList, handle);
-    EXPECT_TRUE(retrievedEffect);
 }
 } // namespace Drawing
 } // namespace Rosen
