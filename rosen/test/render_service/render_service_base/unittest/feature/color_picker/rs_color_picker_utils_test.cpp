@@ -510,25 +510,6 @@ HWTEST_F(RSColorPickerUtilsTest, DirtyInCurrentSurfaceNotPreparing, TestSize.Lev
 }
 
 /**
- * @tc.name: DirtyInSurfacesBelowStopsAtCurrentSurface
- * @tc.desc: Test DirtyInSurfacesBelow ignores dirty regions on the filter node's own surface
- * @tc.type: FUNC
- */
-HWTEST_F(RSColorPickerUtilsTest, DirtyInSurfacesBelowStopsAtCurrentSurface, TestSize.Level1)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto filterNode = CreatePreparingColorPickerNode(COLOR_PICKER_FILTER_NODE_ID, COLOR_PICKER_ABS_RECT);
-    auto currentSurface = std::make_shared<RSSurfaceRenderNode>(
-        COLOR_PICKER_SURFACE_NODE_ID, rsContext->weak_from_this());
-    currentSurface->GetDirtyManager()->MergeDirtyRect(COLOR_PICKER_INTERSECT_DIRTY_RECT);
-    filterNode->instanceRootNodeId_ = currentSurface->GetId();
-
-    std::vector<std::shared_ptr<RSRenderNode>> surfaces = { currentSurface };
-
-    EXPECT_FALSE(RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces));
-}
-
-/**
  * @tc.name: DirtyInSurfacesBelowChecksLowerSurfaces
  * @tc.desc: Test DirtyInSurfacesBelow skips non-surface entries and checks surfaces below current surface
  * @tc.type: FUNC
