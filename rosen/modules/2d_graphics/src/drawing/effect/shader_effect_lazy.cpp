@@ -128,9 +128,22 @@ ShaderEffectLazy::ShaderEffectLazy(std::shared_ptr<ShaderEffectObj> shaderEffect
 {
 }
 
+bool ShaderEffectLazy::IsGradientShader() const
+{
+    if (!shaderEffectObj_) {
+        return false;
+    }
+    int32_t subType = shaderEffectObj_->GetSubType();
+    return (subType == static_cast<int32_t>(ShaderEffect::ShaderEffectType::LINEAR_GRADIENT) ||
+            subType == static_cast<int32_t>(ShaderEffect::ShaderEffectType::RADIAL_GRADIENT) ||
+            subType == static_cast<int32_t>(ShaderEffect::ShaderEffectType::CONICAL_GRADIENT) ||
+            subType == static_cast<int32_t>(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT));
+}
+
 std::shared_ptr<ShaderEffect> ShaderEffectLazy::Materialize()
 {
-    if (!shaderEffectCache_ && shaderEffectObj_) {
+    bool needGenerateBaseObject = !shaderEffectCache_ || (shaderEffectCache_ && IsGradientShader());
+    if (needGenerateBaseObject && shaderEffectObj_) {
         auto baseObj = shaderEffectObj_->GenerateBaseObject();
         if (baseObj) {
             shaderEffectCache_ = std::static_pointer_cast<ShaderEffect>(baseObj);

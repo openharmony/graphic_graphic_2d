@@ -54,6 +54,8 @@ public:
     std::shared_ptr<ShaderEffectObj> GetShaderEffectObj() const { return shaderEffectObj_; }
     std::shared_ptr<ShaderEffect> Materialize();
 
+    bool IsGradientShader() const;
+
     // WARNING: Do not call Serialize()/Deserialize() on Lazy objects!
     // Use ExtendObject Marshalling()/Unmarshalling() instead.
     // These methods will return nullptr/false and log errors.

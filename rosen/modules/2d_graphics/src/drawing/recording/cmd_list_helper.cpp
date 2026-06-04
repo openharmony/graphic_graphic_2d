@@ -754,6 +754,9 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
         if (!lazyShader) {
             return nullptr;
         }
+        if (lazyShader->IsGradientShader()) {
+            return lazyShader;
+        }
         // Immediately instantiate, return actual ShaderEffect instead of Lazy object
         return lazyShader->Materialize();
     }
