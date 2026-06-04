@@ -18,7 +18,6 @@
 #include "draw/color.h"
 #include "text_config.h"
 #include "txt/paint_record.h"
-#include "utils/text_histogram.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -203,9 +202,6 @@ void SplitTextStyleConvert(SPText::TextStyle& textStyle, const TextStyle& style)
     for (const auto& [axis, pairInfo] : axisValues) {
         auto [value, isNormalization] = pairInfo;
         textStyle.fontVariations.SetAxisValue(axis, value, isNormalization);
-    }
-    if (!axisValues.empty()) {
-        TEXT_HISTOGRAM_BOOLEAN_NAME("FontVariationAxis", true);
     }
 }
 
