@@ -565,4 +565,17 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineDashGapTest, TestSize.Level1)
     Vector4f vector = extractor.GetOutlineDashGap();
     EXPECT_EQ(vector, Vector4f(0.f));
 }
+
+/**
+ * @tc.name: GetCameraDistance001
+ * @tc.desc: Test GetCameraDistance returns default value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSModifierExtractorTest, GetCameraDistance001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float result = extractor.GetCameraDistance();
+    EXPECT_EQ(result, 0.f);
+}
 } // namespace OHOS::Rosen
