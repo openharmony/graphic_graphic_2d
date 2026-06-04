@@ -25,6 +25,7 @@
 using namespace testing;
 using namespace testing::ext;
 
+#if defined(RS_ENABLE_UNI_RENDER)
 namespace OHOS::Rosen {
 class RSRenderTaskTest : public testing::Test {
 public:
@@ -184,3 +185,4 @@ HWTEST_F(RSRenderTaskTest, RSCompositionTask, TestSize.Level1)
 }
 
 } // namespace OHOS::Rosen
+#endif
