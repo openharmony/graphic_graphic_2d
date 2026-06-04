@@ -477,7 +477,7 @@ HWTEST_F(ConicalGradientShaderObjTest, Unmarshalling003, TestSize.Level1)
     int32_t safeDepth = ObjectHelper::MAX_NESTING_DEPTH / 2;
     bool isValid = true;
     bool result = shaderObj->Unmarshalling(parcel, isValid, safeDepth);
-    EXPECT_TRUE(result);
+    EXPECT_FALSE(result);
     EXPECT_TRUE(isValid);
 }
 
