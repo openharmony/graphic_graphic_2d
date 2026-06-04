@@ -30,7 +30,7 @@ RSWindowKeyFrameNodeDrawable::RSWindowKeyFrameNodeDrawable(std::shared_ptr<const
 
 RSRenderNodeDrawable::Ptr RSWindowKeyFrameNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
-    return new (std::nothrow) RSWindowKeyFrameNodeDrawable(std::move(node));
+    return new RSWindowKeyFrameNodeDrawable(std::move(node));
 }
 
 bool RSWindowKeyFrameNodeDrawable::CheckAndDrawToOffscreen(Drawing::Canvas& canvas,
