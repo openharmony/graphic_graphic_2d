@@ -37,15 +37,15 @@ public:
     static std::shared_ptr<EffectImageFilter> EllipticalGradientBlur(float blurRadius, float center_x, float center_y,
         float mask_radius_x, float mask_radius_y, const std::vector<float> &positions,
         const std::vector<float> &degrees);
-    static std::shared_ptr<EffectImageFilter> WaterGlass(
-        const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params);
-    static std::shared_ptr<EffectImageFilter> ReededGlass(
-        const std::shared_ptr<Drawing::GEReededGlassDataParams>& params);
     static std::shared_ptr<EffectImageFilter> MaskTransition(const std::shared_ptr<Media::PixelMap>& topLayerMap,
         const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse);
     static std::shared_ptr<EffectImageFilter> WaterDropletTransition(
         const std::shared_ptr<OHOS::Media::PixelMap>& topLayerMap,
         const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
+    static std::shared_ptr<EffectImageFilter> WaterGlass(
+        const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params);
+    static std::shared_ptr<EffectImageFilter> ReededGlass(
+        const std::shared_ptr<Drawing::GEReededGlassDataParams>& params);
     static std::shared_ptr<EffectImageFilter> Scale(float scaleX, float scaleY,
         Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode);
     virtual DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) = 0;
@@ -138,33 +138,6 @@ private:
     bool generateDerivs_;
 };
 
-class EffectImageWaterGlassFilter : public EffectImageFilter {
-public:
-    EffectImageWaterGlassFilter(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& waterGlassData)
-        : waterGlassData_(waterGlassData)
-    {}
-
-    ~EffectImageWaterGlassFilter() override = default;
-
-    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
-
-private:
-    std::shared_ptr<Drawing::GEWaterGlassDataParams> waterGlassData_;
-};
-
-class EffectImageReededGlassFilter : public EffectImageFilter {
-public:
-    EffectImageReededGlassFilter(const std::shared_ptr<Drawing::GEReededGlassDataParams>& reededGlassData)
-        : reededGlassData_(reededGlassData)
-    {}
-    ~EffectImageReededGlassFilter() override = default;
-
-    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
-
-private:
-    std::shared_ptr<Drawing::GEReededGlassDataParams> reededGlassData_;
-};
-
 class EffectImageMaskTransitionFilter : public EffectImageFilter {
 public:
     EffectImageMaskTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
@@ -197,6 +170,33 @@ private:
     std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams> waterDropletParams_ = nullptr;
 };
 
+class EffectImageWaterGlassFilter : public EffectImageFilter {
+public:
+    EffectImageWaterGlassFilter(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& waterGlassData)
+        : waterGlassData_(waterGlassData)
+    {}
+
+    ~EffectImageWaterGlassFilter() override = default;
+
+    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
+
+private:
+    std::shared_ptr<Drawing::GEWaterGlassDataParams> waterGlassData_;
+};
+
+class EffectImageReededGlassFilter : public EffectImageFilter {
+public:
+    EffectImageReededGlassFilter(const std::shared_ptr<Drawing::GEReededGlassDataParams>& reededGlassData)
+        : reededGlassData_(reededGlassData)
+    {}
+    ~EffectImageReededGlassFilter() override = default;
+
+    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
+
+private:
+    std::shared_ptr<Drawing::GEReededGlassDataParams> reededGlassData_;
+};
+
 class EffectImageScaleFilter : public EffectImageFilter {
 public:
     EffectImageScaleFilter(float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
@@ -220,11 +220,11 @@ public:
     DrawingError Render(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
         const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU,
         std::shared_ptr<Media::PixelMap>& dstPixelMap);
-    DrawingError RenderNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+#ifndef ROSEN_ARKUI_X
+    DrawingError RenderDstNative(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
         std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer,
-        const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters,
-        int32_t* syncFenceFd,
-        bool releaseGpuContext);
+        const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU);
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // EFFECT_IMAGE_RENDER_H
