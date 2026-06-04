@@ -443,8 +443,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
                       RSIClientToRenderConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER)),
             ERR_INVALID_DATA);
     }
-    EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK)), ERR_NULL_OBJECT);
     EXPECT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE)), ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
@@ -993,53 +991,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
     nodeMap.UnregisterRenderNode(displayNode->GetId());
-}
-
-/**
- * @tc.name: TestRSClientToRenderConnectionStub003
- * @tc.desc: Test callback is null
- * @tc.type: FUNC
- * @tc.require: issueI60KUK
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    data.WriteUint64(123);
-    data.WriteUint64(456);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NULL_OBJECT);
-}
-
-class RSTransactionDataCallbackStubMock : public RSTransactionDataCallbackStub {
-public:
-    RSTransactionDataCallbackStubMock() = default;
-    virtual ~RSTransactionDataCallbackStubMock() = default;
-    void OnAfterProcess(uint64_t token, uint64_t timeStamp) override {};
-};
-
-/**
- * @tc.name: TestRSClientToRenderConnectionStub004
- * @tc.desc: Test callback exit
- * @tc.type: FUNC
- * @tc.require: issueI60KUK
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub004, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    data.WriteUint64(123);
-    data.WriteUint64(456);
-    sptr<RSTransactionDataCallbackStubMock> callback = new RSTransactionDataCallbackStubMock();
-    data.WriteRemoteObject(callback->AsObject());
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, NO_ERROR);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

@@ -43,7 +43,6 @@
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
-#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include <system_ability_definition.h>
 #include "transaction/rs_render_to_service_connection.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
@@ -71,7 +70,6 @@ const uint8_t DO_UNREGISTER_SURFACE_BUFFER_CALLBACK = 7;
 const uint8_t DO_SET_WINDOW_CONTAINER = 8;
 const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 9;
 const uint8_t DO_CLEAR_UIFIRST_CACHE = 10;
-const uint8_t DO_REGISTER_TRANSACTION_DATA_CALLBACK = 11;
 const uint8_t DO_TAKE_SURFACE_CAPTURE_WITH_ALLWINDOWS = 12;
 const uint8_t DO_FREEZE_SCREEN = 13;
 const uint8_t DO_REGISTER_CANVAS_CALLBACK = 14;
@@ -534,38 +532,6 @@ void DoClearUifirstCache()
     toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
-class CustomTestTransactionDataCallback : public RSTransactionDataCallbackStub {
-public:
-    CustomTestTransactionDataCallback() = default;
-    ~CustomTestTransactionDataCallback() = default;
-
-    void OnAfterProcess(uint64_t multiToken, uint64_t timeStamp) override
-    {}
-};
-
-void DoRegisterTransactionDataCallback()
-{
-    MessageParcel dataP;
-    MessageParcel reply;
-    MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        return;
-    }
-    uint64_t token = GetData<uint64_t>();
-    auto timeStamp = GetData<uint64_t>();
-
-    sptr<RSITransactionDataCallback> transactionDataCallback = new CustomTestTransactionDataCallback();
-    dataP.WriteUint64(token);
-    dataP.WriteUint64(timeStamp);
-    dataP.WriteRemoteObject(transactionDataCallback->AsObject());
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    if (toRenderConnectionStub_ == nullptr) {
-        return;
-    }
-    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
-}
-
 bool DoTakeSurfaceCaptureWithAllWindows()
 {
     MessageParcel dataParcel;
@@ -823,9 +789,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_CLEAR_UIFIRST_CACHE:
             OHOS::Rosen::DoClearUifirstCache();
-            break;
-        case OHOS::Rosen::DO_REGISTER_TRANSACTION_DATA_CALLBACK:
-            OHOS::Rosen::DoRegisterTransactionDataCallback();
             break;
         case OHOS::Rosen::DO_TAKE_SURFACE_CAPTURE_WITH_ALLWINDOWS:
             OHOS::Rosen::DoTakeSurfaceCaptureWithAllWindows();

@@ -71,7 +71,6 @@
 #include "platform/ohos/rs_jank_stats_helper.h"
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_unmarshal_thread.h"
-#include "transaction/rs_transaction_data_callback_manager.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 
 #include "hgm_config_callback_manager.h"
@@ -553,15 +552,6 @@ ErrCode RSClientToRenderConnection::SetLayerTopForHWC(NodeId nodeId, bool isTop,
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetLayerTopForHWC(nodeId, isTop, zOrder);
-}
-
-void RSClientToRenderConnection::RegisterTransactionDataCallback(uint64_t token,
-    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
-{
-    if (renderPipelineAgent_ == nullptr) {
-        return;
-    }
-    renderPipelineAgent_->RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
 ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value)

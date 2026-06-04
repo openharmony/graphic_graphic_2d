@@ -91,7 +91,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_CONTAINER),
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_UIFIRST_CACHE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FREEZE_SCREEN),
@@ -1229,28 +1228,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             SetWindowContainer(nodeId, isEnabled);
-            break;
-        }
-        case static_cast<uint32_t>(
-            RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK): {
-            uint64_t token = data.ReadUint64();
-            uint64_t timeStamp = data.ReadUint64();
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                RS_LOGE("RSClientToRenderConnectionStub::OnRemoteRequest remoteObject == nullptr");
-                break;
-            }
-            sptr<RSITransactionDataCallback> callback =
-                iface_cast<RSITransactionDataCallback>(remoteObject);
-            if (callback == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                RS_LOGE("RSClientToRenderConnectionStub::OnRemoteRequest callback == nullptr");
-                break;
-            }
-            RS_LOGD("RSClientToRenderConnectionStub: already decode unicode, timeStamp: %{public}"
-                PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-            RegisterTransactionDataCallback(token, timeStamp, callback);
             break;
         }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_UIFIRST_CACHE) : {

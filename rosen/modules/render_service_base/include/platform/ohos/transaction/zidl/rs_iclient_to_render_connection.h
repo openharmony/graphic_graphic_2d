@@ -157,9 +157,6 @@ public:
 
     virtual ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 
-    virtual void RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
-        sptr<RSITransactionDataCallback> callback) = 0;
-
     virtual ErrCode SetWindowContainer(NodeId nodeId, bool value) = 0;
 
     virtual void ClearUifirstCache(NodeId id) = 0;

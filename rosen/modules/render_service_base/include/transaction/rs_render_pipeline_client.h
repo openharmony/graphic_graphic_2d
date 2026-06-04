@@ -188,7 +188,8 @@ public:
 
     void ClearUifirstCache(NodeId id);
 
-    bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
+    bool SetTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
+    sptr<RSITransactionDataCallback> GetTransactionDataCbDirector() const { return transactionDataCbDirector_; }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback);

@@ -195,7 +195,7 @@ void RSRenderPipelineClient::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32
 {
 }
 
-bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+bool RSRenderPipelineClient::SetTransactionDataCallback(uint64_t token, uint64_t timeStamp,
     std::function<void()> callback)
 {
     return true;

@@ -24,6 +24,7 @@
 #include "common/rs_macros.h"
 #include "command/rs_command.h"
 #include "pipeline/rs_context.h"
+#include "ipc_callbacks/rs_transaction_data_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -201,6 +202,21 @@ public:
         return dvsyncTime_;
     }
 
+    void SetCallbackStub(sptr<IRemoteObject> callbackStub)
+    {
+        callbackStub_ = callbackStub;
+    }
+
+    sptr<IRemoteObject> GetCallbackStub() const
+    {
+        return callbackStub_;
+    }
+
+    uint64_t GetToken() const
+    {
+        return token_;
+    }
+
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
@@ -237,6 +253,7 @@ private:
     std::vector<uint32_t> commandOffsets_;
     bool dvsyncTimeUpdate_ = false;
     uint64_t dvsyncTime_ = 0;
+    sptr<IRemoteObject> callbackStub_ = nullptr;
 
     friend class RSTransactionProxy;
     friend class RSTransactionHandler;

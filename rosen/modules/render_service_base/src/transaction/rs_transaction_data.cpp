@@ -25,7 +25,6 @@
 #include "rs_profiler.h"
 #include "rs_trace.h"
 #include "transaction/rs_transaction_data.h"
-#include "transaction/rs_transaction_data_callback_manager.h"
 #include "animation/rs_animation_trace_utils.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 
@@ -189,6 +188,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteInt32(parentPid_);
     success = success && parcel.WriteBool(dvsyncTimeUpdate_);
     success = success && parcel.WriteUint64(dvsyncTime_);
+    success = success && parcel.WriteRemoteObject(callbackStub_);
     if (!success) {
         ROSEN_LOGE("RSTransactionData::Marshalling failed");
     }
@@ -218,10 +218,14 @@ void RSTransactionData::Process(RSContext& context)
             command->Process(context);
         }
     }
-    if (token_ != 0) {
-        RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(token_, timestamp_);
-    } else {
-        RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(pid_, timestamp_);
+    if (callbackStub_ != nullptr) {
+        auto callback = iface_cast<RSITransactionDataCallback>(callbackStub_);
+        if (callback != nullptr) {
+            callback->OnAfterProcess(token_, timestamp_);
+        } else {
+            RS_LOGE("RSTransactionData::Process callback iface_cast failed, token: %{public}"
+                PRIu64 " timeStamp: %{public}" PRIu64, token_, timestamp_);
+        }
     }
 }
 
@@ -428,6 +432,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         parcel.ReadInt32(pid) && ({RS_PROFILER_PATCH_PID(parcel, pid); pid_ = pid; true;}) &&
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_) &&
         parcel.ReadBool(dvsyncTimeUpdate_) && parcel.ReadUint64(dvsyncTime_);
+    callbackStub_ = parcel.ReadRemoteObject();
     if (!flag) {
         RS_LOGE("RSTransactionData::UnmarshallingCommand failed");
     }
@@ -499,7 +504,8 @@ void RSTransactionData::DumpCommand(std::string& dumpString)
 }
 RSTransactionData::RSTransactionData(RSTransactionData&& other)
     : payload_(std::move(other.payload_)), timestamp_(std::move(other.timestamp_)),
-      abilityName_(std::move(other.abilityName_)), pid_(other.pid_), index_(other.index_)
+      abilityName_(std::move(other.abilityName_)), pid_(other.pid_), index_(other.index_),
+      callbackStub_(std::move(other.callbackStub_))
 {}
 } // namespace Rosen
 } // namespace OHOS

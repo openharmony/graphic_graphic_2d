@@ -67,7 +67,6 @@
 #include "render/rs_typeface_cache.h"
 #include "system/rs_system_parameters.h"
 #include "transaction/rs_unmarshal_thread.h"
-#include "transaction/rs_transaction_data_callback_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "app_mgr_client.h"
 #undef LOG_TAG
@@ -860,12 +859,6 @@ ErrCode RSRenderPipelineAgent::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;
-}
-
-void RSRenderPipelineAgent::RegisterTransactionDataCallback(uint64_t token,
-    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
-{
-    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
 ErrCode RSRenderPipelineAgent::SetWindowContainer(NodeId nodeId, bool value)

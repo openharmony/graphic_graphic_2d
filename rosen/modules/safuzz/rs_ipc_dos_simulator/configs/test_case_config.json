@@ -3084,14 +3084,6 @@
     "connectionType": 1
   },
   {
-    "testCaseDesc": "REGISTER_TRANSACTION_DATA_CALLBACK_TEST_001",
-    "interfaceName": "REGISTER_TRANSACTION_DATA_CALLBACK",
-    "inputParams": "WriteUint64;WriteUint64;WriteTransactionDataCallbackSptr",
-    "writeInterfaceToken": true,
-    "messageOption": "TF_ASYNC",
-    "connectionType": 0
-  },
-  {
     "testCaseDesc": "AVCODEC_VIDEO_START_TEST_001",
     "interfaceName": "AVCODEC_VIDEO_START",
     "inputParams": "WriteUInt64Vector;WriteStringVector;WriteUint32;WriteUint64",

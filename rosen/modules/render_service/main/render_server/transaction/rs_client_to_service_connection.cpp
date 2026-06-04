@@ -78,7 +78,6 @@
 #include "render/rs_typeface_cache.h"
 #include "rs_ipc_persistence_data.h"
 #include "transaction/rs_unmarshal_thread.h"
-#include "transaction/rs_transaction_data_callback_manager.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 
 #ifdef TP_FEATURE_ENABLE

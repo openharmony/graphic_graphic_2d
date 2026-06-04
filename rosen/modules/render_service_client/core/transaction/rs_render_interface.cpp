@@ -325,7 +325,7 @@ bool RSRenderInterface::RegisterTransactionDataCallback(
 {
     RS_LOGD("RSRenderInterface::RegisterTransactionDataCallback, timeStamp: %{public}"
         PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-    return renderPipelineClient_->RegisterTransactionDataCallback(token, timeStamp, callback);
+    return renderPipelineClient_->SetTransactionDataCallback(token, timeStamp, callback);
 }
 
 std::shared_ptr<RSSurface> RSRenderInterface::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,

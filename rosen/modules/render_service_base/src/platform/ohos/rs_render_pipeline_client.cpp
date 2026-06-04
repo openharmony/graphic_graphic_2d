@@ -90,6 +90,13 @@ RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRen
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
     if (clientToRenderConnection_ != nullptr) {
+        if (transactionData != nullptr && transactionDataCbDirector_ != nullptr) {
+            std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
+            auto key = std::make_pair(transactionData->GetToken(), transactionData->GetTimestamp());
+            if (transactionDataCallbacks_.find(key) != std::end(transactionDataCallbacks_)) {
+                transactionData->SetCallbackStub(transactionDataCbDirector_->AsObject());
+            }
+        }
         clientToRenderConnection_->CommitTransaction(transactionData);
     } else {
         RS_LOGE_LIMIT(__func__, __line__,
@@ -783,15 +790,11 @@ private:
     RSRenderPipelineClient* client_;
 };
 
-bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
+bool RSRenderPipelineClient::SetTransactionDataCallback(uint64_t token, uint64_t timeStamp,
     std::function<void()> callback)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::RegisterTransactionDataCallback clientToRenderConnection_ == nullptr!");
-        return false;
-    }
     if (callback == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::RegisterTransactionDataCallback callback == nullptr!");
+        ROSEN_LOGE("RSRenderPipelineClient::SetTransactionDataCallback callback == nullptr!");
         return false;
     }
     {
@@ -799,7 +802,7 @@ bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uin
         if (transactionDataCallbacks_.find(std::make_pair(token, timeStamp)) == std::end(transactionDataCallbacks_)) {
             transactionDataCallbacks_.emplace(std::make_pair(token, timeStamp), callback);
         } else {
-            ROSEN_LOGE("RSRenderPipelineClient::RegisterTransactionDataCallback callback exists"
+            ROSEN_LOGE("RSRenderPipelineClient::SetTransactionDataCallback callback exists"
                 " in timeStamp %{public}s", std::to_string(timeStamp).c_str());
             return false;
         }
@@ -807,9 +810,8 @@ bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uin
             transactionDataCbDirector_ = new TransactionDataCallbackDirector(this);
         }
     }
-    RS_LOGD("RSRenderPipelineClient::RegisterTransactionDataCallback, timeStamp: %{public}"
+    RS_LOGD("RSRenderPipelineClient::SetTransactionDataCallback, timeStamp: %{public}"
         PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-    clientToRenderConnection_->RegisterTransactionDataCallback(token, timeStamp, transactionDataCbDirector_);
     return true;
 }
 

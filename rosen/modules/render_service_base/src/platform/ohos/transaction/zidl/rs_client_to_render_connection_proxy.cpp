@@ -1290,43 +1290,6 @@ ErrCode RSClientToRenderConnectionProxy::SetLayerTopForHWC(NodeId nodeId, bool i
     return ERR_OK;
 }
 
-void RSClientToRenderConnectionProxy::RegisterTransactionDataCallback(uint64_t token,
-    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
-{
-    if (callback == nullptr) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::RegisterTransactionDataCallback callback == nullptr.");
-        return;
-    }
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: write token err.");
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    static_assert(std::is_same_v<int32_t, pid_t>, "pid_t is not int32_t on this platform.");
-    if (!data.WriteUint64(token)) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: write multi token val err.");
-        return;
-    }
-    if (!data.WriteUint64(timeStamp)) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: write timeStamp val err.");
-        return;
-    }
-    if (!data.WriteRemoteObject(callback->AsObject())) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: write Callback val err.");
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    RS_LOGD("RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: timeStamp: %{public}"
-        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::RegisterTransactionDataCallback: Send Request err.");
-        return;
-    }
 }
 
 ErrCode RSClientToRenderConnectionProxy::SetWindowContainer(NodeId nodeId, bool value)
