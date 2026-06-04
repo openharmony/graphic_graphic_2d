@@ -2195,8 +2195,8 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SendVideoRateInfo_MapSizeExceedMa
     sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
     auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
     std::unordered_map<std::string, std::string> videoRateInfo;
-    const uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size is 32
-    for (uint32_t i = 0; i <= MAX_VIDEO_INFO_SIZE; i++) {
+    const uint32_t maxVideoInfoSize = 32; // video rate info max map size is 32
+    for (uint32_t i = 0; i <= maxVideoInfoSize; i++) {
         videoRateInfo["key" + std::to_string(i)] = "value" + std::to_string(i);
     }
     auto ret = mockProxy->SendVideoRateInfo(videoRateInfo);
