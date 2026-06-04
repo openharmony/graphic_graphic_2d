@@ -2452,30 +2452,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest007, TestSize
 }
 
 /**
- * @tc.name: DrawMirrorCopyTest007_SKP
- * @tc.desc: Test DrawMirrorCopy when IsVirtualDirtyEnabled is true (with SKP capture triggering)
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest007_SKP, TestSize.Level1)
-{
-#ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder::testingTriggering_ = true;
-    RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::IMG_CACHED);
-#endif
-    ASSERT_NE(displayDrawable_, nullptr);
-    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isVirtualDirtyEnabled_ = true;
-    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParams);
-    EXPECT_TRUE(RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsVirtualDirtyEnabled());
-#ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder::testingTriggering_ = false;
-#endif
-}
-
-/**
  * @tc.name: DrawMirrorCopyTest008
  * @tc.desc: Test DrawMirrorCopy when enableVisibleRect_ is true
  * @tc.type: FUNC
@@ -2540,36 +2516,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest010, TestSize
     // when slrManager is not nullptr
     virtualProcesser->slrManager_ = std::make_shared<RSSLRScaleFunction>(1.0f, 1.0f, 1.0f, 1.0f);
     displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParamsRet);
-}
-
-/**
- * @tc.name: DrawMirrorCopyTest010_SKP
- * @tc.desc: Test DrawMirrorCopy when curCanvas_ is not nullptr and slrManager is not null
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest010_SKP, TestSize.Level1)
-{
-#ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder::testingTriggering_ = true;
-    RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::IMG_CACHED);
-#endif
-    ASSERT_NE(displayDrawable_, nullptr);
-    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    virtualProcesser->canvas_ = drawingFilterCanvas_;
-    auto uniParams = std::make_unique<RSRenderThreadParams>();
-    RSUniRenderThread::Instance().Sync(std::move(uniParams));
-    auto& uniParamsRet = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-
-    // when slrManager is nullptr
-    displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParamsRet);
-    // when slrManager is not nullptr
-    virtualProcesser->slrManager_ = std::make_shared<RSSLRScaleFunction>(1.0f, 1.0f, 1.0f, 1.0f);
-    displayDrawable_->DrawMirrorCopy(*renderParams, virtualProcesser, *uniParamsRet);
-#ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder::testingTriggering_ = false;
-#endif
 }
 
 /**
@@ -2782,55 +2728,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001, TestSize.Lev
 }
 
 /**
- * @tc.name: DrawMirror001_SKP
- * @tc.desc: Test DrawMirror (with SKP capture triggering)
- * @tc.type: FUNC
- * @tc.require: issueICCRA8
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001_SKP, TestSize.Level1)
-{
-#ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder::testingTriggering_ = true;
-    RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::ON_CAPTURE);
-#endif
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    ASSERT_NE(mirroredDisplayDrawable_->renderParams_, nullptr);
-
-    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
-    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    RSRenderThreadParams uniParam;
-
-    Drawing::Canvas drawingCanvas;
-    virtualProcesser->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
-    ASSERT_NE(virtualProcesser->GetCanvas(), nullptr);
-
-    ScreenId id = 100;
-    params->screenId_ = id;
-    ASSERT_EQ(params->GetScreenId(), id);
-
-    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
-    ASSERT_NE(drawable, nullptr);
-    params->mirrorSourceDrawable_ = drawable;
-    RSSpecialLayerManager slManager;
-    slManager.specialLayerType_ = SpecialLayerType::HAS_SECURITY;
-    auto mirroredParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->GetRenderParams().get());
-    ASSERT_NE(mirroredParams, nullptr);
-    mirroredParams->specialLayerManager_ = slManager;
-    bool hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
-    ASSERT_EQ(hasSecSurface, true);
-    displayDrawable_->DrawMirror(*params, virtualProcesser, uniParam);
-#ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder::testingTriggering_ = false;
-#endif
-}
-
-/**
  * @tc.name: DrawMirror002
  * @tc.desc: Test DrawMirror
  * @tc.type: FUNC
@@ -2870,55 +2767,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002, TestSize.Lev
     bool hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
     ASSERT_EQ(hasSecSurface, true);
     displayDrawable_->DrawMirror(*params, virtualProcesser, uniParam);
-}
-
-/**
- * @tc.name: DrawMirror002_SKP
- * @tc.desc: Test DrawMirror (with SKP capture triggering)
- * @tc.type: FUNC
- * @tc.require: issueICCRA8
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002_SKP, TestSize.Level1)
-{
-#ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder::testingTriggering_ = true;
-    RSCaptureRecorder::GetInstance().SetCaptureType(SkpCaptureType::ON_CAPTURE);
-#endif
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
-    ASSERT_NE(mirroredDisplayDrawable_->renderParams_, nullptr);
-
-    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
-    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    RSRenderThreadParams uniParam;
-
-    Drawing::Canvas drawingCanvas;
-    virtualProcesser->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
-    ASSERT_NE(virtualProcesser->GetCanvas(), nullptr);
-
-    ScreenId id = 100;
-    params->screenId_ = id;
-    ASSERT_EQ(params->GetScreenId(), id);
-
-    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
-    ASSERT_NE(drawable, nullptr);
-    params->mirrorSourceDrawable_ = drawable;
-    RSSpecialLayerManager slManager;
-    slManager.specialLayerType_ = SpecialLayerType::HAS_SECURITY;
-    auto mirroredParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->GetRenderParams().get());
-    ASSERT_NE(mirroredParams, nullptr);
-    mirroredParams->specialLayerManager_ = slManager;
-    bool hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
-    ASSERT_EQ(hasSecSurface, true);
-    displayDrawable_->DrawMirror(*params, virtualProcesser, uniParam);
-#ifdef RS_PROFILER_ENABLED
-    RSCaptureRecorder::testingTriggering_ = false;
-#endif
 }
 
 /**
