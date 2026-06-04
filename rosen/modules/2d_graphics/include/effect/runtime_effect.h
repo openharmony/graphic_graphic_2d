@@ -31,6 +31,7 @@ public:
     bool forceNoInline = false;
     bool useAF = false;
     bool useHighpLocalCoords = false;
+    bool needDrawingslToSksl = true;
 };
 
 class DRAWING_API RuntimeEffect {
