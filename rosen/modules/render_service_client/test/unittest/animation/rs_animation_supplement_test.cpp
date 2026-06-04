@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_animation_base_test.h"
+#include "gtest/gtest.h"
 #include "rs_animation_test_utils.h"
 
 #include "animation/rs_animation_callback.h"
@@ -35,6 +35,7 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_proxy_node.h"
+#include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
 
@@ -44,8 +45,27 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 using namespace ANIMATIONTEST;
-class RSAnimationTest : public RSAnimationBaseTest {
+
+class RSAnimationSupplementTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+
+    std::shared_ptr<RSUIContext> rsUIContext;
 };
+
+void RSAnimationSupplementTest::SetUpTestCase() {}
+void RSAnimationSupplementTest::TearDownTestCase() {}
+
+void RSAnimationSupplementTest::SetUp()
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+}
+
+void RSAnimationSupplementTest::TearDown() {}
 
 class RSAnimationMock : public RSAnimation {
 public:
@@ -120,6 +140,31 @@ public:
     {
         RSAnimation::DumpAnimationInfo(dumpInfo);
     }
+
+    void InteractivePause()
+    {
+        RSAnimation::InteractivePause();
+    }
+
+    void InteractiveFinish(RSInteractiveAnimationPosition position)
+    {
+        RSAnimation::InteractiveFinish(position);
+    }
+
+    void InteractiveReverse()
+    {
+        RSAnimation::InteractiveReverse();
+    }
+
+    void InteractiveSetFraction(float fraction)
+    {
+        RSAnimation::InteractiveSetFraction(fraction);
+    }
+
+    bool IsSupportInteractiveAnimator() override
+    {
+        return RSAnimation::IsSupportInteractiveAnimator();
+    }
 };
 
 class RSRenderAnimationMock : public RSRenderAnimation {
@@ -156,21 +201,18 @@ public:
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest001, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest001 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto animation = std::make_shared<RSAnimationMock>(rsUiDirector->GetRSUIContext());
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest001 start";
+    auto animation = std::make_shared<RSAnimationMock>(rsUIContext);
     std::function<void()> callback = nullptr;
     animation->SetFinishCallback(callback);
     callback = []() {
-        std::cout << "RSAnimationTest AnimationSupplementTest001 callback" << std::endl;
+        std::cout << "RSAnimationSupplementTest AnimationSupplementTest001 callback" << std::endl;
     };
     animation->SetFinishCallback(callback);
     EXPECT_TRUE(animation != nullptr);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest001 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest001 end";
 }
 
 /**
@@ -178,13 +220,10 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest001, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest002, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest002, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest002 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto animation = std::make_shared<RSAnimationMock>(rsUiDirector->GetRSUIContext());
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest002 start";
+    auto animation = std::make_shared<RSAnimationMock>(rsUIContext);
     EXPECT_TRUE(!animation->IsStarted());
     EXPECT_TRUE(!animation->IsRunning());
     EXPECT_TRUE(!animation->IsPaused());
@@ -215,8 +254,14 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest002, TestSize.Level1)
     animation->OnFinish();
     animation->Reverse();
     animation->OnReverse();
+    animation->InteractivePause();
+    animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+    animation->InteractiveReverse();
+    animation->InteractiveReverse();
+    animation->InteractiveSetFraction(3.14f);
+    animation->IsSupportInteractiveAnimator();
     EXPECT_TRUE(animation != nullptr);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest002 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest002 end";
 }
 
 /**
@@ -224,13 +269,10 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest002, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest003, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest003, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest003 start";
-    /**
-     * @tc.steps: step1. init
-     */
-    auto animation = std::make_shared<RSAnimationMock>(rsUiDirector->GetRSUIContext());
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest003 start";
+    auto animation = std::make_shared<RSAnimationMock>(rsUIContext);
     auto renderAnimation = std::make_shared<RSRenderAnimationMock>(animation->GetId());
     animation->SetFraction(-1.0f);
     animation->SetFraction(0.5f);
@@ -250,7 +292,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest003, TestSize.Level1)
     std::string dumpInfo = "";
     animation->DumpAnimationInfo(dumpInfo);
     EXPECT_TRUE(animation != nullptr);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest003 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest003 end";
 }
 
 /**
@@ -258,12 +300,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest003, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest004, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest004, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest004 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest004 start";
     auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
     auto animations = implicitAnimator->CloseImplicitAnimation();
     EXPECT_TRUE(animations.empty());
@@ -302,7 +341,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest004, TestSize.Level1)
     implicitAnimator->EndImplicitKeyFrameAnimation();
     implicitAnimator->EndImplicitTransition();
     implicitAnimator->EndImplicitPathAnimation();
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest004 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest004 end";
 }
 
 class RSPathAnimationMock : public RSPathAnimation {
@@ -359,12 +398,9 @@ public:
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest007, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest007, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest007 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest007 start";
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto keyframeParam = std::make_shared<RSImplicitKeyframeAnimationParam>(
@@ -376,10 +412,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest007, TestSize.Level1)
     Vector4f endData(5.f, 6.f, 2.f, 3.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(endData);
     keyframeParam->AddKeyframe(animation, startValue, endValue);
-    // animation = std::make_shared<RSKeyframeAnimation>(rsUiDirector->GetRSUIContext(), startValue);
-    animation = std::make_shared<RSKeyframeAnimation>(rsUiDirector->GetRSUIContext(), nullptr); // car 2 compile
+    animation = std::make_shared<RSKeyframeAnimation>(rsUIContext, nullptr);
     keyframeParam->AddKeyframe(animation, startValue, endValue);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest007 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest007 end";
 }
 
 /**
@@ -387,12 +422,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest007, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest008, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest008, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest008 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest008 start";
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     std::shared_ptr<RSMotionPathOption> option;
@@ -404,16 +436,16 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest008, TestSize.Level1)
     auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(startData);
     Vector4f endData(5.f, 6.f, 2.f, 3.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(endData);
-    auto animation = pathParam->CreateAnimation(rsUiDirector->GetRSUIContext(), property, startValue, endValue);
+    auto animation = pathParam->CreateAnimation(rsUIContext, property, startValue, endValue);
 
     option = std::make_shared<RSMotionPathOption>("abc");
     auto pathParam2 = std::make_shared<RSImplicitPathAnimationParam>(
         protocol, RSAnimationTimingCurve::LINEAR, option);
-    auto animation2 = pathParam->CreateAnimation(rsUiDirector->GetRSUIContext(), property, startValue, endValue);
+    auto animation2 = pathParam->CreateAnimation(rsUIContext, property, startValue, endValue);
 
     auto springParam = std::make_shared<RSImplicitSpringAnimationParam>(protocol, RSAnimationTimingCurve::LINEAR);
-    auto animation3 = springParam->CreateAnimation(rsUiDirector->GetRSUIContext(), property, startValue, endValue);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest008 end";
+    auto animation3 = springParam->CreateAnimation(rsUIContext, property, startValue, endValue);
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest008 end";
 }
 
 class RSTransitionTest : public RSTransition {
@@ -444,10 +476,10 @@ public:
  * @tc.desc: Verify the RSTransition
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, RSTransitionTest001, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, RSTransitionTest001, TestSize.Level1)
 {
     std::shared_ptr<const RSTransitionEffect> effect;
-    auto animation = std::make_shared<RSTransitionMock>(rsUiDirector->GetRSUIContext(), effect, true);
+    auto animation = std::make_shared<RSTransitionMock>(rsUIContext, effect, true);
     ASSERT_NE(animation, nullptr);
     animation->OnStart();
 }
@@ -457,22 +489,19 @@ HWTEST_F(RSAnimationTest, RSTransitionTest001, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest010, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest010, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest010 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest010 start";
     std::function<void()> callback;
     AnimationFinishCallback* finishCallback1 = new AnimationFinishCallback(callback);
     delete finishCallback1;
     callback = []() {
-        std::cout << "RSAnimationTest AnimationSupplementTest010" << std::endl;
+        std::cout << "RSAnimationSupplementTest AnimationSupplementTest010" << std::endl;
     };
     EXPECT_TRUE(callback != nullptr);
     AnimationFinishCallback* finishCallback2 = new AnimationFinishCallback(callback);
     delete finishCallback2;
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest010 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest010 end";
 }
 
 /**
@@ -480,15 +509,12 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest010, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest013, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest013, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest013 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest013 start";
     std::shared_ptr<RSPropertyBase> property = std::make_shared<RSAnimatableProperty<float>>(0.1f);
     std::shared_ptr<RSKeyframeAnimationMock> animation =
-        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
+        std::make_shared<RSKeyframeAnimationMock>(rsUIContext, property);
     std::shared_ptr<RSPropertyBase> value1 = std::make_shared<RSAnimatableProperty<float>>(0.2f);
     std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes;
     keyframes.push_back({ 0.5f, value1, RSAnimationTimingCurve::LINEAR });
@@ -500,7 +526,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest013, TestSize.Level1)
     animation->AddKeyFrame(0.3f, value1, RSAnimationTimingCurve::LINEAR);
     animation->AddKeyFrames(keyframes);
     EXPECT_TRUE(animation != nullptr);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest013 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest013 end";
 }
 
 /**
@@ -508,15 +534,12 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest013, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest014, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest014, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest014 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest014 start";
     std::shared_ptr<RSPropertyBase> property = std::make_shared<RSAnimatableProperty<float>>(0.1f);
     std::shared_ptr<RSKeyframeAnimationMock> animation =
-        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
+        std::make_shared<RSKeyframeAnimationMock>(rsUIContext, property);
     animation->InitInterpolationValue();
     animation->OnStart();
     std::shared_ptr<RSPropertyBase> value1 = std::make_shared<RSAnimatableProperty<float>>(0.2f);
@@ -535,7 +558,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest014, TestSize.Level1)
     animation->Start(node1);
     animation->OnStart();
     EXPECT_TRUE(animation != nullptr);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest014 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest014 end";
 }
 
 /**
@@ -543,19 +566,16 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest014, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest015, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest015, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest015 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest015 start";
     std::shared_ptr<RSPropertyBase> property = std::make_shared<RSAnimatableProperty<float>>(0.1f);
     std::shared_ptr<RSKeyframeAnimationMock> animation1 =
-        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
+        std::make_shared<RSKeyframeAnimationMock>(rsUIContext, property);
     std::shared_ptr<RSKeyframeAnimationMock> animation2 =
-        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
+        std::make_shared<RSKeyframeAnimationMock>(rsUIContext, property);
     std::shared_ptr<RSKeyframeAnimationMock> animation3 =
-        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
+        std::make_shared<RSKeyframeAnimationMock>(rsUIContext, property);
     std::shared_ptr<RSNode> node1 = RSCanvasNode::Create();
     struct RSSurfaceNodeConfig surfaceNodeConfig = {.SurfaceNodeName = "test"};
     std::shared_ptr<RSNode> node2 = RSSurfaceNode::Create(surfaceNodeConfig, false);
@@ -573,7 +593,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest015, TestSize.Level1)
     animation3->SetIsCustom(true);
     animation3->OnStart();
     EXPECT_TRUE(animation1 != nullptr);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest015 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest015 end";
 }
 
 /**
@@ -581,16 +601,13 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest015, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest017, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest017, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest017 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest017 start";
     Vector4f data(1.f, 1.f, 1.f, 1.f);
     std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     std::shared_ptr<RSPath> path = std::make_shared<RSPath>();
-    auto animation1 = std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, path);
+    auto animation1 = std::make_shared<RSPathAnimationMock>(rsUIContext, property, path);
     animation1->OnCallFinishCallback();
     property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
     Vector2f startData(0.f, 1.f);
@@ -598,7 +615,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest017, TestSize.Level1)
     Vector2f endData(5.f, 6.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector2f>>(endData);
     auto animation =
-        std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
+        std::make_shared<RSPathAnimationMock>(rsUIContext, property, "abc", startValue, endValue);
     EXPECT_TRUE(animation != nullptr);
     animation->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
     auto curve = animation->GetTimingCurve();
@@ -628,7 +645,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest017, TestSize.Level1)
     animation->SetRepeatCount(1);
     animation->OnUpdateStagingValue(true);
     animation->OnUpdateStagingValue(false);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest017 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest017 end";
 }
 
 /**
@@ -636,12 +653,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest017, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest018, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest018, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest018 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest018 start";
     Vector4f data(1.f, 1.f, 1.f, 1.f);
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
     Vector2f startData(0.f, 1.f);
@@ -649,20 +663,20 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest018, TestSize.Level1)
     Vector2f endData(5.f, 6.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector2f>>(endData);
     auto animation =
-        std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
+        std::make_shared<RSPathAnimationMock>(rsUIContext, property, "abc", startValue, endValue);
     animation->InitInterpolationValue();
 
     std::shared_ptr<RSPathAnimationMock> animation1 =
-        std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
+        std::make_shared<RSPathAnimationMock>(rsUIContext, property, "abc", startValue, endValue);
     std::shared_ptr<RSPathAnimationMock> animation2 =
-        std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
-    auto node1 = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
+        std::make_shared<RSPathAnimationMock>(rsUIContext, property, "abc", startValue, endValue);
+    auto node1 = RSCanvasNode::Create(false, false, rsUIContext);
     animation1->Start(node1);
     animation1->OnStart();
     animation2->Start(node1);
     animation2->OnStart();
     EXPECT_FALSE(node1->HasPropertyAnimation(0));
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest018 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest018 end";
 }
 
 class RSSpringAnimationMock : public RSSpringAnimation {
@@ -689,19 +703,16 @@ public:
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest019, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest019, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest019 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest019 start";
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto value1 = std::make_shared<RSAnimatableProperty<float>>(2.f);
     auto value2 = std::make_shared<RSAnimatableProperty<float>>(3.f);
     std::shared_ptr<RSSpringAnimationMock> animation1 =
-        std::make_shared<RSSpringAnimationMock>(rsUiDirector->GetRSUIContext(), property, value1);
+        std::make_shared<RSSpringAnimationMock>(rsUIContext, property, value1);
     std::shared_ptr<RSSpringAnimationMock> animation2 =
-        std::make_shared<RSSpringAnimationMock>(rsUiDirector->GetRSUIContext(), property, value1, value2);
+        std::make_shared<RSSpringAnimationMock>(rsUIContext, property, value1, value2);
     animation1->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
     auto curve = RSAnimationTimingCurve::CreateSpringCurve(1.f, 2.f, 3.f, 4.f);
     animation1->SetTimingCurve(curve);
@@ -717,14 +728,14 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest019, TestSize.Level1)
     animation1->OnStart();
 
     std::shared_ptr<RSSpringAnimationMock> animation3 =
-        std::make_shared<RSSpringAnimationMock>(rsUiDirector->GetRSUIContext(), property, value1, value2);
-    auto node1 = RSCanvasNode::Create(false, false, rsUiDirector->GetRSUIContext());
+        std::make_shared<RSSpringAnimationMock>(rsUIContext, property, value1, value2);
+    auto node1 = RSCanvasNode::Create(false, false, rsUIContext);
     animation2->Start(node1);
     animation2->OnStart();
     animation3->Start(node1);
     animation3->OnStart();
     EXPECT_FALSE(node1->HasPropertyAnimation(0));
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest019 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest019 end";
 }
 
 class MyData : public RSAnimatableArithmetic<MyData> {
@@ -767,12 +778,9 @@ public:
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest020, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest020 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest020 start";
     auto data1 = MyData();
     auto data2 = MyData();
     [[maybe_unused]] bool ret = data1 == data2;
@@ -808,7 +816,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
     extractor.GetCameraDistance();
     extractor.GetShadowMask();
     EXPECT_TRUE(extractor.id_);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest020 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest020 end";
 }
 
 /**
@@ -816,12 +824,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest021, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest021 start";
     RSProperty<float> property;
     [[maybe_unused]] auto tmp = property.GetThreshold();
     property.SetValueFromRender(nullptr);
@@ -831,7 +836,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     auto animatablProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto value = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto springAnimation =
-        std::make_shared<RSSpringAnimationMock>(rsUiDirector->GetRSUIContext(), animatablProperty, value);
+        std::make_shared<RSSpringAnimationMock>(rsUIContext, animatablProperty, value);
     modifierManager.RegisterSpringAnimation(springAnimation->GetPropertyId(), springAnimation->GetId());
     modifierManager.UnregisterSpringAnimation(springAnimation->GetPropertyId(), springAnimation->GetId());
     modifierManager.QuerySpringAnimation(springAnimation->GetPropertyId());
@@ -849,7 +854,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     RSMaterialFilter rsMaterialFilter(style, dipScale, mode, ratio);
     EXPECT_EQ(rsMaterialFilter.colorMode_, mode);
 
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest021 end";
 }
 
 /**
@@ -857,12 +862,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest022, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest022 start";
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     property->GetStagingValue();
     auto stagingValue = property->Get();
@@ -890,7 +892,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     PropertyCallback callback;
     callback = []() {
     };
-    node->AddDurationKeyFrame(nullptr, 100, timingCurve, callback); // 100 Set duration is 100ms
+    node->AddDurationKeyFrame(nullptr, 100, timingCurve, callback);
     NodeId id1 = 0;
     NodeId id2 = 1;
     node->RegisterTransitionPair(nullptr, id1, id2, true);
@@ -898,7 +900,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     node->AnimateWithCurrentCallback(nullptr, timingProtocol, timingCurve, callback);
     std::optional<Vector2f> vec(Vector2f(1.f, 1.f));
     node->SetSandBox(vec);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest022 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest022 end";
 }
 
 /**
@@ -906,15 +908,12 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
  * @tc.desc: Verify the setcallback of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest023, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest023, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest023 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest023 start";
     Vector4f vec1(1.f, 1.f, 1.f, 1.f);
     NodeId nodeId = 1;
-    NodeId childNode = 2; // 2 is childNode
+    NodeId childNode = 2;
     auto node = RSProxyNode::Create(nodeId);
     auto child = RSProxyNode::Create(childNode);
     node->SetBounds(vec1);
@@ -930,14 +929,16 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest023, TestSize.Level1)
     node->RemoveChild(child);
     node->ClearChildren();
 
-    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
-    rsUiDirector->FlushAnimationStartTime(1);
-    rsUiDirector->HasUIRunningAnimation();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto localRsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto localRsUiDirector = RSUIDirector::Create(connectToRenderRemote, localRsUIContext);
+    localRsUiDirector->FlushAnimationStartTime(1);
+    localRsUiDirector->HasUIRunningAnimation();
 
     Vector4 vec = { 0.f, 0.f, 0.f, 0.f };
     vec.IsNearEqual(vec1, 1.f);
     EXPECT_TRUE(vec.IsZero());
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest023 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest023 end";
 }
 
 class MyNewData : public RSArithmetic<MyNewData> {
@@ -953,12 +954,9 @@ public:
     float data;
 };
 
-HWTEST_F(RSAnimationTest, AnimationSupplementTest024, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest024, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest024 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest024 start";
     Vector2f data(1.f, 1.f);
     RRectT<float> rect1;
     RRectT<float> rect2;
@@ -991,7 +989,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest024, TestSize.Level1)
     ret = (data3 == data4);
     ret = (data3 != data4);
     EXPECT_TRUE(data3.IsEqual(data4));
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest024 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest024 end";
 }
 
 /**
@@ -999,12 +997,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest024, TestSize.Level1)
  * @tc.desc: Verify the CloseImplicitCancelAnimation of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, AnimationSupplementTest025, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, AnimationSupplementTest025, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest025 start";
-    /**
-     * @tc.steps: step1. init
-     */
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest025 start";
     auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
     auto ret = implicitAnimator->CloseImplicitCancelAnimation();
     EXPECT_EQ(ret, CancelAnimationStatus::NO_OPEN_CLOSURE);
@@ -1019,7 +1014,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest025, TestSize.Level1)
     implicitAnimator->OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, nullptr);
     ret = implicitAnimator->CloseImplicitCancelAnimation();
     EXPECT_EQ(ret, CancelAnimationStatus::EMPTY_PENDING_SYNC_LIST);
-    GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest025 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest AnimationSupplementTest025 end";
 }
 
 /**
@@ -1027,9 +1022,9 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest025, TestSize.Level1)
  * @tc.desc: Verify the DumpAnimation of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, DumpAnimation01, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, DumpAnimation01, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest DumpAnimation01 start";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest DumpAnimation01 start";
     RSRenderAnimationMock animation(0);
     animation.targetName_ = "TestNode";
     std::string output;
@@ -1060,7 +1055,7 @@ HWTEST_F(RSAnimationTest, DumpAnimation01, TestSize.Level1)
     output = "";
     animation.DumpAnimation(output);
     EXPECT_EQ(output.find("Speed:"), std::string::npos);
-    GTEST_LOG_(INFO) << "RSAnimationTest DumpAnimation01 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest DumpAnimation01 end";
 }
 
 /**
@@ -1068,9 +1063,9 @@ HWTEST_F(RSAnimationTest, DumpAnimation01, TestSize.Level1)
  * @tc.desc: Verify the DumpAnimation of Animation
  * @tc.type: FUNC
  */
-HWTEST_F(RSAnimationTest, DumpAnimation02, TestSize.Level1)
+HWTEST_F(RSAnimationSupplementTest, DumpAnimation02, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSAnimationTest DumpAnimation02 start";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest DumpAnimation02 start";
     RSRenderAnimationMock animation(0);
     animation.animationFraction_.SetRepeatCount(2);
     std::string output;
@@ -1122,7 +1117,7 @@ HWTEST_F(RSAnimationTest, DumpAnimation02, TestSize.Level1)
     animation.DumpAnimation(output);
     EXPECT_EQ(output.find("RepeatCallbackEnable:"), std::string::npos);
 
-    GTEST_LOG_(INFO) << "RSAnimationTest DumpAnimation02 end";
+    GTEST_LOG_(INFO) << "RSAnimationSupplementTest DumpAnimation02 end";
 }
 } // namespace Rosen
 } // namespace OHOS

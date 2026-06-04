@@ -24,16 +24,14 @@ ohos_unittest("RSAnimationTest") {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
   sources = [
-    "rs_animation_base_test.cpp",
     "rs_animation_callback_test.cpp",
-    "rs_animation_supplement_test.cpp",
     "rs_animation_test.cpp",
     "rs_modifier_manager_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]
 
-  deps = [ 
+  deps = [
     "$rosen_root/modules/render_service_client:librender_service_client",
     "$rosen_root/modules/render_service_client:render_service_client_src",
   ]
@@ -145,6 +143,32 @@ ohos_unittest("RSAnimationTest3") {
   subsystem_name = "graphic"
 }
 
+ohos_unittest("RSAnimationTest4") {
+  module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+  sources = [
+    "rs_animation_supplement_test.cpp",
+  ]
+
+  configs = [ ":rs_animation_test_config" ]
+
+  deps = [
+    "$rosen_root/modules/render_service_client:librender_service_client",
+    "$rosen_root/modules/render_service_client:render_service_client_src",
+  ]
+
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "window_manager:libwm",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 config("rs_animation_test_config") {
   visibility = [ ":*" ]
   include_dirs = [
@@ -166,5 +190,6 @@ group("unittest") {
     ":RSAnimationTest1",
     ":RSAnimationTest2",
     ":RSAnimationTest3",
+    ":RSAnimationTest4",
   ]
 }
