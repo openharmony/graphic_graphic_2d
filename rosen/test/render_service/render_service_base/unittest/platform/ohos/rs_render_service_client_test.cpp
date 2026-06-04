@@ -1452,5 +1452,6 @@ HWTEST_F(RSServiceClientTest, RemoveVirtualScreenSurface002, TestSize.Level1)
     EXPECT_NE(rsClient->RemoveVirtualScreenSurface(INVALID_SCREEN_ID, surfaces),
         StatusCode::RENDER_SERVICE_NULL);
 }
+
 } // namespace Rosen
 } // namespace OHOS
