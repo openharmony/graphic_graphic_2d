@@ -124,6 +124,7 @@ constexpr uint32_t NUM_30 = 30;
 constexpr uint32_t NUM_1000 = 1000;
 constexpr int32_t ERR_NO_PERMISSION = 201;
 constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
+constexpr int32_t ERR_INVALID_PARAM = 401;
 
 bool ConvertDoubleValueFromJsElement(napi_env env, napi_value jsObject, uint32_t idx, double& data);
 bool ParseJsDoubleValue(napi_env env, napi_value jsObject, double& data);
@@ -137,6 +138,9 @@ bool ParseJsPoint(napi_env env, napi_value jsObject, Vector2f& point);
 bool ParseJsLTRBRect(napi_env env, napi_value jsValue, Vector4f& ltrb);
 bool ParseJsVector3f(napi_env env, napi_value jsObject, Vector3f& values);
 bool ParsegrayscaleFactor(napi_env env, napi_value jsObject, Vector3f& values);
+napi_value CreateJsValue(napi_env env, int32_t value);
+napi_value CreateJsValue(napi_env env, const std::string& message);
+napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message);
 } // namespace UIEffect
 
 class UIEffectNapiUtils {
