@@ -7285,7 +7285,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
  * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache_FilterNodeNotOnTree
  * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache skips filter node not on the tree
  * @tc.type: FUNC
- * @tc.require: issueIBE0XP
+ * @tc.require: issue23995
  */
 HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_FilterNodeNotOnTree, TestSize.Level2)
 {
@@ -7330,7 +7330,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_F
  * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache_FilterNodeOnTheTree
  * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache processes filter node on the tree
  * @tc.type: FUNC
- * @tc.require: issueIBE0XP
+ * @tc.require: issue23995
  */
 HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache_FilterNodeOnTheTree, TestSize.Level2)
 {
