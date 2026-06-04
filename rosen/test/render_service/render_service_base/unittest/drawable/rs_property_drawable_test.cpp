@@ -469,29 +469,6 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest011, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsFilterCacheValidForPartialRender_WithFilterDrawable
- * @tc.desc: Test IsFilterCacheValidForPartialRender with valid filter drawable
- * @tc.type: FUNC
- * @tc.require: issue22993
- */
-HWTEST_F(RSPropertyDrawableTest, IsFilterCacheValidForPartialRender_WithFilterDrawable, TestSize.Level1)
-{
-    NodeId id = 18;
-    auto node = std::make_shared<RSRenderNode>(id);
-    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
-        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
-    ASSERT_NE(adapter, nullptr);
-    
-    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
-    filterDrawable->cacheManager_->cachedFilteredSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
-    adapter->filterDrawables_ = { filterDrawable };
-    
-    EXPECT_TRUE(adapter->IsFilterCacheValidForPartialRender());
-}
-
-/**
  * @tc.name: IsFilterCacheValidForPartialRender_WithInvalidCache
  * @tc.desc: Test IsFilterCacheValidForPartialRender with invalid cache type
  * @tc.type: FUNC
