@@ -49,7 +49,7 @@ public:
     void PushSurfaceNodeInfo(SurfaceNodeInfo& surfaceNodeInfo);
     std::vector<SurfaceNodeInfo> GetSurfaceNodeInfo() const;
     int GetSurfaceNodeSize() const;
-    bool HasFilterNode(NodeId filterId);
+    bool HasValidFilterNode(RSPaintFilterCanvas& canvas, NodeId filterId);
     bool CheckPrecondition(const RSRenderNode& filterNode,
         const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
     void PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId);

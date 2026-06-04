@@ -60,9 +60,10 @@ int HveFilter::GetSurfaceNodeSize() const
     return surfaceNodeInfo_.size();
 }
 
-bool HveFilter::HasFilterNode(NodeId filterId)
+bool HveFilter::HasValidFilterNode(RSPaintFilterCanvas& canvas, NodeId filterId)
 {
-    return hveFilterToSurfaceNodeMap_.find(filterId) != hveFilterToSurfaceNodeMap_.end();
+    return !canvas.GetIsParallelCanvas() &&
+           hveFilterToSurfaceNodeMap_.find(filterId) != hveFilterToSurfaceNodeMap_.end();
 }
 
 bool HveFilter::HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node)
