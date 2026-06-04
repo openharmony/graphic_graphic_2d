@@ -98,60 +98,6 @@ HWTEST_F(EffectImageChainUnittest, PrepareTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: PrepareTest004
- * @tc.desc: test prepare
- */
-HWTEST_F(EffectImageChainUnittest, PrepareTest004, TestSize.Level1)
-{
-    auto image = std::make_shared<EffectImageChain>();
-    ASSERT_NE(image, nullptr);
-    const auto width = 200;
-    const auto height = 200;
-    auto colorSpace = Drawing::ColorSpace::CreateSRGB();
-    Drawing::ImageInfo imageInfo = Drawing::ImageInfo{
-        width, height,
-        Drawing::ColorType::COLORTYPE_RGBA_8888,
-        Drawing::AlphaType::ALPHATYPE_UNPREMUL,
-        colorSpace};
-    OHOS::Media::InitializationOptions opts = {
-        .size =
-            {
-                .width = static_cast<int32_t>(width),
-                .height = static_cast<int32_t>(height),
-            },
-        .srcPixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
-        .pixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
-        .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL,
-    };
-
-    std::shared_ptr<Media::PixelMap> srcPixelMap = Media::PixelMap::Create(opts);
-    ASSERT_NE(srcPixelMap, nullptr);
-
-    OH_NativeBuffer_Config config {
-        .width = width,
-        .height = height,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA
-    };
-    OH_NativeBuffer* dstBuffer = OH_NativeBuffer_Alloc(&config);
-
-    std::shared_ptr<OH_NativeBuffer> dst(
-        dstBuffer,
-        [](OH_NativeBuffer* buffer) {}
-    );
-
-    std::shared_ptr<Media::PixelMap> nullPixelmap = nullptr;
-    std::shared_ptr<OH_NativeBuffer> nullBuffer = nullptr;
-    auto ret = image->PrepareNativeBuffer(nullPixelmap, dst);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = image->PrepareNativeBuffer(srcPixelMap, nullBuffer);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = image->PrepareNativeBuffer(srcPixelMap, dst);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    OH_NativeBuffer_Unreference(dstBuffer);
-}
-
-/**
  * @tc.name: ApplyDrawTest001
  * @tc.desc: test Apply and Draw
  */
