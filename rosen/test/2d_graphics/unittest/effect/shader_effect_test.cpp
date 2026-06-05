@@ -615,8 +615,8 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient004, TestSize.Level1)
     scalar startAngle = 10.2f;
     scalar endAngle = 10.5f;
 
-    auto newShaderEffect = ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
-        endAngle, nullptr);
+    auto newShaderEffect = ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position,
+        tileMode, startAngle, endAngle, nullptr);
     ASSERT_TRUE(newShaderEffect != nullptr);
     EXPECT_TRUE(newShaderEffect->IsLazy());
     EXPECT_EQ(newShaderEffect->GetType(), ShaderEffect::ShaderEffectType::LAZY_SHADER);
@@ -631,8 +631,8 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient004, TestSize.Level1)
 
     // Test with empty colors
     colors.clear();
-    auto newShaderEffect2 = ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
-        endAngle, nullptr);
+    auto newShaderEffect2 = ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position,
+        tileMode, startAngle, endAngle, nullptr);
     EXPECT_TRUE(newShaderEffect2 == nullptr); // Should return nullptr for empty colors
 }
 

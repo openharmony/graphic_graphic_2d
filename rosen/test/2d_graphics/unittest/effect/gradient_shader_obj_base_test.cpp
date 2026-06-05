@@ -37,6 +37,16 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+private:
+#ifdef ROSEN_OHOS
+    static bool TestSingleRoundTripCombo(Point startPt, Point endPt, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, Matrix* matrix);
+    static void TestCombination1(TileMode mode);
+    static void TestCombination2(TileMode mode);
+    static void TestCombination3(TileMode mode);
+    static void TestCombination4(TileMode mode);
+#endif
 };
 
 void GradientShaderObjBaseTest::SetUpTestCase()
@@ -54,6 +64,94 @@ void GradientShaderObjBaseTest::TearDownTestCase()
 }
 void GradientShaderObjBaseTest::SetUp() {}
 void GradientShaderObjBaseTest::TearDown() {}
+
+#ifdef ROSEN_OHOS
+bool GradientShaderObjBaseTest::TestSingleRoundTripCombo(Point startPt, Point endPt,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, Matrix* matrix)
+{
+    auto originalShader = LinearGradientShaderObj::Create(startPt, endPt, colors, colorSpace, pos, mode, matrix);
+    if (!originalShader) {
+        return false;
+    }
+
+    MessageParcel parcel;
+    parcel.WriteInt32(originalShader->GetType());
+    parcel.WriteInt32(originalShader->GetSubType());
+    if (!originalShader->Marshalling(parcel)) {
+        return false;
+    }
+
+    auto newShader = LinearGradientShaderObj::CreateForUnmarshalling();
+    if (!newShader) {
+        return false;
+    }
+
+    parcel.ReadInt32(); // type
+    parcel.ReadInt32(); // subType
+    bool isValid = true;
+    if (!newShader->Unmarshalling(parcel, isValid)) {
+        return false;
+    }
+    return isValid;
+}
+
+void GradientShaderObjBaseTest::TestCombination1(TileMode mode)
+{
+    Point startPt(10.0f, 20.0f);
+    Point endPt(110.0f, 120.0f);
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+    colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
+    std::vector<scalar> pos;
+
+    EXPECT_TRUE(TestSingleRoundTripCombo(startPt, endPt, colors, nullptr, pos, mode, nullptr));
+}
+
+void GradientShaderObjBaseTest::TestCombination2(TileMode mode)
+{
+    Point startPt(10.0f, 20.0f);
+    Point endPt(110.0f, 120.0f);
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+    colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
+    std::vector<scalar> pos;
+    Matrix matrix;
+    matrix.SetMatrix(1.0f, 0.0f, 10.0f, 0.0f, 1.0f, 20.0f, 0.0f, 0.0f, 1.0f);
+
+    EXPECT_TRUE(TestSingleRoundTripCombo(startPt, endPt, colors, nullptr, pos, mode, &matrix));
+}
+
+void GradientShaderObjBaseTest::TestCombination3(TileMode mode)
+{
+    Point startPt(10.0f, 20.0f);
+    Point endPt(110.0f, 120.0f);
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+    colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
+    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
+    std::vector<scalar> pos;
+
+    EXPECT_TRUE(TestSingleRoundTripCombo(startPt, endPt, colors, colorSpace, pos, mode, nullptr));
+}
+
+void GradientShaderObjBaseTest::TestCombination4(TileMode mode)
+{
+    Point startPt(10.0f, 20.0f);
+    Point endPt(110.0f, 120.0f);
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
+    colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
+    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
+    std::vector<scalar> pos;
+    pos.push_back(0.0f);
+    pos.push_back(1.0f);
+    Matrix matrix;
+    matrix.SetMatrix(1.0f, 0.0f, 10.0f, 0.0f, 1.0f, 20.0f, 0.0f, 0.0f, 1.0f);
+
+    EXPECT_TRUE(TestSingleRoundTripCombo(startPt, endPt, colors, colorSpace, pos, mode, &matrix));
+}
+#endif
 
 #ifdef ROSEN_OHOS
 
@@ -1108,7 +1206,6 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataWithoutColorSpace001, Tes
  */
 HWTEST_F(GradientShaderObjBaseTest, RoundTripAllCombinations001, TestSize.Level1)
 {
-    // Test all combinations: with/without matrix, with/without colorSpace, with/without positions
     std::vector<TileMode> tileModes = {
         TileMode::CLAMP,
         TileMode::REPEAT,
@@ -1117,131 +1214,10 @@ HWTEST_F(GradientShaderObjBaseTest, RoundTripAllCombinations001, TestSize.Level1
     };
 
     for (const auto& mode : tileModes) {
-        // Combination 1: No matrix, no colorSpace, no positions
-        {
-            Point startPt(10.0f, 20.0f);
-            Point endPt(110.0f, 120.0f);
-            std::vector<UIColor> colors;
-            colors.push_back(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
-            colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
-            std::vector<scalar> pos;
-
-            auto originalShader = LinearGradientShaderObj::Create(startPt, endPt, colors, nullptr, pos, mode, nullptr);
-            ASSERT_TRUE(originalShader != nullptr);
-
-            MessageParcel parcel;
-            parcel.WriteInt32(originalShader->GetType());
-            parcel.WriteInt32(originalShader->GetSubType());
-            bool marshalResult = originalShader->Marshalling(parcel);
-            EXPECT_TRUE(marshalResult);
-
-            auto newShader = LinearGradientShaderObj::CreateForUnmarshalling();
-            ASSERT_TRUE(newShader != nullptr);
-
-            parcel.ReadInt32(); // type
-            parcel.ReadInt32(); // subType
-            bool isValid = true;
-            bool unmarshalResult = newShader->Unmarshalling(parcel, isValid);
-            EXPECT_TRUE(unmarshalResult);
-            EXPECT_TRUE(isValid);
-        }
-
-        // Combination 2: With matrix, no colorSpace, no positions
-        {
-            Point startPt(10.0f, 20.0f);
-            Point endPt(110.0f, 120.0f);
-            std::vector<UIColor> colors;
-            colors.push_back(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
-            colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
-            std::vector<scalar> pos;
-            Matrix matrix;
-            matrix.SetMatrix(1.0f, 0.0f, 10.0f, 0.0f, 1.0f, 20.0f, 0.0f, 0.0f, 1.0f);
-
-            auto originalShader = LinearGradientShaderObj::Create(startPt, endPt, colors, nullptr, pos, mode, &matrix);
-            ASSERT_TRUE(originalShader != nullptr);
-
-            MessageParcel parcel;
-            parcel.WriteInt32(originalShader->GetType());
-            parcel.WriteInt32(originalShader->GetSubType());
-            bool marshalResult = originalShader->Marshalling(parcel);
-            EXPECT_TRUE(marshalResult);
-
-            auto newShader = LinearGradientShaderObj::CreateForUnmarshalling();
-            ASSERT_TRUE(newShader != nullptr);
-
-            parcel.ReadInt32(); // type
-            parcel.ReadInt32(); // subType
-            bool isValid = true;
-            bool unmarshalResult = newShader->Unmarshalling(parcel, isValid);
-            EXPECT_TRUE(unmarshalResult);
-            EXPECT_TRUE(isValid);
-        }
-
-        // Combination 3: No matrix, with colorSpace, no positions
-        {
-            Point startPt(10.0f, 20.0f);
-            Point endPt(110.0f, 120.0f);
-            std::vector<UIColor> colors;
-            colors.push_back(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
-            colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
-            std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
-            std::vector<scalar> pos;
-
-            auto originalShader = LinearGradientShaderObj::Create(startPt, endPt, colors, colorSpace, pos, mode,
-                                                                  nullptr);
-            ASSERT_TRUE(originalShader != nullptr);
-
-            MessageParcel parcel;
-            parcel.WriteInt32(originalShader->GetType());
-            parcel.WriteInt32(originalShader->GetSubType());
-            bool marshalResult = originalShader->Marshalling(parcel);
-            EXPECT_TRUE(marshalResult);
-
-            auto newShader = LinearGradientShaderObj::CreateForUnmarshalling();
-            ASSERT_TRUE(newShader != nullptr);
-
-            parcel.ReadInt32(); // type
-            parcel.ReadInt32(); // subType
-            bool isValid = true;
-            bool unmarshalResult = newShader->Unmarshalling(parcel, isValid);
-            EXPECT_TRUE(unmarshalResult);
-            EXPECT_TRUE(isValid);
-        }
-
-        // Combination 4: With matrix, with colorSpace, with positions
-        {
-            Point startPt(10.0f, 20.0f);
-            Point endPt(110.0f, 120.0f);
-            std::vector<UIColor> colors;
-            colors.push_back(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 0.0f));
-            colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
-            std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
-            std::vector<scalar> pos;
-            pos.push_back(0.0f);
-            pos.push_back(1.0f);
-            Matrix matrix;
-            matrix.SetMatrix(1.0f, 0.0f, 10.0f, 0.0f, 1.0f, 20.0f, 0.0f, 0.0f, 1.0f);
-
-            auto originalShader = LinearGradientShaderObj::Create(startPt, endPt, colors, colorSpace, pos, mode,
-                                                                  &matrix);
-            ASSERT_TRUE(originalShader != nullptr);
-
-            MessageParcel parcel;
-            parcel.WriteInt32(originalShader->GetType());
-            parcel.WriteInt32(originalShader->GetSubType());
-            bool marshalResult = originalShader->Marshalling(parcel);
-            EXPECT_TRUE(marshalResult);
-
-            auto newShader = LinearGradientShaderObj::CreateForUnmarshalling();
-            ASSERT_TRUE(newShader != nullptr);
-
-            parcel.ReadInt32(); // type
-            parcel.ReadInt32(); // subType
-            bool isValid = true;
-            bool unmarshalResult = newShader->Unmarshalling(parcel, isValid);
-            EXPECT_TRUE(unmarshalResult);
-            EXPECT_TRUE(isValid);
-        }
+        TestCombination1(mode);
+        TestCombination2(mode);
+        TestCombination3(mode);
+        TestCombination4(mode);
     }
 }
 

@@ -528,6 +528,38 @@ bool ShaderEffectFuzzTest009(const uint8_t* data, size_t size)
     return true;
 }
 
+namespace {
+void TestLazyGradientInterface(const std::shared_ptr<ShaderEffectLazy>& lazyGradient)
+{
+    if (lazyGradient) {
+        lazyGradient->IsLazy();
+        lazyGradient->GetShaderEffectObj();
+    }
+}
+
+void CreateAndTestAllLazyGradients(const Point& startPt, const Point& endPt,
+    const std::vector<UIColor>& uiColors, const std::shared_ptr<ColorSpace>& colorSpace,
+    const std::vector<scalar>& scalarNumbers, uint32_t tileMode, const Matrix& matrix)
+{
+    auto lazyLinear = ShaderEffectLazy::CreateLinearGradient(startPt, endPt, uiColors, colorSpace,
+        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    TestLazyGradientInterface(lazyLinear);
+
+    auto lazyRadial = ShaderEffectLazy::CreateRadialGradient(startPt, GetObject<scalar>(), uiColors, colorSpace,
+        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    TestLazyGradientInterface(lazyRadial);
+
+    auto lazyConical = ShaderEffectLazy::CreateTwoPointConical(startPt, GetObject<scalar>(), endPt,
+        GetObject<scalar>(), uiColors, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    TestLazyGradientInterface(lazyConical);
+
+    auto lazySweep = ShaderEffectLazy::CreateSweepGradient(startPt, uiColors, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
+    TestLazyGradientInterface(lazySweep);
+}
+} // namespace
+
 /*
  * 测试以下 ShaderEffectLazy 接口：
  * 1. CreateLinearGradient(...)
@@ -573,34 +605,7 @@ bool ShaderEffectFuzzTest010(const uint8_t* data, size_t size)
     scalarNumbers.push_back(scalarTwo);
     std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
 
-    auto lazyLinear = ShaderEffectLazy::CreateLinearGradient(startPt, endPt, uiColors, colorSpace,
-        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
-    if (lazyLinear) {
-        lazyLinear->IsLazy();
-        lazyLinear->GetShaderEffectObj();
-    }
-
-    auto lazyRadial = ShaderEffectLazy::CreateRadialGradient(startPt, GetObject<scalar>(), uiColors, colorSpace,
-        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
-    if (lazyRadial) {
-        lazyRadial->IsLazy();
-        lazyRadial->GetShaderEffectObj();
-    }
-
-    auto lazyConical = ShaderEffectLazy::CreateTwoPointConical(startPt, GetObject<scalar>(), endPt,
-        GetObject<scalar>(), uiColors, colorSpace, scalarNumbers,
-        static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
-    if (lazyConical) {
-        lazyConical->IsLazy();
-        lazyConical->GetShaderEffectObj();
-    }
-
-    auto lazySweep = ShaderEffectLazy::CreateSweepGradient(startPt, uiColors, colorSpace, scalarNumbers,
-        static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
-    if (lazySweep) {
-        lazySweep->IsLazy();
-        lazySweep->GetShaderEffectObj();
-    }
+    CreateAndTestAllLazyGradients(startPt, endPt, uiColors, colorSpace, scalarNumbers, tileMode, matrix);
 
     return true;
 }

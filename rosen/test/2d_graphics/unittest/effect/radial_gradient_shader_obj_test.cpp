@@ -37,6 +37,17 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+private:
+#ifdef ROSEN_OHOS
+    static std::shared_ptr<RadialGradientShaderObj> CreateTestShader(Point centerPt, scalar radius,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, Matrix* matrix);
+    static MessageParcel MarshalShader(std::shared_ptr<RadialGradientShaderObj> shader);
+    static std::shared_ptr<RadialGradientShaderObj> UnmarshalShader(MessageParcel& parcel);
+    static void VerifySerializationMatch(std::shared_ptr<ShaderEffect> originalShader,
+        std::shared_ptr<ShaderEffect> newShader);
+#endif
 };
 
 void RadialGradientShaderObjTest::SetUpTestCase()
@@ -54,6 +65,52 @@ void RadialGradientShaderObjTest::TearDownTestCase()
 }
 void RadialGradientShaderObjTest::SetUp() {}
 void RadialGradientShaderObjTest::TearDown() {}
+
+#ifdef ROSEN_OHOS
+std::shared_ptr<RadialGradientShaderObj> RadialGradientShaderObjTest::CreateTestShader(
+    Point centerPt, scalar radius, const std::vector<UIColor>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, Matrix* matrix)
+{
+    return RadialGradientShaderObj::Create(centerPt, radius, colors, colorSpace, pos, mode, matrix);
+}
+
+MessageParcel RadialGradientShaderObjTest::MarshalShader(std::shared_ptr<RadialGradientShaderObj> shader)
+{
+    MessageParcel parcel;
+    parcel.WriteInt32(shader->GetType());
+    parcel.WriteInt32(shader->GetSubType());
+    shader->Marshalling(parcel);
+    return parcel;
+}
+
+std::shared_ptr<RadialGradientShaderObj> RadialGradientShaderObjTest::UnmarshalShader(MessageParcel& parcel)
+{
+    auto newShader = RadialGradientShaderObj::CreateForUnmarshalling();
+    parcel.ReadInt32(); // type
+    parcel.ReadInt32(); // subType
+    bool isValid = true;
+    newShader->Unmarshalling(parcel, isValid);
+    return newShader;
+}
+
+void RadialGradientShaderObjTest::VerifySerializationMatch(std::shared_ptr<ShaderEffect> originalShader,
+    std::shared_ptr<ShaderEffect> newShader)
+{
+    auto originalData = originalShader->Serialize();
+    auto newData = newShader->Serialize();
+    ASSERT_TRUE(originalData != nullptr);
+    ASSERT_TRUE(newData != nullptr);
+    EXPECT_EQ(originalData->GetSize(), newData->GetSize());
+
+    const void* originalMemory = originalData->GetData();
+    const void* newMemory = newData->GetData();
+    ASSERT_TRUE(originalMemory != nullptr);
+    ASSERT_TRUE(newMemory != nullptr);
+    int memResult = memcmp(originalMemory, newMemory, originalData->GetSize());
+    EXPECT_EQ(memResult, 0);
+}
+#endif
 
 /*
  * @tc.name: Constructor001
@@ -508,29 +565,13 @@ HWTEST_F(RadialGradientShaderObjTest, MarshallingUnmarshallingRoundTrip001, Test
     Matrix matrix;
     matrix.SetMatrix(1.0f, 0.0f, 10.0f, 0.0f, 1.0f, 20.0f, 0.0f, 0.0f, 1.0f);
 
-    auto originalShaderObj = RadialGradientShaderObj::Create(centerPt, radius, colors, colorSpace, pos, mode, &matrix);
+    auto originalShaderObj = CreateTestShader(centerPt, radius, colors, colorSpace, pos, mode, &matrix);
     ASSERT_TRUE(originalShaderObj != nullptr);
 
-    // Marshal
-    MessageParcel parcel;
-    parcel.WriteInt32(originalShaderObj->GetType());
-    parcel.WriteInt32(originalShaderObj->GetSubType());
-    bool marshalResult = originalShaderObj->Marshalling(parcel);
-    EXPECT_TRUE(marshalResult);
-
-    // Unmarshal
-    auto newShaderObj = RadialGradientShaderObj::CreateForUnmarshalling();
+    // Marshal and unmarshal
+    MessageParcel parcel = MarshalShader(originalShaderObj);
+    auto newShaderObj = UnmarshalShader(parcel);
     ASSERT_TRUE(newShaderObj != nullptr);
-
-    int32_t type = parcel.ReadInt32();
-    int32_t subType = parcel.ReadInt32();
-    EXPECT_EQ(type, static_cast<int32_t>(Drawing::Object::ObjectType::SHADER_EFFECT));
-    EXPECT_EQ(subType, static_cast<int32_t>(ShaderEffect::ShaderEffectType::RADIAL_GRADIENT));
-
-    bool isValid = true;
-    bool unmarshalResult = newShaderObj->Unmarshalling(parcel, isValid);
-    EXPECT_TRUE(unmarshalResult);
-    EXPECT_TRUE(isValid);
 
     // Verify consistency through serialization
     auto originalBaseObject = originalShaderObj->GenerateBaseObject();
@@ -541,19 +582,7 @@ HWTEST_F(RadialGradientShaderObjTest, MarshallingUnmarshallingRoundTrip001, Test
     auto originalShader = std::static_pointer_cast<ShaderEffect>(originalBaseObject);
     auto newShader = std::static_pointer_cast<ShaderEffect>(newBaseObject);
 
-    auto originalData = originalShader->Serialize();
-    auto newData = newShader->Serialize();
-    ASSERT_TRUE(originalData != nullptr);
-    ASSERT_TRUE(newData != nullptr);
-    EXPECT_EQ(originalData->GetSize(), newData->GetSize());
-
-    // Compare serialized memory content
-    const void* originalMemory = originalData->GetData();
-    const void* newMemory = newData->GetData();
-    ASSERT_TRUE(originalMemory != nullptr);
-    ASSERT_TRUE(newMemory != nullptr);
-    int memResult = memcmp(originalMemory, newMemory, originalData->GetSize());
-    EXPECT_EQ(memResult, 0);
+    VerifySerializationMatch(originalShader, newShader);
 }
 
 /*
