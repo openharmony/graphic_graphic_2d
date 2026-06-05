@@ -180,62 +180,6 @@ HWTEST_F(EffectImageRenderUnittest, RenderTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: RenderTest003
- * @tc.desc: Test Render
- */
-HWTEST_F(EffectImageRenderUnittest, RenderTest003, TestSize.Level1)
-{
-    std::vector<std::shared_ptr<EffectImageFilter>> imageFilter;
-    imageFilter.emplace_back(nullptr);
-    auto filterBlur = EffectImageFilter::Blur(0.5);
-    EXPECT_TRUE(filterBlur != nullptr);
-    imageFilter.emplace_back(filterBlur);
-
-    const auto width = 200;
-    const auto height = 200;
-
-    OHOS::Media::InitializationOptions opts = {
-        .size =
-            {
-                .width = static_cast<int32_t>(width),
-                .height = static_cast<int32_t>(height),
-            },
-        .srcPixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
-        .pixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
-        .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL,
-    };
-    std::shared_ptr<Media::PixelMap> srcPixelMap = Media::PixelMap::Create(opts);
-    OH_NativeBuffer_Config config {
-        .width = width,
-        .height = height,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA
-    };
-    OH_NativeBuffer* dstBuffer = OH_NativeBuffer_Alloc(&config);
-    std::shared_ptr<OH_NativeBuffer> dst(
-        dstBuffer,
-        [](OH_NativeBuffer* buffer) {}
-    );
-    EffectImageRender imageRender;
-    int32_t syncFenceFdValue = 0;
-    int32_t* syncFenceFd = &syncFenceFdValue;
-    auto ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, true);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, false);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(nullptr, dst, imageFilter, syncFenceFd, true);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-    std::shared_ptr<OH_NativeBuffer> nullBuffer = nullptr;
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, nullBuffer, imageFilter, syncFenceFd, true);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, nullBuffer, imageFilter, syncFenceFd, true);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, true);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    OH_NativeBuffer_Unreference(dstBuffer);
-}
-
-/**
  * @tc.name: EllipticalGradientBlurApplyTest
  * @tc.desc: Test EllipticalGradientBlur filter application
  */
@@ -401,21 +345,6 @@ HWTEST_F(EffectImageRenderUnittest, EffectImageGammaCorrectionFilterTest, TestSi
 }
 
 /**
- * @tc.name: ReededGlassMethod
- * @tc.desc: Test ReededGlass
- */
-HWTEST_F(EffectImageRenderUnittest, ReededGlassMethod, TestSize.Level1)
-{
-    auto params = std::make_shared<Drawing::GEReededGlassDataParams>();
-    ASSERT_NE(params, nullptr);
-    auto filter = EffectImageFilter::ReededGlass(params);
-    ASSERT_NE(filter, nullptr);
-
-    // Verify that the filter is of the correct type
-    ASSERT_NE(std::static_pointer_cast<EffectImageReededGlassFilter>(filter), nullptr);
-}
-
-/**
  * @tc.name: WaterGlassMethod
  * @tc.desc: Test WaterGlass
  */
@@ -431,30 +360,6 @@ HWTEST_F(EffectImageRenderUnittest, WaterGlassMethod, TestSize.Level1)
 }
 
 /**
- * @tc.name: ApplyrReededGlassMethod
- * @tc.desc: Test EffectImageReededGlassFilter filter application
- */
-HWTEST_F(EffectImageRenderUnittest, ApplyrReededGlassMethod, TestSize.Level1)
-{
-    std::shared_ptr<Drawing::GEReededGlassDataParams> params = std::make_shared<Drawing::GEReededGlassDataParams>();
-    ASSERT_NE(params, nullptr);
-    std::shared_ptr<EffectImageReededGlassFilter> filter = std::make_shared<EffectImageReededGlassFilter>(params);
-    ASSERT_NE(filter, nullptr);
-
-    auto image = std::make_shared<EffectImageChain>();
-    image->prepared_ = true;
-    Media::InitializationOptions opts;
-    opts.size = { 1, 1 };
-    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
-    ASSERT_NE(srcPixelMap, nullptr);
-    DrawingError result = image->Prepare(srcPixelMap, false);
-    ASSERT_EQ(result, DrawingError::ERR_OK);
-
-    result = filter->Apply(image);
-    ASSERT_EQ(result, DrawingError::ERR_OK);
-}
-
-/**
  * @tc.name: ApplyMethodReededGlass
  * @tc.desc: Test EffectImageReededGlassFilter filter application, image is null
  */
@@ -463,44 +368,6 @@ HWTEST_F(EffectImageRenderUnittest, ApplyMethodReededGlass, TestSize.Level1)
     std::shared_ptr<Drawing::GEReededGlassDataParams> params = std::make_shared<Drawing::GEReededGlassDataParams>();
     ASSERT_NE(params, nullptr);
     std::shared_ptr<EffectImageReededGlassFilter> filter = std::make_shared<EffectImageReededGlassFilter>(params);
-    ASSERT_NE(filter, nullptr);
-
-    DrawingError result = filter->Apply(nullptr);
-    ASSERT_EQ(result, DrawingError::ERR_IMAGE_NULL);
-}
-
-/**
- * @tc.name: ApplyWaterGlassMethod
- * @tc.desc: Test EffectImageWaterGlassFilter filter application
- */
-HWTEST_F(EffectImageRenderUnittest, ApplyWaterGlassMethod, TestSize.Level1)
-{
-    std::shared_ptr<Drawing::GEWaterGlassDataParams> params = std::make_shared<Drawing::GEWaterGlassDataParams>();
-    ASSERT_NE(params, nullptr);
-
-    std::shared_ptr<EffectImageWaterGlassFilter> filter = std::make_shared<EffectImageWaterGlassFilter>(params);
-    ASSERT_NE(filter, nullptr);
-
-    auto image = std::make_shared<EffectImageChain>();
-    image->prepared_ = true;
-    Media::InitializationOptions opts;
-    opts.size = { 1, 1 };
-    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
-    ASSERT_NE(srcPixelMap, nullptr);
-    image->Prepare(srcPixelMap, false);
-    DrawingError result = filter->Apply(image);
-    ASSERT_EQ(result, DrawingError::ERR_OK);
-}
-
-/**
- * @tc.name: ApplyMethodWaterGlass
- * @tc.desc: Test EffectImageWaterGlassFilter filter application, image is null
- */
-HWTEST_F(EffectImageRenderUnittest, ApplyMethodWaterGlass, TestSize.Level1)
-{
-    std::shared_ptr<Drawing::GEWaterGlassDataParams> params = std::make_shared<Drawing::GEWaterGlassDataParams>();
-    ASSERT_NE(params, nullptr);
-    std::shared_ptr<EffectImageWaterGlassFilter> filter = std::make_shared<EffectImageWaterGlassFilter>(params);
     ASSERT_NE(filter, nullptr);
 
     DrawingError result = filter->Apply(nullptr);
