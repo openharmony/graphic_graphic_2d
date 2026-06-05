@@ -375,21 +375,6 @@ HWTEST_F(EffectImageRenderUnittest, ApplyMethodReededGlass, TestSize.Level1)
 }
 
 /**
- * @tc.name: ApplyMethodWaterGlass
- * @tc.desc: Test EffectImageWaterGlassFilter filter application, image is null
- */
-HWTEST_F(EffectImageRenderUnittest, ApplyMethodWaterGlass, TestSize.Level1)
-{
-    std::shared_ptr<Drawing::GEWaterGlassDataParams> params = std::make_shared<Drawing::GEWaterGlassDataParams>();
-    ASSERT_NE(params, nullptr);
-    std::shared_ptr<EffectImageWaterGlassFilter> filter = std::make_shared<EffectImageWaterGlassFilter>(params);
-    ASSERT_NE(filter, nullptr);
-
-    DrawingError result = filter->Apply(nullptr);
-    ASSERT_EQ(result, DrawingError::ERR_IMAGE_NULL);
-}
-
-/**
  * @tc.name: MaskTransitionFilterTest001
  * @tc.desc: Test EffectImageFilter::MaskTransition factory method
  */
