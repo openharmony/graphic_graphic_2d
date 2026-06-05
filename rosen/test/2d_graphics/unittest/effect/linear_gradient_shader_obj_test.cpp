@@ -14,9 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#define private public
 #include "effect/linear_gradient_shader_obj.h"
-#undef private
 #include "effect/shader_effect.h"
 #include "effect/shader_effect_lazy.h"
 #ifdef ROSEN_OHOS
