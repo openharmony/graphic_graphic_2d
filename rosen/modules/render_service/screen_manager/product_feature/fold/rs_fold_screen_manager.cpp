@@ -79,11 +79,8 @@ void RSFoldScreenManager::HandleSensorData(float angle, float abAngle)
         return;
     }
 
-    // 1、two-fold abAngle is 0, only need angele is fold, targetScreenId will be externalScreenId_
-    // 2、three-fold(one physical screen) externalScreenId_ is INVALID_SCREEN_ID,
-    //    so targetScreenId will allways innerScreenId_
-    // 3、three-fold(two physical screen) need abAngle and angle(bcAngle) both fold,
-    //    targetScreenId will be externalScreenId_
+    // abAngle and angle both fold, and externalScreenId_ not be INVALID_SCREEN_ID,
+    // targetScreenId will be externalScreenId_
     ScreenId targetScreenId = ((TransferAngleToScreenState(angle) == FoldState::FOLDED) &&
         (TransferAngleToScreenState(abAngle) == FoldState::FOLDED) && (externalScreenId_ != INVALID_SCREEN_ID))
         ? externalScreenId_ : innerScreenId_;
