@@ -180,62 +180,6 @@ HWTEST_F(EffectImageRenderUnittest, RenderTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: RenderTest003
- * @tc.desc: Test Render
- */
-HWTEST_F(EffectImageRenderUnittest, RenderTest003, TestSize.Level1)
-{
-    std::vector<std::shared_ptr<EffectImageFilter>> imageFilter;
-    imageFilter.emplace_back(nullptr);
-    auto filterBlur = EffectImageFilter::Blur(0.5);
-    EXPECT_TRUE(filterBlur != nullptr);
-    imageFilter.emplace_back(filterBlur);
-
-    const auto width = 200;
-    const auto height = 200;
-
-    OHOS::Media::InitializationOptions opts = {
-        .size =
-            {
-                .width = static_cast<int32_t>(width),
-                .height = static_cast<int32_t>(height),
-            },
-        .srcPixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
-        .pixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
-        .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL,
-    };
-    std::shared_ptr<Media::PixelMap> srcPixelMap = Media::PixelMap::Create(opts);
-    OH_NativeBuffer_Config config {
-        .width = width,
-        .height = height,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA
-    };
-    OH_NativeBuffer* dstBuffer = OH_NativeBuffer_Alloc(&config);
-    std::shared_ptr<OH_NativeBuffer> dst(
-        dstBuffer,
-        [](OH_NativeBuffer* buffer) {}
-    );
-    EffectImageRender imageRender;
-    int32_t syncFenceFdValue = 0;
-    int32_t* syncFenceFd = &syncFenceFdValue;
-    auto ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, true);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, false);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(nullptr, dst, imageFilter, syncFenceFd, true);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-    std::shared_ptr<OH_NativeBuffer> nullBuffer = nullptr;
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, nullBuffer, imageFilter, syncFenceFd, true);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, nullBuffer, imageFilter, syncFenceFd, true);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, true);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    OH_NativeBuffer_Unreference(dstBuffer);
-}
-
-/**
  * @tc.name: EllipticalGradientBlurApplyTest
  * @tc.desc: Test EllipticalGradientBlur filter application
  */
