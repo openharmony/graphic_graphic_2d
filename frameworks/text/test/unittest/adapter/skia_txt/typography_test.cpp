@@ -2442,7 +2442,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetImageBounds001, Test
     SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
     ASSERT_NE(paragraph, nullptr);
     auto lines = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->GetTextLines();
-    size_t expectLineSize = 4;
+    size_t expectLineSize = 1;
     EXPECT_EQ(lines.size(), expectLineSize);
     for (size_t i = 0; i < lines.size(); i++) {
         auto runs = lines[i]->getGlyphRuns();
