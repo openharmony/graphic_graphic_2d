@@ -105,7 +105,7 @@ void RegisterSensorCallback();
 void UnRegisterSensorCallback();
 static void OnBootComplete(const char* key, const char* value, void* context);
 void HandlePostureData(const SensorEvent* const event);
-void HandleSensorData(float angle);  // main thread, decide fold state
+void HandleSensorData(float angle, float abAngle);  // main thread, decide fold state
 #endif
 ```
 

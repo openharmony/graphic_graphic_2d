@@ -70,19 +70,27 @@ void RSFoldScreenManager::Init()
 }
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-void RSFoldScreenManager::HandleSensorData(float angle)
+void RSFoldScreenManager::HandleSensorData(float angle, float abAngle)
 {
-    if (std::isless(angle, ANGLE_MIN_VAL) || std::isgreater(angle, ANGLE_MAX_VAL)) {
-        RS_LOGW("%{public}s Invalid angle value, angle is %{public}f.", __func__, angle);
+    if (std::isless(angle, ANGLE_MIN_VAL) || std::isgreater(angle, ANGLE_MAX_VAL) ||
+        std::isless(abAngle, ANGLE_MIN_VAL) || std::isgreater(abAngle, ANGLE_MAX_VAL)) {
+        RS_LOGW("%{public}s Invalid angle value, angle is %{public}f. abAngle is %{public}f",
+            __func__, angle, abAngle);
         return;
     }
 
-    ScreenId targetScreenId = (TransferAngleToScreenState(angle) == FoldState::FOLDED)
+    // 1、two-fold abAngle is 0, only need angele is fold, targetScreenId will be externalScreenId_
+    // 2、three-fold(one physical screen) externalScreenId_ is INVALID_SCREEN_ID,
+    //    so targetScreenId will allways innerScreenId_
+    // 3、three-fold(two physical screen) need abAngle and angle(bcAngle) both fold,
+    //    targetScreenId will be externalScreenId_
+    ScreenId targetScreenId = ((TransferAngleToScreenState(angle) == FoldState::FOLDED) &&
+        (TransferAngleToScreenState(abAngle) == FoldState::FOLDED) && (externalScreenId_ != INVALID_SCREEN_ID))
         ? externalScreenId_ : innerScreenId_;
     std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
     if (activeScreenId_ != targetScreenId) {
-        RS_LOGI("%{public}s: activeScreenId changed to %{public}" PRIu64 ", angle is %{public}.2f.", __func__,
-                targetScreenId, angle);
+        RS_LOGI("%{public}s: activeScreenId changed to %{public}" PRIu64 ", angle is %{public}.2f"
+                ", abAngle is %{public}.2f", __func__, targetScreenId, angle, abAngle);
         activeScreenId_ = targetScreenId;
         lock.unlock();
         screenPreprocessor_.NotifyActiveScreenIdChanged(targetScreenId);
@@ -195,8 +203,9 @@ void RSFoldScreenManager::HandlePostureData(const SensorEvent* const event)
     }
     PostureData* postureData = reinterpret_cast<PostureData*>(event[SENSOR_EVENT_FIRST_DATA].data);
     float angle = postureData->angle;
-    RS_LOGD("%{public}s angle value in PostureData is: %{public}f.", __func__, angle);
-    mainHandler_->PostTask([this, angle]() { HandleSensorData(angle); },
+    float abAngle = postureData->abAngle;
+    RS_LOGD("%{public}s angle value in PostureData is: %{public}f. abAngle:%{public}f", __func__, angle, abAngle);
+    mainHandler_->PostTask([this, angle, abAngle]() { HandleSensorData(angle, abAngle); },
         AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 #endif // RS_SUBSCRIBE_SENSOR_ENABLE
