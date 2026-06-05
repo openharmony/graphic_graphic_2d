@@ -47,6 +47,7 @@
 #include "ui_effect/effect/include/border_light_effect_para.h"
 #include "ui_effect/effect/include/brightness_blender.h"
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
+#include "ui_effect/effect/include/distortion_collapse_effect_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_content_light_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
@@ -4083,6 +4084,106 @@ HWTEST_F(RSNodeTest, SetVisualEfffect003, TestSize.Level1)
     std::shared_ptr<VisualEffectPara> effectPara = nullptr;
     auto shader = RSNGShaderBase::Create(effectPara);
     EXPECT_TRUE(shader == nullptr);
+}
+
+/**
+ * @tc.name: SetVisualEffectDistortionCollapse
+ * @tc.desc: test SetVisualEffect with DISTORTION_COLLAPSE_EFFECT
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEffectDistortionCollapse, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    auto effectObj = std::make_shared<VisualEffect>();
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    GTEST_LOG_(INFO) << "SetVisualEffectDistortionCollapse: ParaType="
+        << static_cast<int>(distortionPara->GetParaType())
+        << ", expected=" << static_cast<int>(VisualEffectPara::DISTORTION_COLLAPSE_EFFECT);
+    EXPECT_EQ(distortionPara->GetParaType(), VisualEffectPara::DISTORTION_COLLAPSE_EFFECT);
+    Vector2f luCorner(0.1f, 0.2f);
+    Vector2f ruCorner(0.3f, 0.4f);
+    Vector2f lbCorner(0.5f, 0.6f);
+    Vector2f rbCorner(0.7f, 0.8f);
+    Vector4f barrelDistortion(0.1f, 0.2f, 0.3f, 0.4f);
+    distortionPara->SetLUCorner(luCorner);
+    distortionPara->SetRUCorner(ruCorner);
+    distortionPara->SetLBCorner(lbCorner);
+    distortionPara->SetRBCorner(rbCorner);
+    distortionPara->SetBarrelDistortion(barrelDistortion);
+    effectObj->AddPara(distortionPara);
+    rsNode->SetVisualEffect(effectObj.get());
+    auto foregroundModifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::FOREGROUND_FILTER);
+    EXPECT_NE(foregroundModifier, nullptr);
+}
+
+/**
+ * @tc.name: SetVisualEffectDistortionCollapseWithEmptyEffect
+ * @tc.desc: test SetVisualEffect with empty VisualEffect (no paras)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEffectDistortionCollapseWithEmptyEffect, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    auto effectObj = std::make_shared<VisualEffect>();
+    rsNode->SetVisualEffect(effectObj.get());
+    auto foregroundModifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::FOREGROUND_FILTER);
+    EXPECT_EQ(foregroundModifier, nullptr);
+}
+
+/**
+ * @tc.name: SetVisualEffectDistortionCollapseMultipleParas
+ * @tc.desc: test SetVisualEffect with multiple paras including DISTORTION_COLLAPSE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEffectDistortionCollapseMultipleParas, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    auto effectObj = std::make_shared<VisualEffect>();
+
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    distortionPara->SetLUCorner(Vector2f(0.1f, 0.2f));
+    distortionPara->SetRUCorner(Vector2f(0.3f, 0.4f));
+    distortionPara->SetLBCorner(Vector2f(0.5f, 0.6f));
+    distortionPara->SetRBCorner(Vector2f(0.7f, 0.8f));
+    distortionPara->SetBarrelDistortion(Vector4f(0.1f, 0.2f, 0.3f, 0.4f));
+
+    auto distortionPara2 = std::make_shared<DistortionCollapseEffectPara>();
+    distortionPara2->SetLUCorner(Vector2f(0.2f, 0.3f));
+    distortionPara2->SetRUCorner(Vector2f(0.4f, 0.5f));
+    distortionPara2->SetLBCorner(Vector2f(0.6f, 0.7f));
+    distortionPara2->SetRBCorner(Vector2f(0.8f, 0.9f));
+    distortionPara2->SetBarrelDistortion(Vector4f(0.2f, 0.3f, 0.4f, 0.5f));
+
+    effectObj->AddPara(distortionPara);
+    effectObj->AddPara(distortionPara2);
+    rsNode->SetVisualEffect(effectObj.get());
+    auto foregroundModifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::FOREGROUND_FILTER);
+    EXPECT_NE(foregroundModifier, nullptr);
+}
+
+/**
+ * @tc.name: SetVisualEffectDistortionCollapseWithOtherEffects
+ * @tc.desc: test SetVisualEffect with DISTORTION_COLLAPSE mixed with other effects
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetVisualEffectDistortionCollapseWithOtherEffects, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    auto effectObj = std::make_shared<VisualEffect>();
+
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    distortionPara->SetLUCorner(Vector2f(0.1f, 0.2f));
+    distortionPara->SetRUCorner(Vector2f(0.3f, 0.4f));
+    distortionPara->SetLBCorner(Vector2f(0.5f, 0.6f));
+    distortionPara->SetRBCorner(Vector2f(0.7f, 0.8f));
+    distortionPara->SetBarrelDistortion(Vector4f(0.1f, 0.2f, 0.3f, 0.4f));
+
+    auto bgColorPara = std::make_shared<BackgroundColorEffectPara>();
+    effectObj->AddPara(distortionPara);
+    effectObj->AddPara(bgColorPara);
+    rsNode->SetVisualEffect(effectObj.get());
+    auto foregroundModifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::FOREGROUND_FILTER);
+    EXPECT_NE(foregroundModifier, nullptr);
 }
 
 /**

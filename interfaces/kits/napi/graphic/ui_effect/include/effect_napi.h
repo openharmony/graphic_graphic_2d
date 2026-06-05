@@ -23,6 +23,7 @@
 #include "effect/include/border_light_effect_para.h"
 #include "effect/include/brightness_blender.h"
 #include "effect/include/color_gradient_effect_para.h"
+#include "effect/include/distortion_collapse_effect_para.h"
 #include "effect/include/frosted_glass_effect_para.h"
 #include "effect/include/shadow_blender.h"
 #include "effect/include/hdr_darken_blender.h"
@@ -84,6 +85,9 @@ private:
     static bool FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
     static bool BuildFrostedGlassEffectPara(napi_env env, napi_value* argv,
         std::shared_ptr<FrostedGlassEffectPara>& outPara);
+    static napi_value CreateDistortionCollapseEffect(napi_env env, napi_callback_info info);
+    static bool ParseDistortionCollapseEffectPara(napi_env env, napi_value jsObject,
+        DistortionCollapseEffectPara* para);
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };
 } // namespace Rosen

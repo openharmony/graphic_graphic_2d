@@ -16,8 +16,10 @@
 #ifndef ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_BASE_H
 #define ROSEN_RENDER_SERVICE_CLIENT_CORE_UI_EFFECT_UI_FILTER_BASE_H
 
+#include "ui_effect/effect/include/visual_effect_para.h"
 #include "ui_effect/filter/include/filter_para.h"
 #include "ui_effect/property/include/rs_ui_property_tag.h"
+#include "ui_effect/property/include/rs_ui_shape_base.h"
 #include "ui_effect/property/include/rs_ui_template.h"
 
 #include "effect/rs_render_filter_base.h"
@@ -58,6 +60,12 @@ public:
 
     RSC_EXPORT static std::shared_ptr<RSNGFilterBase> CreateNGMaterialBlurFilter(
         const MaterialParam& materialParam, BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT);
+
+    RSC_EXPORT static std::shared_ptr<RSNGFilterBase> CreateNGDistortionCollapseFilter(
+        std::shared_ptr<VisualEffectPara> effectPara);
+
+    RSC_EXPORT static std::shared_ptr<RSNGShapeBase> CreateNGSDFDistortOpShape(
+        std::shared_ptr<VisualEffectPara> effectPara);
 };
 } // namespace Rosen
 } // namespace OHOS

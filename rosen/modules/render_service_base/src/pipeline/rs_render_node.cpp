@@ -39,6 +39,7 @@
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "feature/hdr/rs_colorspace_util.h"
@@ -5601,9 +5602,11 @@ std::shared_ptr<RSFilter> RSRenderNode::GetRSFilterWithSlot(RSDrawableSlot slot)
 
 void RSRenderNode::UpdateSDFTransformRectInfo()
 {
-    auto boundsRect = GetRenderProperties().GetBoundsRect();
-    auto sdfShape = GetRenderProperties().GetSDFShape();
+    auto& properties = GetRenderProperties();
+    auto sdfShape = properties.GetSDFShape();
+    auto boundsRect = properties.GetBoundsRect();
     if (sdfShape) {
+        RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, properties.GetRRectForSDF(), GetId());
         // Calc transform draw rect and store in sdf shape instance
         RSNGRenderShapeHelper::CalcRect(sdfShape, boundsRect);
     }

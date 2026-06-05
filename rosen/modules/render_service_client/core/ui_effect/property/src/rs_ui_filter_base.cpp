@@ -17,6 +17,7 @@
 
 #include <unordered_set>
 
+#include "ui_effect/effect/include/distortion_collapse_effect_para.h"
 #include "ui_effect/filter/include/filter_bezier_warp_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_blur_bubbles_rise_para.h"
@@ -39,6 +40,7 @@
 
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
+#include "ui_effect/property/include/rs_ui_shape_base.h"
 
 #include "platform/common/rs_log.h"
 
@@ -558,6 +560,42 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGMaterialBlurFilter(
     filter->Setter<MaterialBlurMaskColorTag>(materialParam.maskColor);
     filter->Setter<MaterialBlurDisableSystemAdaptationTag>(materialParam.disableSystemAdaptation);
     return filter;
+}
+
+std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGDistortionCollapseFilter(
+    std::shared_ptr<VisualEffectPara> effectPara)
+{
+    if (!effectPara) {
+        ROSEN_LOGE("CreateNGDistortionCollapseFilter effectPara is nullptr");
+        return nullptr;
+    }
+    auto para = std::static_pointer_cast<DistortionCollapseEffectPara>(effectPara);
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::DISTORTION_COLLAPSE);
+    auto distortFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
+    distortFilter->Setter<DistortionCollapseLUCornerTag>(para->GetLUCorner());
+    distortFilter->Setter<DistortionCollapseRUCornerTag>(para->GetRUCorner());
+    distortFilter->Setter<DistortionCollapseLBCornerTag>(para->GetLBCorner());
+    distortFilter->Setter<DistortionCollapseRBCornerTag>(para->GetRBCorner());
+    distortFilter->Setter<DistortionCollapseBarrelDistortionTag>(para->GetBarrelDistortion());
+    return filter;
+}
+
+std::shared_ptr<RSNGShapeBase> RSNGFilterHelper::CreateNGSDFDistortOpShape(
+    std::shared_ptr<VisualEffectPara> effectPara)
+{
+    if (!effectPara) {
+        ROSEN_LOGE("CreateNGSDFDistortOpShape effectPara is nullptr");
+        return nullptr;
+    }
+    auto para = std::static_pointer_cast<DistortionCollapseEffectPara>(effectPara);
+    auto shape = RSNGShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    auto distortShape = std::static_pointer_cast<RSNGSDFDistortOpShape>(shape);
+    distortShape->Setter<SDFDistortOpShapeLUCornerTag>(para->GetLUCorner());
+    distortShape->Setter<SDFDistortOpShapeRUCornerTag>(para->GetRUCorner());
+    distortShape->Setter<SDFDistortOpShapeLBCornerTag>(para->GetLBCorner());
+    distortShape->Setter<SDFDistortOpShapeRBCornerTag>(para->GetRBCorner());
+    distortShape->Setter<SDFDistortOpShapeBarrelDistortionTag>(para->GetBarrelDistortion());
+    return shape;
 }
 } // namespace Rosen
 } // namespace OHOS

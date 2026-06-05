@@ -2325,6 +2325,11 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         if (visualEffectPara == nullptr) {
             continue;
         }
+        if (visualEffectPara->GetParaType() == VisualEffectPara::DISTORTION_COLLAPSE_EFFECT) {
+            SetForegroundNGFilter(RSNGFilterHelper::CreateNGDistortionCollapseFilter(visualEffectPara));
+            SetSDFShape(RSNGFilterHelper::CreateNGSDFDistortOpShape(visualEffectPara));
+            continue;
+        }
         if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT ||
