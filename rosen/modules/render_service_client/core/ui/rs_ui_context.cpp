@@ -137,17 +137,23 @@ void RSUIContext::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& anima
 
 void RSUIContext::SetRequestVsyncCallback(const std::function<void()>& callback)
 {
+    std::lock_guard<std::mutex> lock(requestVsyncCallbackMutex_);
     requestVsyncCallback_ = callback;
 }
 
 void RSUIContext::RequestVsyncCallback()
 {
-    if (requestVsyncCallback_ == nullptr) {
+    std::function<void()> callback;
+    {
+        std::lock_guard<std::mutex> lock(requestVsyncCallbackMutex_);
+        callback = requestVsyncCallback_;
+    }
+    if (callback == nullptr) {
         ROSEN_LOGE("RSUIContext::RequestVsyncCallback failed requestVsyncCallback_ is null, token=%{public}" PRIu64 "",
             token_);
         return;
     }
-    requestVsyncCallback_();
+    callback();
 }
 
 void RSUIContext::SetUITaskRunner(const TaskRunner& uiTaskRunner)
