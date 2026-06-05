@@ -2959,7 +2959,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
 pid_t RSMainThread::GetDesktopPidForRotationScene() const
 {
-    return desktopPidForRotationScene_;
+    return desktopPidForRotationScene_.load();
 }
 
 uint32_t RSMainThread::GetForceCommitReason() const
@@ -3017,7 +3017,7 @@ void RSMainThread::Render()
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
     if (focusAppBundleName_.find(DESKTOP_NAME_FOR_ROTATION) != std::string::npos) {
-        desktopPidForRotationScene_ = focusAppPid_;
+        desktopPidForRotationScene_.store(focusAppPid_.load());
     }
     int dumpTreeCount = RSSystemParameters::GetDumpRSTreeCount();
     if (UNLIKELY(dumpTreeCount)) {

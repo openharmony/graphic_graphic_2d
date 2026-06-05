@@ -663,7 +663,7 @@ private:
 
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
-    pid_t desktopPidForRotationScene_ = 0;
+    std::atomic<pid_t> desktopPidForRotationScene_ = 0;
     int32_t subscribeFailCount_ = 0;
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS; // guard by systemAndRegularMutex_
     bool isRegularAnimation_ = false; // guard by systemAndRegularMutex_
