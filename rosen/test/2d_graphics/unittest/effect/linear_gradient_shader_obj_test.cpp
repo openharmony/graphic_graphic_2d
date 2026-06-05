@@ -61,7 +61,7 @@ void LinearGradientShaderObjTest::TearDown() {}
  * @tc.name: Constructor001
  * @tc.desc: Test LinearGradientShaderObj constructor scenarios
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, Constructor001, TestSize.Level1)
@@ -100,7 +100,7 @@ HWTEST_F(LinearGradientShaderObjTest, Constructor001, TestSize.Level1)
  * @tc.name: GenerateBaseObject001
  * @tc.desc: Test LinearGradientShaderObj::GenerateBaseObject with valid parameters
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, GenerateBaseObject001, TestSize.Level1)
@@ -134,7 +134,7 @@ HWTEST_F(LinearGradientShaderObjTest, GenerateBaseObject001, TestSize.Level1)
  * @tc.name: GenerateBaseObject002
  * @tc.desc: Test LinearGradientShaderObj::GenerateBaseObject with empty colors
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, GenerateBaseObject002, TestSize.Level1)
@@ -156,7 +156,7 @@ HWTEST_F(LinearGradientShaderObjTest, GenerateBaseObject002, TestSize.Level1)
  * @tc.name: GenerateBaseObject003
  * @tc.desc: Test LinearGradientShaderObj::GenerateBaseObject with different tile modes
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, GenerateBaseObject003, TestSize.Level1)
@@ -197,7 +197,7 @@ HWTEST_F(LinearGradientShaderObjTest, GenerateBaseObject003, TestSize.Level1)
  * @tc.name: Marshalling001
  * @tc.desc: Test LinearGradientShaderObj::Marshalling with valid parameters
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, Marshalling001, TestSize.Level1)
@@ -227,7 +227,7 @@ HWTEST_F(LinearGradientShaderObjTest, Marshalling001, TestSize.Level1)
  * @tc.name: Marshalling002
  * @tc.desc: Test LinearGradientShaderObj::Marshalling with null matrix
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, Marshalling002, TestSize.Level1)
@@ -255,7 +255,7 @@ HWTEST_F(LinearGradientShaderObjTest, Marshalling002, TestSize.Level1)
  * @tc.name: Marshalling003
  * @tc.desc: Test LinearGradientShaderObj::Marshalling without DataMarshallingCallback
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, Marshalling003, TestSize.Level1)
@@ -292,7 +292,7 @@ HWTEST_F(LinearGradientShaderObjTest, Marshalling003, TestSize.Level1)
  * @tc.name: Unmarshalling001
  * @tc.desc: Test LinearGradientShaderObj::Unmarshalling with valid data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, Unmarshalling001, TestSize.Level1)
@@ -349,7 +349,7 @@ HWTEST_F(LinearGradientShaderObjTest, Unmarshalling001, TestSize.Level1)
  * @tc.name: Unmarshalling002
  * @tc.desc: Test LinearGradientShaderObj::Unmarshalling depth protection
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, Unmarshalling002, TestSize.Level1)
@@ -369,7 +369,7 @@ HWTEST_F(LinearGradientShaderObjTest, Unmarshalling002, TestSize.Level1)
  * @tc.name: Unmarshalling003
  * @tc.desc: Test LinearGradientShaderObj::Unmarshalling with safe depth
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, Unmarshalling003, TestSize.Level1)
@@ -413,7 +413,7 @@ HWTEST_F(LinearGradientShaderObjTest, Unmarshalling003, TestSize.Level1)
  * @tc.name: Unmarshalling004
  * @tc.desc: Test LinearGradientShaderObj::Unmarshalling read failures
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, Unmarshalling004, TestSize.Level1)
@@ -453,7 +453,7 @@ HWTEST_F(LinearGradientShaderObjTest, Unmarshalling004, TestSize.Level1)
  * @tc.name: MarshallingUnmarshallingRoundTrip001
  * @tc.desc: Test complete marshalling/unmarshalling round trip for LinearGradientShaderObj
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, MarshallingUnmarshallingRoundTrip001, TestSize.Level1)
@@ -526,7 +526,7 @@ HWTEST_F(LinearGradientShaderObjTest, MarshallingUnmarshallingRoundTrip001, Test
  * @tc.name: MarshallingWriteFailure001
  * @tc.desc: Test LinearGradientShaderObj::Marshalling with parcel capacity failures
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, MarshallingWriteFailure001, TestSize.Level1)
@@ -567,7 +567,7 @@ HWTEST_F(LinearGradientShaderObjTest, MarshallingWriteFailure001, TestSize.Level
  * @tc.name: CreateWithDifferentPositions001
  * @tc.desc: Test LinearGradientShaderObj::Create with various position configurations
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, CreateWithDifferentPositions001, TestSize.Level1)
@@ -608,7 +608,7 @@ HWTEST_F(LinearGradientShaderObjTest, CreateWithDifferentPositions001, TestSize.
  * @tc.name: CreateWithMultipleColors001
  * @tc.desc: Test LinearGradientShaderObj::Create with multiple color stops
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(LinearGradientShaderObjTest, CreateWithMultipleColors001, TestSize.Level1)

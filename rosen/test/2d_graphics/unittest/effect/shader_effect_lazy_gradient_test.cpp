@@ -64,7 +64,7 @@ void ShaderEffectLazyGradientTest::TearDown() {}
  * @tc.name: CreateLinearGradient001
  * @tc.desc: Test ShaderEffectLazy::CreateLinearGradient with valid parameters
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateLinearGradient001, TestSize.Level1)
@@ -96,7 +96,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateLinearGradient001, TestSize.Level1)
  * @tc.name: CreateLinearGradient002
  * @tc.desc: Test ShaderEffectLazy::CreateLinearGradient with empty colors
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateLinearGradient002, TestSize.Level1)
@@ -117,7 +117,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateLinearGradient002, TestSize.Level1)
  * @tc.name: CreateLinearGradient003
  * @tc.desc: Test ShaderEffectLazy::CreateLinearGradient materialization
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateLinearGradient003, TestSize.Level1)
@@ -148,7 +148,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateLinearGradient003, TestSize.Level1)
  * @tc.name: CreateRadialGradient001
  * @tc.desc: Test ShaderEffectLazy::CreateRadialGradient with valid parameters
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateRadialGradient001, TestSize.Level1)
@@ -181,7 +181,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateRadialGradient001, TestSize.Level1)
  * @tc.name: CreateRadialGradient002
  * @tc.desc: Test ShaderEffectLazy::CreateRadialGradient with empty colors
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateRadialGradient002, TestSize.Level1)
@@ -202,7 +202,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateRadialGradient002, TestSize.Level1)
  * @tc.name: CreateRadialGradient003
  * @tc.desc: Test ShaderEffectLazy::CreateRadialGradient materialization
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateRadialGradient003, TestSize.Level1)
@@ -234,7 +234,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateRadialGradient003, TestSize.Level1)
  * @tc.name: CreateTwoPointConical001
  * @tc.desc: Test ShaderEffectLazy::CreateTwoPointConical with valid parameters
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateTwoPointConical001, TestSize.Level1)
@@ -269,7 +269,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateTwoPointConical001, TestSize.Level1
  * @tc.name: CreateTwoPointConical002
  * @tc.desc: Test ShaderEffectLazy::CreateTwoPointConical with empty colors
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateTwoPointConical002, TestSize.Level1)
@@ -292,7 +292,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateTwoPointConical002, TestSize.Level1
  * @tc.name: CreateTwoPointConical003
  * @tc.desc: Test ShaderEffectLazy::CreateTwoPointConical materialization
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateTwoPointConical003, TestSize.Level1)
@@ -326,7 +326,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateTwoPointConical003, TestSize.Level1
  * @tc.name: CreateSweepGradient001
  * @tc.desc: Test ShaderEffectLazy::CreateSweepGradient with valid parameters
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateSweepGradient001, TestSize.Level1)
@@ -360,7 +360,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateSweepGradient001, TestSize.Level1)
  * @tc.name: CreateSweepGradient002
  * @tc.desc: Test ShaderEffectLazy::CreateSweepGradient with empty colors
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateSweepGradient002, TestSize.Level1)
@@ -382,7 +382,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateSweepGradient002, TestSize.Level1)
  * @tc.name: CreateSweepGradient003
  * @tc.desc: Test ShaderEffectLazy::CreateSweepGradient materialization
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, CreateSweepGradient003, TestSize.Level1)
@@ -416,7 +416,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, CreateSweepGradient003, TestSize.Level1)
  * @tc.name: LinearGradientMarshallingRoundTrip001
  * @tc.desc: Test LinearGradient marshalling/unmarshalling round trip
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, LinearGradientMarshallingRoundTrip001, TestSize.Level1)
@@ -478,7 +478,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, LinearGradientMarshallingRoundTrip001, Te
  * @tc.name: RadialGradientMarshallingRoundTrip001
  * @tc.desc: Test RadialGradient marshalling/unmarshalling round trip
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, RadialGradientMarshallingRoundTrip001, TestSize.Level1)
@@ -540,7 +540,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, RadialGradientMarshallingRoundTrip001, Te
  * @tc.name: ConicalGradientMarshallingRoundTrip001
  * @tc.desc: Test ConicalGradient marshalling/unmarshalling round trip
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, ConicalGradientMarshallingRoundTrip001, TestSize.Level1)
@@ -604,7 +604,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, ConicalGradientMarshallingRoundTrip001, T
  * @tc.name: SweepGradientMarshallingRoundTrip001
  * @tc.desc: Test SweepGradient marshalling/unmarshalling round trip
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, SweepGradientMarshallingRoundTrip001, TestSize.Level1)
@@ -667,7 +667,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, SweepGradientMarshallingRoundTrip001, Tes
  * @tc.name: IsGradientShader001
  * @tc.desc: Test ShaderEffectLazy::IsGradientShader for all gradient types
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, IsGradientShader001, TestSize.Level1)
@@ -709,7 +709,7 @@ HWTEST_F(ShaderEffectLazyGradientTest, IsGradientShader001, TestSize.Level1)
  * @tc.name: IsGradientShader002
  * @tc.desc: Test ShaderEffectLazy::IsGradientShader for non-gradient shader
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ShaderEffectLazyGradientTest, IsGradientShader002, TestSize.Level1)

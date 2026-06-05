@@ -61,7 +61,7 @@ void ConicalGradientShaderObjTest::TearDown() {}
  * @tc.name: Constructor001
  * @tc.desc: Test ConicalGradientShaderObj constructor scenarios
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, Constructor001, TestSize.Level1)
@@ -104,7 +104,7 @@ HWTEST_F(ConicalGradientShaderObjTest, Constructor001, TestSize.Level1)
  * @tc.name: GenerateBaseObject001
  * @tc.desc: Test ConicalGradientShaderObj::GenerateBaseObject with valid parameters
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, GenerateBaseObject001, TestSize.Level1)
@@ -141,7 +141,7 @@ HWTEST_F(ConicalGradientShaderObjTest, GenerateBaseObject001, TestSize.Level1)
  * @tc.name: GenerateBaseObject002
  * @tc.desc: Test ConicalGradientShaderObj::GenerateBaseObject with empty colors
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, GenerateBaseObject002, TestSize.Level1)
@@ -166,7 +166,7 @@ HWTEST_F(ConicalGradientShaderObjTest, GenerateBaseObject002, TestSize.Level1)
  * @tc.name: GenerateBaseObject003
  * @tc.desc: Test ConicalGradientShaderObj::GenerateBaseObject with different tile modes
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, GenerateBaseObject003, TestSize.Level1)
@@ -209,7 +209,7 @@ HWTEST_F(ConicalGradientShaderObjTest, GenerateBaseObject003, TestSize.Level1)
  * @tc.name: GenerateBaseObject004
  * @tc.desc: Test ConicalGradientShaderObj::GenerateBaseObject with different radius values
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, GenerateBaseObject004, TestSize.Level1)
@@ -255,7 +255,7 @@ HWTEST_F(ConicalGradientShaderObjTest, GenerateBaseObject004, TestSize.Level1)
  * @tc.name: Marshalling001
  * @tc.desc: Test ConicalGradientShaderObj::Marshalling with valid parameters
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, Marshalling001, TestSize.Level1)
@@ -288,7 +288,7 @@ HWTEST_F(ConicalGradientShaderObjTest, Marshalling001, TestSize.Level1)
  * @tc.name: Marshalling002
  * @tc.desc: Test ConicalGradientShaderObj::Marshalling with null matrix
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, Marshalling002, TestSize.Level1)
@@ -319,7 +319,7 @@ HWTEST_F(ConicalGradientShaderObjTest, Marshalling002, TestSize.Level1)
  * @tc.name: Marshalling003
  * @tc.desc: Test ConicalGradientShaderObj::Marshalling with different tile modes
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, Marshalling003, TestSize.Level1)
@@ -359,7 +359,7 @@ HWTEST_F(ConicalGradientShaderObjTest, Marshalling003, TestSize.Level1)
  * @tc.name: Unmarshalling001
  * @tc.desc: Test ConicalGradientShaderObj::Unmarshalling with valid data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, Unmarshalling001, TestSize.Level1)
@@ -419,7 +419,7 @@ HWTEST_F(ConicalGradientShaderObjTest, Unmarshalling001, TestSize.Level1)
  * @tc.name: Unmarshalling002
  * @tc.desc: Test ConicalGradientShaderObj::Unmarshalling depth protection
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, Unmarshalling002, TestSize.Level1)
@@ -439,7 +439,7 @@ HWTEST_F(ConicalGradientShaderObjTest, Unmarshalling002, TestSize.Level1)
  * @tc.name: Unmarshalling003
  * @tc.desc: Test ConicalGradientShaderObj::Unmarshalling with safe depth
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, Unmarshalling003, TestSize.Level1)
@@ -485,7 +485,7 @@ HWTEST_F(ConicalGradientShaderObjTest, Unmarshalling003, TestSize.Level1)
  * @tc.name: Unmarshalling004
  * @tc.desc: Test ConicalGradientShaderObj::Unmarshalling read failures
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, Unmarshalling004, TestSize.Level1)
@@ -544,7 +544,7 @@ HWTEST_F(ConicalGradientShaderObjTest, Unmarshalling004, TestSize.Level1)
  * @tc.name: MarshallingUnmarshallingRoundTrip001
  * @tc.desc: Test complete marshalling/unmarshalling round trip for ConicalGradientShaderObj
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, MarshallingUnmarshallingRoundTrip001, TestSize.Level1)
@@ -620,7 +620,7 @@ HWTEST_F(ConicalGradientShaderObjTest, MarshallingUnmarshallingRoundTrip001, Tes
  * @tc.name: CreateWithDifferentPoints001
  * @tc.desc: Test ConicalGradientShaderObj::Create with various point configurations
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, CreateWithDifferentPoints001, TestSize.Level1)
@@ -665,7 +665,7 @@ HWTEST_F(ConicalGradientShaderObjTest, CreateWithDifferentPoints001, TestSize.Le
  * @tc.name: CreateWithMultipleColorStops001
  * @tc.desc: Test ConicalGradientShaderObj::Create with multiple color stops
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(ConicalGradientShaderObjTest, CreateWithMultipleColorStops001, TestSize.Level1)

@@ -63,7 +63,7 @@ void GradientShaderObjBaseTest::TearDown() {}
  * @tc.name: MarshalCommonData001
  * @tc.desc: Test MarshalCommonData with valid data and no matrix/colorSpace
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonData001, TestSize.Level1)
@@ -89,7 +89,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonData001, TestSize.Level1)
  * @tc.name: MarshalCommonData002
  * @tc.desc: Test MarshalCommonData with valid data, matrix, and colorSpace
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonData002, TestSize.Level1)
@@ -119,7 +119,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonData002, TestSize.Level1)
  * @tc.name: MarshalCommonData003
  * @tc.desc: Test MarshalCommonData with multiple colors and positions
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonData003, TestSize.Level1)
@@ -147,7 +147,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonData003, TestSize.Level1)
  * @tc.name: MarshalCommonData004
  * @tc.desc: Test MarshalCommonData with empty positions
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonData004, TestSize.Level1)
@@ -171,7 +171,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonData004, TestSize.Level1)
  * @tc.name: MarshalCommonDataCapacity001
  * @tc.desc: Test MarshalCommonData with parcel capacity
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity001, TestSize.Level1)
@@ -198,7 +198,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity001, TestSize.Level
  * @tc.name: MarshalCommonDataCapacity002
  * @tc.desc: Test MarshalCommonData with color data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity002, TestSize.Level1)
@@ -225,7 +225,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity002, TestSize.Level
  * @tc.name: MarshalCommonDataCapacity003
  * @tc.desc: Test MarshalCommonData with position data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity003, TestSize.Level1)
@@ -254,7 +254,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity003, TestSize.Level
  * @tc.name: MarshalCommonDataCapacity004
  * @tc.desc: Test MarshalCommonData with position values
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity004, TestSize.Level1)
@@ -286,7 +286,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity004, TestSize.Level
  * @tc.name: MarshalCommonDataCapacity005
  * @tc.desc: Test MarshalCommonData with tile mode
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity005, TestSize.Level1)
@@ -315,7 +315,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity005, TestSize.Level
  * @tc.name: MarshalCommonDataCapacity006
  * @tc.desc: Test MarshalCommonData with hasMatrix flag
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity006, TestSize.Level1)
@@ -345,7 +345,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity006, TestSize.Level
  * @tc.name: MarshalCommonDataCapacity007
  * @tc.desc: Test MarshalCommonData with matrix data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity007, TestSize.Level1)
@@ -380,7 +380,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity007, TestSize.Level
  * @tc.name: MarshalCommonDataCapacity008
  * @tc.desc: Test MarshalCommonData with colorSpace flag
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity008, TestSize.Level1)
@@ -412,7 +412,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity008, TestSize.Level
  * @tc.name: MarshalCommonDataCapacity009
  * @tc.desc: Test MarshalCommonData with colorSpace size
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity009, TestSize.Level1)
@@ -446,7 +446,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity009, TestSize.Level
  * @tc.name: MarshalCommonDataCapacity010
  * @tc.desc: Test MarshalCommonData with colorSpace data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity010, TestSize.Level1)
@@ -482,7 +482,7 @@ HWTEST_F(GradientShaderObjBaseTest, MarshalCommonDataCapacity010, TestSize.Level
  * @tc.name: UnmarshalCommonData001
  * @tc.desc: Test UnmarshalCommonData with valid data and no matrix/colorSpace
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonData001, TestSize.Level1)
@@ -524,7 +524,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonData001, TestSize.Level1)
  * @tc.name: UnmarshalCommonData002
  * @tc.desc: Test UnmarshalCommonData with valid data, matrix, and colorSpace
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonData002, TestSize.Level1)
@@ -569,7 +569,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonData002, TestSize.Level1)
  * @tc.name: UnmarshalCommonData003
  * @tc.desc: Test UnmarshalCommonData with empty positions
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonData003, TestSize.Level1)
@@ -609,7 +609,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonData003, TestSize.Level1)
  * @tc.name: UnmarshalCommonDataPartialData001
  * @tc.desc: Test UnmarshalCommonData with partial data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData001, TestSize.Level1)
@@ -634,7 +634,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData001, TestSize.
  * @tc.name: UnmarshalCommonDataPartialData002
  * @tc.desc: Test UnmarshalCommonData with partial color data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData002, TestSize.Level1)
@@ -662,7 +662,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData002, TestSize.
  * @tc.name: UnmarshalCommonDataPartialData003
  * @tc.desc: Test UnmarshalCommonData with partial pos data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData003, TestSize.Level1)
@@ -693,7 +693,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData003, TestSize.
  * @tc.name: UnmarshalCommonDataPartialData004
  * @tc.desc: Test UnmarshalCommonData with partial position values
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData004, TestSize.Level1)
@@ -726,7 +726,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData004, TestSize.
  * @tc.name: UnmarshalCommonDataPartialData005
  * @tc.desc: Test UnmarshalCommonData with partial tile mode
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData005, TestSize.Level1)
@@ -758,7 +758,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData005, TestSize.
  * @tc.name: UnmarshalCommonDataPartialData006
  * @tc.desc: Test UnmarshalCommonData with partial hasMatrix
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData006, TestSize.Level1)
@@ -791,7 +791,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData006, TestSize.
  * @tc.name: UnmarshalCommonDataPartialData007
  * @tc.desc: Test UnmarshalCommonData with partial matrix data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData007, TestSize.Level1)
@@ -829,7 +829,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData007, TestSize.
  * @tc.name: UnmarshalCommonDataPartialData008
  * @tc.desc: Test UnmarshalCommonData with partial colorSpace flag
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData008, TestSize.Level1)
@@ -863,7 +863,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData008, TestSize.
  * @tc.name: UnmarshalCommonDataPartialData009
  * @tc.desc: Test UnmarshalCommonData with partial colorSpace size
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData009, TestSize.Level1)
@@ -898,7 +898,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData009, TestSize.
  * @tc.name: UnmarshalCommonDataPartialData010
  * @tc.desc: Test UnmarshalCommonData with partial colorSpace data
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData010, TestSize.Level1)
@@ -934,7 +934,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataPartialData010, TestSize.
  * @tc.name: UnmarshalCommonDataWithMatrix001
  * @tc.desc: Test UnmarshalCommonData successfully with matrix
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataWithMatrix001, TestSize.Level1)
@@ -978,7 +978,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataWithMatrix001, TestSize.L
  * @tc.name: UnmarshalCommonDataWithoutMatrix001
  * @tc.desc: Test UnmarshalCommonData successfully without matrix (hasMatrix = false)
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataWithoutMatrix001, TestSize.Level1)
@@ -1020,7 +1020,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataWithoutMatrix001, TestSiz
  * @tc.name: UnmarshalCommonDataWithColorSpace001
  * @tc.desc: Test UnmarshalCommonData successfully with colorSpace
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataWithColorSpace001, TestSize.Level1)
@@ -1063,7 +1063,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataWithColorSpace001, TestSi
  * @tc.name: UnmarshalCommonDataWithoutColorSpace001
  * @tc.desc: Test UnmarshalCommonData successfully without colorSpace (colorSpace = nullptr)
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataWithoutColorSpace001, TestSize.Level1)
@@ -1105,7 +1105,7 @@ HWTEST_F(GradientShaderObjBaseTest, UnmarshalCommonDataWithoutColorSpace001, Tes
  * @tc.name: RoundTripAllCombinations001
  * @tc.desc: Test marshalling/unmarshalling round trip with various combinations
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, RoundTripAllCombinations001, TestSize.Level1)
@@ -1251,7 +1251,7 @@ HWTEST_F(GradientShaderObjBaseTest, RoundTripAllCombinations001, TestSize.Level1
  * @tc.name: MultipleColorStressTest001
  * @tc.desc: Test with multiple colors to verify loop coverage
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, MultipleColorStressTest001, TestSize.Level1)
@@ -1298,7 +1298,7 @@ HWTEST_F(GradientShaderObjBaseTest, MultipleColorStressTest001, TestSize.Level1)
  * @tc.name: DifferentTileModes001
  * @tc.desc: Test all tile modes are correctly marshalled and unmarshalled
  * @tc.type: FUNC
- * @tc.require: AR000GGNV3
+ * @tc.require: I8VQSW
  * @tc.author:
  */
 HWTEST_F(GradientShaderObjBaseTest, DifferentTileModes001, TestSize.Level1)
