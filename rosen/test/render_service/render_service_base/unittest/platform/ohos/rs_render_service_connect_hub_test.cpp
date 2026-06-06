@@ -143,6 +143,10 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 0);
     RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, nullptr);
     RSRenderServiceConnectHub::Destroy();
+    RSRenderServiceConnectHub::Init();
+    auto instance3 = RSApplicationAgentImpl::Instance();
+    EXPECT_NE(instance3, instance2);
+
 }
 #endif
 } // namespace Rosen
