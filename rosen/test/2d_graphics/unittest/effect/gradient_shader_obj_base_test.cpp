@@ -87,7 +87,7 @@ bool TestSingleRoundTripCombo(Point startPt, Point endPt,
     return isValid;
 }
 
-void TestCombination1(TileMode mode)
+bool TestCombination1(TileMode mode)
 {
     Point startPt(10.0f, 20.0f);
     Point endPt(110.0f, 120.0f);
@@ -96,10 +96,10 @@ void TestCombination1(TileMode mode)
     colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 0.0f));
     std::vector<scalar> pos;
 
-    EXPECT_TRUE(TestSingleRoundTripCombo(startPt, endPt, colors, nullptr, pos, mode, nullptr));
+    return TestSingleRoundTripCombo(startPt, endPt, colors, nullptr, pos, mode, nullptr);
 }
 
-void TestCombination2(TileMode mode)
+bool TestCombination2(TileMode mode)
 {
     Point startPt(10.0f, 20.0f);
     Point endPt(110.0f, 120.0f);
@@ -110,10 +110,10 @@ void TestCombination2(TileMode mode)
     Matrix matrix;
     matrix.SetMatrix(1.0f, 0.0f, 10.0f, 0.0f, 1.0f, 20.0f, 0.0f, 0.0f, 1.0f);
 
-    EXPECT_TRUE(TestSingleRoundTripCombo(startPt, endPt, colors, nullptr, pos, mode, &matrix));
+    return TestSingleRoundTripCombo(startPt, endPt, colors, nullptr, pos, mode, &matrix);
 }
 
-void TestCombination3(TileMode mode)
+bool TestCombination3(TileMode mode)
 {
     Point startPt(10.0f, 20.0f);
     Point endPt(110.0f, 120.0f);
@@ -123,10 +123,10 @@ void TestCombination3(TileMode mode)
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
     std::vector<scalar> pos;
 
-    EXPECT_TRUE(TestSingleRoundTripCombo(startPt, endPt, colors, colorSpace, pos, mode, nullptr));
+    return TestSingleRoundTripCombo(startPt, endPt, colors, colorSpace, pos, mode, nullptr);
 }
 
-void TestCombination4(TileMode mode)
+bool TestCombination4(TileMode mode)
 {
     Point startPt(10.0f, 20.0f);
     Point endPt(110.0f, 120.0f);
@@ -140,7 +140,7 @@ void TestCombination4(TileMode mode)
     Matrix matrix;
     matrix.SetMatrix(1.0f, 0.0f, 10.0f, 0.0f, 1.0f, 20.0f, 0.0f, 0.0f, 1.0f);
 
-    EXPECT_TRUE(TestSingleRoundTripCombo(startPt, endPt, colors, colorSpace, pos, mode, &matrix));
+    return TestSingleRoundTripCombo(startPt, endPt, colors, colorSpace, pos, mode, &matrix);
 }
 #endif
 } // namespace
@@ -1206,10 +1206,10 @@ HWTEST_F(GradientShaderObjBaseTest, RoundTripAllCombinations001, TestSize.Level1
     };
 
     for (const auto& mode : tileModes) {
-        TestCombination1(mode);
-        TestCombination2(mode);
-        TestCombination3(mode);
-        TestCombination4(mode);
+        EXPECT_TRUE(TestCombination1(mode));
+        EXPECT_TRUE(TestCombination2(mode));
+        EXPECT_TRUE(TestCombination3(mode));
+        EXPECT_TRUE(TestCombination4(mode));
     }
 }
 
