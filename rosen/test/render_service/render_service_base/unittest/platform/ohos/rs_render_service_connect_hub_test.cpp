@@ -115,6 +115,7 @@ HWTEST_F(RSRenderServiceConnectHubTest, AddRenderProcessConnectionToken, TestSiz
     connHub->AddRenderProcessConnectionToken(9, token_, connectToRender, conn, clientToRenderConnection);
     EXPECT_EQ(connHub->connRenderProcess_.size(), 1);
 }
+
 #ifdef OHOS_PLATFORM
 /**
  * @tc.name: RSApplicationAgentImplTest
