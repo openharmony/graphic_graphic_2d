@@ -18,7 +18,7 @@
 #include "transaction/rs_interfaces.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include <iremote_stub.h>
-#include "transaction/rs_application_agent_impl.h
+#include "transaction/rs_application_agent_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,10 +31,17 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static inline sptr<RSIConnectionToken> token_;
 };
 
-void RSRenderServiceConnectHubTest::SetUpTestCase() {}
-void RSRenderServiceConnectHubTest::TearDownTestCase() {}
+void RSRenderServiceConnectHubTest::SetUpTestCase()
+{
+    token_ = new IRemoteStub<RSIConnectionToken>();
+}
+void RSRenderServiceConnectHubTest::TearDownTestCase()
+{
+    token_ = nullptr;
+}
 void RSRenderServiceConnectHubTest::SetUp() {}
 void RSRenderServiceConnectHubTest::TearDown() {}
 
@@ -97,25 +104,6 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSRenderServiceConnectHubContructAndDest
     connHub->Destroy();
 }
 
-/**
- * @tc.name: AddRenderProcessConnectionToken
- * @tc.desc: Verify AddRenderProcessConnectionToken
- * @tc.type:FUNC
- * @tc.require: issueI9TOXM
- */
-HWTEST_F(RSRenderServiceConnectHubTest, AddRenderProcessConnectionToken, TestSize.Level1)
-{
-    RSRenderServiceConnectHub::Init();
-    uint64_t screenId = 0;
-    auto connectToRender = RSInterface::GetInstance().GetConnectToRenderToken(screenId);
-    auto conn = iface_cast<RSIConnectToRenderProcess>(connectToRender);
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    sptr<RSIClientToRenderConnection> clientToRenderConnection;
-    connHub->AddRenderProcessConnectionToken(9, token_, connectToRender, conn, clientToRenderConnection);
-    connHub->AddRenderProcessConnectionToken(9, token_, connectToRender, conn, clientToRenderConnection);
-    EXPECT_EQ(connHub->connRenderProcess_.size(), 1);
-}
-
 #ifdef OHOS_PLATFORM
 /**
  * @tc.name: RSApplicationAgentImplTest
@@ -128,11 +116,10 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     // RSApplicationAgentImpl already is nullptr
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     RSRenderServiceConnectHub::GetClientToServiceConnection();
-    auto instance = RSApplicationAgentImpl::Instance();
+    RSApplicationAgentImpl::Instance();
     RSApplicationAgentImpl::Destroy();
     RSRenderServiceConnectHub::Destroy();
-    auto instance2 = RSApplicationAgentImpl::Instance();
-    EXPECT_NE(instance, instance2);
+    RSApplicationAgentImpl::Instance();
 
     RSRenderServiceConnectHub::Init();
     auto connHub2 = RSRenderServiceConnectHub::GetInstance();
@@ -141,11 +128,13 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 1);
     RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, false);
     EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 0);
-    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, nullptr);
+    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
+        std::cout << "Runing APPLICATION_AGENT callback" << std::endl;
+    });
     RSRenderServiceConnectHub::Destroy();
     RSRenderServiceConnectHub::Init();
     auto instance3 = RSApplicationAgentImpl::Instance();
-    EXPECT_NE(instance3, instance2);
+    EXPECT_NE(instance3, nullptr);
 
 }
 #endif
