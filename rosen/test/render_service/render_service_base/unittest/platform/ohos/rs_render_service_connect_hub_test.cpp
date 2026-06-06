@@ -118,6 +118,7 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     RSRenderServiceConnectHub::GetClientToServiceConnection();
     RSApplicationAgentImpl::Instance();
     RSApplicationAgentImpl::Destroy();
+    RSApplicationAgentImpl::Destroy();
     RSRenderServiceConnectHub::Destroy();
     RSApplicationAgentImpl::Instance();
 
@@ -128,6 +129,7 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 1);
     RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, false);
     EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 0);
+    connHub2->OnDiedCallbacks_[1] = nullptr;
     RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
         std::cout << "Runing APPLICATION_AGENT callback" << std::endl;
     });
@@ -135,7 +137,6 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Lev
     RSRenderServiceConnectHub::Init();
     auto instance3 = RSApplicationAgentImpl::Instance();
     EXPECT_NE(instance3, nullptr);
-
 }
 #endif
 } // namespace Rosen
