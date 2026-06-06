@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <filesystem>
@@ -410,6 +411,7 @@ void RSGraphicTestDirector::FlushAnimation(int64_t time)
 {
     RS_TRACE_NAME_FMT("RSGraphicTestDirector FlushAnimation time is %llu", time);
     rsUiDirector_->FlushAnimation(time);
+    NotifyAnimationFrameCallbacks();
     rsUiDirector_->FlushModifier();
 }
 
@@ -435,6 +437,42 @@ std::pair<double, double> RSGraphicTestDirector::ReceiveProfilerTimeInfo()
         return profilerThread_->ReceiveTimeInfo();
     }
     return {};
+}
+
+uint64_t RSGraphicTestDirector::AddAnimationFrameCallback(AnimationFrameCallback callback)
+{
+    if (!callback) {
+        return 0;
+    }
+    std::lock_guard lock(animationFrameCallbackMutex_);
+    uint64_t callbackId = nextAnimationFrameCallbackId_++;
+    animationFrameCallbacks_.emplace_back(callbackId, std::move(callback));
+    return callbackId;
+}
+
+void RSGraphicTestDirector::RemoveAnimationFrameCallback(uint64_t callbackId)
+{
+    std::lock_guard lock(animationFrameCallbackMutex_);
+    auto endIter = std::remove_if(animationFrameCallbacks_.begin(), animationFrameCallbacks_.end(),
+        [callbackId](const auto& callbackItem) { return callbackItem.first == callbackId; });
+    animationFrameCallbacks_.erase(endIter, animationFrameCallbacks_.end());
+}
+
+void RSGraphicTestDirector::NotifyAnimationFrameCallbacks()
+{
+    std::vector<AnimationFrameCallback> callbacks;
+    {
+        std::lock_guard lock(animationFrameCallbackMutex_);
+        callbacks.reserve(animationFrameCallbacks_.size());
+        for (const auto& callbackItem : animationFrameCallbacks_) {
+            callbacks.emplace_back(callbackItem.second);
+        }
+    }
+    for (const auto& callback : callbacks) {
+        if (callback) {
+            callback();
+        }
+    }
 }
 
 void RSGraphicTestDirector::SendProfilerCommand(const std::string command, int outTime)
@@ -489,6 +527,12 @@ void RSGraphicTestDirector::Reset()
 
     // 6. clean EventHandler
     handler_.reset();
+
+    // 7. clean animation frame callbacks
+    {
+        std::lock_guard lock(animationFrameCallbackMutex_);
+        animationFrameCallbacks_.clear();
+    }
 }
 
 std::shared_ptr<RSUIContext> RSGraphicTestDirector::GetRSUIContext() const
