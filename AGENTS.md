@@ -218,155 +218,45 @@ Agent 不维护跨会话次数状态；
 
 ## 构建和验证
 
-构建命令从 OpenHarmony 源码根目录执行，不在本仓子目录直接执行。
-产品、out 目录和可用 target 以当前工程配置为准。
-
-先判断仓库形态：
-
-- 若无法在当前路径或父级定位 OpenHarmony 根目录的 `build.sh` 和 `prebuilts/build-tools/`，
-  视为单仓环境，取消编译环节；不要伪造构建结论。
-- `out/` 只代表已有产品构建输出；干净源码树可能没有 `out/`，
-  不能仅凭缺少 `out/` 判定为单仓。
-- 单仓环境可自主执行 `git diff --check`、`rg` 路径/符号核对、JSON/YAML 语法检查、
-  BUILD target 引用检查和头文件依赖检索。
-- 若用户、CI 或远程构建机提供明确命令，按其命令验证；
-  未提供时在最终回复记录构建缺口。
+构建命令只从 OpenHarmony 源码根目录执行。
+若当前路径或父级没有 `build.sh` 和 `prebuilts/build-tools/`，视为单仓环境，取消编译环节，
+改做 `git diff --check`、`rg` 路径/符号核对、JSON/YAML 检查或 BUILD target 引用检查；
+不要伪造构建结论。
 
 ```sh
-ls out/
 ./build.sh --product-name <product-name> --build-target graphic_2d --ccache
-prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> <target>
-```
-
-`rk3568` 是常见示例产品，不是默认值。
-实际产品名参考 `out/` 已有目录、当前任务说明或 CI 配置。
-
-增量构建选择中，`$G2D` 表示 `//foundation/graphic/graphic_2d`。
-执行前必须替换为完整前缀；不要直接复制 `:lib...` 这类仓内短写法。
-
-| 改动范围 | 优先 target |
-| --- | --- |
-| 只改文档 | 不构建；跑链接、路径和 `git diff --check` |
-| HGM | `$G2D/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager` |
-| HGM 测试 | `$G2D/rosen/test/hyper_graphic_manager/unittest:unittest` |
-| Render Service 服务端 | `$G2D/rosen/modules/render_service:librender_service` |
-| Render Service 测试 | `$G2D/rosen/test/render_service:test` |
-| Render Service 客户端 | `$G2D/rosen/modules/render_service_client:librender_service_client` |
-| 2D 绘制 | `$G2D/rosen/modules/2d_graphics:2d_graphics` |
-| 2D 测试 | `$G2D/rosen/test/2d_graphics:test` |
-| IPC 或安全输入 | 最近 stub/proxy fuzz；SAFuzz 用 `$G2D/rosen/modules/safuzz:safuzztest` |
-| 多语言 API | 对应 NAPI/NDK/CJ/ANI/Taihe 单测和 XTS |
-
-运行单测时，先在 `BUILD.gn` 中确认 `module_out_path` 和 target 名称。
-HGM 示例 target `hgm_frame_voter_test` 的 `module_out_path` 是
-`graphic_2d/graphic_2d/hyper_graphic_manager`。
-
-```sh
 prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> \
-  //foundation/graphic/graphic_2d/rosen/test/hyper_graphic_manager/unittest:hgm_frame_voter_test
-find out/<product-name>/tests/unittest -name '*hgm_frame_voter_test*'
-out/<product-name>/tests/unittest/<path>/hgm_frame_voter_test --gtest_filter='*Vote*'
+  //foundation/graphic/graphic_2d/<path>:<target>
+git diff --check
 ```
 
-加速和排查：
-
-- 优先构建最近 target；确认 target 存在后再扩大到 `graphic_2d` 或 `graphic_common_test`。
-- `--ccache` 只用于 `build.sh`；`ninja -C out/<product-name> <target>` 用于已有 out 的增量构建。
-- 构建失败先记录首个真实编译错误，不要被后续级联错误带偏。
-
-macOS 说明：
-
-- 当前本地环境可能是 Darwin；完整 OpenHarmony 构建通常依赖 Linux 构建链。
-- macOS 本地适合做文档检查、`rg` 检索、`git diff --check` 和纯脚本校验。
-- 需要编译、设备测试或 XTS 时，使用团队 CI、Linux 远程构建机或明确产品构建环境。
-
-## 性能约束
-
-帧预算参考：
-
-| 刷新率 | 单帧预算 |
-| --- | --- |
-| 60Hz | 16.67ms |
-| 90Hz | 11.11ms |
-| 120Hz | 8.33ms |
-
-默认复核阈值：
-
-- 同场景 3 次采样，P95 帧耗时或内存峰值上升超过 3%，需要人工确认。
-- 任一新增同步等待、无界循环、全量扫描或 per-frame 堆分配，都需要说明必要性和基线。
-- O(N) 逻辑必须说明 N 是节点数、surface 数还是屏幕数，并记录典型规模。
-- 基线记录写入 PR `Test & Result`：产品、镜像、场景、工具、median、P95、max。
-
-工具和目标：
-
-- 渲染管线优先用 hilog + hitrace/perfetto 对比修改前后；设备命令差异先查 `--help`。
-- 2D benchmark 代码在 `rosen/samples/2d_graphics/benchmarks/`。
-- 2D benchmark 编进 `$G2D/rosen/samples/2d_graphics:drawing_engine_sample`。
-- benchmark 参数见 `benchmarks/benchmark_config.cpp`：`singlethread`、`multithread`、`api`、`dcl`。
-
-最小采样方法：
-
-- 同产品、同镜像、同场景采集修改前后各 3 轮；每轮至少 300 帧或 10 秒。
-- 丢弃启动和预热阶段的前 30 帧；记录 median、P95、max 和内存峰值。
-- 优先使用 `frame_analyzer/`、`frame_report/` 或性能平台输出；没有工具输出时保留原始 trace。
-- 只有同工具、同场景、同统计口径下，P95 上升超过 3% 才作为性能回退信号。
-
-常用设备采集示例：
-
-```sh
-hdc shell "hilog -w start -f /data/local/tmp/graphic.log"
-hdc shell "hitrace --trace_begin graphic sched freq idle"
-# 手动或脚本触发待测场景，保持至少 300 帧或 10 秒。
-hdc shell "hitrace --trace_finish > /data/local/tmp/graphic.ftrace"
-hdc shell "hilog -w stop"
-hdc file recv /data/local/tmp/graphic.log ./graphic.log
-hdc file recv /data/local/tmp/graphic.ftrace ./graphic.ftrace
-```
-
-2D benchmark 构建示例：
-
-```sh
-prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> \
-  $G2D/rosen/samples/2d_graphics:drawing_engine_sample
-```
-
-## 依赖和接口边界
-
-常见跨子系统边界包括：
-
-- 上游图形和硬件：Skia、OpenGL、Vulkan、EGL、HDI、HWC、`drivers_interface_display`。
-- 上游运行时和系统能力：IPC、FFRT、event handler、system ability、init、hitrace、hilog。
-- Buffer 和显示：graphic surface、SurfaceBuffer、NativeBuffer、fence、screen manager。
-- 下游消费方：ACE/UI 框架、窗口管理、多语言 API 调用方、应用侧 NDK/NAPI 用户。
-- 平台和产品裁剪：`graphic_config.gni`、产品形态、feature flag、vendor extension。
-
-改动触达依赖接口、枚举、buffer 语义、错误码、线程模型或能力查询时，
-不要只在本仓闭环。
-需要检查依赖方公开头文件、调用方假设和运行时能力，并人工确认通知范围和评审人。
+- `out/` 只代表已有产品输出；不能仅凭缺少 `out/` 判定为单仓。
+- 产品名以已有 `out/`、当前任务说明、CI 或远程构建命令为准；`rk3568` 只是常见示例。
+- 只改文档不构建，做路径、链接和空白检查即可。
+- 代码改动优先构建最近 GN target；执行前确认 target 存在，并使用完整
+  `//foundation/graphic/graphic_2d/...` 前缀。
+- 构建失败先记录首个真实编译错误；需要设备、XTS 或显示效果验证时，在最终回复说明缺口。
+- macOS 本地通常只做静态检查；编译、设备测试和 XTS 使用 Linux CI、远程构建机或明确设备环境。
 
 ## 项目约束
 
-不要做：
+默认边界：
 
-- 不要绕过既有客户端、服务端和渲染端边界直接访问对侧对象。
-- 不要只改某一层语言绑定改变公开行为；同步检查 JS、NDK、CJ、ANI、Taihe 和 Native 入口。
-- 不要把缺失真实设备验证的刷新率、HWC、GPU、surface、HDR 或显示效果改动描述为
-  完整验证。
-- 没有设备不默认阻塞文档、知识路由、静态验证或可本地验证的小修；
-  阻塞的是“已完成设备行为验证”这类结论。
-- 不要修改公开 API/ABI、枚举值、结构体字段、错误码或默认行为而不说明兼容性影响。
-- 不要修改生成代码、OAT 扫描豁免对应产物或第三方依赖副本，除非任务明确要求。
-- 不要把 OpenHarmony 源码树 `third_party/` 下的 Skia、EGL 等外部依赖当成本仓文件修改。
-- 不要执行破坏性 git/文件操作或大范围机械重构，除非用户明确要求。
+- 优先沿既有客户端、服务端和渲染端边界修改；确需跨层访问时，先说明理由、影响面和风险。
+- 涉及 JS、NDK、CJ、ANI、Taihe 或 Native 公开行为时，同步检查相关入口，不只改单层绑定。
+- 缺少真实设备时，可以继续推进实现、文档和静态验证；最终回复不得把设备行为、显示效果或
+  性能功耗结论描述为已完整验证。
+- 涉及公开 API/ABI、枚举、结构体、错误码或默认行为时，说明兼容性影响并先确认。
+- 生成代码、OAT 扫描豁免产物、第三方依赖副本和 OpenHarmony `third_party/` 内容默认不改；
+  任务明确要求时再处理。
+- 破坏性 git/文件操作和大范围机械重构必须由用户明确要求。
 
-必须人工确认：
+需要先确认：
 
 - 改公开 API/ABI、错误码、默认值、权限、XTS 预期或跨语言接口前。
 - 改显示硬件接口、HWC、SurfaceBuffer、NativeBuffer、fence、刷新率模式或产品裁剪策略前。
 - 改 Render Service 跨进程 IPC、transaction 编码、Parcel/TLV 格式或旧数据兼容前。
 - 改第三方库、license、编译宏、feature flag、vendor extension 或跨仓接口前。
-- 需要真实设备验证但当前没有设备，且任务涉及设备行为、显示效果或性能功耗结论时。
-  如果只是继续推进实现或文档，可以先记录设备验证缺口，等待人工或 CI/设备补测。
 
 Agent 自主边界：
 
@@ -432,14 +322,21 @@ Co-Authored-By: Agent
 
 ## 完成定义
 
-Agent 最终回复必须包含：
+最终回复按任务复杂度收口，不机械打印固定清单。
+不适用的构建、XTS、设备、提交项可以省略，避免把简单任务回复拉长。
 
-- 读取过的知识文档和对应场景。
-- 修改的文件、行为影响面和明确未修改的关键文件。
-- 已执行的构建、单测、fuzz、XTS 或真实设备验证命令；未执行时说明原因。
+轻量任务，如问答、文档删节、措辞调整或路径核对：
+
+- 简要说明结论或改动点。
+- 说明已做的静态检查；未验证时用一句话说明原因。
+- 只改 1 到 2 个文档时，不必逐条展开未修改文件、XTS、设备和提交状态。
+
+代码、接口、构建、设备或跨模块任务：
+
+- 说明读取过的知识文档、修改文件、行为影响面和关键未改文件。
+- 列出已执行的构建、单测、fuzz、XTS 或真实设备验证命令；未执行时说明原因。
 - XTS 目标或真实设备验证无法确认时，列出缺口和需要人工确认的问题。
-- 本次自主边界级别：自主完成、自主推进但说明风险、必须先确认；
-  同时说明累计改动文件数。
-- 当前是否为单仓或完整 OpenHarmony 源码根；
-  若取消编译环节，说明取消原因和替代静态检查。
-- 若涉及提交或 push，说明 `stability-code-review` 结果和 commit message 是否符合提交约定。
+- 说明本次自主边界级别和累计改动文件数。
+- 当前为单仓环境时，说明取消编译的原因和替代静态检查；
+  完整 OpenHarmony 根环境时，说明使用的产品和 target。
+- 涉及提交或 push 时，说明 `stability-code-review` 结果和 commit message 是否符合提交约定。
