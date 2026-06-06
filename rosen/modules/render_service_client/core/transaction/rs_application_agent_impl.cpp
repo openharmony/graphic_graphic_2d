@@ -47,7 +47,7 @@ RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
     }
 
     RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
-        RSApplicationAgentImpl::Destory();
+        RSApplicationAgentImpl::Destroy();
     });
     return gRSApplicationAgentImplInstance.GetRefPtr();
 #else
@@ -55,7 +55,7 @@ RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
 #endif
 }
 
-void RSApplicationAgentImpl::Destory()
+void RSApplicationAgentImpl::Destroy()
 {
 #ifdef OHOS_PLATFORM
     if (gRSApplicationAgentImplInstance) {
