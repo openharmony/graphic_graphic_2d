@@ -23,7 +23,7 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
-#include "ui/rs_ui_context_manager.h
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -552,7 +552,7 @@ HWTEST_F(RSDividedUICaptureTest, ProcessSurfaceRenderNode, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI5HRIF
  */
-HWTEST_F(RSDividedUICaptureTest, ProcessSurfaceRenderNode, TestSize.Level1)
+HWTEST_F(RSDividedUICaptureTest, ProcessSurfaceRenderNode01, TestSize.Level1)
 {
     NodeId nodeId = 1;
     float scaleX = 1.0;
