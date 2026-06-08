@@ -107,6 +107,7 @@ enum class RSDrawableSlot : int8_t {
     PIXEL_STRETCH,
 
     // Restore state
+    RESTORE_CLIP_TO_BOUNDS,
     RESTORE_BLENDER,
     RESTORE_FOREGROUND_FILTER,
     RESTORE_ALL,
