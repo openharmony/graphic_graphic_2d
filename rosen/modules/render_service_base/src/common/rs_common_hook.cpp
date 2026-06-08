@@ -152,6 +152,7 @@ RSImageDetailEnhanceAlgoParams RsCommonHook::GetImageEnhanceAlgoParams(const std
 
 bool RsCommonHook::IsImageEnhanceParamsValid()
 {
+    std::lock_guard<std::mutex> setMutex(mutexLock_);
     if (imageEnhanceAlgoParams_.find("SLR") == imageEnhanceAlgoParams_.end() ||
         imageEnhanceAlgoParams_.find("ESR") == imageEnhanceAlgoParams_.end()) {
         return false;
