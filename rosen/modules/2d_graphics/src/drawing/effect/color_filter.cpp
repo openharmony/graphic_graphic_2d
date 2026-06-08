@@ -180,6 +180,7 @@ bool ColorFilter::AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const
 }
 
 #ifdef ROSEN_OHOS
+// LCOV_EXCL_START
 bool ColorFilter::Marshalling(Parcel& parcel)
 {
     // Write type first
@@ -216,7 +217,9 @@ bool ColorFilter::Marshalling(Parcel& parcel)
     }
     return true;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::shared_ptr<ColorFilter> ColorFilter::Unmarshalling(Parcel& parcel, bool& isValid)
 {
     // Read type first
@@ -269,11 +272,14 @@ std::shared_ptr<ColorFilter> ColorFilter::Unmarshalling(Parcel& parcel, bool& is
     }
     return colorFilter;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 sk_sp<SkColorFilter> ColorFilter::GetSkColorFilter() const
 {
     return impl_->GetSkColorFilter();
 }
+// LCOV_EXCL_STOP
 #endif
 
 } // namespace Drawing

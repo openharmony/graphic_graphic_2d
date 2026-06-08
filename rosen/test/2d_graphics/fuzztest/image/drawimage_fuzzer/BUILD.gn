@@ -18,11 +18,11 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("ImageFuzzTest") {
+ohos_fuzztest("DrawImageFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/image/image_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/image/drawimage_fuzzer"
 
-  sources = ["image_fuzzer.cpp"]
+  sources = ["draw_image_fuzzer.cpp"]
 
   cflags = [
     "-g",
@@ -55,7 +55,7 @@ group("fuzztest") {
 
   deps += [
     # deps file
-    ":ImageFuzzTest",
+    ":DrawImageFuzzTest",
   ]
 }
 ###############################################################################

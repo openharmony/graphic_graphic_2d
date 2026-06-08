@@ -21,6 +21,7 @@
 
 #include "get_object.h"
 #include "image/picture.h"
+#include "utils/serial_procs.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -59,6 +60,56 @@ bool PictureFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+bool PictureApproximateOpCountFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    Picture picture;
+    bool nested = GetObject<bool>();
+    picture.ApproximateOpCount(nested);
+    picture.ApproximateOpCount(false);
+    picture.ApproximateOpCount(true);
+    return true;
+}
+
+bool PictureSerializeWithProcFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    Picture picture;
+    auto dataVal = std::make_shared<Data>();
+    size_t length = GetObject<size_t>() % MAX_ARRAY_SIZE + 1;
+    char* dataText = new char[length];
+    if (dataText == nullptr) {
+        return false;
+    }
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length);
+    picture.Deserialize(dataVal);
+
+    SerialProcs serialProcs;
+    serialProcs.SetHasTypefaceProc(GetObject<bool>());
+    picture.Serialize(&serialProcs);
+    picture.Serialize(nullptr);
+
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -68,5 +119,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::Drawing::PictureFuzzTest(data, size);
+    OHOS::Rosen::Drawing::PictureApproximateOpCountFuzzTest(data, size);
+    OHOS::Rosen::Drawing::PictureSerializeWithProcFuzzTest(data, size);
     return 0;
 }
