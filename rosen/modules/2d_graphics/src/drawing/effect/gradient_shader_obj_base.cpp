@@ -89,7 +89,7 @@ bool GradientShaderObjBase::MarshalMatrix(Parcel& parcel) const
     if (hasMatrix) {
         Matrix::Buffer buffer;
         matrix_->GetAll(buffer);
-        for (int i = 0; i < Matrix::MATRIX_SIZE; i++) {
+        for (int32_t i = 0; i < Matrix::MATRIX_SIZE; i++) {
             if (!parcel.WriteFloat(buffer[i])) {
                 LOGE("GradientShaderObjBase::MarshalMatrix, failed to write matrix data");
                 return false;
@@ -213,7 +213,7 @@ bool GradientShaderObjBase::UnmarshalMatrix(Parcel& parcel)
     // Read matrix if present
     if (hasMatrix) {
         Matrix::Buffer buffer;
-        for (int i = 0; i < Matrix::MATRIX_SIZE; i++) {
+        for (int32_t i = 0; i < Matrix::MATRIX_SIZE; i++) {
             if (!parcel.ReadFloat(buffer[i])) {
                 LOGE("GradientShaderObjBase::UnmarshalMatrix, failed to read matrix data");
                 return false;
@@ -254,6 +254,10 @@ bool GradientShaderObjBase::UnmarshalColorSpace(Parcel& parcel)
             return false;
         }
         colorSpace_ = ColorSpace::CreateSRGB();
+        if (!colorSpace_) {
+            LOGE("GradientShaderObjBase::UnmarshalColorSpace, failed to create ColorSpace");
+            return false;
+        }
         if (!colorSpace_->Deserialize(colorSpaceData)) {
             LOGE("GradientShaderObjBase::UnmarshalColorSpace, failed to deserialize colorSpace");
             return false;
