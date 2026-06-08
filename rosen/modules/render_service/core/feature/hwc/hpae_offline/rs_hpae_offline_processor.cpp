@@ -332,11 +332,13 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     auto srcBufferOwnerCount = params.GetBufferOwnerCount();
     if (!srcSurfaceBuffer || !srcBufferOwnerCount) {
         RS_OFFLINE_LOGW("Offline srcSurfaceBuffer get buffer failed!");
+        lastProcessSuccess_ = false;
         return false;
     }
     BufferOwnerCountGuard guard(srcBufferOwnerCount);
     if (!GetOfflineProcessInput(params, inputInfo, srcSurfaceBuffer, dstSurfaceBuffer, releaseFence)) {
         RS_OFFLINE_LOGW("Get offline process input failed.");
+        lastProcessSuccess_ = false;
         return false;
     }
 
@@ -350,6 +352,7 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     if (ret != 0) {
         RS_OFFLINE_LOGW("Hpae offline process fail.");
         FlushAndReleaseOfflineLayer(dstSurfaceBuffer);
+        lastProcessSuccess_ = false;
         return false;
     }
 
@@ -359,6 +362,7 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
         if (ret != 0) {
             RS_OFFLINE_LOGW("Hpae get offline fence fail.");
             FlushAndReleaseOfflineLayer(dstSurfaceBuffer);
+            lastProcessSuccess_ = false;
             return false;
         }
     }
@@ -372,6 +376,7 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
         RS_OFFLINE_LOGW("DeviceOfflineLayer consume buffer failed. %{public}d",
             !offlineSurfaceHandler->GetBuffer());
+        lastProcessSuccess_ = false;
         return false;
     }
     if (offlineSurfaceHandler->IsCurrentFrameBufferConsumed()) {
@@ -388,10 +393,11 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     auto damageRect = offlineSurfaceHandler->GetDamageRegion();
     damageRect.y = offlineSurfaceHandler->GetBuffer()->GetHeight() - damageRect.y - damageRect.h;
     processOfflineResult.damageRect = damageRect;
-    processOfflineResult.preBuffer = offlineSurfaceHandler->GetPreBuffer();
+    processOfflineResult.preBuffer = lastProcessSuccess_ ? offlineSurfaceHandler->GetPreBuffer() : nullptr;
     processOfflineResult.buffer = offlineSurfaceHandler->GetBuffer();
     processOfflineResult.acquireFence = offlineSurfaceHandler->GetAcquireFence();
     processOfflineResult.bufferOwnerCount = offlineSurfaceHandler->GetBufferOwnerCount();
+    lastProcessSuccess_ = true;
     RS_OFFLINE_LOGD("Offline process done, bufferRect: [%{public}d %{public}d %{public}d %{public}d], "
         "fence: %{public}d",
         processOfflineResult.bufferRect.x, processOfflineResult.bufferRect.y,
@@ -481,6 +487,7 @@ void RSHpaeOfflineProcessor::CheckAndPostClearOfflineResourceTask()
                 deInitOfflineFunc_();
             }
             preAllocBufferSucc_ = false;
+            lastProcessSuccess_ = false;
             isBusy_ = false;
             timeout_ = false;
         });

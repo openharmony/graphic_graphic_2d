@@ -92,6 +92,7 @@ private:
 
     // so handler
     bool loadSuccess_ = false;
+    bool lastProcessSuccess_ = false;
     void* preProcessHandle_ = nullptr;
     ProcessOfflineFunc preProcessFunc_ = nullptr;
     GetOfflineConfigFunc getConfigFunc_ = nullptr;
