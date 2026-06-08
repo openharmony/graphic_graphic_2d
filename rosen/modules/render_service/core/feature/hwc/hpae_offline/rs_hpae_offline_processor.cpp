@@ -382,7 +382,9 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     if (offlineSurfaceHandler->IsCurrentFrameBufferConsumed()) {
         auto offlinePreBufferCount = offlineSurfaceHandler->GetPreBufferOwnerCount();
         if (offlinePreBufferCount) {
-            offlinePreBufferCount->DecRef();
+            if (offlinePreBufferCount->DecRef()) {
+                offlineSurfaceHandler->ResetPreBuffer();
+            }
         }
     }
 
