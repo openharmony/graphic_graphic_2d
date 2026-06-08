@@ -106,7 +106,9 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
-
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    virtual ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) = 0;
+#endif
     // Energy Consumption
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(
         pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;

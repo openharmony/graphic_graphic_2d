@@ -189,6 +189,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     SET_OVERLAY_DISPLAY_MODE = 0x010001,
 #endif
+    SET_VIDEO_RATE_INFO = 0x010002,
 
     ON_FIRST_FRAME_COMMIT = 0x011000,
     ON_EXPOSED_EVENT = 0x011001,

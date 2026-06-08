@@ -163,6 +163,9 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode);
 #endif
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
+#endif
     void SetBehindWindowFilterEnabled(bool enabled);
     bool GetBehindWindowFilterEnabled();
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,

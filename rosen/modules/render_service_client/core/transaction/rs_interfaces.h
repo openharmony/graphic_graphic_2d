@@ -1437,6 +1437,8 @@ public:
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
 
+    int32_t SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
+
     /**
      * @brief Notify pageName change.
      * @param packageName the name of package.

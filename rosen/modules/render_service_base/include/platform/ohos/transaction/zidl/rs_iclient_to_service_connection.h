@@ -346,6 +346,9 @@ public:
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 
     virtual void RunOnRemoteDiedCallback() = 0;
+
+    virtual ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) = 0;
+
 #ifndef ENABLE_RS_PROXY
     virtual void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) = 0;
 

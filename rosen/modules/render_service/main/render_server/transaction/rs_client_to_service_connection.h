@@ -393,6 +393,8 @@ private:
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
 
+    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) override;
+
     ErrCode NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter) override;
 
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;

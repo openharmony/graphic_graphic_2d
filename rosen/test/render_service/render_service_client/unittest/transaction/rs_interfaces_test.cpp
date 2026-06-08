@@ -732,6 +732,23 @@ HWTEST_F(RSInterfacesTest, SetOverlayDisplayMode001, TestSize.Level1)
 #endif
 
 /**
+ * @tc.name: SetVideoRateInfo001
+ * @tc.desc: test results of SendVideoRateInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetVideoRateInfo001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+ 
+    std::unordered_map<std::string, std::string> videoRateInfo;
+    videoRateInfo["rate"] = "60";
+    videoRateInfo["decSpeed"] = "1";
+    int32_t res = instance.SendVideoRateInfo(videoRateInfo);
+    EXPECT_EQ(res, SUCCESS);
+}
+
+/**
  * @tc.name: SetBehindWindowFilterEnabledTest
  * @tc.desc: test results of SetBehindWindowFilterEnabledTest
  * @tc.type: FUNC

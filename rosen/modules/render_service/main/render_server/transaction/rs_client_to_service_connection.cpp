@@ -2460,6 +2460,29 @@ ErrCode RSClientToServiceConnection::SetOverlayDisplayMode(int32_t mode)
 }
 #endif
 
+ErrCode RSClientToServiceConnection::SendVideoRateInfo(
+    const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.empty()) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    for (auto conn : serviceToRenderConns) {
+        auto ret = conn->SendVideoRateInfo(videoRateInfo);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+    }
+#endif
+    return ERR_OK;
+}
+
 ErrCode RSClientToServiceConnection::SetBehindWindowFilterEnabled(bool enabled)
 {
     if (renderProcessManagerAgent_ == nullptr) {
