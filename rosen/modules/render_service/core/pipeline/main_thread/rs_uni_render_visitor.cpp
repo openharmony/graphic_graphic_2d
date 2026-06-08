@@ -1875,8 +1875,9 @@ void RSUniRenderVisitor::UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode
 void RSUniRenderVisitor::UpdateDrawingCacheInfoAfterChildren(RSRenderNode& node)
 {
     if (isDrawingCacheEnabled_) {
+        bool nodeHasHDR = node.GetHDRStatus() != HdrStatus::NO_HDR;
         auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceNode && IsNodeInBlackList(surfaceNode)) {
+        if ((surfaceNode && IsNodeInBlackList(surfaceNode)) || nodeHasHDR) {
             TraverseRenderGroupCacheRoots([](const std::shared_ptr<RSCanvasRenderNode>& renderGroupCacheRoot) {
             if (renderGroupCacheRoot) {
                 renderGroupCacheRoot->SetNodeGroupHasChildInBlacklist(true);

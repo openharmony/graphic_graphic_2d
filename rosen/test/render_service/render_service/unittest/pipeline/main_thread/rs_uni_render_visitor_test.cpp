@@ -1256,6 +1256,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildren_CloseInnerG
     visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
     
     EXPECT_EQ(testNode->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+
+    testNode->UpdateHDRStatus(HdrStatus::HDR_PHOTO, true);
+    visitor->UpdateDrawingCacheInfoAfterChildren(*testNode);
 }
 
 /**
