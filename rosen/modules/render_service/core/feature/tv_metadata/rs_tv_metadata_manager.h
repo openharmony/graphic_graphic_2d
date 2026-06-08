@@ -38,6 +38,7 @@ public:
     void RecordTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     static bool IsSdpInfoAppId(const std::string& bundleName);
     void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
+    static int32_t SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
 
 private:
     static void ClearVideoMetadata(TvPQMetadata& metadata);
@@ -46,6 +47,7 @@ private:
     void CollectSurfaceSize(const RSSurfaceRenderParams& params, TvPQMetadata& metaData);
     void CollectColorPrimaries(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
     void CollectHdrType(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
+    void CollectVideoRate(TvPQMetadata& metaData);
     bool CheckCacheValid();
     static uint8_t GetPriority(TvPQMetadata& metadata);
     static bool HasNoVideo(const TvPQMetadata& metadata)
@@ -66,6 +68,7 @@ private:
     TvPQMetadata metadata_{};
     TvPQMetadata cachedMetadata_{};
     mutable std::mutex mutex_;
+    static inline uint16_t videoRate_{0};
 };
 } // namespace OHOS::Rosen
 #endif // RS_TV_METADATA_MANAGER_H

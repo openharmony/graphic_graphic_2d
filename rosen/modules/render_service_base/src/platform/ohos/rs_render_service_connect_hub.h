@@ -17,6 +17,8 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECT_HUB_H
 
 #include <mutex>
+#include <unordered_map>
+#include <functional>
 #include "platform/common/rs_log.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
@@ -50,6 +52,9 @@ struct RenderProcessInfo {
     sptr<RSIConnectToRenderProcess> renderProcess;
     sptr<RSConnectRenderProcessDeathRecipient> deathRecipient;
     sptr<RSIClientToRenderConnection> clientToRenderConnection;
+
+enum class RSOnDiedCallbackCode : int32_t {
+    APPLICATION_AGENT = 0,
 };
 
 class RSRenderServiceConnectHub : public RefBase {
@@ -67,6 +72,9 @@ public:
             onConnectCallback_(instance_->renderConn_);
         }
     }
+
+    static void SetOnDiedCallback(RSOnDiedCallbackCode code, std::function<void()> cb);
+    static void RemoveOnDiedCallback(RSOnDiedCallbackCode code, bool isDestreuctionProcess);
 
     static sptr<RSRenderServiceConnectHub> GetConnectHubInstance()
     {
@@ -114,6 +122,7 @@ private:
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderServiceConnection();
     void CleanConnectRenderProcess();
     void RemoveRenderProcessDeathRecipient(uint64_t tokenMaskId, sptr<RSIConnectToRenderProcess> renderProcess);
+    void ExecuteAndClearDiedCallbacks();
     bool Connect();
     void ConnectDied();
 
@@ -129,6 +138,8 @@ private:
     static std::once_flag flag_;
     static sptr<RSRenderServiceConnectHub> instance_;
     static OnConnectCallback onConnectCallback_;
+    std::mutex onDiedCallbacksMutex_;
+    std::unordered_map<int32_t, std::function<void()>> OnDiedCallbacks_;
     friend class RSRenderPipelineClient;
 };
 } // namespace Rosen

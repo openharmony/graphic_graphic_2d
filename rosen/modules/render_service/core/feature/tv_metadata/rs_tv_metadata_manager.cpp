@@ -15,6 +15,8 @@
 
 #include "rs_tv_metadata_manager.h"
 
+#include <charconv>
+
 #include "feature_cfg/feature_param/performance_feature/video_metadata_param.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -39,6 +41,9 @@ constexpr uint8_t PRIORITY_FOR_SMALLSCREEN = 1;
 constexpr uint8_t PRIORITY_FOR_VIDEO_EFFECT = 2;
 constexpr uint8_t RESERVED_INDEX_FOR_NODE_ID = 0;
 constexpr uint8_t RESERVED_INDEX_FOR_CACHE = 1;
+constexpr uint16_t DECODE_SPEED_BASE = 100;
+constexpr const char* const VIDEO_RATE_KEY = "rate";
+constexpr const char* const VIDEO_DECSPEED_KEY = "decSpeed";
 }
 
 enum TvColorPrimaries {
@@ -175,6 +180,7 @@ void RSTvMetadataManager::CollectTvMetadata(const RSSurfaceRenderParams& params,
         CollectSurfaceSize(params, metaData);
         CollectColorPrimaries(buffer, metaData);
         CollectHdrType(buffer, metaData);
+        CollectVideoRate(metaData);
     }
 }
 
@@ -224,6 +230,11 @@ void RSTvMetadataManager::CollectHdrType(const sptr<SurfaceBuffer>& buffer, TvPQ
     if (MetadataHelper::GetHDRMetadataType(buffer, hdrMetadataType) == GSERROR_OK) {
         metaData.hdr = hdrMetadataType;
     }
+}
+
+void RSTvMetadataManager::CollectVideoRate(TvPQMetadata& metaData)
+{
+    metaData.vidFps = videoRate_;
 }
 
 bool RSTvMetadataManager::IsSdpInfoAppId(const std::string& bundleName)
@@ -282,5 +293,33 @@ bool RSTvMetadataManager::CheckCacheValid()
         return false;
     }
     return true;
+}
+
+int32_t RSTvMetadataManager::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    auto rateIt = videoRateInfo.find(VIDEO_RATE_KEY);
+    uint16_t rate{0};
+    if (rateIt != videoRateInfo.end()) {
+        auto resultRate =
+            std::from_chars(rateIt->second.data(), rateIt->second.data() + rateIt->second.size(), rate);
+        if (resultRate.ec != std::errc()) {
+            return -1;
+        }
+    }
+    uint32_t decSpeed{0};
+    auto speedIt = videoRateInfo.find(VIDEO_DECSPEED_KEY);
+    if (speedIt != videoRateInfo.end()) {
+        auto resultRate =
+            std::from_chars(speedIt->second.data(), speedIt->second.data() + speedIt->second.size(), decSpeed);
+        if (resultRate.ec != std::errc()) {
+            decSpeed = 0;
+        }
+    }
+    videoRate_ = rate;
+    if (decSpeed > DECODE_SPEED_BASE) {
+        videoRate_ = 0; // 倍速播放时，设置帧率信息无效，设置为0，不生效策略
+    }
+    RS_LOGI("SendVideoRateInfo rate:%{public}d, decSpeed:%{public}d", rate, decSpeed);
+    return 0;
 }
 } // namespace OHOS::Rosen

@@ -483,6 +483,28 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetCurrentPkgNameTest, TestSize.Level0)
 }
 
 /**
+ * @tc.name: SetCurrentPkgNameTest2
+ * @tc.desc: test videoCallLayerNameStr is not empty in for loop
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetCurrentPkgNameTest2, TestSize.Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    hgmCore.InitXmlConfig();
+    auto configData = hgmCore.GetPolicyConfigData();
+    configData->videoCallLayerConfig_["package1"] = "value1";
+    configData->videoCallLayerConfig_["package2"] = "value2";
+
+    std::string originLayerName = HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_;
+    std::vector<std::string> pkgNames = { "package1:", "package2:" };
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgNames);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_, "value1");
+
+    HgmEnergyConsumptionPolicy::Instance().videoCallLayerName_ = originLayerName;
+}
+
+/**
  * @tc.name: HgmFrameRateManager
  * @tc.desc: test results of HgmFrameRateManager
  * @tc.type: FUNC

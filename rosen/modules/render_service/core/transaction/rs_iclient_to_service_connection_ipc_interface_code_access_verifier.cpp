@@ -540,6 +540,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             break;
         }
 #endif
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIDEO_RATE_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIDEO_RATE_INFO");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_BEHIND_WINDOW_FILTER_ENABLED): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_BEHIND_WINDOW_FILTER_ENABLED");
             break;

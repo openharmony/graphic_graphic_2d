@@ -33,6 +33,9 @@ namespace Rosen {
 namespace {
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_LIST_SIZE = 50;
+#ifdef RS_ENABLE_TV_PQ_METADATA
+static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
+#endif
 } // namespace
 
 static void TypefaceXcollieCallback(void* arg)
@@ -506,6 +509,40 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             if (SetOverlayDisplayMode(mode) != ERR_OK) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+#endif
+#ifdef RS_ENABLE_TV_PQ_METADATA
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VIDEO_RATE_INFO) : {
+            uint32_t mapSize;
+            if (!data.ReadUint32(mapSize)) {
+                RS_LOGE(" read map size failed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (mapSize <= 0 || mapSize > MAX_VIDEO_INFO_SIZE) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::unordered_map<std::string, std::string> videoRateInfo;
+            bool shouldBreak = false;
+            for (uint32_t i = 0; i < mapSize; i++) {
+                std::string key;
+                std::string value;
+                if (!data.ReadString(key) || !data.ReadString(value)) {
+                    shouldBreak = true;
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
+                videoRateInfo[key] = value;
+            }
+            if (shouldBreak) {
+                break;
+            }
+            if (SendVideoRateInfo(videoRateInfo) != ERR_OK) {
+                RS_LOGE("RSServiceToRenderConnectionStub::SET_VIDEO_RATE_INFO failed");
                 ret = ERR_INVALID_REPLY;
             }
             break;

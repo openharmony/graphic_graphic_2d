@@ -15,8 +15,10 @@
 
 #include <gtest/gtest.h>
 #include <iostream>
-
+#include "transaction/rs_interfaces.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
+#include <iremote_stub.h>
+#include "transaction/rs_application_agent_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -29,10 +31,17 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static inline sptr<RSIConnectionToken> token_;
 };
 
-void RSRenderServiceConnectHubTest::SetUpTestCase() {}
-void RSRenderServiceConnectHubTest::TearDownTestCase() {}
+void RSRenderServiceConnectHubTest::SetUpTestCase()
+{
+    token_ = new IRemoteStub<RSIConnectionToken>();
+}
+void RSRenderServiceConnectHubTest::TearDownTestCase()
+{
+    token_ = nullptr;
+}
 void RSRenderServiceConnectHubTest::SetUp() {}
 void RSRenderServiceConnectHubTest::TearDown() {}
 
@@ -89,7 +98,46 @@ HWTEST_F(RSRenderServiceConnectHubTest, RSRenderServiceConnectHubContructAndDest
 {
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     ASSERT_EQ(connHub->renderService_, nullptr);
+    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
+        std::cout << "Run Callback" << std::endl;
+    });
     connHub->Destroy();
 }
+
+#ifdef OHOS_PLATFORM
+/**
+ * @tc.name: RSApplicationAgentImplTest
+ * @tc.desc: Verify RSApplicationAgentImplTest dlclose
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, RSApplicationAgentImplTest, TestSize.Level1)
+{
+    // RSApplicationAgentImpl already is nullptr
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::GetClientToServiceConnection();
+    RSApplicationAgentImpl::Instance();
+    RSApplicationAgentImpl::Destroy();
+    RSApplicationAgentImpl::Destroy();
+    RSRenderServiceConnectHub::Destroy();
+    RSApplicationAgentImpl::Instance();
+
+    RSRenderServiceConnectHub::Init();
+    auto connHub2 = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::GetClientToServiceConnection();
+    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, nullptr);
+    EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 1);
+    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, false);
+    EXPECT_EQ(connHub2->OnDiedCallbacks_.size(), 0);
+    connHub2->OnDiedCallbacks_[1] = nullptr;
+    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
+        std::cout << "Runing APPLICATION_AGENT callback" << std::endl;
+    });
+    RSRenderServiceConnectHub::Destroy();
+    RSRenderServiceConnectHub::Init();
+    auto instance3 = RSApplicationAgentImpl::Instance();
+    EXPECT_NE(instance3, nullptr);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

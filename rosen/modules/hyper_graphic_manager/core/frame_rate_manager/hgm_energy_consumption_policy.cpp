@@ -400,7 +400,7 @@ void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string
     std::lock_guard<std::mutex> lock(videoCallLock_);
     for (const auto& pkg : pkgs) {
         std::string pkgName = pkg.substr(0, pkg.find(":"));
-        if (videoCallLayerName_.empty()) {
+        if (videoCallLayerNameStr.empty()) {
             if (const auto& iter = videoCallLayerConfig.find(pkgName);
                 iter != videoCallLayerConfig.end()) {
                 videoCallLayerNameStr = iter->second;
