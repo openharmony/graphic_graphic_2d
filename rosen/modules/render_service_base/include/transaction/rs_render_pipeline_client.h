@@ -279,8 +279,6 @@ private:
     std::map<std::pair<uint64_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
     std::mutex transactionDataCallbackMutex_;
 #ifndef ROSEN_CROSS_PLATFORM
-    sptr<RSIClientToRenderConnection> clientToRenderConnection_;
-    sptr<RSIConnectionToken> token_;
     uint64_t tokenMaskId_ = INVALID_TOKEN_MASK_ID;
 #endif
     friend class SurfaceCaptureCallbackDirector;

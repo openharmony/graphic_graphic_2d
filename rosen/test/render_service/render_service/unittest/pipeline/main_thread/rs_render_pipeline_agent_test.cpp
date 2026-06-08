@@ -597,7 +597,7 @@ HWTEST_F(RSRenderPipelineAgentTest, RemoveConnection001, TestSize.Level1)
     sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
     ASSERT_NE(agent, nullptr);
     auto token = sptr<RSIConnectionToken>();
-    auto ret = agent->RemoveConnection(token);
+    auto ret = agent->RemoveConnection(getpid(), token);
     EXPECT_EQ(ret, false);
 }
 
@@ -615,7 +615,7 @@ HWTEST_F(RSRenderPipelineAgentTest, RemoveConnection002, TestSize.Level1)
     ASSERT_NE(agent, nullptr);
 
     auto token = sptr<RSIConnectionToken>();
-    auto ret = agent->RemoveConnection(token);
+    auto ret = agent->RemoveConnection(getpid(), token);
     EXPECT_EQ(ret, false);
 }
 

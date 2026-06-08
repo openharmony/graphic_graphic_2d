@@ -4059,6 +4059,17 @@ void RSMainThread::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
         [&app](const auto& iter) { return iter.second && app && iter.second->AsObject() == app->AsObject(); });
 }
 
+sptr<IApplicationAgent> RSMainThread::UnRegisterApplicationAgent(uint32_t pid)
+{
+    auto iter = applicationAgentMap_.find(pid);
+    if (iter == applicationAgentMap_.end()) {
+        return nullptr;
+    }
+    auto app = iter->second;
+    applicationAgentMap_.erase(iter);
+    return app;
+}
+
 void RSMainThread::RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback)
 {
     std::lock_guard<std::mutex> lock(occlusionMutex_);

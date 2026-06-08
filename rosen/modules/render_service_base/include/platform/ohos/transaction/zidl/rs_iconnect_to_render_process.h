@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_PLATFORM_OHOS_TRANSACTION_ZIDL_RS_ICONNECT_TO_RENDER_PROCESS_H
 
 #include <iremote_broker.h>
+#include <utility>
 
 #include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 
@@ -30,12 +31,12 @@ public:
     RSIConnectToRenderProcess() = default;
     virtual ~RSIConnectToRenderProcess() noexcept = default;
 
-    virtual sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token, 
-            bool needRefresh)
+    virtual std::pair<sptr<RSIClientToRenderConnection>, uint64_t> CreateRenderConnection(uint64_t tokenMaskId,
+            const sptr<RSIConnectionToken>& token, bool needRefresh)
     {
-        return nullptr;
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
-    virtual bool RemoveConnection(const sptr<RSIConnectionToken>& token) = 0;
+    virtual bool RemoveConnection(uint64_t tokenMaskId) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

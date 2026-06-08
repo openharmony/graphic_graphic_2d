@@ -1715,7 +1715,7 @@ void RSProfiler::DumpConnections(const ArgList& args)
     std::string out;
     const std::lock_guard<std::mutex> guard(renderPipeline_->renderConnectionMutex_);
     for (const auto& [_, connection] : renderPipeline_->renderConnections_) {
-        const auto pid = GetConnectionPid(connection);
+        const auto pid = GetConnectionPid(connection.second);
         const auto name = Utils::GetProcessName(pid);
         SendMessage("%s %d", !name.empty() ? name.data() : "<unknown>", pid);
     }

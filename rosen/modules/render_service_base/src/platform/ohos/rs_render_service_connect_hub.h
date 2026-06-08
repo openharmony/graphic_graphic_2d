@@ -23,11 +23,42 @@
 namespace OHOS {
 namespace Rosen {
 using OnConnectCallback = std::function<void(sptr<RSIClientToRenderConnection>&)>;
+class RSRenderServiceConnectHub;
+
+class RSConnectRenderProcessDeathRecipient final : public IRemoteObject::DeathRecipient {
+public:
+    explicit RSConnectRenderProcessDeathRecipient(wptr<RSRenderServiceConnectHub> rsConnHub, uint64_t tokenMaskId)
+        : rsConnHub_(rsConnHub), tokenMaskId_(tokenMaskId) {}
+    ~RSConnectRenderProcessDeathRecipient() noexcept final = default;
+
+    DISALLOW_COPY_AND_MOVE(RSConnectRenderProcessDeathRecipient);
+
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) final override;
+    void SetOnRenderProcessDiedCallback(std::function<void()> callback) {
+        callback_ = callback;
+    }
+
+private:
+    wptr<RSRenderServiceConnectHub> rsConnHub_;
+    std::function<void()> callback_;
+    uint64_t tokenMaskId_;
+};
+
+struct RenderProcessInfo {
+    sptr<RSIConnectionToken> token;
+    sptr<IRemoteObject> connectToRenderRemote;
+    sptr<RSIConnectToRenderProcess> renderProcess;
+    sptr<RSConnectRenderProcessDeathRecipient> deathRecipient;
+    sptr<RSIClientToRenderConnection> clientToRenderConnection;
+};
+
 class RSRenderServiceConnectHub : public RefBase {
 public:
     static std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderService();
     static sptr<RSIClientToServiceConnection> GetClientToServiceConnection();
-    static sptr<RSIClientToRenderConnection> GetClientToRenderConnection();
+    static sptr<RSIClientToRenderConnection> GetClientToRenderConnection(uint64_t tokenMaskId);
+    static uint64_t GetDefaultTokenMaskId();
+    static uint64_t GetRenderProcessTokenMaskId(sptr<IRemoteObject>& connectToRenderRemote);
     static void SetOnConnectCallback(OnConnectCallback cb)
     {
         onConnectCallback_ = cb;
@@ -42,13 +73,22 @@ public:
         return instance_;
     }
 
+    uint64_t FindTokenMaskIdByRenderRemote(sptr<IRemoteObject>& connectToRenderRemote);
+    void SetOnRenderProcessDiedCallback(uint64_t tokenMaskId, std::function<void()> callback);
+
+    void AddRenderProcessConnectionToken(uint64_t tokenMaskId, sptr<RSIConnectionToken> token,
+        sptr<IRemoteObject> connectToRenderRemote,
+        sptr<RSIConnectToRenderProcess> renderPrecess,
+        sptr<RSIClientToRenderConnection> clientToRenderConnection);
     RSIConnectionToken* GetToken()
     {
         return token_.GetRefPtr();
     }
-    void AddRenderProcessConnectionToken(sptr<RSIConnectionToken> token,
-        sptr<RSIConnectToRenderProcess> renderPrecess);
-    void RemoveRenderProcessConnectionToken(sptr<RSIConnectionToken> token);
+    void ConnectRenderProcessDied(uint64_t tokenMaskId);
+    // Temporary interface for same-layer rendering and non-multi-instance-adapted interfaces
+    uint64_t GetDefaultTokenMaskIdInner();
+    sptr<RSIClientToRenderConnection> FindClientToRenderConnection(uint64_t tokenMaskId);
+    
 private:
     static sptr<RSRenderServiceConnectHub> GetInstance();
     static void Init();
@@ -73,6 +113,7 @@ private:
 
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderServiceConnection();
     void CleanConnectRenderProcess();
+    void RemoveRenderProcessDeathRecipient(uint64_t tokenMaskId, sptr<RSIConnectToRenderProcess> renderProcess);
     bool Connect();
     void ConnectDied();
 
@@ -83,7 +124,8 @@ private:
     sptr<RSIClientToRenderConnection> renderConn_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     std::mutex renderPipelineClientMutex_;
-    std::map<sptr<RSIConnectionToken>, sptr<RSIConnectToRenderProcess>> connRenderProcesses_;
+    std::map<std::uint64_t, RenderProcessInfo> connRenderProcesses_;
+
     static std::once_flag flag_;
     static sptr<RSRenderServiceConnectHub> instance_;
     static OnConnectCallback onConnectCallback_;

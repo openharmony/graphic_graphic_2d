@@ -86,6 +86,7 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
     token_ = nullptr;
     conn_ = nullptr;
     renderConn_ = nullptr;
+    ROSEN_LOGI("~RSRenderServiceConnectHub end");
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
@@ -100,10 +101,99 @@ sptr<RSIClientToServiceConnection> RSRenderServiceConnectHub::GetClientToService
     return GetRenderService().first;
 }
 
-sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::GetClientToRenderConnection()
+uint64_t RSRenderServiceConnectHub::GetDefaultTokenMaskIdInner()
 {
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    for (auto [tokenMaskId, renderProcessInfo] : connRenderProcesses_) {
+        if (tokenMaskId != INVALID_TOKEN_MASK_ID) {
+            return tokenMaskId;
+        }
+    }
+    return INVALID_TOKEN_MASK_ID;
+}
+
+uint64_t RSRenderServiceConnectHub::GetDefaultTokenMaskId()
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    return connHub->GetDefaultTokenMaskIdInner();
+}
+
+sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::FindClientToRenderConnection(uint64_t tokenMaskId)
+{
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    auto iter = connRenderProcesses_.find(tokenMaskId);
+    if (iter == connRenderProcesses_.end()) {
+        ROSEN_LOGW("RSRenderServiceConnectHub::SetOnRenderProcessDiedCallback "
+            "tokenMaskId is not find ClientToRenderConnection");
+        return nullptr;
+    }
+    auto renderProcessInfo = iter->second;
+    return renderProcessInfo.clientToRenderConnection;
+}
+
+sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::GetClientToRenderConnection(uint64_t tokenMaskId)
+{
+
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    if (connHub == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::GetClientToRenderConnection connHub is nullptr");
+        return nullptr;
+    }
+    auto conn = connHub->FindClientToRenderConnection(tokenMaskId);
+    if (isUniRender && conn) {
+        return conn;
+    }
+    ROSEN_LOGI("RSRenderServiceConnectHub::GetClientToRenderConnection Trigger Guarantee mechanism");
     return GetRenderService().second;
 }
+
+
+
+uint64_t RSRenderServiceConnectHub::FindTokenMaskIdByRenderRemote(sptr<IRemoteObject>& connectToRenderRemote)
+{
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    for (auto [tokenMaskId, renderProcessInfo] : connRenderProcesses_) {
+        if (connectToRenderRemote == renderProcessInfo.connectToRenderRemote &&
+            renderProcessInfo.clientToRenderConnection != nullptr) {
+            return tokenMaskId;
+        }
+    }
+    return INVALID_TOKEN_MASK_ID;
+}
+
+uint64_t RSRenderServiceConnectHub::GetRenderProcessTokenMaskId(sptr<IRemoteObject>& connectToRenderRemote)
+{
+    if (connectToRenderRemote == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::%{public}s connectToRenderRemote is nullptr", __func__);
+        return INVALID_TOKEN_MASK_ID;
+    }
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    bool needRefresh = AppExecFwk::AppImageObserverManager::GetInstance().IsBeforeImageCreationPoint();
+
+    auto oldTokenMaskId = connHub->FindTokenMaskIdByRenderRemote(connectToRenderRemote);
+    if (oldTokenMaskId != INVALID_TOKEN_MASK_ID) {
+        return oldTokenMaskId;
+    }
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    uint64_t tokenMaskId =
+        ((static_cast<uint64_t>(GetRealPid())) << 32) |
+            static_cast<uint64_t>(reinterpret_cast<unsigned long int>(token.GetRefPtr()));
+
+    auto renderProcess = iface_cast<RSIConnectToRenderProcess>(connectToRenderRemote);
+    if (renderProcess == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::%{public}s, iface_cast failed", __func__);
+        return INVALID_TOKEN_MASK_ID;
+    }
+
+    auto [clientToRenderConnection, rpTokenMaskId] = renderProcess->CreateRenderConnection(
+        tokenMaskId, token, needRefresh);
+    connHub->AddRenderProcessConnectionToken(rpTokenMaskId, token,
+        connectToRenderRemote, renderProcess, clientToRenderConnection);
+
+    return rpTokenMaskId;
+}
+
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     RSRenderServiceConnectHub::GetRenderServiceConnection()
@@ -214,28 +304,100 @@ void RSRenderServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const 
     rsConnHub->ConnectDied();
 }
 
-void RSRenderServiceConnectHub::AddRenderProcessConnectionToken(sptr<RSIConnectionToken> token,
-    sptr<RSIConnectToRenderProcess> renderPrecess)
+void RSRenderServiceConnectHub::SetOnRenderProcessDiedCallback(uint64_t tokenMaskId,
+    std::function<void()> callback)
+{
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    auto iter = connRenderProcesses_.find(tokenMaskId);
+    if (iter == connRenderProcesses_.end()) {
+        ROSEN_LOGW("RSRenderServiceConnectHub::SetOnRenderProcessDiedCallback tokenMaskId is Error");
+        return;
+    }
+
+    RenderProcessInfo& renderProcessInfo = iter->second;
+    if (renderProcessInfo.deathRecipient == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::SetOnRenderProcessDiedCallback Error deathRecipient");
+        return;
+    }
+    renderProcessInfo.deathRecipient->SetOnRenderProcessDiedCallback(callback);
+}
+
+
+void RSConnectRenderProcessDeathRecipient::OnRemoteDied(
+    const wptr<IRemoteObject> &remote)
+{
+    auto remoteSptr = remote.promote();
+    if (remoteSptr == nullptr) {
+        ROSEN_LOGW("RSConnectRenderProcessDeathRecipient::OnRemoteDied can't promote.");
+        return;
+    }
+
+    auto rsConnHub = rsConnHub_.promote();
+    if (rsConnHub == nullptr) {
+        ROSEN_LOGW("RSConnectRenderProcessDeathRecipient::OnRemoteDied connHub was dead.");
+        return;
+    }
+
+    if (callback_) {
+        callback_();
+    }
+    rsConnHub->ConnectRenderProcessDied(tokenMaskId_);
+}
+
+void RSRenderServiceConnectHub::ConnectRenderProcessDied(uint64_t tokenMaskId)
+{
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    connRenderProcesses_.erase(tokenMaskId);
+}
+
+void RSRenderServiceConnectHub::AddRenderProcessConnectionToken(uint64_t tokenMaskId, sptr<RSIConnectionToken> token,
+    sptr<IRemoteObject> connectToRenderRemote,
+    sptr<RSIConnectToRenderProcess> renderPrecess,
+    sptr<RSIClientToRenderConnection> clientToRenderConnection)
 {
     if (token == nullptr) {
         ROSEN_LOGE("RSRenderServiceConnectHub::AddRenderProcessConnectionToken token is nullptr");
         return;
     }
     std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
-    if (connRenderProcesses_.find(token) != connRenderProcesses_.end()) {
+    if (connRenderProcesses_.find(tokenMaskId) != connRenderProcesses_.end()) {
         return;
     }
-    connRenderProcesses_[token] = renderPrecess;
+    ROSEN_LOGI("RSRenderServiceConnectHub::AddRenderProcessConnectionToken");
+    wptr<RSRenderServiceConnectHub> rsConnHub = this;
+    sptr<RSConnectRenderProcessDeathRecipient> deathRecipient = new RSConnectRenderProcessDeathRecipient(rsConnHub,
+        tokenMaskId);
+    
+    if (!renderPrecess->AsObject()->AddDeathRecipient(deathRecipient)) {
+        ROSEN_LOGW("RSRenderServiceConnectHub::AddRenderProcessConnectionToken,"
+            "failed to AddDeathRecipient of render service.");
+    }
+    RenderProcessInfo RenderProcessInfo = {
+        .token = token,
+        .connectToRenderRemote = connectToRenderRemote,
+        .renderProcess = renderPrecess,
+        .deathRecipient = deathRecipient,
+        .clientToRenderConnection = clientToRenderConnection
+    };
+    connRenderProcesses_[tokenMaskId] = RenderProcessInfo;
 }
 
-void RSRenderServiceConnectHub::RemoveRenderProcessConnectionToken(sptr<RSIConnectionToken> token)
+void RSRenderServiceConnectHub::RemoveRenderProcessDeathRecipient(uint64_t tokenMaskId,
+    sptr<RSIConnectToRenderProcess> renderProcess)
 {
-    if (token == nullptr) {
-        ROSEN_LOGW("RSRenderServiceConnectHub::RemoveRenderProcessConnectionToken token is nullptr");
+    auto iter = connRenderProcesses_.find(tokenMaskId);
+    if (iter == connRenderProcesses_.end()) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::RemoveRenderProcessDeathRecipient Error not find tokenMaskId");
         return;
     }
-    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
-    connRenderProcesses_.erase(token);
+    RenderProcessInfo& renderProcessInfo = iter->second;
+    if (renderProcessInfo.renderProcess == nullptr ||
+        !renderProcessInfo.renderProcess->AsObject() ||
+        renderProcessInfo.deathRecipient == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::RemoveRenderProcessDeathRecipient Error");
+        return;
+    }
+    renderProcess->AsObject()->RemoveDeathRecipient(renderProcessInfo.deathRecipient);
 }
 
 void RSRenderServiceConnectHub::CleanConnectRenderProcess()
@@ -246,24 +408,27 @@ void RSRenderServiceConnectHub::CleanConnectRenderProcess()
         return;
     }
 
-    for (auto iter = connRenderProcesses_.begin(); iter != connRenderProcesses_.end();) {
-        sptr<RSIConnectionToken> token = iter->first;
-        sptr<RSIConnectToRenderProcess> renderPrecess = iter->second;
+    ROSEN_LOGI("CleanConnectRenderProcess::release begin size:%{public}u", connRenderProcesses_.size());
 
-        if (token == nullptr) {
+    for (auto iter = connRenderProcesses_.begin(); iter != connRenderProcesses_.end();) {
+        RenderProcessInfo& renderProcessInfo = iter->second;
+        if (renderProcessInfo.token == nullptr) {
             ROSEN_LOGE("RSRenderServiceConnectHub::CleanConnectRenderProcess token is nullptr");
             iter = connRenderProcesses_.erase(iter);
             continue;
         }
+        sptr<RSIConnectToRenderProcess> renderProcess = renderProcessInfo.renderProcess;
 
-        while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
-            token_->DecStrongRef(token.GetRefPtr());
-        }
-
-        if (renderPrecess != nullptr) {
-            renderPrecess->RemoveConnection(token);
+        uint64_t tokenMaskId = iter->first;
+        RemoveRenderProcessDeathRecipient(tokenMaskId, renderProcess);
+        // Token DecStrongRe, Avoid the token destruction returned by server, which may cause crash.
+        while (renderProcessInfo.token->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
+            renderProcessInfo.token->DecStrongRef(renderProcessInfo.token.GetRefPtr());
         }
         iter = connRenderProcesses_.erase(iter);
+        if (renderProcess != nullptr) {
+            renderProcess->RemoveConnection(tokenMaskId);
+        }
     }
 }
 

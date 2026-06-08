@@ -23,29 +23,35 @@
 
 namespace OHOS {
 namespace Rosen {
-sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnection(
-    const sptr<RSIConnectionToken>& token, bool needRefresh)
+std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSConnectToRenderProcess::CreateRenderConnection(
+    uint64_t tokenMaskId, const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     if (!token) {
         RS_LOGE("%{public}s: token is nullptr.", __func__);
-        return nullptr;
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
     auto tokenObj = token->AsObject();
-    if (auto renderConnection = renderPipelineAgent_->FindClientToRenderConnection(tokenObj)) {
-        return renderConnection;
-    }
     pid_t remotePid = GetCallingPid();
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
+    auto [renderConnection, oldTokenMaskId] = renderPipelineAgent_->FindClientToRenderConnection(remotePid);
+    if (renderConnection != nullptr) {
+        return {renderConnection, INVALID_TOKEN_MASK_ID};
+    }
     auto newRenderConn =
         sptr<RSClientToRenderConnection>::MakeSptr(remotePid, renderPipelineAgent_, tokenObj, needRefresh);
     renderPipelineAgent_->AddTransactionDataPidInfo(remotePid);
-    renderPipelineAgent_->AddConnection(tokenObj, newRenderConn);
-    return newRenderConn;
+    renderPipelineAgent_->AddConnection(remotePid, tokenMaskId, tokenObj, newRenderConn);
+    return {newRenderConn, INVALID_TOKEN_MASK_ID};
 }
 
-bool RSConnectToRenderProcess::RemoveConnection(const sptr<RSIConnectionToken>& token)
+std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSConnectToRenderProcess::FindClientToRenderConnection()
 {
-    return renderPipelineAgent_->RemoveConnection(token);
+    pid_t remotePid = GetCallingPid();
+    return renderPipelineAgent_->FindClientToRenderConnection(remotePid);
+}
+bool RSConnectToRenderProcess::RemoveConnection(uint64_t tokenMaskId)
+{
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

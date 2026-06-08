@@ -4233,11 +4233,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest016, 
     // Test AddConnection
     sptr<IRemoteObject> remoteObj = token_->AsObject();
     sptr<RSIClientToRenderConnection> connection = nullptr;
-    agent->AddConnection(remoteObj, connection);
+    agent->AddConnection(getpid(), 0, remoteObj, connection);
     // Should return without crash
 
     // Test FindClientToRenderConnection
-    sptr<RSIClientToRenderConnection> foundConnection = agent->FindClientToRenderConnection(token_->AsObject());
+    sptr<RSIClientToRenderConnection> foundConnection = agent->FindClientToRenderConnection(getpid());
     EXPECT_EQ(foundConnection, nullptr);
 }
 

@@ -131,9 +131,9 @@ bool ValidateTargetId(const RSRenderNodeMap& nodeMap, uint64_t id)
 RSRenderPipelineAgent::RSRenderPipelineAgent(std::shared_ptr<RSRenderPipeline>& renderPipeline)
     : rsRenderPipeline_(renderPipeline) {}
 
-bool RSRenderPipelineAgent::RemoveConnection(const sptr<RSIConnectionToken>& token)
+bool RSRenderPipelineAgent::RemoveConnection(pid_t remotePid, const sptr<RSIConnectionToken>& token)
 {
-    return rsRenderPipeline_->RemoveConnection(token);
+    return rsRenderPipeline_->RemoveConnection(remotePid, token);
 }
 
 ErrCode RSRenderPipelineAgent::CommitTransaction(pid_t callingPid, bool isTokenTypeValid,
@@ -177,6 +177,23 @@ void RSRenderPipelineAgent::UnRegisterApplicationAgent(sptr<IApplicationAgent> a
         }
         mainThread->UnRegisterApplicationAgent(app);
     }).wait();
+}
+
+sptr<IApplicationAgent> RSRenderPipelineAgent::UnRegisterApplicationAgent(uint32_t pid)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::UnRegisterApplicationAgent rsRenderPipeline_ is null!");
+        return nullptr;
+    }
+    sptr<IApplicationAgent> app = nullptr;
+    rsRenderPipeline_->ScheduleMainThreadTask([mainThread = rsRenderPipeline_->GetMainThread(), pid, &app]() {
+        if (mainThread == nullptr) {
+            RS_LOGE("RSRenderPipelineAgent::UnRegisterApplicationAgent mainThread is null!");
+            return;
+        }
+        app = mainThread->UnRegisterApplicationAgent(pid);
+    }).wait();
+    return app;
 }
 
 ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
@@ -2212,21 +2229,22 @@ void RSRenderPipelineAgent::AddTransactionDataPidInfo(pid_t remotePid)
     rsRenderPipeline_->AddTransactionDataPidInfo(remotePid);
 }
 
-void RSRenderPipelineAgent::AddConnection(sptr<IRemoteObject>& token,
-    sptr<RSIClientToRenderConnection> connectToRenderConnection)
+void RSRenderPipelineAgent::AddConnection(pid_t remotePid, uint64_t tokenMaskId,
+    sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
 {
     if (rsRenderPipeline_ == nullptr) {
         return;
     }
-    rsRenderPipeline_->AddConnection(token, connectToRenderConnection);
+    rsRenderPipeline_->AddConnection(remotePid, tokenMaskId, token, connectToRenderConnection);
 }
 
-sptr<RSIClientToRenderConnection> RSRenderPipelineAgent::FindClientToRenderConnection(const sptr<IRemoteObject>& token)
+std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipelineAgent::FindClientToRenderConnection(
+    uint64_t remotePid)
 {
     if (rsRenderPipeline_ == nullptr) {
-        return nullptr;
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
-    return rsRenderPipeline_->FindClientToRenderConnection(token);
+    return rsRenderPipeline_->FindClientToRenderConnection(remotePid);
 }
 
 int32_t RSRenderPipelineAgent::RegisterFrameStabilityDetection(

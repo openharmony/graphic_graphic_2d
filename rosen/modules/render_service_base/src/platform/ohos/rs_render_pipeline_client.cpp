@@ -65,36 +65,29 @@ namespace OHOS {
 namespace Rosen {
 RSRenderPipelineClient::RSRenderPipelineClient()
 {
-    clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    tokenMaskId_ = RSRenderServiceConnectHub::GetDefaultTokenMaskId();
 }
 
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
     if (isUniRender && RSSystemProperties::IsSceneBoardEnabled()) {
-        auto conn = iface_cast<RSIConnectToRenderProcess>(connectToRenderRemote);
-        if (conn == nullptr) {
-            RS_LOGE("RSRenderPipelineClient::%{public}s, iface_cast failed", __func__);
-            return;
-        }
-        token_ = new IRemoteStub<RSIConnectionToken>();
-        bool needRefresh = AppExecFwk::AppImageObserverManager::GetInstance().IsBeforeImageCreationPoint();
-        ROSEN_LOGI("RSRenderPipelineClient call CreateConnection, needRefresh:[%{public}d]", needRefresh);
-        clientToRenderConnection_ = conn->CreateRenderConnection(token_, needRefresh);
-        RSRenderServiceConnectHub::GetInstance()->AddRenderProcessConnectionToken(token_, conn);
+        tokenMaskId_ = RSRenderServiceConnectHub::GetRenderProcessTokenMaskId(connectToRenderRemote);
     } else {
-        clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
+        tokenMaskId_ = RSRenderServiceConnectHub::GetDefaultTokenMaskId();
     }
 }
 
 void RSRenderPipelineClient::SetOnRenderProcessDiedCallback(const std::function<void()>& callback)
 {
+    RSRenderServiceConnectHub::GetInstance()->SetOnRenderProcessDiedCallback(tokenMaskId_, callback);
 }
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    if (clientToRenderConnection_ != nullptr) {
-        clientToRenderConnection_->CommitTransaction(transactionData);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection != nullptr) {
+        clientToRenderConnection->CommitTransaction(transactionData);
     } else {
         RS_LOGE_LIMIT(__func__, __line__,
             "RSRenderPipelineClient::CommitTransaction failed, clientToRenderConnection_ is nullptr");
@@ -106,8 +99,9 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
     if (task == nullptr) {
         return;
     }
-    if (clientToRenderConnection_ != nullptr) {
-        clientToRenderConnection_->ExecuteSynchronousTask(task);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection != nullptr) {
+        clientToRenderConnection->ExecuteSynchronousTask(task);
     } else {
         RS_LOGE_LIMIT(__func__, __line__,
             "RSRenderPipelineClient::ExecuteSynchronousTask failed, clientToRenderConnection_ is nullptr");
@@ -116,8 +110,9 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 
 void RSRenderPipelineClient::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
-    if (clientToRenderConnection_ != nullptr) {
-        clientToRenderConnection_->RegisterApplicationAgent(pid, app);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection != nullptr) {
+        clientToRenderConnection->RegisterApplicationAgent(pid, app);
     } else {
         RS_LOGE_LIMIT(__func__, __line__,
             "RSRenderPipelineClient::RegisterApplicationAgent failed, clientToRenderConnection_ is nullptr");
@@ -126,36 +121,39 @@ void RSRenderPipelineClient::RegisterApplicationAgent(uint32_t pid, sptr<IApplic
 
 bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::CreateNode clientToRenderConnection_ nullptr");
         return false;
     }
     bool success;
-    clientToRenderConnection_->CreateDisplayNode(displayNodeConfig, nodeId, success);
+    clientToRenderConnection->CreateDisplayNode(displayNodeConfig, nodeId, success);
     return success;
 }
 
 bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::CreateNode clientToRenderConnection_ nullptr");
         return false;
     }
     bool success;
-    clientToRenderConnection_->CreateNode(config, success);
+    clientToRenderConnection->CreateNode(config, success);
     return success;
 }
 
 std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
     bool unobscured)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::CreateNodeAndSurface clientToRenderConnection_ nullptr");
         return nullptr;
     }
 
     sptr<Surface> surface = nullptr;
-    ErrCode err = clientToRenderConnection_->CreateNodeAndSurface(config, surface, unobscured);
+    ErrCode err = clientToRenderConnection->CreateNodeAndSurface(config, surface, unobscured);
     if ((err != ERR_OK) || (surface == nullptr)) {
         ROSEN_LOGE("RSRenderPipelineClient::CreateNodeAndSurface surface is nullptr.");
         return nullptr;
@@ -221,7 +219,8 @@ private:
 bool RSRenderPipelineClient::RegisterBufferAvailableListener(
     NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         RS_TRACE_NAME_FMT("RSRenderPipelineClient::RegisterBufferAvailableListener nullptr id is %lu", id);
         return false;
     }
@@ -239,7 +238,7 @@ bool RSRenderPipelineClient::RegisterBufferAvailableListener(
     }
 
     sptr<RSIBufferAvailableCallback> bufferAvailableCb = new CustomBufferAvailableCallback(callback);
-    clientToRenderConnection_->RegisterBufferAvailableListener(id, bufferAvailableCb, isFromRenderThread);
+    clientToRenderConnection->RegisterBufferAvailableListener(id, bufferAvailableCb, isFromRenderThread);
     if (isFromRenderThread) {
         bufferAvailableCbRTMap_.emplace(id, bufferAvailableCb);
     } else {
@@ -250,12 +249,13 @@ bool RSRenderPipelineClient::RegisterBufferAvailableListener(
 
 bool RSRenderPipelineClient::RegisterBufferClearListener(NodeId id, const BufferClearCallback& callback)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::RegisterBufferClearListener clientToRenderConnection_ is nullptr!");
         return false;
     }
     sptr<RSIBufferClearCallback> bufferClearCb = new CustomBufferClearCallback(callback);
-    clientToRenderConnection_->RegisterBufferClearListener(id, bufferClearCb);
+    clientToRenderConnection->RegisterBufferClearListener(id, bufferClearCb);
     return true;
 }
 
@@ -282,20 +282,22 @@ bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
 
 bool RSRenderPipelineClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::SetSystemAnimatedScenes clientToRenderConnection == nullptr!");
         return false;
     }
     bool success;
-    clientToRenderConnection_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation, success);
+    clientToRenderConnection->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation, success);
     return success;
 }
 
 uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
 {
-    if (clientToRenderConnection_ != nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection != nullptr) {
         uint32_t resCode;
-        clientToRenderConnection_->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
+        clientToRenderConnection->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
         return resCode;
     }
     ROSEN_LOGE("RSRenderPipelineClient::SetHidePrivacyContent clientToRenderConnection_ is nullptr!");
@@ -305,40 +307,44 @@ uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHideP
 void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
     bool dynamicHardwareEnable)
 {
-    if (clientToRenderConnection_ != nullptr) {
-        clientToRenderConnection_->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection != nullptr) {
+        clientToRenderConnection->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
     }
 }
 
 bool RSRenderPipelineClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::GetPixelmap: clientToRenderConnection_ is nullptr");
         return false;
     }
     bool success;
-    clientToRenderConnection_->GetPixelmap(id, pixelmap, rect, drawCmdList, success);
+    clientToRenderConnection->GetPixelmap(id, pixelmap, rect, drawCmdList, success);
     return success;
 }
 
 bool RSRenderPipelineClient::SetGlobalDarkColorMode(bool isDark)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::SetGlobalDarkColorMode: clientToRenderConnection_ is nullptr");
         return false;
     }
-    return clientToRenderConnection_->SetGlobalDarkColorMode(isDark) == ERR_OK;
+    return clientToRenderConnection->SetGlobalDarkColorMode(isDark) == ERR_OK;
 }
 
 bool RSRenderPipelineClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetBitmap clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetBitmap clientToRenderConnection == nullptr!");
         return false;
     }
     bool success;
-    clientToRenderConnection_->GetBitmap(id, bitmap, success);
+    clientToRenderConnection->GetBitmap(id, bitmap, success);
     return success;
 }
 
@@ -415,8 +421,9 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
     const Drawing::Rect& specifiedAreaRect)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::TakeSurfaceCapture clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::TakeSurfaceCapture clientToRenderConnection == nullptr!");
         return false;
     }
     if (callback == nullptr) {
@@ -438,7 +445,7 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    clientToRenderConnection_->TakeSurfaceCapture(
+    clientToRenderConnection->TakeSurfaceCapture(
         id, surfaceCaptureCbDirector_, captureConfig, blurParam, specifiedAreaRect);
     return true;
 }
@@ -447,19 +454,21 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderPipelin
     NodeId id, const RSSurfaceCaptureConfig& captureConfig)
 {
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::TakeSurfaceCaptureSoloNode clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::TakeSurfaceCaptureSoloNode clientToRenderConnection == nullptr!");
         return pixelMapIdPairVector;
     }
-    pixelMapIdPairVector = clientToRenderConnection_->TakeSurfaceCaptureSoloNode(id, captureConfig);
+    pixelMapIdPairVector = clientToRenderConnection->TakeSurfaceCaptureSoloNode(id, captureConfig);
     return pixelMapIdPairVector;
 }
 
 bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::TakeSelfSurfaceCapture clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::TakeSelfSurfaceCapture clientToRenderConnection == nullptr!");
         return false;
     }
     if (callback == nullptr) {
@@ -481,7 +490,7 @@ bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<S
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    clientToRenderConnection_->TakeSelfSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig);
+    clientToRenderConnection->TakeSelfSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig);
     return true;
 }
 
@@ -489,12 +498,13 @@ bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const RSSurfaceCaptureBlurParam& blurParam)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::SetWindowFreezeImmediately clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SetWindowFreezeImmediately clientToRenderConnection == nullptr!");
         return false;
     }
     if (!isFreeze) {
-        clientToRenderConnection_->SetWindowFreezeImmediately(id, isFreeze, nullptr, captureConfig, blurParam);
+        clientToRenderConnection->SetWindowFreezeImmediately(id, isFreeze, nullptr, captureConfig, blurParam);
         return true;
     }
     if (callback == nullptr) {
@@ -516,7 +526,7 @@ bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    clientToRenderConnection_->SetWindowFreezeImmediately(
+    clientToRenderConnection->SetWindowFreezeImmediately(
         id, isFreeze, surfaceCaptureCbDirector_, captureConfig, blurParam);
     return true;
 }
@@ -525,8 +535,9 @@ bool RSRenderPipelineClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("%{public}s clientToRenderConnection_ == nullptr!", __func__);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("%{public}s clientToRenderConnection == nullptr!", __func__);
         return false;
     }
     if (callback == nullptr) {
@@ -550,7 +561,7 @@ bool RSRenderPipelineClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
         }
     }
 
-    auto ret = clientToRenderConnection_->TakeSurfaceCaptureWithAllWindows(
+    auto ret = clientToRenderConnection->TakeSurfaceCaptureWithAllWindows(
         id, surfaceCaptureCbDirector_, captureConfig, checkDrmAndSurfaceLock);
     if (ret != ERR_OK) {
         ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__, ret);
@@ -563,19 +574,21 @@ bool RSRenderPipelineClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
 
 bool RSRenderPipelineClient::FreezeScreen(NodeId id, bool isFreeze, bool needSync)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("%{public}s clientToRenderConnection_ == nullptr!", __func__);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("%{public}s clientToRenderConnection == nullptr!", __func__);
         return false;
     }
-    clientToRenderConnection_->FreezeScreen(id, isFreeze, needSync);
+    clientToRenderConnection->FreezeScreen(id, isFreeze, needSync);
     return true;
 }
 
 bool RSRenderPipelineClient::TakeUICaptureInRange(
     NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::TakeUICaptureInRange clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::TakeUICaptureInRange clientToRenderConnection == nullptr!");
         return false;
     }
     if (callback == nullptr) {
@@ -598,38 +611,41 @@ bool RSRenderPipelineClient::TakeUICaptureInRange(
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    clientToRenderConnection_->TakeUICaptureInRange(id, surfaceCaptureCbDirector_, captureConfig);
+    clientToRenderConnection->TakeUICaptureInRange(id, surfaceCaptureCbDirector_, captureConfig);
     return true;
 }
 
 bool RSRenderPipelineClient::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         RS_LOGE("RSRenderPipelineClient::SetHwcNodeBounds clientToRenderConnection_ is null!");
         return false;
     }
-    clientToRenderConnection_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
+    clientToRenderConnection->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
     return true;
 }
 
 int32_t RSRenderPipelineClient::SetFocusAppInfo(const FocusAppInfo& info)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         return RENDER_SERVICE_NULL;
     }
     int32_t repCode;
-    clientToRenderConnection_->SetFocusAppInfo(info, repCode);
+    clientToRenderConnection->SetFocusAppInfo(info, repCode);
     return repCode;
 }
 
 int32_t RSRenderPipelineClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         return RENDER_SERVICE_NULL;
     }
     int32_t resCode = SUCCESS;
-    auto err = clientToRenderConnection_->GetBrightnessInfo(screenId, brightnessInfo);
+    auto err = clientToRenderConnection->GetBrightnessInfo(screenId, brightnessInfo);
     if (err != SUCCESS) {
         ROSEN_LOGE("RSRenderPipelineClient::GetBrightnessInfo err(%{public}d)!", err);
         resCode = err;
@@ -639,11 +655,12 @@ int32_t RSRenderPipelineClient::GetBrightnessInfo(ScreenId screenId, BrightnessI
 
 int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         return RENDER_SERVICE_NULL;
     }
     int32_t resCode = SUCCESS;
-    auto err = clientToRenderConnection_->GetScreenHDRStatus(id, hdrStatus, resCode);
+    auto err = clientToRenderConnection->GetScreenHDRStatus(id, hdrStatus, resCode);
     if (err != ERR_OK) {
         ROSEN_LOGE("RSRenderPipelineClient::GetScreenHDRStatus err(%{public}d)!", err);
         resCode = err;
@@ -653,16 +670,18 @@ int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSt
 
 void RSRenderPipelineClient::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
-    if (clientToRenderConnection_ != nullptr) {
-        clientToRenderConnection_->DropFrameByPid(pidList, dropFrameLevel);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection != nullptr) {
+        clientToRenderConnection->DropFrameByPid(pidList, dropFrameLevel);
     }
 }
 
 bool RSRenderPipelineClient::SetAncoForceDoDirect(bool direct)
 {
-    if (clientToRenderConnection_ != nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection != nullptr) {
         bool res;
-        clientToRenderConnection_->SetAncoForceDoDirect(direct, res);
+        clientToRenderConnection->SetAncoForceDoDirect(direct, res);
         return res;
     }
     ROSEN_LOGE("RSRenderPipelineClient::SetAncoForceDoDirect clientToRenderConnection_ is null");
@@ -691,8 +710,9 @@ private:
 bool RSRenderPipelineClient::RegisterSurfaceBufferCallback(
     pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceBufferCallback clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceBufferCallback clientToRenderConnection == nullptr!");
         return false;
     }
     if (callback == nullptr) {
@@ -712,14 +732,15 @@ bool RSRenderPipelineClient::RegisterSurfaceBufferCallback(
             surfaceBufferCbDirector_ = new SurfaceBufferCallbackDirector(this);
         }
     }
-    clientToRenderConnection_->RegisterSurfaceBufferCallback(pid, uid, surfaceBufferCbDirector_);
+    clientToRenderConnection->RegisterSurfaceBufferCallback(pid, uid, surfaceBufferCbDirector_);
     return true;
 }
 
 bool RSRenderPipelineClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::UnregisterSurfaceBufferCallback clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::UnregisterSurfaceBufferCallback clientToRenderConnection == nullptr!");
         return false;
     }
     {
@@ -731,7 +752,7 @@ bool RSRenderPipelineClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t
         }
         surfaceBufferCallbacks_.erase(iter);
     }
-    clientToRenderConnection_->UnregisterSurfaceBufferCallback(pid, uid);
+    clientToRenderConnection->UnregisterSurfaceBufferCallback(pid, uid);
     return true;
 }
 
@@ -767,8 +788,9 @@ void RSRenderPipelineClient::TriggerOnAfterAcquireBuffer(const AfterAcquireBuffe
 
 void RSRenderPipelineClient::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
-    if (clientToRenderConnection_ != nullptr) {
-        clientToRenderConnection_->SetLayerTopForHWC(nodeId, isTop, zOrder);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection != nullptr) {
+        clientToRenderConnection->SetLayerTopForHWC(nodeId, isTop, zOrder);
     }
 }
 
@@ -790,8 +812,9 @@ private:
 bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
     std::function<void()> callback)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::RegisterTransactionDataCallback clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::RegisterTransactionDataCallback clientToRenderConnection == nullptr!");
         return false;
     }
     if (callback == nullptr) {
@@ -813,7 +836,7 @@ bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uin
     }
     RS_LOGD("RSRenderPipelineClient::RegisterTransactionDataCallback, timeStamp: %{public}"
         PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-    clientToRenderConnection_->RegisterTransactionDataCallback(token, timeStamp, transactionDataCbDirector_);
+    clientToRenderConnection->RegisterTransactionDataCallback(token, timeStamp, transactionDataCbDirector_);
     return true;
 }
 
@@ -837,39 +860,43 @@ void RSRenderPipelineClient::TriggerTransactionDataCallbackAndErase(uint64_t tok
 
 void RSRenderPipelineClient::SetWindowContainer(NodeId nodeId, bool value)
 {
-    if (clientToRenderConnection_ != nullptr) {
-        clientToRenderConnection_->SetWindowContainer(nodeId, value);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection != nullptr) {
+        clientToRenderConnection->SetWindowContainer(nodeId, value);
     }
 }
 
 void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
 {
-    if (!clientToRenderConnection_) {
-        ROSEN_LOGE("RSRenderPipelineClient::%{public}s clientToRenderConnection_ == nullptr!", __func__);
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::%{public}s clientToRenderConnection == nullptr!", __func__);
         return;
     }
-    clientToRenderConnection_->ClearUifirstCache(id);
+    clientToRenderConnection->ClearUifirstCache(id);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderPipelineClient::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::RegisterCanvasCallback clientToRenderConnection_ is nullptr!");
         return;
     }
 
-    clientToRenderConnection_->RegisterCanvasCallback(callback);
+    clientToRenderConnection->RegisterCanvasCallback(callback);
 }
 
 int32_t RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer clientToRenderConnection_ is nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return clientToRenderConnection_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+    return clientToRenderConnection->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
 
@@ -877,29 +904,31 @@ uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::strin
     const std::shared_ptr<Media::PixelMap>& watermark, const std::vector<NodeId>& nodeIdList,
     SurfaceWatermarkType watermarkType, uint32_t rowCount, uint32_t colCount)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         return WATER_MARK_RENDER_SERVICE_NULL;
     }
-    return clientToRenderConnection_->SetSurfaceWatermark(
+    return clientToRenderConnection->SetSurfaceWatermark(
         pid, name, watermark, nodeIdList, watermarkType, rowCount, colCount);
 }
 
 void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
     const std::vector<NodeId> &nodeIdList)
 {
-    auto clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         return;
     }
-    clientToRenderConnection_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+    clientToRenderConnection->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
 }
     
 void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         return;
     }
-    clientToRenderConnection_->ClearSurfaceWatermark(pid, name);
+    clientToRenderConnection->ClearSurfaceWatermark(pid, name);
 }
 
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub {
@@ -936,58 +965,64 @@ private:
 
 ErrCode RSRenderPipelineClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         return RENDER_SERVICE_NULL;
     }
     sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
-    return clientToRenderConnection_->RegisterOcclusionChangeCallback(cb);
+    return clientToRenderConnection->RegisterOcclusionChangeCallback(cb);
 }
 
 int32_t RSRenderPipelineClient::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         return RENDER_SERVICE_NULL;
     }
     sptr<CustomSurfaceOcclusionChangeCallback> cb = new CustomSurfaceOcclusionChangeCallback(callback);
-    return clientToRenderConnection_->RegisterSurfaceOcclusionChangeCallback(id, cb, partitionPoints);
+    return clientToRenderConnection->RegisterSurfaceOcclusionChangeCallback(id, cb, partitionPoints);
 }
 
 int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return clientToRenderConnection_->UnRegisterSurfaceOcclusionChangeCallback(id);
+    return clientToRenderConnection->UnRegisterSurfaceOcclusionChangeCallback(id);
 }
 
 int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::SetLogicalCameraRotationCorrection clientToRenderConnection_ is nullptr!");
         return RENDER_SERVICE_NULL;
     }
     RS_LOGD("RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}"
         PRIu64 ", logicalCorrection: %{public}u", id, logicalCorrection);
-    return clientToRenderConnection_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+    return clientToRenderConnection->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
 
 int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
-    if (clientToRenderConnection_ == nullptr) {
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::GetMaxGpuBufferSize clientToRenderConnection_ is nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return clientToRenderConnection_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    return clientToRenderConnection->GetMaxGpuBufferSize(maxWidth, maxHeight);
 }
 
 void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::SetFreeMultiWindowStatus clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SetFreeMultiWindowStatus clientToRenderConnection == nullptr!");
         return;
     }
-    clientToRenderConnection_->SetFreeMultiWindowStatus(enable);
+    clientToRenderConnection->SetFreeMultiWindowStatus(enable);
 }
 class CustomFrameStabilityCallback : public RSFrameStabilityCallbackStub {
 public:
@@ -1010,8 +1045,9 @@ int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
     const FrameStabilityConfig& config,
     const FrameStabilityCallback& callback)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RegisterFrameStabilityDetection clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RegisterFrameStabilityDetection clientToRenderConnection == nullptr!");
         return RENDER_SERVICE_NULL;
     }
     if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
@@ -1024,24 +1060,26 @@ int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
         return INVALID_ARGUMENTS;
     }
     sptr<CustomFrameStabilityCallback> cb = new CustomFrameStabilityCallback(callback);
-    return clientToRenderConnection_->RegisterFrameStabilityDetection(target, config, cb);
+    return clientToRenderConnection->RegisterFrameStabilityDetection(target, config, cb);
 }
 
 int32_t RSRenderPipelineClient::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::UnregisterFrameStabilityDetection clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::UnregisterFrameStabilityDetection clientToRenderConnection == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return clientToRenderConnection_->UnregisterFrameStabilityDetection(target);
+    return clientToRenderConnection->UnregisterFrameStabilityDetection(target);
 }
 
 int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::StartFrameStabilityCollection clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::StartFrameStabilityCollection clientToRenderConnection == nullptr!");
         return RENDER_SERVICE_NULL;
     }
     if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
@@ -1053,27 +1091,29 @@ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
         ROSEN_LOGE("StartFrameStabilityCollection invalid changePercent: %{public}f", config.changePercent);
         return INVALID_ARGUMENTS;
     }
-    return clientToRenderConnection_->StartFrameStabilityCollection(target, config);
+    return clientToRenderConnection->StartFrameStabilityCollection(target, config);
 }
 
 int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetFrameStabilityResult clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetFrameStabilityResult clientToRenderConnection == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return clientToRenderConnection_->GetFrameStabilityResult(target, result);
+    return clientToRenderConnection->GetFrameStabilityResult(target, result);
 }
 
 int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
     const FrameStabilityTarget& oldTarget,
     const FrameStabilityTarget& newTarget)
 {
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("UpdateFrameStabilityDetection clientToRenderConnection_ == nullptr!");
+    auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (clientToRenderConnection == nullptr) {
+        ROSEN_LOGE("UpdateFrameStabilityDetection clientToRenderConnection == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return clientToRenderConnection_->UpdateFrameStabilityDetection(oldTarget, newTarget);
+    return clientToRenderConnection->UpdateFrameStabilityDetection(oldTarget, newTarget);
 }
 } // namespace Rosen
 } // namespace OHOS

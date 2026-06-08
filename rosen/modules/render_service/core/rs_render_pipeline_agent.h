@@ -203,11 +203,13 @@ public:
     void ForceRefreshOneFrameWithNextVSync();
     std::string GetBundleName(pid_t pid);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
-    bool RemoveConnection(const sptr<RSIConnectionToken>& token);
+    sptr<IApplicationAgent> UnRegisterApplicationAgent(uint32_t pid);
+    bool RemoveConnection(pid_t remotePid, const sptr<RSIConnectionToken>& token);
     void AddTransactionDataPidInfo(pid_t remotePid);
-    void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
+    void AddConnection(pid_t remotePid, uint64_t tokenMaskId,
+        sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
     void SetCacheEnabledForRotation(bool enabled);
-    sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
+    std::pair<sptr<RSIClientToRenderConnection>, uint64_t> FindClientToRenderConnection(uint64_t remotePid);
     int32_t RegisterFrameStabilityDetection(
         pid_t pid,
         const FrameStabilityTarget& target,
