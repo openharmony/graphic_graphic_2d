@@ -52,6 +52,7 @@ struct RenderProcessInfo {
     sptr<RSIConnectToRenderProcess> renderProcess;
     sptr<RSConnectRenderProcessDeathRecipient> deathRecipient;
     sptr<RSIClientToRenderConnection> clientToRenderConnection;
+};
 
 enum class RSOnDiedCallbackCode : int32_t {
     APPLICATION_AGENT = 0,
