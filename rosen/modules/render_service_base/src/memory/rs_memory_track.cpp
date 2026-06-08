@@ -292,34 +292,27 @@ void MemoryTrack::DumpMemoryStatistics(DfxString& log,
 
 void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log, bool isLite)
 {
-    RS_TRACE_NAME_FMT("MemoryTrack::DumpMemoryNodeStatistics pixlmap record size:%d", memPicRecord_.size());
+    if (!isLite) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("MemoryTrack::DumpMemoryNodeStatistics record size:%d", memNodeMap_.size());
     log.AppendFormat("\nRSRenderNode:\n");
     uint64_t totalSize = 0;
     int count = 0;
-    if (!isLite) {
-        // calculate by byte
-        for (auto& [nodeId, info] : memNodeMap_) {
-            // total of all
-            totalSize += static_cast<uint64_t>(info.size);
-            count++;
-        }
-        log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / BYTE_CONVERT, count);
-    } else {
-        std::unordered_map<int, int> pidCountMap;  // replace getNodeInfo
-        // calculate by byte
-        for (auto& [nodeId, info] : memNodeMap_) {
-            // total of all
-            totalSize += static_cast<uint64_t>(info.size);
-            count++;
-            pidCountMap[info.pid]++;
-        }
-        log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / BYTE_CONVERT, count);
-        std::string log_str = "Pid" + std::string("\t") + "Count";
+    std::unordered_map<int, int> pidCountMap; // replace getNodeInfo
+    // calculate by byte
+    for (auto& [nodeId, info] : memNodeMap_) {
+        // total of all
+        totalSize += static_cast<uint64_t>(info.size);
+        count++;
+        pidCountMap[info.pid]++;
+    }
+    log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / BYTE_CONVERT, count);
+    std::string log_str = "Pid" + std::string("\t") + "Count";
+    log.AppendFormat("%s\n", log_str.c_str());
+    for (const auto& [pid, pidCount] : pidCountMap) {
+        log_str = std::to_string(pid) + "\t" + std::to_string(pidCount);
         log.AppendFormat("%s\n", log_str.c_str());
-        for (const auto& [pid, pidCount] : pidCountMap) {
-            log_str = std::to_string(pid) + "\t" + std::to_string(pidCount);
-            log.AppendFormat("%s\n", log_str.c_str());
-        }
     }
 }
 
@@ -623,13 +616,11 @@ size_t MemoryTrack::GetNodeNumOfPid(const pid_t pid)
     return itr->second.size();
 }
 
-void MemoryTrack::GetNodeInfo(NodeInfoCallback callback)
+std::unordered_map<NodeId, MemoryInfo> MemoryTrack::GetMemNodeMap()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    RS_TRACE_NAME_FMT("MemoryTrack::GetNodeInfo MemNodeMap size:%zu", memNodeMap_.size());
-    for (auto& [nodeId, info] : memNodeMap_) {
-        callback(nodeId, info);
-    }
+    RS_TRACE_NAME_FMT("MemoryTrack::GetMemNodeMap");
+    return memNodeMap_;
 }
 }
 }

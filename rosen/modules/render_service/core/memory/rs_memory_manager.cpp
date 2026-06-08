@@ -127,10 +127,15 @@ static std::string Data2String(std::string data, uint32_t targetNumber)
 
 // LCOV_EXCL_START
 void MemoryManager::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
-    std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize)
+    std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize, DfxString& log)
 {
-    RS_TRACE_NAME("MemoryManager::GetNodeInfo");
-    MemoryTrack::Instance().GetNodeInfo([&](const NodeId& nodeId, const MemoryInfo& info) {
+    auto memNodeMap = MemoryTrack::Instance().GetMemNodeMap();
+    RS_TRACE_NAME_FMT("MemoryManager::GetNodeInfo memNodeMap size:%zu", memNodeMap.size());
+    size_t totalSize = 0;
+    int count = 0;
+    for (auto& [nodeId, info] : memNodeMap) {
+        totalSize += info.size;
+        count++;
         auto node = RSMainThread::Instance()->GetContext().GetMutableNodeMap().GetRenderNode(nodeId);
         int pid = info.pid;
         if (node) {
@@ -149,7 +154,8 @@ void MemoryManager::GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& no
                 nullnode_info[pid] = 1;
             }
         }
-    });
+    }
+    log.AppendFormat("Total Node Size = %d KB (%d entries)\n", totalSize / MEMUNIT_RATE, count);
 }
 // LCOV_EXCL_STOP
 
@@ -161,8 +167,8 @@ void MemoryManager::RenderServiceAllNodeDump(DfxString& log)
     std::unordered_map<int, int> nullnode_info; // [pid, count]
     std::unordered_map<pid_t, size_t> modifierSize; // [pid, modifiersize]
     constexpr uint32_t NODE_DUMP_STRING_LEN = 8;
-
-    GetNodeInfo(node_info, nullnode_info, modifierSize);
+    log.AppendFormat("\nRSRenderNode:\n");
+    GetNodeInfo(node_info, nullnode_info, modifierSize, log);
     std::string log_str = Data2String("Pid", NODE_DUMP_STRING_LEN) + "\t" +
         Data2String("Count", NODE_DUMP_STRING_LEN) + "\t" +
         Data2String("OnTree", NODE_DUMP_STRING_LEN) + "\t" +

@@ -1134,10 +1134,11 @@ HWTEST_F(RSMemoryManagerTest, GetNodeInfo001, TestSize.Level1)
     std::unordered_map<int, std::pair<int, int>> nodeInfo;
     std::unordered_map<int, int> nullNodeInfo;
     std::unordered_map<pid_t, size_t> modifierSize;
+    DfxString log;
     NodeId id = 1024;
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
-    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize, log);
     ASSERT_TRUE(nodeInfo.empty());
 }
 
@@ -1154,12 +1155,13 @@ HWTEST_F(RSMemoryManagerTest, GetNodeInfo002, TestSize.Level1)
     std::unordered_map<int, std::pair<int, int>> nodeInfo;
     std::unordered_map<int, int> nullNodeInfo;
     std::unordered_map<pid_t, size_t> modifierSize;
+    DfxString log;
     NodeId id = 1025;
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     auto node = std::make_shared<RSRenderNode>(id);
     mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
-    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize, log);
     ASSERT_TRUE(nodeInfo.size() > 0);
 }
 
@@ -1176,13 +1178,14 @@ HWTEST_F(RSMemoryManagerTest, GetNodeInfo003, TestSize.Level1)
     std::unordered_map<int, std::pair<int, int>> nodeInfo;
     std::unordered_map<int, int> nullNodeInfo;
     std::unordered_map<pid_t, size_t> modifierSize;
+    DfxString log;
     NodeId id = 1026;
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     auto node = std::make_shared<RSRenderNode>(id);
     mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
     nodeInfo.insert({ExtractPid(id), std::make_pair(0, 0)});
-    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize, log);
     ASSERT_TRUE(nodeInfo.size() > 0);
 }
 /**
@@ -1198,11 +1201,12 @@ HWTEST_F(RSMemoryManagerTest, GetNodeInfo004, TestSize.Level1)
     std::unordered_map<int, std::pair<int, int>> nodeInfo;
     std::unordered_map<int, int> nullNodeInfo;
     std::unordered_map<pid_t, size_t> modifierSize;
+    DfxString log;
     NodeId id = 1027;
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(id, info);
     nullNodeInfo.insert({ExtractPid(id), 0});
-    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize);
+    MemoryManager::GetNodeInfo(nodeInfo, nullNodeInfo, modifierSize, log);
     ASSERT_TRUE(nullNodeInfo.size() > 0);
 }
 
