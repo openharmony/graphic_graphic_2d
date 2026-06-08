@@ -18,8 +18,9 @@
 
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <unordered_map>
-#include <vector>
+#include <unordered_set>
 
 #include "text/typeface.h"
 
@@ -34,15 +35,19 @@ namespace Rosen {
 namespace Drawing {
 class ObjectMgr {
 public:
-    static std::shared_ptr<ObjectMgr> GetInstance() noexcept(true);
+    ObjectMgr(const ObjectMgr&) = delete;
+    ObjectMgr& operator=(const ObjectMgr&) = delete;
+
+    static ObjectMgr& GetInstance();
     void AddObject(void* obj);
     bool HasObject(void* obj);
     bool RemoveObject(void* obj);
 
 private:
-    static inline std::shared_ptr<ObjectMgr> objectMgr = nullptr;
-    std::vector<void*> vector_;
-    std::mutex mutex_;
+    ObjectMgr() = default;
+
+    std::unordered_set<void*> objects_;
+    std::shared_mutex mutex_;
 };
 
 class TypefaceMgr {

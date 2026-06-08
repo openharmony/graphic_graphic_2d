@@ -18,49 +18,28 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-std::shared_ptr<ObjectMgr> ObjectMgr::GetInstance() noexcept(true)
+ObjectMgr& ObjectMgr::GetInstance()
 {
-    if (objectMgr == nullptr) {
-        static std::mutex mutex;
-        std::lock_guard<std::mutex> lock(mutex);
-        if (objectMgr == nullptr) {
-            objectMgr.reset(new ObjectMgr());
-        }
-    }
-    return objectMgr;
+    static ObjectMgr instance;
+    return instance;
 }
 
 void ObjectMgr::AddObject(void* obj)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    vector_.push_back(obj);
+    std::unique_lock lock(mutex_);
+    objects_.insert(obj);
 }
 
 bool ObjectMgr::HasObject(void* obj)
 {
-    bool has = false;
-    std::lock_guard<std::mutex> lock(mutex_);
-    for (auto it = vector_.begin(); it != vector_.end(); it++) {
-        if (*it == obj) {
-            has = true;
-            break;
-        }
-    }
-    return has;
+    std::shared_lock lock(mutex_);
+    return objects_.find(obj) != objects_.end();
 }
 
 bool ObjectMgr::RemoveObject(void* obj)
 {
-    bool removed = false;
-    std::lock_guard<std::mutex> lock(mutex_);
-    for (auto it = vector_.begin(); it != vector_.end(); it++) {
-        if (*it == obj) {
-            vector_.erase(it);
-            removed = true;
-            break;
-        }
-    }
-    return removed;
+    std::unique_lock lock(mutex_);
+    return objects_.erase(obj) > 0;
 }
 
 TypefaceMgr& TypefaceMgr::GetInstance()
