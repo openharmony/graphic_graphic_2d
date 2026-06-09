@@ -24,6 +24,7 @@
 #include "include/core/SkRRect.h"
 
 #include "draw/canvas.h"
+#include "draw/color.h"
 #include "image/image.h"
 #include "image/gpu_context.h"
 
@@ -46,6 +47,7 @@ public:
     static std::shared_ptr<Drawing::Image> ConvertYUVPixelMapToDrawingImage(
         std::shared_ptr<Drawing::GPUContext> gpuContext, std::shared_ptr<Media::PixelMap> pixelMap);
     static bool CheckFormatConsistency(std::shared_ptr<Media::PixelMap> pixelMap);
+    static Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType);
 };
 } // namespace Rosen
 } // namespace OHOS

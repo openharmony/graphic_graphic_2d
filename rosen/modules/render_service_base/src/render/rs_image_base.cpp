@@ -707,7 +707,8 @@ std::shared_ptr<Drawing::Image> RSImageBase::MakeFromTextureForVK(
     Drawing::ColorType colorType = GetColorTypeWithVKFormat(vkTextureInfo->format);
     std::shared_ptr<Drawing::ColorSpace> colorSpace =
         RSColorSpaceUtil::ColorSpaceToDrawingColorSpace(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
-    Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::AlphaType alphaType = RSPixelMapUtil::AlphaTypeToDrawingAlphaType(pixelMap_->GetAlphaType());
+    Drawing::BitmapFormat bitmapFormat = { colorType, alphaType };
     if (!dmaImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace, NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {

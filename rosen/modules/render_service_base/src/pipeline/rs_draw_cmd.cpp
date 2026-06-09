@@ -366,8 +366,9 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
         }
 #endif
     } else {
+        Drawing::AlphaType alphaType = RSPixelMapUtil::AlphaTypeToDrawingAlphaType(pixelMap->GetAlphaType());
         bool ret = MakeFromTextureForVK(
-            canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), sampling, colorSpace);
+            canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), sampling, alphaType, colorSpace);
         if (ret && image_ && !pixelMap->IsEditable()) {
             SKResourceManager::Instance().HoldResource(image_);
             RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(
@@ -448,7 +449,7 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
-    const Drawing::SamplingOptions& sampling,
+    const Drawing::SamplingOptions& sampling, Drawing::AlphaType alphaType,
     const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
     if (!RSSystemProperties::IsUseVulkan()) {
@@ -493,7 +494,7 @@ bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceB
         return false;
     }
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
-    Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::BitmapFormat bitmapFormat = { colorType, alphaType };
     if (!image_->BuildFromTexture(*context, backendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace,
         NativeBufferUtils::DeleteVkImage,
