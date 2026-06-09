@@ -405,14 +405,14 @@ void RSRenderServiceConnectHub::AddRenderProcessConnectionToken(uint64_t tokenMa
         ROSEN_LOGW("RSRenderServiceConnectHub::AddRenderProcessConnectionToken,"
             "failed to AddDeathRecipient of render service.");
     }
-    RenderProcessInfo RenderProcessInfo = {
+    RenderProcessInfo renderProcessInfo = {
         .token = token,
         .connectToRenderRemote = connectToRenderRemote,
         .renderProcess = renderPrecess,
         .deathRecipient = deathRecipient,
         .clientToRenderConnection = clientToRenderConnection
     };
-    connRenderProcesses_[tokenMaskId] = RenderProcessInfo;
+    connRenderProcesses_[tokenMaskId] = renderProcessInfo;
 }
 
 void RSRenderServiceConnectHub::RemoveRenderProcessDeathRecipient(uint64_t tokenMaskId,

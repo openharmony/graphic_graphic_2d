@@ -36,7 +36,8 @@ public:
     DISALLOW_COPY_AND_MOVE(RSConnectRenderProcessDeathRecipient);
 
     void OnRemoteDied(const wptr<IRemoteObject> &remote) final override;
-    void SetOnRenderProcessDiedCallback(std::function<void()> callback) {
+    void SetOnRenderProcessDiedCallback(std::function<void()> callback)
+    {
         callback_ = callback;
     }
 
