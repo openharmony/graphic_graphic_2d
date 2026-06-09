@@ -376,7 +376,7 @@ void BootCompileProgress::SetFrameForRog()
 
     rsCanvasNode_->SetFrame(posX, posY, rogWidth_, rogHeight_ * HEIGHT_PERCENT);
     LOGI("SetFrame ROG Rect:[%{public}f, %{public}f, %{public}d, %{public}f], fontSize: %{public}d, "
-         "currentRadius_: %{public}f", posX, posY, rogWidth_, rogHeight_ * HEIGHT_PERCENT, fontSize_, currentRadius_);
+         "currentRadius: %{public}f", posX, posY, rogWidth_, rogHeight_ * HEIGHT_PERCENT, fontSize_, currentRadius_);
 }
 
 Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int32_t frameNum)
@@ -441,7 +441,7 @@ void BootCompileProgress::SetFrame()
     } else {
         int32_t rogMaxLen = std::max(rogWidth_, rogHeight_);
         bool isRogMode = rogWidth_ > 0 && rogHeight_ > 0 && rogMaxLen != maxLength;
-        if () {
+        if (isRogMode) {
             SetFrameForRog();
         } else {
             rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
