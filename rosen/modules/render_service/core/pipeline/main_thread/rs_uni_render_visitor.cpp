@@ -1093,6 +1093,9 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
         // Record the surfaceNode object for later use in RSScreenRenderParams::OnSync to collect its drawable.
         // This ensures the drawable can updates the latest drawRegion, thus correctly skip drawing.
         if (curScreenNode_) {
+            bool needCalcScreenSpecialLayer =
+                curScreenNode_->GetScreenProperty().IsVirtual() || hasMirrorUsedInSpecialLayer_;
+            RSSpecialLayerUtils::DealWithSpecialLayer(node, *curLogicalDisplayNode_, needCalcScreenSpecialLayer);
             curScreenNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
             curScreenNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirtyInSurface());
             curScreenNode_->AddSurfaceNodePosByDescZOrder(node.GetId(), node.GetOldDirtyInSurface());

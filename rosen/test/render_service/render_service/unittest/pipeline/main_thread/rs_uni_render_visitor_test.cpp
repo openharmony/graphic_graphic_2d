@@ -3152,6 +3152,9 @@ HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipSurfaceRenderNode004, TestSize.Le
     rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1, 0, rsContext);
     rsUniRenderVisitor->curScreenNode_->screenInfo_.width = 100;
     rsUniRenderVisitor->curScreenNode_->screenInfo_.height = 100;
+
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ = std::make_shared<RSLogicalDisplayRenderNode>(2, displayConfig);
     auto isQuickSkip = rsUniRenderVisitor->CheckQuickSkipSurfaceRenderNode(*surfaceNode);
     ASSERT_TRUE(isQuickSkip);
 }
@@ -3174,6 +3177,8 @@ HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipSurfaceRenderNode005, TestSize.Le
     ASSERT_FALSE(isQuickSkip);
 
     surfaceNode->SetStableSkipReached(true);
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ = std::make_shared<RSLogicalDisplayRenderNode>(2, displayConfig);
     isQuickSkip = rsUniRenderVisitor->CheckQuickSkipSurfaceRenderNode(*surfaceNode);
     ASSERT_TRUE(isQuickSkip);
 }
@@ -3274,6 +3279,8 @@ HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipSurfaceRenderNode0010, TestSize.L
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->curScreenNode_ = nullptr;
 
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ = std::make_shared<RSLogicalDisplayRenderNode>(2, displayConfig);
     auto isQuickSkip = rsUniRenderVisitor->CheckQuickSkipSurfaceRenderNode(*surfaceNode);
     ASSERT_TRUE(isQuickSkip);
 }
@@ -3299,6 +3306,8 @@ HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipSurfaceRenderNode0011, TestSize.L
     auto rsContext = std::make_shared<RSContext>();
     rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1, 0, rsContext);
 
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curLogicalDisplayNode_ = std::make_shared<RSLogicalDisplayRenderNode>(2, displayConfig);
     auto isQuickSkip = rsUniRenderVisitor->CheckQuickSkipSurfaceRenderNode(*surfaceNode);
     ASSERT_TRUE(isQuickSkip);
 }
