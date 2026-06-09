@@ -859,15 +859,6 @@ ohos_source_set("render_service_base_src") {
   subsystem_name = "graphic"
 }
 
-config("render_service_base_all_deps_config") {
-  include_dirs = [
-    "include",
-    "$rosen_root/modules/2d_graphics/include",
-    "$rosen_root/modules/2d_graphics/src",
-    "$rosen_root/modules/2d_graphics/src/drawing/engine_adapter",
-  ]
-}
-
 config("render_service_base_link_config") {
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     ldflags = [
@@ -933,11 +924,13 @@ ohos_shared_library("librender_service_base") {
   sources = [ "src/common/rs_common_hook.cpp" ]
 
   public_configs = [
-    ":render_service_base_all_deps_config",
     ":export_config",
     "$graphic_2d_root/utils/socketpair:socketpair_public_config",
     "$graphic_2d_root/rosen/modules/composer/vsync:vsync_public_config",
   ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    public_configs += [ "$rosen_root/modules/2d_graphics:export_config" ]
+  }
   if (enhanced_opt) {
     configs = [ ":render_service_base_link_config" ]
   }
@@ -993,7 +986,10 @@ ohos_source_set("librender_service_base_static") {
     blocklist = "./rs_base_blocklist.txt"
   }
 
-  public_configs = [ ":render_service_base_all_deps_config" ]
+  public_configs = [ ":export_config" ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    public_configs += [ "$rosen_root/modules/2d_graphics:export_config" ]
+  }
 
   if (is_arkui_x) {
     sources = [ "src/common/rs_common_hook.cpp" ]
