@@ -57,7 +57,7 @@ public:
 
     // Verify serialization match between two shader effects using gtest assertions
     static void VerifySerializationMatch(const std::shared_ptr<ShaderEffect>& originalShader,
-                                          const std::shared_ptr<ShaderEffect>& newShader);
+        const std::shared_ptr<ShaderEffect>& newShader);
 
 private:
     static std::function<bool(Parcel&, std::shared_ptr<Data>)> originalMarshallingCallback_;

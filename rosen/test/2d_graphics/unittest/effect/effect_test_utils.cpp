@@ -156,7 +156,7 @@ void EffectTestUtils::RestoreMarshallingCallback(
 }
 
 void EffectTestUtils::VerifySerializationMatch(const std::shared_ptr<ShaderEffect>& originalShader,
-                                                 const std::shared_ptr<ShaderEffect>& newShader)
+    const std::shared_ptr<ShaderEffect>& newShader)
 {
     auto originalData = originalShader->Serialize();
     auto newData = newShader->Serialize();
