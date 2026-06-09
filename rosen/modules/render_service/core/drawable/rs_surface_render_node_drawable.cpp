@@ -929,6 +929,17 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
         surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
         !surfaceParams->IsTransparent();
+
+    // In single-app cast scenario, skip offscreen rotation.
+    auto screenDrawable =
+        std::static_pointer_cast<RSScreenRenderNodeDrawable>(surfaceParams->GetAncestorScreenDrawable().lock());
+    auto screenParams = screenDrawable ?
+        static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get()) : nullptr;
+    bool isSingleAppCast = screenParams &&
+        screenParams->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE &&
+        screenParams->HasMirrorScreen();
+    needOffscreen = needOffscreen && !isSingleAppCast;
+
     needOffscreen = needOffscreen || (captureConfig ? captureConfig->isSyncRender : false);
     if (captureConfig && captureConfig->isSyncRender) {
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw, NeedSyncCaptureWindow: [%d], NodeId:%" PRIu64 ", "
