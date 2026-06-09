@@ -14,14 +14,18 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("NativeColorSpaceManagerFuzzTest") {
   fuzz_config_file = "//foundation/graphic/graphic_2d/utils/color_manager/test/fuzztest/nativecolorspacemanager_fuzzer"
   module_out_path = module_output_path
- 
-  include_dirs = [ "export" ]
+
+  include_dirs = [
+    "$graphic_2d_root/utils/color_manager/export",
+    "$graphic_2d_root/interfaces/inner_api/color_manager",
+  ]
   cflags = [
     "-g",
     "-O0",
@@ -29,7 +33,10 @@ ohos_fuzztest("NativeColorSpaceManagerFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "nativecolorspacemanager_fuzzer.cpp" ]
-  deps = [ "//foundation/graphic/graphic_2d/utils/color_manager:color_manager" ]
+  deps = [
+    "$graphic_2d_root/utils/color_manager:color_manager",
+    "$graphic_2d_root/utils/color_manager/ndk:libnative_color_space_manager",
+  ]
 }
 
 ###############################################################################

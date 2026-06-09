@@ -150,6 +150,8 @@ void DoVisibilityModifier(FuzzedDataProvider& fdp)
     auto modifier = std::make_shared<ModifierNG::RSVisibilityModifier>();
     modifier->SetVisible(fdp.ConsumeBool());
     modifier->GetVisible();
+    modifier->SetDoubleSidedEnabled(fdp.ConsumeBool());
+    modifier->GetDoubleSidedEnabled();
 }
 
 } // namespace Rosen
