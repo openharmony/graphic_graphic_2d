@@ -18,6 +18,7 @@
 #include <cstdint>
 #include "get_object.h"
 #include "effect/shader_effect.h"
+#include "effect/shader_effect_lazy.h"
 #include "image/bitmap.h"
 #include "image/image.h"
 #include "utils/matrix.h"
@@ -473,6 +474,141 @@ bool ShaderEffectFuzzTest008(const uint8_t* data, size_t size)
         static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
     return true;
 }
+
+/*
+ * 测试以下 ShaderEffect 接口（新增的 NotLazy 接口）：
+ * 1. CreateLinearGradientNotLazy(...)
+ * 2. CreateRadialGradientNotLazy(...)
+ * 3. CreateTwoPointConicalNotLazy(...)
+ * 4. CreateSweepGradientNotLazy(...)
+ */
+bool ShaderEffectFuzzTest009(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    uint32_t tileMode = GetObject<uint32_t>();
+    Matrix matrix;
+    scalar scaleX = GetObject<scalar>();
+    scalar skewX = GetObject<scalar>();
+    scalar transX = GetObject<scalar>();
+    scalar skewY = GetObject<scalar>();
+    scalar scaleY = GetObject<scalar>();
+    scalar transY = GetObject<scalar>();
+    scalar persp0 = GetObject<scalar>();
+    scalar persp1 = GetObject<scalar>();
+    scalar persp2 = GetObject<scalar>();
+    matrix.SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
+    Point startPt = PointF(GetObject<float>(), GetObject<float>());
+    Point endPt = PointF(GetObject<float>(), GetObject<float>());
+    std::vector<UIColor> uiColors;
+    float redF = GetObject<float>();
+    float greenF = GetObject<float>();
+    float blueF = GetObject<float>();
+    float alphaF = GetObject<float>();
+    float headroomF = GetObject<float>();
+
+    UIColor uiColor(redF, greenF, blueF, alphaF, headroomF);
+    uiColors.push_back(uiColor);
+    std::vector<scalar> scalarNumbers;
+    scalar scalarOne = GetObject<scalar>();
+    scalar scalarTwo = GetObject<scalar>();
+    scalarNumbers.push_back(scalarOne);
+    scalarNumbers.push_back(scalarTwo);
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    ShaderEffect::CreateLinearGradientNotLazy(startPt, endPt, uiColors, colorSpace,
+        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect::CreateRadialGradientNotLazy(startPt, GetObject<scalar>(), uiColors, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect::CreateTwoPointConicalNotLazy(startPt, GetObject<scalar>(), endPt, GetObject<scalar>(), uiColors,
+        colorSpace, scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect::CreateSweepGradientNotLazy(startPt, uiColors, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
+    return true;
+}
+
+namespace {
+void TestLazyGradientInterface(const std::shared_ptr<ShaderEffectLazy>& lazyGradient)
+{
+    if (lazyGradient) {
+        lazyGradient->IsLazy();
+        lazyGradient->GetShaderEffectObj();
+    }
+}
+
+void CreateAndTestAllLazyGradients(const Point& startPt, const Point& endPt,
+    const std::vector<UIColor>& uiColors, const std::shared_ptr<ColorSpace>& colorSpace,
+    const std::vector<scalar>& scalarNumbers, uint32_t tileMode, const Matrix& matrix)
+{
+    auto lazyLinear = ShaderEffectLazy::CreateLinearGradient(startPt, endPt, uiColors, colorSpace,
+        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    TestLazyGradientInterface(lazyLinear);
+
+    auto lazyRadial = ShaderEffectLazy::CreateRadialGradient(startPt, GetObject<scalar>(), uiColors, colorSpace,
+        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    TestLazyGradientInterface(lazyRadial);
+
+    auto lazyConical = ShaderEffectLazy::CreateTwoPointConical(startPt, GetObject<scalar>(), endPt,
+        GetObject<scalar>(), uiColors, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    TestLazyGradientInterface(lazyConical);
+
+    auto lazySweep = ShaderEffectLazy::CreateSweepGradient(startPt, uiColors, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
+    TestLazyGradientInterface(lazySweep);
+}
+} // namespace
+
+/*
+ * 测试以下 ShaderEffectLazy 接口：
+ * 1. CreateLinearGradient(...)
+ * 2. CreateRadialGradient(...)
+ * 3. CreateTwoPointConical(...)
+ * 4. CreateSweepGradient(...)
+ * 5. IsLazy()
+ * 6. GetShaderEffectObj()
+ */
+bool ShaderEffectFuzzTest010(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    uint32_t tileMode = GetObject<uint32_t>();
+    Matrix matrix;
+    scalar scaleX = GetObject<scalar>();
+    scalar skewX = GetObject<scalar>();
+    scalar transX = GetObject<scalar>();
+    scalar skewY = GetObject<scalar>();
+    scalar scaleY = GetObject<scalar>();
+    scalar transY = GetObject<scalar>();
+    scalar persp0 = GetObject<scalar>();
+    scalar persp1 = GetObject<scalar>();
+    scalar persp2 = GetObject<scalar>();
+    matrix.SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
+    Point startPt = PointF(GetObject<float>(), GetObject<float>());
+    Point endPt = PointF(GetObject<float>(), GetObject<float>());
+    std::vector<UIColor> uiColors;
+    float redF = GetObject<float>();
+    float greenF = GetObject<float>();
+    float blueF = GetObject<float>();
+    float alphaF = GetObject<float>();
+    float headroomF = GetObject<float>();
+
+    UIColor uiColor(redF, greenF, blueF, alphaF, headroomF);
+    uiColors.push_back(uiColor);
+    std::vector<scalar> scalarNumbers;
+    scalar scalarOne = GetObject<scalar>();
+    scalar scalarTwo = GetObject<scalar>();
+    scalarNumbers.push_back(scalarOne);
+    scalarNumbers.push_back(scalarTwo);
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+
+    CreateAndTestAllLazyGradients(startPt, endPt, uiColors, colorSpace, scalarNumbers, tileMode, matrix);
+
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -494,5 +630,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest006(data, size);
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest007(data, size);
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest008(data, size);
+    OHOS::Rosen::Drawing::ShaderEffectFuzzTest009(data, size);
+    OHOS::Rosen::Drawing::ShaderEffectFuzzTest010(data, size);
     return 0;
 }

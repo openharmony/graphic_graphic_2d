@@ -26,16 +26,22 @@ ohos_unittest("2d_graphics_effect_test") {
     "color_filter_test.cpp",
     "color_matrix_test.cpp",
     "color_space_test.cpp",
+    "conical_gradient_shader_obj_test.cpp",
     "effect_test_utils.cpp",
     "filter_test.cpp",
+    "gradient_shader_obj_base_test.cpp",
     "image_filter_lazy_test.cpp",
     "image_filter_test.cpp",
+    "linear_gradient_shader_obj_test.cpp",
     "mask_filter_test.cpp",
     "offset_image_filter_obj_test.cpp",
     "path_effect_test.cpp",
-    "shader_effect_test.cpp",
+    "radial_gradient_shader_obj_test.cpp",
+    "shader_effect_lazy_gradient_test.cpp",
     "shader_effect_lazy_test.cpp",
+    "shader_effect_test.cpp",
     "shader_image_filter_obj_test.cpp",
+    "sweep_gradient_shader_obj_test.cpp",
   ]
 
   include_dirs = [

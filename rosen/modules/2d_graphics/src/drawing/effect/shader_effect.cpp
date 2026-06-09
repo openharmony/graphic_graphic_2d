@@ -309,11 +309,41 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateLinearGradient(const Point& st
     const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
     TileMode mode, const Matrix *matrix)
 {
+    return ShaderEffectLazy::CreateLinearGradient(startPt, endPt, colors, colorSpace, pos, mode, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradient(const Point& centerPt, scalar radius,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix *matrix)
+{
+    return ShaderEffectLazy::CreateRadialGradient(centerPt, radius, colors, colorSpace, pos, mode, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& startPt, scalar startRadius,
+    const Point& endPt, scalar endRadius, const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
+{
+    return ShaderEffectLazy::CreateTwoPointConical(startPt, startRadius, endPt, endRadius, colors, colorSpace,
+        pos, mode, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& centerPt, const std::vector<UIColor>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
+    scalar endAngle, const Matrix* matrix)
+{
+    return ShaderEffectLazy::CreateSweepGradient(centerPt, colors, colorSpace, pos, mode, startAngle, endAngle,
+        matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateLinearGradientNotLazy(const Point& startPt, const Point& endPt,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix *matrix)
+{
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, startPt, endPt, colors,
         colorSpace, pos, mode, matrix);
 }
 
-std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradient(const Point& centerPt, scalar radius,
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradientNotLazy(const Point& centerPt, scalar radius,
     const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
     TileMode mode, const Matrix *matrix)
 {
@@ -321,7 +351,7 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradient(const Point& ce
         colorSpace, pos, mode, matrix);
 }
 
-std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& startPt, scalar startRadius,
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConicalNotLazy(const Point& startPt, scalar startRadius,
     const Point& endPt, scalar endRadius, const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
     const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
@@ -329,9 +359,9 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& s
         endPt, endRadius, colors, colorSpace, pos, mode, matrix);
 }
 
-std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& centerPt, const std::vector<UIColor>& colors,
-    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
-    scalar endAngle, const Matrix* matrix)
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradientNotLazy(const Point& centerPt,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, scalar startAngle, scalar endAngle, const Matrix* matrix)
 {
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT,
         centerPt, colors, colorSpace, pos, mode, startAngle, endAngle, matrix);
