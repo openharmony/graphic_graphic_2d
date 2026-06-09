@@ -441,8 +441,6 @@ void RSRenderServiceConnectHub::CleanConnectRenderProcess()
         return;
     }
 
-    ROSEN_LOGI("CleanConnectRenderProcess::release begin size:%{public}u", connRenderProcesses_.size());
-
     for (auto iter = connRenderProcesses_.begin(); iter != connRenderProcesses_.end();) {
         RenderProcessInfo& renderProcessInfo = iter->second;
         if (renderProcessInfo.token == nullptr) {
