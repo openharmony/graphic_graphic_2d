@@ -14,5 +14,8 @@
 group("fuzztest") {
   testonly = true
 
-  deps = [ "colormanager_fuzzer:fuzztest" ]
+  deps = [
+    "colormanager_fuzzer:fuzztest",
+    "nativecolorspacemanager_fuzzer:fuzztest",
+  ]
 }

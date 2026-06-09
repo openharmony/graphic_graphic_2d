@@ -38,7 +38,9 @@ constexpr uint8_t DO_UNMARSHALLING = 6;
 constexpr uint8_t DO_UNMARSHALLING_AS_PROXY_NODE = 7;
 constexpr uint8_t DO_ATTACH_TO_DISPLAY = 8;
 constexpr uint8_t DO_DETACH_AND_SET_HARDWARE_ENABLED = 9;
-constexpr uint8_t MAX_CASE_NUM = 10;
+constexpr uint8_t DO_ADD_CHILD_AND_CLEAR = 10;
+constexpr uint8_t DO_SET_AND_GET_EXTENDED = 11;
+constexpr uint8_t MAX_CASE_NUM = 12;
 
 std::string ConsumeFixedLengthString(FuzzedDataProvider& fdp, int len)
 {
@@ -152,6 +154,11 @@ bool DoSetAndGet(FuzzedDataProvider& fdp)
     bool isBootAnimation = fdp.ConsumeBool();
     surfaceNode->SetBootAnimation(isBootAnimation);
     surfaceNode->GetBootAnimation();
+    surfaceNode->GetFollowType();
+    surfaceNode->IsBufferAvailable();
+    surfaceNode->GetColorSpace();
+    auto func2 = [](bool available) {};
+    surfaceNode->SetAlphaChangedCallback(func2);
     return true;
 }
 
@@ -261,6 +268,51 @@ bool DoDetachToDisplayAndSetHardwareEnabled(FuzzedDataProvider& fdp)
     surfaceNode->SetHardwareEnabled(isEnabled);
     return true;
 }
+
+bool DoAddChildAndClear(FuzzedDataProvider& fdp)
+{
+    auto config = GetRSSurfaceNodeConfigFromData(fdp);
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
+    RSSurfaceNodeConfig childConfig;
+    RSSurfaceNode::SharedPtr child = RSSurfaceNode::Create(childConfig);
+    if (child != nullptr) {
+        surfaceNode->AddChild(child, -1);
+    }
+    surfaceNode->ClearChildren();
+    return true;
+}
+
+bool DoSetAndGetExtended(FuzzedDataProvider& fdp)
+{
+    auto config = GetRSSurfaceNodeConfigFromData(fdp);
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    if (surfaceNode == nullptr) {
+        return false;
+    }
+    bool isDarkColorMode = fdp.ConsumeBool();
+    surfaceNode->SetDarkColorMode(isDarkColorMode);
+    surfaceNode->GetDarkColorMode();
+    RSSurfaceNodeAbilityState abilityState =
+        static_cast<RSSurfaceNodeAbilityState>(fdp.ConsumeIntegral<uint8_t>() % 2);
+    surfaceNode->SetAbilityState(abilityState);
+    surfaceNode->GetAbilityState();
+    surfaceNode->RegisterNodeMap();
+    uint32_t apiVersion = fdp.ConsumeIntegral<uint32_t>();
+    surfaceNode->SetApiCompatibleVersion(apiVersion);
+    bool isSelfDrawing = surfaceNode->IsSelfDrawingNode();
+    (void)isSelfDrawing;
+    Vector4<int32_t> region(fdp.ConsumeIntegral<int32_t>(), fdp.ConsumeIntegral<int32_t>(),
+        fdp.ConsumeIntegral<int32_t>(), fdp.ConsumeIntegral<int32_t>());
+    surfaceNode->SetRegionToBeMagnified(region);
+    TopLayerZOrder zOrder = static_cast<TopLayerZOrder>(fdp.ConsumeIntegral<uint8_t>() % 6);
+    surfaceNode->SetCompositeLayer(zOrder);
+    bool transparent = fdp.ConsumeBool();
+    surfaceNode->SetContainerWindowTransparent(transparent);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -301,6 +353,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_DETACH_AND_SET_HARDWARE_ENABLED:
             OHOS::Rosen::DoDetachToDisplayAndSetHardwareEnabled(fdp);
+            break;
+        case OHOS::Rosen::DO_ADD_CHILD_AND_CLEAR:
+            OHOS::Rosen::DoAddChildAndClear(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_AND_GET_EXTENDED:
+            OHOS::Rosen::DoSetAndGetExtended(fdp);
             break;
         default:
             break;
