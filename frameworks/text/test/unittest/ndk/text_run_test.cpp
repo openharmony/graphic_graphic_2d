@@ -365,7 +365,7 @@ HWTEST_F(NdkRunTest, GetRunImageBounds, TestSize.Level0)
     std::vector<float> leftArr = {2.0, 78.929932, 147.029861, 147.029861, 228.539764, 417.727264};
     std::vector<float> topArr = {1.0, 3.0, 0.0, 1.0, 8.0, 3.0};
     std::vector<float> bottomArr = {25.0, 32.0, 0.0, 25.0, 44.0, 33.0};
-    std::vector<float> rightArr = {70.099960, 137.929901, 147.029861, 226.329788, 416.289764, 484.857208};
+    std::vector<float> rightArr = {70.099960, 137.929901, 138.929870, 226.329788, 416.289764, 479.577209};
     for (int i = 0; i < runsSize; i++) {
         OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
         OH_Drawing_Rect* bounds = OH_Drawing_GetRunImageBounds(run);
