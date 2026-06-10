@@ -2070,6 +2070,18 @@ void DrawTextBlobOpItem::DumpItems(std::string& out) const
             out += " " + std::to_string(glyphIds[index]);
         }
         out += "]";
+        std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+        if (DrawOpItem::customTypefaceQueryfunc_) {
+            typeface = DrawOpItem::customTypefaceQueryfunc_(globalUniqueId_);
+        }
+        out += " globalUniqueId_:" + std::to_string(static_cast<uint32_t>(globalUniqueId_));
+        out += " familyName:";
+        if (typeface != nullptr) {
+            std::string familyName = typeface->GetFamilyName();
+            out += familyName;
+        } else {
+            out += "nullptr";
+        }
         switch (textBlob_ -> GetTextContrast()) {
             case TextContrast::FOLLOW_SYSTEM:
                 out += " TextContrast: FOLLOW_SYSTEM";
