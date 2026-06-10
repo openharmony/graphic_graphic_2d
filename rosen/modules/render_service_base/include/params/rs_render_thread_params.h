@@ -761,7 +761,6 @@ private:
     NodeId cachedSurfaceNodeId_{0};
 #endif
     bool isDrawRelated_ = false;
-    bool isUifirstScale_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
