@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_TUNNEL_RUNTIME_STATE_H
-#define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_TUNNEL_RUNTIME_STATE_H
+#ifndef RENDER_SERVICE_BASE_FEATURE_TUNNEL_LAYER_RS_TUNNEL_RUNTIME_STATE_H
+#define RENDER_SERVICE_BASE_FEATURE_TUNNEL_LAYER_RS_TUNNEL_RUNTIME_STATE_H
 
 #include <atomic>
 #include <cstdint>
+#include <memory>
 #include <mutex>
+#include <unordered_map>
 
 #include <surface_type.h>
 
@@ -162,7 +164,27 @@ inline const char* ToClaimResultName(RSTunnelRuntimeState::ClaimResult result)
             return "UNKNOWN";
     }
 }
+
+class RSB_EXPORT RSTunnelRuntimeStore final {
+public:
+    RSTunnelRuntimeStore() = delete;
+    ~RSTunnelRuntimeStore() = delete;
+
+    static RSTunnelRuntimeState& GetOrCreate(NodeId nodeId);
+    static bool GetLayerInfoIfPresent(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property);
+    static void GetLayerInfoOrDefault(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property);
+    static void SetLayerInfo(NodeId nodeId, uint64_t tunnelLayerId, uint32_t property);
+    static uint64_t GetTunnelLayerGeneration(NodeId nodeId);
+    static bool HasPendingBuffer(NodeId nodeId);
+    static bool IsTunnelActive(NodeId nodeId);
+    static void Clear(NodeId nodeId);
+    static void Erase(NodeId nodeId);
+
+private:
+    static std::mutex mutex_;
+    static std::unordered_map<NodeId, std::unique_ptr<RSTunnelRuntimeState>> tunnelRuntimeStates_;
+};
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_TUNNEL_RUNTIME_STATE_H
+#endif // RENDER_SERVICE_BASE_FEATURE_TUNNEL_LAYER_RS_TUNNEL_RUNTIME_STATE_H

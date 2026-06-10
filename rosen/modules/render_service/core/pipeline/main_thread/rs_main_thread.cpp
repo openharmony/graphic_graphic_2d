@@ -106,6 +106,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node_utils.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -1804,23 +1805,27 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             bool goNormal = outcome != RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT;
             bool comsumeResult = false;
             if (goNormal) {
-                tunnelLayerManager_->TransferTunnelPendingBufferToNormalConsume(surfaceNode);
+                if (RSTunnelRuntimeStore::HasPendingBuffer(surfaceNode->GetId())) {
+                    tunnelLayerManager_->TransferTunnelPendingBufferToNormalConsume(surfaceNode);
+                }
                 comsumeResult = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
                     *surfaceHandler, timestamp_, dropFrameConfig,
                     parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
-                if (comsumeResult && outcome == RSTunnelRouteArbiter::MainThreadOutcome::GO_NORMAL) {
-                    tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode);
+                if (comsumeResult) {
+                    tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
                 }
                 if (!comsumeResult) {
                     tunnelRouteArbiter_->AbandonNormalClaim(surfaceNode);
                 }
+            } else if (outcome == RSTunnelRouteArbiter::MainThreadOutcome::KEEP_DIRECT) {
+                comsumeResult = true;
             }
             if (surfaceHandler->GetSourceType() ==
                 static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
                 lppVideoHandler_.ConsumeAndUpdateLppBuffer(vsyncId_, surfaceNode);
             }
-            tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode);
             if (comsumeResult) {
+                tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler);
                 if (!isUniRender_) {
                     this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                         static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -2632,6 +2637,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RS_TRACE_NAME("RSMainThread::UniRender nothing to update");
             RSMainThread::Instance()->SetFrameIsRender(false);
             RSMainThread::Instance()->SetSkipJankAnimatorFrame(true);
+            // "Nothing to update" — no composition happened, no HdiOutput conflict.
+            directComposeHelper_.lastFrameDidGpuRender_ = false;
+            RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
             for (auto& node: hardwareEnabledNodes_) {
                 if (!node->IsHardwareForcedDisabled()) {
                     node->MarkCurrentFrameHardwareEnabled();
@@ -2650,6 +2658,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (needTraverseNodeTree) {
         // Once exiting DoDirectComposition, clear the nodes collected for DoDirectComposition
         aibarNodes_.clear();
+        directComposeHelper_.lastFrameDidGpuRender_ = true;
+        RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+        ResetConsecutiveDoCompSuccessCount();
         if (RSUniRenderThread::Instance().IsPostedReclaimMemoryTask()) {
             SetIfStatusBarDirtyOnly(IfStatusBarDirtyOnly());
         }
@@ -2719,6 +2730,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         // set params used in render thread
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
     } else {
+        directComposeHelper_.lastFrameDidGpuRender_ = false;
+        directComposeHelper_.consecutiveDoCompSuccessCount_.fetch_add(1, std::memory_order_acq_rel);
+        RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
         RsFrameReport::DirectRenderEnd();
     }
 
@@ -2920,7 +2934,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                         surfaceNode->GetInstanceRootNodeId(), tempRefreshRects,
                         screenNode->GetScreenProperty().GetWidth() * screenNode->GetScreenProperty().GetHeight());
                 }
-                tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode);
+                tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler);
                 if (!isCurrentFrameBufferConsumed && params->GetPreBuffer() != nullptr) {
                     params->SetPreBuffer(nullptr, nullptr);
                     surfaceNode->AddToPendingSyncList();
@@ -2934,6 +2948,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 processor->CreateLayer(*surfaceNode, *params);
                 // buffer is synced to directComposition
                 params->SetBufferSynced(true);
+                RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId()).OnRenderCommitDone();
             }
         }
         rsLuminance.SetHdrStatus(screenId,

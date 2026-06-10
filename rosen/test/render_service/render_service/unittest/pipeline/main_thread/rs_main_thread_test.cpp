@@ -47,6 +47,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
 #include "drawable/rs_screen_render_node_drawable.h"
@@ -3245,6 +3246,48 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ConsumeAndUpdateAllNodes_KeepDirectSkipsRedundantVsync
+ * @tc.desc: When the tunnel route stays KEEP_DIRECT (listener owns this vsync), the tail
+ *           "available>0 ⇒ schedule vsync" branch must be skipped so a stale availableBufferCount
+ *           does not request a redundant vsync that re-arrives as KEEP_DIRECT again.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes_KeepDirectSkipsRedundantVsync, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->timestamp_ = 1000;
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node));
+
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
+    tunnelRuntime.SetBuilding();
+    ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
+    ASSERT_TRUE(tunnelRuntime.TryClaimByListener());
+    ASSERT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::TUNNEL_INFLIGHT);
+
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->SetAvailableBufferCount(1);
+    mainThread->requestNextVsyncTime_ = -1;
+
+    mainThread->ConsumeAndUpdateAllNodes();
+
+    EXPECT_EQ(mainThread->requestNextVsyncTime_, -1);
+
+    tunnelRuntime.ReleaseByListener();
+    mainThread->isUniRender_ = isUniRender;
+#endif
+}
+
+/**
  * @tc.name: ConsumeAndUpdateLowPowerVideoNode001
  * @tc.desc: Test ConsumeAndUpdateAllNodes with OH_SURFACE_SOURCE_LOWPOWERVIDEO
  * @tc.type: FUNC
@@ -3288,7 +3331,7 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateLowPowerVideoNode001, TestSize.Level1
 
     uint64_t actualTunnelLayerId = 0;
     uint32_t actualProperty = TUNNEL_PROP_INVALID;
-    rsSurfaceRenderNode->GetTunnelLayerInfo(actualTunnelLayerId, actualProperty);
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(rsSurfaceRenderNode->GetId(), actualTunnelLayerId, actualProperty);
     EXPECT_NE(actualTunnelLayerId, 0u);
     EXPECT_EQ(actualProperty, TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
 

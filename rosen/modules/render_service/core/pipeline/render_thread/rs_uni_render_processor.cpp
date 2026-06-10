@@ -51,6 +51,13 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr std::chrono::milliseconds HPAE_OFFLINE_TIMEOUT{100};
+
+bool GetTunnelLayerSnapshot(NodeId nodeId, RSRenderThreadParams::TunnelLayerSnapshot& snapshot)
+{
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    return renderThreadParams != nullptr && renderThreadParams->GetTunnelLayerSnapshot(nodeId, snapshot) &&
+        snapshot.tunnelLayerId != 0;
+}
 }
 
 RSUniRenderProcessor::RSUniRenderProcessor(ScreenId screenId)
@@ -135,7 +142,9 @@ void RSUniRenderProcessor::PostProcess()
         }
     }
     uniComposerAdapter_->CommitLayers();
-    RSUniRenderThread::Instance().NotifyCommitDone(screenInfo_.id);
+    if (hasTunnelLayer_) {
+        RSUniRenderThread::Instance().NotifyCommitDone(screenInfo_.id);
+    }
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers_.size());
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
@@ -158,11 +167,6 @@ static void SetDeviceOfflineOriginalInfo(RSLayerPtr& layer, RSSurfaceRenderParam
 void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
     const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
-    uint64_t tunnelLayerId = 0;
-    uint32_t tunnelLayerProperty = TUNNEL_PROP_INVALID;
-    node.GetTunnelLayerInfo(tunnelLayerId, tunnelLayerProperty);
-    params.SetTunnelLayerInfo(tunnelLayerId, tunnelLayerProperty);
-    params.SetTunnelLayerGeneration(node.GetTunnelRuntimeState().GetTunnelLayerGeneration());
     auto surfaceHandler = node.GetRSSurfaceHandler();
     auto buffer = offlineResult ? offlineResult->buffer : surfaceHandler->GetBuffer();
     auto consumer = offlineResult ? offlineResult->consumer : surfaceHandler->GetConsumer();
@@ -368,9 +372,11 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     }
     params.SetPreBuffer(nullptr, nullptr);
     layer->SetZorder(layerInfo.zOrder);
-    if (params.GetTunnelLayerId()) {
+    RSRenderThreadParams::TunnelLayerSnapshot tunnelLayerSnapshot;
+    if (GetTunnelLayerSnapshot(params.GetId(), tunnelLayerSnapshot)) {
         RS_TRACE_NAME_FMT("%s lpp set tunnel layer type", __func__);
         layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
+        hasTunnelLayer_ = true;
     }
     layer->SetType(layerInfo.layerType);
     layer->SetRotationFixed(params.GetFixRotationByUser());
@@ -496,7 +502,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetSurfaceName(consumer->GetName());
     layer->SetSurfaceUniqueId(consumer->GetUniqueId());
     layer->SetIsNeedComposition(true);
-    HandleTunnelLayerParameters(params, layer);
+    HandleTunnelLayerParameters(params.GetId(), layer);
     return layer;
 }
 
@@ -613,18 +619,18 @@ void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
     layers_.emplace_back(layer);
 }
 
-void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer)
+void RSUniRenderProcessor::HandleTunnelLayerParameters(NodeId nodeId, RSLayerPtr& layer)
 {
-    if (layer->GetType() != GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL) {
-        layer->SetTunnelLayerId(0);
-        layer->SetTunnelLayerProperty(TUNNEL_PROP_INVALID);
-        layer->SetTunnelLayerGeneration(0);
+    if (layer == nullptr || layer->GetType() != GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL) {
         return;
     }
-    layer->SetTunnelLayerId(params.GetTunnelLayerId());
-    uint32_t tunnelProperty = params.GetTunnelLayerProperty();
-    layer->SetTunnelLayerProperty(tunnelProperty);
-    layer->SetTunnelLayerGeneration(params.GetTunnelLayerGeneration());
+    RSRenderThreadParams::TunnelLayerSnapshot snapshot;
+    if (!GetTunnelLayerSnapshot(nodeId, snapshot)) {
+        return;
+    }
+    layer->SetTunnelLayerId(snapshot.tunnelLayerId);
+    layer->SetTunnelLayerProperty(snapshot.property);
+    layer->SetTunnelLayerGeneration(snapshot.generation);
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR

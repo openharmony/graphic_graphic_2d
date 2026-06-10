@@ -116,7 +116,10 @@ public:
         : RSRenderComposer(output, property)
     {}
 
+    using RSRenderComposer::ClearLayerCreatedCallbackFromOutput;
     using RSRenderComposer::CommitTunnelLayerBySurfaceId;
+    using RSRenderComposer::HandleTunnelCommitFailure;
+    using RSRenderComposer::RegisterLayerCreatedCallbackToOutput;
     using RSRenderComposer::SetComposerToRenderConnection;
 };
 
@@ -9204,6 +9207,97 @@ HWTEST_F(RsRenderComposerTest, CommitTunnelLayerBySurfaceId001, TestSize.Level1)
     EXPECT_EQ(results[0].nodeId, nodeId);
     EXPECT_EQ(results[0].state, LayerStateChange::UNAVAILABLE);
     EXPECT_EQ(results[0].generation, tunnelLayerId);
+
+    composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: RegisterLayerCreatedCallbackToOutput_AllBranches
+ * @tc.desc: Test layer-created callback registration early returns, inactive callback, and active notification.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, RegisterLayerCreatedCallbackToOutput_AllBranches, TestSize.Level1)
+{
+    constexpr uint32_t screenId = 0;
+    constexpr uint64_t nodeId = 8301;
+    constexpr uint64_t tunnelLayerGeneration = 8302;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
+    auto composer = std::make_shared<TestRSRenderComposer>(output, screenProperty);
+    struct CallbackResult {
+        uint64_t nodeId = 0;
+        LayerStateChange state = LayerStateChange::AVAILABLE;
+        uint64_t generation = 0;
+    };
+    std::vector<CallbackResult> results;
+    auto callbackContext = composer->layerCreatedCallbackContext;
+    composer->layerCreatedCallbackContext = nullptr;
+    EXPECT_NO_FATAL_FAILURE(composer->RegisterLayerCreatedCallbackToOutput());
+    composer->layerCreatedCallbackContext = callbackContext;
+    auto hdiOutput = composer->hdiOutput_;
+    composer->hdiOutput_ = nullptr;
+    EXPECT_NO_FATAL_FAILURE(composer->RegisterLayerCreatedCallbackToOutput());
+    composer->hdiOutput_ = hdiOutput;
+
+    composer->RegisterLayerCreatedCallbackToOutput();
+    output->OnLayerCreated(nodeId, true, tunnelLayerGeneration);
+    EXPECT_TRUE(results.empty());
+
+    sptr<RSComposerToRenderConnection> connection = new RSComposerToRenderConnection();
+    connection->RegisterLayerStateChangedCB([&results](uint64_t callbackNodeId,
+        LayerStateChange state, uint64_t generation) {
+        results.emplace_back(CallbackResult { callbackNodeId, state, generation });
+    });
+    composer->SetComposerToRenderConnection(connection);
+    composer->RegisterLayerCreatedCallbackToOutput();
+    {
+        std::lock_guard<std::mutex> lock(callbackContext->mutex);
+        callbackContext->isActive = false;
+    }
+    output->OnLayerCreated(nodeId, true, tunnelLayerGeneration);
+    EXPECT_TRUE(results.empty());
+
+    composer->RegisterLayerCreatedCallbackToOutput();
+    output->OnLayerCreated(nodeId, true, tunnelLayerGeneration);
+    ASSERT_EQ(results.size(), 1u);
+    EXPECT_EQ(results[0].nodeId, nodeId);
+    EXPECT_EQ(results[0].state, LayerStateChange::AVAILABLE);
+    EXPECT_EQ(results[0].generation, tunnelLayerGeneration);
+
+    composer->ClearLayerCreatedCallbackFromOutput();
+    output->OnLayerCreated(nodeId, false, tunnelLayerGeneration);
+    EXPECT_EQ(results.size(), 1u);
+
+    composer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: HandleTunnelCommitFailure_AllBranches
+ * @tc.desc: Test tunnel commit failure handler early returns and nodeId missing branch.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, HandleTunnelCommitFailure_AllBranches, TestSize.Level1)
+{
+    constexpr uint32_t screenId = 0;
+    constexpr uint64_t missingSurfaceId = 8401;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> screenProperty = new RSScreenProperty();
+    auto composer = std::make_shared<TestRSRenderComposer>(output, screenProperty);
+
+    auto hdiOutput = composer->hdiOutput_;
+    composer->hdiOutput_ = nullptr;
+    EXPECT_NO_FATAL_FAILURE(composer->HandleTunnelCommitFailure(missingSurfaceId));
+    composer->hdiOutput_ = hdiOutput;
+
+    EXPECT_NO_FATAL_FAILURE(composer->HandleTunnelCommitFailure(0));
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+
+    EXPECT_NO_FATAL_FAILURE(composer->HandleTunnelCommitFailure(missingSurfaceId));
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(missingSurfaceId) != 0);
 
     composer->uniRenderEngine_ = nullptr;
 }

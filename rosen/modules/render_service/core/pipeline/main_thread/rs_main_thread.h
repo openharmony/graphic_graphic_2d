@@ -209,6 +209,15 @@ public:
     void CheckWindowCapTasks();
     void ProcessWindowCapTasks();
     bool IsSnapshotPendingThisFrame() const;
+    bool IsLastFrameGpuComposition() const { return directComposeHelper_.lastFrameDidGpuRender_; }
+    uint32_t GetConsecutiveDoCompSuccessCount() const
+    {
+        return directComposeHelper_.consecutiveDoCompSuccessCount_.load(std::memory_order_acquire);
+    }
+    void ResetConsecutiveDoCompSuccessCount()
+    {
+        directComposeHelper_.consecutiveDoCompSuccessCount_.store(0, std::memory_order_release);
+    }
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();

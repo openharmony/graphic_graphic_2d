@@ -416,6 +416,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcCleanFilter_;
     // map of surface node color gamut collected in CheckColorSpace
     std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
+    RSRenderThreadParams::TunnelLayerSnapshotMap tunnelLayerSnapshots_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcDirtyFilter_;
     // record DRM nodes
@@ -563,7 +564,8 @@ public:
     /**
      * @brief Constructor with force-prepare state reference and trigger condition
      * @param isCurSubTreeForcePrepare
-     *        Reference of the RSUniRenderVisitor::isCurSubTreeForcePrepare_, depends current subtree need force-prepare
+     *        Reference of the RSUniRenderVisitor::isCurSubTreeForcePrepare_,
+     *        depends current subtree need force-prepare
      * @param condition Trigger condition for enabling force-prepare
      */
     RSSubTreePrepareController(bool& isCurSubTreeForcePrepare, bool condition);

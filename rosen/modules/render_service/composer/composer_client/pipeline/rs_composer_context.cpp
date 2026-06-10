@@ -192,6 +192,16 @@ void RSComposerContext::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     rsComposerConnection_->CleanLayerBufferBySurfaceId(surfaceId);
 }
 
+void RSComposerContext::MarkTunnelSurfaceInvalid(uint64_t surfaceId)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (rsComposerConnection_ == nullptr) {
+        RS_LOGE("%{public}s rsComposerConnection_ is nullptr", __func__);
+        return;
+    }
+    rsComposerConnection_->MarkTunnelSurfaceInvalid(surfaceId);
+}
+
 int32_t RSComposerContext::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
 {

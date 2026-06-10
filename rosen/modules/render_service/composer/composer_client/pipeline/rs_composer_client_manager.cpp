@@ -147,6 +147,14 @@ void RSComposerClientManager::SetScreenLinearMatrix(ScreenId screenId, const std
     }
 }
 
+void RSComposerClientManager::MarkTunnelSurfaceInvalid(ScreenId screenId, uint64_t surfaceId)
+{
+    auto client = GetComposerClient(screenId);
+    if (client != nullptr) {
+        client->MarkTunnelSurfaceInvalid(surfaceId);
+    }
+}
+
 PipelineParam RSComposerClientManager::GetPipelineParam(ScreenId screenId)
 {
     if (auto client = GetComposerClient(screenId)) {

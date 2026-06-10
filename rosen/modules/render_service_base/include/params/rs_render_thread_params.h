@@ -75,6 +75,12 @@ class RSB_EXPORT RSRenderThreadParams {
 public:
     using DrawablesVec = std::vector<std::tuple<NodeId, NodeId,
         DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
+    struct TunnelLayerSnapshot {
+        uint64_t tunnelLayerId = 0;
+        uint32_t property = 0;
+        uint64_t generation = 0;
+    };
+    using TunnelLayerSnapshotMap = std::unordered_map<NodeId, TunnelLayerSnapshot>;
 
     RSRenderThreadParams() = default;
     virtual ~RSRenderThreadParams() = default;
@@ -622,6 +628,21 @@ public:
         return surfaceColorGamutMap_;
     }
 
+    void SetTunnelLayerSnapshots(TunnelLayerSnapshotMap&& snapshots)
+    {
+        tunnelLayerSnapshots_ = std::move(snapshots);
+    }
+
+    bool GetTunnelLayerSnapshot(NodeId nodeId, TunnelLayerSnapshot& snapshot) const
+    {
+        auto iter = tunnelLayerSnapshots_.find(nodeId);
+        if (iter == tunnelLayerSnapshots_.end()) {
+            return false;
+        }
+        snapshot = iter->second;
+        return true;
+    }
+
 #ifdef RS_ENABLE_TV_PQ_METADATA
     bool GetCachedNodeOnTheTree() const
     {
@@ -710,6 +731,7 @@ private:
     std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> surfaceWatermarks_;
     std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> surfaceWatermarkGridCounts_;
     std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
+    TunnelLayerSnapshotMap tunnelLayerSnapshots_;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
     RSPowerOffRenderController powerOffRenderController_;
     bool isOverDrawEnabled_ = false;

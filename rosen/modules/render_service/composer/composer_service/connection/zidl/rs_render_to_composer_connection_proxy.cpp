@@ -328,5 +328,21 @@ void RSRenderToComposerConnectionProxy::PreAllocProtectedFrameBuffers(const sptr
     }
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_PREALLOC_PROTECTED_FRAME_BUFFERS, parcel, reply, option);
 }
+
+void RSRenderToComposerConnectionProxy::MarkTunnelSurfaceInvalid(uint64_t surfaceId)
+{
+    MessageOption option;
+    MessageParcel reply;
+    MessageParcel parcel;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!parcel.WriteInterfaceToken(GetDescriptor())) {
+        RS_LOGE("%{public}s WriteInterfaceToken failed", __func__);
+        return;
+    }
+    if (!parcel.WriteUint64(surfaceId)) {
+        RS_LOGE("%{public}s WriteUint64 failed", __func__);
+    }
+    SendRequest(IRENDER_TO_COMPOSER_CONNECTION_MARK_TUNNEL_SURFACE_INVALID, parcel, reply, option);
+}
 } // namespace Rosen
 } // namespace OHOS

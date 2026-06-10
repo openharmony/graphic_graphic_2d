@@ -575,6 +575,59 @@ HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithConsumer_UpdateBufferO
 }
 
 /**
+ * @tc.name: ReplacePendingReleaseBufferFence_AllBranchesTest001
+ * @tc.desc: Test ReplacePendingReleaseBufferFence early return, insert, update, and preserve paths.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, ReplacePendingReleaseBufferFence_AllBranchesTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-ut-replace");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    auto owner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    owner->bufferId_ = buffer->GetBufferId();
+    sptr<SyncFence> fence = new SyncFence(dup(STDOUT_FILENO));
+    mgr->ReplacePendingReleaseBufferFence(consumer, nullptr, fence, owner);
+    mgr->ReplacePendingReleaseBufferFence(consumer, buffer, nullptr, owner);
+    EXPECT_TRUE(mgr->pendingReleaseBuffers_.empty());
+
+    mgr->ReplacePendingReleaseBufferFence(consumer, buffer, fence, owner);
+    auto iter = mgr->pendingReleaseBuffers_.find(buffer->GetBufferId());
+    ASSERT_NE(iter, mgr->pendingReleaseBuffers_.end());
+    EXPECT_EQ(iter->second.consumer_, consumer);
+    EXPECT_EQ(iter->second.buffer_, buffer);
+    EXPECT_EQ(iter->second.bufferOwnerCount_.lock(), owner);
+    ASSERT_EQ(iter->second.mergedFences_.size(), 1);
+    EXPECT_EQ(iter->second.mergedFences_.front(), fence);
+
+    auto newConsumer = IConsumerSurface::Create("bm-ut-replace-new");
+    auto newOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    newOwner->bufferId_ = buffer->GetBufferId();
+    sptr<SyncFence> newFence = new SyncFence(dup(STDERR_FILENO));
+    mgr->ReplacePendingReleaseBufferFence(newConsumer, buffer, newFence, newOwner);
+    iter = mgr->pendingReleaseBuffers_.find(buffer->GetBufferId());
+    ASSERT_NE(iter, mgr->pendingReleaseBuffers_.end());
+    EXPECT_EQ(iter->second.consumer_, newConsumer);
+    EXPECT_EQ(iter->second.bufferOwnerCount_.lock(), newOwner);
+    ASSERT_EQ(iter->second.mergedFences_.size(), 1);
+    EXPECT_EQ(iter->second.mergedFences_.front(), newFence);
+
+    sptr<SyncFence> preserveFence = new SyncFence(dup(STDOUT_FILENO));
+    mgr->ReplacePendingReleaseBufferFence(nullptr, buffer, preserveFence, nullptr);
+    iter = mgr->pendingReleaseBuffers_.find(buffer->GetBufferId());
+    ASSERT_NE(iter, mgr->pendingReleaseBuffers_.end());
+    EXPECT_EQ(iter->second.consumer_, newConsumer);
+    EXPECT_EQ(iter->second.bufferOwnerCount_.lock(), newOwner);
+    ASSERT_EQ(iter->second.mergedFences_.size(), 1);
+    EXPECT_EQ(iter->second.mergedFences_.front(), preserveFence);
+}
+
+/**
  * @tc.name: AddPendingReleaseBuffer_WithoutConsumer_UpdateBufferOwnerCountTest001
  * @tc.desc: Test bufferOwnerCount_ update path in AddPendingReleaseBuffer without consumer
  *           When entry exists and bufferOwnerCount_ is expired and new bufferOwnerCount is provided,

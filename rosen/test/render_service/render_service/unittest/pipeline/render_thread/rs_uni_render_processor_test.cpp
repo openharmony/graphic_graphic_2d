@@ -24,6 +24,7 @@
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "limit_number.h"
 #include "metadata_helper.h"
+#include "params/rs_render_thread_params.h"
 #include "params/rs_screen_render_params.h"
 #include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
@@ -67,6 +68,8 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static void SetTunnelLayerSnapshot(NodeId nodeId, uint64_t tunnelLayerId = 1,
+        uint32_t property = TUNNEL_PROP_BUFFER_ADDR, uint64_t generation = 1);
 
     static inline uint32_t screenId_ = 0;
     static inline std::shared_ptr<RSUniRenderProcessor> renderProcessor = nullptr;
@@ -103,11 +106,25 @@ void RSUniRenderProcessorTest::TearDownTestCase()
 }
 void RSUniRenderProcessorTest::SetUp()
 {
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(nullptr);
     if (renderProcessor != nullptr) {
         renderProcessor->layers_.clear();
     }
 }
-void RSUniRenderProcessorTest::TearDown() {}
+void RSUniRenderProcessorTest::TearDown()
+{
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(nullptr);
+}
+
+void RSUniRenderProcessorTest::SetTunnelLayerSnapshot(NodeId nodeId, uint64_t tunnelLayerId,
+    uint32_t property, uint64_t generation)
+{
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParams::TunnelLayerSnapshotMap snapshots;
+    snapshots[nodeId] = { tunnelLayerId, property, generation };
+    renderThreadParams->SetTunnelLayerSnapshots(std::move(snapshots));
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(renderThreadParams));
+}
 
 /**
  * @tc.name: ProcessorInit001
@@ -691,17 +708,19 @@ HWTEST_F(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Leve
     constexpr uint32_t testTunnelLayerProperty = TUNNEL_PROP_BUFFER_ADDR;
 
     RSLayerPtr layer = nullptr;
-    params.SetTunnelLayerInfo(testTunnelLayerId, testTunnelLayerProperty);
-    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    SetTunnelLayerSnapshot(params.GetId(), testTunnelLayerId, testTunnelLayerProperty);
+    renderProcessor->HandleTunnelLayerParameters(params.GetId(), layer);
 
     layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
-    renderProcessor->HandleTunnelLayerParameters(params, layer);
-    EXPECT_EQ(layer->GetTunnelLayerId(), 0u);
-    EXPECT_EQ(layer->GetTunnelLayerProperty(), TUNNEL_PROP_INVALID);
+    layer->SetTunnelLayerId(testTunnelLayerId);
+    layer->SetTunnelLayerProperty(testTunnelLayerProperty);
+    renderProcessor->HandleTunnelLayerParameters(params.GetId(), layer);
+    EXPECT_EQ(layer->GetTunnelLayerId(), testTunnelLayerId);
+    EXPECT_EQ(layer->GetTunnelLayerProperty(), testTunnelLayerProperty);
 
     layer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
-    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    renderProcessor->HandleTunnelLayerParameters(params.GetId(), layer);
 
     EXPECT_EQ(layer->GetTunnelLayerId(), testTunnelLayerId);
     EXPECT_EQ(layer->GetTunnelLayerProperty(), testTunnelLayerProperty);
@@ -717,12 +736,11 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
 {
     ASSERT_NE(renderProcessor, nullptr);
     RSSurfaceRenderParams params(0);
-    params.SetTunnelLayerId(1);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
-    EXPECT_EQ(params.GetTunnelLayerId(), 1);
+    SetTunnelLayerSnapshot(params.GetId());
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result, nullptr);
 }
@@ -737,7 +755,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
 {
     ASSERT_NE(renderProcessor, nullptr);
     RSSurfaceRenderParams params(0);
-    params.SetTunnelLayerId(1);
+    SetTunnelLayerSnapshot(params.GetId());
     params.SetHwcGlobalPositionEnabled(true);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
@@ -763,7 +781,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo003, TestSize.Level1)
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->screenInfo_ = screenInfo;
     RSSurfaceRenderParams params(0);
-    params.SetTunnelLayerId(1);
+    SetTunnelLayerSnapshot(params.GetId());
     params.SetHwcGlobalPositionEnabled(true);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
@@ -789,7 +807,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo004, TestSize.Level1)
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->screenInfo_ = screenInfo;
     RSSurfaceRenderParams params(0);
-    params.SetTunnelLayerId(1);
+    SetTunnelLayerSnapshot(params.GetId());
     params.SetHwcGlobalPositionEnabled(true);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
@@ -815,7 +833,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->screenInfo_ = screenInfo;
     RSSurfaceRenderParams params(0);
-    params.SetTunnelLayerId(1);
+    SetTunnelLayerSnapshot(params.GetId());
     params.SetHwcGlobalPositionEnabled(true);
     params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     sptr<SurfaceBuffer> buffer = nullptr;
@@ -840,7 +858,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
     auto composerClient = RSComposerClient::Create(nullptr, nullptr);
     renderProcessor->composerClient_ = composerClient;
     RSSurfaceRenderParams params(0);
-    params.SetTunnelLayerId(1);
+    SetTunnelLayerSnapshot(params.GetId());
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     sptr<SyncFence> acquireFence = nullptr;
@@ -851,7 +869,6 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
     ASSERT_EQ(src, nullptr);
 
-    EXPECT_EQ(params.GetTunnelLayerId(), 1);
     params.SetBuffer(buffer, nullptr, DEFAULT_RECT);
     auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
@@ -2161,8 +2178,8 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_HwcGlobalPositionDisabledTest001
 
 /**
  * @tc.name: GetLayerInfo_TunnelLayerIdDisabledTest001
- * @tc.desc: Test GetLayerInfo when TunnelLayerId is 0
- *           The if (params.GetTunnelLayerId()) branch at line 387 should be false
+ * @tc.desc: Test GetLayerInfo when tunnel snapshot is absent
+ *           The tunnel layer branch should be false
  * @tc.type: FUNC
  * @tc.require: issue41
  */
@@ -2173,7 +2190,6 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_TunnelLayerIdDisabledTest001, Te
     renderProcessor->composerClient_ = composerClient;
 
     RSSurfaceRenderParams params(0);
-    params.SetTunnelLayerId(0);  // Disabled
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     BufferRequestConfig cfg { 100, 100, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
         BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
@@ -2390,7 +2406,6 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo_AllBranchesCoveredTest001, TestS
     layerInfo.alpha = 1.0f;
     params.SetLayerInfo(layerInfo);
     params.SetHwcGlobalPositionEnabled(false);
-    params.SetTunnelLayerId(0);
 
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     BufferRequestConfig cfg { 100, 100, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,

@@ -13,18 +13,22 @@
  * limitations under the License.
  */
 
+#include <memory>
+
 #include "gtest/gtest.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "node_mem_release_param.h"
 #endif
 
+#include "consumer_surface.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "ipc_callbacks/rs_frame_stability_callback_stub.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_render_pipeline_agent.h"
 #include "rs_render_pipeline.h"
+#include "surface_utils.h"
 #include "transaction/rs_frame_stability_types.h"
 
 using namespace testing;
@@ -36,6 +40,34 @@ constexpr uint64_t DEFAULT_ID = 10;
 constexpr FrameStabilityTarget INVALID_TARGET = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
 constexpr FrameStabilityTarget VALID_TARGET = { .id = DEFAULT_ID, .type = FrameStabilityTargetType::SCREEN };
 constexpr FrameStabilityConfig DEFAULT_CONFIG = { .stableDuration = 200, .changePercent = 0.0f };
+constexpr NodeId FORCE_TUNNEL_NODE_ID = 10001;
+const std::string FORCE_TUNNEL_BUNDLE_NAME = "com.ohos.force.tunnel";
+const std::string FORCE_TUNNEL_SURFACE_NAME = "ForceTunnelSurface";
+const std::string FORCE_TUNNEL_CONFIG_KEY = FORCE_TUNNEL_BUNDLE_NAME + "+" + FORCE_TUNNEL_SURFACE_NAME;
+
+RSSurfaceRenderNodeConfig MakeForceTunnelConfig()
+{
+    return {
+        .id = FORCE_TUNNEL_NODE_ID,
+        .name = FORCE_TUNNEL_SURFACE_NAME,
+        .bundleName = FORCE_TUNNEL_BUNDLE_NAME,
+    };
+}
+
+void ClearForceTunnelConfig()
+{
+    auto surfaceUtils = SurfaceUtils::GetInstance();
+    ASSERT_NE(surfaceUtils, nullptr);
+    surfaceUtils->RemoveTunnelLayerConfig(FORCE_TUNNEL_CONFIG_KEY);
+}
+
+void AddForceTunnelConfig()
+{
+    auto surfaceUtils = SurfaceUtils::GetInstance();
+    ASSERT_NE(surfaceUtils, nullptr);
+    surfaceUtils->RemoveTunnelLayerConfig(FORCE_TUNNEL_CONFIG_KEY);
+    surfaceUtils->AddTunnelLayerConfig(FORCE_TUNNEL_CONFIG_KEY);
+}
 
 class RSFrameStabilityCallbackStubMock : public RSFrameStabilityCallbackStub {
 public:
@@ -51,7 +83,10 @@ public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override {}
-    void TearDown() override {}
+    void TearDown() override
+    {
+        ClearForceTunnelConfig();
+    }
 };
 
 void RSRenderPipelineAgentTest::SetUpTestCase()
@@ -114,6 +149,83 @@ HWTEST_F(RSRenderPipelineAgentTest, SetGlobalDarkColorMode_ValidPipeline_ReturnO
 }
 
 /**
+ * @tc.name: ConfigureForceTunnelLayer_NoConfig_ReturnsWithoutSettingInfo
+ * @tc.desc: Verify ConfigureForceTunnelLayer returns early when SurfaceUtils has no matching config.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ConfigureForceTunnelLayer_NoConfig_ReturnsWithoutSettingInfo, TestSize.Level1)
+{
+    ClearForceTunnelConfig();
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(FORCE_TUNNEL_SURFACE_NAME);
+    ASSERT_NE(surface, nullptr);
+
+    agent->ConfigureForceTunnelLayer(MakeForceTunnelConfig(), surface);
+    TunnelLayerState state;
+    ASSERT_EQ(surface->GetTunnelLayerInfo(state), GSERROR_OK);
+    EXPECT_EQ(state.tunnelLayerInfo.tunnelTypeMask, TUNNEL_TYPE_NONE);
+}
+
+/**
+ * @tc.name: ConfigureForceTunnelLayer_NullUtils_ReturnsWithoutSettingInfo
+ * @tc.desc: Verify ConfigureForceTunnelLayer returns early when SurfaceUtils is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ConfigureForceTunnelLayer_NullUtils_ReturnsWithoutSettingInfo, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(FORCE_TUNNEL_SURFACE_NAME);
+    ASSERT_NE(surface, nullptr);
+
+    agent->ConfigureForceTunnelLayer(MakeForceTunnelConfig(), surface, nullptr);
+    TunnelLayerState state;
+    ASSERT_EQ(surface->GetTunnelLayerInfo(state), GSERROR_OK);
+    EXPECT_EQ(state.tunnelLayerInfo.tunnelTypeMask, TUNNEL_TYPE_NONE);
+}
+
+/**
+ * @tc.name: ConfigureForceTunnelLayer_SetTunnelInfoFailed_Returns
+ * @tc.desc: Verify ConfigureForceTunnelLayer handles SetTunnelLayerInfo failure after config match.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ConfigureForceTunnelLayer_SetTunnelInfoFailed_Returns, TestSize.Level1)
+{
+    AddForceTunnelConfig();
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    sptr<IConsumerSurface> surface = new ConsumerSurface(FORCE_TUNNEL_SURFACE_NAME);
+    ASSERT_NE(surface, nullptr);
+
+    agent->ConfigureForceTunnelLayer(MakeForceTunnelConfig(), surface);
+    ClearForceTunnelConfig();
+}
+
+/**
+ * @tc.name: ConfigureForceTunnelLayer_SetTunnelInfoSucceed
+ * @tc.desc: Verify ConfigureForceTunnelLayer sets VIDEO tunnel info when config matches.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, ConfigureForceTunnelLayer_SetTunnelInfoSucceed, TestSize.Level1)
+{
+    AddForceTunnelConfig();
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create(FORCE_TUNNEL_SURFACE_NAME);
+    ASSERT_NE(surface, nullptr);
+
+    agent->ConfigureForceTunnelLayer(MakeForceTunnelConfig(), surface);
+    TunnelLayerState state;
+    ASSERT_EQ(surface->GetTunnelLayerInfo(state), GSERROR_OK);
+    EXPECT_EQ(state.tunnelLayerInfo.tunnelTypeMask, TUNNEL_TYPE_VIDEO);
+    ClearForceTunnelConfig();
+}
+
+/**
  * @tc.name: DropFrameByPid_NullPipeline_ReturnInvalidValue
  * @tc.desc: Verify DropFrameByPid returns ERR_INVALID_VALUE when pipeline is null.
  * @tc.type: FUNC
@@ -125,8 +237,8 @@ HWTEST_F(RSRenderPipelineAgentTest, DropFrameByPid_NullPipeline_ReturnInvalidVal
     ASSERT_NE(agent, nullptr);
 
     std::vector<int32_t> pidList = { 1001, 1002 };
-    constexpr int32_t DROP_FRAME_LEVEL = 1;
-    ErrCode ret = agent->DropFrameByPid(pidList, DROP_FRAME_LEVEL);
+    constexpr int32_t dropFrameLevel = 1;
+    ErrCode ret = agent->DropFrameByPid(pidList, dropFrameLevel);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 
@@ -146,9 +258,9 @@ HWTEST_F(RSRenderPipelineAgentTest, DropFrameByPid_ValidPipeline_ReturnOk, TestS
     renderPipeline->mainThread_ = mainThread;
 
     std::vector<int32_t> pidList = { 1001, 1002 };
-    constexpr int32_t DROP_FRAME_LEVEL = 1;
+    constexpr int32_t dropFrameLevel = 1;
 
-    ErrCode ret = agent->DropFrameByPid(pidList, DROP_FRAME_LEVEL);
+    ErrCode ret = agent->DropFrameByPid(pidList, dropFrameLevel);
     EXPECT_EQ(ret, ERR_OK);
 }
 

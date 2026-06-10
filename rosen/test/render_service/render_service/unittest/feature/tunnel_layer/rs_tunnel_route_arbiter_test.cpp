@@ -15,18 +15,24 @@
 
 #include <vector>
 
+#include "event_handler.h"
 #include "feature/tunnel_layer/rs_tunnel_route_arbiter.h"
 #include "gtest/gtest.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "rs_tunnel_test_utils.h"
+#include "screen_manager/rs_screen_property.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+using TunnelTest::ClearTrackedTunnelRuntimeStates;
 using TunnelTest::CreateTunnelTestContext;
 using TunnelTest::ScopedNewTunnelSwitch;
 namespace {
@@ -42,6 +48,8 @@ constexpr int32_t TEST_ROUTE_OFFSET = 10;
 constexpr int32_t TEST_ROUTE_ZORDER = 10;
 constexpr int32_t TEST_ROUTE_ZORDER_CHANGED = 11;
 constexpr float TEST_ROUTE_ALPHA_CHANGED = 0.5f;
+constexpr ScreenId TEST_PHYSICAL_SCREEN_ID = 1001;
+constexpr ScreenId TEST_VIRTUAL_SCREEN_ID = 1002;
 
 void ActivateTunnelRuntime(RSTunnelRuntimeState& tunnelRuntime)
 {
@@ -56,6 +64,75 @@ void ClearUiCaptureTasks(RSMainThread& mainThread)
         mainThread.uiCaptureTasks_.pop();
     }
 }
+
+std::shared_ptr<RSScreenRenderNode> CreateScreenNodeForTest(NodeId nodeId, ScreenId screenId, bool isVirtual)
+{
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread == nullptr) {
+        return nullptr;
+    }
+    auto screenNode = std::make_shared<RSScreenRenderNode>(nodeId, screenId, mainThread->context_);
+    if (screenNode == nullptr) {
+        return nullptr;
+    }
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::ID>(screenId);
+    screenProperty.Set<ScreenPropertyType::IS_VIRTUAL>(isVirtual);
+    screenNode->SetScreenProperty(screenProperty);
+    return screenNode;
+}
+
+class ScopedRegisteredScreenNode {
+public:
+    explicit ScopedRegisteredScreenNode(const std::shared_ptr<RSScreenRenderNode>& screenNode) : screenNode_(screenNode)
+    {
+        auto mainThread = RSMainThread::Instance();
+        if (mainThread == nullptr || screenNode_ == nullptr) {
+            return;
+        }
+        registered_ = mainThread->context_->GetMutableNodeMap().RegisterRenderNode(screenNode_);
+    }
+
+    ~ScopedRegisteredScreenNode()
+    {
+        auto mainThread = RSMainThread::Instance();
+        if (mainThread == nullptr || screenNode_ == nullptr || !registered_) {
+            return;
+        }
+        mainThread->context_->GetMutableNodeMap().UnregisterRenderNode(screenNode_->GetId());
+    }
+
+    bool IsRegistered() const
+    {
+        return registered_;
+    }
+
+private:
+    std::shared_ptr<RSScreenRenderNode> screenNode_;
+    bool registered_ = false;
+};
+
+class ScopedMainThreadHandler {
+public:
+    explicit ScopedMainThreadHandler(const std::shared_ptr<AppExecFwk::EventHandler>& handler)
+        : mainThread_(RSMainThread::Instance()), oldHandler_(mainThread_ == nullptr ? nullptr : mainThread_->handler_)
+    {
+        if (mainThread_ != nullptr) {
+            mainThread_->handler_ = handler;
+        }
+    }
+
+    ~ScopedMainThreadHandler()
+    {
+        if (mainThread_ != nullptr) {
+            mainThread_->handler_ = oldHandler_;
+        }
+    }
+
+private:
+    RSMainThread* mainThread_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> oldHandler_;
+};
 
 sptr<SurfaceBuffer> CreateRouteBuffer(uint32_t size = TEST_ROUTE_BUFFER_SIZE,
     GraphicPixelFormat format = GRAPHIC_PIXEL_FMT_RGBA_8888)
@@ -96,9 +173,9 @@ void PrepareRouteBaseline(const TunnelTest::TunnelTestContext& context)
     auto layerInfo = CreateBaseRouteLayerInfo();
     params->SetLayerInfo(layerInfo);
     params->SetBuffer(buffer, nullptr, Rect());
-    context.node->SetTunnelLayerInfo(TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
+    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
 
-    auto& tunnelRuntime = context.node->GetTunnelRuntimeState();
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
     tunnelRuntime.SetLayerInfo(TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
     RSTunnelRuntimeState::LastFrameRouteSnapshot snapshot;
     snapshot.dstRect = layerInfo.dstRect;
@@ -157,7 +234,7 @@ ApplyMutationResult ApplyNonLayerRouteMutation(RouteMutationType type, const Tun
                 return ApplyMutationResult::FAILED;
             }
             pendingBuffer.bufferOwnerCount_->bufferId_ = pendingBuffer.buffer->GetBufferId();
-            context.node->GetTunnelRuntimeState().SetPendingBuffer(pendingBuffer);
+            RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetPendingBuffer(pendingBuffer);
             return ApplyMutationResult::APPLIED;
         }
         case RouteMutationType::CAPTURE:
@@ -167,7 +244,7 @@ ApplyMutationResult ApplyNonLayerRouteMutation(RouteMutationType type, const Tun
             context.node->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
             return ApplyMutationResult::APPLIED;
         case RouteMutationType::TUNNEL_INFO:
-            context.node->GetTunnelRuntimeState().SetLayerInfo(TEST_TUNNEL_LAYER_ID + 1,
+            RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetLayerInfo(TEST_TUNNEL_LAYER_ID + 1,
                 TEST_TUNNEL_LAYER_PROPERTY);
             return ApplyMutationResult::APPLIED;
         case RouteMutationType::BUFFER_SIZE: {
@@ -235,14 +312,15 @@ void ExpectRouteClaimGoesNormal(RSTunnelRouteArbiter& arbiter,
     const TunnelTest::TunnelTestContext& context)
 {
     EXPECT_EQ(arbiter.ArbitrateAndClaim(context.node), RSTunnelRouteArbiter::MainThreadOutcome::GO_NORMAL);
-    EXPECT_EQ(context.node->GetTunnelRuntimeState().GetPhase(), RSTunnelRuntimeState::Phase::NORMAL_PREPARING);
+    EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetPhase(),
+        RSTunnelRuntimeState::Phase::NORMAL_PREPARING);
 }
 
 void ExpectStaleQueueGoesNormal(RSTunnelRouteArbiter& arbiter)
 {
     auto context = CreateTunnelTestContext(false);
     ASSERT_TRUE(context.IsBaseReady());
-    auto& tunnelRuntime = context.node->GetTunnelRuntimeState();
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
     ActivateTunnelRuntime(tunnelRuntime);
     ASSERT_FALSE(tunnelRuntime.HasPendingBuffer());
     ASSERT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::TUNNEL_IDLE);
@@ -254,7 +332,7 @@ void ExpectHardwareDisabledGoesNormal(RSTunnelRouteArbiter& arbiter)
 {
     auto context = CreateTunnelTestContext(false);
     ASSERT_TRUE(context.IsBaseReady());
-    ActivateTunnelRuntime(context.node->GetTunnelRuntimeState());
+    ActivateTunnelRuntime(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()));
     context.node->SetHardwareForcedDisabledState(true);
     ExpectRouteClaimGoesNormal(arbiter, context);
 }
@@ -263,8 +341,8 @@ void ExpectMissingBufferKeepsEmptySnapshot(RSTunnelRouteArbiter& arbiter)
 {
     auto context = CreateTunnelTestContext(false);
     ASSERT_TRUE(context.IsBaseReady());
-    context.node->SetTunnelLayerInfo(TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
-    auto& tunnelRuntime = context.node->GetTunnelRuntimeState();
+    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
     tunnelRuntime.SetLayerInfo(TEST_TUNNEL_LAYER_ID, TEST_TUNNEL_LAYER_PROPERTY);
     ActivateTunnelRuntime(tunnelRuntime);
 
@@ -321,6 +399,11 @@ public:
     {
         RSTestUtil::InitRenderNodeGC();
     }
+
+    void TearDown() override
+    {
+        ClearTrackedTunnelRuntimeStates();
+    }
 };
 
 /**
@@ -341,6 +424,28 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 }
 
 /**
+ * @tc.name: ArbitrateAndClaim_RejectsNullAndInactiveNode
+ * @tc.desc: Defensive branches must report NOT_TUNNEL_ACTIVE without mutating runtime phase.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest,
+    RSTunnelRouteArbiter_ArbitrateAndClaim_RejectsNullAndInactiveNode, TestSize.Level1)
+{
+    RSTunnelRouteArbiter arbiter;
+    EXPECT_EQ(arbiter.ArbitrateAndClaim(nullptr), RSTunnelRouteArbiter::MainThreadOutcome::NOT_TUNNEL_ACTIVE);
+
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+    EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetTunnelState(),
+        RSTunnelRuntimeState::TunnelState::BUILDING);
+    EXPECT_EQ(arbiter.ArbitrateAndClaim(context.node), RSTunnelRouteArbiter::MainThreadOutcome::NOT_TUNNEL_ACTIVE);
+    EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetPhase(),
+        RSTunnelRuntimeState::Phase::TUNNEL_IDLE);
+
+    arbiter.AbandonNormalClaim(nullptr);
+}
+
+/**
  * @tc.name: OnRenderCommitDone_AdvancesByClaimedScreenId_NotCurrentScreenId
  * @tc.desc: A surface that migrates to a new screen between claim and commit-done must still be
  *           advanced by the original screen's commit-done so NORMAL_PREPARING cannot stall.
@@ -353,7 +458,7 @@ HWTEST_F(RSTunnelRouteArbiterTest,
     auto context = CreateTunnelTestContext(false);
     ASSERT_TRUE(context.IsBaseReady());
 
-    auto& tunnelRuntime = context.node->GetTunnelRuntimeState();
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
     ActivateTunnelRuntime(tunnelRuntime);
     context.surfaceHandler->SetAvailableBufferCount(1);
     context.node->screenId_ = CLAIMED_SCREEN_ID;
@@ -370,6 +475,69 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 
     arbiter.OnRenderCommitDone(CLAIMED_SCREEN_ID);
     EXPECT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::NORMAL_COMMITTED);
+}
+
+/**
+ * @tc.name: OnRenderCommitDone_DropsExpiredNormalRouteNode
+ * @tc.desc: An expired weak node in the normal-route list must be removed without dereferencing it.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest,
+    RSTunnelRouteArbiter_OnRenderCommitDone_DropsExpiredNormalRouteNode, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    RSTunnelRouteArbiter arbiter;
+    std::weak_ptr<RSSurfaceRenderNode> weakNode;
+    {
+        auto context = CreateTunnelTestContext(false);
+        ASSERT_TRUE(context.IsBaseReady());
+        weakNode = context.node;
+
+        ActivateTunnelRuntime(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()));
+        context.surfaceHandler->SetAvailableBufferCount(1);
+        context.node->screenId_ = CLAIMED_SCREEN_ID;
+        ASSERT_EQ(arbiter.ArbitrateAndClaim(context.node), RSTunnelRouteArbiter::MainThreadOutcome::GO_NORMAL);
+    }
+    ASSERT_EQ(weakNode.lock(), nullptr);
+
+    arbiter.OnRenderCommitDone(CLAIMED_SCREEN_ID);
+    arbiter.OnRenderCommitDone(CLAIMED_SCREEN_ID);
+}
+
+/**
+ * @tc.name: AttachToRenderThread_CommitDoneCallbackAdvancesClaimedNode
+ * @tc.desc: The render-thread commit-done callback posts back to main and advances the claimed screen node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest,
+    RSTunnelRouteArbiter_AttachToRenderThread_CommitDoneCallbackAdvancesClaimedNode, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto runner = AppExecFwk::EventRunner::Create(false);
+    ASSERT_NE(runner, nullptr);
+    ScopedMainThreadHandler scopedHandler(std::make_shared<AppExecFwk::EventHandler>(runner));
+    ASSERT_NE(mainThread->handler_, nullptr);
+
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId());
+    ActivateTunnelRuntime(tunnelRuntime);
+    context.surfaceHandler->SetAvailableBufferCount(1);
+    context.node->screenId_ = CLAIMED_SCREEN_ID;
+
+    RSTunnelRouteArbiter arbiter;
+    ASSERT_EQ(arbiter.ArbitrateAndClaim(context.node), RSTunnelRouteArbiter::MainThreadOutcome::GO_NORMAL);
+    ASSERT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::NORMAL_PREPARING);
+
+    arbiter.AttachToRenderThread();
+    RSUniRenderThread::Instance().NotifyCommitDone(CLAIMED_SCREEN_ID);
+    mainThread->handler_->PostTask([runner]() { runner->Stop(); });
+    runner->Run();
+
+    EXPECT_EQ(tunnelRuntime.GetPhase(), RSTunnelRuntimeState::Phase::NORMAL_COMMITTED);
+    RSUniRenderThread::Instance().SetCommitDoneCallback(nullptr);
 }
 
 /**
@@ -415,6 +583,58 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 }
 
 /**
+ * @tc.name: ComputeGlobalForbiddenCause_ReturnsVirtualScreenActive_ForNonMirrorVirtualScreen
+ * @tc.desc: A non-mirror virtual screen is a global normal-route trigger.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest,
+    RSTunnelRouteArbiter_ComputeGlobalForbiddenCause_ReturnsVirtualScreenActive_ForNonMirrorVirtualScreen,
+    TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
+    RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
+    ClearUiCaptureTasks(*mainThread);
+
+    auto virtualScreen = CreateScreenNodeForTest(GenerateUniqueNodeIdForRS(), TEST_VIRTUAL_SCREEN_ID, true);
+    ASSERT_NE(virtualScreen, nullptr);
+    ScopedRegisteredScreenNode registeredVirtualScreen(virtualScreen);
+    ASSERT_TRUE(registeredVirtualScreen.IsRegistered());
+
+    const char* cause = RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(mainThread);
+    ASSERT_NE(cause, nullptr);
+    EXPECT_STREQ(cause, "VIRTUAL_SCREEN_ACTIVE");
+}
+
+/**
+ * @tc.name: ComputeGlobalForbiddenCause_IgnoresMirrorVirtualScreen
+ * @tc.desc: A mirror virtual screen is filtered by HasNonMirrorVirtualScreen and does not report virtual-screen cause.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelRouteArbiterTest,
+    RSTunnelRouteArbiter_ComputeGlobalForbiddenCause_IgnoresMirrorVirtualScreen, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ClearUiCaptureTasks(*mainThread);
+
+    auto physicalScreen = CreateScreenNodeForTest(GenerateUniqueNodeIdForRS(), TEST_PHYSICAL_SCREEN_ID, false);
+    auto virtualScreen = CreateScreenNodeForTest(GenerateUniqueNodeIdForRS(), TEST_VIRTUAL_SCREEN_ID, true);
+    ASSERT_NE(physicalScreen, nullptr);
+    ASSERT_NE(virtualScreen, nullptr);
+    virtualScreen->SetIsMirrorScreen(true);
+    virtualScreen->SetMirrorSource(physicalScreen);
+
+    ScopedRegisteredScreenNode registeredPhysicalScreen(physicalScreen);
+    ScopedRegisteredScreenNode registeredVirtualScreen(virtualScreen);
+    ASSERT_TRUE(registeredPhysicalScreen.IsRegistered());
+    ASSERT_TRUE(registeredVirtualScreen.IsRegistered());
+
+    EXPECT_EQ(RSTunnelRouteArbiter::ComputeGlobalForbiddenCause(mainThread), nullptr);
+}
+
+/**
  * @tc.name: ComputeGlobalForbiddenCause_ReturnsNullptr_WhenCleanState
  * @tc.desc: With no mirror display, no pending ui-capture task, and no non-mirror virtual
  *           screen registered, the unified probe must return nullptr.
@@ -425,7 +645,8 @@ HWTEST_F(RSTunnelRouteArbiterTest,
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-
+    RSMainThread::Instance()->directComposeHelper_.consecutiveDoCompSuccessCount_.store(TUNNEL_STABLE_THRESHOLD);
+    RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
     ClearUiCaptureTasks(*mainThread);
     ASSERT_FALSE(mainThread->IsSnapshotPendingThisFrame());
 

@@ -37,6 +37,7 @@ public:
     virtual void SetScreenLinearMatrix(const std::vector<float>& matrix) = 0;
     virtual void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) = 0;
     virtual void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) = 0;
+    virtual void MarkTunnelSurfaceInvalid(uint64_t surfaceId) = 0;
     DECLARE_INTERFACE_DESCRIPTOR(u"IRSRenderToComposerConnection");
 
 protected:
@@ -50,6 +51,7 @@ protected:
         IRENDER_TO_COMPOSER_CONNECTION_SET_LINEAR_MATRIX,
         IRENDER_TO_COMPOSER_CONNECTION_SET_COMPOSER_TO_RENDER_CONNECTION,
         IRENDER_TO_COMPOSER_CONNECTION_PREALLOC_PROTECTED_FRAME_BUFFERS,
+        IRENDER_TO_COMPOSER_CONNECTION_MARK_TUNNEL_SURFACE_INVALID,
     };
 };
 } // namespace OHOS::Rosen

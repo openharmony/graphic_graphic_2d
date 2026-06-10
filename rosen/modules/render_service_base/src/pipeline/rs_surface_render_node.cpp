@@ -42,6 +42,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties_painter.h"
@@ -163,8 +164,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
-      bundleName_(config.bundleName),
-      tunnelRuntimeState_(std::make_unique<RSTunnelRuntimeState>())
+      bundleName_(config.bundleName)
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -184,6 +184,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContex
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode()
 {
+    RSTunnelRuntimeStore::Erase(GetId());
 #ifdef USE_SURFACE_TEXTURE
     SetSurfaceTexture(nullptr);
 #endif
@@ -209,8 +210,8 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
     if (surfaceHandler == nullptr) {
         return;
     }
-    if (surfaceHandler->GetConsumer() != consumer && tunnelRuntimeState_ != nullptr) {
-        tunnelRuntimeState_->Clear();
+    if (surfaceHandler->GetConsumer() != consumer) {
+        RSTunnelRuntimeStore::Clear(GetId());
     }
     surfaceHandler->SetConsumer(consumer);
 }

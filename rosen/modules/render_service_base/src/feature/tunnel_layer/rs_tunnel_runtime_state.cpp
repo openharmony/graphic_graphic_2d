@@ -13,10 +13,13 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_tunnel_runtime_state.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 
 namespace OHOS {
 namespace Rosen {
+std::mutex RSTunnelRuntimeStore::mutex_;
+std::unordered_map<NodeId, std::unique_ptr<RSTunnelRuntimeState>> RSTunnelRuntimeStore::tunnelRuntimeStates_;
+
 RSTunnelRuntimeState::~RSTunnelRuntimeState() noexcept
 {
     Clear();
@@ -269,5 +272,92 @@ void RSTunnelRuntimeState::UpdateLastFrameRouteSnapshot(const LastFrameRouteSnap
     lastFrameRouteSnapshot_ = snapshot;
 }
 #endif
+
+RSTunnelRuntimeState& RSTunnelRuntimeStore::GetOrCreate(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto& tunnelRuntime = tunnelRuntimeStates_[nodeId];
+    if (tunnelRuntime == nullptr) {
+        tunnelRuntime = std::make_unique<RSTunnelRuntimeState>();
+    }
+    return *tunnelRuntime;
+}
+
+bool RSTunnelRuntimeStore::GetLayerInfoIfPresent(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = tunnelRuntimeStates_.find(nodeId);
+    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
+        tunnelLayerId = 0;
+        property = TUNNEL_PROP_INVALID;
+        return false;
+    }
+    iter->second->GetLayerInfo(tunnelLayerId, property);
+    return true;
+}
+
+void RSTunnelRuntimeStore::GetLayerInfoOrDefault(NodeId nodeId, uint64_t& tunnelLayerId, uint32_t& property)
+{
+    (void)GetLayerInfoIfPresent(nodeId, tunnelLayerId, property);
+}
+
+void RSTunnelRuntimeStore::SetLayerInfo(NodeId nodeId, uint64_t tunnelLayerId, uint32_t property)
+{
+    GetOrCreate(nodeId).SetLayerInfo(tunnelLayerId, property);
+}
+
+uint64_t RSTunnelRuntimeStore::GetTunnelLayerGeneration(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = tunnelRuntimeStates_.find(nodeId);
+    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
+        return 0;
+    }
+    return iter->second->GetTunnelLayerGeneration();
+}
+
+bool RSTunnelRuntimeStore::HasPendingBuffer(NodeId nodeId)
+{
+#ifdef ROSEN_CROSS_PLATFORM
+    return false;
+#else
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = tunnelRuntimeStates_.find(nodeId);
+    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
+        return false;
+    }
+    return iter->second->HasPendingBuffer();
+#endif
+}
+
+bool RSTunnelRuntimeStore::IsTunnelActive(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = tunnelRuntimeStates_.find(nodeId);
+    if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
+        return false;
+    }
+    return iter->second->GetTunnelState() == RSTunnelRuntimeState::TunnelState::ACTIVE;
+}
+
+void RSTunnelRuntimeStore::Clear(NodeId nodeId)
+{
+    RSTunnelRuntimeState* runtime = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = tunnelRuntimeStates_.find(nodeId);
+        if (iter == tunnelRuntimeStates_.end() || iter->second == nullptr) {
+            return;
+        }
+        runtime = iter->second.get();
+    }
+    runtime->Clear();
+}
+
+void RSTunnelRuntimeStore::Erase(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    tunnelRuntimeStates_.erase(nodeId);
+}
 } // namespace Rosen
 } // namespace OHOS

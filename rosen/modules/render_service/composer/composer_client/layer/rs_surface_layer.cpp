@@ -34,7 +34,7 @@ bool ShouldNotifyTunnelLayerDestroyed(const sptr<IConsumerSurface>& surface, uin
     if (surface == nullptr) {
         return false;
     }
-    if (tunnelLayerId == 0 || property == TUNNEL_PROP_INVALID) {
+    if (tunnelLayerId == 0) {
         TunnelLayerState state;
         if (surface->GetTunnelLayerInfo(state) != GSERROR_OK) {
             return false;

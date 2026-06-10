@@ -63,6 +63,7 @@
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "pipeline/rs_union_render_node.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "feature/color_picker/rs_color_picker_utils.h"
@@ -2603,16 +2604,12 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, Req
             node->ResetVcldInfo();
             continue;
         }
-        uint64_t nodeTunnelLayerId = 0;
-        uint32_t nodeTunnelProperty = TUNNEL_PROP_INVALID;
-        node->GetTunnelLayerInfo(nodeTunnelLayerId, nodeTunnelProperty);
         if ((it.second == RequestCompositionType::OFFLINE_DEVICE ||
             it.second == RequestCompositionType::OFFLINE_VCLD_OFF) &&
 #ifdef HETERO_HDR_ENABLE
             !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
 #endif
-            RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady() &&
-            nodeTunnelLayerId == 0) {
+            RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady()) {
             node->SetDeviceOfflineEnable(true);
             if (it.second == RequestCompositionType::OFFLINE_VCLD_OFF) {
                 node->ResetVcldInfo();
@@ -3993,6 +3990,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
         renderThreadParams->forceCommitReason_ |= ForceCommitReason::FORCED_BY_POINTER_WINDOW;
     }
     renderThreadParams->surfaceColorGamutMap_ = std::move(surfaceColorGamutMap_);
+    renderThreadParams->SetTunnelLayerSnapshots(std::move(tunnelLayerSnapshots_));
 }
 
 void RSUniRenderVisitor::SendRcdMessage(RSScreenRenderNode& node)
@@ -4229,16 +4227,12 @@ void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
 {
     uint64_t tunnelLayerId = 0;
     uint32_t property = TUNNEL_PROP_INVALID;
-    node.GetTunnelLayerInfo(tunnelLayerId, property);
-    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
-    if (nodeParams == nullptr) {
-        return;
-    }
-    nodeParams->SetTunnelLayerInfo(tunnelLayerId, property);
-    nodeParams->SetTunnelLayerGeneration(node.GetTunnelRuntimeState().GetTunnelLayerGeneration());
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(node.GetId(), tunnelLayerId, property);
     if (tunnelLayerId == 0) {
         return;
     }
+    tunnelLayerSnapshots_[node.GetId()] = { tunnelLayerId, property,
+        RSTunnelRuntimeStore::GetTunnelLayerGeneration(node.GetId()) };
     RS_LOGI("%{public}s tunnel surfaceid:%{public}" PRIu64 ", property:%{public}u, nodeid:%{public}" PRIu64,
         __func__, tunnelLayerId, property, node.GetId());
     RS_TRACE_NAME_FMT("%s tunnel surfaceid:%" PRIu64 ", property:%u, nodeid:%" PRIu64,

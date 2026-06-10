@@ -27,6 +27,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_test_util.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "rs_surface_layer.h"
 #include "screen_manager/rs_screen_property.h"
 
@@ -634,19 +635,12 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated007, TestSize.Level1)
     ASSERT_NE(surfaceHandler, nullptr);
     auto consumer = surfaceHandler->GetConsumer();
     ASSERT_NE(consumer, nullptr);
-    sptr<IBufferProducer> producerToken = consumer->GetProducer();
-    auto producer = Surface::CreateSurfaceAsProducer(producerToken);
-    ASSERT_NE(producer, nullptr);
-
-    std::vector<LayerStateChange> results;
-    ASSERT_EQ(producer->RegisterLayerStateChangedListener(
-                  [&results](LayerStateChange state) { results.emplace_back(state); }),
-        GSERROR_OK);
 
     auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
-    surfaceNode->SetTunnelLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
-    auto tunnelLayerGeneration = surfaceNode->GetTunnelRuntimeState().GetTunnelLayerGeneration();
+    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
+    auto tunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
 
     sptr<RSComposerToRenderConnection> composerToRenderConn = new RSComposerToRenderConnection();
     pipeline->RegisterLayerStateChangedCB(composerToRenderConn);
@@ -654,9 +648,10 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated007, TestSize.Level1)
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, tunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    ASSERT_EQ(results.size(), 1u);
-    EXPECT_EQ(results[0], LayerStateChange::AVAILABLE);
+    EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
+    EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
 
+    RSTunnelRuntimeStore::Erase(surfaceNode->GetId());
     nodeMap.UnregisterRenderNode(surfaceNode->GetId());
     RSTestUtil::UnregisterConsumerListener();
 }
@@ -677,19 +672,11 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
     ASSERT_NE(surfaceHandler, nullptr);
     auto consumer = surfaceHandler->GetConsumer();
     ASSERT_NE(consumer, nullptr);
-    sptr<IBufferProducer> producerToken = consumer->GetProducer();
-    auto producer = Surface::CreateSurfaceAsProducer(producerToken);
-    ASSERT_NE(producer, nullptr);
-
-    std::vector<LayerStateChange> results;
-    ASSERT_EQ(producer->RegisterLayerStateChangedListener(
-                  [&results](LayerStateChange state) { results.emplace_back(state); }),
-        GSERROR_OK);
 
     auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     ASSERT_TRUE(nodeMap.RegisterRenderNode(surfaceNode));
-    surfaceNode->SetTunnelLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
-    auto& tunnelRuntime = surfaceNode->GetTunnelRuntimeState();
+    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR);
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
     auto staleTunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
     tunnelRuntime.SetBuilding();
 
@@ -699,20 +686,16 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, staleTunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    EXPECT_TRUE(results.empty());
     EXPECT_FALSE(tunnelRuntime.IsTunnelDirectAllowed());
 
     uint64_t currentTunnelLayerGeneration = tunnelRuntime.GetTunnelLayerGeneration();
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration), COMPOSITOR_ERROR_OK);
-    ASSERT_EQ(results.size(), 1u);
-    EXPECT_EQ(results[0], LayerStateChange::AVAILABLE);
     EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
 
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::UNAVAILABLE, staleTunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    ASSERT_EQ(results.size(), 1u);
     EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
 
     EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
@@ -722,16 +705,15 @@ HWTEST_F(RSRenderPipelineTest, HandleLayerCreated008, TestSize.Level1)
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration),
         COMPOSITOR_ERROR_OK);
-    ASSERT_EQ(results.size(), 1u);
     EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
     EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
 
     ASSERT_EQ(composerToRenderConn->NotifyLayerStateChangedToRender(
         surfaceNode->GetId(), LayerStateChange::AVAILABLE, currentTunnelLayerGeneration), COMPOSITOR_ERROR_OK);
-    ASSERT_EQ(results.size(), 1u);
     EXPECT_EQ(tunnelRuntime.GetTunnelState(), RSTunnelRuntimeState::TunnelState::ACTIVE);
     EXPECT_TRUE(tunnelRuntime.IsTunnelDirectAllowed());
 
+    RSTunnelRuntimeStore::Erase(surfaceNode->GetId());
     nodeMap.UnregisterRenderNode(surfaceNode->GetId());
     RSTestUtil::UnregisterConsumerListener();
 }
@@ -765,8 +747,9 @@ HWTEST_F(RSRenderPipelineTest, CollectInfoForHardwareComposer001, TestSize.Level
     surfaceNode->isHardwareEnabledNode_ = true;
     auto consumer = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
     ASSERT_NE(consumer, nullptr);
-    surfaceNode->SetTunnelLayerInfo(consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
-    auto& tunnelRuntime = surfaceNode->GetTunnelRuntimeState();
+    RSTunnelRuntimeStore::SetLayerInfo(
+        surfaceNode->GetId(), consumer->GetUniqueId(), TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
     tunnelRuntime.SetBuilding();
     ASSERT_TRUE(tunnelRuntime.SetActiveFromTunnelLayerAvailable(tunnelRuntime.GetTunnelLayerGeneration()));
 

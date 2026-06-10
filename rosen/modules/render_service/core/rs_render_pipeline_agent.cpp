@@ -89,10 +89,18 @@ constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 
-void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface)
+}
+
+void RSRenderPipelineAgent::ConfigureForceTunnelLayer(
+    const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface)
 {
-    auto utils = SurfaceUtils::GetInstance();
-    if (utils == nullptr || !utils->NeedForceTunnelLayer(config.name, config.bundleName)) {
+    ConfigureForceTunnelLayer(config, surface, SurfaceUtils::GetInstance());
+}
+
+void RSRenderPipelineAgent::ConfigureForceTunnelLayer(
+    const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface, SurfaceUtils* utils)
+{
+    if (surface == nullptr || utils == nullptr || !utils->NeedForceTunnelLayer(config.name, config.bundleName)) {
         return;
     }
     TunnelLayerInfo info;
@@ -109,8 +117,6 @@ void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sp
     RS_LOGD("TUNNEL_DEBUG %s force tunnel layer, nodeId:%{public}" PRIu64
         ", name:%{public}s, bundle:%{public}s", __func__, config.id, config.name.c_str(),
         config.bundleName.c_str());
-}
-
 }
 
 bool ValidateTargetId(const RSRenderNodeMap& nodeMap, uint64_t id)

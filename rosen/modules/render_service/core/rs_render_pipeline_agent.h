@@ -20,6 +20,9 @@
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 
 namespace OHOS {
+class IConsumerSurface;
+class SurfaceUtils;
+
 namespace Rosen {
 class RSRenderPipelineAgent : public RefBase {
 public:
@@ -231,6 +234,10 @@ public:
         const FrameStabilityTarget& newTarget
     );
 private:
+    void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface);
+    void ConfigureForceTunnelLayer(
+        const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface, SurfaceUtils* utils);
+
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;
     mutable std::mutex pidToBundleMutex_;

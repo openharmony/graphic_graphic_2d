@@ -42,11 +42,13 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
+#include "params/rs_render_thread_params.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_union_render_node.h"
 #include "pipeline/mock/mock_rs_luminance_control.h"
@@ -7709,7 +7711,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId001, TestSize.Level2)
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
     uint64_t actualTunnelLayerId = 0;
     uint32_t actualProperty = TUNNEL_PROP_INVALID;
-    surfaceNode->GetTunnelLayerInfo(actualTunnelLayerId, actualProperty);
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(surfaceNode->GetId(), actualTunnelLayerId, actualProperty);
     EXPECT_EQ(actualTunnelLayerId, 0u);
 }
 
@@ -7788,12 +7790,12 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId002, TestSize.Level2)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
     ASSERT_NE(surfaceNode, nullptr);
  
-    surfaceNode->SetTunnelLayerInfo(1, TUNNEL_PROP_INVALID);
+    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), 1, TUNNEL_PROP_INVALID);
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
     const auto nodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
     uint64_t actualTunnelLayerId = 0;
     uint32_t actualProperty = TUNNEL_PROP_INVALID;
-    surfaceNode->GetTunnelLayerInfo(actualTunnelLayerId, actualProperty);
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(surfaceNode->GetId(), actualTunnelLayerId, actualProperty);
     if (nodeParams != nullptr) {
         EXPECT_EQ(actualTunnelLayerId, 1u);
     } else {
@@ -7822,14 +7824,16 @@ HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId003, TestSize.Level2)
     ASSERT_NE(surfaceNode->GetStagingRenderParams(), nullptr);
 
     constexpr uint64_t tunnelLayerId = 3002;
-    surfaceNode->SetTunnelLayerInfo(tunnelLayerId, TUNNEL_PROP_INVALID);
+    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), tunnelLayerId, TUNNEL_PROP_INVALID);
 
     rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
 
-    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
-    ASSERT_NE(nodeParams, nullptr);
-    EXPECT_EQ(nodeParams->GetTunnelLayerId(), tunnelLayerId);
-    EXPECT_EQ(nodeParams->GetTunnelLayerProperty(), TUNNEL_PROP_INVALID);
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsUniRenderVisitor->SetUniRenderThreadParam(renderThreadParams);
+    RSRenderThreadParams::TunnelLayerSnapshot snapshot;
+    ASSERT_TRUE(renderThreadParams->GetTunnelLayerSnapshot(surfaceNode->GetId(), snapshot));
+    EXPECT_EQ(snapshot.tunnelLayerId, tunnelLayerId);
+    EXPECT_EQ(snapshot.property, TUNNEL_PROP_INVALID);
 }
 
 /*
@@ -9970,7 +9974,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode004, TestSize.Level2)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     EXPECT_NE(surfaceNode, nullptr);
-    surfaceNode->SetTunnelLayerInfo(0, TUNNEL_PROP_INVALID); // Set TunnelLayerId to 0 for the new branch
+    RSTunnelRuntimeStore::SetLayerInfo(surfaceNode->GetId(), 0, TUNNEL_PROP_INVALID);
 
     NodeId id = 1;
     auto rsContext = std::make_shared<RSContext>();

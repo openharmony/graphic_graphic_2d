@@ -49,6 +49,7 @@ public:
     void RegisterLayerStateChangedCB(OnLayerStateChangedCB cb);
     std::shared_ptr<RSComposerContext> GetComposerContext();
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+    void MarkTunnelSurfaceInvalid(uint64_t surfaceId);
     int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence);
     void ClearFrameBuffers();

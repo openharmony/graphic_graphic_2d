@@ -122,6 +122,11 @@ void RSComposerClient::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     rsComposerContext_->CleanLayerBufferBySurfaceId(surfaceId);
 }
 
+void RSComposerClient::MarkTunnelSurfaceInvalid(uint64_t surfaceId)
+{
+    rsComposerContext_->MarkTunnelSurfaceInvalid(surfaceId);
+}
+
 int32_t RSComposerClient::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
 {

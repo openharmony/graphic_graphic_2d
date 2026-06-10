@@ -27,6 +27,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "rs_composer_client.h"
 #include "rs_render_to_composer_connection_proxy.h"
 #include "rs_render_to_composer_connection_stub.h"
@@ -36,6 +37,17 @@ namespace OHOS::Rosen::TunnelTest {
 inline constexpr uint32_t TEST_BUFFER_SIZE = 0x100;
 inline constexpr uint32_t TEST_STRIDE_ALIGNMENT = 0x8;
 inline constexpr uint32_t TEST_TUNNEL_LAYER_PROPERTY = TUNNEL_PROP_BUFFER_ADDR;
+inline BufferRequestConfig testBufferRequestConfig = {
+    .width = TEST_BUFFER_SIZE,
+    .height = TEST_BUFFER_SIZE,
+    .strideAlignment = TEST_STRIDE_ALIGNMENT,
+    .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+    .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+    .timeout = 0,
+};
+inline BufferFlushConfig testBufferFlushConfig = {
+    .damage = { .w = TEST_BUFFER_SIZE, .h = TEST_BUFFER_SIZE },
+};
 
 inline std::vector<std::shared_ptr<RSLayer>>& GetRecordingComposerLayers()
 {
@@ -46,6 +58,27 @@ inline std::vector<std::shared_ptr<RSLayer>>& GetRecordingComposerLayers()
 inline void ClearRecordingComposerLayers()
 {
     GetRecordingComposerLayers().clear();
+}
+
+inline std::unordered_set<NodeId>& GetTrackedTunnelTestNodeIds()
+{
+    static std::unordered_set<NodeId> nodeIds;
+    return nodeIds;
+}
+
+inline void TrackTunnelTestNode(NodeId nodeId)
+{
+    RSTunnelRuntimeStore::Erase(nodeId);
+    GetTrackedTunnelTestNodeIds().emplace(nodeId);
+}
+
+inline void ClearTrackedTunnelRuntimeStates()
+{
+    auto& nodeIds = GetTrackedTunnelTestNodeIds();
+    for (auto nodeId : nodeIds) {
+        RSTunnelRuntimeStore::Erase(nodeId);
+    }
+    nodeIds.clear();
 }
 
 inline TunnelLayerInfo MakeTunnelLayerInfo(TunnelTypeMask tunnelType = TUNNEL_TYPE_STYLUS)
@@ -77,15 +110,7 @@ inline sptr<SurfaceBuffer> CreateTestSurfaceBuffer()
     if (buffer == nullptr) {
         return nullptr;
     }
-    BufferRequestConfig requestConfig = {
-        .width = TEST_BUFFER_SIZE,
-        .height = TEST_BUFFER_SIZE,
-        .strideAlignment = TEST_STRIDE_ALIGNMENT,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-    };
-    return buffer->Alloc(requestConfig) == GSERROR_OK ? buffer : nullptr;
+    return buffer->Alloc(testBufferRequestConfig) == GSERROR_OK ? buffer : nullptr;
 }
 
 inline RSSurfaceHandler::SurfaceBufferEntry CreateTestBufferEntry()
@@ -111,6 +136,22 @@ inline IConsumerSurface::AcquireBufferReturnValue CreateTestAcquireBufferReturnV
     returnValue.damages = { { .x = 0, .y = 0, .w = TEST_BUFFER_SIZE, .h = TEST_BUFFER_SIZE } };
     return returnValue;
 }
+
+inline bool FlushProducerBufferForTest(const sptr<Surface>& producer)
+{
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SyncFence> requestFence = SyncFence::InvalidFence();
+    sptr<SyncFence> flushFence = SyncFence::InvalidFence();
+    return producer != nullptr &&
+        producer->RequestBuffer(buffer, requestFence, testBufferRequestConfig) == GSERROR_OK &&
+        buffer != nullptr &&
+        producer->FlushBuffer(buffer, flushFence, testBufferFlushConfig) == GSERROR_OK;
+}
+
+class TunnelNoopConsumerListener : public IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override {}
+};
 
 class ScopedNewTunnelSwitch {
 public:
@@ -180,6 +221,11 @@ public:
         (void)buffer;
     }
 
+    void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override
+    {
+        (void)surfaceId;
+    }
+
     bool commitTunnelCalled = false;
     uint32_t commitTunnelCallCount = 0;
     int32_t commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;
@@ -219,6 +265,7 @@ struct TunnelTestContext {
     std::shared_ptr<RSSurfaceHandler> surfaceHandler;
     sptr<IConsumerSurface> consumer;
     sptr<Surface> producer;
+    sptr<IBufferConsumerListener> consumerListener;
 
     bool IsBaseReady() const
     {
@@ -239,12 +286,17 @@ inline TunnelTestContext CreateTunnelTestContext(bool withProducer)
     if (context.node == nullptr) {
         return context;
     }
+    TrackTunnelTestNode(context.node->GetId());
     context.surfaceHandler = context.node->GetMutableRSSurfaceHandler();
     if (context.surfaceHandler == nullptr) {
         return context;
     }
     context.consumer = context.surfaceHandler->GetConsumer();
     if (context.consumer == nullptr || !withProducer) {
+        return context;
+    }
+    context.consumerListener = new TunnelNoopConsumerListener();
+    if (context.consumer->RegisterConsumerListener(context.consumerListener) != GSERROR_OK) {
         return context;
     }
     sptr<IBufferProducer> producerToken = context.consumer->GetProducer();
@@ -261,7 +313,7 @@ inline bool SetRuntimePendingBufferForTest(const TunnelTestContext& context)
     if (entry.buffer == nullptr) {
         return false;
     }
-    context.node->GetTunnelRuntimeState().SetPendingBuffer(entry);
+    RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetPendingBuffer(entry);
     return true;
 }
 
@@ -306,7 +358,7 @@ inline bool MoveRuntimePendingToNormalHold(const std::shared_ptr<RSSurfaceRender
         return false;
     }
     RSSurfaceHandler::SurfaceBufferEntry entry;
-    auto& runtime = node->GetTunnelRuntimeState();
+    auto& runtime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
     if (!runtime.TakePendingBuffer(entry) || entry.buffer == nullptr) {
         return false;
     }

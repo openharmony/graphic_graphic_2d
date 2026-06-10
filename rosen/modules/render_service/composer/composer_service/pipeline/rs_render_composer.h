@@ -80,6 +80,7 @@ protected:
     void OnHwcRestored(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void OnHwcDead();
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+    void MarkTunnelSurfaceInvalid(uint64_t surfaceId);
     int32_t CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence);
     void SurfaceDump(std::string& dumpString);

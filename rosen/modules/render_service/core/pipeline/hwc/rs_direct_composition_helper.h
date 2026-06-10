@@ -17,10 +17,23 @@
 #ifndef RS_DIRECT_COMPOSITION_HELPER_H
 #define RS_DIRECT_COMPOSITION_HELPER_H
 
+#include <atomic>
+
 namespace OHOS {
 namespace Rosen {
 struct RSDirectCompositionHelper {
     bool isLastFrameDirectComposition_ = false;
+    // True only when the previous frame actually traversed the GPU composition
+    // path (needTraverseNodeTree=true with rendering). Unlike
+    // !isLastFrameDirectComposition_, this is not triggered by "nothing to
+    // update" frames or buffer-not-updated frames, which pose no HdiOutput
+    // conflict with the listener.
+    bool lastFrameDidGpuRender_ = false;
+    // Consecutive frames where DoDirectComposition actually ran and returned
+    // true. GPU-composition / DoComp-failure frames reset it to 0; "nothing
+    // to update" frames leave it unchanged. Tunnel can only enter ACTIVE when
+    // this reaches TUNNEL_STABLE_THRESHOLD.
+    std::atomic<uint32_t> consecutiveDoCompSuccessCount_ {0};
 };
 
 } // namespace Rosen
