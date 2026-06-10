@@ -150,7 +150,7 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
     RSRenderThreadParams& uniParams)
 {
-    if (RSUniRenderThread::IsInCaptureProcess()) {
+    if (uniParams.IsMirrorScreen() || RSUniRenderThread::IsInCaptureProcess()) {
         return false;
     }
     if (!surfaceParams.GetNeedCacheSurface()) {
@@ -163,15 +163,11 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
         return false;
     }
 
-    if (surfaceParams.IsCloneNode() && RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        return false;
-    }
-
     if (!surfaceParams.IsCrossNode()) {
         return true;
     }
     if (uniParams.IsFirstVisitCrossNodeDisplay() &&
-        !RSUniRenderThread::IsInCaptureProcess() && !uniParams.HasDisplayHdrOn() &&
+        !uniParams.HasDisplayHdrOn() &&
         uniParams.GetCrossNodeOffScreenStatus() != CrossNodeOffScreenRenderDebugType::DISABLED) {
         RS_TRACE_NAME_FMT("%s cache cross node[%s]", __func__, GetName().c_str());
         return true;
