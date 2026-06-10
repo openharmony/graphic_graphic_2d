@@ -1245,6 +1245,7 @@ bool RSInterfaces::SetUifirstScale(float scaleFactor)
     }
     ROSEN_LOGI("RSInterfaces::SetUifirstScale called, scaleFactor:%{public}f", scaleFactor);
     return renderServiceClient_->SetUifirstScale(scaleFactor);
+}
 
 } // namespace Rosen
 } // namespace OHOS
