@@ -496,7 +496,7 @@ HWTEST_F(BootCompileProgressTest, SetFrame_RogMode_Normal, TestSize.Level1)
     progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
     progress->rogWidth_ = TEST_ROG_WIDTH_1440;
     progress->rogHeight_ = TEST_ROG_HEIGHT_2560;
-    progress->Setframe();
+    progress->SetFrame();
     EXPECT_TRUE(true);
 }
 
@@ -516,7 +516,7 @@ HWTEST_F(BootCompileProgressTest, SetFrame_RogModeInactive, TestSize.Level1)
     progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
     progress->rogWidth_ = TEST_FRAME_NUM_0;
     progress->rogHeight_ = TEST_FRAME_NUM_0;
-    progress->Setframe();
+    progress->SetFrame();
     EXPECT_TRUE(true);
 }
 
