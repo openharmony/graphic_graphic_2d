@@ -221,6 +221,11 @@ public:
         (void)buffer;
     }
 
+    void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override
+    {
+        (void)surfaceId;
+    }
+
     bool commitTunnelCalled = false;
     uint32_t commitTunnelCallCount = 0;
     int32_t commitTunnelResult = GRAPHIC_DISPLAY_SUCCESS;

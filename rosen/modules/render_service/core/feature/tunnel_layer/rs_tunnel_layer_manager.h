@@ -27,6 +27,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_state_handler.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
+#include "rs_composer_client_manager.h"
 #include "sync_fence.h"
 
 namespace OHOS {
@@ -40,12 +41,10 @@ public:
     ~RSTunnelLayerManager() override = default;
 
     void TransferTunnelPendingBufferToNormalConsume(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
-    void MarkTunnelBufferConsumedForNormal(const NodeId nodeId,
-        const std::shared_ptr<RSSurfaceHandler>& surfaceHandler) const;
+    void MarkTunnelBufferConsumedForNormal(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        const std::shared_ptr<RSComposerClientManager>& clientManager) const;
     void ClearRuntimeStateByPid(pid_t remotePid);
-    void UpdateTunnelLayerState(NodeId nodeId, const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-        const bool& goNormal);
-    void RestoreTunnelLayerInfo(NodeId nodeId, const std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
+    void UpdateTunnelLayerState(NodeId nodeId, const std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
     void HandleLayerStateChanged(NodeId nodeId, LayerStateChange state, uint64_t tunnelLayerGeneration) override;
 
 private:
@@ -56,8 +55,7 @@ private:
     bool HandleLppTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId) const;
     void ResetTunnelLayerState(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
-    void HandleNewTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId,
-        const bool& goNormal);
+    void HandleNewTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId);
     void ProcessLayerStateChanged(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId,
         LayerStateChange state, uint64_t tunnelLayerGeneration, const sptr<IConsumerSurface>& consumer);
     void UpdateLayerStateLog(NodeId nodeId, LayerStateChange callbackState, LayerStateChange inputState,

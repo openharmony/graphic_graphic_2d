@@ -190,13 +190,12 @@ HWTEST_F(RSTunnelLayerManagerTest, TransferTunnelPendingBufferToNormalConsume001
 HWTEST_F(RSTunnelLayerManagerTest, MarkTunnelBufferConsumedForNormal001, TestSize.Level1)
 {
     RSTunnelLayerManager tunnelLayerManager(nullptr);
-    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(0, nullptr);
+    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(nullptr, nullptr);
 
     auto emptyBufferContext = CreateTunnelContext();
     ASSERT_TRUE(emptyBufferContext.IsProducerReady());
     ActivateTunnelRuntime(emptyBufferContext.node);
-    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(emptyBufferContext.node->GetId(),
-        emptyBufferContext.surfaceHandler);
+    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(emptyBufferContext.node, nullptr);
     EXPECT_FALSE(emptyBufferContext.surfaceHandler->IsCurrentFrameBufferConsumed());
 
     auto consumedContext = CreateTunnelContext();
@@ -208,8 +207,7 @@ HWTEST_F(RSTunnelLayerManagerTest, MarkTunnelBufferConsumedForNormal001, TestSiz
     ActivateTunnelRuntime(consumedContext.node);
     RSTunnelRuntimeStore::GetOrCreate(consumedContext.node->GetId()).SetCommittedTunnelBufferId(consumedBufferId);
     ASSERT_TRUE(consumedContext.surfaceHandler->IsCurrentFrameBufferConsumed());
-    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(consumedContext.node->GetId(),
-        consumedContext.surfaceHandler);
+    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(consumedContext.node, nullptr);
     EXPECT_TRUE(consumedContext.surfaceHandler->IsCurrentFrameBufferConsumed());
     EXPECT_TRUE(RSTunnelRuntimeStore::GetOrCreate(consumedContext.node->GetId()).IsCommittedTunnelBuffer(
         consumedBufferId));
@@ -222,20 +220,20 @@ HWTEST_F(RSTunnelLayerManagerTest, MarkTunnelBufferConsumedForNormal001, TestSiz
     context.surfaceHandler->ConsumeAndUpdateBuffer(bufferEntry);
     context.surfaceHandler->ResetCurrentFrameBufferConsumed();
 
-    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node->GetId(), context.surfaceHandler);
+    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node, nullptr);
     EXPECT_FALSE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
 
     ActivateTunnelRuntime(context.node);
-    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node->GetId(), context.surfaceHandler);
+    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node, nullptr);
     EXPECT_FALSE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
 
     RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetCommittedTunnelBufferId(bufferId + 1);
-    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node->GetId(), context.surfaceHandler);
+    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node, nullptr);
     EXPECT_FALSE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
     EXPECT_FALSE(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).IsCommittedTunnelBuffer(bufferId));
 
     RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetCommittedTunnelBufferId(bufferId);
-    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node->GetId(), context.surfaceHandler);
+    tunnelLayerManager.MarkTunnelBufferConsumedForNormal(context.node, nullptr);
     EXPECT_TRUE(context.surfaceHandler->IsCurrentFrameBufferConsumed());
     EXPECT_FALSE(RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).IsCommittedTunnelBuffer(bufferId));
 }
@@ -255,10 +253,10 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState001, TestSize.Level1)
     ASSERT_TRUE(RegisterSurfaceNode(rsContext, lppContext.node));
     lppContext.surfaceHandler->SetSourceType(
         static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO));
-    tunnelLayerManager.UpdateTunnelLayerState(lppContext.node->GetId(), lppContext.surfaceHandler, false);
+    tunnelLayerManager.UpdateTunnelLayerState(lppContext.node->GetId(), lppContext.surfaceHandler);
     ExpectTunnelLayerInfo(lppContext.node, lppContext.consumer->GetUniqueId(),
         TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
-    tunnelLayerManager.UpdateTunnelLayerState(lppContext.node->GetId(), lppContext.surfaceHandler, false);
+    tunnelLayerManager.UpdateTunnelLayerState(lppContext.node->GetId(), lppContext.surfaceHandler);
     ExpectTunnelLayerInfo(lppContext.node, lppContext.consumer->GetUniqueId(),
         TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT);
 
@@ -270,7 +268,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState001, TestSize.Level1)
     lppNoConsumerContext.surfaceHandler->SetConsumer(nullptr);
     RSTunnelRuntimeStore::Erase(lppNoConsumerContext.node->GetId());
     tunnelLayerManager.UpdateTunnelLayerState(lppNoConsumerContext.node->GetId(),
-        lppNoConsumerContext.surfaceHandler, false);
+        lppNoConsumerContext.surfaceHandler);
     ExpectTunnelLayerInfo(lppNoConsumerContext.node, 0, TUNNEL_PROP_INVALID);
 
     auto disabledNoStateContext = CreateTunnelContext(MakeNodeId(TEST_PID_TWO, TEST_NODE_UID_THREE));
@@ -279,7 +277,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState001, TestSize.Level1)
     {
         ScopedNewTunnelSwitch scopedNewTunnelSwitch(false);
         tunnelLayerManager.UpdateTunnelLayerState(
-            disabledNoStateContext.node->GetId(), disabledNoStateContext.surfaceHandler, false);
+            disabledNoStateContext.node->GetId(), disabledNoStateContext.surfaceHandler);
     }
     ExpectTunnelLayerInfo(disabledNoStateContext.node, 0, TUNNEL_PROP_INVALID);
 
@@ -293,7 +291,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState001, TestSize.Level1)
     {
         ScopedNewTunnelSwitch scopedNewTunnelSwitch(false);
         tunnelLayerManager.UpdateTunnelLayerState(disabledContext.node->GetId(),
-            disabledContext.surfaceHandler, false);
+            disabledContext.surfaceHandler);
     }
     RSTunnelRuntimeStore::Erase(disabledContext.node->GetId());
     ExpectTunnelLayerInfo(disabledContext.node, 0, TUNNEL_PROP_INVALID);
@@ -318,13 +316,13 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState002, TestSize.Level1)
     {
         ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
         tunnelLayerManager.UpdateTunnelLayerState(newTunnelContext.node->GetId(),
-            newTunnelContext.surfaceHandler, false);
+            newTunnelContext.surfaceHandler);
         ExpectTunnelLayerInfo(newTunnelContext.node, tunnelState.tunnelLayerId, tunnelState.property);
         EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(newTunnelContext.node->GetId()).GetTunnelState(),
             RSTunnelRuntimeState::TunnelState::BUILDING);
 
         tunnelLayerManager.UpdateTunnelLayerState(newTunnelContext.node->GetId(),
-            newTunnelContext.surfaceHandler, false);
+            newTunnelContext.surfaceHandler);
         EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(newTunnelContext.node->GetId()).GetTunnelState(),
             RSTunnelRuntimeState::TunnelState::BUILDING);
 
@@ -335,7 +333,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState002, TestSize.Level1)
             RSTunnelRuntimeState::TunnelState::ACTIVE);
 
         tunnelLayerManager.UpdateTunnelLayerState(newTunnelContext.node->GetId(),
-            newTunnelContext.surfaceHandler, false);
+            newTunnelContext.surfaceHandler);
         EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(newTunnelContext.node->GetId()).GetTunnelState(),
             RSTunnelRuntimeState::TunnelState::ACTIVE);
     }
@@ -355,7 +353,7 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState003, TestSize.Level1)
     ASSERT_TRUE(noStateContext.IsProducerReady());
     ASSERT_TRUE(RegisterSurfaceNode(rsContext, noStateContext.node));
     tunnelLayerManager.UpdateTunnelLayerState(noStateContext.node->GetId(),
-        noStateContext.surfaceHandler, false);
+        noStateContext.surfaceHandler);
     RSTunnelRuntimeStore::Erase(noStateContext.node->GetId());
     ExpectTunnelLayerInfo(noStateContext.node, 0, TUNNEL_PROP_INVALID);
     uint64_t tunnelLayerId = 0;
@@ -369,12 +367,12 @@ HWTEST_F(RSTunnelLayerManagerTest, UpdateTunnelLayerState003, TestSize.Level1)
     TunnelLayerState tunnelState;
     ASSERT_TRUE(SetTunnelInfoForConsumer(trackedContext.consumer, tunnelState));
     tunnelLayerManager.UpdateTunnelLayerState(trackedContext.node->GetId(),
-        trackedContext.surfaceHandler, false);
+        trackedContext.surfaceHandler);
 
     TunnelLayerInfo emptyTunnelInfo;
     ASSERT_EQ(trackedContext.consumer->SetTunnelLayerInfo(emptyTunnelInfo), GSERROR_OK);
     tunnelLayerManager.UpdateTunnelLayerState(trackedContext.node->GetId(),
-        trackedContext.surfaceHandler, false);
+        trackedContext.surfaceHandler);
 
     ExpectTunnelLayerInfo(trackedContext.node, 0, TUNNEL_PROP_INVALID);
     EXPECT_EQ(RSTunnelRuntimeStore::GetOrCreate(trackedContext.node->GetId()).GetTunnelState(),
@@ -398,7 +396,7 @@ HWTEST_F(RSTunnelLayerManagerTest, HandleLayerStateChanged001, TestSize.Level1)
 
     TunnelLayerState tunnelState;
     ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, tunnelState));
-    tunnelLayerManager.UpdateTunnelLayerState(context.node->GetId(), context.surfaceHandler, false);
+    tunnelLayerManager.UpdateTunnelLayerState(context.node->GetId(), context.surfaceHandler);
     auto generation = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetTunnelLayerGeneration();
 
     tunnelLayerManager.HandleLayerStateChanged(context.node->GetId(), LayerStateChange::AVAILABLE,
@@ -410,7 +408,7 @@ HWTEST_F(RSTunnelLayerManagerTest, HandleLayerStateChanged001, TestSize.Level1)
     ExpectTunnelLayerInfo(context.node, 0, TUNNEL_PROP_INVALID);
 
     ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, tunnelState));
-    tunnelLayerManager.UpdateTunnelLayerState(context.node->GetId(), context.surfaceHandler, false);
+    tunnelLayerManager.UpdateTunnelLayerState(context.node->GetId(), context.surfaceHandler);
     generation = RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).GetTunnelLayerGeneration();
     auto unknownState = static_cast<LayerStateChange>(TEST_UNKNOWN_LAYER_STATE);
     tunnelLayerManager.HandleLayerStateChanged(context.node->GetId(), unknownState, generation);

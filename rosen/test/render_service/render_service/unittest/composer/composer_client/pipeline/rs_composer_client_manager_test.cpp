@@ -55,6 +55,7 @@ public:
     void SetScreenLinearMatrix(const std::vector<float>& matirx) override {}
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
+    void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override {}
 
     sptr<IRemoteObject> AsObject() override
     {
@@ -103,6 +104,7 @@ public:
     void SetScreenLinearMatrix(const std::vector<float>& matirx) override {}
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
+    void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override {}
 
     bool commitTunnelCalled = false;
     uint64_t lastSurfaceId = 0;

@@ -36,6 +36,7 @@ private:
     int32_t GetLinearMatrix(OHOS::MessageParcel& parcel, std::vector<float>& matrix);
     int32_t SetComposerToRenderConnectionStub(OHOS::MessageParcel& parcel);
     int32_t PreAllocProtectedFrameBuffersStub(OHOS::MessageParcel& parcel);
+    int32_t MarkTunnelSurfaceInvalidSurfaceIdStub(OHOS::MessageParcel& parcel);
     pid_t lastSendingPid_ = 0;
 };
 } // namespace OHOS::Rosen

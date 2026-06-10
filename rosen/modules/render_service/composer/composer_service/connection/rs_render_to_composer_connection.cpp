@@ -38,7 +38,7 @@ bool RSRenderToComposerConnection::CommitLayers(std::unique_ptr<RSLayerTransacti
 
 void RSRenderToComposerConnection::ClearFrameBuffers()
 {
-    RS_TRACE_NAME_FMT("%s screenId:" PRIu64, __func__, screenId_);
+    RS_TRACE_NAME_FMT("%s screenId:%" PRIu64, __func__, screenId_);
     if (rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param illegal", __func__);
         return;
@@ -48,7 +48,7 @@ void RSRenderToComposerConnection::ClearFrameBuffers()
 
 void RSRenderToComposerConnection::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
-    RS_TRACE_NAME_FMT("%s screenId:" PRIu64, __func__, screenId_);
+    RS_TRACE_NAME_FMT("%s screenId:%" PRIu64, __func__, screenId_);
     if (surfaceId == 0 || rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param illegal", __func__);
         return;
@@ -70,7 +70,7 @@ int32_t RSRenderToComposerConnection::CommitTunnelLayerBySurfaceId(uint64_t surf
 
 void RSRenderToComposerConnection::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
 {
-    RS_TRACE_NAME_FMT("%s screenId:" PRIu64, __func__, screenId);
+    RS_TRACE_NAME_FMT("%s screenId:%" PRIu64, __func__, screenId);
     if (rsRenderComposerAgent_ == nullptr) {
         RS_LOGE("%{public}s param nullptr", __func__);
         return;
@@ -127,6 +127,16 @@ void RSRenderToComposerConnection::PreAllocProtectedFrameBuffers(const sptr<Surf
         return;
     }
     rsRenderComposerAgent_->PreAllocProtectedFrameBuffers(buffer);
+}
+
+void RSRenderToComposerConnection::MarkTunnelSurfaceInvalid(uint64_t surfaceId)
+{
+    RS_TRACE_NAME_FMT("%s screenId:%" PRIu64, __func__, screenId_);
+    if (surfaceId == 0 || rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("%{public}s param illegal", __func__);
+        return;
+    }
+    rsRenderComposerAgent_->MarkTunnelSurfaceInvalid(surfaceId);
 }
 } // namespace Rosen
 } // namespace OHOS

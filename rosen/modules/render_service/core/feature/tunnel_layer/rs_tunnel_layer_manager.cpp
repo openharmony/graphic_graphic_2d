@@ -105,12 +105,17 @@ void RSTunnelLayerManager::TransferTunnelPendingBufferToNormalConsume(
 }
 
 void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
-    const NodeId nodeId, const std::shared_ptr<RSSurfaceHandler>& surfaceHandler) const
+    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    const std::shared_ptr<RSComposerClientManager>& clientManager) const
 {
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(nodeId);
+    if (surfaceNode == nullptr) {
+        return;
+    }
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
     if (tunnelRuntime.GetTunnelState() != RSTunnelRuntimeState::TunnelState::ACTIVE) {
         return;
     }
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     if (surfaceHandler == nullptr || surfaceHandler->IsCurrentFrameBufferConsumed()) {
         return;
     }
@@ -122,6 +127,9 @@ void RSTunnelLayerManager::MarkTunnelBufferConsumedForNormal(
     }
     if (!tunnelRuntime.IsCommittedTunnelBuffer(buffer->GetBufferId())) {
         return;
+    }
+    if (clientManager) {
+        clientManager->MarkTunnelSurfaceInvalid(surfaceNode->GetScreenId(), consumer->GetUniqueId());
     }
     RSUniRenderThread::Instance().ReplacePendingReleaseBufferFence(
         consumer, buffer, SyncFence::InvalidFence(), bufferOwnerCount);
@@ -158,7 +166,7 @@ std::shared_ptr<RSSurfaceRenderNode> RSTunnelLayerManager::GetSurfaceNode(NodeId
 }
 
 void RSTunnelLayerManager::UpdateTunnelLayerState(
-    NodeId nodeId, const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, const bool& goNormal)
+    NodeId nodeId, const std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
 {
     if (HandleLppTunnelLayerId(surfaceHandler, nodeId)) {
         return;
@@ -167,8 +175,7 @@ void RSTunnelLayerManager::UpdateTunnelLayerState(
     if (!Rosen::IsNewTunnelEnabled()) {
         return;
     }
-    HandleNewTunnelLayerId(surfaceHandler, nodeId, goNormal);
-    MarkTunnelBufferConsumedForNormal(nodeId, surfaceHandler);
+    HandleNewTunnelLayerId(surfaceHandler, nodeId);
 }
 
 bool RSTunnelLayerManager::HandleLppTunnelLayerId(
@@ -215,7 +222,7 @@ void RSTunnelLayerManager::ResetTunnelLayerState(const std::shared_ptr<RSSurface
 }
 
 void RSTunnelLayerManager::HandleNewTunnelLayerId(
-    const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId, const bool& goNormal)
+    const std::shared_ptr<RSSurfaceHandler>& surfaceHandler, NodeId nodeId)
 {
     auto consumer = surfaceHandler->GetConsumer();
     uint64_t currentTunnelLayerId = 0;
@@ -241,12 +248,7 @@ void RSTunnelLayerManager::HandleNewTunnelLayerId(
         return;
     }
 
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(nodeId);
-    auto buffer = surfaceHandler->GetBuffer();
-    if (goNormal && buffer && tunnelRuntime.IsCommittedTunnelBuffer(buffer->GetBufferId())) {
-        newProperty = TUNNEL_PROP_INVALID;
-    }
-    auto tunnelState = tunnelRuntime.GetTunnelState();
+    auto tunnelState = RSTunnelRuntimeStore::GetOrCreate(nodeId).GetTunnelState();
     bool sameTunnelInfo = currentTunnelLayerId == newTunnelLayerId && currentProperty == newProperty;
     if (sameTunnelInfo && tunnelState == RSTunnelRuntimeState::TunnelState::BUILDING) {
         // Keep runtime buffers while waiting for the layer-created callback.
@@ -267,28 +269,6 @@ void RSTunnelLayerManager::HandleNewTunnelLayerId(
         TUNNEL_DEBUG_PREFIX, __func__, newTunnelLayerId, newProperty);
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s tunnel surfaceid=%" PRIu64 ", property=%u",
         __func__, newTunnelLayerId, newProperty);
-}
-
-void RSTunnelLayerManager::RestoreTunnelLayerInfo(NodeId nodeId,
-    const std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
-{
-    auto consumer = surfaceHandler->GetConsumer();
-    if (consumer == nullptr) {
-        return;
-    }
-    uint64_t newTunnelLayerId = 0;
-    uint32_t newProperty = TUNNEL_PROP_INVALID;
-    if (!RSTunnelLayerHelper::ResolveTunnelLayerInfo(consumer, newTunnelLayerId, newProperty)) {
-        return;
-    }
-    RSTunnelRuntimeStore::SetLayerInfo(nodeId, newTunnelLayerId, newProperty);
-#ifndef ROSEN_CROSS_PLATFORM
-    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(nodeId);
-    auto snapshot = tunnelRuntime.GetLastFrameRouteSnapshot();
-    snapshot.tunnelLayerId = newTunnelLayerId;
-    snapshot.tunnelProperty = newProperty;
-    tunnelRuntime.UpdateLastFrameRouteSnapshot(snapshot);
-#endif
 }
 
 void RSTunnelLayerManager::HandleLayerStateChanged(
@@ -313,6 +293,18 @@ void RSTunnelLayerManager::ProcessLayerStateChanged(const std::shared_ptr<RSSurf
         RSTunnelRuntimeStore::GetLayerInfoOrDefault(nodeId, trackedTunnelLayerId, trackedProperty);
     }
     bool isTunnelStateTracked = surfaceNode != nullptr && trackedTunnelLayerId != 0;
+    bool hasVersionedCallback = tunnelLayerGeneration != 0;
+    bool isCurrentGeneration = surfaceNode != nullptr &&
+        RSTunnelRuntimeStore::GetOrCreate(nodeId).IsCurrentTunnelLayerGeneration(tunnelLayerGeneration);
+    if (hasVersionedCallback && !isCurrentGeneration) {
+        RS_LOGD("%{public}s%{public}s ignore stale callback, nodeId:%{public}" PRIu64
+            ", input:%{public}s, generation:%{public}" PRIu64,
+            TUNNEL_DEBUG_PREFIX, __func__, nodeId, ToLayerStateChangeName(state), tunnelLayerGeneration);
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s ignore stale callback, nodeId=%" PRIu64
+            ", input=%s, generation=%" PRIu64,
+            __func__, nodeId, ToLayerStateChangeName(state), tunnelLayerGeneration);
+        return;
+    }
     LayerStateChange callbackState = isTunnelStateTracked && state != LayerStateChange::AVAILABLE ?
         LayerStateChange::UNAVAILABLE : state;
     auto tunnelState = surfaceNode == nullptr ? RSTunnelRuntimeState::TunnelState::BUILDING :

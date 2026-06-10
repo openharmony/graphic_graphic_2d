@@ -121,7 +121,6 @@ public:
     }
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
     void MarkTunnelSurfaceInvalid(uint64_t surfaceId);
-    void AppendDeferredDestroyLayerLocked(uint64_t surfaceId, const std::shared_ptr<HdiLayer>& hdiLayer);
     void EraseTunnelSurfaceInvalid(uint64_t surfaceId);
     uint64_t GetNodeIdBySurfaceId(uint64_t surfaceId) const;
     uint64_t GetTunnelLayerGenerationBySurfaceId(uint64_t surfaceId) const;

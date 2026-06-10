@@ -1811,6 +1811,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 comsumeResult = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
                     *surfaceHandler, timestamp_, dropFrameConfig,
                     parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
+                if (comsumeResult) {
+                    tunnelLayerManager_->MarkTunnelBufferConsumedForNormal(surfaceNode, composerClientManager_);
+                }
                 if (!comsumeResult) {
                     tunnelRouteArbiter_->AbandonNormalClaim(surfaceNode);
                 }
@@ -1821,8 +1824,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
                 lppVideoHandler_.ConsumeAndUpdateLppBuffer(vsyncId_, surfaceNode);
             }
-            tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler, goNormal);
             if (comsumeResult) {
+                tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler);
                 if (!isUniRender_) {
                     this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                         static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -2655,27 +2658,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (needTraverseNodeTree) {
         // Once exiting DoDirectComposition, clear the nodes collected for DoDirectComposition
         aibarNodes_.clear();
-        // This frame actually does GPU composition — set the precise flag so the
-        // next frame's RefreshGlobalTriggerSnapshot identifies this as a GPU_COMPOSITION
-        // trigger (unlike !isLastFrameDirectComposition_ which also fires for "nothing
-        // to update" frames that pose no HdiOutput conflict).
         directComposeHelper_.lastFrameDidGpuRender_ = true;
-        // GPU composition does NOT reset the DoComp success streak. The streak is
-        // only erased by directCompositionFailed_ (permanent DoComp failure).  This
-        // way the UNSTABLE_COMPOSITION threshold matters only for the initial
-        // activation; once proven stable, occasional GPU-composition frames merely
-        // trigger GPU_COMPOSITION (a temporary per-frame block) without forcing
-        // tunnel to re-qualify for 3 more DoComp frames.
-        // GPU composition path: tunnel independent display conflicts with the main
-        // thread's CommitAndGetReleaseFence at the HdiOutput level. Force all tunnel
-        // nodes to GO_NORMAL so the main thread consumes their buffers and
-        // UpdateTunnelLayerState resets tunnelLayerId. RefreshGlobalTriggerSnapshot
-        // propagates the GPU_COMPOSITION cause (from lastFrameDidGpuRender_) to the
-        // listener via globalRouteForcedNormal_. Note: directCompositionFailed_ is only
-        // set when DoComp *returns* false (permanent); this call covers the broader
-        // needTraverseNodeTree=true case (dirty frames, uiCapture, etc.) where DoComp
-        // was never called.
-        ForceTunnelGoNormalForGpuComposition();
         RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
         ResetConsecutiveDoCompSuccessCount();
         if (RSUniRenderThread::Instance().IsPostedReclaimMemoryTask()) {
@@ -2747,22 +2730,10 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         // set params used in render thread
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
     } else {
-        // DoComp succeeded — no HdiOutput conflict this frame. Clear the GPU render
-        // flag and refresh the snapshot so the listener thread immediately sees
-        // globalRouteForcedNormal_=false (otherwise the flag set at ConsumeAndUpdateAllNodes
-        // line 1771 persists for the entire frame, blocking the listener unnecessarily).
-        // Increment the consecutive-success counter; once it reaches TUNNEL_STABLE_THRESHOLD,
-        // the UNSTABLE_COMPOSITION trigger in ComputeGlobalForbiddenCause clears, allowing
-        // tunnel to enter ACTIVE.
         directComposeHelper_.lastFrameDidGpuRender_ = false;
         directComposeHelper_.consecutiveDoCompSuccessCount_.fetch_add(1, std::memory_order_acq_rel);
         RSTunnelRouteArbiter::RefreshGlobalTriggerSnapshot();
         RsFrameReport::DirectRenderEnd();
-        // 直通稳定后恢复tunnelLayerId和property，防止TUNNEL_INFO_CHANGED误触发
-        if (directComposeHelper_.consecutiveDoCompSuccessCount_.load(std::memory_order_acquire) >=
-            TUNNEL_STABLE_THRESHOLD) {
-            ForceTunnelRestoreLayerInfo();
-        }
     }
 
     PrepareUiCaptureTasks(uniVisitor);
@@ -2963,7 +2934,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                         surfaceNode->GetInstanceRootNodeId(), tempRefreshRects,
                         screenNode->GetScreenProperty().GetWidth() * screenNode->GetScreenProperty().GetHeight());
                 }
-                tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler, false);
+                tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler);
                 if (!isCurrentFrameBufferConsumed && params->GetPreBuffer() != nullptr) {
                     params->SetPreBuffer(nullptr, nullptr);
                     surfaceNode->AddToPendingSyncList();
@@ -2999,39 +2970,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
     RS_LOGD("DoDirectComposition end");
     return true;
-}
-
-void RSMainThread::ForceTunnelGoNormalForGpuComposition()
-{
-    for (auto& surfaceNode : hardwareEnabledNodes_) {
-        if (surfaceNode == nullptr) continue;
-        if (!RSTunnelRuntimeStore::IsTunnelActive(surfaceNode->GetId())) continue;
-        auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId());
-        auto reclaim = tunnelRuntime.TryClaimByMain(true);
-        if (reclaim != RSTunnelRuntimeState::ClaimResult::GO_NORMAL) continue;
-        auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
-        if (surfaceHandler == nullptr) continue;
-        tunnelLayerManager_->TransferTunnelPendingBufferToNormalConsume(surfaceNode);
-        RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
-            *surfaceHandler, timestamp_, {},
-            surfaceNode->GetParent().lock() ? surfaceNode->GetParent().lock()->GetId() : 0,
-            surfaceNode->IsAncestorScreenFrozen());
-        tunnelLayerManager_->UpdateTunnelLayerState(surfaceNode->GetId(), surfaceHandler, false);
-    }
-}
-
-void RSMainThread::ForceTunnelRestoreLayerInfo()
-{
-    for (auto& surfaceNode : hardwareEnabledNodes_) {
-        if (surfaceNode == nullptr) continue;
-        auto tunnelState = RSTunnelRuntimeStore::GetOrCreate(surfaceNode->GetId()).GetTunnelState();
-        // 仅恢复ACTIVE节点：被GO_NORMAL清除tunnelLayerId的节点需要恢复以重新进入tunnel，
-        // BUILDING节点尚未激活，不存在"恢复"需求
-        if (tunnelState != RSTunnelRuntimeState::TunnelState::ACTIVE) continue;
-        auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
-        if (surfaceHandler == nullptr) continue;
-        tunnelLayerManager_->RestoreTunnelLayerInfo(surfaceNode->GetId(), surfaceHandler);
-    }
 }
 
 pid_t RSMainThread::GetDesktopPidForRotationScene() const

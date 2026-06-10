@@ -90,6 +90,10 @@ int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::M
             ret = PreAllocProtectedFrameBuffersStub(data);
             break;
         }
+        case IRENDER_TO_COMPOSER_CONNECTION_MARK_TUNNEL_SURFACE_INVALID: {
+            ret = MarkTunnelSurfaceInvalidSurfaceIdStub(data);
+            break;
+        }
         default: {
             ret = COMPOSITOR_ERROR_BINDER_ERROR;
             break;
@@ -225,6 +229,17 @@ int32_t RSRenderToComposerConnectionStub::PreAllocProtectedFrameBuffersStub(OHOS
         return COMPOSITOR_ERROR_BINDER_ERROR;
     }
     PreAllocProtectedFrameBuffers(buffer);
+    return COMPOSITOR_ERROR_OK;
+}
+
+int32_t RSRenderToComposerConnectionStub::MarkTunnelSurfaceInvalidSurfaceIdStub(OHOS::MessageParcel& parcel)
+{
+    uint64_t surfaceId = 0;
+    if (!parcel.ReadUint64(surfaceId)) {
+        RS_LOGE("%{public}s read surface id failed.", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
+    MarkTunnelSurfaceInvalid(surfaceId);
     return COMPOSITOR_ERROR_OK;
 }
 } // namespace Rosen

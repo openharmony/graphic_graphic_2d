@@ -533,14 +533,8 @@ int32_t HdiLayer::SetTunnelLayerProperty()
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         return ret;
     }
-    tunnelLayerProperty_ = rsLayer_->GetTunnelLayerProperty();
 
     return GRAPHIC_DISPLAY_SUCCESS;
-}
-
-uint32_t HdiLayer::GetTunnelLayerProperty() const
-{
-    return tunnelLayerProperty_;
 }
 
 int32_t HdiLayer::SetLayerPresentTimestamp()

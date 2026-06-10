@@ -445,7 +445,7 @@ RSTunnelLayerHelper::ListenerHandleResult RSTunnelLayerHelper::HandleListenerBuf
             __func__, node->GetId(), ToPhaseName(tunnelRuntime.GetPhase()), tunnelRuntime.IsPendingParam());
         return result;
     }
-    RS_TRACE_NAME_FMT("HandleListenerBuffer claimedFrom:%d", claimedFrom);
+    RS_OPTIONAL_TRACE_NAME_FMT("HandleListenerBuffer claimedFrom:%d", claimedFrom);
     bool previousFrameWasRs = claimedFrom == RSTunnelRuntimeState::Phase::NORMAL_COMMITTED ||
         claimedFrom == RSTunnelRuntimeState::Phase::TUNNEL_IDLE;
     bool hasCommitCandidateBuffer = surfaceHandler->GetAvailableBufferCount() > 0 ||
