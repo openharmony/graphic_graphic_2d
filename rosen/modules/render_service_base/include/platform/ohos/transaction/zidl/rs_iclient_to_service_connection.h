@@ -427,7 +427,6 @@ public:
 #endif
 
     virtual ErrCode SetUifirstScale(float scaleFactor) = 0;
-
 };
 } // namespace Rosen
 } // namespace OHOS
