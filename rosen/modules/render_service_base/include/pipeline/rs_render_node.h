@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "display_engine/rs_luminance_control.h"
+#include "feature/dynamic_layer_skip/rs_dynamic_layer_skip_context.h"
 #include "feature/opinc/rs_layer_part_render_cache.h"
 #include "feature/opinc/rs_opinc_cache.h"
 #include "feature/opinc/rs_opinc_root_cache.h"
@@ -88,13 +89,6 @@ struct CurFrameInfoDetail {
     uint32_t curFrameVsyncId = 0;
     bool curFrameSubTreeSkipped = false;
     bool curFrameReverseChildren = false;
-};
-
-enum LayerDrawContent : size_t {
-    SELF = 0,       // whether the node itself has draw content
-    SUBTREE = 1,    // whether the subtree has draw content, determined by all its descendants
-    UPDATE = 2,     // whether the node has update content in current frame, used for dynamic layer skip optimization
-    MAX = 3
 };
 
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {

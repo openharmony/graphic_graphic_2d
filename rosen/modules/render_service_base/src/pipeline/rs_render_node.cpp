@@ -760,7 +760,6 @@ void RSRenderNode::ResetChildRelevantFlags()
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
     ResetNodeColorSpace();
-    layerContentBits_[LayerDrawContent::SUBTREE] = false;
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
@@ -2432,6 +2431,7 @@ void RSRenderNode::SetParentSubTreeDirty()
         parentNode->SetSubTreeDirty(true);
         // Only used in quick skip prepare phase
         parentNode->SetForcePrepare(true);
+        parentNode->layerContentBits_[LayerDrawContent::SUBTREE_UPDATE] = true;
         parentNode->SetParentSubTreeDirty();
     }
 }
@@ -2444,6 +2444,7 @@ void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
     }
     if (parentNode && (isUpdateAllParentNode || !parentNode->IsTreeStateChangeDirty())) {
         parentNode->SetTreeStateChangeDirty(true);
+        parentNode->layerContentBits_[LayerDrawContent::SUBTREE_UPDATE] = true;
         parentNode->SetParentTreeStateChangeDirty(isUpdateAllParentNode);
     }
 }
