@@ -246,13 +246,11 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     const auto& gravityMatrix = surfaceDrawable->GetGravityMatrix(imageWidth, imageHeight);
     float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
     float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
-
+    // Use user's gravity
+    canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
     // uifrstScale
     if (cacheCompletedSurfaceInfo_.IsUifirstScale()) {
         canvas.Scale(cacheCompletedSurfaceInfo_.inverseScaleRatio, cacheCompletedSurfaceInfo_.inverseScaleRatio);
-    } else {
-        // Use user's gravity
-        canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
     }
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCacheSurface bound[%f %f] cache[%d %d] scale[%f %f]", boundSize.x_, boundSize.y_,
         cacheImage->GetWidth(), cacheImage->GetHeight(), scaleX, scaleY);
@@ -437,9 +435,9 @@ bool RsSubThreadCache::NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams
 {
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     float uifirstScale = uniParam->GetUiFirstScale();
-    if (lastScale_ != uifirstScale) {
+    if (ROSEN_NE(lastScale_, uifirstScale)) {
         RS_OPTIONAL_TRACE_NAME_FMT("%s lastScale_:%f uifirstScale:%f", __func__, lastScale_, uifirstScale);
-        lastScale_ = uifirstScale > 0 ? uifirstScale : 1.0f;
+        lastScale_ = ROSEN_GNE(uifirstScale, 0.0f) ? uifirstScale : 1.0f;
         return true;
     }
     int width = 0;

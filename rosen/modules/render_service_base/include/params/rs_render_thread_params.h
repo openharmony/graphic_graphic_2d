@@ -661,12 +661,12 @@ public:
 
     bool IsUifirstScale() const
     {
-        return uifirstScale_ > 0 && uifirstScale_ != 1.0f;
+        return ROSEN_GNE(uifirstScale_, 0.0f) && ROSEN_NE(uifirstScale_, 1.0f);
     }
 
     float GetUiFirstScale() const
     {
-        return uifirstScale_ > 0 ? uifirstScale_ : 1.0f;
+        return ROSEN_GNE(uifirstScale_, 0.0f) ? uifirstScale_ : 1.0f;
     }
 
 private:

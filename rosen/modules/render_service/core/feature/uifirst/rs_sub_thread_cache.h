@@ -325,13 +325,13 @@ private:
 
         bool IsUifirstScale() const
         {
-            return scaleRatio > 0 && scaleRatio != 1.0f;
+            return ROSEN_NGE(scaleRatio, 0 .0f) && ROSEN_NE(scaleRatio, 1.0f);
         }
 
         void SetCacheUifirstScale(float paramScaleRatio)
         {
-            scaleRatio = paramScaleRatio > 0 ? paramScaleRatio : 1.0f;
-            inverseScaleRatio = scaleRatio > 0 ? 1.0f / scaleRatio : 1.0f;
+            scaleRatio = ROSEN_NGE(paramScaleRatio, 0.0f) ? paramScaleRatio : 1.0f;
+            inverseScaleRatio = ROSEN_NGE(scaleRatio, 0.0f) ? 1.0f / scaleRatio : 1.0f;
         }
     };
     CacheSurfaceInfo cacheSurfaceInfo_;
