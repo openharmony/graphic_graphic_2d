@@ -80,7 +80,7 @@ static Drawing::ColorType PixelFormatToDrawingColorType(PixelFormat pixelFormat)
     }
 }
 
-static Drawing::AlphaType AlphaTypeToDrawingAlphaType(AlphaType alphaType)
+Drawing::AlphaType RSPixelMapUtil::AlphaTypeToDrawingAlphaType(AlphaType alphaType)
 {
     switch (alphaType) {
         case AlphaType::IMAGE_ALPHA_TYPE_UNKNOWN:
