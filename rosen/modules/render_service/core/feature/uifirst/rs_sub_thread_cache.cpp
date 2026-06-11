@@ -338,7 +338,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
         RS_LOGE("uifirst cannot get cachesize");
     }
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (LIKEY(uniParam) && uniParam->IsUifirstScale()) {
+    if (LIKELY(uniParam) && uniParam->IsUifirstScale()) {
         float uifirstScale = uniParam->GetUiFirstScale();
         RS_TRACE_NAME_FMT("%s uifirstScale called scaleRatio is %f", __func__, uifirstScale);        
         width = width * uifirstScale;
