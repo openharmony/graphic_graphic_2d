@@ -27,6 +27,9 @@ config("effect_SKeffectChian_config") {
     "-Wno-missing-field-initializers",
     "-Wno-c++11-narrowing",
   ]
+  if (target_os == "ios") {
+    cflags += ["-Wno-ignored-qualifiers"]
+  }
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
@@ -68,6 +71,7 @@ config("effect_SKeffectChian_public_config") {
       "//foundation/graphic/graphics_effect/include/effect/shape",
       "//foundation/graphic/graphics_effect/include/util",
       "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
+      "//foundation/appframework/graphic_2d/${current_os}",
     ]
   }
 }
@@ -75,6 +79,7 @@ if (is_arkui_x) {
   ohos_source_set("skeffectchain") {
     include_dirs = [
       "//foundation/graphic/graphic_surface/interfaces/inner_api/common",
+      "//foundation/graphic/graphic_surface/interfaces/inner_api/utils",
       "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
     ]
 
@@ -88,11 +93,15 @@ if (is_arkui_x) {
     ]
 
     if (target_os == "android") {
-      defines = [ "ANDROID_PLATFORM" ]
+      defines = [
+        "ANDROID_PLATFORM",
+        "ROSEN_ARKUI_X",
+      ]
     } else if (target_os == "ios") {
       defines = [
         "IOS_PLATFORM",
-        "ROSEN_IOS"
+        "ROSEN_IOS",
+        "ROSEN_ARKUI_X",
       ]
     }
 
@@ -133,7 +142,7 @@ if (is_arkui_x) {
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     ]
 
-    if (ace_enable_gpu) {
+    if (rs_enable_gpu) {
       defines = gpu_defines
       deps += [
         "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
