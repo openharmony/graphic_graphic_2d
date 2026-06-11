@@ -166,8 +166,7 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
     if (!surfaceParams.IsCrossNode()) {
         return true;
     }
-    if (uniParams.IsFirstVisitCrossNodeDisplay() &&
-        !uniParams.HasDisplayHdrOn() &&
+    if (uniParams.IsFirstVisitCrossNodeDisplay() && !uniParams.HasDisplayHdrOn() &&
         uniParams.GetCrossNodeOffScreenStatus() != CrossNodeOffScreenRenderDebugType::DISABLED) {
         RS_TRACE_NAME_FMT("%s cache cross node[%s]", __func__, GetName().c_str());
         return true;
