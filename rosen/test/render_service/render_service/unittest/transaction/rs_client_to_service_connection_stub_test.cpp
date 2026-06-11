@@ -4452,6 +4452,10 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest002, TestSize.
         connectionStub_->RegisterTypeface(sharedTypeface, needUpdate), -1);
     EXPECT_TRUE(connectionStub_->UnRegisterTypeface(typeface->GetHash()));
     EXPECT_TRUE(connectionStub_->UnRegisterTypeface(sharedTypeface.id_));
+    // UnRegisterTypeface delays removal via ref-count, force cleanup to avoid
+    // leaking cache entries into subsequent tests.
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(typeface->GetHash());
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(sharedTypeface.id_);
 }
 
 /**
