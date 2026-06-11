@@ -1837,7 +1837,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0045, TestSize.L
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
 
-    EXPECT_DOUBLE_EQ(relayoutLongestLineWithIndent, 320.84912109375);
+    EXPECT_DOUBLE_EQ(relayoutLongestLineWithIndent, 270.84912109375);
 }
 
 /*

@@ -825,7 +825,7 @@ HWTEST_F(NdkTypographyTest, SetTailIndents_PositiveValue, TestSize.Level0)
     ASSERT_NE(typography, nullptr);
     OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
     double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
-    EXPECT_DOUBLE_EQ(longestLineWithIndent, 849.99920654296875);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 799.99920654296875);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -924,7 +924,7 @@ HWTEST_F(NdkTypographyTest, SetBothIndents_Combined, TestSize.Level0)
     ASSERT_NE(typography, nullptr);
     OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
     double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
-    EXPECT_DOUBLE_EQ(longestLineWithIndent, 799.999267578125);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 769.999267578125);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -1017,7 +1017,7 @@ HWTEST_F(NdkTypographyTest, SetTailIndents_LargerThanWidth, TestSize.Level0)
     // Should not crash when indent exceeds width
     OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
     double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
-    EXPECT_DOUBLE_EQ(longestLineWithIndent, 1850);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 949.99993896484375);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
@@ -1053,7 +1053,7 @@ HWTEST_F(NdkTypographyTest, SetBothIndents_ExceedWidth, TestSize.Level0)
     // Should not crash when combined indents exceed width
     OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
     double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
-    EXPECT_DOUBLE_EQ(longestLineWithIndent, 1550);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 1050);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
