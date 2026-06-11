@@ -1799,7 +1799,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
     }
-    if (animationManager_->animations_.empty()) {
+    if (animationManager_->animations_.empty() && animationManager_->pendingCancelAnimation_.empty()) {
         animationManager_.reset();
         ROSEN_LOGD("%{public}s: animationManager reset", __func__);
     }
@@ -4365,6 +4365,14 @@ void RSRenderNode::ResetDirtyStatus()
 
 std::shared_ptr<RSAnimationManager> RSRenderNode::GetAnimationManager() const
 {
+    return animationManager_;
+}
+
+std::shared_ptr<RSAnimationManager> RSRenderNode::GetOrCreateAnimationManager()
+{
+    if (!animationManager_) {
+        animationManager_ = std::make_shared<RSAnimationManager>();
+    }
     return animationManager_;
 }
 

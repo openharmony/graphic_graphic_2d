@@ -14,7 +14,9 @@
  */
 
 #include "gtest/gtest.h"
+#include "animation/rs_render_curve_animation.h"
 #include "command/rs_node_showing_command.h"
+#include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
@@ -358,5 +360,84 @@ HWTEST_F(RSNodeGetAnimationsValueFractionTest, IsCallingPidValid001, TestSize.Le
     surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
     EXPECT_TRUE(animation.IsCallingPidValid(1, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: Process_PendingCancelWithoutAnimationManager001
+ * @tc.desc: Verify cancel animation request is recorded in pendingCancelAnimation_ when AnimationManager
+ *           does not exist initially, so that later AddAnimation will reject the pending-cancelled animation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    RSNodeGetShowingPropertiesAndCancelAnimationTest, Process_PendingCancelWithoutAnimationManager001, TestSize.Level1)
+{
+    RSContext context;
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    NodeId nodeId = 0;
+    PropertyId propertyId = 1;
+    auto renderProperty = std::make_shared<RSRenderProperty<bool>>();
+    AnimationId animationIdToCancel = 42;
+    std::vector<AnimationId> animationIds = { animationIdToCancel };
+
+    auto renderNode = std::make_shared<RSBaseRenderNode>(nodeId);
+    ASSERT_EQ(renderNode->GetAnimationManager(), nullptr);
+
+    std::pair<std::pair<NodeId, PropertyId>,
+        std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>
+        entry(std::make_pair(nodeId, propertyId), std::make_pair(renderProperty, animationIds));
+    animation.propertiesMap_.insert(entry);
+    context.nodeMap.renderNodeMap_[0][0] = renderNode;
+
+    animation.Process(context);
+
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    EXPECT_FALSE(animationManager->pendingCancelAnimation_.empty());
+    EXPECT_EQ(animationManager->pendingCancelAnimation_.front(), animationIdToCancel);
+}
+
+/**
+ * @tc.name: Process_PendingCancelWithoutAnimationManager002
+ * @tc.desc: Verify pendingCancelAnimation_ prevents later-added animation from being added
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(
+    RSNodeGetShowingPropertiesAndCancelAnimationTest, Process_PendingCancelWithoutAnimationManager002, TestSize.Level1)
+{
+    RSContext context;
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    NodeId nodeId = 0;
+    PropertyId propertyId = 1;
+    auto renderProperty = std::make_shared<RSRenderProperty<bool>>();
+    AnimationId animationIdToCancel = 42;
+    std::vector<AnimationId> animationIds = { animationIdToCancel };
+
+    auto renderNode = std::make_shared<RSBaseRenderNode>(nodeId);
+    ASSERT_EQ(renderNode->GetAnimationManager(), nullptr);
+
+    std::pair<std::pair<NodeId, PropertyId>,
+        std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>
+        entry(std::make_pair(nodeId, propertyId), std::make_pair(renderProperty, animationIds));
+    animation.propertiesMap_.insert(entry);
+    context.nodeMap.renderNodeMap_[0][0] = renderNode;
+
+    animation.Process(context);
+
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto newAnimation = std::make_shared<RSRenderCurveAnimation>(
+        animationIdToCancel, 1, property, property1, property2);
+    animationManager->AddAnimation(newAnimation);
+
+    EXPECT_TRUE(animationManager->animations_.find(animationIdToCancel) == animationManager->animations_.end());
+    EXPECT_TRUE(animationManager->pendingCancelAnimation_.empty());
 }
 } // namespace OHOS::Rosen
