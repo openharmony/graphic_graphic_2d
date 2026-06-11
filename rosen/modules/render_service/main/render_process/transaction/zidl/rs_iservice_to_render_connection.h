@@ -87,6 +87,9 @@ public:
         uint32_t rowCount = 0, uint32_t colCount = 0) = 0;
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) = 0;
 
+    // uifirstscale
+    virtual ErrCode SetUifirstScale(float scaleFactor) = 0;
+
     // Vrate
     virtual ErrCode GetSurfaceRootNodeId(NodeId& windowNodeId) = 0;
 
@@ -140,8 +143,6 @@ public:
     virtual void ForceRefreshOneFrameWithNextVSync() = 0;
     virtual void SetCacheEnabledForRotation(bool enabled) = 0;
 
-    // uifirst
-    virtual ErrCode SetUifirstScale(float scaleFactor) = 0;
 };
 
 } // namespace Rosen

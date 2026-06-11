@@ -956,6 +956,30 @@ ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const s
     return ERR_OK;
 }
 
+ErrCode RSServiceToRenderConnectionProxy::SetUifirstScale(float scaleFactor)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetUifirstScale: WriteInterfaceToken GetDescriptor err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteFloat(scaleFactor)) {
+        ROSEN_LOGE("SetUifirstScale: WriteFloat scaleFactor err.");
+        return WRITE_PARCEL_ERR;
+    }
+    RS_LOGD("RSServiceToRenderConnectionProxy::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UIFIRST_SCALE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("RSServiceToRenderConnectionProxy::SetUifirstScale: send request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    return ERR_OK;
+}
+
 void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>& argSets,
     sptr<RSIDumpCallback> callback)
 {
@@ -1377,30 +1401,6 @@ ErrCode RSServiceToRenderConnectionProxy::SetColorFollow(const std::string& node
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetColorFollow: Send Request err.");
-        return RS_CONNECTION_ERROR;
-    }
-    return ERR_OK;
-}
-
-ErrCode RSServiceToRenderConnectionProxy::SetUifirstScale(float scaleFactor)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetUifirstScale: WriteInterfaceToken GetDescriptor err.");
-        return WRITE_PARCEL_ERR;
-    }
-    if (!data.WriteFloat(scaleFactor)) {
-        ROSEN_LOGE("SetUifirstScale: WriteFloat scaleFactor err.");
-        return WRITE_PARCEL_ERR;
-    }
-    RS_LOGD("RSServiceToRenderConnectionProxy::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UIFIRST_SCALE);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        RS_LOGE("RSServiceToRenderConnectionProxy::SetUifirstScale: send request err.");
         return RS_CONNECTION_ERROR;
     }
     return ERR_OK;

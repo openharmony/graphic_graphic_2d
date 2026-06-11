@@ -2327,6 +2327,22 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UIFIRST_SCALE): {
+            float scaleFactor { 1.0f };
+            if (!data.ReadFloat(scaleFactor)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SetUifirstScale read scaleFactor failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ROSEN_LOGD("RSClientToServiceConnectionStub::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
+            ret = SetUifirstScale(scaleFactor);
+            if (ret != ERR_OK) {
+                RS_LOGE("RSClientToServiceConnectionStub::SetUifirstScale SetUifirstScale failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SHOW_WATERMARK): {
             std::shared_ptr<Media::PixelMap> watermarkImg =
                 std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
@@ -3254,22 +3270,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             RS_LOGI("RSClientToServiceConnectionStub::GET_PID_GPU_MEMORY_IN_MB,"
                 "ret: %{public}d, gpuMemInMB: %{public}f", ret, gpuMemInMB);
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UIFIRST_SCALE): {
-            float scaleFactor { 1.0f };
-            if (!data.ReadFloat(scaleFactor)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SetUifirstScale read scaleFactor failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            ROSEN_LOGD("RSClientToServiceConnectionStub::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
-            ret = SetUifirstScale(scaleFactor);
-            if (ret != ERR_OK) {
-                RS_LOGE("RSClientToServiceConnectionStub::SetUifirstScale SetUifirstScale failed!");
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_START): {

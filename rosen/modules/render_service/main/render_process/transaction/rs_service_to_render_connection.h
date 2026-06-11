@@ -80,6 +80,9 @@ public:
         uint32_t rowCount = 0, uint32_t colCount = 0) override;
     void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) override;
 
+    // uifirstcale
+    ErrCode SetUifirstScale(float scaleFactor) override;
+
     // Vrate
     ErrCode GetSurfaceRootNodeId(NodeId& windowNodeId) override;
 
@@ -132,7 +135,6 @@ public:
         bool unobscured = false) override;
     void SetCacheEnabledForRotation(bool enabled) override;
     void SetVmaCacheStatus(bool flag) override;
-    ErrCode SetUifirstScale(float scaleFactor) override;
 
 private:
     const sptr<RSRenderProcessAgent> renderProcessAgent_;

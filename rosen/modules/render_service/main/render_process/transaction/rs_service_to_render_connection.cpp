@@ -249,6 +249,12 @@ ErrCode RSServiceToRenderConnection::SetWatermark(pid_t callingPid, const std::s
     return renderPipelineAgent_->SetWatermark(callingPid, name, watermark, success, rowCount, colCount);
 }
 
+ErrCode RSServiceToRenderConnection::SetUifirstScale(float scaleFactor)
+{
+    RS_LOGD("RSServiceToRenderConnection::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
+    return renderPipelineAgent_->SetUifirstScale(scaleFactor);
+}
+
 void RSServiceToRenderConnection::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
     renderPipelineAgent_->ShowWatermark(watermarkImg, isShow);
@@ -344,12 +350,6 @@ void RSServiceToRenderConnection::OnGlobalBlacklistChanged(const std::unordered_
 void RSServiceToRenderConnection::SetCacheEnabledForRotation(bool enabled)
 {
     renderPipelineAgent_->SetCacheEnabledForRotation(enabled);
-}
-
-ErrCode RSServiceToRenderConnection::SetUifirstScale(float scaleFactor)
-{
-    RS_LOGD("RSServiceToRenderConnection::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
-    return renderPipelineAgent_->SetUifirstScale(scaleFactor);
 }
 
 } // namespace Rosen

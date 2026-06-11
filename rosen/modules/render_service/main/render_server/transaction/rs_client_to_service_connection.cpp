@@ -459,6 +459,24 @@ ErrCode RSClientToServiceConnection::SetWatermark(
     return ERR_OK;
 }
 
+ErrCode RSClientToServiceConnection::SetUifirstScale(float scaleFactor)
+{
+    RS_LOGD("RSClientToServiceConnection::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.size() == 0) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    for (auto conn : serviceToRenderConns) {
+        conn->SetUifirstScale(scaleFactor);
+    }
+    return ERR_OK;
+}
+
 ErrCode RSClientToServiceConnection::GetDefaultScreenId(uint64_t& screenId)
 {
     if (!screenManagerAgent_) {
@@ -2563,24 +2581,6 @@ bool RSClientToServiceConnection::ProfilerIsSecureScreen()
 #else
     return false;
 #endif
-}
-
-ErrCode RSClientToServiceConnection::SetUifirstScale(float scaleFactor)
-{
-    RS_LOGD("RSClientToServiceConnection::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
-    if (renderProcessManagerAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.size() == 0) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return ERR_INVALID_VALUE;
-    }
-    for (auto conn : serviceToRenderConns) {
-        conn->SetUifirstScale(scaleFactor);
-    }
-    return ERR_OK;
 }
 
 } // namespace Rosen

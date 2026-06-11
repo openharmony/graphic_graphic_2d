@@ -1633,6 +1633,20 @@ ErrCode RSRenderPipelineAgent::SetWatermark(
     return ERR_OK;
 }
 
+ErrCode RSRenderPipelineAgent::SetUifirstScale(float scaleFactor)
+{
+    RS_LOGD("RSRenderPipelineAgent::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = pipeline, scaleFactor]() -> void {
+        renderPipeline->GetMainThread()->SetUifirstScale(scaleFactor);
+    };
+    pipeline->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
 void RSRenderPipelineAgent::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -2321,20 +2335,6 @@ int32_t RSRenderPipelineAgent::UpdateFrameStabilityDetection(
     };
     rsRenderPipeline_->PostMainThreadSyncTask(task);
     return repCode;
-}
-
-ErrCode RSRenderPipelineAgent::SetUifirstScale(float scaleFactor)
-{
-    RS_LOGD("RSRenderPipelineAgent::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
-    auto pipeline = rsRenderPipeline_.lock();
-    if (!pipeline) {
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [renderPipeline = pipeline, scaleFactor]() -> void {
-        renderPipeline->GetMainThread()->SetUifirstScale(scaleFactor);
-    };
-    pipeline->PostMainThreadTask(task);
-    return ERR_OK;
 }
 
 } // namespace Rosen
