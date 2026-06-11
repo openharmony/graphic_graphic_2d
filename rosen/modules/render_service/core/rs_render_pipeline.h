@@ -140,9 +140,12 @@ private:
     void RegisterLayerStateChangedCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
     RSMainThread* mainThread_ = nullptr;
     RSUniRenderThread* uniRenderThread_ = nullptr;
-    std::map<sptr<IRemoteObject>, std::pair<uint64_t, sptr<RSIClientToRenderConnection>>> renderConnections_ = {};
-    std::unordered_map<uint64_t, sptr<IRemoteObject>> tokenMaskIdMapTokens_ = {};
-    std::unordered_map<uint64_t, sptr<IRemoteObject>> connectionProcessPid_;
+    struct RenderConnectionInfo {
+        uint64_t tokenMaskId = INVALID_TOKEN_MASK_ID;
+        sptr<IRemoteObject> token;
+        sptr<RSIClientToRenderConnection> connection;
+    };
+    std::unordered_map<pid_t, RenderConnectionInfo> renderConnections_;
     mutable std::mutex renderConnectionMutex_;
     std::shared_ptr<ImageEnhanceManager> imageEnhanceManager_ = nullptr;
     std::shared_ptr<RSPipelineDumper> rpDumper_ = nullptr;

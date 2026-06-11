@@ -152,8 +152,7 @@ sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::FindClientToRenderC
             "tokenMaskId is not find ClientToRenderConnection");
         return nullptr;
     }
-    auto renderProcessInfo = iter->second;
-    return renderProcessInfo.clientToRenderConnection;
+    return iter->second.clientToRenderConnection;
 }
 
 sptr<RSIClientToRenderConnection> RSRenderServiceConnectHub::GetClientToRenderConnection(uint64_t tokenMaskId)
