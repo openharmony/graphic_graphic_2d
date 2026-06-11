@@ -368,7 +368,7 @@ void BootCompileProgress::UpdateCompileProgress()
 
 void BootCompileProgress::SetFrameForRog()
 {
-    float posX = static_cast<float>((rogWidth_ - windowWidth_) / NUMBER_TWO);
+    float posX = static_cast<float>(rogWidth_ - windowWidth_) / NUMBER_TWO;
     float posY = static_cast<float>(rogHeight_ - rogHeight_ * OFFSET_Y_PERCENT);
     int32_t rogMin = std::min(rogWidth_, rogHeight_);
     fontSize_ = TranslateVp2Pixel(rogMin, FONT_SIZE_PHONE);
