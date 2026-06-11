@@ -466,12 +466,19 @@ public:
         absDrawRect_ = absRect;
     }
 
-    std::shared_ptr<LayerParams> GetLayerParams() {
-        if (layerParams_) {
-            return layerParams_;
-        }
-        layerParams_ = std::make_shared<LayerParams>();
+    std::shared_ptr<LayerParams> GetLayerParams()
+    {
         return layerParams_;
+    }
+
+    void SetLayerParamsIsUnSupportLayer(bool isUnSupportLayer)
+    {
+        if (layerParams_) {
+            layerParams_->isUnSupportLayer = isUnSupportLayer;
+        } else {
+            layerParams_ = std::make_shared<LayerParams>();
+            layerParams_->isUnSupportLayer = isUnSupportLayer;
+        }
     }
 
     // surface params

@@ -874,6 +874,25 @@ HWTEST_F(RSLayerCacheManagerTest, LayerCacheRegionDfxTest, TestSize.Level1)
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
     (void)system::SetParameter(debugKey, oldDebugValue);
 }
+
+/**
+ * @tc.name: IsNodeUnSupportLayerTest
+ * @tc.desc: Test IsNodeUnSupportLayer
+ * @tc.type: FUNC
+ * @tc.require: issues/22969
+ */
+HWTEST_F(RSLayerCacheManagerTest, IsNodeUnSupportLayerTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
+    canvasNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    EXPECT_FALSE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(canvasNode));
+    EXPECT_FALSE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(*canvasNode));
+
+    canvasNode->stagingRenderParams_->SetLayerParamsIsUnSupportLayer(true);
+    EXPECT_TRUE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(canvasNode));
+    EXPECT_TRUE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(*canvasNode));
+}
 #endif
 } // namespace Rosen
 } // namespace OHOS

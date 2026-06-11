@@ -22,12 +22,20 @@ std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> RSLayerCac
 
 bool RSLayerCacheManagerBase::IsNodeUnSupportLayer(std::shared_ptr<RSRenderNode> node)
 {
-    return node->GetStagingRenderParams()->GetLayerParams()->isUnSupportLayer;
+    auto layerParams = node->GetStagingRenderParams()->GetLayerParams();
+    if (layerParams) {
+        return layerParams->isUnSupportLayer;
+    }
+    return false;
 }
 
 bool RSLayerCacheManagerBase::IsNodeUnSupportLayer(RSRenderNode& node)
 {
-    return node.GetStagingRenderParams()->GetLayerParams()->isUnSupportLayer;
+    auto layerParams = node.GetStagingRenderParams()->GetLayerParams();
+    if (layerParams) {
+        return layerParams->isUnSupportLayer;
+    }
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

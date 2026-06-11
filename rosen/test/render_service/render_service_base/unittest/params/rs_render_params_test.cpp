@@ -1158,8 +1158,22 @@ HWTEST_F(RSRenderParamsTest, GetLayerParamsTest, TestSize.Level1)
     RSRenderParams params(id);
     EXPECT_TRUE(params.layerParams_ == nullptr);
     params.GetLayerParams();
-    EXPECT_TRUE(params.layerParams_ != nullptr);
-    params.GetLayerParams();
+}
+
+/**
+ * @tc.name: SetLayerParamsIsUnSupportLayerTest
+ * @tc.desc: Test SetLayerParamsIsUnSupportLayerTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+
+HWTEST_F(RSRenderParamsTest, SetLayerParamsIsUnSupportLayerTest, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    EXPECT_TRUE(params.layerParams_ == nullptr);
+    params.SetLayerParamsIsUnSupportLayer(true);
+    params.SetLayerParamsIsUnSupportLayer(false);
 }
 
 /**

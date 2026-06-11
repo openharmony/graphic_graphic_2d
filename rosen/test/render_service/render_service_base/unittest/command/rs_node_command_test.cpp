@@ -133,7 +133,7 @@ HWTEST_F(RSNodeCommandTest, MarkLayerTest001, TestSize.Level1)
     parent->AddChild(node);
 
     bool isCanvasNode = (node != nullptr) && (node->GetType() == RSRenderNodeType::CANVAS_NODE);
-    node->GetStagingRenderParams()->GetLayerParams()->isUnSupportLayer = true;
+    node->GetStagingRenderParams()->SetLayerParamsIsUnSupportLayer(true);
     bool isSupportLayer = isLayer && isCanvasNode && !RSLayerCacheManagerBase::IsNodeUnSupportLayer(node);
     EXPECT_FALSE(isSupportLayer);
 

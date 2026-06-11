@@ -1239,7 +1239,7 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
 
     node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_LAYER;
     node->stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
-    node->GetStagingRenderParams()->GetLayerParams()->isUnSupportLayer = false;
+    node->GetStagingRenderParams()->SetLayerParamsIsUnSupportLayer(false);
     node->stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     bool isLayerNode = node->nodeGroupType_ == RSRenderNode::NodeGroupType::GROUPED_BY_LAYER &&
  	                        node->stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
@@ -1292,7 +1292,7 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest1, TestSize.Level1)
     node->stagingRenderParams_->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     bool isLayerNode = node->nodeGroupType_ == RSRenderNode::NodeGroupType::GROUPED_BY_LAYER &&
  	                        node->stagingRenderParams_->GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE;
-    node->GetStagingRenderParams()->GetLayerParams()->isUnSupportLayer = true;
+    node->GetStagingRenderParams()->SetLayerParamsIsUnSupportLayer(true);
     EXPECT_TRUE(isLayerNode);
     EXPECT_TRUE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
     node->OnSync();

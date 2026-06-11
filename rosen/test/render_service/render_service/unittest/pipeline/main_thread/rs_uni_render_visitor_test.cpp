@@ -4394,7 +4394,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo002, TestSize.Level2)
     parent->AddChild(node);
     node->GetMutableRenderProperties().needFilter_ = true;
     node->SetChildHasVisibleFilter(true);
-    node->GetStagingRenderParams()->GetLayerParams()->isUnSupportLayer = true;
+    node->GetStagingRenderParams()->SetLayerParamsIsUnSupportLayer(true);
     bool isUnSupportLayer = RSLayerCacheManagerBase::IsNodeUnSupportLayer(node);
     EXPECT_TRUE(isUnSupportLayer);
     rsUniRenderVisitor->CollectEffectInfo(*node);
