@@ -3012,7 +3012,12 @@ static bool CopyDrawingAdjustSet(OH_Drawing_FontAdjustInfo** drawAdjustInfoSet, 
             ++adjustInfoCount;
         }
         adjustInfoSize = adjustInfoCount;
+        // Defensive: this branch is theoretically unreachable as the loop always
+        // completes adjustSet.size() iterations. Kept as safety net.
         if (adjustInfoSize != adjustSet.size()) {
+            delete[] (*drawAdjustInfoSet);
+            (*drawAdjustInfoSet) = nullptr;
+            adjustInfoSize = 0;
             return false;
         }
     }
@@ -3078,6 +3083,7 @@ static bool CopyDrawingFallbackInfo(OH_Drawing_FontFallbackInfo& drawFallbackInf
     }
     if (!fallbackInfo.familyName.empty() &&
         !CopyStrData(&drawFallbackInfo.familyName, fallbackInfo.familyName, &code)) {
+        ResetString(&drawFallbackInfo.language);
         return false;
     }
     return true;
@@ -3113,6 +3119,7 @@ static bool CopyDrawingFallbackGroup(OH_Drawing_FontFallbackGroup& drawFallbackG
     }
     drawFallbackGroup.fallbackInfoSize = fallbackInfoCount;
     if (drawFallbackGroup.fallbackInfoSize != fallbackInfoSet.size()) {
+        ResetDrawingFallbackInfoSet(&drawFallbackGroup.fallbackInfoSet, drawFallbackGroup.fallbackInfoSize);
         return false;
     }
     return true;

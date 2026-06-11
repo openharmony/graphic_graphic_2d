@@ -63,10 +63,15 @@ class RS_EXPORT HMSymbolTxt {
 public:
     HMSymbolTxt() {}
     HMSymbolTxt(const HMSymbolTxt& other) {
+        std::shared_lock<std::shared_mutex> readLock(other.mutex_);
         CloneSelf(other);
     };
-    HMSymbolTxt& operator=(const HMSymbolTxt& other) {
+    HMSymbolTxt& operator=(const HMSymbolTxt& other)
+    {
         if (this != &other) {
+            std::unique_lock<std::shared_mutex> writeLock(mutex_, std::defer_lock);
+            std::shared_lock<std::shared_mutex> readLock(other.mutex_, std::defer_lock);
+            std::lock(writeLock, readLock);
             CloneSelf(other);
         }
         return *this;

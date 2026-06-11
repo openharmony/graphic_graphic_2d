@@ -44,7 +44,9 @@ FontConfig::FontConfig(const char* fname)
     int err = ParseConfig(fname);
     if (err != 0) {
         TEXT_LOGE_LIMIT3_MIN("Failed to parse config, ret %{public}d", err);
+        return;
     }
+    valid_ = true;
 }
 
 char* FontConfig::GetFileData(const char* fname, int& size)
