@@ -15,26 +15,25 @@
 
 #ifndef RENDER_SERVICE_BASE_RENDER_RS_LAYER_CACHE_MANAGER_BASE_H
 #define RENDER_SERVICE_BASE_RENDER_RS_LAYER_CACHE_MANAGER_BASE_H
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
+
+typedef struct LayerParams {
+    bool isUnSupportLayer = false;
+} LayerParams;
+
 class RSB_EXPORT RSLayerCacheManagerBase {
 public:
     virtual ~RSLayerCacheManagerBase() = default;
-    static void ProcessLayerNodes();
     static bool IsNodeUnSupportLayer(std::shared_ptr<RSRenderNode> node);
     static bool IsNodeUnSupportLayer(RSRenderNode& node);
 
     static std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> layerDrawables_;
-
-    static std::unordered_map<NodeId, bool> unSupportLayerNodeMap_;
-    static bool isLayerSuggested_;
-    static std::vector<std::weak_ptr<RSRenderNode>> suggestedLayerNodes_;
-    static int layerFrameCount_;
 };
 } // namespace Rosen
 } // namespace OHOS

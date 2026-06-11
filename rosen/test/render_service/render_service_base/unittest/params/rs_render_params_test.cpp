@@ -1146,6 +1146,23 @@ HWTEST_F(RSRenderParamsTest, SetNodeColorSpace002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetLayerParamsTest
+ * @tc.desc: Test GetLayerParamsTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+
+HWTEST_F(RSRenderParamsTest, GetLayerParamsTest, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    EXPECT_TRUE(params.layerParams_ == nullptr);
+    params.GetLayerParams();
+    EXPECT_TRUE(params.layerParams_ != nullptr);
+    params.GetLayerParams();
+}
+
+/**
  * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixTrue
  * @tc.desc: Test HasSandBox is false, applyMatrix is true
  * @tc.type: FUNC

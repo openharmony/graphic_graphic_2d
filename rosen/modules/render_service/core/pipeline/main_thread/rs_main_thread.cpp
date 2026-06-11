@@ -2584,7 +2584,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RS_LOGD("UniRender AccessibilityConfig has Changed");
     }
     GetContext().GetPowerOffRenderController().CheckScreenPowerRenderControlStatus(GetContext().GetNodeMap());
-    RSLayerCacheManagerBase::ProcessLayerNodes();
     RSUifirstManager::Instance().RefreshUIFirstParam();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());

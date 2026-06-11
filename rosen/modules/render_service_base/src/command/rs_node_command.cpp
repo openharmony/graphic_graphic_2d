@@ -417,8 +417,7 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
         RS_LOGI_IF(
             DEBUG_NODE, "RSRenderNode::MarkLayer isLayer:%{public}d id:%{public}" PRIu64 "", isLayer, node->GetId());
 
-        RSLayerCacheManagerBase::isLayerSuggested_ = isLayer;
-        RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
+        node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, true, false);
 
         if (RSSystemProperties::GetLayerDebugEnabled()) {
             std::vector<NodeId> nodeIds;
@@ -428,8 +427,6 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
     }
 
     if (!isLayer) {
-        RSLayerCacheManagerBase::isLayerSuggested_ = isLayer;
-        RSLayerCacheManagerBase::suggestedLayerNodes_.clear();
         node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, false, false);
     }
 }

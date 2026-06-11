@@ -4394,12 +4394,8 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo002, TestSize.Level2)
     parent->AddChild(node);
     node->GetMutableRenderProperties().needFilter_ = true;
     node->SetChildHasVisibleFilter(true);
-    RSLayerCacheManagerBase::isLayerSuggested_ = true;
-    node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, true, false);
-    bool isUnSupportLayer =
-        RSLayerCacheManagerBase::isLayerSuggested_ &&
-        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) ||
-            node->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+    node->GetStagingRenderParams()->GetLayerParams()->isUnSupportLayer = true;
+    bool isUnSupportLayer = RSLayerCacheManagerBase::IsNodeUnSupportLayer(node);
     EXPECT_TRUE(isUnSupportLayer);
     rsUniRenderVisitor->CollectEffectInfo(*node);
     ASSERT_TRUE(parent->ChildHasVisibleFilter());
