@@ -656,17 +656,23 @@ public:
 
     void SetUifirstScale(float scaleFactor)
     {
-        uifirstScale_ = scaleFactor;
+        // scaleFactor must in (0,1]
+        if (ROSEN_LE(scaleFactor, 0.0f) || ROSEN_GNE(scaleFactor, 1.0f)) {
+            uifirstScale_ = 1.0f;
+        } else {
+            uifirstScale_ = scaleFactor;
+        }
     }
 
     bool IsUifirstScale() const
     {
-        return ROSEN_GNE(uifirstScale_, 0.0f) && ROSEN_NE(uifirstScale_, 1.0f);
+        return ROSEN_NE(uifirstScale_, 1.0f);
     }
 
     float GetUiFirstScale() const
     {
-        return ROSEN_GNE(uifirstScale_, 0.0f) ? uifirstScale_ : 1.0f;
+        // scaleFactor must in (0,1]
+        return ROSEN_LE(scaleFactor, 0.0f) || ROSEN_GNE(scaleFactor, 1.0f) ? uifirstScale_ : 1.0f;
     }
 
 private:

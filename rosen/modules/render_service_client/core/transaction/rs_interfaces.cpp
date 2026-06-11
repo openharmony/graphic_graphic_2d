@@ -1239,6 +1239,7 @@ int32_t RSInterfaces::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRota
 bool RSInterfaces::SetUifirstScale(float scaleFactor)
 {
     scaleFactor = std::round(scaleFactor * 100.0f) / 100.0f;
+    // scaleFactor must in (0,1]
     if (ROSEN_LE(scaleFactor, 0.0f) || ROSEN_GNE(scaleFactor, 1.0f)) {
         ROSEN_LOGE("RSInterfaces::SetUifirstScale invalid scaleFactor:%{public}f", scaleFactor);
         return false;

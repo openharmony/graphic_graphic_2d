@@ -250,7 +250,8 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
     // uifrstScale
     if (cacheCompletedSurfaceInfo_.IsUifirstScale()) {
-        canvas.Scale(cacheCompletedSurfaceInfo_.inverseScaleRatio, cacheCompletedSurfaceInfo_.inverseScaleRatio);
+        float inverseScale = 1.0f / cacheCompletedSurfaceInfo_.scaleRatio;
+        canvas.Scale(inverseScale, inverseScale);
     }
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCacheSurface bound[%f %f] cache[%d %d] scale[%f %f]", boundSize.x_, boundSize.y_,
         cacheImage->GetWidth(), cacheImage->GetHeight(), scaleX, scaleY);
@@ -339,9 +340,8 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     bool isUifirstScale = uniParam->IsUifirstScale();
     if (isUifirstScale) {
-        RS_OPTIONAL_TRACE_NAME_FMT("%s uifirstScale called", __func__);
-        RS_LOGD("%{public}s, uifirstScale called", __func__);
         float uifirstScale = uniParam->GetUiFirstScale();
+        RS_TRACE_NAME_FMT("%s uifirstScale called scaleRatio is %f", __func__, uifirstScale);        
         width = width * uifirstScale;
         height = height * uifirstScale;
     }
@@ -436,8 +436,8 @@ bool RsSubThreadCache::NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     float uifirstScale = uniParam->GetUiFirstScale();
     if (ROSEN_NE(lastScale_, uifirstScale)) {
-        RS_OPTIONAL_TRACE_NAME_FMT("%s lastScale_:%f uifirstScale:%f", __func__, lastScale_, uifirstScale);
-        lastScale_ = ROSEN_GNE(uifirstScale, 0.0f) ? uifirstScale : 1.0f;
+        RS_TRACE_NAME_FMT("%s lastScale_:%f uifirstScale:%f", __func__, lastScale_, uifirstScale);
+        lastScale_ = uifirstScale;
         return true;
     }
     int width = 0;

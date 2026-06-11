@@ -302,7 +302,6 @@ private:
         bool isContainShadow = false;
         GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
         float scaleRatio = 1.0f;
-        float inverseScaleRatio = 1.0f;
         std::unordered_set<NodeId> processedSubSurfaceNodeIds;
         Occlusion::Region opaqueRegion;
         RectI absDrawRect;
@@ -316,7 +315,6 @@ private:
             isContainShadow = false;
             colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
             scaleRatio = 1.0f;
-            inverseScaleRatio = 1.0f;
             processedSubSurfaceNodeIds.clear();
             opaqueRegion.Reset();
             absDrawRect = {};
@@ -325,13 +323,16 @@ private:
 
         bool IsUifirstScale() const
         {
-            return ROSEN_GNE(scaleRatio, 0.0f) && ROSEN_NE(scaleRatio, 1.0f);
+            return ROSEN_GNE(scaleRatio, 0.0f) && ROSEN_LNE(scaleRatio, 1.0f);
         }
 
         void SetCacheUifirstScale(float paramScaleRatio)
         {
-            scaleRatio = ROSEN_GNE(paramScaleRatio, 0.0f) ? paramScaleRatio : 1.0f;
-            inverseScaleRatio = ROSEN_GNE(scaleRatio, 0.0f) ? 1.0f / scaleRatio : 1.0f;
+            if (ROSEN_GNE(paramScaleRatio, 0.0f) && ROSEN_LE(paramScaleRatio, 1.0f)) {
+                scaleRatio = paramScaleRatio;
+            } else {
+                scaleRatio = 1.0f;
+            }
         }
     };
     CacheSurfaceInfo cacheSurfaceInfo_;

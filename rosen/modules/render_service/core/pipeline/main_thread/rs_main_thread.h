@@ -462,12 +462,12 @@ public:
     // for uifirst
     void SetUifirstScale(float scaleFactor)
     {
-        uifirstScale_ = scaleFactor;
-    }
-
-    float GetUiFirstScale() const
-    {
-        return uifirstScale_;
+        // scaleFactor must in (0,1]
+        if (ROSEN_LE(scaleFactor, 0.0f) || ROSEN_GNE(scaleFactor, 1.0f)) {
+            uifirstScale_ = 1.0f;
+        } else {
+            uifirstScale_ = scaleFactor;
+        }
     }
 
 private:

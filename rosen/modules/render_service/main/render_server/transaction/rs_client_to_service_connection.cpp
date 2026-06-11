@@ -16,8 +16,6 @@
 #include "rs_profiler.h"
 #include "rs_client_to_service_connection.h"
 
-#include "acquire_fence_manager.h"
-
 #include "frame_report.h"
 #include "hgm_command.h"
 #include "hgm_core.h"
