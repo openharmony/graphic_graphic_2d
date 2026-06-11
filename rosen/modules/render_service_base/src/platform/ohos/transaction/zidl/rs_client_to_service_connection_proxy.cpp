@@ -785,6 +785,10 @@ int32_t RSClientToServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, s
         return WRITE_PARCEL_ERR;
     }
     auto producer = surface->GetProducer();
+    if (producer == nullptr) {
+        ROSEN_LOGE("SetVirtualScreenSurface: producer is nullptr!");
+        return WRITE_PARCEL_ERR;
+    }
     if (!data.WriteRemoteObject(producer->AsObject())) {
         ROSEN_LOGE("SetVirtualScreenSurface: WriteRemoteObject producer->AsObject() err.");
         return WRITE_PARCEL_ERR;
