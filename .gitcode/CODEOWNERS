@@ -169,8 +169,7 @@ rosen/modules/render_service_base/include/animation/ @chensiyi_CE
 rosen/modules/render_service_base/src/animation/ @chensiyi_CE
 
 [uifirst]
-rosen/modules/render_service/core/feature/uifirst/ @charlielou
-rosen/modules/render_service/core/drawable/rs_ui_first_surface_render_node_drawable.cpp @charlielou
+rosen/modules/render_service/core/feature/uifirst/ @opasser
 
 [opinc]
 rosen/modules/render_service_base/src/feature/opinc/ @conan13234
@@ -192,29 +191,33 @@ rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.cpp @as
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.h @aslklw
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @aslklw
 
+[buffer_manager]
+rosen/modules/render_service/core/pipeline/buffer_manager/rs_buffer_manager.cpp @lipeng123s
+rosen/modules/render_service/core/pipeline/buffer_manager/rs_buffer_manager.h @lipeng123s
+
 [render_thread]
-rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.cpp @charlielou
-rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.h @charlielou
-rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_util.cpp @charlielou
-rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_util.h @charlielou
-rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_uni_render_engine.cpp @charlielou
-rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_uni_render_engine.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_surface_util.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_surface_util.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_composer_adapter.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_composer_adapter.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_draw_frame.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_draw_frame.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_render_engine.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_render_engine.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_composer_adapter.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_composer_adapter.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_processor.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_processor.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_thread.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_thread.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_util.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_util.h @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.cpp @lipeng123s
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.h @lipeng123s
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_util.cpp @lipeng123s
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_util.h @lipeng123s
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_uni_render_engine.cpp @lipeng123s
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_uni_render_engine.h @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_base_surface_util.cpp @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_base_surface_util.h @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_composer_adapter.cpp @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_composer_adapter.h @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_draw_frame.cpp @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_draw_frame.h @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_render_engine.cpp @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_render_engine.h @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_composer_adapter.cpp @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_composer_adapter.h @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_processor.cpp @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_processor.h @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_thread.cpp @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_thread.h @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_util.cpp @lipeng123s
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_util.h @lipeng123s
 
 [Render Profiler]
 rosen/modules/render_service_profiler/ @huang_kaixing
