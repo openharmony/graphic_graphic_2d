@@ -203,6 +203,60 @@ bool TypefaceFuzzTest005(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Typeface 接口：
+ * 1. MakeFromFile(const char path[], const FontArguments& fontArguments)
+ * 2. SetIsCustomTypeface(bool isCustom)
+ * 3. SetIsThemeTypeface(bool isTheme)
+ * 4. UpdateStream(std::unique_ptr<MemoryStream> stream)
+ * 5. AssembleFullHash(uint32_t fontArgsHash, uint32_t baseHash)
+ * 6. SetFullHash(uint64_t fullHash)
+ */
+bool TypefaceFuzzTest006(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* path = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        path[i] = GetObject<char>();
+    }
+    path[length - 1] = '\0';
+    FontArguments fontArguments;
+    fontArguments.SetCollectionIndex(GetObject<int>());
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(path, fontArguments);
+
+    std::shared_ptr<Typeface> defaultTypeface = Typeface::MakeDefault();
+    defaultTypeface->SetIsCustomTypeface(GetObject<bool>());
+    defaultTypeface->IsCustomTypeface();
+    defaultTypeface->SetIsThemeTypeface(GetObject<bool>());
+    defaultTypeface->IsThemeTypeface();
+
+    size_t streamLength = GetObject<size_t>() % MAX_SIZE + 1;
+    char* streamData = new char[streamLength];
+    for (size_t i = 0; i < streamLength; i++) {
+        streamData[i] = GetObject<char>();
+    }
+    auto memoryStream = std::make_unique<MemoryStream>(
+        reinterpret_cast<const void*>(streamData), streamLength, true);
+    defaultTypeface->UpdateStream(std::move(memoryStream));
+
+    Typeface::AssembleFullHash(GetObject<uint32_t>(), GetObject<uint32_t>());
+    defaultTypeface->SetFullHash(GetObject<uint64_t>());
+    defaultTypeface->GetFullHash();
+
+    if (path != nullptr) {
+        delete [] path;
+        path = nullptr;
+    }
+    if (streamData != nullptr) {
+        delete [] streamData;
+        streamData = nullptr;
+    }
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -221,5 +275,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::TypefaceFuzzTest003(data, size);
     OHOS::Rosen::Drawing::TypefaceFuzzTest004(data, size);
     OHOS::Rosen::Drawing::TypefaceFuzzTest005(data, size);
+    OHOS::Rosen::Drawing::TypefaceFuzzTest006(data, size);
     return 0;
 }
