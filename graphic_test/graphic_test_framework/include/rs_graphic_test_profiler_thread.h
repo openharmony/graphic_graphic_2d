@@ -25,6 +25,7 @@
 #include <sys/un.h>
 #include <thread>
 #include <unistd.h>
+#include <functional>
 
 namespace OHOS {
 namespace Rosen {
@@ -76,11 +77,14 @@ private:
     static constexpr int MAX_RECV_FAILS = 20;
     FailureCallback failureCallback_;
 #else
+    using FailureCallback = std::function<void()>;
     void Start() {}
     void Stop() {}
     void SendCommand(const std::string command, int outTime) {}
     std::pair<double, double> ReceiveTimeInfo() const { return {0.0, 0.0}; }
+    bool HasSocketResult() const { return false; }
     uint32_t WaitForSocketResultWithTimeout(uint32_t timeoutMs) { return 0; }
+    void SetReconnectRequestCallback(FailureCallback callback) {}
 #endif
 };
 

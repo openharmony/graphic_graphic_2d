@@ -27,27 +27,44 @@ RSGraphicRootNode::RSGraphicRootNode()
     config.SurfaceNodeName = "TestScreenSurface";
     screenSurfaceNode_ = RSSurfaceNode::Create(config, RSSurfaceNodeType::LEASH_WINDOW_NODE, true, false,
         RSGraphicTestDirector::Instance().GetRSUIContext());
+    if (!screenSurfaceNode_) {
+        LOGE("RSGraphicRootNode::RSGraphicRootNode create screen surface node failed");
+    }
 }
 
 void RSGraphicRootNode::SetTestSurface(
     std::shared_ptr<OHOS::Rosen::RSSurfaceNode> node)
 {
+    if (!screenSurfaceNode_) {
+        LOGE("RSGraphicRootNode::SetTestSurface screenSurfaceNode_ is null");
+        return;
+    }
+    if (!node) {
+        LOGE("RSGraphicRootNode::SetTestSurface node is null");
+        return;
+    }
     testSurfaceNodes_.push_back(node);
     screenSurfaceNode_->AddChild(testSurfaceNodes_.back(), -1);
 }
 
 void RSGraphicRootNode::ResetTestSurface()
 {
-    screenSurfaceNode_->ClearChildren();
+    if (screenSurfaceNode_) {
+        screenSurfaceNode_->ClearChildren();
+    } else {
+        LOGE("RSGraphicRootNode::ResetTestSurface screenSurfaceNode_ is null");
+    }
     testSurfaceNodes_.clear();
     nodes_.clear();
 }
 
 void RSGraphicRootNode::AddChild(std::shared_ptr<RSNode> child, int index)
 {
-    if (testSurfaceNodes_.back()) {
-        testSurfaceNodes_.back()->AddChild(child, index);
+    if (testSurfaceNodes_.empty() || !testSurfaceNodes_.back()) {
+        LOGE("RSGraphicRootNode::AddChild testSurfaceNodes_.back() is null");
+        return;
     }
+    testSurfaceNodes_.back()->AddChild(child, index);
 }
 
 void RSGraphicRootNode::RemoveChild(std::shared_ptr<RSNode> child)

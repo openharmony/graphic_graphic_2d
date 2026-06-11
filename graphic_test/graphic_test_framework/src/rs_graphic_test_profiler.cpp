@@ -353,11 +353,19 @@ void RSGraphicTestProfiler::NodeTreeTestSetUp()
     config.SurfaceNodeName = "TestSurface";
     auto testSurface = RSSurfaceNode::Create(config, RSSurfaceNodeType::APP_WINDOW_NODE, true, false,
         RSGraphicTestDirector::Instance().GetRSUIContext());
-
+    if (!testSurface) {
+        std::cout << "NodeTreeTestSetUp create test surface failed" << std::endl;
+        return;
+    }
     testSurface->SetBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     testSurface->SetFrame({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});
     testSurface->SetBackgroundColor(SURFACE_COLOR);
-    GetRootNode()->SetTestSurface(testSurface);
+    auto rootNode = GetRootNode();
+    if (!rootNode) {
+        std::cout << "NodeTreeTestSetUp root node is null" << std::endl;
+        return;
+    }
+    rootNode->SetTestSurface(testSurface);
 
     RSGraphicTestDirector::Instance().SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     RSGraphicTestDirector::Instance().SetScreenSurfaceBounds({0, 0, SCREEN_WIDTH, SCREEN_HEIGHT});

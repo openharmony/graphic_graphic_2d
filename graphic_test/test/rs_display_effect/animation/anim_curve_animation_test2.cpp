@@ -15,7 +15,7 @@
 
 #include "anim_custom_modifier_test.h"
 #include "rs_graphic_test.h"
-#include "ui/rs_ui_context_manager.h"
+#include "rs_graphic_test_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -35,16 +35,6 @@ public:
     }
 };
 
-static std::shared_ptr<RSUIContext> GetRSUIContext()
-{
-    static std::shared_ptr<RSUIContext> rsUIContext = nullptr;
-    if (rsUIContext == nullptr) {
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-        rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    }
-    return rsUIContext;
-}
-
 void CreateAnimateWithCurrentOptions(float endValue, RSCanvasNode::SharedPtr node)
 {
     auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
@@ -53,8 +43,10 @@ void CreateAnimateWithCurrentOptions(float endValue, RSCanvasNode::SharedPtr nod
     animationCustomModifier->SetTimeInterval(8.0f);
     animationCustomModifier->SetPointColor(Drawing::Color::COLOR_BLUE);
     float incrementValue = 300; // Increment the next animation's endpoint value by 300 from the previous one.
-    RSNode::AnimateWithCurrentOptions(
-        GetRSUIContext(), [&]() { animationCustomModifier->SetPosition(endValue + incrementValue); },
+    sptr<IRemoteObject> connectToRender;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+    RSNode::AnimateWithCurrentOptions(rsUIContext,
+        [&]() { animationCustomModifier->SetPosition(endValue + incrementValue); },
         []() { std::cout << "Animation_CurrentOptions_Test_1 animation finish callback" << std::endl; }, true);
 }
 
@@ -73,7 +65,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_1)
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     float endValue = 500;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             animationCustomModifier->SetPosition(endValue);
@@ -97,7 +89,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_2)
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
     float endValue = 500;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             animationCustomModifier->SetPosition(endValue);
@@ -121,7 +113,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_3)
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(), protocol, timingCurve, [&]() {
         lineaModifier->SetPosition(endValue);
         CreateAnimateWithCurrentOptions(endValue, testNode);
     }, []() {
@@ -144,7 +136,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_4)
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             lineaModifier->SetPosition(endValue);
@@ -168,7 +160,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_5)
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             lineaModifier->SetPosition(endValue);
@@ -192,7 +184,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_6)
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             lineaModifier->SetPosition(endValue);
@@ -216,7 +208,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_7)
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             lineaModifier->SetPosition(endValue);
@@ -240,7 +232,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_8)
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::EASE;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeModifier->SetPosition(endValue);
@@ -264,7 +256,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_9)
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeModifier->SetPosition(endValue);
@@ -288,7 +280,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_10)
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeModifier->SetPosition(endValue);
@@ -312,7 +304,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_11)
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::EASE;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeModifier->SetPosition(endValue);
@@ -336,7 +328,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_12)
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::EASE;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeModifier->SetPosition(endValue);
@@ -360,7 +352,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_13)
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInModifier->SetPosition(endValue);
@@ -384,7 +376,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_14)
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInModifier->SetPosition(endValue);
@@ -408,7 +400,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_15)
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInModifier->SetPosition(endValue);
@@ -432,7 +424,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_16)
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInModifier->SetPosition(endValue);
@@ -456,7 +448,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_17)
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInModifier->SetPosition(endValue);
@@ -480,7 +472,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_18)
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeOutInModifier->SetPosition(endValue);
@@ -504,7 +496,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_19)
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeOutInModifier->SetPosition(endValue);
@@ -528,7 +520,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_20)
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeOutInModifier->SetPosition(endValue);
@@ -552,7 +544,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_21)
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeOutInModifier->SetPosition(endValue);
@@ -576,7 +568,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_22)
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeOutInModifier->SetPosition(endValue);
@@ -600,7 +592,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_23)
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInOutInModifier->SetPosition(endValue);
@@ -624,7 +616,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_24)
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInOutInModifier->SetPosition(endValue);
@@ -648,7 +640,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_25)
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInOutInModifier->SetPosition(endValue);
@@ -672,7 +664,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_26)
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInOutInModifier->SetPosition(endValue);
@@ -696,7 +688,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_27)
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             easeInOutInModifier->SetPosition(endValue);
@@ -720,7 +712,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_28)
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             defaultModifier->SetPosition(endValue);
@@ -744,7 +736,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_29)
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             defaultModifier->SetPosition(endValue);
@@ -768,7 +760,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_30)
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             defaultModifier->SetPosition(endValue);
@@ -792,7 +784,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_31)
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             defaultModifier->SetPosition(endValue);
@@ -816,7 +808,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_32)
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             defaultModifier->SetPosition(endValue);
@@ -840,7 +832,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_33)
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             springModifier->SetPosition(endValue);
@@ -864,7 +856,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_34)
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             springModifier->SetPosition(endValue);
@@ -888,7 +880,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_35)
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             springModifier->SetPosition(endValue);
@@ -912,7 +904,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_36)
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             springModifier->SetPosition(endValue);
@@ -936,7 +928,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_37)
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             springModifier->SetPosition(endValue);
@@ -960,7 +952,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_38)
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             interactiveSpringModifier->SetPosition(endValue);
@@ -984,7 +976,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_39)
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             interactiveSpringModifier->SetPosition(endValue);
@@ -1008,7 +1000,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_40)
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             interactiveSpringModifier->SetPosition(endValue);
@@ -1032,7 +1024,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_41)
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             interactiveSpringModifier->SetPosition(endValue);
@@ -1056,7 +1048,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_42)
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             interactiveSpringModifier->SetPosition(endValue);
@@ -1080,7 +1072,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_43)
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve();
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             timeCurveModifier->SetPosition(endValue);
@@ -1104,7 +1096,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_44)
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve();
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             timeCurveModifier->SetPosition(endValue);
@@ -1128,7 +1120,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_45)
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve();
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             timeCurveModifier->SetPosition(endValue);
@@ -1152,7 +1144,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_46)
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve();
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             timeCurveModifier->SetPosition(endValue);
@@ -1176,7 +1168,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CurrentOptions_Test_47)
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve();
     float endValue = 1050;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(),
         protocol, timingCurve,
         [&]() {
             timeCurveModifier->SetPosition(endValue);

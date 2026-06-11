@@ -14,6 +14,7 @@
  */
 
 #include "rs_graphic_test.h"
+#include "rs_graphic_test_director.h"
 #include "rs_graphic_test_img.h"
 
 #include "ui/rs_effect_node.h"
@@ -26,7 +27,19 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 
 class RSPixelMapDisplayTest : public RSGraphicTest {
+public:
+    void BeforeEach() override
+    {
+        SetScreenSize(screenWidth, screenHeight);
+        LoadTestImages();
+    }
 private:
+    // ARGB color bit shift positions
+    static constexpr int ARGB_ALPHA_SHIFT = 24;
+    static constexpr int ARGB_RED_SHIFT = 16;
+    static constexpr int ARGB_GREEN_SHIFT = 8;
+    static constexpr int ARGB_BLUE_SHIFT = 0;
+
     const int screenWidth = 1200;
     const int screenHeight = 2000;
     Drawing::SamplingOptions sampling;
@@ -51,6 +64,10 @@ private:
     std::shared_ptr<Media::PixelMap> CreateTestPixelMapWithFormat(Media::PixelFormat format,
         int32_t width, int32_t height)
     {
+        if (width <= 0 || height <= 0) {
+            return nullptr;
+        }
+
         Media::InitializationOptions opts;
         opts.size.width = width;
         opts.size.height = height;
@@ -65,15 +82,20 @@ private:
             uint8_t g = static_cast<uint8_t>((i / width) * 255 / height);
             uint8_t b = static_cast<uint8_t>(128);
             uint8_t a = 255;
-            colors[i] = (a << 24) | (r << 16) | (g << 8) | b;
+            colors[i] = (a << ARGB_ALPHA_SHIFT) | (r << ARGB_RED_SHIFT) |
+                        (g << ARGB_GREEN_SHIFT) | (b << ARGB_BLUE_SHIFT);
         }
 
-        return std::shared_ptr<Media::PixelMap>(Media::PixelMap::Create(colors.data(), colors.size(), opts).release());
+        return std::shared_ptr<Media::PixelMap>(
+            Media::PixelMap::Create(colors.data(), colors.size(), opts).release());
     }
 
     std::shared_ptr<Media::PixelMap> CreateTestPixelMapWithAlphaType(Media::AlphaType alphaType,
         int32_t width, int32_t height)
     {
+        if (width <= 0 || height <= 0) {
+            return nullptr;
+        }
         Media::InitializationOptions opts;
         opts.size.width = width;
         opts.size.height = height;
@@ -87,10 +109,12 @@ private:
             uint8_t g = static_cast<uint8_t>((i % width) * 255 / width);
             uint8_t b = static_cast<uint8_t>((i / width) * 255 / height);
             uint8_t a = 200;
-            colors[i] = (a << 24) | (r << 16) | (g << 8) | b;
+            colors[i] = (a << ARGB_ALPHA_SHIFT) | (r << ARGB_RED_SHIFT) |
+                        (g << ARGB_GREEN_SHIFT) | (b << ARGB_BLUE_SHIFT);
         }
 
-        return std::shared_ptr<Media::PixelMap>(Media::PixelMap::Create(colors.data(), colors.size(), opts).release());
+        return std::shared_ptr<Media::PixelMap>(
+            Media::PixelMap::Create(colors.data(), colors.size(), opts).release());
     }
 
     // ASTC format creation helper
@@ -141,70 +165,18 @@ private:
             return std::shared_ptr<Media::PixelMap>(pixelMap.release());
         } else if (hdrFormat == Media::PixelFormat::YCBCR_P010 ||
                    hdrFormat == Media::PixelFormat::YCRCB_P010) {
-            // P010 format: semi-planar YUV 4:2:0, 10-bit
-            // Y plane: 16 bits per pixel, UV plane: 16 bits per pixel (interleaved)
-            int32_t yStride = width * 2;
-            int32_t uvStride = width * 2;
-            int32_t ySize = yStride * height;
-            int32_t uvSize = uvStride * height / 2;
-            int32_t totalSize = ySize + uvSize;
-
-            std::vector<uint8_t> yuvData(totalSize);
-
-            // Fill Y plane with gradient (10-bit values in lower 10 bits)
-            for (int32_t y = 0; y < height; y++) {
-                for (int32_t x = 0; x < width; x++) {
-                    int32_t index = y * yStride + x * 2;
-                    uint16_t yValue = static_cast<uint16_t>((y * 1023 / height) & 0x3FF);
-                    yuvData[index] = yValue & 0xFF;
-                    yuvData[index + 1] = (yValue >> 8) & 0x03;
-                }
-            }
-
-            // Fill UV plane with color (U and V as 10-bit values)
-            for (int32_t y = 0; y < height / 2; y++) {
-                for (int32_t x = 0; x < width; x += 2) {
-                    int32_t index = ySize + y * uvStride + x * 2;
-                    uint16_t uValue = 512; // mid-range U
-                    uint16_t vValue = 512; // mid-range V
-                    if (hdrFormat == Media::PixelFormat::YCBCR_P010) {
-                        // YCbCr: UV interleaved
-                        yuvData[index] = uValue & 0xFF;
-                        yuvData[index + 1] = (uValue >> 8) & 0x03;
-                        yuvData[index + 2] = vValue & 0xFF;
-                        yuvData[index + 3] = (vValue >> 8) & 0x03;
-                    } else {
-                        // YCrCb: VU interleaved
-                        yuvData[index] = vValue & 0xFF;
-                        yuvData[index + 1] = (vValue >> 8) & 0x03;
-                        yuvData[index + 2] = uValue & 0xFF;
-                        yuvData[index + 3] = (uValue >> 8) & 0x03;
-                    }
-                }
-            }
-
-            // Create PixelMap with YUV data
-            auto pixelMap = Media::PixelMap::Create(opts);
+                    auto pixelMap = DecodePixelMap("/data/local/tmp/fg_test.jpg",
+                        Media::AllocatorType::DMA_ALLOC, hdrFormat);
             if (pixelMap) {
-                // Copy data to keep it alive
-                std::vector<uint8_t>* yuvDataPtr = new std::vector<uint8_t>(yuvData);
-                pixelMap->SetPixelsAddr(const_cast<uint8_t*>(yuvDataPtr->data()), yuvDataPtr,
-                    totalSize, forToSdr ? Media::AllocatorType::DMA_ALLOC : Media::AllocatorType::HEAP_ALLOC,
-                    [](void* addr, void* context, uint32_t size) {
-                        if (context) {
-                            delete static_cast<std::vector<uint8_t>*>(context);
-                        }
-                    });
                 if (forToSdr) {
 #ifdef IMAGE_COLORSPACE_FLAG
                     // Set BT2020 color space for HDR
                     pixelMap->InnerSetColorSpace(OHOS::ColorManager::ColorSpace::BT2020_PQ());
 #endif
                 }
+                return std::shared_ptr<Media::PixelMap>(std::move(pixelMap));
             }
-            return std::shared_ptr<Media::PixelMap>(pixelMap.release());
         }
-
         return nullptr;
     }
 
@@ -258,17 +230,10 @@ private:
 
         return std::shared_ptr<Media::PixelMap>(pixelMap.release());
     }
-
-public:
-    void BeforeEach() override
-    {
-        SetScreenSize(screenWidth, screenHeight);
-        LoadTestImages();
-    }
 };
 
 // ============================================================================
-// Single Interface Tests (White Box Tests) - 单接口白盒测试
+// Single Interface Tests (White Box Tests)
 // ============================================================================
 
 /*
@@ -302,7 +267,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_TEST
         opts.pixelFormat = testPixelMap_->GetPixelFormat();
         opts.alphaType = testPixelMap_->GetAlphaType();
 
-        std::shared_ptr<Media::PixelMap> scaledPixelMap(Media::PixelMap::Create(*testPixelMap_, opts).release());
+        std::shared_ptr<Media::PixelMap> scaledPixelMap(
+            Media::PixelMap::Create(*testPixelMap_, opts).release());
         if (scaledPixelMap) {
             scaledPixelMap->scale(scales[i], scales[i]);
         }
@@ -337,7 +303,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_TEST
         );
         drawing->DrawPixelMapWithParm(scaledPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -374,7 +340,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ROTATE_TES
         opts.pixelFormat = testPixelMap_->GetPixelFormat();
         opts.alphaType = testPixelMap_->GetAlphaType();
 
-        std::shared_ptr<Media::PixelMap> rotatedPixelMap(Media::PixelMap::Create(*testPixelMap_, opts).release());
+        std::shared_ptr<Media::PixelMap> rotatedPixelMap(
+            Media::PixelMap::Create(*testPixelMap_, opts).release());
         if (rotatedPixelMap) {
             rotatedPixelMap->rotate(angles[i]);
         }
@@ -409,7 +376,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ROTATE_TES
         );
         drawing->DrawPixelMapWithParm(rotatedPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -444,7 +411,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_FLIP_TEST)
         opts.pixelFormat = testPixelMap_->GetPixelFormat();
         opts.alphaType = testPixelMap_->GetAlphaType();
 
-        std::shared_ptr<Media::PixelMap> flippedPixelMap(Media::PixelMap::Create(*testPixelMap_, opts).release());
+        std::shared_ptr<Media::PixelMap> flippedPixelMap(
+            Media::PixelMap::Create(*testPixelMap_, opts).release());
         if (flippedPixelMap) {
             flippedPixelMap->flip(flipOptions[i][0], flipOptions[i][1]);
         }
@@ -476,7 +444,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_FLIP_TEST)
         );
         drawing->DrawPixelMapWithParm(flippedPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -520,7 +488,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_CROP_TEST)
         opts.pixelFormat = largePixelMap_->GetPixelFormat();
         opts.alphaType = largePixelMap_->GetAlphaType();
 
-        std::shared_ptr<Media::PixelMap> croppedPixelMap(Media::PixelMap::Create(*largePixelMap_, opts).release());
+        std::shared_ptr<Media::PixelMap> croppedPixelMap(
+            Media::PixelMap::Create(*largePixelMap_, opts).release());
         if (croppedPixelMap) {
             croppedPixelMap->crop(cropRects[i]);
         }
@@ -555,7 +524,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_CROP_TEST)
         );
         drawing->DrawPixelMapWithParm(croppedPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -607,7 +576,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_TRANSLATE_
         opts.pixelFormat = testPixelMap_->GetPixelFormat();
         opts.alphaType = testPixelMap_->GetAlphaType();
 
-        std::shared_ptr<Media::PixelMap> translatedPixelMap(Media::PixelMap::Create(*testPixelMap_, opts).release());
+        std::shared_ptr<Media::PixelMap> translatedPixelMap(
+            Media::PixelMap::Create(*testPixelMap_, opts).release());
         if (translatedPixelMap) {
             translatedPixelMap->translate(translations[i][0], translations[i][1]);
         }
@@ -642,7 +612,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_TRANSLATE_
         );
         drawing->DrawPixelMapWithParm(translatedPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -679,7 +649,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ALPHA_TEST
         opts.pixelFormat = testPixelMap_->GetPixelFormat();
         opts.alphaType = testPixelMap_->GetAlphaType();
 
-        std::shared_ptr<Media::PixelMap> alphaPixelMap(Media::PixelMap::Create(*testPixelMap_, opts).release());
+        std::shared_ptr<Media::PixelMap> alphaPixelMap(
+            Media::PixelMap::Create(*testPixelMap_, opts).release());
         if (alphaPixelMap) {
             alphaPixelMap->SetAlpha(alphas[i]);
         }
@@ -712,7 +683,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ALPHA_TEST
         );
         drawing->DrawPixelMapWithParm(alphaPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -774,7 +745,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_PIXEL_FORM
         );
         drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -829,7 +800,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ALPHA_TYPE
         );
         drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -884,7 +855,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SIZE_TEST)
             );
             drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
         row++;
@@ -892,7 +863,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SIZE_TEST)
 }
 
 // ============================================================================
-// Combination Tests (Multiple Interface Combined) - 多接口组合测试
+// Combination Tests (Multiple Interface Combined)
 // ============================================================================
 
 /*
@@ -923,7 +894,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_ROTA
             opts.pixelFormat = testPixelMap_->GetPixelFormat();
             opts.alphaType = testPixelMap_->GetAlphaType();
 
-            std::shared_ptr<Media::PixelMap> transformedPixelMap(Media::PixelMap::Create(*testPixelMap_, opts).release());
+            std::shared_ptr<Media::PixelMap> transformedPixelMap(
+                Media::PixelMap::Create(*testPixelMap_, opts).release());
             if (transformedPixelMap) {
                 transformedPixelMap->scale(scales[i], scales[i]);
                 transformedPixelMap->rotate(rotations[j]);
@@ -956,7 +928,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_ROTA
             );
             drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -995,7 +967,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ROTATE_FLI
             opts.pixelFormat = testPixelMap_->GetPixelFormat();
             opts.alphaType = testPixelMap_->GetAlphaType();
 
-            std::shared_ptr<Media::PixelMap> transformedPixelMap(Media::PixelMap::Create(*testPixelMap_, opts).release());
+            std::shared_ptr<Media::PixelMap> transformedPixelMap(
+                Media::PixelMap::Create(*testPixelMap_, opts).release());
             if (transformedPixelMap) {
                 transformedPixelMap->rotate(rotations[i]);
                 transformedPixelMap->flip(flipOptions[j][0], flipOptions[j][1]);
@@ -1028,7 +1001,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ROTATE_FLI
             );
             drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -1068,7 +1041,8 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_CROP
             opts.pixelFormat = largePixelMap_->GetPixelFormat();
             opts.alphaType = largePixelMap_->GetAlphaType();
 
-            std::shared_ptr<Media::PixelMap> transformedPixelMap(Media::PixelMap::Create(*largePixelMap_, opts).release());
+            std::shared_ptr<Media::PixelMap> transformedPixelMap(
+                Media::PixelMap::Create(*largePixelMap_, opts).release());
             if (transformedPixelMap) {
                 transformedPixelMap->scale(scales[i], scales[i]);
                 transformedPixelMap->crop(cropRects[j]);
@@ -1101,7 +1075,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_CROP
             );
             drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -1168,7 +1142,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_TRANSLATE_
             );
             drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -1238,7 +1212,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_ROTA
             );
             drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -1316,7 +1290,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_SCALE_ROTA
                 );
                 drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
                 canvasNode->FinishRecording();
-                RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+                RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
                 RegisterNode(canvasNode);
 
                 index++;
@@ -1403,7 +1377,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_CROP_ROTAT
                 );
                 drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
                 canvasNode->FinishRecording();
-                RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+                RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
                 RegisterNode(canvasNode);
 
                 index++;
@@ -1500,7 +1474,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ALL_TRANSF
         );
         drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -1577,7 +1551,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_IMAGE
         );
         drawing->DrawPixelMapWithParm(astcPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -1647,7 +1621,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_SCALE
             );
             drawing->DrawPixelMapWithParm(scaledPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -1718,7 +1692,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_ROTAT
             );
             drawing->DrawPixelMapWithParm(rotatedPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -1794,7 +1768,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_FLIP_
             );
             drawing->DrawPixelMapWithParm(flippedPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -1863,7 +1837,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_SIZE_
             );
             drawing->DrawPixelMapWithParm(astcPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -1951,7 +1925,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_ALL_T
         );
         drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -2020,7 +1994,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_ASTC_REPEA
             );
             drawing->DrawPixelMapWithParm(astcPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -2094,7 +2068,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_FORMAT
             );
             drawing->DrawPixelMapWithParm(hdrPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -2164,7 +2138,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_SIZE_V
             );
             drawing->DrawPixelMapWithParm(hdrPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -2238,7 +2212,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_COLORSPACE
             );
             drawing->DrawPixelMapWithParm(colorSpacePixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -2320,7 +2294,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_COLORSPACE
                 );
                 drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
                 canvasNode->FinishRecording();
-                RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+                RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
                 RegisterNode(canvasNode);
             }
         }
@@ -2400,7 +2374,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             );
             drawing->DrawPixelMapWithParm(hdrPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -2474,7 +2448,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             );
             drawing->DrawPixelMapWithParm(hdrPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -2535,7 +2509,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             auto drawing = canvasNode->BeginRecording(gap + nodeWidth, (gap + nodeHeight) * (i + 1));
             drawing->DrawPixelMapWithParm(hdrPixelMapOriginal, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
 
@@ -2565,7 +2539,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             auto drawing = canvasNode->BeginRecording(gap + nodeWidth, (gap + nodeHeight) * (i + 1));
             drawing->DrawPixelMapWithParm(hdrPixelMapToSdr, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -2660,7 +2634,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_HDR_TOSDR_
             );
             drawing->DrawPixelMapWithParm(transformedPixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
         }
     }
@@ -2749,7 +2723,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
         );
         drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -2838,7 +2812,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
         );
         drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -2913,7 +2887,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
         );
         drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -3000,7 +2974,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
             );
             drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
             canvasNode->FinishRecording();
-            RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+            RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
             RegisterNode(canvasNode);
 
             index++;
@@ -3087,7 +3061,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CRE
         );
         drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -3155,7 +3129,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_CON
         );
         drawing->DrawPixelMapWithParm(convertedPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -3248,7 +3222,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_MAR
         );
         drawing->DrawPixelMapWithParm(unmarshalledPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -3339,7 +3313,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_DEC
         );
         drawing->DrawPixelMapWithParm(decodedPixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -3436,7 +3410,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_HDR
         );
         drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -3571,7 +3545,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_AST
         );
         drawing->DrawPixelMapWithParm(pixelMap, imageInfo_rs, sampling);
         canvasNode->FinishRecording();
-        RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+        RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
         RegisterNode(canvasNode);
     }
 }
@@ -3656,7 +3630,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_YUV
     );
     drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
     canvasNode->FinishRecording();
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     RegisterNode(canvasNode);
 }
 
@@ -3740,7 +3714,7 @@ GRAPHIC_TEST(RSPixelMapDisplayTest, CONTENT_DISPLAY_TEST, RS_PIXELMAP_STATIC_YUV
     );
     drawing->DrawPixelMapWithParm(pixelMap, imageInfo, sampling);
     canvasNode->FinishRecording();
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().rsUiDirector_->SendMessages();
     RegisterNode(canvasNode);
 }
 
