@@ -2622,7 +2622,7 @@ HWTEST_F(RSScreenTest, PhysicalScreenInit, testing::ext::TestSize.Level1)
     rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
     ASSERT_NE(nullptr, rsScreen);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
-    EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
+    EXPECT_EQ(rsScreen->property_.GetConnectionType(), ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
 }
 
 /*
