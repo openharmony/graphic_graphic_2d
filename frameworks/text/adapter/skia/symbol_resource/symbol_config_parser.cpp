@@ -30,7 +30,7 @@ namespace Symbol {
 namespace {
 bool GetUint16FromCJSON(const cJSON* item, uint16_t& out)
 {
-    if (item == nullptr || !cJSON_IsNumber(item) || item->valueint < 0 || item->valueint > UINT16_MAX) {
+    if (!cJSON_IsNumber(item) || item->valueint < 0 || item->valueint > UINT16_MAX) {
         TEXT_LOGE("Invalid uint16 value from cJSON");
         return false;
     }
@@ -40,7 +40,7 @@ bool GetUint16FromCJSON(const cJSON* item, uint16_t& out)
 
 bool GetUint32FromCJSON(const cJSON* item, uint32_t& out)
 {
-    if (item == nullptr || !cJSON_IsNumber(item) || item->valuedouble < 0 || item->valuedouble > UINT32_MAX) {
+    if (!cJSON_IsNumber(item) || item->valuedouble < 0 || item->valuedouble > UINT32_MAX) {
         TEXT_LOGE("Invalid uint32 value from cJSON");
         return false;
     }
@@ -50,7 +50,7 @@ bool GetUint32FromCJSON(const cJSON* item, uint32_t& out)
 
 bool GetIntFromCJSON(const cJSON* item, int& out)
 {
-    if (item == nullptr || !cJSON_IsNumber(item) || item->valuedouble < INT_MIN || item->valuedouble > INT_MAX) {
+    if (!cJSON_IsNumber(item) || item->valuedouble < INT_MIN || item->valuedouble > INT_MAX) {
         TEXT_LOGE("Invalid int value from cJSON");
         return false;
     }
