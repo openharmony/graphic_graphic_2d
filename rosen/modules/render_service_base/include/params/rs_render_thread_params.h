@@ -672,7 +672,7 @@ public:
     float GetUiFirstScale() const
     {
         // scaleFactor must in (0,1]
-        return ROSEN_LE(scaleFactor, 0.0f) || ROSEN_GNE(scaleFactor, 1.0f) ? uifirstScale_ : 1.0f;
+        return ROSEN_GNE(scaleFactor, 0.0f) && ROSEN_LE(scaleFactor, 1.0f) ? uifirstScale_ : 1.0f;
     }
 
 private:
