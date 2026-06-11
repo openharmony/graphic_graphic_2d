@@ -467,6 +467,11 @@ public:
 
     HdrStatus GetDisplayHdrStatus() const;
 
+    void SetLastDisplayHdrStatus(HdrStatus lastDisplayHdrStatus)
+    {
+        lastDisplayTotalHdrStatus_ = lastDisplayHdrStatus;
+    }
+
     HdrStatus GetLastDisplayHDRStatus() const
     {
         return lastDisplayTotalHdrStatus_;

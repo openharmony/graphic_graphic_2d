@@ -19,6 +19,7 @@
 #include <string_view>
 
 #include "common/rs_common_def.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
 namespace {
@@ -177,6 +178,13 @@ float RSLuminanceControl::CalScaler(const float& maxContentLightLevel,
             dynamicMetadata, ratio, hdrStatus) : HDR_DEFAULT_SCALER * ratio;
 }
 
+float RSLuminanceControl::GetSurfaceNodeMaxScaler(RSSurfaceRenderNode& surfaceNode, ScreenId screenId,
+    HdrStatus hdrstatus)
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetSurfaceNodeMaxScaler(surfaceNode, screenId, hdrstatus) : HDR_DEFAULT_SCALER;
+}
+
 bool RSLuminanceControl::IsHdrPictureOn()
 {
     return (rSLuminanceControlInterface_ != nullptr) ?
@@ -266,10 +274,10 @@ void RSLuminanceControl::SetDualScreenStatus(ScreenId screenId, DualScreenStatus
     }
 }
 
-float RSLuminanceControl::HdrDimmingProcess(ScreenId screenId, uint64_t nodeId)
+float RSLuminanceControl::HdrDimmingProcess(ScreenId screenId, RSSurfaceRenderNode& surfaceNode)
 {
     if (rSLuminanceControlInterface_ != nullptr) {
-        return rSLuminanceControlInterface_->HdrDimmingProcess(screenId, nodeId);
+        return rSLuminanceControlInterface_->HdrDimmingProcess(screenId, surfaceNode);
     }
     return 1.0f;
 }

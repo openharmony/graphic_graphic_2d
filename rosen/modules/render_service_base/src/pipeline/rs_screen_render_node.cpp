@@ -381,7 +381,6 @@ HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
         return HdrStatus::NO_HDR;
     }
     HdrStatus currentHDRStatus = screenParams->GetScreenHDRStatus();
-    lastDisplayTotalHdrStatus_ = currentHDRStatus;
     return currentHDRStatus;
 }
 // LCOV_EXCL_STOP
