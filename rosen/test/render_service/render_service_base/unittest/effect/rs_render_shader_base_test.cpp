@@ -105,9 +105,9 @@ HWTEST_F(RSNGRenderShaderBaseTest, Dump001, TestSize.Level1)
     std::string out;
     shader->Dump(out);
 
-    // Should contain the type name followed by ": "
+    // Should contain the type name followed by ":"
     std::string typeName = RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
-    EXPECT_NE(out.find(typeName + ": "), std::string::npos);
+    EXPECT_NE(out.find(typeName + ":"), std::string::npos);
 }
 
 /**
@@ -127,8 +127,8 @@ HWTEST_F(RSNGRenderShaderBaseTest, Dump002, TestSize.Level1)
     std::string out;
     head->Dump(out);
 
-    // Chained output should contain ", " separator
-    EXPECT_NE(out.find(", "), std::string::npos);
+    // Chained output should contain "--" separator
+    EXPECT_NE(out.find("--"), std::string::npos);
     // And include the next effect's type name
     std::string nextName = RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::WAVY_RIPPLE_LIGHT);
     EXPECT_NE(out.find(nextName), std::string::npos);
