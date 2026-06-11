@@ -351,6 +351,5 @@ void RSServiceToRenderConnection::SetCacheEnabledForRotation(bool enabled)
 {
     renderPipelineAgent_->SetCacheEnabledForRotation(enabled);
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -1251,6 +1251,5 @@ int32_t RSInterfaces::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRota
 {
     return 0;
 }
-
 } // namespace Rosen
 } // namespace OHOS

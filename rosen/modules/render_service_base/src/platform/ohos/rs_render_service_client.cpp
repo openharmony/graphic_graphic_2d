@@ -2126,6 +2126,5 @@ bool RSRenderServiceClient::AvcodecVideoGetRecent()
     return true;
 }
 #endif
-
 } // namespace Rosen
 } // namespace OHOS

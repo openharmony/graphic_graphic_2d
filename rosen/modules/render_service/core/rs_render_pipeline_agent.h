@@ -226,7 +226,6 @@ public:
         const FrameStabilityTarget& oldTarget,
         const FrameStabilityTarget& newTarget
     );
-
 private:
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;

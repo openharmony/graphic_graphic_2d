@@ -5378,6 +5378,5 @@ ErrCode RSClientToServiceConnectionProxy::SetOptimizeCanvasDirtyPidList(const st
     return ERR_INVALID_VALUE;
 }
 #endif
-
 } // namespace Rosen
 } // namespace OHOS

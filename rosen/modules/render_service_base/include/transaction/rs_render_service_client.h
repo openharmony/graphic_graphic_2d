@@ -441,7 +441,6 @@ public:
 
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
 #endif
-
 private:
 #ifndef ENABLE_RS_PROXY
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
