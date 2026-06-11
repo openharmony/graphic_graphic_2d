@@ -347,7 +347,8 @@ ohos_shared_library("librender_service") {
     sources += [ "core/feature/gpuComposition/rs_image_manager.cpp" ]
   }
 
-  if (graphic_2d_feature_product != "wearable") {
+  if (graphic_2d_feature_enable_drm) {
+
     defines += [ "IS_ENABLE_DRM" ]
   }
 

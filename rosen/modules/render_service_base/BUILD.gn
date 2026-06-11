@@ -545,7 +545,7 @@ ohos_source_set("render_service_base_src") {
     }
   }
 
-  if (graphic_2d_feature_product != "wearable") {
+  if (graphic_2d_feature_enable_drm) {
     defines += [ "IS_ENABLE_DRM" ]
   }
 
