@@ -326,7 +326,7 @@ void RSSurfaceOhosVulkan::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& 
 {
 }
 
-#if defined(ROSEN_OHOS)
+#if defined(ROSEN_OHOS) && defined(RS_GRAPHIC_MEDIACOMMON_ENABLE)
 bool RSSurfaceOhosVulkan::NeedSubmitWithFFTS()
 {
     return RSHpaeFfrtPatternManager::Instance().IsUpdated();
@@ -549,7 +549,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface.drawingSurface);
 #endif
 
-#if defined(ROSEN_OHOS)
+#if defined(ROSEN_OHOS) && defined(RS_GRAPHIC_MEDIACOMMON_ENABLE)
     RSHpaeScheduler::GetInstance().WaitBuildTask();
     uint64_t preFrameId = RSHpaeScheduler::GetInstance().GetHpaeFrameId();
     uint64_t curFrameId = RSHpaeFfrtPatternManager::Instance().MHCGetCurFrameId();
@@ -638,7 +638,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     surface.lastPresentedCount = mPresentCount;
     mPresentCount++;
 
-#if defined(ROSEN_OHOS)
+#if defined(ROSEN_OHOS) && defined(RS_GRAPHIC_MEDIACOMMON_ENABLE)
     if (submitWithFFTS) {
         SubmitGpuAndHpaeTask(preFrameId, curFrameId);
     }
