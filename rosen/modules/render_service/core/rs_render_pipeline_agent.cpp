@@ -1633,6 +1633,17 @@ ErrCode RSRenderPipelineAgent::SetWatermark(
     return ERR_OK;
 }
 
+void RSRenderPipelineAgent::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        return;
+    }
+    auto task = [renderPipeline = rsRenderPipeline_, watermarkImg, isShow]() -> void {
+        renderPipeline->GetMainThread()->ShowWatermark(watermarkImg, isShow);
+    };
+    rsRenderPipeline_->GetMainThread()->PostTask(task);
+}
+
 ErrCode RSRenderPipelineAgent::SetUifirstScale(float scaleFactor)
 {
     RS_LOGD("RSRenderPipelineAgent::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
@@ -1645,17 +1656,6 @@ ErrCode RSRenderPipelineAgent::SetUifirstScale(float scaleFactor)
     };
     pipeline->PostMainThreadTask(task);
     return ERR_OK;
-}
-
-void RSRenderPipelineAgent::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
-{
-    if (rsRenderPipeline_ == nullptr) {
-        return;
-    }
-    auto task = [renderPipeline = rsRenderPipeline_, watermarkImg, isShow]() -> void {
-        renderPipeline->GetMainThread()->ShowWatermark(watermarkImg, isShow);
-    };
-    rsRenderPipeline_->GetMainThread()->PostTask(task);
 }
 
 ErrCode RSRenderPipelineAgent::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
