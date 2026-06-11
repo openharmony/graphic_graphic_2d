@@ -56,7 +56,7 @@ HWTEST_F(RSUIFilterBaseTest, CreateNGBlurFilter, TestSize.Level1)
  */
 HWTEST_F(RSUIFilterBaseTest, CreateNGMaterialBlurFilter, TestSize.Level1)
 {
-    MaterialParam materialParam = { -50, -0.5, 0.5, Color(0x9fff0000), false };
+    MaterialParam materialParam = { -50, -0.5, -0.5, Color(0x9fff0000), false };
     auto materialBlurFilter = std::static_pointer_cast<RSNGMaterialBlurFilter>(
         RSNGFilterHelper::CreateNGMaterialBlurFilter(materialParam));
     EXPECT_NE(materialBlurFilter, nullptr);
