@@ -134,7 +134,9 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
 napi_value ParseJsValue(napi_env env, napi_value jsObject, const std::string& name)
 {
     napi_value value = nullptr;
-    napi_get_named_property(env, jsObject, name.c_str(), &value);
+    if (napi_get_named_property(env, jsObject, name.c_str(), &value) != napi_ok) {
+        return nullptr;
+    }
     return value;
 }
 
@@ -178,13 +180,6 @@ bool CheckCreateBrightnessBlender(napi_env env, napi_value jsObject)
 
 napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp() && !UIEffectNapiUtils::IsFormRenderServiceCall()) {
-        UIEFFECT_LOG_E("CreateBrightnessBlender failed");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi CreateBrightnessBlender failed, is not system app or frs call");
-        return nullptr;
-    }
-
     const size_t requireArgc = NUM_1;
     size_t realArgc = NUM_1;
     napi_value argv[NUM_1];
@@ -717,6 +712,8 @@ napi_value EffectNapi::CreateHdrDarkenBlender(napi_env env, napi_callback_info i
     blender->SetHdrBrightnessRatio(hdrBrightnessRatio);
     napi_value nativeObj = nullptr;
     status = napi_create_object(env, &nativeObj);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender create object fail"));
     status = napi_wrap(env, nativeObj, blender,
         [](napi_env env, void* data, void* hint) {
             delete static_cast<HdrDarkenBlender*>(data);

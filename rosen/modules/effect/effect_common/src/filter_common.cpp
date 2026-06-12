@@ -41,6 +41,10 @@ thread_local std::shared_ptr<FilterCommon> FilterCommon::sConstructor_ = nullptr
 
 void FilterCommon::AddNextFilter(std::shared_ptr<EffectImageFilter> filter)
 {
+    if (effectFilters_.size() >= MAX_FILTER_COUNT) {
+        EFFECT_LOG_E("[FilterCommon]effectFilters_ exceeds MAX_FILTER_COUNT.");
+        return;
+    }
     effectFilters_.emplace_back(filter);
 }
 
@@ -64,6 +68,10 @@ std::shared_ptr<FilterCommon> FilterCommon::CreateEffect(const std::shared_ptr<P
 
 bool FilterCommon::Blur(float radius)
 {
+    if (sConstructor_ == nullptr) {
+        EFFECT_LOG_E("[FilterCommon]sConstructor_ is nullptr.");
+        return false;
+    }
     Drawing::TileMode tileMode = Drawing::TileMode::DECAL;
     auto blur = EffectImageFilter::Blur(radius, tileMode);
     if (!blur) {
@@ -76,6 +84,10 @@ bool FilterCommon::Blur(float radius)
 
 bool FilterCommon::Invert()
 {
+    if (sConstructor_ == nullptr) {
+        EFFECT_LOG_E("[FilterCommon]sConstructor_ is nullptr.");
+        return false;
+    }
     auto invert = EffectImageFilter::Invert();
     if (!invert) {
         EFFECT_LOG_E("[FilterCommon]invert is nullptr.");
@@ -87,6 +99,10 @@ bool FilterCommon::Invert()
 
 bool FilterCommon::Brightness(float bright)
 {
+    if (sConstructor_ == nullptr) {
+        EFFECT_LOG_E("[FilterCommon]sConstructor_ is nullptr.");
+        return false;
+    }
     auto brightness = EffectImageFilter::Brightness(bright);
     if (!brightness) {
         EFFECT_LOG_E("[FilterCommon]brightness is nullptr.");
@@ -98,6 +114,10 @@ bool FilterCommon::Brightness(float bright)
 
 bool FilterCommon::Grayscale()
 {
+    if (sConstructor_ == nullptr) {
+        EFFECT_LOG_E("[FilterCommon]sConstructor_ is nullptr.");
+        return false;
+    }
     auto grayscale = EffectImageFilter::Grayscale();
     if (!grayscale) {
         EFFECT_LOG_E("[FilterCommon]grayscale is nullptr.");
@@ -109,6 +129,10 @@ bool FilterCommon::Grayscale()
 
 bool FilterCommon::CreateSDF(int spreadFactor, bool generateDerivs)
 {
+    if (sConstructor_ == nullptr) {
+        EFFECT_LOG_E("[FilterCommon]sConstructor_ is nullptr.");
+        return false;
+    }
     auto sdf = EffectImageFilter::CreateSDF(spreadFactor, generateDerivs);
     if (!sdf) {
         EFFECT_LOG_E("[FilterCommon]sdf is nullptr.");
@@ -120,8 +144,11 @@ bool FilterCommon::CreateSDF(int spreadFactor, bool generateDerivs)
 
 static uint32_t ParseColorMatrix(std::vector<float> inputColorMatrix, Drawing::ColorMatrix& colorMatrix)
 {
-    float matrix[Drawing::ColorMatrix::MATRIX_SIZE] = { 0 };
     size_t len = inputColorMatrix.size();
+    if (len > Drawing::ColorMatrix::MATRIX_SIZE) {
+        return ERR_INVALID_PARAM;
+    }
+    float matrix[Drawing::ColorMatrix::MATRIX_SIZE] = { 0 };
     for (size_t i = 0; i < len; i++) {
         matrix[i] = inputColorMatrix[i];
     }
@@ -131,6 +158,11 @@ static uint32_t ParseColorMatrix(std::vector<float> inputColorMatrix, Drawing::C
 
 bool FilterCommon::SetColorMatrix(std::vector<float> inputcolorMatrix, uint32_t& code)
 {
+    if (sConstructor_ == nullptr) {
+        EFFECT_LOG_E("[FilterCommon]sConstructor_ is nullptr.");
+        code = ERR_INVALID_PARAM;
+        return false;
+    }
     uint32_t res = 0;
     Drawing::ColorMatrix colorMatrix;
     res = ParseColorMatrix(inputcolorMatrix, colorMatrix);
@@ -165,6 +197,10 @@ std::shared_ptr<OHOS::Media::PixelMap> FilterCommon::GetEffectPixelMap(bool forc
     std::unique_ptr<CMFilterContext> ctx = std::make_unique<CMFilterContext>();
     ctx->filter = sConstructor_;
     ctx->forceCPU = forceCPU;
+    if (ctx->filter == nullptr) {
+        EFFECT_LOG_E("[FilterCommon]ctx->filter is nullptr.");
+        return nullptr;
+    }
     if (ctx->filter->Render(ctx->forceCPU) != DrawingError::ERR_OK) {
         EFFECT_LOG_E("[FilterCommon]Render fail");
         return nullptr;

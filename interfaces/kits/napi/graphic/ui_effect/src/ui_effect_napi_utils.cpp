@@ -65,7 +65,9 @@ bool ParseJsDoubleValue(napi_env env, napi_value jsObject, double& data)
 bool ParseJsDoubleValue(napi_env env, napi_value jsObject, const std::string& name, double& data)
 {
     napi_value value = nullptr;
-    napi_get_named_property(env, jsObject, name.c_str(), &value);
+    if (napi_get_named_property(env, jsObject, name.c_str(), &value) != napi_ok) {
+        return false;
+    }
     if (!value) {
         return false;
     }
@@ -174,7 +176,9 @@ bool ConvertFromJsPoint(napi_env env, napi_value jsObject, double* point, size_t
     napi_value tmpValue = nullptr;
     for (size_t idx = 0; idx < NUM_2; idx++) {
         double* curEdge = point + idx;
-        napi_get_named_property(env, jsObject, POINT_STRING[idx], &tmpValue);
+        if (napi_get_named_property(env, jsObject, POINT_STRING[idx], &tmpValue) != napi_ok || tmpValue == nullptr) {
+            return false;
+        }
         if (napi_get_value_double(env, tmpValue, curEdge) != napi_ok) {
             return false;
         }
@@ -204,7 +208,9 @@ bool ParseJsRGBAColor(napi_env env, napi_value jsValue, Vector4f& rgba)
 {
     for (size_t idx = 0; idx < NUM_4; idx++) {
         napi_value tempValue = nullptr;
-        napi_get_named_property(env, jsValue, COLOR_STRING[idx], &tempValue);
+        if (napi_get_named_property(env, jsValue, COLOR_STRING[idx], &tempValue) != napi_ok) {
+            return false;
+        }
         double value = 0.0;
         if (tempValue == nullptr || napi_get_value_double(env, tempValue, &value) != napi_ok || value < 0.0) {
             return false;
@@ -218,7 +224,9 @@ bool ParseJsLTRBRect(napi_env env, napi_value jsValue, Vector4f& ltrb)
 {
     for (size_t idx = 0; idx < NUM_4; idx++) {
         napi_value tempValue = nullptr;
-        napi_get_named_property(env, jsValue, RECT_STRING[idx], &tempValue);
+        if (napi_get_named_property(env, jsValue, RECT_STRING[idx], &tempValue) != napi_ok) {
+            return false;
+        }
         double value = 0.0;
         if (tempValue == nullptr || napi_get_value_double(env, tempValue, &value) != napi_ok) {
             return false;

@@ -86,6 +86,7 @@ std::shared_ptr<ColorPicker> ColorPickerUnittest::CreateColorPicker()
 
     return ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
 }
+
 /**
  * @tc.name: CreateColorPickerFromPixelmapTest001
  * @tc.desc: Ensure the ability of creating color picker from pixelmap.
@@ -2411,5 +2412,543 @@ HWTEST_F(ColorPickerUnittest, InitColorValBy8888Color, TestSize.Level1)
     pColorPicker->InitColorValBy8888Color(nullptr, 0, 0, 1, 1);
     EXPECT_EQ(pColorPicker->colorValLen_, 0);
 }
+
+/**
+ * @tc.name: HSVDefaultInit
+ * @tc.desc: Test HSV default initialization values.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, HSVDefaultInit, TestSize.Level1)
+{
+    HSV hsv;
+    EXPECT_EQ(hsv.h, 0);
+    EXPECT_EQ(hsv.s, 0.0);
+    EXPECT_EQ(hsv.v, 0.0);
+}
+
+/**
+ * @tc.name: CreateColorPickerNullCoordinates
+ * @tc.desc: Test CreateColorPicker with null coordinates returns ERR_EFFECT_INVALID_VALUE.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, CreateColorPickerNullCoordinates, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
+
+    uint32_t errorCode = SUCCESS;
+    auto picker = ColorPicker::CreateColorPicker(pixmap, nullptr, errorCode);
+    EXPECT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
+    EXPECT_EQ(picker, nullptr);
+}
+
+/**
+ * @tc.name: BuildRegionRectClamp
+ * @tc.desc: Test BuildRegionRect clamps out-of-range coordinates to valid bounds.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, BuildRegionRectClamp, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
+
+    double coordsOutOfRange[4] = { -0.5, 1.5, 0.7, 2.0 };
+    auto rect = ColorPicker::BuildRegionRect(pixmap, coordsOutOfRange);
+    EXPECT_EQ(rect.left, 0);
+    EXPECT_EQ(rect.top, 100);
+    EXPECT_EQ(rect.width, 70);
+    EXPECT_EQ(rect.height, 100);
+}
+
+/**
+ * @tc.name: BuildRegionRectCollapsed
+ * @tc.desc: Test BuildRegionRect with collapsed region returns zero width and height.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, BuildRegionRectCollapsed, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
+
+    double coordsCollapsed[4] = { 0.5, 0.5, 0.5, 0.5 };
+    auto rect = ColorPicker::BuildRegionRect(pixmap, coordsCollapsed);
+    EXPECT_EQ(rect.width, 0);
+    EXPECT_EQ(rect.height, 0);
+}
+
+/**
+ * @tc.name: BuildRegionRectNullPixmap
+ * @tc.desc: Test BuildRegionRect with null pixmap returns zero width and height.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, BuildRegionRectNullPixmap, TestSize.Level1)
+{
+    double coords[4] = { 0.0, 0.0, 1.0, 1.0 };
+    auto rect = ColorPicker::BuildRegionRect(nullptr, coords);
+    EXPECT_EQ(rect.width, 0);
+    EXPECT_EQ(rect.height, 0);
+}
+
+/**
+ * @tc.name: BuildRegionRectNullCoords
+ * @tc.desc: Test BuildRegionRect with null coordinates returns zero width and height.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, BuildRegionRectNullCoords, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
+
+    auto rect = ColorPicker::BuildRegionRect(pixmap, nullptr);
+    EXPECT_EQ(rect.width, 0);
+    EXPECT_EQ(rect.height, 0);
+}
+
+/**
+ * @tc.name: CalcGrayVarianceZeroGuard
+ * @tc.desc: Test CalcGrayVariance returns 0 when colorValLen is 0 and featureColors_ is empty.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, CalcGrayVarianceZeroGuard, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pColorPicker, nullptr);
+
+    pColorPicker->colorValLen_ = 0;
+    pColorPicker->featureColors_.clear();
+    uint32_t ret = pColorPicker->CalcGrayVariance();
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: CalcContrastRatioWithWhiteZeroGuard
+ * @tc.desc: Test CalcContrastRatioWithWhite returns 0 when colorValLen is 0 and featureColors_ is empty.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, CalcContrastRatioWithWhiteZeroGuard, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pColorPicker, nullptr);
+
+    pColorPicker->colorValLen_ = 0;
+    pColorPicker->featureColors_.clear();
+    double ret = pColorPicker->CalcContrastRatioWithWhite();
+    EXPECT_EQ(ret, 0.0);
+}
+
+/**
+ * @tc.name: ColorExtractNullCoordinates
+ * @tc.desc: Test ColorExtract constructor with null coordinates results in null pixelmap.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, ColorExtractNullCoordinates, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
+
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(pixmap, nullptr);
+    EXPECT_EQ(picker->pixelmap_, nullptr);
+}
+
+/**
+ * @tc.name: ColorExtractCoordsCollapsed
+ * @tc.desc: Test ColorExtract constructor with collapsed coordinates results in zero colorValLen.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, ColorExtractCoordsCollapsed, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
+
+    double collapsed[4] = { 0.5, 0.5, 0.5, 0.5 };
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(pixmap, collapsed);
+    EXPECT_EQ(picker->colorValLen_, 0);
+}
+
+/**
+ * @tc.name: InitColorValBy1010102Boundary
+ * @tc.desc: Test InitColorValBy1010102Color with null pixelMap and boundary conditions.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, InitColorValBy1010102Boundary, TestSize.Level1)
+{
+    const int32_t offset = 0;
+    InitializationOptions options;
+    options.size.width = 2;
+    options.size.height = 3;
+    options.srcPixelFormat = PixelFormat::RGBA_8888;
+    options.pixelFormat = PixelFormat::RGBA_1010102;
+    int32_t width = options.size.width;
+
+    uint32_t colorlength = 24;
+    uint8_t buffer[24] = { 0 };
+    for (int i = 0; i < colorlength; i += 4) {
+        buffer[i] = 0xff;
+        buffer[i + 1] = 0xff;
+        buffer[i + 2] = 0xff;
+        buffer[i + 3] = 0xff;
+    }
+    uint32_t* color = reinterpret_cast<uint32_t*>(buffer);
+    std::shared_ptr<PixelMap> pixelMap = PixelMap::Create(color, colorlength, offset, width, options);
+    ASSERT_NE(pixelMap, nullptr);
+
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(std::move(pixelMap));
+    ASSERT_NE(picker, nullptr);
+    EXPECT_EQ(picker->format_, PixelFormat::RGBA_1010102);
+
+    picker->InitColorValBy1010102Color(nullptr, 0, 0, 1, 1);
+    EXPECT_EQ(picker->colorValLen_, 0);
+}
+
+/**
+ * @tc.name: InitColorValBy8888Boundary
+ * @tc.desc: Test InitColorValBy8888Color with null pixelMap and boundary conditions.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, InitColorValBy8888Boundary, TestSize.Level1)
+{
+    const int32_t offset = 0;
+    Media::InitializationOptions options;
+    options.size.width = 2;
+    options.size.height = 3;
+    options.srcPixelFormat = PixelFormat::RGBA_8888;
+    options.pixelFormat = PixelFormat::RGBA_8888;
+    int32_t width = options.size.width;
+
+    uint32_t colorlength = 24;
+    uint8_t buffer[24] = { 0 };
+    for (int i = 0; i < colorlength; i += 4) {
+        buffer[i] = 0x00;
+        buffer[i + 1] = 0x00;
+        buffer[i + 2] = 0x00;
+        buffer[i + 3] = 0x00;
+    }
+    uint32_t* color = reinterpret_cast<uint32_t*>(buffer);
+    std::shared_ptr<PixelMap> pixelMap = PixelMap::Create(color, colorlength, offset, width, options);
+    EXPECT_NE(pixelMap, nullptr);
+
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(std::move(pixelMap));
+    EXPECT_NE(picker, nullptr);
+    EXPECT_EQ(picker->format_, PixelFormat::RGBA_8888);
+
+    picker->InitColorValBy8888Color(nullptr, 0, 0, 1, 1);
+    EXPECT_EQ(picker->colorValLen_, 0);
+}
+
+/**
+ * @tc.name: ColorExtractNullPixmap
+ * @tc.desc: Test ColorExtract constructor with null pixmap and valid coordinates.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickerUnittest, ColorExtractNullPixmap, TestSize.Level1)
+{
+    double coordinates[4] = {0.0, 0.0, 1.0, 1.0};
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(nullptr, coordinates);
+    EXPECT_EQ(picker->pixelmap_, nullptr);
+}
+
+/**
+ * @tc.name: InitColorValBy1010102BottomLteTop
+ * @tc.desc: Test InitColorValBy1010102Color with bottom <= top while right > left.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickerUnittest, InitColorValBy1010102BottomLteTop, TestSize.Level1)
+{
+    const int32_t offset = 0;
+    InitializationOptions options;
+    options.size.width = 2;
+    options.size.height = 3;
+    options.srcPixelFormat = PixelFormat::RGBA_8888;
+    options.pixelFormat = PixelFormat::RGBA_1010102;
+    int32_t width = options.size.width;
+
+    uint32_t colorlength = 24;
+    uint8_t buffer[24] = { 0 };
+    for (int i = 0; i < colorlength; i += 4) {
+        buffer[i] = 0xff;
+        buffer[i + 1] = 0xff;
+        buffer[i + 2] = 0xff;
+        buffer[i + 3] = 0xff;
+    }
+    uint32_t* color = reinterpret_cast<uint32_t*>(buffer);
+    std::shared_ptr<PixelMap> pixelMap = PixelMap::Create(color, colorlength, offset, width, options);
+    ASSERT_NE(pixelMap, nullptr);
+
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(pixelMap);
+    ASSERT_NE(picker, nullptr);
+
+    uint32_t savedColorValLen = picker->colorValLen_;
+    picker->InitColorValBy1010102Color(pixelMap, 0, 3, 2, 1);
+    EXPECT_EQ(picker->colorValLen_, savedColorValLen);
+}
+
+/**
+ * @tc.name: InitColorValBy1010102RightLteLeft
+ * @tc.desc: Test InitColorValBy1010102Color with right <= left while bottom > top.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickerUnittest, InitColorValBy1010102RightLteLeft, TestSize.Level1)
+{
+    const int32_t offset = 0;
+    InitializationOptions options;
+    options.size.width = 2;
+    options.size.height = 3;
+    options.srcPixelFormat = PixelFormat::RGBA_8888;
+    options.pixelFormat = PixelFormat::RGBA_1010102;
+    int32_t width = options.size.width;
+
+    uint32_t colorlength = 24;
+    uint8_t buffer[24] = { 0 };
+    for (int i = 0; i < colorlength; i += 4) {
+        buffer[i] = 0xff;
+        buffer[i + 1] = 0xff;
+        buffer[i + 2] = 0xff;
+        buffer[i + 3] = 0xff;
+    }
+    uint32_t* color = reinterpret_cast<uint32_t*>(buffer);
+    std::shared_ptr<PixelMap> pixelMap = PixelMap::Create(color, colorlength, offset, width, options);
+    ASSERT_NE(pixelMap, nullptr);
+
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(pixelMap);
+    ASSERT_NE(picker, nullptr);
+
+    uint32_t savedColorValLen = picker->colorValLen_;
+    picker->InitColorValBy1010102Color(pixelMap, 3, 0, 2, 3);
+    EXPECT_EQ(picker->colorValLen_, savedColorValLen);
+
+    picker->colorValLen_ = 10;
+    picker->InitColorValBy1010102Color(pixelMap, 0, 0, 65536, 65536); // 0, 0, 65536, 65536 for check data overflow
+    EXPECT_EQ(picker->colorValLen_, 0);
+}
+
+/**
+ * @tc.name: InitColorValBy1010102GetSuccFalse
+ * @tc.desc: Test InitColorValBy1010102Color with out-of-bounds region to trigger getSucc false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickerUnittest, InitColorValBy1010102GetSuccFalse, TestSize.Level1)
+{
+    const int32_t offset = 0;
+    InitializationOptions options;
+    options.size.width = 2;
+    options.size.height = 3;
+    options.srcPixelFormat = PixelFormat::RGBA_8888;
+    options.pixelFormat = PixelFormat::RGBA_1010102;
+    int32_t width = options.size.width;
+
+    uint32_t colorlength = 24;
+    uint8_t buffer[24] = { 0 };
+    for (int i = 0; i < colorlength; i += 4) {
+        buffer[i] = 0xff;
+        buffer[i + 1] = 0xff;
+        buffer[i + 2] = 0xff;
+        buffer[i + 3] = 0xff;
+    }
+    uint32_t* color = reinterpret_cast<uint32_t*>(buffer);
+    std::shared_ptr<PixelMap> pixelMap = PixelMap::Create(color, colorlength, offset, width, options);
+    ASSERT_NE(pixelMap, nullptr);
+
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(pixelMap);
+    ASSERT_NE(picker, nullptr);
+    EXPECT_EQ(picker->fullyTransparentPixelNum_, 0);
+
+    picker->InitColorValBy1010102Color(pixelMap, 0, 0, 10, 10);
+    EXPECT_GT(picker->fullyTransparentPixelNum_, 0);
+}
+
+/**
+ * @tc.name: InitColorValBy8888BottomLteTop
+ * @tc.desc: Test InitColorValBy8888Color with bottom <= top while right > left.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickerUnittest, InitColorValBy8888BottomLteTop, TestSize.Level1)
+{
+    const int32_t offset = 0;
+    InitializationOptions options;
+    options.size.width = 2;
+    options.size.height = 3;
+    options.srcPixelFormat = PixelFormat::RGBA_8888;
+    options.pixelFormat = PixelFormat::RGBA_8888;
+    int32_t width = options.size.width;
+
+    uint32_t colorlength = 24;
+    uint8_t buffer[24] = { 0 };
+    for (int i = 0; i < colorlength; i += 4) {
+        buffer[i] = 0xff;
+        buffer[i + 1] = 0xff;
+        buffer[i + 2] = 0xff;
+        buffer[i + 3] = 0xff;
+    }
+    uint32_t* color = reinterpret_cast<uint32_t*>(buffer);
+    std::shared_ptr<PixelMap> pixelMap = PixelMap::Create(color, colorlength, offset, width, options);
+    ASSERT_NE(pixelMap, nullptr);
+
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(pixelMap);
+    ASSERT_NE(picker, nullptr);
+
+    uint32_t savedColorValLen = picker->colorValLen_;
+    picker->InitColorValBy8888Color(pixelMap, 0, 3, 2, 1);
+    EXPECT_EQ(picker->colorValLen_, savedColorValLen);
+}
+
+/**
+ * @tc.name: InitColorValBy8888RightLteLeft
+ * @tc.desc: Test InitColorValBy8888Color with right <= left while bottom > top.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickerUnittest, InitColorValBy8888RightLteLeft, TestSize.Level1)
+{
+    const int32_t offset = 0;
+    InitializationOptions options;
+    options.size.width = 2;
+    options.size.height = 3;
+    options.srcPixelFormat = PixelFormat::RGBA_8888;
+    options.pixelFormat = PixelFormat::RGBA_8888;
+    int32_t width = options.size.width;
+
+    uint32_t colorlength = 24;
+    uint8_t buffer[24] = { 0 };
+    for (int i = 0; i < colorlength; i += 4) {
+        buffer[i] = 0xff;
+        buffer[i + 1] = 0xff;
+        buffer[i + 2] = 0xff;
+        buffer[i + 3] = 0xff;
+    }
+    uint32_t* color = reinterpret_cast<uint32_t*>(buffer);
+    std::shared_ptr<PixelMap> pixelMap = PixelMap::Create(color, colorlength, offset, width, options);
+    ASSERT_NE(pixelMap, nullptr);
+
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(pixelMap);
+    ASSERT_NE(picker, nullptr);
+
+    uint32_t savedColorValLen = picker->colorValLen_;
+    picker->InitColorValBy8888Color(pixelMap, 3, 0, 2, 3);
+    EXPECT_EQ(picker->colorValLen_, savedColorValLen);
+
+    picker->colorValLen_ = 10;
+    picker->InitColorValBy8888Color(pixelMap, 0, 0, 65536, 65536); // 0, 0, 65536, 65536 for check data overflow
+    EXPECT_EQ(picker->colorValLen_, 0);
+}
+
+/**
+ * @tc.name: InitColorValBy8888GetSuccFalse
+ * @tc.desc: Test InitColorValBy8888Color with out-of-bounds region to trigger getSucc false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickerUnittest, InitColorValBy8888GetSuccFalse, TestSize.Level1)
+{
+    const int32_t offset = 0;
+    InitializationOptions options;
+    options.size.width = 2;
+    options.size.height = 3;
+    options.srcPixelFormat = PixelFormat::RGBA_8888;
+    options.pixelFormat = PixelFormat::RGBA_8888;
+    int32_t width = options.size.width;
+
+    uint32_t colorlength = 24;
+    uint8_t buffer[24] = { 0 };
+    for (int i = 0; i < colorlength; i += 4) {
+        buffer[i] = 0xff;
+        buffer[i + 1] = 0xff;
+        buffer[i + 2] = 0xff;
+        buffer[i + 3] = 0xff;
+    }
+    uint32_t* color = reinterpret_cast<uint32_t*>(buffer);
+    std::shared_ptr<PixelMap> pixelMap = PixelMap::Create(color, colorlength, offset, width, options);
+    ASSERT_NE(pixelMap, nullptr);
+
+    std::shared_ptr<ColorPicker> picker = std::make_shared<ColorPicker>(pixelMap);
+    ASSERT_NE(picker, nullptr);
+    EXPECT_EQ(picker->fullyTransparentPixelNum_, 0);
+
+    picker->InitColorValBy8888Color(pixelMap, 0, 0, 10, 10);
+    EXPECT_GT(picker->fullyTransparentPixelNum_, 0);
+}
+
+/**
+ * @tc.name: CreateColorPickerScaledPixelMapNull
+ * @tc.desc: Test CreateColorPicker with coordinates when CreateScaledPixelMap returns nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickerUnittest, CreateColorPickerScaledPixelMapNull, TestSize.Level1)
+{
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
+
+    pixmap->imageInfo_.size.width = 0;
+
+    double coordinates[4] = {0.0, 0.0, 1.0, 1.0};
+    uint32_t errorCode = SUCCESS;
+    auto picker = ColorPicker::CreateColorPicker(pixmap, coordinates, errorCode);
+    EXPECT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
+    EXPECT_EQ(picker, nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -57,6 +57,7 @@ std::shared_ptr<ColorPickerCommon> ColorPickerCommonUnittest::CreateColorPicker(
 
     return ColorPickerCommon::CreateColorPicker(std::move(pixmap), errorCode);
 }
+
 /**
  * @tc.name: CreateColorPickerFromPixelmapTest001
  * @tc.desc: Ensure the ability of creating color picker from pixelmap.
@@ -577,5 +578,76 @@ HWTEST_F(ColorPickerCommonUnittest, GetTopProportionColors, TestSize.Level1)
     ASSERT_EQ(colors2.size(), 0);
 }
 
+/**
+ * @tc.name: CreateColorPickerRegionTooSmall
+ * @tc.desc: Ensure creating color picker fails when the region vector has fewer than 4 elements.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerCommonUnittest, CreateColorPickerRegionTooSmall, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerCommonUnittest CreateColorPickerRegionTooSmall start";
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::unique_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+
+    uint32_t errorCode = SUCCESS;
+    std::vector<double> smallRegion = { 0.0, 0.0 };
+    std::shared_ptr<ColorPickerCommon> pColorPicker =
+        ColorPickerCommon::CreateColorPicker(std::move(pixmap), smallRegion, errorCode);
+    ASSERT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
+    EXPECT_EQ(pColorPicker, nullptr);
+}
+
+/**
+ * @tc.name: GetTopProportionColorsNullConstructor
+ * @tc.desc: Ensure GetTopProportionColors returns error when sConstructor_ is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerCommonUnittest, GetTopProportionColorsNullConstructor, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerCommonUnittest GetTopProportionColorsNullConstructor start";
+    ColorPickerCommon::sConstructor_ = nullptr;
+
+    uint32_t errorCode = SUCCESS;
+    std::vector<ColorManager::Color> colors =
+        ColorPickerCommon::GetTopProportionColors(10, errorCode);
+    EXPECT_EQ(errorCode, ERROR);
+    EXPECT_EQ(colors.size(), 0);
+}
+
+/**
+ * @tc.name: GetTopProportionColorsNullColorPicker
+ * @tc.desc: Test GetTopProportionColors with sConstructor_ valid but sColorPicker_ nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickerCommonUnittest, GetTopProportionColorsNullColorPicker, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerCommonUnittest GetTopProportionColorsNullColorPicker start";
+    Media::InitializationOptions opts;
+    opts.size.width = 200;
+    opts.size.height = 150;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixmap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixmap, nullptr);
+
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<ColorPickerCommon> pColorPicker =
+        ColorPickerCommon::CreateColorPicker(pixmap, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(pColorPicker, nullptr);
+
+    pColorPicker->sColorPicker_ = nullptr;
+
+    std::vector<ColorManager::Color> colors =
+        pColorPicker->GetTopProportionColors(10, errorCode);
+    EXPECT_EQ(errorCode, ERROR);
+    EXPECT_EQ(colors.size(), 0);
+}
 } // namespace Rosen
 } // namespace OHOS
