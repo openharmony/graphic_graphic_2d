@@ -65,9 +65,22 @@ namespace {
 void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, int row,
     float* vertices, uint32_t* colors, Drawing::Canvas* m_canvas)
 {
-    const int vertCounts = (column + 1) * (row + 1);
-    int32_t size = 6; // triangle * 2
-    const int indexCount = column * row * size;
+    if (column <= 0 || row <= 0) {
+        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh column or row is invalid");
+        return;
+    }
+    int64_t tempVertCounts = (static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1);
+    if (tempVertCounts > INT_MAX || tempVertCounts > UINT16_MAX) {
+        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh vertCounts overflow");
+        return;
+    }
+    const int vertCounts = static_cast<int>(tempVertCounts);
+    int64_t tempIndexCount = static_cast<int64_t>(column) * static_cast<int64_t>(row) * 6;
+    if (tempIndexCount > INT_MAX || tempIndexCount > UINT16_MAX) {
+        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh indexCount overflow");
+        return;
+    }
+    const int indexCount = static_cast<int>(tempIndexCount);
     uint32_t flags = Drawing::BuilderFlags::HAS_TEXCOORDS_BUILDER_FLAG;
     if (colors) {
         flags |= Drawing::BuilderFlags::HAS_COLORS_BUILDER_FLAG;
@@ -93,10 +106,6 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
     const float height = static_cast<float>(pixelMap->GetHeight());
     const float width = static_cast<float>(pixelMap->GetWidth());
 
-    if (column == 0 || row == 0) {
-        ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh column or row is invalid");
-        return;
-    }
     const float dy = height / row;
     const float dx = width / column;
 
@@ -1379,8 +1388,11 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
 
     napi_value verticesArray = argv[ARGC_THREE];
     uint32_t verticesSize = 0;
-    napi_get_array_length(env, verticesArray, &verticesSize);
-    int64_t tempVerticesSize = ((column + 1) * (row + 1) + vertOffset) * 2; // x and y two coordinates
+    if (napi_get_array_length(env, verticesArray, &verticesSize) != napi_ok) {
+        ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh verticesArray is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter3 type.");
+    }
+    int64_t tempVerticesSize = ((static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1) + static_cast<int64_t>(vertOffset)) * 2; // x and y two coordinates
     if (verticesSize != tempVerticesSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh vertices are invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter3 type.");
@@ -1404,12 +1416,16 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         }
         vertices[i] = vertex;
     }
-    float* verticesMesh = verticesSize ? (vertices + vertOffset * 2) : nullptr; // offset two coordinates
+    float* verticesMesh = verticesSize ? (vertices + static_cast<int64_t>(vertOffset) * 2) : nullptr; // offset two coordinates
 
     napi_value colorsArray = argv[ARGC_FIVE];
     uint32_t colorsSize = 0;
-    napi_get_array_length(env, colorsArray, &colorsSize);
-    int64_t tempColorsSize = (column + 1) * (row + 1) + colorOffset;
+    if (napi_get_array_length(env, colorsArray, &colorsSize) != napi_ok) {
+        ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh colorsArray is invalid");
+        delete []vertices;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter5 type.");
+    }
+    int64_t tempColorsSize = (static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1) + static_cast<int64_t>(colorOffset);
 
     if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh colors are invalid");
