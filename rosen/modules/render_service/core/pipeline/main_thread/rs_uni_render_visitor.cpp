@@ -3396,7 +3396,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
             properties.IsFgBrightnessValid() || properties.GetForegroundFilter() != nullptr ||
             node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
     if (isUnSupportLayer) {
-        RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(node, true);
+        RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(nodeParent, true);
     }
 
     // Handle ColorPickerDrawable - MERGE into filter handling
