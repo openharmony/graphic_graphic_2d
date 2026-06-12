@@ -101,9 +101,6 @@ enum class RSCmdModifierType : uint16_t {
     // RSRootNode
     ATTACH_ROOT_NODE,
 
-    // RSCanvasDrawingNode
-    RESET_SURFACE,
-
     // RSWindowKeyFrameNode
     WKF_IS_FREEZE,
     WKF_LINKED_NODE_ID,

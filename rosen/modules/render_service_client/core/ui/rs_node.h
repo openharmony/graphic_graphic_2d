@@ -41,6 +41,7 @@
 #include "animation/rs_particle_params.h"
 #include "animation/rs_symbol_node_config.h"
 #include "animation/rs_transition_effect.h"
+#include "command_modifier/rs_node_command_modifier.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_extractor.h"
@@ -298,6 +299,13 @@ public:
      * @param out The string to which the dump information will be appended.
      */
     void DumpTree(int depth, std::string& out) const;
+
+    /**
+     * @brief Gets the node state as a string.
+     *
+     * @return std::string The node state string (ACTIVE, INACTIVE, LAZY_LOAD, or empty).
+     */
+    std::string DumpNodeState() const;
 
     /**
      * @brief Dumps the information of current node into the provided output string.
@@ -2324,7 +2332,7 @@ private:
     /**
      * @brief Called when the bounds size of the node has changed.
      */
-    virtual void OnBoundsSizeChanged() const {};
+    virtual void OnBoundsSizeChanged() {};
     void UpdateModifierMotionPathOption();
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
@@ -2446,6 +2454,10 @@ private:
     friend class RSAnimatableProperty;
     friend class RSInteractiveImplictAnimator;
     friend class RSSurfaceNode;
+
+    // RSCmdModifier
+    friend class RSCmdModifier; // for AddCommand
+    friend class AttachRootNodeCmdModifier; // for SetIsOnTheTree
 };
 // backward compatibility
 using RSBaseNode = RSNode;

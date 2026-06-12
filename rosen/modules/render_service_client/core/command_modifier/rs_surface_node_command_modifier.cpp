@@ -194,9 +194,7 @@ void HidePrivacyContentCmdModifier::UpdateToRender()
 {
     auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
     if (!node) return;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHidePrivacyContent>(
-        node->GetId(), param_.hidePrivacyContent_);
-    AddCommand(command, true);
+    // To be implemented
 }
 
 RSCmdModifier::UpdateResult HidePrivacyContentCmdModifier::UpdateToRenderWithResult()
@@ -226,9 +224,7 @@ void HardwareEnabledCmdModifier::UpdateToRender()
 {
     auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
     if (!node) return;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHardwareEnable>(
-        node->GetId(), param_.isHardwareEnabled_, param_.isSelfDrawingNodeType_, param_.isDynamicHardwareEnable_);
-    AddCommand(command, true);
+    // To be implemented
 }
 
 RSCmdModifier::UpdateResult HardwareEnabledCmdModifier::UpdateToRenderWithResult()
@@ -298,9 +294,7 @@ void CompositeLayerCmdModifier::UpdateToRender()
     if (!node) {
         return;
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeUpdateCompositeLayerdToRender>(
-        node->GetId(), param_.isCompositeLayer_, param_.isMarkedByUI_);
-    AddCommand(command, true);
+    // To be implemented
 }
 
 RSCmdModifier::UpdateResult CompositeLayerCmdModifier::UpdateToRenderWithResult()
@@ -321,9 +315,7 @@ void StaticCachedCmdModifier::UpdateToRender()
 {
     auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
     if (!node) return;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetStaticCachedToRender>(
-        node->GetId(), param_.isStaticCached_);
-    AddCommand(command, true);
+    // To be implemented
 }
 
 void FrameGravityNewVersionEnabledCmdModifier::UpdateToRender()
@@ -357,10 +349,7 @@ void BufferAvailableCallbackCmdModifier::UpdateToRender()
 {
     auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
     if (!node) return;
-    sptr<RSIBufferAvailableCallback> callback = new RSBufferAvailableCallbackWrapper(param_.callback);
-    std::unique_ptr<RSCommand> command = std::make_unique<RSurfaceNodeRegisterBufferAvailableListener>(
-        node->GetId(), callback, false);
-    AddCommand(command, true);
+    // To be implemented
 }
 
 RSCmdModifier::UpdateResult BufferAvailableCallbackCmdModifier::UpdateToRenderWithResult()

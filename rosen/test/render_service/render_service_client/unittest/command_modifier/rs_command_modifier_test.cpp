@@ -18,7 +18,7 @@
 
 #include "command_modifier/rs_command_modifier.h"
 #include "command_modifier/rs_node_command_modifier.h"
-#include "ui/rs_node.h"
+#include "ui/rs_canvas_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -62,7 +62,7 @@ public:
  */
 HWTEST_F(RSCommandModifierTest, GetNodeTest001, TestSize.Level1)
 {
-    auto node = RSNode::Create();
+    auto node = RSCanvasNode::Create();
     ASSERT_TRUE(node);
     auto modifier = std::make_shared<TestableCmdModifier>(node);
     auto result = modifier->GetNode();
@@ -79,7 +79,7 @@ HWTEST_F(RSCommandModifierTest, GetNodeTest002, TestSize.Level1)
 {
     std::weak_ptr<RSNode> weakNode;
     {
-        auto node = RSNode::Create();
+        auto node = RSCanvasNode::Create();
         weakNode = node;
     }
     auto modifier = std::make_shared<TestableCmdModifier>(weakNode);
@@ -96,11 +96,11 @@ HWTEST_F(RSCommandModifierTest, AddCommandTest001, TestSize.Level1)
 {
     std::weak_ptr<RSNode> weakNode;
     {
-        auto node = RSNode::Create();
+        auto node = RSCanvasNode::Create();
         weakNode = node;
     }
     auto modifier = std::make_shared<TestableCmdModifier>(weakNode);
-    auto command = std::make_unique<RSSetNodeName>(0, "test");
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetNodeName>(0, "test");
     bool result = modifier->AddCommand(command, false);
     EXPECT_FALSE(result);
 }
@@ -114,12 +114,12 @@ HWTEST_F(RSCommandModifierTest, AddCommandTest002, TestSize.Level1)
 {
     std::weak_ptr<RSNode> weakNode;
     {
-        auto node = RSNode::Create();
+        auto node = RSCanvasNode::Create();
         weakNode = node;
     }
     auto modifier = std::make_shared<TestableCmdModifier>(weakNode);
-    auto command = std::make_unique<RSSetNodeName>(0, "test");
-    bool result = modifier->AddCommand(command, false, FollowType::FOLLOW_TO, 0);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetNodeName>(0, "test");
+    bool result = modifier->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 0);
     EXPECT_FALSE(result);
 }
 
@@ -130,7 +130,7 @@ HWTEST_F(RSCommandModifierTest, AddCommandTest002, TestSize.Level1)
  */
 HWTEST_F(RSCommandModifierTest, DumpParamTest001, TestSize.Level1)
 {
-    auto node = RSNode::Create();
+    auto node = RSCanvasNode::Create();
     auto modifier = std::make_shared<TestableCmdModifier>(node);
     std::string out;
     modifier->DumpParam(out);
@@ -144,7 +144,7 @@ HWTEST_F(RSCommandModifierTest, DumpParamTest001, TestSize.Level1)
  */
 HWTEST_F(RSCommandModifierTest, UpdateToRenderWithResultTest001, TestSize.Level1)
 {
-    auto node = RSNode::Create();
+    auto node = RSCanvasNode::Create();
     auto modifier = std::make_shared<TestableCmdModifier>(node);
     auto result = modifier->UpdateToRenderWithResult();
     bool val = std::get<bool>(result);
@@ -174,9 +174,9 @@ HWTEST_F(RSCommandModifierTest, RSCmdModifierTypeEnumTest001, TestSize.Level1)
  */
 HWTEST_F(RSCommandModifierTest, AddCommandTest003, TestSize.Level1)
 {
-    auto node = RSNode::Create();
+    auto node = RSCanvasNode::Create();
     auto modifier = std::make_shared<TestableCmdModifier>(node);
-    auto command = std::make_unique<RSSetNodeName>(node->GetId(), "test");
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetNodeName>(node->GetId(), "test");
     bool result = modifier->AddCommand(command, false);
     EXPECT_TRUE(result);
 }
@@ -188,10 +188,10 @@ HWTEST_F(RSCommandModifierTest, AddCommandTest003, TestSize.Level1)
  */
 HWTEST_F(RSCommandModifierTest, AddCommandTest004, TestSize.Level1)
 {
-    auto node = RSNode::Create();
+    auto node = RSCanvasNode::Create();
     auto modifier = std::make_shared<TestableCmdModifier>(node);
-    auto command = std::make_unique<RSSetNodeName>(node->GetId(), "test");
-    bool result = modifier->AddCommand(command, false, FollowType::FOLLOW_TO, node->GetId());
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetNodeName>(node->GetId(), "test");
+    bool result = modifier->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, node->GetId());
     EXPECT_TRUE(result);
 }
 

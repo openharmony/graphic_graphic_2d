@@ -41,7 +41,10 @@ void RSSurfaceNodeCommandModifierTest::TearDown() {}
 static std::weak_ptr<RSNode> MakeExpiredNode()
 {
     std::weak_ptr<RSNode> weak;
-    { auto n = RSSurfaceNode::Create(); weak = n; }
+    {
+        auto n = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+        weak = n;
+    }
     return weak;
 }
 
@@ -52,14 +55,15 @@ static std::weak_ptr<RSNode> MakeExpiredNode()
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, LeashPersistentIdTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     LeashPersistentIdCmdParam param{100};
     auto mod = std::make_shared<LeashPersistentIdCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::LEASH_PERSISTENT_ID);
     EXPECT_EQ(mod->GetParam().leashPersistentId_, 100);
 
     LeashPersistentIdCmdParam param2{200};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().leashPersistentId_, 200);
 
     std::string out;
@@ -86,14 +90,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, LeashPersistentIdTest002, TestSize.Le
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, SecurityLayerTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     SecurityLayerCmdParam param{true};
     auto mod = std::make_shared<SecurityLayerCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::IS_SECURITY_LAYER);
     EXPECT_TRUE(mod->GetParam().isSecurityLayer_);
 
     SecurityLayerCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isSecurityLayer_);
 
     std::string out;
@@ -120,14 +125,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, SecurityLayerTest002, TestSize.Level1
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, SkipLayerTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     SkipLayerCmdParam param{true};
     auto mod = std::make_shared<SkipLayerCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::IS_SKIP_LAYER);
     EXPECT_TRUE(mod->GetParam().isSkipLayer_);
 
     SkipLayerCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isSkipLayer_);
 
     std::string out;
@@ -154,14 +160,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, SkipLayerTest002, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, SnapshotSkipLayerTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     SnapshotSkipLayerCmdParam param{true};
     auto mod = std::make_shared<SnapshotSkipLayerCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::IS_SNAPSHOT_SKIP_LAYER);
     EXPECT_TRUE(mod->GetParam().isSnapshotSkipLayer_);
 
     SnapshotSkipLayerCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isSnapshotSkipLayer_);
 
     std::string out;
@@ -188,14 +195,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, SnapshotSkipLayerTest002, TestSize.Le
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, HasFingerprintTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     HasFingerprintCmdParam param{true};
     auto mod = std::make_shared<HasFingerprintCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::HAS_FINGER_PRINT);
     EXPECT_TRUE(mod->GetParam().hasFingerprint_);
 
     HasFingerprintCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().hasFingerprint_);
 
     std::string out;
@@ -222,14 +230,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, HasFingerprintTest002, TestSize.Level
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, ColorSpaceTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     ColorSpaceCmdParam param{GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB};
     auto mod = std::make_shared<ColorSpaceCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::COLOR_SPACE);
     EXPECT_EQ(mod->GetParam().colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     ColorSpaceCmdParam param2{GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
     std::string out;
@@ -256,7 +265,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ColorSpaceTest002, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, AbilityBGAlphaTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     constexpr uint8_t alphaVal = 128;
     AbilityBGAlphaCmdParam param{alphaVal};
     auto mod = std::make_shared<AbilityBGAlphaCmdModifier>(node, param);
@@ -265,7 +274,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, AbilityBGAlphaTest001, TestSize.Level
 
     constexpr uint8_t alphaVal2 = 255;
     AbilityBGAlphaCmdParam param2{alphaVal2};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().abilityBGAlpha_, alphaVal2);
 
     std::string out;
@@ -292,14 +302,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, AbilityBGAlphaTest002, TestSize.Level
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, NotifyUIBufferAvailableTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     NotifyUIBufferAvailableCmdParam param{true};
     auto mod = std::make_shared<NotifyUIBufferAvailableCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::NOTIFY_UI_BUFFER_AVL);
     EXPECT_TRUE(mod->GetParam().notifyUIBufferAvailable_);
 
     NotifyUIBufferAvailableCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().notifyUIBufferAvailable_);
 
     std::string out;
@@ -326,15 +337,16 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, NotifyUIBufferAvailableTest002, TestS
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
-    RRect rrect{RectF(0, 0, 100, 100), 10.f, CornerSize::CornerSize{5, 5, 5, 5}};
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    RRect rrect{RectF(0, 0, 100, 100), 10.f, 10.f};
     ContainerWindowCmdParam param{true, rrect};
     auto mod = std::make_shared<ContainerWindowCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::SET_CONTAINER_WINDOW);
     EXPECT_TRUE(mod->GetParam().hasContainerWindow_);
 
     ContainerWindowCmdParam param2{false, rrect};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().hasContainerWindow_);
 
     std::string out;
@@ -362,7 +374,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTest002, TestSize.Leve
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, FreezeCmdTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     FreezeCmdParam param{true, false};
     auto mod = std::make_shared<FreezeCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::SF_IS_FREEZE);
@@ -370,7 +382,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, FreezeCmdTest001, TestSize.Level1)
     EXPECT_FALSE(mod->GetParam().isMarkedByUI_);
 
     FreezeCmdParam param2{false, true};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isFreeze_);
     EXPECT_TRUE(mod->GetParam().isMarkedByUI_);
 
@@ -398,14 +411,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, FreezeCmdTest002, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, HardwareEnableHintTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     HardwareEnableHintCmdParam param{true};
     auto mod = std::make_shared<HardwareEnableHintCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::HARDWARE_ENABLE_HINT);
     EXPECT_TRUE(mod->GetParam().isHardwareEnabled_);
 
     HardwareEnableHintCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isHardwareEnabled_);
 
     std::string out;
@@ -432,16 +446,17 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, HardwareEnableHintTest002, TestSize.L
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, HardwareEnabledTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
-    HardwareEnabledCmdParam param{true, SelfDrawingNodeType::OVERLAY_NODE, false};
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HardwareEnabledCmdParam param{true, SelfDrawingNodeType::DEFAULT, false};
     auto mod = std::make_shared<HardwareEnabledCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::HARDWARE_ENABLED);
     EXPECT_TRUE(mod->GetParam().isHardwareEnabled_);
-    EXPECT_EQ(mod->GetParam().isSelfDrawingNodeType_, SelfDrawingNodeType::OVERLAY_NODE);
+    EXPECT_EQ(mod->GetParam().isSelfDrawingNodeType_, SelfDrawingNodeType::DEFAULT);
     EXPECT_FALSE(mod->GetParam().isDynamicHardwareEnable_);
 
     HardwareEnabledCmdParam param2{false, SelfDrawingNodeType::DEFAULT, true};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isHardwareEnabled_);
     EXPECT_EQ(mod->GetParam().isSelfDrawingNodeType_, SelfDrawingNodeType::DEFAULT);
     EXPECT_TRUE(mod->GetParam().isDynamicHardwareEnable_);
@@ -484,14 +499,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, HardwareEnabledTest003, TestSize.Leve
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, BootAnimationTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     BootAnimationCmdParam param{true};
     auto mod = std::make_shared<BootAnimationCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::SF_IS_BOOT_ANIMATION);
     EXPECT_TRUE(mod->GetParam().isBootAnimation_);
 
     BootAnimationCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isBootAnimation_);
 
     std::string out;
@@ -518,14 +534,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, BootAnimationTest002, TestSize.Level1
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, GlobalPositionEnabledTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     GlobalPositionEnabledCmdParam param{true};
     auto mod = std::make_shared<GlobalPositionEnabledCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::IS_GLOBAL_POSITION_ENABLED);
     EXPECT_TRUE(mod->GetParam().isGlobalPositionEnabled_);
 
     GlobalPositionEnabledCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isGlobalPositionEnabled_);
 
     std::string out;
@@ -552,7 +569,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, GlobalPositionEnabledTest002, TestSiz
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, ClonedNodeInfoTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     ClonedNodeInfoCmdParam param{100, true, false};
     auto mod = std::make_shared<ClonedNodeInfoCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::CLONED_NODE_INFO);
@@ -561,7 +578,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ClonedNodeInfoTest001, TestSize.Level
     EXPECT_FALSE(mod->GetParam().clonedIsRelated_);
 
     ClonedNodeInfoCmdParam param2{200, false, true};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().clonedNodeId_, 200);
     EXPECT_FALSE(mod->GetParam().clonedNeedOffscreen_);
     EXPECT_TRUE(mod->GetParam().clonedIsRelated_);
@@ -590,14 +608,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ClonedNodeInfoTest002, TestSize.Level
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, ForceUIFirstTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     ForceUIFirstCmdParam param{true};
     auto mod = std::make_shared<ForceUIFirstCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::FORCE_UI_FIRST);
     EXPECT_TRUE(mod->GetParam().forceUIFirst_);
 
     ForceUIFirstCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().forceUIFirst_);
 
     std::string out;
@@ -624,7 +643,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ForceUIFirstTest002, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, AncoFlagsTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     constexpr uint32_t flagsVal = 3;
     AncoFlagsCmdParam param{flagsVal};
     auto mod = std::make_shared<AncoFlagsCmdModifier>(node, param);
@@ -633,7 +652,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, AncoFlagsTest001, TestSize.Level1)
 
     constexpr uint32_t flagsVal2 = 7;
     AncoFlagsCmdParam param2{flagsVal2};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().ancoFlags_, flagsVal2);
 
     std::string out;
@@ -660,14 +680,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, AncoFlagsTest002, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, SkipDrawTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     SkipDrawCmdParam param{true};
     auto mod = std::make_shared<SkipDrawCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::IS_SKIP_DRAW);
     EXPECT_TRUE(mod->GetParam().skipDraw_);
 
     SkipDrawCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().skipDraw_);
 
     std::string out;
@@ -694,7 +715,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, SkipDrawTest002, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, WatermarkEnabledTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     WatermarkEnabledCmdParam param{"testMark", true};
     auto mod = std::make_shared<WatermarkEnabledCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::WATER_MARK_ENABLED);
@@ -702,7 +723,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, WatermarkEnabledTest001, TestSize.Lev
     EXPECT_TRUE(mod->GetParam().watermarkEnabled_);
 
     WatermarkEnabledCmdParam param2{"otherMark", false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().watermarkName_, "otherMark");
     EXPECT_FALSE(mod->GetParam().watermarkEnabled_);
 
@@ -730,14 +752,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, WatermarkEnabledTest002, TestSize.Lev
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, AbilityStateTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     AbilityStateCmdParam param{RSSurfaceNodeAbilityState::FOREGROUND};
     auto mod = std::make_shared<AbilityStateCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::ABILITY_STATE);
     EXPECT_EQ(mod->GetParam().abilityState_, RSSurfaceNodeAbilityState::FOREGROUND);
 
     AbilityStateCmdParam param2{RSSurfaceNodeAbilityState::BACKGROUND};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().abilityState_, RSSurfaceNodeAbilityState::BACKGROUND);
 
     std::string out;
@@ -764,14 +787,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, AbilityStateTest002, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, HidePrivacyContentTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     HidePrivacyContentCmdParam param{true};
     auto mod = std::make_shared<HidePrivacyContentCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::SET_HIDE_PRIVACY_CONTENT);
     EXPECT_TRUE(mod->GetParam().hidePrivacyContent_);
 
     HidePrivacyContentCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().hidePrivacyContent_);
 
     std::string out;
@@ -813,7 +837,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, HidePrivacyContentTest003, TestSize.L
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, ApiCompatibleVersionTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     constexpr uint32_t versionVal = 10;
     ApiCompatibleVersionCmdParam param{versionVal};
     auto mod = std::make_shared<ApiCompatibleVersionCmdModifier>(node, param);
@@ -822,7 +846,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ApiCompatibleVersionTest001, TestSize
 
     constexpr uint32_t versionVal2 = 20;
     ApiCompatibleVersionCmdParam param2{versionVal2};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().apiCompatibleVersion_, versionVal2);
 
     std::string out;
@@ -849,7 +874,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ApiCompatibleVersionTest002, TestSize
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, VirtualDisplayIdTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     constexpr uint32_t displayId = 5;
     VirtualDisplayIdCmdParam param{displayId};
     auto mod = std::make_shared<VirtualDisplayIdCmdModifier>(node, param);
@@ -858,7 +883,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, VirtualDisplayIdTest001, TestSize.Lev
 
     constexpr uint32_t displayId2 = 10;
     VirtualDisplayIdCmdParam param2{displayId2};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().virtualDisplayId_, displayId2);
 
     std::string out;
@@ -885,7 +911,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, VirtualDisplayIdTest002, TestSize.Lev
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, AttachToWindowContainerTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     constexpr ScreenId screenId = 42;
     AttachToWindowContainerCmdParam param{screenId};
     auto mod = std::make_shared<AttachToWindowContainerCmdModifier>(node, param);
@@ -894,7 +920,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, AttachToWindowContainerTest001, TestS
 
     constexpr ScreenId screenId2 = 99;
     AttachToWindowContainerCmdParam param2{screenId2};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().attachToWindowContainer_, screenId2);
 
     std::string out;
@@ -921,7 +948,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, AttachToWindowContainerTest002, TestS
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, RegionToBeMagnifiedTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     Vector4<int> region{1, 2, 3, 4};
     RegionToBeMagnifiedCmdParam param{region};
     auto mod = std::make_shared<RegionToBeMagnifiedCmdModifier>(node, param);
@@ -956,7 +983,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, RegionToBeMagnifiedTest002, TestSize.
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, DetachFromWindowContainerTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     constexpr ScreenId screenId = 42;
     DetachFromWindowContainerCmdParam param{screenId};
     auto mod = std::make_shared<DetachFromWindowContainerCmdModifier>(node, param);
@@ -965,7 +992,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, DetachFromWindowContainerTest001, Tes
 
     constexpr ScreenId screenId2 = 99;
     DetachFromWindowContainerCmdParam param2{screenId2};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().detachFromWindowContainer_, screenId2);
 
     std::string out;
@@ -992,7 +1020,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, DetachFromWindowContainerTest002, Tes
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, CompositeLayerTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     CompositeLayerCmdParam param{true, 0};
     auto mod = std::make_shared<CompositeLayerCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::UPDATE_COMPOSITE_LAYER);
@@ -1000,7 +1028,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, CompositeLayerTest001, TestSize.Level
     EXPECT_EQ(mod->GetParam().isMarkedByUI_, 0);
 
     CompositeLayerCmdParam param2{false, 1};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isCompositeLayer_);
     EXPECT_EQ(mod->GetParam().isMarkedByUI_, 1);
 
@@ -1042,7 +1071,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, CompositeLayerTest003, TestSize.Level
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, CompositeLayerTest004, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     CompositeLayerCmdParam param{true, 0};
     auto mod = std::make_shared<CompositeLayerCmdModifier>(node, param);
     auto result = mod->UpdateToRenderWithResult();
@@ -1057,14 +1086,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, CompositeLayerTest004, TestSize.Level
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, StaticCachedTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     StaticCachedCmdParam param{true};
     auto mod = std::make_shared<StaticCachedCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::SET_STATIC_CACHED);
     EXPECT_TRUE(mod->GetParam().isStaticCached_);
 
     StaticCachedCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isStaticCached_);
 
     std::string out;
@@ -1091,14 +1121,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, StaticCachedTest002, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, FrameGravityNewVersionEnabledTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     FrameGravityNewVersionEnabledCmdParam param{true};
     auto mod = std::make_shared<FrameGravityNewVersionEnabledCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::IS_FRAME_GRAVITY_NEW_VER_ENABLED);
     EXPECT_TRUE(mod->GetParam().isFrameGravityNewVersionEnabled_);
 
     FrameGravityNewVersionEnabledCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isFrameGravityNewVersionEnabled_);
 
     std::string out;
@@ -1125,14 +1156,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, FrameGravityNewVersionEnabledTest002,
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, SurfaceBufferOpaqueTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     SurfaceBufferOpaqueCmdParam param{true};
     auto mod = std::make_shared<SurfaceBufferOpaqueCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::IS_SURFACE_BUFFER_OPAQUE);
     EXPECT_TRUE(mod->GetParam().isSurfaceBufferOpaque_);
 
     SurfaceBufferOpaqueCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isSurfaceBufferOpaque_);
 
     std::string out;
@@ -1159,14 +1191,15 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, SurfaceBufferOpaqueTest002, TestSize.
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTransparentTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     ContainerWindowTransparentCmdParam param{true};
     auto mod = std::make_shared<ContainerWindowTransparentCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::IS_CONTAINER_WINDOW_TRANSPARENT);
     EXPECT_TRUE(mod->GetParam().isContainerWindowTransparent_);
 
     ContainerWindowTransparentCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isContainerWindowTransparent_);
 
     std::string out;
@@ -1193,7 +1226,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTransparentTest002, Te
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     bool called = false;
     BufferAvailableCallbackCmdParam param{[&called]() { called = true; }};
     auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(node, param);
@@ -1215,7 +1248,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest001, TestS
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest002, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     BufferAvailableCallbackCmdParam param{nullptr};
     auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(node, param);
     std::string out;
@@ -1256,7 +1289,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest004, TestS
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest005, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     bool flag = false;
     BufferAvailableCallbackCmdParam param{[&flag]() { flag = true; }};
     auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(node, param);
@@ -1274,7 +1307,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest005, TestS
  */
 HWTEST_F(RSSurfaceNodeCommandModifierTest, SurfaceDefaultSizeTest001, TestSize.Level1)
 {
-    auto node = RSSurfaceNode::Create();
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
     SurfaceDefaultSizeCmdParam param{100.0f, 200.0f};
     auto mod = std::make_shared<SurfaceDefaultSizeCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::UPDATE_SURFACE_DEFAULT_SIZE);
@@ -1282,7 +1315,8 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, SurfaceDefaultSizeTest001, TestSize.L
     EXPECT_FLOAT_EQ(mod->GetParam().height_, 200.0f);
 
     SurfaceDefaultSizeCmdParam param2{300.0f, 400.0f};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FLOAT_EQ(mod->GetParam().width_, 300.0f);
     EXPECT_FLOAT_EQ(mod->GetParam().height_, 400.0f);
 
@@ -1316,7 +1350,7 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, RSBufferAvailableCallbackWrapperTest0
     wrapper->OnBufferAvailable();
     EXPECT_TRUE(called);
     ASSERT_TRUE(wrapper->GetCallback());
-    wrapper->DecRef();
+    delete wrapper;
 }
 
 /**
@@ -1329,7 +1363,958 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, RSBufferAvailableCallbackWrapperTest0
     auto wrapper = new RSBufferAvailableCallbackWrapper(nullptr);
     wrapper->OnBufferAvailable();
     ASSERT_FALSE(wrapper->GetCallback());
-    wrapper->DecRef();
+    delete wrapper;
+}
+
+/**
+ * @tc.name: LeashPersistentIdTest003
+ * @tc.desc: Test LeashPersistentIdCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, LeashPersistentIdTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    LeashPersistentIdCmdParam param{100};
+    auto mod = std::make_shared<LeashPersistentIdCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().leashPersistentId_, 100);
+}
+
+/**
+ * @tc.name: SecurityLayerTest003
+ * @tc.desc: Test SecurityLayerCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SecurityLayerTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SecurityLayerCmdParam param{true};
+    auto mod = std::make_shared<SecurityLayerCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isSecurityLayer_);
+}
+
+/**
+ * @tc.name: SkipLayerTest003
+ * @tc.desc: Test SkipLayerCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SkipLayerTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SkipLayerCmdParam param{true};
+    auto mod = std::make_shared<SkipLayerCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isSkipLayer_);
+}
+
+/**
+ * @tc.name: SnapshotSkipLayerTest003
+ * @tc.desc: Test SnapshotSkipLayerCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SnapshotSkipLayerTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SnapshotSkipLayerCmdParam param{true};
+    auto mod = std::make_shared<SnapshotSkipLayerCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isSnapshotSkipLayer_);
+}
+
+/**
+ * @tc.name: HasFingerprintTest003
+ * @tc.desc: Test HasFingerprintCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HasFingerprintTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HasFingerprintCmdParam param{true};
+    auto mod = std::make_shared<HasFingerprintCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().hasFingerprint_);
+}
+
+/**
+ * @tc.name: ColorSpaceTest003
+ * @tc.desc: Test ColorSpaceCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ColorSpaceTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ColorSpaceCmdParam param{GRAPHIC_COLOR_GAMUT_SRGB};
+    auto mod = std::make_shared<ColorSpaceCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().colorSpace_, GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: AbilityBGAlphaTest003
+ * @tc.desc: Test AbilityBGAlphaCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AbilityBGAlphaTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    AbilityBGAlphaCmdParam param{128};
+    auto mod = std::make_shared<AbilityBGAlphaCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().abilityBGAlpha_, 128);
+}
+
+/**
+ * @tc.name: NotifyUIBufferAvailableTest003
+ * @tc.desc: Test NotifyUIBufferAvailableCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, NotifyUIBufferAvailableTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    NotifyUIBufferAvailableCmdParam param{true};
+    auto mod = std::make_shared<NotifyUIBufferAvailableCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().notifyUIBufferAvailable_);
+}
+
+/**
+ * @tc.name: ContainerWindowTest003
+ * @tc.desc: Test ContainerWindowCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ContainerWindowCmdParam param{true, RRect()};
+    auto mod = std::make_shared<ContainerWindowCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().hasContainerWindow_);
+}
+
+/**
+ * @tc.name: FreezeTest003
+ * @tc.desc: Test FreezeCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, FreezeTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    FreezeCmdParam param{true, false};
+    auto mod = std::make_shared<FreezeCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isFreeze_);
+    EXPECT_FALSE(mod->GetParam().isMarkedByUI_);
+}
+
+/**
+ * @tc.name: HardwareEnableHintTest003
+ * @tc.desc: Test HardwareEnableHintCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HardwareEnableHintTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HardwareEnableHintCmdParam param{true};
+    auto mod = std::make_shared<HardwareEnableHintCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isHardwareEnabled_);
+}
+
+/**
+ * @tc.name: HardwareEnabledTest004
+ * @tc.desc: Test HardwareEnabledCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HardwareEnabledTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HardwareEnabledCmdParam param{true, SelfDrawingNodeType::DEFAULT, false};
+    auto mod = std::make_shared<HardwareEnabledCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isHardwareEnabled_);
+    EXPECT_EQ(mod->GetParam().isSelfDrawingNodeType_, SelfDrawingNodeType::DEFAULT);
+    EXPECT_FALSE(mod->GetParam().isDynamicHardwareEnable_);
+}
+
+/**
+ * @tc.name: BootAnimationTest003
+ * @tc.desc: Test BootAnimationCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, BootAnimationTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    BootAnimationCmdParam param{true};
+    auto mod = std::make_shared<BootAnimationCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isBootAnimation_);
+}
+
+/**
+ * @tc.name: GlobalPositionEnabledTest003
+ * @tc.desc: Test GlobalPositionEnabledCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, GlobalPositionEnabledTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    GlobalPositionEnabledCmdParam param{true};
+    auto mod = std::make_shared<GlobalPositionEnabledCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isGlobalPositionEnabled_);
+}
+
+/**
+ * @tc.name: ClonedNodeInfoTest003
+ * @tc.desc: Test ClonedNodeInfoCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ClonedNodeInfoTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ClonedNodeInfoCmdParam param{100, false, true};
+    auto mod = std::make_shared<ClonedNodeInfoCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().clonedNodeId_, 100);
+    EXPECT_FALSE(mod->GetParam().clonedNeedOffscreen_);
+    EXPECT_TRUE(mod->GetParam().clonedIsRelated_);
+}
+
+/**
+ * @tc.name: ForceUIFirstTest003
+ * @tc.desc: Test ForceUIFirstCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ForceUIFirstTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ForceUIFirstCmdParam param{true};
+    auto mod = std::make_shared<ForceUIFirstCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().forceUIFirst_);
+}
+
+/**
+ * @tc.name: AncoFlagsTest003
+ * @tc.desc: Test AncoFlagsCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AncoFlagsTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    AncoFlagsCmdParam param{42};
+    auto mod = std::make_shared<AncoFlagsCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().ancoFlags_, 42u);
+}
+
+/**
+ * @tc.name: SkipDrawTest003
+ * @tc.desc: Test SkipDrawCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SkipDrawTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SkipDrawCmdParam param{true};
+    auto mod = std::make_shared<SkipDrawCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().skipDraw_);
+}
+
+/**
+ * @tc.name: WatermarkEnabledTest003
+ * @tc.desc: Test WatermarkEnabledCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, WatermarkEnabledTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    WatermarkEnabledCmdParam param{"test", true};
+    auto mod = std::make_shared<WatermarkEnabledCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().watermarkName_, "test");
+    EXPECT_TRUE(mod->GetParam().watermarkEnabled_);
+}
+
+/**
+ * @tc.name: AbilityStateTest003
+ * @tc.desc: Test AbilityStateCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AbilityStateTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    AbilityStateCmdParam param{RSSurfaceNodeAbilityState::FOREGROUND};
+    auto mod = std::make_shared<AbilityStateCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().abilityState_, RSSurfaceNodeAbilityState::FOREGROUND);
+}
+
+/**
+ * @tc.name: HidePrivacyContentTest004
+ * @tc.desc: Test HidePrivacyContentCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HidePrivacyContentTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HidePrivacyContentCmdParam param{true};
+    auto mod = std::make_shared<HidePrivacyContentCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().hidePrivacyContent_);
+}
+
+/**
+ * @tc.name: ApiCompatibleVersionTest003
+ * @tc.desc: Test ApiCompatibleVersionCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ApiCompatibleVersionTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ApiCompatibleVersionCmdParam param{12};
+    auto mod = std::make_shared<ApiCompatibleVersionCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().apiCompatibleVersion_, 12u);
+}
+
+/**
+ * @tc.name: VirtualDisplayIdTest003
+ * @tc.desc: Test VirtualDisplayIdCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, VirtualDisplayIdTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    VirtualDisplayIdCmdParam param{99};
+    auto mod = std::make_shared<VirtualDisplayIdCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().virtualDisplayId_, 99u);
+}
+
+/**
+ * @tc.name: AttachToWindowContainerTest003
+ * @tc.desc: Test AttachToWindowContainerCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AttachToWindowContainerTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    AttachToWindowContainerCmdParam param{100};
+    auto mod = std::make_shared<AttachToWindowContainerCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().attachToWindowContainer_, 100u);
+}
+
+/**
+ * @tc.name: RegionToBeMagnifiedTest003
+ * @tc.desc: Test RegionToBeMagnifiedCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, RegionToBeMagnifiedTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    RegionToBeMagnifiedCmdParam param{Vector4<int>(1, 2, 3, 4)};
+    auto mod = std::make_shared<RegionToBeMagnifiedCmdModifier>(node, param);
+    RegionToBeMagnifiedCmdParam param2{Vector4<int>(5, 6, 7, 8)};
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().regionToBeMagnified_.x_, 5);
+}
+
+/**
+ * @tc.name: DetachFromWindowContainerTest003
+ * @tc.desc: Test DetachFromWindowContainerCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, DetachFromWindowContainerTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    DetachFromWindowContainerCmdParam param{200};
+    auto mod = std::make_shared<DetachFromWindowContainerCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().detachFromWindowContainer_, 200u);
+}
+
+/**
+ * @tc.name: CompositeLayerTest005
+ * @tc.desc: Test CompositeLayerCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, CompositeLayerTest005, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    CompositeLayerCmdParam param{true, 0};
+    auto mod = std::make_shared<CompositeLayerCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isCompositeLayer_);
+    EXPECT_EQ(mod->GetParam().isMarkedByUI_, 0u);
+}
+
+/**
+ * @tc.name: StaticCachedTest003
+ * @tc.desc: Test StaticCachedCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, StaticCachedTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    StaticCachedCmdParam param{true};
+    auto mod = std::make_shared<StaticCachedCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isStaticCached_);
+}
+
+/**
+ * @tc.name: FrameGravityNewVersionEnabledTest003
+ * @tc.desc: Test FrameGravityNewVersionEnabledCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, FrameGravityNewVersionEnabledTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    FrameGravityNewVersionEnabledCmdParam param{true};
+    auto mod = std::make_shared<FrameGravityNewVersionEnabledCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isFrameGravityNewVersionEnabled_);
+}
+
+/**
+ * @tc.name: SurfaceBufferOpaqueTest003
+ * @tc.desc: Test SurfaceBufferOpaqueCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SurfaceBufferOpaqueTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SurfaceBufferOpaqueCmdParam param{true};
+    auto mod = std::make_shared<SurfaceBufferOpaqueCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isSurfaceBufferOpaque_);
+}
+
+/**
+ * @tc.name: ContainerWindowTransparentTest003
+ * @tc.desc: Test ContainerWindowTransparentCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTransparentTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ContainerWindowTransparentCmdParam param{true};
+    auto mod = std::make_shared<ContainerWindowTransparentCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isContainerWindowTransparent_);
+}
+
+/**
+ * @tc.name: SurfaceDefaultSizeTest003
+ * @tc.desc: Test SurfaceDefaultSizeCmdModifier SetParam and GetParam
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SurfaceDefaultSizeTest003, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SurfaceDefaultSizeCmdParam param{100.0f, 200.0f};
+    auto mod = std::make_shared<SurfaceDefaultSizeCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_FLOAT_EQ(mod->GetParam().width_, 100.0f);
+    EXPECT_FLOAT_EQ(mod->GetParam().height_, 200.0f);
+}
+
+/**
+ * @tc.name: LeashPersistentIdTest004
+ * @tc.desc: Test LeashPersistentIdCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, LeashPersistentIdTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    LeashPersistentIdCmdParam param{100};
+    auto mod = std::make_shared<LeashPersistentIdCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SecurityLayerTest004
+ * @tc.desc: Test SecurityLayerCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SecurityLayerTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SecurityLayerCmdParam param{true};
+    auto mod = std::make_shared<SecurityLayerCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SkipLayerTest004
+ * @tc.desc: Test SkipLayerCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SkipLayerTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SkipLayerCmdParam param{true};
+    auto mod = std::make_shared<SkipLayerCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SnapshotSkipLayerTest004
+ * @tc.desc: Test SnapshotSkipLayerCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SnapshotSkipLayerTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SnapshotSkipLayerCmdParam param{true};
+    auto mod = std::make_shared<SnapshotSkipLayerCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: HasFingerprintTest004
+ * @tc.desc: Test HasFingerprintCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HasFingerprintTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HasFingerprintCmdParam param{true};
+    auto mod = std::make_shared<HasFingerprintCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ColorSpaceTest004
+ * @tc.desc: Test ColorSpaceCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ColorSpaceTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ColorSpaceCmdParam param{GRAPHIC_COLOR_GAMUT_SRGB};
+    auto mod = std::make_shared<ColorSpaceCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: AbilityBGAlphaTest004
+ * @tc.desc: Test AbilityBGAlphaCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AbilityBGAlphaTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    AbilityBGAlphaCmdParam param{128};
+    auto mod = std::make_shared<AbilityBGAlphaCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: NotifyUIBufferAvailableTest004
+ * @tc.desc: Test NotifyUIBufferAvailableCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, NotifyUIBufferAvailableTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    NotifyUIBufferAvailableCmdParam param{true};
+    auto mod = std::make_shared<NotifyUIBufferAvailableCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ContainerWindowTest004
+ * @tc.desc: Test ContainerWindowCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ContainerWindowCmdParam param{true, RRect()};
+    auto mod = std::make_shared<ContainerWindowCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: FreezeTest004
+ * @tc.desc: Test FreezeCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, FreezeTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    FreezeCmdParam param{true, false};
+    auto mod = std::make_shared<FreezeCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: HardwareEnableHintTest004
+ * @tc.desc: Test HardwareEnableHintCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HardwareEnableHintTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HardwareEnableHintCmdParam param{true};
+    auto mod = std::make_shared<HardwareEnableHintCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: HardwareEnabledTest005
+ * @tc.desc: Test HardwareEnabledCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HardwareEnabledTest005, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HardwareEnabledCmdParam param{true, SelfDrawingNodeType::DEFAULT, false};
+    auto mod = std::make_shared<HardwareEnabledCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: BootAnimationTest004
+ * @tc.desc: Test BootAnimationCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, BootAnimationTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    BootAnimationCmdParam param{true};
+    auto mod = std::make_shared<BootAnimationCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: GlobalPositionEnabledTest004
+ * @tc.desc: Test GlobalPositionEnabledCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, GlobalPositionEnabledTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    GlobalPositionEnabledCmdParam param{true};
+    auto mod = std::make_shared<GlobalPositionEnabledCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ClonedNodeInfoTest004
+ * @tc.desc: Test ClonedNodeInfoCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ClonedNodeInfoTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ClonedNodeInfoCmdParam param{100, false, true};
+    auto mod = std::make_shared<ClonedNodeInfoCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ForceUIFirstTest004
+ * @tc.desc: Test ForceUIFirstCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ForceUIFirstTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ForceUIFirstCmdParam param{true};
+    auto mod = std::make_shared<ForceUIFirstCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: AncoFlagsTest004
+ * @tc.desc: Test AncoFlagsCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AncoFlagsTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    AncoFlagsCmdParam param{42};
+    auto mod = std::make_shared<AncoFlagsCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SkipDrawTest004
+ * @tc.desc: Test SkipDrawCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SkipDrawTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SkipDrawCmdParam param{true};
+    auto mod = std::make_shared<SkipDrawCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: WatermarkEnabledTest004
+ * @tc.desc: Test WatermarkEnabledCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, WatermarkEnabledTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    WatermarkEnabledCmdParam param{"test", true};
+    auto mod = std::make_shared<WatermarkEnabledCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: AbilityStateTest004
+ * @tc.desc: Test AbilityStateCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AbilityStateTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    AbilityStateCmdParam param{RSSurfaceNodeAbilityState::FOREGROUND};
+    auto mod = std::make_shared<AbilityStateCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: HidePrivacyContentTest005
+ * @tc.desc: Test HidePrivacyContentCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HidePrivacyContentTest005, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HidePrivacyContentCmdParam param{true};
+    auto mod = std::make_shared<HidePrivacyContentCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ApiCompatibleVersionTest004
+ * @tc.desc: Test ApiCompatibleVersionCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ApiCompatibleVersionTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ApiCompatibleVersionCmdParam param{12};
+    auto mod = std::make_shared<ApiCompatibleVersionCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: VirtualDisplayIdTest004
+ * @tc.desc: Test VirtualDisplayIdCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, VirtualDisplayIdTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    VirtualDisplayIdCmdParam param{99};
+    auto mod = std::make_shared<VirtualDisplayIdCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: AttachToWindowContainerTest004
+ * @tc.desc: Test AttachToWindowContainerCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AttachToWindowContainerTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    AttachToWindowContainerCmdParam param{100};
+    auto mod = std::make_shared<AttachToWindowContainerCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: RegionToBeMagnifiedTest004
+ * @tc.desc: Test RegionToBeMagnifiedCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, RegionToBeMagnifiedTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    RegionToBeMagnifiedCmdParam param{Vector4<int>(1, 2, 3, 4)};
+    auto mod = std::make_shared<RegionToBeMagnifiedCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DetachFromWindowContainerTest004
+ * @tc.desc: Test DetachFromWindowContainerCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, DetachFromWindowContainerTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    DetachFromWindowContainerCmdParam param{200};
+    auto mod = std::make_shared<DetachFromWindowContainerCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: CompositeLayerTest006
+ * @tc.desc: Test CompositeLayerCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, CompositeLayerTest006, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    CompositeLayerCmdParam param{true, 0};
+    auto mod = std::make_shared<CompositeLayerCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: StaticCachedTest004
+ * @tc.desc: Test StaticCachedCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, StaticCachedTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    StaticCachedCmdParam param{true};
+    auto mod = std::make_shared<StaticCachedCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: FrameGravityNewVersionEnabledTest004
+ * @tc.desc: Test FrameGravityNewVersionEnabledCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, FrameGravityNewVersionEnabledTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    FrameGravityNewVersionEnabledCmdParam param{true};
+    auto mod = std::make_shared<FrameGravityNewVersionEnabledCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SurfaceBufferOpaqueTest004
+ * @tc.desc: Test SurfaceBufferOpaqueCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SurfaceBufferOpaqueTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SurfaceBufferOpaqueCmdParam param{true};
+    auto mod = std::make_shared<SurfaceBufferOpaqueCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ContainerWindowTransparentTest004
+ * @tc.desc: Test ContainerWindowTransparentCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ContainerWindowTransparentTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ContainerWindowTransparentCmdParam param{true};
+    auto mod = std::make_shared<ContainerWindowTransparentCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: BufferAvailableCallbackTest006
+ * @tc.desc: Test BufferAvailableCallbackCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, BufferAvailableCallbackTest006, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    BufferAvailableCallbackCmdParam param{[]() {}};
+    auto mod = std::make_shared<BufferAvailableCallbackCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SurfaceDefaultSizeTest004
+ * @tc.desc: Test SurfaceDefaultSizeCmdModifier UpdateToRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, SurfaceDefaultSizeTest004, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    SurfaceDefaultSizeCmdParam param{100.0f, 200.0f};
+    auto mod = std::make_shared<SurfaceDefaultSizeCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
 }
 
 } // namespace Rosen

@@ -124,5 +124,34 @@ HWTEST_F(RSWindowKeyFrameNodeCommandModifierTest, WkfLinkedNodeIdTest002, TestSi
     mod->UpdateToRender();
 }
 
+/**
+ * @tc.name: WkfIsFreezeTest003
+ * @tc.desc: Test UpdateToRender with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSWindowKeyFrameNodeCommandModifierTest, WkfIsFreezeTest003, TestSize.Level1)
+{
+    auto node = RSWindowKeyFrameNode::Create();
+    WkfIsFreezeCmdParam param{true, false};
+    auto mod = std::make_shared<WkfIsFreezeCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: WkfLinkedNodeIdTest003
+ * @tc.desc: Test UpdateToRender with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSWindowKeyFrameNodeCommandModifierTest, WkfLinkedNodeIdTest003, TestSize.Level1)
+{
+    auto node = RSWindowKeyFrameNode::Create();
+    constexpr NodeId linkedId = 100;
+    WkfLinkedNodeIdCmdParam param{linkedId};
+    auto mod = std::make_shared<WkfLinkedNodeIdCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
 } // namespace Rosen
 } // namespace OHOS

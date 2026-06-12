@@ -25,7 +25,6 @@ ohos_unittest("RSCommandModifierTest") {
     "rs_command_modifier_test.cpp",
     "rs_node_command_modifier_test.cpp",
     "rs_canvas_node_command_modifier_test.cpp",
-    "rs_canvas_drawing_node_command_modifier_test.cpp",
     "rs_root_node_command_modifier_test.cpp",
     "rs_surface_node_command_modifier_test.cpp",
     "rs_depth_node_command_modifier_test.cpp",

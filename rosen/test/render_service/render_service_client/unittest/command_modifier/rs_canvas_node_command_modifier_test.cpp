@@ -52,7 +52,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, HdrPresentTest001, TestSize.Level1)
     EXPECT_TRUE(mod->GetParam().hdrPresent_);
 
     HdrPresentCmdParam param2{false};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().hdrPresent_);
 
     std::string out;
@@ -90,7 +91,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, ColorGamutTest001, TestSize.Level1)
 
     constexpr uint32_t gamutVal2 = 10;
     ColorGamutCmdParam param2{gamutVal2};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().colorGamut_, gamutVal2);
 
     std::string out;
@@ -127,7 +129,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, IsFreezeTest001, TestSize.Level1)
     EXPECT_FALSE(mod->GetParam().isMarkedByUI_);
 
     IsFreezeCmdParam param2{false, true};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().isFreeze_);
     EXPECT_TRUE(mod->GetParam().isMarkedByUI_);
 
@@ -165,7 +168,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, ClearRecordingTest001, TestSize.Level1
     EXPECT_EQ(mod->GetParam().height_, 200);
 
     ClearRecordingCmdParam param2{300, 400};
-    mod->SetParam(param2);
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().width_, 300);
     EXPECT_EQ(mod->GetParam().height_, 400);
 
@@ -339,6 +343,168 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest005, TestSize.Level1)
     ret = mod->SetParam(param2);
     EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().modifierType_, 2);
+}
+
+/**
+ * @tc.name: HdrPresentTest003
+ * @tc.desc: Test SetParam same param
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, HdrPresentTest003, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    HdrPresentCmdParam param{true};
+    auto mod = std::make_shared<HdrPresentCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().hdrPresent_);
+}
+
+/**
+ * @tc.name: ColorGamutTest003
+ * @tc.desc: Test SetParam same param
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, ColorGamutTest003, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    constexpr uint32_t gamutVal = 5;
+    ColorGamutCmdParam param{gamutVal};
+    auto mod = std::make_shared<ColorGamutCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().colorGamut_, gamutVal);
+}
+
+/**
+ * @tc.name: IsFreezeTest003
+ * @tc.desc: Test SetParam same param
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, IsFreezeTest003, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    IsFreezeCmdParam param{true, false};
+    auto mod = std::make_shared<IsFreezeCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(mod->GetParam().isFreeze_);
+    EXPECT_FALSE(mod->GetParam().isMarkedByUI_);
+}
+
+/**
+ * @tc.name: ClearRecordingTest003
+ * @tc.desc: Test SetParam same param
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, ClearRecordingTest003, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ClearRecordingCmdParam param{100, 200};
+    auto mod = std::make_shared<ClearRecordingCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().width_, 100);
+    EXPECT_EQ(mod->GetParam().height_, 200);
+}
+
+/**
+ * @tc.name: HdrPresentTest004
+ * @tc.desc: Test UpdateToRender with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, HdrPresentTest004, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    HdrPresentCmdParam param{true};
+    auto mod = std::make_shared<HdrPresentCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ColorGamutTest004
+ * @tc.desc: Test UpdateToRender with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, ColorGamutTest004, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ColorGamutCmdParam param{5};
+    auto mod = std::make_shared<ColorGamutCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: IsFreezeTest004
+ * @tc.desc: Test UpdateToRender with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, IsFreezeTest004, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    IsFreezeCmdParam param{true, false};
+    auto mod = std::make_shared<IsFreezeCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ClearRecordingTest004
+ * @tc.desc: Test UpdateToRender with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, ClearRecordingTest004, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    ClearRecordingCmdParam param{100, 200};
+    auto mod = std::make_shared<ClearRecordingCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: FinishRecordTest005
+ * @tc.desc: Test UpdateToRender with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest005, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    FinishRecordCmdParam param{std::make_shared<Drawing::DrawCmdList>(), 0};
+    auto mod = std::make_shared<FinishRecordCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawOnNodeTest006
+ * @tc.desc: Test UpdateToRender with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest006, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    DrawOnNodeCmdParam param{std::make_shared<Drawing::DrawCmdList>(), 0};
+    auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
+    mod->UpdateToRender();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawOnNodeTest007
+ * @tc.desc: Test UpdateToRenderWithResult with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest007, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    DrawOnNodeCmdParam param{std::make_shared<Drawing::DrawCmdList>(), 0};
+    auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
+    auto result = mod->UpdateToRenderWithResult();
+    bool val = std::get<bool>(result);
+    EXPECT_TRUE(val);
 }
 
 } // namespace Rosen

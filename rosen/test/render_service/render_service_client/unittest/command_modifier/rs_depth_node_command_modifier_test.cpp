@@ -17,7 +17,7 @@
 #include "gtest/hwext/gtest-tag.h"
 
 #include "command_modifier/rs_depth_node_command_modifier.h"
-#include "ui/rs_node.h"
+#include "ui/rs_depth_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,19 +45,19 @@ void RSDepthNodeCommandModifierTest::TearDown() {}
  */
 HWTEST_F(RSDepthNodeCommandModifierTest, DepthSpaceTypeTest001, TestSize.Level1)
 {
-    auto node = RSNode::Create();
-    DepthSpaceTypeCmdParam param{DepthSpaceType::OVERLAY};
+    auto node = RSDepthNode::Create(false, false, nullptr);
+    DepthSpaceTypeCmdParam param{DepthSpaceType::INSTANCE};
     auto mod = std::make_shared<DepthSpaceTypeCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::SET_DEPTH_SPACE_TYPE);
-    EXPECT_EQ(mod->GetParam().depthSpaceType_, DepthSpaceType::OVERLAY);
+    EXPECT_EQ(mod->GetParam().depthSpaceType_, DepthSpaceType::INSTANCE);
 
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
 
-    DepthSpaceTypeCmdParam param2{DepthSpaceType::BACKGROUND};
+    DepthSpaceTypeCmdParam param2{DepthSpaceType::GLOBAL};
     ret = mod->SetParam(param2);
     EXPECT_TRUE(ret);
-    EXPECT_EQ(mod->GetParam().depthSpaceType_, DepthSpaceType::BACKGROUND);
+    EXPECT_EQ(mod->GetParam().depthSpaceType_, DepthSpaceType::GLOBAL);
 
     std::string out;
     mod->DumpParam(out);
@@ -72,8 +72,8 @@ HWTEST_F(RSDepthNodeCommandModifierTest, DepthSpaceTypeTest001, TestSize.Level1)
 HWTEST_F(RSDepthNodeCommandModifierTest, DepthSpaceTypeTest002, TestSize.Level1)
 {
     std::weak_ptr<RSNode> weakNode;
-    { auto n = RSNode::Create(); weakNode = n; }
-    DepthSpaceTypeCmdParam param{DepthSpaceType::OVERLAY};
+    { auto n = RSDepthNode::Create(false, false, nullptr); weakNode = n; }
+    DepthSpaceTypeCmdParam param{DepthSpaceType::INSTANCE};
     auto mod = std::make_shared<DepthSpaceTypeCmdModifier>(weakNode, param);
     mod->UpdateToRender();
 }
@@ -85,8 +85,8 @@ HWTEST_F(RSDepthNodeCommandModifierTest, DepthSpaceTypeTest002, TestSize.Level1)
  */
 HWTEST_F(RSDepthNodeCommandModifierTest, DepthSpaceTypeTest003, TestSize.Level1)
 {
-    auto node = RSNode::Create();
-    DepthSpaceTypeCmdParam param{DepthSpaceType::OVERLAY};
+    auto node = RSDepthNode::Create(false, false, nullptr);
+    DepthSpaceTypeCmdParam param{DepthSpaceType::INSTANCE};
     auto mod = std::make_shared<DepthSpaceTypeCmdModifier>(node, param);
     mod->UpdateToRender();
 }

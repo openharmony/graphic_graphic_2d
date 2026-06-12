@@ -15,7 +15,6 @@
 
 #include "command_modifier/rs_depth_node_command_modifier.h"
 
-#include "command/rs_depth_node_command.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_node.h"
 
@@ -26,9 +25,7 @@ void DepthSpaceTypeCmdModifier::UpdateToRender()
 {
     auto node = GetNode();
     if (!node) return;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDepthNodeSetType>(
-        node->GetId(), param_.depthSpaceType_);
-    AddCommand(command, true);
+    // To be implemented
 }
 
 void DepthSpaceTypeCmdModifier::DumpParam(std::string& out) const

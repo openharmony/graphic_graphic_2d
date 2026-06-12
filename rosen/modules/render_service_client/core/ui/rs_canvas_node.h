@@ -208,6 +208,7 @@ protected:
 
     BoundsChangedCallback boundsChangedCallback_;
 
+    virtual void OnFinishRecording(Drawing::DrawCmdListPtr& drawCmdList, ModifierNG::RSModifierType modifierType);
 private:
     ExtendRecordingCanvas* recordingCanvas_ = nullptr;
     bool recordingUpdated_ = false;
@@ -219,7 +220,7 @@ private:
     friend class RSPropertyAnimation;
     friend class RSNodeMap;
     friend class RSNodeMapV2;
-    void OnBoundsSizeChanged() const override;
+    void OnBoundsSizeChanged() override;
     void CreateRenderNodeForTextureExportSwitch() override;
     void RegisterNodeMap() override;
 

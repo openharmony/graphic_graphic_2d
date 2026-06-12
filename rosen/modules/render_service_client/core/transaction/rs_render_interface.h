@@ -483,6 +483,8 @@ private:
     friend class RSDisplayNode;
     friend class RSSurfaceNode;
     friend class RSUIContextManager;
+    friend class HidePrivacyContentCmdModifier; // for SetHidePrivacyContent
+    friend class HardwareEnabledCmdModifier; // SetHardwareEnabled
 };
 }
 }
