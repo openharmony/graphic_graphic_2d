@@ -37,6 +37,7 @@ namespace {
 #ifdef RS_ENABLE_TV_PQ_METADATA
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
+static constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 }
 RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
@@ -1168,6 +1169,46 @@ ErrCode RSServiceToRenderConnectionProxy::GetBehindWindowFilterEnabled(bool& ena
     }
     if (!reply.ReadBool(enabled)) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetBehindWindowFilterEnabled ReadBool err.");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSServiceToRenderConnectionProxy::SetApsConfigParams(ApsEventType event,
+    const std::unordered_map<std::string, std::string>& params)
+{
+    uint32_t paramsSize = static_cast<uint32_t>(params.size());
+    if (paramsSize > MAX_APS_PARAMS_SIZE) {
+        ROSEN_LOGE("%{public}s: params verify failed.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(event))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 event err.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(paramsSize)) {
+        ROSEN_LOGE("%{public}s: WriteUint32 params size err.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    for (const auto& [key, value] : params) {
+        if (!data.WriteString(key) || !data.WriteString(value)) {
+            ROSEN_LOGE("%{public}s: WriteString params err.", __func__);
+            return ERR_INVALID_VALUE;
+        }
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: Send Request err, error = %{public}d", __func__, err);
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;

@@ -36,6 +36,7 @@ constexpr uint32_t MAX_LIST_SIZE = 50;
 #ifdef RS_ENABLE_TV_PQ_METADATA
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 #endif
+constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 } // namespace
 
 static void TypefaceXcollieCallback(void* arg)
@@ -1095,6 +1096,39 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 return ERR_INVALID_STATE;
             }
             SetCacheEnabledForRotation(enabled);
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_APS_CONFIG_PARAMS): {
+            uint32_t eventVal = 0;
+            if (!data.ReadUint32(eventVal)) {
+                RS_LOGE("%{public}s Read event failed!", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ApsEventType event = static_cast<ApsEventType>(eventVal);
+            uint32_t paramsSize = 0;
+            if (!data.ReadUint32(paramsSize) || paramsSize > MAX_APS_PARAMS_SIZE) {
+                RS_LOGE("%{public}s Read paramsSize failed!", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::unordered_map<std::string, std::string> params;
+            bool errFlag = false;
+            for (uint32_t i = 0; i < paramsSize; ++i) {
+                std::string key;
+                std::string value;
+                if (!data.ReadString(key) || !data.ReadString(value)) {
+                    RS_LOGE("%{public}s Read kv failed!", __func__);
+                    errFlag = true;
+                    break;
+                }
+                params[key] = value;
+            }
+            if (errFlag) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetApsConfigParams(event, params);
             break;
         }
         default:

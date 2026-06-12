@@ -1451,6 +1451,14 @@ public:
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
+    /**
+     * @brief Set Aps config parameters.
+     * @param event Indicates the Aps event type, see ApsEventType.
+     * @param params Indicates the config parameters key-value pairs.
+     * @return Returns true if success, false otherwise.
+     */
+    bool SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
+
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
 
     /**

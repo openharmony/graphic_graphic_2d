@@ -1794,6 +1794,12 @@ bool RSRenderPipelineAgent::GetBehindWindowFilterEnabled()
     return enabled;
 }
 
+bool RSRenderPipelineAgent::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    return true;
+}
+
 int32_t RSRenderPipelineAgent::RegisterUIExtensionCallback(pid_t pid, uint64_t userId,
     sptr<RSIUIExtensionCallback> callback, bool unobscured)
 {

@@ -401,6 +401,8 @@ private:
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params) override;
+
     ErrCode AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime) override;
 

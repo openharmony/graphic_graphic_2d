@@ -121,6 +121,9 @@ public:
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
+    // Aps
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params) override;
+
     // Others
     ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) override;
     ErrCode RepaintEverything() override;

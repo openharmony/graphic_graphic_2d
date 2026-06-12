@@ -1185,6 +1185,11 @@ bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
     return renderServiceClient_->GetBehindWindowFilterEnabled(enabled);
 }
 
+bool RSInterfaces::SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    return renderServiceClient_->SetApsConfigParams(event, params);
+}
+
 void RSInterfaces::ClearUifirstCache(NodeId id)
 {
 }

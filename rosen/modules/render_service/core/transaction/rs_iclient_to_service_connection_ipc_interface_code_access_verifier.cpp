@@ -584,6 +584,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PANEL_POWER_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_APS_CONFIG_PARAMS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_APS_CONFIG_PARAMS");
+            break;
+        }
         default: {
             break;
         }

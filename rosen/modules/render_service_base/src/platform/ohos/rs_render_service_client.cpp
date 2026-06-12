@@ -2018,6 +2018,21 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
     return true;
 }
 
+bool RSRenderServiceClient::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return false;
+    }
+    auto ret = clientToService->SetApsConfigParams(event, params);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__, ret);
+        return false;
+    }
+    return true;
+}
+
 int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();

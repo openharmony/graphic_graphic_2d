@@ -146,6 +146,13 @@ ErrCode RSServiceToRenderConnection::GetBehindWindowFilterEnabled(bool& enabled)
     return ERR_OK;
 }
 
+ErrCode RSServiceToRenderConnection::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    renderPipelineAgent_->SetApsConfigParams(event, params);
+    return ERR_OK;
+}
+
 int32_t RSServiceToRenderConnection::SetBrightnessInfoChangeCallback(pid_t pid,
     sptr<RSIBrightnessInfoChangeCallback> callback)
 {

@@ -22,6 +22,8 @@
 #include "ui/rs_surface_node.h"
 #include "surface_utils.h"
 #include <iostream>
+#include <string>
+#include <unordered_map>
 
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
@@ -1453,5 +1455,42 @@ HWTEST_F(RSServiceClientTest, RemoveVirtualScreenSurface002, TestSize.Level1)
         StatusCode::RENDER_SERVICE_NULL);
 }
 
+/**
+ * @tc.name: SetApsConfigParams_RetNotOK
+ * @tc.desc: Test SetApsConfigParams when params size exceeds limit (129 elements > 128)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, SetApsConfigParams_RetNotOK, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+
+    std::unordered_map<std::string, std::string> params;
+    for (uint32_t i = 0; i < 129; i++) {
+        params["key" + std::to_string(i)] = "value" + std::to_string(i);
+    }
+
+    bool result = rsClient->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_Success
+ * @tc.desc: Test SetApsConfigParams with valid params
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, SetApsConfigParams_Success, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+
+    std::unordered_map<std::string, std::string> params = {
+        {"key1", "value1"},
+        {"key2", "value2"}
+    };
+
+    bool result = rsClient->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
+    EXPECT_EQ(result, true);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -71,6 +71,7 @@ public:
 
 constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
+constexpr size_t MAX_APS_PARAMS_SIZE = 128;
 
 
 namespace {
@@ -83,7 +84,8 @@ const uint8_t DO_SET_GPU_CRCDIRTY_ENABLE_PIDLIST = 5;
 const uint8_t DO_SET_VIRTUAL_SCREEN_AUTO_ROTATION = 6;
 const uint8_t DO_GET_SCREEN_VCP_FEATURE = 7;
 const uint8_t DO_SET_SCREEN_VCP_FEATURE = 8;
-const uint8_t TARGET_SIZE = 9;
+const uint8_t DO_SET_APS_CONFIG_PARAMS = 9;
+const uint8_t TARGET_SIZE = 10;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -209,6 +211,28 @@ bool DoGetBehindWindowFilterEnabled()
     bool enabled = GetData<bool>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteBool(enabled);
+    g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoSetApsConfigParams()
+{
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    uint32_t eventVal = GetData<uint32_t>();
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint32(eventVal);
+    uint32_t paramsSize = GetData<uint32_t>();
+    dataParcel.WriteUint32(paramsSize);
+    for (uint32_t i = 0; i < paramsSize && i < MAX_APS_PARAMS_SIZE; ++i) {
+        std::string key = GetData<std::string>();
+        std::string value = GetData<std::string>();
+        dataParcel.WriteString(key);
+        dataParcel.WriteString(value);
+    }
     g_serviceConnection->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -572,6 +596,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_EHIND_WINDOW_FILTER_ENABLED:
             OHOS::Rosen::DoGetBehindWindowFilterEnabled();
+            break;
+        case OHOS::Rosen::DO_SET_APS_CONFIG_PARAMS:
+            OHOS::Rosen::DoSetApsConfigParams();
             break;
         case OHOS::Rosen::DO_NOTIFY_XCOMPONENT_EXPECTED_FRAME_RATE:
             OHOS::Rosen::DoNotifyXComponentExpectedFrameRate();
