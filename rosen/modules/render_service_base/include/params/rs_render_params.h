@@ -264,11 +264,6 @@ public:
     bool NodeGroupHasChildInBlacklist() const;
 
     void SetNodeGroupHasChildInBlacklist(bool inBlacklist);
-    
-    inline bool IsSnapshotSkipLayer() const
-    {
-        return isSnapshotSkipLayer_;
-    }
 
     inline bool IsLayerDirty() const
     {
@@ -508,21 +503,6 @@ public:
     virtual void SetFingerprint(bool hasFingerprint) {}
     // virtual display params
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const
-    {
-        return cloneSourceDrawable_;
-    }
-    void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
-    virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
-    virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
-    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
-    {
-        return isCrossNodeOffscreenOn_;
-    }
-    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffScreenOn)
-    {
-        isCrossNodeOffscreenOn_ = isCrossNodeOffScreenOn;
-    }
 
     void SetAbsRotation(float degree)
     {
@@ -595,7 +575,6 @@ private:
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
-    bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
     bool alphaOffScreen_ = false;
@@ -619,9 +598,6 @@ private:
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     std::string instanceRootNodeName_ = "";
-    bool isFirstLevelCrossNode_ = false;
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
-    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
     bool hasUnobscuredUEC_ = false;

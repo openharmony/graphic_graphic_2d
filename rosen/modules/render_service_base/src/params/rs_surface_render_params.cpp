@@ -623,6 +623,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isAttractionAnimation_ = isAttractionAnimation_;
     targetSurfaceParams->isParentScaling_ = isParentScaling_;
     targetSurfaceParams->isCrossNode_ = isCrossNode_;
+    targetSurfaceParams->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
+    targetSurfaceParams->cloneSourceDrawable_ = cloneSourceDrawable_;
+    targetSurfaceParams->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
     targetSurfaceParams->rrect_ = rrect_;

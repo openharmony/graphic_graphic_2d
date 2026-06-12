@@ -2177,8 +2177,9 @@ HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest001, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, IsSubTreeNeedPrepareTest002, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(0);
+    auto parent = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(parent, nullptr);
+    parent->InitRenderParams();
 
     system::SetParameter("persist.sys.graphic.SubTreePrepareCheckType.type", "1");
     auto checkType = RSSystemProperties::GetSubTreePrepareCheckType();
@@ -2742,12 +2743,12 @@ HWTEST_F(RSRenderNodeTest, AddCrossParentChildTest008, TestSize.Level1)
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
     nodeTest->isOnTheTree_ = false;
-    std::shared_ptr<RSRenderNode> childTest = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> childTest = nullptr;
     nodeTest->AddCrossParentChild(childTest, -1);
 
-    std::shared_ptr<RSRenderNode> child1 = std::make_shared<RSRenderNode>(1);
-    std::shared_ptr<RSRenderNode> child2 = std::make_shared<RSRenderNode>(2);
-    std::shared_ptr<RSRenderNode> child3 = std::make_shared<RSRenderNode>(3);
+    std::shared_ptr<RSSurfaceRenderNode> child1 = std::make_shared<RSSurfaceRenderNode>(1);
+    std::shared_ptr<RSSurfaceRenderNode> child2 = std::make_shared<RSSurfaceRenderNode>(2);
+    std::shared_ptr<RSSurfaceRenderNode> child3 = std::make_shared<RSSurfaceRenderNode>(3);
     nodeTest->isFullChildrenListValid_ = true;
     nodeTest->AddCrossParentChild(child1, -1);
     EXPECT_FALSE(nodeTest->isFullChildrenListValid_);
@@ -2776,10 +2777,10 @@ HWTEST_F(RSRenderNodeTest, RemoveCrossParentChild009, TestSize.Level1)
 
     std::shared_ptr<RSRenderNode> newParent1 = std::make_shared<RSRenderNode>(1);
     std::shared_ptr<RSRenderNode> newParent2 = std::make_shared<RSRenderNode>(2);
-    std::shared_ptr<RSRenderNode> childTest = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> childTest = nullptr;
     nodeTest->RemoveCrossParentChild(childTest, newParent1);
 
-    childTest = std::make_shared<RSRenderNode>(0);
+    childTest = std::make_shared<RSSurfaceRenderNode>(0);
     std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(0);
     childTest->parent_ = parent;
     nodeTest->isFullChildrenListValid_ = true;
@@ -2789,8 +2790,8 @@ HWTEST_F(RSRenderNodeTest, RemoveCrossParentChild009, TestSize.Level1)
     nodeTest->isFullChildrenListValid_ = true;
     nodeTest->disappearingTransitionCount_ = 1;
 
-    std::shared_ptr<RSRenderNode> child1 = std::make_shared<RSRenderNode>(1);
-    std::shared_ptr<RSRenderNode> child2 = std::make_shared<RSRenderNode>(2);
+    std::shared_ptr<RSSurfaceRenderNode> child1 = std::make_shared<RSSurfaceRenderNode>(1);
+    std::shared_ptr<RSSurfaceRenderNode> child2 = std::make_shared<RSSurfaceRenderNode>(2);
     nodeTest->AddCrossParentChild(child1);
     nodeTest->AddCrossParentChild(child2);
 
@@ -2816,7 +2817,7 @@ HWTEST_F(RSRenderNodeTest, AddCrossScreenChild, TestSize.Level1)
     auto context = std::make_shared<RSContext>();
     auto displayRenderNode = std::make_shared<RSScreenRenderNode>(id, 0, context);
     EXPECT_NE(displayRenderNode, nullptr);
-    auto childTest1 = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> childTest1 = nullptr;
     displayRenderNode->AddCrossScreenChild(childTest1, 2, -1);
 
     id = 2;
@@ -2838,7 +2839,7 @@ HWTEST_F(RSRenderNodeTest, RemoveCrossScreenChild, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
-    auto childTest1 = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> childTest1 = nullptr;
     nodeTest->RemoveCrossScreenChild(childTest1);
 
     auto childTest2 = std::make_shared<RSSurfaceRenderNode>(1);
@@ -3531,7 +3532,7 @@ HWTEST_F(RSRenderNodeTest, UpdateAbsDirtyRegion001, TestSize.Level1)
 
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     rsDirtyManager->SetSurfaceSize(surfaceWidth, surfaceHeight);
-    RSRenderNode node(id, context);
+    RSSurfaceRenderNode node(id, context);
     node.GetMutableRenderProperties().subTreeAllDirty_ = true;
     node.oldChildrenRect_ = RectI(defaultLeft, defaultTop, defaultWidth, defaultHeight);
     node.oldClipRect_ = RectI(0, 0, defaultWidth, defaultHeight);
@@ -3695,7 +3696,7 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionAfterChildren, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, IsCrossNodeTest, TestSize.Level1)
 {
-    auto renderNode = std::make_shared<RSRenderNode>(1);
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
     renderNode->SetIsCrossNode(true);
     ASSERT_TRUE(renderNode->isCrossNode_);
@@ -3712,9 +3713,9 @@ HWTEST_F(RSRenderNodeTest, IsCrossNodeTest, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, SetCrossNodeVisitedStatusTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(1);
+    auto node = std::make_shared<RSSurfaceRenderNode>(1);
     ASSERT_NE(node, nullptr);
-    auto cloneNode = std::make_shared<RSRenderNode>(2);
+    auto cloneNode = std::make_shared<RSSurfaceRenderNode>(2);
     ASSERT_NE(cloneNode, nullptr);
     node->isCrossNode_ = true;
     cloneNode->isCloneCrossNode_ = true;

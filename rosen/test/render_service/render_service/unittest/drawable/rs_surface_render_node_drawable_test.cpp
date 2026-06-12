@@ -761,11 +761,11 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CrossDisplaySurfaceDirtyRegionConversi
         DEFAULT_RECT.right_ - DEFAULT_RECT.left_, DEFAULT_RECT.bottom_ - DEFAULT_RECT.top_ };;
 
     // if surface node is not cross-display node, nothing will happen.
-    surfaceDrawable_->GetRenderParams()->SetFirstLevelCrossNode(false);
+    surfaceParams->isFirstLevelCrossNode_ = false;
     surfaceDrawable_->CrossDisplaySurfaceDirtyRegionConversion(*uniParams, *surfaceParams, surfaceDirtyRect);
     ASSERT_EQ(surfaceDirtyRect.GetTop(), DEFAULT_RECT.top_);
     // if surface node is not cross-display node, the surface dirty region will be offset.
-    surfaceDrawable_->GetRenderParams()->SetFirstLevelCrossNode(true);
+    surfaceParams->isFirstLevelCrossNode_ = true;
     surfaceDrawable_->CrossDisplaySurfaceDirtyRegionConversion(*uniParams, *surfaceParams, surfaceDirtyRect);
     ASSERT_NE(surfaceDirtyRect.GetTop(), DEFAULT_RECT.top_);
 }

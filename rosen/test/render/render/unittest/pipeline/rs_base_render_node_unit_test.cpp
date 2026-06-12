@@ -184,7 +184,7 @@ HWTEST_F(RSBaseRenderNodeUnitTest, RemoveCrossParentChild001, TestSize.Level1)
      * @tc.steps: step1. AddChild
      */
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    auto childone = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     auto newParent = std::make_shared<RSBaseRenderNode>(id + 2, context);
     int index = -1;
     node->AddCrossParentChild(childone, index);
@@ -224,8 +224,8 @@ HWTEST_F(RSBaseRenderNodeUnitTest, AddCrossParentChildTest001, TestSize.Level1)
 {
     int32_t index = 1;
     int32_t index_ = 0;
-    std::shared_ptr<RSBaseRenderNode> child = nullptr;
-    std::shared_ptr<RSBaseRenderNode> child_;
+    std::shared_ptr<RSSurfaceRenderNode> child = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> child_;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     EXPECT_NE(node, nullptr);
     node->AddCrossParentChild(child, index);
@@ -242,7 +242,7 @@ HWTEST_F(RSBaseRenderNodeUnitTest, RemoveCrossParentChildTest001, TestSize.Level
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     EXPECT_NE(node, nullptr);
-    std::shared_ptr<RSBaseRenderNode> child = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> child = nullptr;
     std::weak_ptr<RSBaseRenderNode> newParent;
     node->RemoveCrossParentChild(child, newParent);
 }
@@ -454,7 +454,7 @@ HWTEST_F(RSBaseRenderNodeUnitTest, AddCrossParentChild001, TestSize.Level1)
      * @tc.steps: step1. AddChild
      */
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    auto childone = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     int index = -1;
     node->AddCrossParentChild(childone, index);
     ASSERT_EQ(node->GetChildrenCount(), 1);

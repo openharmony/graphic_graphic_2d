@@ -2959,6 +2959,11 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             monitor.EraseCurRectMap(GetId());
         }
     }
+
+    if (isOnTheTree_ && !onTree && autoClearCloneNode_) {
+        ClearCloneCrossNode();
+    }
+
     RSBaseRenderNode::SetIsOnTheTree(
         onTree, instanceRootNodeId, firstLevelNodeId, INVALID_NODEID, screenNodeId, logicalDisplayNodeId);
 }
@@ -3150,7 +3155,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     surfaceParams->SetTransparentRegion(GetTransparentRegion());
     surfaceParams->SetOpaqueRegion(GetOpaqueRegion());
     surfaceParams->SetRoundedCornerRegion(GetRoundedCornerRegion());
-    surfaceParams->SetFirstLevelCrossNode(IsFirstLevelCrossNode());
+    surfaceParams->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
 #endif
 }
 
@@ -3237,6 +3242,11 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->allSubSurfaceNodeIds_ = GetAllSubSurfaceNodeIds();
     surfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     surfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
+    surfaceParams->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
+    std::shared_ptr<RSSurfaceRenderNode> cloneSourceNode = sourceCrossNode_.lock();
+    if (cloneSourceNode) {
+        surfaceParams->cloneSourceDrawable_ = cloneSourceNode->GetRenderDrawable();
+    }
     if (occlusionParams_ != nullptr && occlusionParams_->IsOcclusionCullingOn()) {
         surfaceParams->isOcclusionCullingOn_ = true;
         surfaceParams->culledNodes_ = occlusionParams_->TakeCulledNodes();
@@ -4131,6 +4141,56 @@ void RSSurfaceRenderNode::ClearRelatedSourceCache(bool value)
     }
     surfaceParams->SetNeedClearRelatedCache(value);
     AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderNode::%{public}s surfaceParams is null", __func__);
+        return;
+    }
+    surfaceParams->SetCrossNodeOffScreenStatus(isCrossNodeOffscreenOn);
+}
+
+void RSSurfaceRenderNode::ClearCloneCrossNode()
+{
+    if (cloneCrossNodeVec_.size() == 0) {
+        return;
+    }
+
+    for (auto it = cloneCrossNodeVec_.begin(); it != cloneCrossNodeVec_.end(); ++it) {
+        if (auto parent = (*it)->GetParent().lock()) {
+            parent->RemoveChild(*it, true);
+        }
+    }
+    cloneCrossNodeVec_.clear();
+}
+
+void RSSurfaceRenderNode::SetCrossNodeVisitedStatus(bool hasVisited)
+{
+    if (isCrossNode_) {
+        hasVisitedCrossNode_ = hasVisited;
+        RS_LOGD("%{public}s NodeId[%{public}" PRIu64 "] hasVisited:%{public}d", __func__, GetId(), hasVisited);
+        for (auto cloneNode : cloneCrossNodeVec_) {
+            if (!cloneNode) {
+                RS_LOGE("%{public}s cloneNode is nullptr sourceNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
+                        __func__, GetId(), hasVisited);
+                continue;
+            }
+            cloneNode->hasVisitedCrossNode_ = hasVisited;
+            RS_LOGD("%{public}s cloneNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
+                    __func__, cloneNode->GetId(), hasVisited);
+        }
+    } else if (isCloneCrossNode_) {
+        std::shared_ptr<RSSurfaceRenderNode> sourceNode = GetSourceCrossNode().lock();
+        if (!sourceNode) {
+            RS_LOGE("%{public}s sourceNode is nullptr cloneNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
+                    __func__, GetId(), hasVisited);
+            return;
+        }
+        sourceNode->SetCrossNodeVisitedStatus(hasVisited);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

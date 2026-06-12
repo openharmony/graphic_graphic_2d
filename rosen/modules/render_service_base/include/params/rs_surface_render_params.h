@@ -150,6 +150,29 @@ public:
     {
         return isCrossNode_;
     }
+    bool IsFirstLevelCrossNode() const {
+        return isFirstLevelCrossNode_;
+    }
+    void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+    {
+        cloneSourceDrawable_ = drawable;
+    }
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const
+    {
+        return cloneSourceDrawable_;
+    }
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffScreenOn)
+    {
+        isCrossNodeOffscreenOn_ = isCrossNodeOffScreenOn;
+    }
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
+    {
+        return isCrossNodeOffscreenOn_;
+    }
+    bool IsSnapshotSkipLayer() const
+    {
+        return isSnapshotSkipLayer_;
+    }
     bool IsSpherizeValid() const
     {
         return isSpherizeValid_;
@@ -868,15 +891,19 @@ public:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
+    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     RSRenderNode::WeakPtr ancestorScreenNode_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorScreenDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr sourceDisplayRenderNodeDrawable_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
 
     float alpha_ = 0;
     bool isClonedNodeOnTheTree_ = false;
     bool isCrossNode_ = false;
     bool isCloneNode_ = false;
+    bool isFirstLevelCrossNode_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool isRelated_ = false;
     bool clonedSourceNode_ = false;
     bool isRelatedSourceNode_ = false;

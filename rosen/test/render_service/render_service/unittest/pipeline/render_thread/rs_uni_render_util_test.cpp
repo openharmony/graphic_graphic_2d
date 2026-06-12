@@ -1174,7 +1174,8 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable002, TestSize.Level1)
     surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(surfaceAdapter, nullptr);
     surfaceAdapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(defaultSurfaceId);
-    surfaceAdapter->renderParams_->isFirstLevelCrossNode_ = true;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceAdapter->renderParams_.get());
+    surfaceParams->isFirstLevelCrossNode_ = true;
     surfaceAdapters.emplace_back(surfaceAdapter);
 
     params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
@@ -1207,7 +1208,8 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable003, TestSize.Level1)
     auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(surfaceAdapter, nullptr);
     surfaceAdapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(defaultSurfaceId);
-    surfaceAdapter->renderParams_->isFirstLevelCrossNode_ = true;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceAdapter->renderParams_.get());
+    surfaceParams->isFirstLevelCrossNode_ = true;
     surfaceAdapters.emplace_back(surfaceAdapter);
 
     params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);

@@ -1811,6 +1811,43 @@ public:
     {
         crossNodeSkipDisplayConversionMatrices_.clear();
     }
+
+    void ClearCloneCrossNode();
+    void SetCrossNodeVisitedStatus(bool hasVisited);
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn);
+    void RecordCloneCrossNode(std::shared_ptr<RSSurfaceRenderNode> node)
+    {
+        cloneCrossNodeVec_.emplace_back(node);
+    }
+
+    void SetIsCrossNode(bool isCrossNode)
+    {
+        if (!isCrossNode) {
+            ClearCloneCrossNode();
+        }
+        isCrossNode_ = isCrossNode;
+    }
+
+    bool IsCrossNode() const override
+    {
+        return isCrossNode_ || isCloneCrossNode_;
+    }
+
+    bool IsCloneCrossNode() const
+    {
+        return isCloneCrossNode_;
+    }
+
+    bool HasVisitedCrossNode() const
+    {
+        return hasVisitedCrossNode_;
+    }
+
+    std::weak_ptr<RSSurfaceRenderNode> GetSourceCrossNode() const
+    {
+        return sourceCrossNode_;
+    }
+
     HdrStatus GetVideoHdrStatus() const
     {
         return hdrVideoSurface_;
@@ -2084,6 +2121,14 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
     bool arsrTag_ = true;
     bool copybitTag_ = false;
+
+    // cross node
+    bool isCrossNode_ = false;
+    bool isCloneCrossNode_ = false;
+    bool autoClearCloneNode_ = false;
+    bool hasVisitedCrossNode_ = false;
+    std::weak_ptr<RSSurfaceRenderNode> sourceCrossNode_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> cloneCrossNodeVec_;
 
     // hpae offline
     bool deviceOfflineEnable_ = false;

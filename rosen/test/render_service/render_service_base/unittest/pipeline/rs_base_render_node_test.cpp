@@ -18,6 +18,7 @@
 #include "animation/rs_render_curve_animation.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "platform/common/rs_log.h"
 using namespace testing;
@@ -187,7 +188,7 @@ HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChild001, TestSize.Level1)
      * @tc.steps: step1. AddChild
      */
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    auto childone = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     int index = -1;
     node->AddCrossParentChild(childone, index);
     ASSERT_EQ(node->GetChildrenCount(), 1);
@@ -211,7 +212,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChild001, TestSize.Level1)
      * @tc.steps: step1. AddChild
      */
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto childone = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    auto childone = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     auto newParent = std::make_shared<RSBaseRenderNode>(id + 2, context);
     int index = -1;
     node->AddCrossParentChild(childone, index);
@@ -251,8 +252,8 @@ HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChildTest001, TestSize.Level1)
 {
     int32_t index = 1;
     int32_t index_ = 0;
-    std::shared_ptr<RSBaseRenderNode> child = nullptr;
-    std::shared_ptr<RSBaseRenderNode> child_;
+    std::shared_ptr<RSSurfaceRenderNode> child = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> child_;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     EXPECT_NE(node, nullptr);
     node->AddCrossParentChild(child, index);
@@ -269,7 +270,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     EXPECT_NE(node, nullptr);
-    std::shared_ptr<RSBaseRenderNode> child = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> child = nullptr;
     std::weak_ptr<RSBaseRenderNode> newParent;
     node->RemoveCrossParentChild(child, newParent);
 }

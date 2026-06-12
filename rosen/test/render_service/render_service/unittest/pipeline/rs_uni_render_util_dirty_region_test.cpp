@@ -766,11 +766,12 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistory003, Function | SmallT
     OHOS::Rosen::RSDirtyRectsDfx rsDirtyRectsDfx(screenNodeDrawable);
     std::vector<RectI> damageRegionRects;
 
-    drawable->renderParams_->SetFirstLevelCrossNode(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->renderParams_.get());
+    surfaceParams->isFirstLevelCrossNode_ = true;
     params->isFirstVisitCrossNodeDisplay_ = true;
     damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(screenNodeDrawable, bufferAge, screenInfo,
         rsDirtyRectsDfx, *params);
-    drawable->renderParams_->SetFirstLevelCrossNode(false);
+    surfaceParams->isFirstLevelCrossNode_ = false;
     drawable->syncDirtyManager_ = nullptr;
     bufferAge = 1;
     damageRegionRects = RSUniRenderUtil::MergeDirtyHistory(screenNodeDrawable, bufferAge, screenInfo,

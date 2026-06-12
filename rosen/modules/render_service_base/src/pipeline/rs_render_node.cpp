@@ -50,6 +50,7 @@
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "params/rs_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -616,9 +617,6 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         RS_LOGD("RSRenderNode::SetIsOnTheTree on tree: node[id:%{public}" PRIu64 "]", GetId());
         InitRenderDrawableAndDrawableVec();
     }
-    if (autoClearCloneNode_ && !flag) {
-        ClearCloneCrossNode();
-    }
 
     if (enableHdrEffect_) {
         NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
@@ -816,65 +814,7 @@ void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
     }
 }
 
-void RSRenderNode::ClearCloneCrossNode()
-{
-    if (cloneCrossNodeVec_.size() == 0) {
-        return;
-    }
-
-    for (auto it = cloneCrossNodeVec_.begin(); it != cloneCrossNodeVec_.end(); ++it) {
-        if (auto parent = (*it)->GetParent().lock()) {
-            parent->RemoveChild(*it, true);
-        }
-    }
-    cloneCrossNodeVec_.clear();
-}
-
-void RSRenderNode::SetIsCrossNode(bool isCrossNode)
-{
-    if (!isCrossNode) {
-        ClearCloneCrossNode();
-    }
-    isCrossNode_ = isCrossNode;
-}
-
-bool RSRenderNode::IsCrossNode() const
-{
-    return isCrossNode_ || isCloneCrossNode_;
-}
-
-bool RSRenderNode::HasVisitedCrossNode() const
-{
-    return hasVisitedCrossNode_;
-}
-
-void RSRenderNode::SetCrossNodeVisitedStatus(bool hasVisited)
-{
-    if (isCrossNode_) {
-        hasVisitedCrossNode_ = hasVisited;
-        RS_LOGD("%{public}s NodeId[%{public}" PRIu64 "] hasVisited:%{public}d", __func__, GetId(), hasVisited);
-        for (auto cloneNode : cloneCrossNodeVec_) {
-            if (!cloneNode) {
-                RS_LOGE("%{public}s cloneNode is nullptr sourceNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
-                        __func__, GetId(), hasVisited);
-                continue;
-            }
-            cloneNode->hasVisitedCrossNode_ = hasVisited;
-            RS_LOGD("%{public}s cloneNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
-                    __func__, cloneNode->GetId(), hasVisited);
-        }
-    } else if (isCloneCrossNode_) {
-        auto sourceNode = GetSourceCrossNode().lock();
-        if (!sourceNode) {
-            RS_LOGE("%{public}s sourceNode is nullptr cloneNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
-                    __func__, GetId(), hasVisited);
-            return;
-        }
-        sourceNode->SetCrossNodeVisitedStatus(hasVisited);
-    }
-}
-
-void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
+void RSRenderNode::AddCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, int32_t index)
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
     // so this child will not remove from the old parent.
@@ -903,7 +843,7 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent)
+void RSRenderNode::RemoveCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, const WeakPtr& newParent)
 {
     // RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
     // set the newParentId to rebuild the parent-child relationship.
@@ -935,8 +875,8 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index,
-    bool autoClearCloneNode)
+void RSRenderNode::AddCrossScreenChild(const std::shared_ptr<RSSurfaceRenderNode>& child, NodeId cloneNodeId,
+    int32_t index, bool autoClearCloneNode)
 {
     auto context = GetContext().lock();
     if (child == nullptr || context == nullptr) {
@@ -962,7 +902,7 @@ void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeI
             "" PRIu64 "", cloneNode->GetId());
         return;
     }
-    auto& cloneNodeParams = cloneNode->GetStagingRenderParams();
+    auto cloneNodeParams = static_cast<RSSurfaceRenderParams*>(cloneNode->GetStagingRenderParams().get());
     if (cloneNodeParams == nullptr) {
         ROSEN_LOGE("RSRenderNode::AddCrossScreenChild failed! clone node params is null. id=%{public}"
             "" PRIu64 "", GetId());
@@ -982,12 +922,7 @@ void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeI
     AddChild(cloneNode, index);
 }
 
-void RSRenderNode::RecordCloneCrossNode(SharedPtr node)
-{
-    cloneCrossNodeVec_.emplace_back(node);
-}
-
-void RSRenderNode::RemoveCrossScreenChild(const SharedPtr& child)
+void RSRenderNode::RemoveCrossScreenChild(const std::shared_ptr<RSSurfaceRenderNode>& child)
 {
     if (child == nullptr) {
         ROSEN_LOGE("RSRenderNode::RemoveCrossScreenChild child is null");
@@ -4608,12 +4543,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetNodeType(GetType());
     stagingRenderParams_->SetEffectNodeShouldPaint(EffectNodeShouldPaint());
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
-    stagingRenderParams_->SetFirstLevelCrossNode(isFirstLevelCrossNode_);
     stagingRenderParams_->SetAbsRotation(absRotation_);
-    auto cloneSourceNode = GetSourceCrossNode().lock();
-    if (cloneSourceNode) {
-        stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());
-    }
     stagingRenderParams_->MarkRepaintBoundary(isRepaintBoundary_);
     stagingRenderParams_->SetNeedClipHoleForFilter(GetRenderProperties().NeedClipHoleForRenderGroup());
     stagingRenderParams_->SetDoubleSidedEnabled(GetRenderProperties().GetDoubleSidedEnabled());
@@ -4630,11 +4560,6 @@ void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
     oldChildrenRect_ = childrenRect_;
     oldClipRect_ = clipRect;
     oldAbsMatrix_ = geoPtr->GetAbsMatrix();
-}
-
-void RSRenderNode::SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_)
-{
-    stagingRenderParams_->SetCrossNodeOffScreenStatus(isCrossNodeOffscreenOn_);
 }
 
 bool RSRenderNode::UpdateLocalDrawRect()
