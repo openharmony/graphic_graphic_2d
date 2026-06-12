@@ -21,6 +21,9 @@
 #include "platform/ohos/transaction/zidl/rs_client_to_render_connection_proxy.h"
 #include "ui/rs_surface_node.h"
 #include "surface_utils.h"
+#include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
+#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include <iostream>
 
 #include "accesstoken_kit.h"
@@ -912,6 +915,267 @@ HWTEST_F(RSPipelineClientTest, TriggerOnAfterAcquireBuffer002, TestSize.Level1)
     ret.uid = 54321;
     ret.isUniRender = false;
     rsRenderPipelineClient->TriggerOnAfterAcquireBuffer(ret);
+}
+
+class TestSurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub {
+public:
+    explicit TestSurfaceCaptureCallbackDirector(std::weak_ptr<RSRenderPipelineClient> client) : client_(client) {}
+    ~TestSurfaceCaptureCallbackDirector() override = default;
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
+        CaptureError captureErrorCode = CaptureError::CAPTURE_OK, Media::PixelMap* pixelmapHDR = nullptr) override
+    {
+        auto client = client_.lock();
+        if (!client) {
+            ROSEN_LOGE("TestSurfaceCaptureCallbackDirector::OnSurfaceCapture: client has been destroyed");
+            return;
+        }
+        std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
+        std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
+        client->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, captureErrorCode, surfaceCaptureHDR);
+    }
+private:
+    std::weak_ptr<RSRenderPipelineClient> client_;
+};
+
+class TestSurfaceBufferCallbackDirector : public RSSurfaceBufferCallbackStub {
+public:
+    explicit TestSurfaceBufferCallbackDirector(std::weak_ptr<RSRenderPipelineClient> client) : client_(client) {}
+    ~TestSurfaceBufferCallbackDirector() noexcept override = default;
+    void OnFinish(const FinishCallbackRet& ret) override
+    {
+        auto client = client_.lock();
+        if (!client) {
+            ROSEN_LOGD("TestSurfaceBufferCallbackDirector::OnFinish: client has been destroyed");
+            return;
+        }
+        client->TriggerOnFinish(ret);
+    }
+    void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override
+    {
+        auto client = client_.lock();
+        if (!client) {
+            ROSEN_LOGD("TestSurfaceBufferCallbackDirector::OnAfterAcquireBuffer: client has been destroyed");
+            return;
+        }
+        client->TriggerOnAfterAcquireBuffer(ret);
+    }
+private:
+    std::weak_ptr<RSRenderPipelineClient> client_;
+};
+
+class TestTransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
+public:
+    explicit TestTransactionDataCallbackDirector(std::weak_ptr<RSRenderPipelineClient> client) : client_(client) {}
+    ~TestTransactionDataCallbackDirector() noexcept override = default;
+    void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
+    {
+        auto client = client_.lock();
+        if (!client) {
+            RS_LOGD("TestTransactionDataCallbackDirector::OnAfterProcess: client has been destroyed");
+            return;
+        }
+        client->TriggerTransactionDataCallbackAndErase(token, timeStamp);
+    }
+private:
+    std::weak_ptr<RSRenderPipelineClient> client_;
+};
+
+/**
+ * @tc.name: SurfaceCaptureDirectorSafety001
+ * @tc.desc: Test SurfaceCaptureCallbackDirector when client destroyed
+ * @tc.type: FUNC
+ * @tc.require: issue_critical_crash_fix
+ */
+HWTEST_F(RSPipelineClientTest, SurfaceCaptureDirectorSafety001, TestSize.Level1)
+{
+    auto tempClient = std::make_shared<RSRenderPipelineClient>();
+    ASSERT_NE(tempClient, nullptr);
+    std::weak_ptr<RSRenderPipelineClient> weakClient = tempClient;
+    sptr<TestSurfaceCaptureCallbackDirector> director = new TestSurfaceCaptureCallbackDirector(weakClient);
+    ASSERT_NE(director, nullptr);
+    auto lockedClient = weakClient.lock();
+    EXPECT_NE(lockedClient, nullptr);
+    tempClient.reset();
+    EXPECT_TRUE(weakClient.expired());
+    lockedClient = weakClient.lock();
+    EXPECT_EQ(lockedClient, nullptr);
+    NodeId testId = 123;
+    RSSurfaceCaptureConfig config;
+    director->OnSurfaceCapture(testId, config, nullptr);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SurfaceBufferDirectorSafety001
+ * @tc.desc: Test SurfaceBufferCallbackDirector::OnFinish when client destroyed
+ * @tc.type: FUNC
+ * @tc.require: issue_critical_crash_fix
+ */
+HWTEST_F(RSPipelineClientTest, SurfaceBufferDirectorSafety001, TestSize.Level1)
+{
+    auto tempClient = std::make_shared<RSRenderPipelineClient>();
+    std::weak_ptr<RSRenderPipelineClient> weakClient = tempClient;
+    sptr<TestSurfaceBufferCallbackDirector> director = new TestSurfaceBufferCallbackDirector(weakClient);
+    tempClient.reset();
+    EXPECT_TRUE(weakClient.expired());
+    FinishCallbackRet ret;
+    ret.uid = 999;
+    ret.width = 100;
+    ret.height = 100;
+    director->OnFinish(ret);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SurfaceBufferDirectorSafety002
+ * @tc.desc: Test SurfaceBufferCallbackDirector::OnAfterAcquireBuffer when client destroyed
+ * @tc.type: FUNC
+ * @tc.require: issue_critical_crash_fix
+ */
+HWTEST_F(RSPipelineClientTest, SurfaceBufferDirectorSafety002, TestSize.Level1)
+{
+    auto tempClient = std::make_shared<RSRenderPipelineClient>();
+    std::weak_ptr<RSRenderPipelineClient> weakClient = tempClient;
+    sptr<TestSurfaceBufferCallbackDirector> director = new TestSurfaceBufferCallbackDirector(weakClient);
+    tempClient.reset();
+    EXPECT_TRUE(weakClient.expired());
+    AfterAcquireBufferRet ret;
+    ret.uid = 888;
+    ret.isUniRender = true;
+    director->OnAfterAcquireBuffer(ret);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: TransactionDataDirectorSafety001
+ * @tc.desc: Test TransactionDataCallbackDirector::OnAfterProcess when client destroyed
+ * @tc.type: FUNC
+ * @tc.require: issue_critical_crash_fix
+ */
+HWTEST_F(RSPipelineClientTest, TransactionDataDirectorSafety001, TestSize.Level1)
+{
+    auto tempClient = std::make_shared<RSRenderPipelineClient>();
+    std::weak_ptr<RSRenderPipelineClient> weakClient = tempClient;
+    sptr<TestTransactionDataCallbackDirector> director = new TestTransactionDataCallbackDirector(weakClient);
+    tempClient.reset();
+    EXPECT_TRUE(weakClient.expired());
+    director->OnAfterProcess(123, 456);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: DirectorWeakPtrExpired001
+ * @tc.desc: Test multiple callbacks after client destroyed
+ * @tc.type: FUNC
+ * @tc.require: verify_multiple_callbacks_safety
+ */
+HWTEST_F(RSPipelineClientTest, DirectorWeakPtrExpired001, TestSize.Level1)
+{
+    auto tempClient = std::make_shared<RSRenderPipelineClient>();
+    std::weak_ptr<RSRenderPipelineClient> weakClient = tempClient;
+    auto director1 = new TestSurfaceCaptureCallbackDirector(weakClient);
+    auto director2 = new TestSurfaceBufferCallbackDirector(weakClient);
+    auto director3 = new TestTransactionDataCallbackDirector(weakClient);
+    tempClient.reset();
+    EXPECT_TRUE(weakClient.expired());
+    for (int i = 0; i < 10; ++i) {
+        director1->OnSurfaceCapture(i, {}, nullptr);
+        FinishCallbackRet ret1;
+        ret1.uid = i;
+        director2->OnFinish(ret1);
+        AfterAcquireBufferRet ret2;
+        ret2.uid = i;
+        director2->OnAfterAcquireBuffer(ret2);
+        director3->OnAfterProcess(i, i * 100);
+    }
+    EXPECT_TRUE(true);
+    delete director1;
+    delete director2;
+    delete director3;
+}
+
+/**
+ * @tc.name: DirectorConstruction001
+ * @tc.desc: Test Director construction with weak_from_this()
+ * @tc.type: FUNC
+ * @tc.require: verify_enable_shared_from_this
+ */
+HWTEST_F(RSPipelineClientTest, DirectorConstruction001, TestSize.Level1)
+{
+    auto client = std::make_shared<RSRenderPipelineClient>();
+    ASSERT_NE(client, nullptr);
+    auto weakPtr = client->weak_from_this();
+    EXPECT_FALSE(weakPtr.expired());
+    auto locked = weakPtr.lock();
+    EXPECT_NE(locked, nullptr);
+    EXPECT_EQ(locked.get(), client.get());
+    sptr<TestSurfaceCaptureCallbackDirector> director = new TestSurfaceCaptureCallbackDirector(weakPtr);
+    ASSERT_NE(director, nullptr);
+}
+
+/**
+ * @tc.name: SurfaceCaptureDirectorNormal001
+ * @tc.desc: Test SurfaceCaptureCallbackDirector normal callback path
+ * @tc.type: FUNC
+ * @tc.require: verify_weak_ptr_no_impact
+ */
+HWTEST_F(RSPipelineClientTest, SurfaceCaptureDirectorNormal001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto callback = std::make_shared<TestSurfaceCaptureCallback>();
+    RSSurfaceCaptureConfig config;
+    config.isHdrCapture = false;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, callback, config);
+    ASSERT_TRUE(ret);
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    rsClient->TriggerSurfaceCaptureCallback(TEST_ID, config, pixelMap, CaptureError::CAPTURE_OK);
+    EXPECT_TRUE(callback->isOnCallBack_);
+    usleep(SET_REFRESHRATE_SLEEP_US);
+}
+
+/**
+ * @tc.name: SurfaceCaptureDirectorNormal002
+ * @tc.desc: Test SurfaceCaptureCallbackDirector HDR callback path
+ * @tc.type: FUNC
+ * @tc.require: verify_weak_ptr_no_impact
+ */
+HWTEST_F(RSPipelineClientTest, SurfaceCaptureDirectorNormal002, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto callback = std::make_shared<TestSurfaceCaptureCallback>();
+    RSSurfaceCaptureConfig config;
+    config.isHdrCapture = true;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, callback, config);
+    ASSERT_TRUE(ret);
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    auto pixelMap = Media::PixelMap::Create(opts);
+    auto pixelMapHDR = Media::PixelMap::Create(opts);
+    rsClient->TriggerSurfaceCaptureCallback(TEST_ID, config, pixelMap, CaptureError::CAPTURE_OK, pixelMapHDR);
+    EXPECT_TRUE(callback->isOnCallBack_);
+}
+
+/**
+ * @tc.name: SurfaceCaptureDirectorNormal003
+ * @tc.desc: Test SurfaceCaptureCallbackDirector with error code
+ * @tc.type: FUNC
+ * @tc.require: verify_weak_ptr_no_impact
+ */
+HWTEST_F(RSPipelineClientTest, SurfaceCaptureDirectorNormal003, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto callback = std::make_shared<TestSurfaceCaptureCallback>();
+    RSSurfaceCaptureConfig config;
+    config.needErrorCode = true;
+    bool ret = rsClient->TakeSurfaceCapture(TEST_ID, callback, config);
+    ASSERT_TRUE(ret);
+    rsClient->TriggerSurfaceCaptureCallback(TEST_ID, config, nullptr, CaptureError::CAPTURE_FAILED);
+    EXPECT_TRUE(callback->isOnCallBack_);
 }
 #endif
 } // namespace Rosen

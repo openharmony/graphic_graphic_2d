@@ -84,7 +84,8 @@ using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSS
 using FirstFrameCommitCallback = std::function<void(uint64_t, int64_t)>;
 using FrameStabilityCallback = std::function<void(bool)>;
 
-class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
+class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient,
+                                          public std::enable_shared_from_this<RSRenderPipelineClient> {
 public:
     RSRenderPipelineClient();
     RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote);
