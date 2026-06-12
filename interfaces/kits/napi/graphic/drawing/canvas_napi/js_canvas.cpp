@@ -1392,7 +1392,9 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh verticesArray is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter3 type.");
     }
-    int64_t tempVerticesSize = ((static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1) + static_cast<int64_t>(vertOffset)) * 2; // x and y two coordinates
+    int64_t tempVerticesSize =
+        (static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1) + static_cast<int64_t>(vertOffset);
+    tempVerticesSize *= 2;
     if (verticesSize != tempVerticesSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh vertices are invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter3 type.");
@@ -1416,7 +1418,8 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         }
         vertices[i] = vertex;
     }
-    float* verticesMesh = verticesSize ? (vertices + static_cast<int64_t>(vertOffset) * 2) : nullptr; // offset two coordinates
+    float* verticesMesh =
+        verticesSize ? (vertices + static_cast<int64_t>(vertOffset) * 2) : nullptr; // offset two coordinates
 
     napi_value colorsArray = argv[ARGC_FIVE];
     uint32_t colorsSize = 0;
@@ -1425,7 +1428,8 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         delete []vertices;
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter5 type.");
     }
-    int64_t tempColorsSize = (static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1) + static_cast<int64_t>(colorOffset);
+    int64_t tempColorsSize =
+        (static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1) + static_cast<int64_t>(colorOffset);
 
     if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh colors are invalid");

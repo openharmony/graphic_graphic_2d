@@ -949,7 +949,8 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t col
             return;
         }
         colorsSize = static_cast<uint32_t>(aniLength);
-        int64_t tempColorsSize = (static_cast<int64_t>(args.column) + 1) * (static_cast<int64_t>(args.row) + 1) + static_cast<int64_t>(colorOffset);
+        int64_t tempColorsSize =
+            (static_cast<int64_t>(args.column) + 1) * (static_cast<int64_t>(args.row) + 1) + static_cast<int64_t>(colorOffset);
         if (colorsSize != 0 && colorsSize != tempColorsSize) {
             ROSEN_LOGE("AniCanvas::GetColorsAndDraw colors are invalid");
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter5 type");
@@ -1029,7 +1030,9 @@ void AniCanvas::DrawPixelMapMesh(ani_env* env, ani_object obj,
     }
 
     uint32_t verticesSize = static_cast<uint32_t>(aniLength);
-    int64_t tempVerticesSize = ((static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1) + static_cast<int64_t>(vertOffset)) * 2; // x and y two coordinates
+    int64_t tempVerticesSize =
+        (static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1) + static_cast<int64_t>(vertOffset);
+    tempVerticesSize *= 2;
     if (verticesSize != tempVerticesSize) {
         ROSEN_LOGE("AniCanvas::DrawPixelMapMesh vertices are invalid");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter3 type.");
