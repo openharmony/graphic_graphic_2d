@@ -214,11 +214,13 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
     auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
     if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
         pixelMapIdRelatedDrawingImageCache_.erase(it);
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
         bool isEnable = RSImageDetailEnhancerThread::Instance().GetEnabled();
         if (isEnable && RSImageDetailEnhancerThread::Instance().GetScaledImage(uniqueId)) {
             RSImageDetailEnhancerThread::Instance().ReleaseScaledImage(uniqueId);
             RSImageDetailEnhancerThread::Instance().SetProcessStatus(uniqueId, false);
         }
+#endif
     }
 }
 

@@ -347,7 +347,8 @@ ohos_shared_library("librender_service") {
     sources += [ "core/feature/gpuComposition/rs_image_manager.cpp" ]
   }
 
-  if (graphic_2d_feature_product != "wearable") {
+  if (graphic_2d_feature_enable_drm) {
+
     defines += [ "IS_ENABLE_DRM" ]
   }
 
@@ -366,6 +367,10 @@ ohos_shared_library("librender_service") {
   if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable
       && defined(graphic_2d_subtree_configs.subtree_root)) {
     sources += graphic_2d_subtree_configs.librender_service_subtree_sources
+  }
+  
+  if (graphic_2d_feature_enable_mediacommon) {
+    defines += [ "RS_GRAPHIC_MEDIACOMMON_ENABLE" ]
   }
 
   if (use_memmgr_plugin || use_memmgr) {
@@ -617,6 +622,10 @@ ohos_shared_library("librender_service") {
   if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&
       enable_ipc_security_access_counter) {
     defines += [ "ENABLE_IPC_SECURITY_ACCESS_COUNTER" ]
+  }
+
+  if (graphic_2d_feature_enable_image_detail_enhancer) {
+    defines += [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
   }
 
   if (tp_feature_enable) {

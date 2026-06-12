@@ -112,7 +112,7 @@
 #include "ui/rs_ui_patten_vec.h"
 #include "ui/rs_union_node.h"
 
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
 #include "modifier_render_thread/rs_modifiers_draw.h"
 #endif
 
@@ -223,7 +223,7 @@ RSNode::~RSNode()
         FallbackAnimationsToRoot();
     }
     ClearAllModifiers();
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
     if (RSSystemProperties::GetHybridRenderEnabled()) {
         RSModifiersDraw::EraseDrawRegions(id_);
@@ -3429,7 +3429,7 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
         drawRegion_ = rect;
         std::unique_ptr<RSCommand> command = std::make_unique<RSSetDrawRegion>(GetId(), rect);
         AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
         if (RSSystemProperties::GetHybridRenderEnabled() && !drawRegion_->IsEmpty()) {
             RSModifiersDraw::AddDrawRegions(id_, drawRegion_);
         }
@@ -3851,7 +3851,7 @@ void RSNode::SetIsOnTheTree(bool flag)
     }
     isOnTheTreeInit_ = true;
     isOnTheTree_ = flag;
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
     if (!flag) {
         RSModifiersDraw::InsertOffTreeNode(instanceId_, id_);
     } else {

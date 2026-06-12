@@ -545,7 +545,7 @@ ohos_source_set("render_service_base_src") {
     }
   }
 
-  if (graphic_2d_feature_product != "wearable") {
+  if (graphic_2d_feature_enable_drm) {
     defines += [ "IS_ENABLE_DRM" ]
   }
 
@@ -657,6 +657,10 @@ ohos_source_set("render_service_base_src") {
     sources += graphic_2d_mhc_configs.librender_service_mhc_sources
   }
 
+  if (graphic_2d_feature_enable_mediacommon) {
+    defines += [ "RS_GRAPHIC_MEDIACOMMON_ENABLE" ]
+  }
+
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
@@ -765,6 +769,10 @@ ohos_source_set("render_service_base_src") {
     external_deps += [ "resource_schedule_service:ressched_client" ]
     defines += [ "RES_BASE_SCHED_ENABLE" ]
     external_deps += [ "qos_manager:qos" ]
+  }
+
+  if (graphic_2d_feature_enable_image_detail_enhancer) {
+    defines += [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
   }
 
   part_name = "graphic_2d"
