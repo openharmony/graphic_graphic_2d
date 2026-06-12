@@ -518,6 +518,22 @@ void RSRenderParams::SetShadowRect(Drawing::Rect rect)
     needSync_ = true;
 }
 
+void RSRenderParams::SetRealShadowRect(const Drawing::Rect& rect)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    renderGroupCache_->SetRealShadowRect(rect);
+}
+
+Drawing::Rect RSRenderParams::GetRealShadowRect() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->GetRealShadowRect();
+    }
+    return Drawing::Rect();
+}
+
 void RSRenderParams::SetNeedSync(bool needSync)
 {
     needSync_ = needSync;

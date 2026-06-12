@@ -3443,20 +3443,32 @@ void RSRenderNode::UpdateDrawableVecV2()
 void RSRenderNode::UpdateShadowRect()
 {
 #ifdef RS_ENABLE_GPU
-    if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::SHADOW)) != nullptr &&
-        GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+    auto shadowDrawable = findMapValueRef(GetDrawableVec(__func__),
+        static_cast<int8_t>(RSDrawableSlot::SHADOW));
+    if (shadowDrawable != nullptr) {
         RectI shadowRect;
         auto rRect = GetRenderProperties().GetRRect();
-        RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rRect, false, false);
-        stagingRenderParams_->SetShadowRect(Drawing::Rect(
-            static_cast<float>(shadowRect.GetLeft()),
-            static_cast<float>(shadowRect.GetTop()),
-            static_cast<float>(shadowRect.GetRight()),
-            static_cast<float>(shadowRect.GetBottom())));
-        RS_OPTIONAL_TRACE_NAME_FMT("UpdateShadowRect id:%llu shadowRect:%s",
-            GetId(), shadowRect.ToString().c_str());
+        if (GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+            // Color strategy is active: compute shadowRect only
+            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rRect, false, false);
+            stagingRenderParams_->SetShadowRect(Drawing::Rect(
+                static_cast<float>(shadowRect.GetLeft()),
+                static_cast<float>(shadowRect.GetTop()),
+                static_cast<float>(shadowRect.GetRight()),
+                static_cast<float>(shadowRect.GetBottom())));
+        } else {
+            // Color strategy is NONE: compute realShadowRect only, clear shadowRect
+            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rRect, false, true);
+            stagingRenderParams_->SetRealShadowRect(Drawing::Rect(
+                static_cast<float>(shadowRect.GetLeft()),
+                static_cast<float>(shadowRect.GetTop()),
+                static_cast<float>(shadowRect.GetRight()),
+                static_cast<float>(shadowRect.GetBottom())));
+            stagingRenderParams_->SetShadowRect(Drawing::Rect());
+        }
     } else {
         stagingRenderParams_->SetShadowRect(Drawing::Rect());
+        stagingRenderParams_->SetRealShadowRect(Drawing::Rect());
     }
 #endif
 }

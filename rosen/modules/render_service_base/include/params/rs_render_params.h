@@ -369,6 +369,9 @@ public:
         return shadowRect_;
     }
 
+    void SetRealShadowRect(const Drawing::Rect& rect);
+    Drawing::Rect GetRealShadowRect() const;
+
     void SetStartingWindowFlag(bool b)
     {
         if (startingWindowFlag_ == b) {

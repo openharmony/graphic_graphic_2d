@@ -81,6 +81,12 @@ public:
         return needClearRenderGroupCache_;
     }
 
+    bool SetRealShadowRect(const Drawing::Rect& rect);
+    const Drawing::Rect& GetRealShadowRect() const
+    {
+        return realShadowRect_;
+    }
+
     bool SetRenderGroupIncludeProperty(bool includeProperty);
     bool IsRenderGroupIncludeProperty() const
     {
@@ -120,6 +126,7 @@ private:
     bool nodeGroupHasChildInBlacklist_ = false;
     bool needClipHoleForFilter_ = false;
     bool needClearRenderGroupCache_ = false;
+    Drawing::Rect realShadowRect_;
     bool renderGroupIncludeProperty_ = false;
     Vector2f cacheSize_;
     RSFreezeFlag freezeFlag_ = RSFreezeFlag::NONE;
