@@ -250,5 +250,46 @@ HWTEST_F(RSRenderGroupCacheTest, SetNodeGroupHasChildInBlacklistTest, TestSize.L
     EXPECT_TRUE(renderGroupCache->NodeGroupHasChildInBlacklist());
     EXPECT_TRUE(rst);
 }
+
+/**
+ * @tc.name: SetRealShadowRectTest001
+ * @tc.desc: Test SetRealShadowRect with same value returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderGroupCacheTest, SetRealShadowRectTest001, TestSize.Level1)
+{
+    auto renderGroupCache = std::make_unique<RSRenderGroupCache>();
+    ASSERT_NE(renderGroupCache, nullptr);
+
+    Drawing::Rect defaultRect;
+    bool rst = renderGroupCache->SetRealShadowRect(defaultRect);
+    EXPECT_EQ(renderGroupCache->GetRealShadowRect(), defaultRect);
+    EXPECT_FALSE(rst);
+}
+
+/**
+ * @tc.name: SetRealShadowRectTest002
+ * @tc.desc: Test SetRealShadowRect with different values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderGroupCacheTest, SetRealShadowRectTest002, TestSize.Level1)
+{
+    auto renderGroupCache = std::make_unique<RSRenderGroupCache>();
+    ASSERT_NE(renderGroupCache, nullptr);
+
+    Drawing::Rect rect(1.0f, 2.0f, 3.0f, 4.0f);
+    bool rst = renderGroupCache->SetRealShadowRect(rect);
+    EXPECT_EQ(renderGroupCache->GetRealShadowRect(), rect);
+    EXPECT_TRUE(rst);
+
+    Drawing::Rect rect2(5.0f, 6.0f, 7.0f, 8.0f);
+    rst = renderGroupCache->SetRealShadowRect(rect2);
+    EXPECT_EQ(renderGroupCache->GetRealShadowRect(), rect2);
+    EXPECT_TRUE(rst);
+
+    rst = renderGroupCache->SetRealShadowRect(rect2);
+    EXPECT_EQ(renderGroupCache->GetRealShadowRect(), rect2);
+    EXPECT_FALSE(rst);
+}
 } // namespace Rosen
 } // namespace OHOS

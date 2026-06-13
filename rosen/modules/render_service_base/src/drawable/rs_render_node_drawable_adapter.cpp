@@ -541,11 +541,15 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
         RS_LOGD("RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole curCanvas is null");
         return;
     }
+    auto realShadowRect = params.GetRealShadowRect();
     auto shadowRect = params.GetShadowRect();
     auto filterRect = GetFilterRelativeRect(params.GetBounds());
+    filterRect.Join(realShadowRect);
     filterRect.Join(shadowRect);
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "ClipHoleForBlurOrExcludedSubtree Rect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
+        "ClipHoleForBlurOrExcludedSubtree Rect:[%.2f, %.2f], ShadowRect:[%.2f, %.2f], RealShadowRect:[%.2f, %.2f]",
+        filterRect.GetWidth(), filterRect.GetHeight(), shadowRect.GetWidth(), shadowRect.GetHeight(),
+        realShadowRect.GetWidth(), realShadowRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
     auto matrix = canvas.GetTotalMatrix();
     matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
