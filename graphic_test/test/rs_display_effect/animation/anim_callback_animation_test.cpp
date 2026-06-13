@@ -459,8 +459,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_1)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "M0 0 L300 200 L300 500 Z";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "M0 0 L300 200 L300 500 Z";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     testNode->SetMotionPathOption(motionPathOption);
 
     RSAnimationTimingProtocol protocol;
@@ -487,8 +487,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_2)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L300 200 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L300 200 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     testNode->SetMotionPathOption(motionPathOption);
 
     RSAnimationTimingProtocol protocol;
@@ -515,8 +515,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_3)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     testNode->SetMotionPathOption(motionPathOption);
 
     RSAnimationTimingProtocol protocol;
@@ -543,8 +543,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_4)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetBeginFraction(-1.0f); // beginFraction -1
     motionPathOption->SetEndFraction(-1.0f); // endFraction -1
     testNode->SetMotionPathOption(motionPathOption);
@@ -573,8 +573,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_5)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetBeginFraction(0); // beginFraction 0
     motionPathOption->SetEndFraction(0); // endFraction 0
     testNode->SetMotionPathOption(motionPathOption);
@@ -603,8 +603,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_6)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetBeginFraction(0.3f); // beginFraction 0.3
     motionPathOption->SetEndFraction(0.3f); // endFraction 0.3
     testNode->SetMotionPathOption(motionPathOption);
@@ -633,8 +633,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_7)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetBeginFraction(0.8f); // beginFraction 0.8
     motionPathOption->SetEndFraction(0.8f); // endFraction 0.8
     testNode->SetMotionPathOption(motionPathOption);
@@ -663,8 +663,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_8)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetBeginFraction(1.0f); // beginFraction 1
     motionPathOption->SetEndFraction(1.0f); // endFraction 1
     testNode->SetMotionPathOption(motionPathOption);
@@ -693,8 +693,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_9)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetBeginFraction(2.0f); // beginFraction 2
     motionPathOption->SetEndFraction(2.0f); // endFraction 2
     testNode->SetMotionPathOption(motionPathOption);
@@ -723,8 +723,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_10)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetRotationMode(RotationMode::ROTATE_AUTO);
     testNode->SetMotionPathOption(motionPathOption);
 
@@ -752,8 +752,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_11)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetRotationMode(RotationMode::ROTATE_AUTO_REVERSE);
     testNode->SetMotionPathOption(motionPathOption);
 
@@ -781,8 +781,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_12)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string  ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetPathNeedAddOrigin(true);
     testNode->SetMotionPathOption(motionPathOption);
 
@@ -1023,8 +1023,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_1)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string ANIMATION_PATH = "M0 0 L300 200 L300 500 Z";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "M0 0 L300 200 L300 500 Z";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     testNode->SetMotionPathOption(motionPathOption);
     testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::BOUNDS, ModifierNG::RSPropertyType::BOUNDS);
     testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::FRAME, ModifierNG::RSPropertyType::FRAME);
@@ -1055,8 +1055,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_2)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string ANIMATION_PATH = "Mstart.x start.y L300 200 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L300 200 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     testNode->SetMotionPathOption(motionPathOption);
     testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::BOUNDS, ModifierNG::RSPropertyType::BOUNDS);
     testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::FRAME, ModifierNG::RSPropertyType::FRAME);
@@ -1087,8 +1087,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_3)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     testNode->SetMotionPathOption(motionPathOption);
     testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::BOUNDS, ModifierNG::RSPropertyType::BOUNDS);
     testNode->SetMotionPathOptionToProperty(ModifierNG::RSModifierType::FRAME, ModifierNG::RSPropertyType::FRAME);
@@ -1119,8 +1119,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_4)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetBeginFraction(-1.0f); // beginFraction -1
     motionPathOption->SetEndFraction(-1.0f);   // endFraction -1
     testNode->SetMotionPathOption(motionPathOption);
@@ -1153,8 +1153,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_5)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetBeginFraction(0); // beginFraction 0
     motionPathOption->SetEndFraction(0);   // endFraction 0
     testNode->SetMotionPathOption(motionPathOption);
@@ -1187,8 +1187,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_GetMotionPath_Test_1)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    std::string ANIMATION_PATH = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
-    auto motionPathOption = std::make_shared<RSMotionPathOption>(ANIMATION_PATH);
+    std::string animationPath = "Mstart.x start.y L200 200 L200 500 L300 100 L300 500 Lend.x endy";
+    auto motionPathOption = std::make_shared<RSMotionPathOption>(animationPath);
     motionPathOption->SetBeginFraction(0); // beginFraction 0
     motionPathOption->SetEndFraction(0);   // endFraction 0
     testNode->SetMotionPathOption(motionPathOption);
