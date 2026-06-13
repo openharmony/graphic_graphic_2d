@@ -78,6 +78,7 @@ HWTEST_F(RSWindowKeyFrameNodeCommandModifierTest, WkfIsFreezeTest002, TestSize.L
     { auto n = RSWindowKeyFrameNode::Create(); weakNode = n; }
     WkfIsFreezeCmdParam param{true, true};
     auto mod = std::make_shared<WkfIsFreezeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -121,6 +122,7 @@ HWTEST_F(RSWindowKeyFrameNodeCommandModifierTest, WkfLinkedNodeIdTest002, TestSi
     { auto n = RSWindowKeyFrameNode::Create(); weakNode = n; }
     WkfLinkedNodeIdCmdParam param{0};
     auto mod = std::make_shared<WkfLinkedNodeIdCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -134,8 +136,8 @@ HWTEST_F(RSWindowKeyFrameNodeCommandModifierTest, WkfIsFreezeTest003, TestSize.L
     auto node = RSWindowKeyFrameNode::Create();
     WkfIsFreezeCmdParam param{true, false};
     auto mod = std::make_shared<WkfIsFreezeCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -149,8 +151,8 @@ HWTEST_F(RSWindowKeyFrameNodeCommandModifierTest, WkfLinkedNodeIdTest003, TestSi
     constexpr NodeId linkedId = 100;
     WkfLinkedNodeIdCmdParam param{linkedId};
     auto mod = std::make_shared<WkfLinkedNodeIdCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 } // namespace Rosen

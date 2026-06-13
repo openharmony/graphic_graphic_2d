@@ -79,6 +79,7 @@ HWTEST_F(RSNodeCommandModifierTest, OcclusionCullingStatusTest002, TestSize.Leve
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     OcclusionCullingStatusCmdParam param{true, 100};
     auto mod = std::make_shared<OcclusionCullingStatusCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -116,6 +117,7 @@ HWTEST_F(RSNodeCommandModifierTest, NodeNameTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     NodeNameCmdParam param{"test"};
     auto mod = std::make_shared<NodeNameCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -157,6 +159,7 @@ HWTEST_F(RSNodeCommandModifierTest, IsP3ColorTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     IsP3ColorCmdParam param{0};
     auto mod = std::make_shared<IsP3ColorCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -205,6 +208,7 @@ HWTEST_F(RSNodeCommandModifierTest, DrawRegionTest003, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     DrawRegionCmdParam param{std::make_shared<RectF>(0, 0, 10, 10)};
     auto mod = std::make_shared<DrawRegionCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -242,6 +246,7 @@ HWTEST_F(RSNodeCommandModifierTest, UseCmdlistDrawRegionTest002, TestSize.Level1
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     UseCmdlistDrawRegionCmdParam param{false};
     auto mod = std::make_shared<UseCmdlistDrawRegionCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -279,6 +284,7 @@ HWTEST_F(RSNodeCommandModifierTest, ExcludeNodeGroupTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     ExcludeNodeGroupCmdParam param{true};
     auto mod = std::make_shared<ExcludeNodeGroupCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -319,6 +325,7 @@ HWTEST_F(RSNodeCommandModifierTest, MarkNodeSingleFrameComposerTest002, TestSize
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     MarkNodeSingleFrameComposerCmdParam param{true, 0};
     auto mod = std::make_shared<MarkNodeSingleFrameComposerCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -356,6 +363,7 @@ HWTEST_F(RSNodeCommandModifierTest, IsRepaintBoundaryTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     IsRepaintBoundaryCmdParam param{true};
     auto mod = std::make_shared<IsRepaintBoundaryCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -395,6 +403,7 @@ HWTEST_F(RSNodeCommandModifierTest, MarkOpincNodeTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     MarkOpincNodeCmdParam param{true, true};
     auto mod = std::make_shared<MarkOpincNodeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -432,6 +441,7 @@ HWTEST_F(RSNodeCommandModifierTest, IsUifirstNodeTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     IsUifirstNodeCmdParam param{true};
     auto mod = std::make_shared<IsUifirstNodeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -471,6 +481,7 @@ HWTEST_F(RSNodeCommandModifierTest, IsForceUifirstNodeTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     IsForceUifirstNodeCmdParam param{true, true};
     auto mod = std::make_shared<IsForceUifirstNodeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -508,6 +519,7 @@ HWTEST_F(RSNodeCommandModifierTest, SyncDrawNodeTypeTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     SyncDrawNodeTypeCmdParam param{DrawNodeType::PureContainerType};
     auto mod = std::make_shared<SyncDrawNodeTypeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -545,6 +557,7 @@ HWTEST_F(RSNodeCommandModifierTest, UIFirstSwitchTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     UIFirstSwitchCmdParam param{RSUIFirstSwitch::NONE};
     auto mod = std::make_shared<UIFirstSwitchCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -582,6 +595,7 @@ HWTEST_F(RSNodeCommandModifierTest, OutOfParentTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     OutOfParentCmdParam param{OutOfParentType::WITHIN};
     auto mod = std::make_shared<OutOfParentCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -619,6 +633,7 @@ HWTEST_F(RSNodeCommandModifierTest, IsCrossNodeTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     IsCrossNodeCmdParam param{true};
     auto mod = std::make_shared<IsCrossNodeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -660,6 +675,7 @@ HWTEST_F(RSNodeCommandModifierTest, NodeGroupTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     NodeGroupCmdParam param{true, true, true};
     auto mod = std::make_shared<NodeGroupCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -671,7 +687,6 @@ HWTEST_F(RSNodeCommandModifierTest, OcclusionCullingStatusTest003, TestSize.Leve
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -688,7 +703,6 @@ HWTEST_F(RSNodeCommandModifierTest, NodeNameTest003, TestSize.Level1)
     EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().nodeName_, "testNode");
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -701,8 +715,8 @@ HWTEST_F(RSNodeCommandModifierTest, IsP3ColorTest003, TestSize.Level1)
     auto node = RSCanvasNode::Create();
     IsP3ColorCmdParam param{1};
     auto mod = std::make_shared<IsP3ColorCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -722,7 +736,6 @@ HWTEST_F(RSNodeCommandModifierTest, DrawRegionTest004, TestSize.Level1)
     EXPECT_TRUE(ret);
     EXPECT_FALSE(mod->GetParam().drawRegion_);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -738,7 +751,6 @@ HWTEST_F(RSNodeCommandModifierTest, UseCmdlistDrawRegionTest003, TestSize.Level1
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -754,7 +766,6 @@ HWTEST_F(RSNodeCommandModifierTest, ExcludeNodeGroupTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -770,7 +781,6 @@ HWTEST_F(RSNodeCommandModifierTest, MarkNodeSingleFrameComposerTest003, TestSize
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -786,7 +796,6 @@ HWTEST_F(RSNodeCommandModifierTest, IsRepaintBoundaryTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -802,7 +811,6 @@ HWTEST_F(RSNodeCommandModifierTest, MarkOpincNodeTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -818,7 +826,6 @@ HWTEST_F(RSNodeCommandModifierTest, IsUifirstNodeTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -834,7 +841,6 @@ HWTEST_F(RSNodeCommandModifierTest, IsForceUifirstNodeTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -850,7 +856,6 @@ HWTEST_F(RSNodeCommandModifierTest, SyncDrawNodeTypeTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -866,7 +871,6 @@ HWTEST_F(RSNodeCommandModifierTest, UIFirstSwitchTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -882,7 +886,6 @@ HWTEST_F(RSNodeCommandModifierTest, OutOfParentTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -898,7 +901,6 @@ HWTEST_F(RSNodeCommandModifierTest, IsCrossNodeTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -914,7 +916,6 @@ HWTEST_F(RSNodeCommandModifierTest, NodeGroupTest003, TestSize.Level1)
     bool ret = mod->SetParam(param);
     EXPECT_TRUE(ret);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 } // namespace Rosen

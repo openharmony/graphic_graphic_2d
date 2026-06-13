@@ -45,11 +45,6 @@ public:
 
     bool SetParam(const AttachRootNodeCmdParam& param)
     {
-        if (param_.attachSurfaceNodeId_ == param.attachSurfaceNodeId_ &&
-            param_.attachSurfaceNodeToken_ == param.attachSurfaceNodeToken_ &&
-            param_.isSurfaceNodeTree_ == param.isSurfaceNodeTree_) {
-            return true;
-        }
         param_ = param;
         return true;
     }

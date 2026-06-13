@@ -48,9 +48,6 @@ public:
 
     bool SetParam(const HdrPresentCmdParam& param)
     {
-        if (param_.hdrPresent_ == param.hdrPresent_) {
-            return true;
-        }
         param_ = param;
         return true;
     }
@@ -88,9 +85,6 @@ public:
 
     bool SetParam(const ColorGamutCmdParam& param)
     {
-        if (param_.colorGamut_ == param.colorGamut_) {
-            return true;
-        }
         param_ = param;
         return true;
     }
@@ -129,10 +123,6 @@ public:
 
     bool SetParam(const IsFreezeCmdParam& param)
     {
-        if (param_.isFreeze_ == param.isFreeze_ &&
-            param_.isMarkedByUI_ == param.isMarkedByUI_) {
-            return true;
-        }
         param_ = param;
         return true;
     }
@@ -171,10 +161,6 @@ public:
 
     bool SetParam(const ClearRecordingCmdParam& param)
     {
-        if (param_.width_ == param.width_ &&
-            param_.height_ == param.height_) {
-            return true;
-        }
         param_ = param;
         return true;
     }
@@ -213,10 +199,6 @@ public:
 
     bool SetParam(const FinishRecordCmdParam& param)
     {
-        if (param_.drawCmdList_ == param.drawCmdList_ &&
-            param_.modifierType_ == param.modifierType_) {
-            return true;
-        }
         param_ = param;
         return true;
     }
@@ -255,10 +237,6 @@ public:
 
     bool SetParam(const DrawOnNodeCmdParam& param)
     {
-        if (param_.drawCmdList_ == param.drawCmdList_ &&
-            param_.modifierType_ == param.modifierType_) {
-            return true;
-        }
         param_ = param;
         return true;
     }

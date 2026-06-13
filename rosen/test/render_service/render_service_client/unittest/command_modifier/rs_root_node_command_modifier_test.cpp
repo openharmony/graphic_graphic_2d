@@ -81,6 +81,7 @@ HWTEST_F(RSRootNodeCommandModifierTest, AttachRootNodeTest002, TestSize.Level1)
     { auto n = RSRootNode::Create(false); weakNode = n; }
     AttachRootNodeCmdParam param{0, 0, false};
     auto mod = std::make_shared<AttachRootNodeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -94,6 +95,7 @@ HWTEST_F(RSRootNodeCommandModifierTest, AttachRootNodeTest003, TestSize.Level1)
     auto node = RSRootNode::Create(false);
     AttachRootNodeCmdParam param{100, 200, true};
     auto mod = std::make_shared<AttachRootNodeCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 

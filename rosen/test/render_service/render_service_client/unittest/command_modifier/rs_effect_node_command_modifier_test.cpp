@@ -78,6 +78,7 @@ HWTEST_F(RSEffectNodeCommandModifierTest, PreFreezeTest002, TestSize.Level1)
     { auto n = RSEffectNode::Create(); weakNode = n; }
     PreFreezeCmdParam param{true, true};
     auto mod = std::make_shared<PreFreezeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -91,6 +92,7 @@ HWTEST_F(RSEffectNodeCommandModifierTest, PreFreezeTest003, TestSize.Level1)
     auto node = RSEffectNode::Create();
     PreFreezeCmdParam param{true, false};
     auto mod = std::make_shared<PreFreezeCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 

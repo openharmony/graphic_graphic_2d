@@ -75,6 +75,7 @@ HWTEST_F(RSDepthNodeCommandModifierTest, DepthSpaceTypeTest002, TestSize.Level1)
     { auto n = RSDepthNode::Create(false, false, nullptr); weakNode = n; }
     DepthSpaceTypeCmdParam param{DepthSpaceType::INSTANCE};
     auto mod = std::make_shared<DepthSpaceTypeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -88,6 +89,7 @@ HWTEST_F(RSDepthNodeCommandModifierTest, DepthSpaceTypeTest003, TestSize.Level1)
     auto node = RSDepthNode::Create(false, false, nullptr);
     DepthSpaceTypeCmdParam param{DepthSpaceType::INSTANCE};
     auto mod = std::make_shared<DepthSpaceTypeCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 

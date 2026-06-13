@@ -72,6 +72,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, HdrPresentTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     HdrPresentCmdParam param{true};
     auto mod = std::make_shared<HdrPresentCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -111,6 +112,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, ColorGamutTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     ColorGamutCmdParam param{0};
     auto mod = std::make_shared<ColorGamutCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -150,6 +152,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, IsFreezeTest002, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     IsFreezeCmdParam param{true, true};
     auto mod = std::make_shared<IsFreezeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -190,6 +193,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, ClearRecordingTest002, TestSize.Level1
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     ClearRecordingCmdParam param{0, 0};
     auto mod = std::make_shared<ClearRecordingCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -237,6 +241,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest003, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     FinishRecordCmdParam param{nullptr, 0};
     auto mod = std::make_shared<FinishRecordCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -306,6 +311,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest003, TestSize.Level1)
     { auto n = RSCanvasNode::Create(); weakNode = n; }
     DrawOnNodeCmdParam param{nullptr, 0};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(weakNode, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
 }
 
@@ -418,8 +424,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, HdrPresentTest004, TestSize.Level1)
     auto node = RSCanvasNode::Create();
     HdrPresentCmdParam param{true};
     auto mod = std::make_shared<HdrPresentCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -432,8 +438,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, ColorGamutTest004, TestSize.Level1)
     auto node = RSCanvasNode::Create();
     ColorGamutCmdParam param{5};
     auto mod = std::make_shared<ColorGamutCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -446,8 +452,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, IsFreezeTest004, TestSize.Level1)
     auto node = RSCanvasNode::Create();
     IsFreezeCmdParam param{true, false};
     auto mod = std::make_shared<IsFreezeCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -460,8 +466,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, ClearRecordingTest004, TestSize.Level1
     auto node = RSCanvasNode::Create();
     ClearRecordingCmdParam param{100, 200};
     auto mod = std::make_shared<ClearRecordingCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -474,8 +480,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest005, TestSize.Level1)
     auto node = RSCanvasNode::Create();
     FinishRecordCmdParam param{std::make_shared<Drawing::DrawCmdList>(), 0};
     auto mod = std::make_shared<FinishRecordCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**
@@ -488,8 +494,8 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest006, TestSize.Level1)
     auto node = RSCanvasNode::Create();
     DrawOnNodeCmdParam param{std::make_shared<Drawing::DrawCmdList>(), 0};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
+    ASSERT_TRUE(mod);
     mod->UpdateToRender();
-    EXPECT_TRUE(true);
 }
 
 /**

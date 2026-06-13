@@ -46,9 +46,6 @@ public:
 
     bool SetParam(const DepthSpaceTypeCmdParam& param)
     {
-        if (param_.depthSpaceType_ == param.depthSpaceType_) {
-            return true;
-        }
         param_ = param;
         return true;
     }
