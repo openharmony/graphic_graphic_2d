@@ -73,18 +73,26 @@ void DrawOnNodeCmdModifier::UpdateToRender()
 {
     auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
     if (!node) return;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeUpdateRecording>(
+    std::unique_ptr<RSCommand> clearRecordingCommand = std::make_unique<RSCanvasNodeClearRecording>(
+        node->GetId());
+    AddCommand(clearRecordingCommand, node->IsRenderServiceNode());
+
+    std::unique_ptr<RSCommand> updateRecordingCommand = std::make_unique<RSCanvasNodeUpdateRecording>(
         node->GetId(), param_.drawCmdList_, param_.modifierType_);
-    AddCommand(command, node->IsRenderServiceNode());
+    AddCommand(updateRecordingCommand, node->IsRenderServiceNode());
 }
 
 RSCmdModifier::UpdateResult DrawOnNodeCmdModifier::UpdateToRenderWithResult()
 {
     auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
     if (!node) return false;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeUpdateRecording>(
+    std::unique_ptr<RSCommand> clearRecordingCommand = std::make_unique<RSCanvasNodeClearRecording>(
+        node->GetId());
+    AddCommand(clearRecordingCommand, node->IsRenderServiceNode());
+
+    std::unique_ptr<RSCommand> updateRecordingCommand = std::make_unique<RSCanvasNodeUpdateRecording>(
         node->GetId(), param_.drawCmdList_, param_.modifierType_);
-    return AddCommand(command, node->IsRenderServiceNode());
+    return AddCommand(updateRecordingCommand, node->IsRenderServiceNode());
 }
 
 void HdrPresentCmdModifier::DumpParam(std::string& out) const
