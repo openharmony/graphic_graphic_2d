@@ -108,7 +108,6 @@ enum class RSCmdModifierType : uint16_t {
     MAX,
 };
 
-// 基类 - 所有 Modifier 的父类
 class RSCmdModifier : public std::enable_shared_from_this<RSCmdModifier> {
 public:
     using UpdateResult = std::variant<bool, RSInterfaceErrorCode>; // All possible return value types
@@ -118,18 +117,16 @@ public:
     }
     virtual ~RSCmdModifier() = default;
 
-    virtual void UpdateToRender() = 0;
+    virtual void UpdateToRender() = 0; // Must call AddCommand
 
-    virtual UpdateResult UpdateToRenderWithResult()
+    virtual UpdateResult UpdateToRenderWithResult() // Can use command, IPC, or other methods
     {
         UpdateToRender();
         return false;
     }
 
-    // 获取类型
     virtual RSCmdModifierType GetType() const = 0;
 
-    // Dump Param 信息
     virtual void DumpParam(std::string& out) const
     {
         out += "{}";
