@@ -960,7 +960,7 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t col
         }
         colorsSize = static_cast<uint32_t>(aniLength);
         int64_t tempColorsSize =
-            (static_cast<int64_t>(args.column) + 1) * (static_cast<int64_t>(args.row) + 1)
+            (static_cast<int64_t>(args.column) + 1) * (static_cast<int64_t>(args.row) + 1);
         tempColorsSize += static_cast<int64_t>(colorOffset);
         if (colorsSize != 0 && colorsSize != tempColorsSize) {
             ROSEN_LOGE("AniCanvas::GetColorsAndDraw colors are invalid");
