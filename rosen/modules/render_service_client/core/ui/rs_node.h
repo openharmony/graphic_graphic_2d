@@ -41,6 +41,7 @@
 #include "animation/rs_particle_params.h"
 #include "animation/rs_symbol_node_config.h"
 #include "animation/rs_transition_effect.h"
+#include "command_modifier/rs_node_command_modifier.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier_extractor.h"
@@ -83,6 +84,18 @@ class RSForegroundFilterModifier;
 class RSBackgroundFilterModifier;
 enum class RSModifierType : uint16_t;
 }
+
+/**
+ * @enum RSNodeState
+ *
+ * @brief Defines the state of RSNode.
+ */
+enum class RSNodeState : uint8_t {
+    ACTIVE = 0,    // renderNode has been created on the render side, default value
+    INACTIVE,      // only client node exists, render side node has been destroyed (was created)
+    LAZY_LOAD      // only client node exists, service side node has not been created
+};
+
 /**
  * @class RSNode
  *
@@ -112,6 +125,13 @@ public:
      * @brief Destructor for RSNode.
      */
     virtual ~RSNode();
+
+    /**
+     * @brief Dumps all RSCmdModifiers to the output string.
+     *
+     * @param out The string to which the dump information will be appended.
+     */
+    void DumpRSCmdModifiers(std::string& out) const;
 
     /*
     * <important>
@@ -279,6 +299,13 @@ public:
      * @param out The string to which the dump information will be appended.
      */
     void DumpTree(int depth, std::string& out) const;
+
+    /**
+     * @brief Gets the node state as a string.
+     *
+     * @return std::string The node state string (ACTIVE, INACTIVE, LAZY_LOAD, or empty).
+     */
+    std::string DumpNodeState() const;
 
     /**
      * @brief Dumps the information of current node into the provided output string.
@@ -1910,6 +1937,17 @@ public:
     {
         return rsUIContext_;
     }
+
+    /**
+     * @brief Gets the current state of the node.
+     *
+     * @return The current RSNodeState.
+     */
+    RSNodeState GetNodeState() const
+    {
+        return nodeState_;
+    }
+
     void SetUIContextToken();
 
     /**
@@ -1993,6 +2031,57 @@ public:
 
     void ReSortChildrenByZIndex();
 
+    // Set RSCmdModifier property (reuse existing modifier or create new one)
+    template<typename ModifierType, typename ParamType>
+    void SetRSCmdProperty(const ParamType& param)
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+
+        auto modifier = GetRSCmdModifier(ModifierType::Type);
+
+        if (modifier == nullptr) {
+            modifier = std::make_shared<ModifierType>(weak_from_this(), param);
+            rsCmdModifiers_.emplace(modifier->GetType(), modifier);
+            // Newly created modifier is dirty and needs update
+            if (GetNodeState() != RSNodeState::INACTIVE) {
+                modifier->UpdateToRender();
+            }
+        } else {
+            auto typedModifier = std::static_pointer_cast<ModifierType>(modifier);
+            bool paramChanged = typedModifier->SetParam(param);
+            // Only update when parameter changed
+            if (paramChanged && GetNodeState() != RSNodeState::INACTIVE) {
+                modifier->UpdateToRender();
+            }
+        }
+    }
+
+    // Set RSCmdModifier property (with return value)
+    template<typename ModifierType, typename ParamType>
+    RSCmdModifier::UpdateResult SetRSCmdPropertyWithResult(const ParamType& param)
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+
+        auto modifier = GetRSCmdModifier(ModifierType::Type);
+
+        if (modifier == nullptr) {
+            modifier = std::make_shared<ModifierType>(weak_from_this(), param);
+            rsCmdModifiers_.emplace(modifier->GetType(), modifier);
+            // Newly created modifier is dirty and needs update
+            if (GetNodeState() != RSNodeState::INACTIVE) {
+                return modifier->UpdateToRenderWithResult();
+            }
+        } else {
+            auto typedModifier = std::static_pointer_cast<ModifierType>(modifier);
+            bool paramChanged = typedModifier->SetParam(param);
+            // Only update when parameter changed
+            if (paramChanged && GetNodeState() != RSNodeState::INACTIVE) {
+                return modifier->UpdateToRenderWithResult();
+            }
+        }
+        return false;
+    }
+
 protected:
     explicit RSNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,
@@ -2005,6 +2094,7 @@ protected:
     void DumpModifiers(std::string& out) const;
 
     mutable bool lazyLoad_ = false;
+    mutable RSNodeState nodeState_ = RSNodeState::ACTIVE;
     bool shadowNodeFlag_ = false;
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
@@ -2020,6 +2110,7 @@ protected:
 
     bool hybridRenderCanvas_ = false;
 
+    mutable std::map<RSCmdModifierType, std::shared_ptr<RSCmdModifier>> rsCmdModifiers_;
     /**
      * @brief Called when child nodes are added to this node.
      */
@@ -2038,6 +2129,15 @@ protected:
     }
 
     void DoFlushModifier();
+
+    std::shared_ptr<RSCmdModifier> GetRSCmdModifier(RSCmdModifierType modifierType) const
+    {
+        auto it = rsCmdModifiers_.find(modifierType);
+        if (it != rsCmdModifiers_.end()) {
+            return it->second;
+        }
+        return nullptr;
+    }
 
     std::vector<PropertyId> GetModifierIds() const;
 
@@ -2164,6 +2264,7 @@ protected:
         }
     }
 
+    virtual bool SetNodeState(RSNodeState state);
 private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
@@ -2231,7 +2332,7 @@ private:
     /**
      * @brief Called when the bounds size of the node has changed.
      */
-    virtual void OnBoundsSizeChanged() const {};
+    virtual void OnBoundsSizeChanged() {};
     void UpdateModifierMotionPathOption();
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
@@ -2353,6 +2454,10 @@ private:
     friend class RSAnimatableProperty;
     friend class RSInteractiveImplictAnimator;
     friend class RSSurfaceNode;
+
+    // RSCmdModifier
+    friend class RSCmdModifier; // for AddCommand
+    friend class AttachRootNodeCmdModifier; // for SetIsOnTheTree
 };
 // backward compatibility
 using RSBaseNode = RSNode;

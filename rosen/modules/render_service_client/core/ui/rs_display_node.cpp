@@ -288,7 +288,7 @@ void RSDisplayNode::SetVirtualScreenMuteStatus(bool virtualScreenMuteStatus)
         "virtualScreenMuteStatus: %{public}d", GetId(), virtualScreenMuteStatus);
 }
 
-void RSDisplayNode::OnBoundsSizeChanged() const
+void RSDisplayNode::OnBoundsSizeChanged()
 {
     auto bounds = GetStagingProperties().GetBounds();
     ROSEN_LOGI("RSDisplayNode::%{public}s, screenId:[%{public}" PRIu64 "], displayNodeId:[%{public}" PRIu64 "], "

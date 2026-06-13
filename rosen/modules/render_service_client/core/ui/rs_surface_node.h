@@ -390,6 +390,8 @@ protected:
     RSSurfaceNode& operator=(const RSSurfaceNode&) = delete;
     RSSurfaceNode& operator=(const RSSurfaceNode&&) = delete;
 
+    // For RegisterBufferAvailableListener
+    BufferAvailableCallback BufferAvailableCallbackFunc();
 private:
 #ifdef USE_SURFACE_TEXTURE
     void CreateSurfaceExt(const RSSurfaceExtConfig& config);
@@ -400,7 +402,7 @@ private:
     /**
      * @brief Called when the bounds size of the surface node changes.
      */
-    void OnBoundsSizeChanged() const override;
+    void OnBoundsSizeChanged() override;
     // this function is only used in texture export
     void SetSurfaceIdToRenderNode();
     void CreateRenderNodeForTextureExportSwitch() override;
