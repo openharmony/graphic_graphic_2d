@@ -564,7 +564,7 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
     }
 #ifdef RS_ENABLE_VK
     RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
-    memStat.DumpMemoryStatistics(&gpuTracer);
+    memStat.DumpMemoryStatistics(log);
 #endif
 }
 
