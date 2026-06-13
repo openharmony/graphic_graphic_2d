@@ -62,25 +62,35 @@ namespace OHOS::Rosen {
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 using namespace Media;
 namespace {
-void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, int row,
-    float* vertices, uint32_t* colors, Drawing::Canvas* m_canvas)
+bool CheckDrawingPixelMapMeshParams(int column, int row, int& vertCounts, int& indexCount)
 {
     if (column <= 0 || row <= 0) {
         ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh column or row is invalid");
-        return;
+        return false;
     }
     int64_t tempVertCounts = (static_cast<int64_t>(column) + 1) * (static_cast<int64_t>(row) + 1);
     if (tempVertCounts > INT_MAX || tempVertCounts - 1 > UINT16_MAX) {
         ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh vertCounts overflow");
-        return;
+        return false;
     }
-    const int vertCounts = static_cast<int>(tempVertCounts);
+    vertCounts = static_cast<int>(tempVertCounts);
     int64_t tempIndexCount = static_cast<int64_t>(column) * static_cast<int64_t>(row) * 6;
     if (tempIndexCount > INT_MAX) {
         ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh indexCount overflow");
+        return false;
+    }
+    indexCount = static_cast<int>(tempIndexCount);
+    return true;
+}
+
+void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, int row,
+    float* vertices, uint32_t* colors, Drawing::Canvas* m_canvas)
+{
+    int vertCounts = 0;
+    int indexCount = 0;
+    if (!CheckDrawingPixelMapMeshParams(column, row, vertCounts, indexCount)) {
         return;
     }
-    const int indexCount = static_cast<int>(tempIndexCount);
     uint32_t flags = Drawing::BuilderFlags::HAS_TEXCOORDS_BUILDER_FLAG;
     if (colors) {
         flags |= Drawing::BuilderFlags::HAS_COLORS_BUILDER_FLAG;
