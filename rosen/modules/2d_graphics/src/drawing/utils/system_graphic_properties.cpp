@@ -30,8 +30,8 @@ GpuApiType SystemProperties::GetSystemGraphicGpuType()
     }
 
     if (systemGraphicGpuApiType == 2) { // 2 is ddgr type
-        // restartParameter£º "1" means has updated parameters but not restarted, it will revert to "0" once restarted.
-        // cloudParameter£º "1" means has found the switch to disable DDGR, while "0" means it was not.
+        // restartParameterï¼š "1" means has updated parameters but not restarted, it will revert to "0" once restarted.
+        // cloudParameterï¼š "1" means has found the switch to disable DDGR, while "0" means it was not.
         int restartParameter = std::atoi(system::GetParameter("debug.graphic.cloudpushrestart", "0").c_str());
         int cloudParameter = std::atoi(system::GetParameter("persist.rosen.disableddgr.enabled", "0").c_str());
         if (cloudParameter == 1 && restartParameter == 0) {
