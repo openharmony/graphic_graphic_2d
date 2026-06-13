@@ -30,7 +30,7 @@ class AnimationCustomModifier : public ContentStyleModifier {
 public:
     ~AnimationCustomModifier() override;
 
-    void Draw(DrawingContext& context) const;
+    void Draw(DrawingContext& context) const override;
     void SetPosition(float position);
     // Set the horizontal pixel unit of an animation graph
     void SetTimeInterval(float timeInterval);
