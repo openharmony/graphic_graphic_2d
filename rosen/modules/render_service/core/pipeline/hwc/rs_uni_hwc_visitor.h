@@ -93,6 +93,7 @@ public:
 
     // DRM
     void UpdateCrossInfoForProtectedHwcNode(RSSurfaceRenderNode& hwcNode);
+    void UpdateHwcNodeEnableByGlobalPosition(RSSurfaceRenderNode& hwcNode);
     void UpdateHwcNodeInfo(RSSurfaceRenderNode& node, const Drawing::Matrix& absMatrix,
         bool subTreeSkipped = false);
 

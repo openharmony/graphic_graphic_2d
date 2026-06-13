@@ -1388,6 +1388,18 @@ void RSUniHwcVisitor::UpdateCrossInfoForProtectedHwcNode(RSSurfaceRenderNode& hw
     }
 }
 
+void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalPosition(RSSurfaceRenderNode& hwcNode)
+{
+    if (hwcNode.GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) {
+        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(hwcNode.GetFirstLevelNode());
+        if (firstLevelNode && firstLevelNode->GetGlobalPositionEnabled()) {
+            hwcNode.SetHardwareForcedDisabledState(true);
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by anco node has global position",
+                hwcNode.GetName().c_str(), hwcNode.GetId());
+        }
+    }
+}
+
 void RSUniHwcVisitor::PrintHiperfCounterLog(const char* const counterContext, uint64_t counter)
 {
 #ifdef HIPERF_TRACE_ENABLE
@@ -1452,6 +1464,7 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
         }
     }
     UpdateSrcRect(node, absMatrix);
+    UpdateHwcNodeEnableByGlobalPosition(node);
     UpdateHwcNodeEnableByBackgroundAlpha(node);
     UpdateHwcNodeByTransform(node, absMatrix);
     // dstRect transform to global position after UpdateHwcNodeByTransform
