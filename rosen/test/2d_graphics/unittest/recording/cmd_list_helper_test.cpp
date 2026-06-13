@@ -856,6 +856,47 @@ HWTEST_F(CmdListHelperTest, ShaderEffectLazyDirectRoundTrip001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GradientShaderEffectLazyDirectRoundTrip001
+ * @tc.desc: Test direct AddShaderEffectToCmdList and GetShaderEffectFromCmdList for Lazy GradientShaderEffect
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(CmdListHelperTest, GradientShaderEffectLazyDirectRoundTrip001, TestSize.Level1)
+{
+    // Create a simple DrawCmdList for testing
+    auto cmdList = std::make_shared<DrawCmdList>(800, 600, DrawCmdList::UnmarshalMode::IMMEDIATE);
+    ASSERT_NE(cmdList, nullptr);
+
+    // Create Lazy GradientShaderEffect
+    Point startPt(0.0f, 0.0f);
+    Point endPt(100.0f, 100.0f);
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(1.0f, 0.0f, 0.0f, 1.0f, 2.0f));
+    colors.push_back(UIColor(0.0f, 1.0f, 0.0f, 1.0f, 2.0f));
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    std::vector<scalar> pos;
+    pos.push_back(0.0f);
+    pos.push_back(1.0f);
+    TileMode mode = TileMode::CLAMP;
+    auto lazyGradientShader = ShaderEffectLazy::CreateLinearGradient(
+        startPt, endPt, colors, colorSpace, pos, mode, nullptr);
+    ASSERT_TRUE(lazyGradientShader != nullptr);
+    EXPECT_TRUE(lazyGradientShader->IsLazy());
+    EXPECT_EQ(lazyGradientShader->GetType(), ShaderEffect::ShaderEffectType::LAZY_SHADER);
+
+    // Add ShaderEffect to CmdList - this tests AddShaderEffectToCmdList lazy handling
+    FlattenableHandle handle = CmdListHelper::AddShaderEffectToCmdList(*cmdList, lazyGradientShader);
+    EXPECT_EQ(handle.type, static_cast<uint32_t>(ShaderEffect::ShaderEffectType::LAZY_SHADER));
+
+    // Retrieve ShaderEffect from CmdList - this tests GetShaderEffectFromCmdList lazy handling
+    auto retrievedShader = CmdListHelper::GetShaderEffectFromCmdList(*cmdList, handle);
+    ASSERT_NE(retrievedShader, nullptr);
+    EXPECT_TRUE(retrievedShader->IsLazy()); // GradientShader Shouldn't be materialized
+    EXPECT_EQ(retrievedShader->GetType(), ShaderEffect::ShaderEffectType::LAZY_SHADER);
+}
+
+/*
  * @tc.name: ShaderEffectLazyDataComparison001
  * @tc.desc: Test memory content comparison for Lazy ShaderEffect Data serialization
  * @tc.type: FUNC

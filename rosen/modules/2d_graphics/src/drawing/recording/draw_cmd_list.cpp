@@ -588,6 +588,10 @@ void DrawCmdList::PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList
         std::lock_guard<std::mutex> lock(drawCmdList->imageBaseObjMutex_);
         drawCmdList->imageBaseObjVec_.swap(imageBaseObjVec_);
     }
+    {
+        std::lock_guard<std::mutex> lock(drawCmdList->drawingObjectMutex_);
+        drawCmdList->drawingObjectVec_.swap(drawingObjectVec_);
+    }
     size_t size = opAllocator_.GetSize() - offset_;
     auto imageData = GetAllImageData();
     auto bitmapData = GetAllBitmapData();

@@ -65,8 +65,8 @@ std::shared_ptr<void> ConicalGradientShaderObj::GenerateBaseObject()
         return nullptr;
     }
 
-    auto gradientShader = ShaderEffect::CreateTwoPointConicalNotLazy(startPt_, startRadius_, endPt_, endRadius_,
-        colors_, colorSpace_, pos_, mode_, matrix_.get());
+    auto gradientShader = std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::CONICAL_GRADIENT,
+        startPt_, startRadius_, endPt_, endRadius_, colors_, colorSpace_, pos_, mode_, matrix_.get());
     return std::static_pointer_cast<void>(gradientShader);
 }
 

@@ -632,6 +632,63 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsTest002, TestSize.Level1)
     drawCmdList->ProfilerMarshallingDrawOps(otherDrawCmdList.get());
     ASSERT_NE(drawCmdList->mode_, DrawCmdList::UnmarshalMode::IMMEDIATE);
 }
+
+/**
+ * @tc.name: PlaybackToDrawCmdList001
+ * @tc.desc: Test the PlaybackToDrawCmdList function with nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, PlaybackToDrawCmdList001, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->PlaybackToDrawCmdList(nullptr);
+    EXPECT_TRUE(drawCmdList->drawingObjectVec_.empty());
+}
+
+/**
+ * @tc.name: PlaybackToDrawCmdList002
+ * @tc.desc: Test the PlaybackToDrawCmdList function in DEFERRED mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, PlaybackToDrawCmdList002, TestSize.Level1)
+{
+    auto srcDrawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto dstDrawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    Brush brush;
+    srcDrawCmdList->drawOpItems_.push_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    EXPECT_EQ(srcDrawCmdList->drawOpItems_.size(), 1);
+    EXPECT_EQ(dstDrawCmdList->drawOpItems_.size(), 0);
+
+    srcDrawCmdList->PlaybackToDrawCmdList(dstDrawCmdList);
+    EXPECT_EQ(dstDrawCmdList->drawOpItems_.size(), 1);
+}
+
+/**
+ * @tc.name: PlaybackToDrawCmdList003
+ * @tc.desc: Test the PlaybackToDrawCmdList function in IMMEDIATE mode with drawingObjectVec swap.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, PlaybackToDrawCmdList003, TestSize.Level1)
+{
+    auto srcDrawCmdList = std::make_shared<DrawCmdList>(100, 100, DrawCmdList::UnmarshalMode::IMMEDIATE);
+    int testData[4] = {100, 100, 0, 0};
+    srcDrawCmdList->opAllocator_.Add(testData, sizeof(testData));
+    auto dstDrawCmdList = std::make_shared<DrawCmdList>(100, 100, DrawCmdList::UnmarshalMode::IMMEDIATE);
+
+    std::shared_ptr<Object> mockObject1 = std::make_shared<MockDrawingObject>();
+    std::shared_ptr<Object> mockObject2 = std::make_shared<MockDrawingObject>();
+    srcDrawCmdList->drawingObjectVec_.push_back(mockObject1);
+    srcDrawCmdList->drawingObjectVec_.push_back(mockObject2);
+
+    std::shared_ptr<Object> dstMockObject = std::make_shared<MockDrawingObject>();
+    dstDrawCmdList->drawingObjectVec_.push_back(dstMockObject);
+    EXPECT_EQ(srcDrawCmdList->drawingObjectVec_.size(), 2);
+    EXPECT_EQ(dstDrawCmdList->drawingObjectVec_.size(), 1);
+
+    srcDrawCmdList->PlaybackToDrawCmdList(dstDrawCmdList);
+    EXPECT_EQ(srcDrawCmdList->drawingObjectVec_.size(), 1);
+    EXPECT_EQ(dstDrawCmdList->drawingObjectVec_.size(), 2);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
