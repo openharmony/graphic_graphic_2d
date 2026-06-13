@@ -30,12 +30,15 @@ void AnimationCustomModifier::RegisterAnimationFrameCallback()
     if (animationFrameCallbackId_ != 0) {
         return;
     }
-    auto weakModifier = weak_from_this();
+    auto modifier = weak_from_this().lock();
+    if (!modifier) {
+        return;
+    }
+    std::weak_ptr<AnimationCustomModifier> weakModifier = std::static_pointer_cast<AnimationCustomModifier>(modifier);
     animationFrameCallbackId_ = RSGraphicTestDirector::Instance().AddAnimationFrameCallback([weakModifier]() {
         auto modifier = weakModifier.lock();
-        auto customModifier = std::dynamic_pointer_cast<AnimationCustomModifier>(modifier);
-        if (customModifier) {
-            customModifier->RecordCurrentPosition();
+        if (modifier) {
+            modifier->RecordCurrentPosition();
         }
     });
 }
