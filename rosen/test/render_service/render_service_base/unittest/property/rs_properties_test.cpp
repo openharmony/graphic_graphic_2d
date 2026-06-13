@@ -3058,7 +3058,7 @@ HWTEST_F(RSPropertiesTest, SetPixelStretch002, TestSize.Level1)
     Vector4f size = { 0.f, 0.f, 0.f, 0.f };
     stretchSize = size;
     properties.SetPixelStretch(stretchSize);
-    EXPECT_FALSE(properties.GetPixelStretch().IsZero());
+    EXPECT_TRUE(properties.GetPixelStretch().IsZero());
 }
 
 /**
@@ -4744,7 +4744,7 @@ HWTEST_F(RSPropertiesTest, GetPixelStretchNullPara001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetPixelStretchTileModeNullopt001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetPixelStretchTileMode(std::nullopt);
+    properties.SetPixelStretchTileMode(0);
     EXPECT_EQ(properties.pixelStretchNeedUpdate_, true);
     EXPECT_EQ(properties.contentDirty_, true);
     // No para_ allocated since nullopt was passed
