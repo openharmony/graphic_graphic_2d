@@ -47,6 +47,7 @@ enum class RSCmdModifierType : uint16_t {
     UI_FIRST_SWITCH,
     OUT_OF_PARENT,
     IS_CROSS_NODE,
+    MARK_LAYER_PART_RENDER,
 
     // RSCanvasNode
     HDR_PRESENT,
@@ -91,6 +92,9 @@ enum class RSCmdModifierType : uint16_t {
     SET_HARDWARE_ENABLED,
     SET_HIDE_PRIVACY_CONTENT,
     UPDATE_SURFACE_DEFAULT_SIZE,
+    FORCE_HARDWARE_AND_FIX_ROTATION,
+    APP_ROTATION_CORRECTION,
+    HDR_TYPE,
 
     // RSDepthNode
     SET_DEPTH_SPACE_TYPE,

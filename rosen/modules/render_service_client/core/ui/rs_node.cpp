@@ -3563,8 +3563,9 @@ void RSNode::MarkLayerPartRender(bool isLayerPartRender)
         return;
     }
     isLayerPartRender_ = isLayerPartRender;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkLayerPartRender>(GetId(), isLayerPartRender);
-    AddCommand(command, IsRenderServiceNode());
+    SetRSCmdProperty<LayerPartRenderCmdModifier>(LayerPartRenderCmdParam{
+        isLayerPartRender
+    });
     if (isLayerPartRender_) {
         SetDrawNode();
         if (GetParent()) {
@@ -4350,6 +4351,7 @@ std::string RSCmdModifierTypeToString(RSCmdModifierType type)
         { RSCmdModifierType::UI_FIRST_SWITCH,                  "UI_FIRST_SWITCH" },
         { RSCmdModifierType::OUT_OF_PARENT,                    "OUT_OF_PARENT" },
         { RSCmdModifierType::IS_CROSS_NODE,                    "IS_CROSS_NODE" },
+        { RSCmdModifierType::MARK_LAYER_PART_RENDER,           "MARK_LAYER_PART_RENDER" },
         { RSCmdModifierType::HDR_PRESENT,                      "HDR_PRESENT" },
         { RSCmdModifierType::COLOR_GAMUT,                      "COLOR_GAMUT" },
         { RSCmdModifierType::IS_FREEZE,                        "IS_FREEZE" },
@@ -4390,6 +4392,9 @@ std::string RSCmdModifierTypeToString(RSCmdModifierType type)
         { RSCmdModifierType::SET_HARDWARE_ENABLED,             "SET_HARDWARE_ENABLED" },
         { RSCmdModifierType::SET_HIDE_PRIVACY_CONTENT,         "SET_HIDE_PRIVACY_CONTENT" },
         { RSCmdModifierType::UPDATE_SURFACE_DEFAULT_SIZE,      "UPDATE_SURFACE_DEFAULT_SIZE" },
+        { RSCmdModifierType::FORCE_HARDWARE_AND_FIX_ROTATION,  "FORCE_HARDWARE_AND_FIX_ROTATION" },
+        { RSCmdModifierType::APP_ROTATION_CORRECTION,          "APP_ROTATION_CORRECTION" },
+        { RSCmdModifierType::HDR_TYPE,                         "HDR_TYPE" },
         { RSCmdModifierType::SET_DEPTH_SPACE_TYPE,             "SET_DEPTH_SPACE_TYPE" },
         { RSCmdModifierType::PRE_FREEZE,                       "PRE_FREEZE" },
         { RSCmdModifierType::ATTACH_ROOT_NODE,                 "ATTACH_ROOT_NODE" },
