@@ -345,8 +345,8 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     if (LIKELY(uniParam) && uniParam->IsUifirstScale()) {
         float uifirstScale = uniParam->GetUiFirstScale();
         RS_TRACE_NAME_FMT("%s uifirstScale called scaleRatio is %f", __func__, uifirstScale);
-        width = width * uifirstScale;
-        height = height * uifirstScale;
+        width = static_cast<int>(width * uifirstScale);
+        height = static_cast<int>(height * uifirstScale);
     }
 
     auto params = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());

@@ -472,7 +472,9 @@ ErrCode RSClientToServiceConnection::SetUifirstScale(float scaleFactor)
         return ERR_INVALID_VALUE;
     }
     for (auto conn : serviceToRenderConns) {
-        conn->SetUifirstScale(scaleFactor);
+        if (conn != nullptr) {
+            conn->SetUifirstScale(scaleFactor);
+        }
     }
     return ERR_OK;
 }
