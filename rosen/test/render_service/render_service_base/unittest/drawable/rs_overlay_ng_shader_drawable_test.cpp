@@ -720,13 +720,44 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, DrawLightTest004, TestSize.Level
  * @tc.type: FUNC
  * @tc.require:issueI9SCBR
  */
+HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, GetSingleShaderTest001, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(1), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(1), nullptr);
+}
+
+/**
+ * @tc.name: GetShaderTest001
+ * @tc.desc: GetPhongShaderBuilder GetFeatheringBoardLightShaderBuilder test
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
 HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, GetShaderTest001, TestSize.Level1)
 {
     std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> pointLightDrawableTest =
         std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
     EXPECT_NE(pointLightDrawableTest, nullptr);
-    EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(), nullptr);
-    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(10), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(10), nullptr);
+}
+
+/**
+ * @tc.name: GetShaderTest002
+ * @tc.desc: GetPhongShaderBuilder GetFeatheringBoardLightShaderBuilder GetNormalLightShaderBuilder test
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, GetSingleShaderTest002, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(1), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(1), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetNormalLightShaderBuilder(1), nullptr);
 }
 
 /**
@@ -740,9 +771,24 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, GetShaderTest002, TestSize.Level
     std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> pointLightDrawableTest =
         std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
     EXPECT_NE(pointLightDrawableTest, nullptr);
-    EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(), nullptr);
-    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(), nullptr);
-    EXPECT_NE(pointLightDrawableTest->GetNormalLightShaderBuilder(), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(10), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(10), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetNormalLightShaderBuilder(10), nullptr);
+}
+
+/**
+ * @tc.name: MakeShaderTest001
+ * @tc.desc: MakeFeatheringBoardLightShaderBuilder MakeNormalLightShaderBuilder test
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, MakeSingleShaderTest001, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+    EXPECT_NE(pointLightDrawableTest->MakeFeatheringBoardLightShaderBuilder(1), nullptr);
+    EXPECT_NE(pointLightDrawableTest->MakeNormalLightShaderBuilder(1), nullptr);
 }
 
 /**
@@ -756,8 +802,8 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, MakeShaderTest001, TestSize.Leve
     std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> pointLightDrawableTest =
         std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
     EXPECT_NE(pointLightDrawableTest, nullptr);
-    EXPECT_NE(pointLightDrawableTest->MakeFeatheringBoardLightShaderBuilder(), nullptr);
-    EXPECT_NE(pointLightDrawableTest->MakeNormalLightShaderBuilder(), nullptr);
+    EXPECT_NE(pointLightDrawableTest->MakeFeatheringBoardLightShaderBuilder(10), nullptr);
+    EXPECT_NE(pointLightDrawableTest->MakeNormalLightShaderBuilder(10), nullptr);
 }
 
 /**
