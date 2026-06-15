@@ -69,12 +69,12 @@ RSRenderPipelineClient::RSRenderPipelineClient()
 
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
-     static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
-     if (isUniRender && RSSystemProperties::IsSceneBoardEnabled()) {
-        tokenMaskId_ = RSRenderServiceConnectHub::GetRenderProcessTokenMaskId(connectToRenderRemote);
-     } else {
-        tokenMaskId_ = RSRenderServiceConnectHub::GetDefaultTokenMaskId();
-     }
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+    if (isUniRender && RSSystemProperties::IsSceneBoardEnabled()) {
+    tokenMaskId_ = RSRenderServiceConnectHub::GetRenderProcessTokenMaskId(connectToRenderRemote);
+    } else {
+    tokenMaskId_ = RSRenderServiceConnectHub::GetDefaultTokenMaskId();
+    }
 }
 
 void RSRenderPipelineClient::SetOnRenderProcessDiedCallback(const std::function<void()>& callback)
