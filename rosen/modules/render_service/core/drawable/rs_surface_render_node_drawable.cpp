@@ -935,10 +935,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         std::static_pointer_cast<RSScreenRenderNodeDrawable>(surfaceParams->GetAncestorScreenDrawable().lock());
     auto screenParams = screenDrawable ?
         static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get()) : nullptr;
-    bool isVirtualExpandScreenMirrored = screenParams &&
+    bool isSingleAppCast = screenParams &&
         screenParams->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE &&
         screenParams->HasMirrorScreen();
-    needOffscreen = needOffscreen && !isVirtualExpandScreenMirrored;
+    needOffscreen = needOffscreen && !isSingleAppCast;
 
     needOffscreen = needOffscreen || (captureConfig ? captureConfig->isSyncRender : false);
     if (captureConfig && captureConfig->isSyncRender) {
