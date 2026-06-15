@@ -32,6 +32,7 @@ ohos_unittest("pixel_map_from_surface_test") {
 
   external_deps = [
     "image_framework:image_native",
+    "graphic_surface:surface",
   ]
 }
 
