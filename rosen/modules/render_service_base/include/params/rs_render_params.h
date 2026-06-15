@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
 
 #include "feature/render_group/rs_render_group_cache.h"
+#include "feature/layer/rs_layer_cache_manager_base.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
@@ -463,6 +464,21 @@ public:
         absDrawRect_ = absRect;
     }
 
+    std::shared_ptr<LayerParams> GetLayerParams()
+    {
+        return layerParams_;
+    }
+
+    void SetLayerParamsIsUnSupportLayer(bool isUnSupportLayer)
+    {
+        if (layerParams_) {
+            layerParams_->isUnSupportLayer = isUnSupportLayer;
+        } else {
+            layerParams_ = std::make_shared<LayerParams>();
+            layerParams_->isUnSupportLayer = isUnSupportLayer;
+        }
+    }
+
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
     virtual bool IsLeashWindow() const { return true; }
@@ -611,6 +627,9 @@ private:
 
     // used for DFX
     bool isOnTheTree_ = false;
+
+    // used for Layer
+    std::shared_ptr<LayerParams> layerParams_ = nullptr;
 
     std::unordered_set<ScreenId> screensWithSubTreeWhitelist_;
 };

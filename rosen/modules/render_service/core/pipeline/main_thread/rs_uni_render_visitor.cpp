@@ -3388,14 +3388,15 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (nodeParent == nullptr) {
         return;
     }
+    auto& properties = node.GetRenderProperties();
     bool isUnSupportLayer =
-        RSLayerCacheManagerBase::isLayerSuggested_ &&
-        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || node.GetOpincRootCache().IsSuggestOpincNode() ||
-            node.GetRenderProperties().IsShadowValid() || node.GetRenderProperties().IsBgBrightnessValid() ||
-            node.GetRenderProperties().IsColorBlendModeValid() ||
+        (RSLayerCacheManagerBase::IsNodeUnSupportLayer(node) || RSOpincManager::IsSuggestOpincNode(node) ||
+            properties.IsShadowValid() || properties.IsBgBrightnessValid() || properties.IsColorBlendModeValid() ||
+            properties.IsColorBlendApplyTypeOffscreen() || properties.GetLinearGradientBlurPara() != nullptr ||
+            properties.IsFgBrightnessValid() || properties.GetForegroundFilter() != nullptr ||
             node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
     if (isUnSupportLayer) {
-        RSLayerCacheManagerBase::unSupportLayerNodeMap_[nodeParent->GetId()] = true;
+        RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*nodeParent, true);
     }
 
     // Handle ColorPickerDrawable - MERGE into filter handling

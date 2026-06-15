@@ -85,7 +85,7 @@ HWTEST_F(RSNodeCommandTest, MarkLayerTest, TestSize.Level1)
     const std::string debugKey = "rosen.graphic.layerEnabled";
     const std::string oldDebugValue = system::GetParameter(debugKey, "0");
     (void)system::SetParameter(debugKey, "0");
-    EXPECT_TRUE(RSSystemProperties::GetLayerDebugEnabled());
+    EXPECT_TRUE(RSSystemProperties::GetLayerEnabled());
 
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
@@ -132,8 +132,8 @@ HWTEST_F(RSNodeCommandTest, MarkLayerTest001, TestSize.Level1)
     parent->InitRenderParams();
     parent->AddChild(node);
 
-    RSLayerCacheManagerBase::unSupportLayerNodeMap_[nodeId] = true;
     bool isCanvasNode = (node != nullptr) && (node->GetType() == RSRenderNodeType::CANVAS_NODE);
+    node->GetStagingRenderParams()->SetLayerParamsIsUnSupportLayer(true);
     bool isSupportLayer = isLayer && isCanvasNode && !RSLayerCacheManagerBase::IsNodeUnSupportLayer(node);
     EXPECT_FALSE(isSupportLayer);
 
