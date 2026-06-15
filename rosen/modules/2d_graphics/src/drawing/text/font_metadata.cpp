@@ -146,6 +146,10 @@ std::string FontMetaDataCollector::GetFirstAvailableString(const std::shared_ptr
 #endif
     unsigned int count = 0;
     HBFace hbFace = FontHarfbuzz::CreateHbFace(*typeface);
+    if (!hbFace) {
+        LOGE("Drawing_Text [GetFirstAvailableString] Creating hbFace false!");
+        return "";
+    }
     const hb_ot_name_entry_t* entries = hb_ot_name_list_names(hbFace.get(), &count);
     for (unsigned int i = 0; i < count; i++) {
         if (entries[i].name_id == hbNameId) {
