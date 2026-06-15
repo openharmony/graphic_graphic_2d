@@ -23,8 +23,8 @@ namespace Rosen {
 RSConnectToRenderProcessProxy::RSConnectToRenderProcessProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIConnectToRenderProcess>(impl) {}
 
-sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderConnection(
-    const sptr<RSIConnectionToken>& token, bool needRefresh)
+std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSConnectToRenderProcessProxy::CreateRenderConnection(
+    uint64_t tokenMaskId, const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -34,39 +34,44 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
 
     if (!data.WriteInterfaceToken(RSIConnectToRenderProcess::GetDescriptor())) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection GetDescriptor err.");
-        return nullptr;
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
 
+    if (!data.WriteUint64(tokenMaskId)) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection WriteUint64 tokenMaskId err.");
+        return {nullptr, INVALID_TOKEN_MASK_ID};
+    }
     if (!data.WriteRemoteObject(token->AsObject())) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection WriteRemoteObject callback->AsObject() err.");
-        return nullptr;
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
     if (!data.WriteBool(needRefresh)) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection needRefresh err.");
-        return nullptr;
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
     uint32_t code = static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::CREATE_CONNECTION);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: Send Request err.");
-        return nullptr;
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
-    bool hasRemoteObj = false;
-    if (!reply.ReadBool(hasRemoteObj) || !hasRemoteObj) {
-        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: hasRemoteObj err.");
-        return nullptr;
-    }
+
     auto obj = reply.ReadRemoteObject();
     if (obj == nullptr) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: ReadRemoteObject err.");
-        return nullptr;
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
     sptr<RSIClientToRenderConnection> newConn = iface_cast<RSIClientToRenderConnection>(obj);
     if (newConn == nullptr) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: RSIClientToRenderConnection err.");
-        return nullptr;
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
-    return newConn;
+    uint64_t rpTokenMaskId = INVALID_TOKEN_MASK_ID;
+    if (!reply.ReadUint64(rpTokenMaskId)) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: ReadUint64 rpTokenMaskId err.");
+        return {nullptr, INVALID_TOKEN_MASK_ID};
+    }
+    return {newConn, rpTokenMaskId};
 }
 
 int32_t RSConnectToRenderProcessProxy::SendRequest(uint32_t code, MessageParcel& data,
@@ -78,13 +83,8 @@ int32_t RSConnectToRenderProcessProxy::SendRequest(uint32_t code, MessageParcel&
     return Remote()->SendRequest(code, data, reply, option);
 }
 
-bool RSConnectToRenderProcessProxy::RemoveConnection(const sptr<RSIConnectionToken>& token)
+bool RSConnectToRenderProcessProxy::RemoveConnection(uint64_t tokenMaskId)
 {
-    if (token == nullptr) {
-        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection: token is null.");
-        return false;
-    }
-
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -93,8 +93,8 @@ bool RSConnectToRenderProcessProxy::RemoveConnection(const sptr<RSIConnectionTok
         ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection WriteInterfaceToken failed.");
         return false;
     }
-    if (!data.WriteRemoteObject(token->AsObject())) {
-        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection WriteRemoteObject failed.");
+    if (!data.WriteUint64(tokenMaskId)) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection WriteUint64 tokenMaskId failed.");
         return false;
     }
 

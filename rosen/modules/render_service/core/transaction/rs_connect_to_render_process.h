@@ -29,11 +29,11 @@ public:
         : renderPipelineAgent_(renderPipelineAgent) {}
     RSConnectToRenderProcess() noexcept = default;
     virtual ~RSConnectToRenderProcess() noexcept = default;
-
+    std::pair<sptr<RSIClientToRenderConnection>, uint64_t> FindClientToRenderConnection();
 private:
-    sptr<RSIClientToRenderConnection> CreateRenderConnection(const sptr<RSIConnectionToken>& token,
-        bool needRefresh) override;
-    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
+    std::pair<sptr<RSIClientToRenderConnection>, uint64_t> CreateRenderConnection(uint64_t tokenMaskId,
+        const sptr<RSIConnectionToken>& token, bool needRefresh) override;
+    bool RemoveConnection(uint64_t tokenMaskId) override;
     const sptr<RSRenderPipelineAgent> renderPipelineAgent_;
 };
 } // namespace Rosen

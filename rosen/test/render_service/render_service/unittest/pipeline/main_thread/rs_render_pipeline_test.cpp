@@ -153,7 +153,7 @@ HWTEST_F(RSRenderPipelineTest, PostMainThreadTask_WithNameDelayPriority_MainThre
 HWTEST_F(RSRenderPipelineTest, RemoveConnection_NullToken_ReturnFalse, TestSize.Level1)
 {
     sptr<RSRenderPipeline> pipeline = new RSRenderPipeline();
-    bool ret = pipeline->RemoveConnection(nullptr);
+    bool ret = pipeline->RemoveConnection(0, nullptr);
     EXPECT_FALSE(ret);
 }
 
@@ -195,7 +195,7 @@ HWTEST_F(RSRenderPipelineTest, AddConnection_NullRemote_Ignored, TestSize.Level1
     sptr<RSRenderPipeline> pipeline = new RSRenderPipeline();
     auto conn = sptr<RSIClientToRenderConnection>(nullptr);
     sptr<IRemoteObject> nullRemote = nullptr;
-    pipeline->AddConnection(nullRemote, conn);
+    pipeline->AddConnection(0, 0, nullRemote, conn);
     EXPECT_EQ(pipeline->renderConnections_.size(), 1);
 }
 #if defined(RS_ENABLE_UNI_RENDER)
@@ -213,7 +213,7 @@ HWTEST_F(RSRenderPipelineTest, RemoveConnection_Existing_ReturnTrue, TestSize.Le
     sptr<RSDefaultSurfaceBufferCallback> callback = new RSDefaultSurfaceBufferCallback(funcs);
     sptr<IRemoteObject> remote = callback->AsObject();
     auto conn = sptr<RSIClientToRenderConnection>(nullptr);
-    pipeline->AddConnection(remote, conn);
+    pipeline->AddConnection(0, 0, remote, conn);
     ASSERT_EQ(pipeline->renderConnections_.size(), 1U);
     class Token : public RSIConnectionToken {
     public:
@@ -270,7 +270,7 @@ HWTEST_F(RSRenderPipelineTest, RemoveConnection_TokenNotFound_ReturnFalse, TestS
     sptr<RSDefaultSurfaceBufferCallback> callback = new RSDefaultSurfaceBufferCallback(funcs2);
     sptr<IRemoteObject> remote = callback->AsObject();
     auto dummyConn = sptr<RSIClientToRenderConnection>(nullptr);
-    pipeline->AddConnection(remote, dummyConn);
+    pipeline->AddConnection(0, 0, remote, dummyConn);
     DefaultSurfaceBufferCallbackFuncs funcs3{};
     funcs3.OnFinish = [](const FinishCallbackRet&) {};
     funcs3.OnAfterAcquireBuffer = [](const AfterAcquireBufferRet&) {};
@@ -303,12 +303,12 @@ HWTEST_F(RSRenderPipelineTest, AddConnection_DuplicateToken_NoOverride, TestSize
     sptr<RSDefaultSurfaceBufferCallback> callback = new RSDefaultSurfaceBufferCallback(funcs4);
     sptr<IRemoteObject> remote = callback->AsObject();
     auto conn1 = sptr<RSIClientToRenderConnection>(nullptr);
-    pipeline->AddConnection(remote, conn1);
+    pipeline->AddConnection(0, 0, remote, conn1);
     ASSERT_EQ(pipeline->renderConnections_.size(), 1U);
     auto conn2 = sptr<RSIClientToRenderConnection>(nullptr);
-    pipeline->AddConnection(remote, conn2);
+    pipeline->AddConnection(0, 0, remote, conn2);
     ASSERT_EQ(pipeline->renderConnections_.size(), 1U);
-    auto found = pipeline->FindClientToRenderConnection(remote);
+    auto found = pipeline->FindClientToRenderConnection(0);
     EXPECT_EQ(found, conn1);
 }
 
@@ -326,15 +326,15 @@ HWTEST_F(RSRenderPipelineTest, FindClientToRenderConnection_FoundAndNotFound, Te
     sptr<RSDefaultSurfaceBufferCallback> callback = new RSDefaultSurfaceBufferCallback(funcs5);
     sptr<IRemoteObject> remote = callback->AsObject();
     auto conn = sptr<RSIClientToRenderConnection>(nullptr);
-    pipeline->AddConnection(remote, conn);
-    auto found = pipeline->FindClientToRenderConnection(remote);
+    pipeline->AddConnection(0, 0, remote, conn);
+    auto found = pipeline->FindClientToRenderConnection(0);
     EXPECT_EQ(found, conn);
     DefaultSurfaceBufferCallbackFuncs funcs6{};
     funcs6.OnFinish = [](const FinishCallbackRet&) {};
     funcs6.OnAfterAcquireBuffer = [](const AfterAcquireBufferRet&) {};
     sptr<RSDefaultSurfaceBufferCallback> otherCb = new RSDefaultSurfaceBufferCallback(funcs6);
     sptr<IRemoteObject> otherRemote = otherCb->AsObject();
-    auto notFound = pipeline->FindClientToRenderConnection(otherRemote);
+    auto notFound = pipeline->FindClientToRenderConnection(0);
     EXPECT_EQ(notFound, nullptr);
 }
 
