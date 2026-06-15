@@ -21,11 +21,13 @@
 #include "rs_render_to_composer_connection.h"
 
 namespace OHOS::Rosen {
+class RSBacklightThread;
 class RSRenderComposerManager {
 public:
     explicit RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler);
     ~RSRenderComposerManager() = default;
 
+    void SetBacklightThread(RSBacklightThread& backlightThread);
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
     void OnHwcRestored(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
@@ -52,6 +54,7 @@ private:
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap_;
     std::unordered_map<ScreenId, sptr<RSRenderToComposerConnection>> rsComposerConnectionMap_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    RSBacklightThread* backlightThread_ = nullptr;
     std::mutex mutex_;
 };
 } // namespace OHOS::Rosen

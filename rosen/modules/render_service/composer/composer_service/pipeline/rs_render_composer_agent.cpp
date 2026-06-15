@@ -29,6 +29,14 @@ RSRenderComposerAgent::RSRenderComposerAgent(const std::shared_ptr<RSRenderCompo
     : rsRenderComposer_(rsRenderComposer)
 {}
 
+void RSRenderComposerAgent::SetBacklightThread(RSBacklightThread& backlightThread)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    rsRenderComposer_->SetBacklightThread(backlightThread);
+}
+
 void RSRenderComposerAgent::SetComposerToRenderConnection(
     const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {

@@ -41,6 +41,7 @@
 #include "syspara/parameter.h"
 #include "syspara/parameters.h"
 
+#include "common/rs_backlight_thread.h"
 #include "common/rs_singleton.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -3261,22 +3262,33 @@ HWTEST_F(RsRenderComposerTest, SurfaceDump_Branches, TestSize.Level1)
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. call with valid hdiOutput_
- *                  2. call with null hdiOutput_
+ * CaseDescription: 1. call with valid hdiOutput_ and null backlightThread_ to verify direct dispatch
+ *                  2. call with valid hdiOutput_ and backlightThread_ to verify asynchronous dispatch
+ *                  3. call with null hdiOutput_ to verify early return
  */
 HWTEST_F(RsRenderComposerTest, SetScreenBacklight_Branches, TestSize.Level1)
 {
-    // Verify initial hdiOutput_ is not null
-    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    constexpr uint32_t directLevel = 50u;
+    constexpr uint32_t asyncLevel = 80u;
+    auto output = rsRenderComposer_->hdiOutput_;
+    ASSERT_NE(output, nullptr);
+    auto device = output->device_;
+    output->SetHdiOutputDevice(hdiDeviceMock_);
 
-    // Call with valid hdiOutput_
-    rsRenderComposer_->SetScreenBacklight(50);
+    rsRenderComposer_->backlightThread_.store(nullptr);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(output->GetScreenId(), directLevel)).Times(1);
+    rsRenderComposer_->SetScreenBacklight(directLevel);
 
-    // Call with null hdiOutput_
-    auto backup = rsRenderComposer_->hdiOutput_;
+    auto& backlightThread = RSBacklightThread::Instance();
+    rsRenderComposer_->SetBacklightThread(backlightThread);
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(output->GetScreenId(), asyncLevel)).Times(1);
+    rsRenderComposer_->SetScreenBacklight(asyncLevel);
+    backlightThread.PostSyncTask([]() {});
+
     rsRenderComposer_->hdiOutput_ = nullptr;
     rsRenderComposer_->SetScreenBacklight(0);
-    rsRenderComposer_->hdiOutput_ = backup;
+    rsRenderComposer_->hdiOutput_ = output;
+    output->SetHdiOutputDevice(device);
 }
 
 /**
