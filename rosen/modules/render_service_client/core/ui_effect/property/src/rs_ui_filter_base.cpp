@@ -570,6 +570,9 @@ std::shared_ptr<RSNGFilterBase> RSNGFilterHelper::CreateNGDistortionCollapseFilt
         return nullptr;
     }
     auto para = std::static_pointer_cast<DistortionCollapseEffectPara>(effectPara);
+    if (para->IsDisabled()) {
+        return nullptr;
+    }
     auto filter = RSNGFilterBase::Create(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
     distortFilter->Setter<DistortionCollapseLUCornerTag>(para->GetLUCorner());
@@ -588,6 +591,9 @@ std::shared_ptr<RSNGShapeBase> RSNGFilterHelper::CreateNGSDFDistortOpShape(
         return nullptr;
     }
     auto para = std::static_pointer_cast<DistortionCollapseEffectPara>(effectPara);
+    if (para->IsDisabled()) {
+        return nullptr;
+    }
     auto shape = RSNGShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
     auto distortShape = std::static_pointer_cast<RSNGSDFDistortOpShape>(shape);
     distortShape->Setter<SDFDistortOpShapeLUCornerTag>(para->GetLUCorner());

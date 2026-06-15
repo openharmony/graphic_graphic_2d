@@ -552,4 +552,14 @@ HWTEST_F(RSUIFilterBaseTest, CreateNGSDFDistortOpShapeDefaultValues, TestSize.Le
     EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeSyncTag>()->Get(), false);
 }
 
+HWTEST_F(RSUIFilterBaseTest, CreateNGDistortionWithDisableFlag, TestSize.Level1)
+{
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    distortionPara->SetDisabled(true);
+    auto filter = RSNGFilterHelper::CreateNGDistortionCollapseFilter(distortionPara);
+    auto shape = RSNGFilterHelper::CreateNGSDFDistortOpShape(distortionPara);
+    EXPECT_EQ(filter, nullptr);
+    EXPECT_EQ(shape, nullptr);
+}
+
 } // namespace OHOS::Rosen
