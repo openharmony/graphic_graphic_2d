@@ -24,6 +24,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "common/rs_backlight_thread.h"
 #include "dfx/rs_service_dump_manager.h"
 #include "engine/rs_base_render_engine.h"
 #ifdef RS_CAR_FEATURES
@@ -157,6 +158,8 @@ bool RSRenderService::CoreComponentsInit()
         RSUniRenderUtil::DrawRectForDfx);
     // composerManager init
     rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_);
+    auto& backlightThread = RSBacklightThread::Instance();
+    rsRenderComposerManager_->SetBacklightThread(backlightThread);
 
     // hgm init
     HgmInit();

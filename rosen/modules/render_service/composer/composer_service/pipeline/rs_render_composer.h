@@ -34,6 +34,7 @@
 #endif
 
 namespace OHOS::Rosen {
+class RSBacklightThread;
 using ComposerFallbackCallback = std::function<void(const sptr<Surface>& surface,
     const std::vector<RSLayerPtr>& layers)>;
 using SetHardwareTaskNumCallback = std::function<void(uint32_t num)>;
@@ -94,6 +95,8 @@ protected:
     int64_t GetDelayTime() const;
 
 private:
+    void SetBacklightThread(RSBacklightThread& backlightThread);
+
     struct LayerCreatedCallbackContext {
         std::mutex mutex;
         sptr<IRSComposerToRenderConnection> composerToRenderConnection = nullptr;
@@ -163,6 +166,7 @@ private:
         GraphicColorGamut& colorGamut, const std::vector<std::shared_ptr<RSLayer>>& layers);
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    RSBacklightThread* backlightThread_ = nullptr;
     std::shared_ptr<HdiOutput> hdiOutput_;
     int32_t threadTid_ = -1;
     ScreenId screenId_ = INVALID_SCREEN_ID;

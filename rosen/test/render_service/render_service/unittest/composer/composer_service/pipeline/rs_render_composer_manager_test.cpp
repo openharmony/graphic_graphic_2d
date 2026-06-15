@@ -23,6 +23,7 @@
 #include "rs_render_composer_agent.h"
 #include "rs_render_composer_manager.h"
 
+#include "common/rs_backlight_thread.h"
 #include "screen_manager/rs_screen_property.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -50,6 +51,37 @@ void RsRenderComposerManagerTest::SetUpTestCase()
 void RsRenderComposerManagerTest::TearDownTestCase() {}
 void RsRenderComposerManagerTest::SetUp() {}
 void RsRenderComposerManagerTest::TearDown() {}
+
+/**
+ * Function: SetBacklightThread_ForwardToNewComposer
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set backlight thread on manager
+ *                  2. connect a screen and verify thread is forwarded through agent
+ */
+HWTEST_F(RsRenderComposerManagerTest, SetBacklightThread_ForwardToNewComposer, TestSize.Level1)
+{
+    constexpr ScreenId screenId = 901u;
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+    auto& backlightThread = RSBacklightThread::Instance();
+    mgr->SetBacklightThread(backlightThread);
+    EXPECT_EQ(mgr->backlightThread_, &backlightThread);
+
+    auto originalType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
+
+    auto agent = mgr->rsRenderComposerAgentMap_[screenId];
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    EXPECT_EQ(agent->rsRenderComposer_->backlightThread_, &backlightThread);
+    RSUniRenderJudgement::uniRenderEnabledType_ = originalType;
+}
 
 /**
  * Function: OnScreenConnected_NullOutput_EarlyReturn

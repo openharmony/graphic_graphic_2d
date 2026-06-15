@@ -18,6 +18,7 @@
 #include <memory>
 #include <unistd.h>
 
+#include "common/rs_backlight_thread.h"
 #include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
@@ -132,6 +133,11 @@ RSRenderComposer::~RSRenderComposer()
 RSRenderComposer::RSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     CreateAndInitComposer(output, property);
+}
+
+void RSRenderComposer::SetBacklightThread(RSBacklightThread& backlightThread)
+{
+    backlightThread_ = &backlightThread;
 }
 
 void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& output,
@@ -1503,11 +1509,18 @@ void RSRenderComposer::HitchsDump(std::string& dumpString, std::string& layerArg
 
 void RSRenderComposer::SetScreenBacklight(uint32_t level)
 {
-    if (hdiOutput_ == nullptr) {
+    auto hdiOutput = hdiOutput_;
+    if (hdiOutput == nullptr) {
         RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);
         return;
     }
-    hdiOutput_->SetScreenBacklight(level);
+    if (backlightThread_ == nullptr) {
+        hdiOutput->SetScreenBacklight(level);
+        return;
+    }
+    backlightThread_->PostTask([hdiOutput, level]() {
+        hdiOutput->SetScreenBacklight(level);
+    });
 }
 
 void RSRenderComposer::SetScreenLinearMatrix(const std::vector<float>& matrix)

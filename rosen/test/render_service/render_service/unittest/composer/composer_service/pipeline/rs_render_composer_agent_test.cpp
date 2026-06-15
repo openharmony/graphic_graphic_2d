@@ -21,6 +21,7 @@
 #include "rs_render_composer_agent.h"
 #include "surface_buffer_impl.h"
 
+#include "common/rs_backlight_thread.h"
 #include "screen_manager/rs_screen_property.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -57,6 +58,25 @@ void RsRenderComposerAgentTest::TearDownTestCase()
 }
 void RsRenderComposerAgentTest::SetUp() {}
 void RsRenderComposerAgentTest::TearDown() {}
+
+/**
+ * Function: SetBacklightThread_Branches
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call with null composer
+ *                  2. call with valid composer and verify thread is forwarded
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetBacklightThread_Branches, TestSize.Level1)
+{
+    auto& backlightThread = RSBacklightThread::Instance();
+    auto nullAgent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    nullAgent->SetBacklightThread(backlightThread);
+
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    agent->SetBacklightThread(backlightThread);
+    EXPECT_EQ(rsRenderComposer_->backlightThread_, &backlightThread);
+}
 
 /**
  * Function: ComposerProcess_NullTransactionData_NoCrash
