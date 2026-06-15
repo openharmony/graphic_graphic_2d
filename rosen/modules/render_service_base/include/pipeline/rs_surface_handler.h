@@ -78,12 +78,21 @@ public:
         void SetUniBufferOwner(uint64_t bufferId, uint64_t screenId);
         bool CheckLastUniBufferOwner(uint64_t bufferId, uint64_t screenId);
 
+        void SetTransitionFlag(bool flag) {
+            inTransition_.store(flag, std::memory_order_release);
+        }
+
+        bool GetTransitionFlag() const {
+            return inTransition_.load(std::memory_order_acquire);
+        }
+
         std::mutex mapMutex_;
         std::map<uint64_t, std::set<uint64_t>> uniOnDrawBuffersMap_;
         std::atomic<int32_t> refCount_{1};
         uint64_t bufferId_ = 0;
         OnReleaseBufferFunc bufferReleaseCb_ = nullptr;
         std::map<uint64_t, uint64_t> uniBufferOwnerSeqNumMap_;
+        std::atomic<bool> inTransition_{false};
     };
 
     struct SurfaceBufferEntry {
