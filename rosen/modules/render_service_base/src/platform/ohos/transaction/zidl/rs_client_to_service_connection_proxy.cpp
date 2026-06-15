@@ -3806,7 +3806,7 @@ ErrCode RSClientToServiceConnectionProxy::SetUifirstScale(float scaleFactor)
         ROSEN_LOGE("SetUifirstScale: WriteFloat scaleFactor err.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(
         RSIClientToServiceConnectionInterfaceCode::SET_UIFIRST_SCALE);
     ROSEN_LOGD("RSClientToServiceConnectionProxy::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
