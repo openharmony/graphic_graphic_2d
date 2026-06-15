@@ -520,6 +520,7 @@ public:
     bool UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
 
     std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
+    std::shared_ptr<RSAnimationManager> GetOrCreateAnimationManager();
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
 
     void ApplyAlphaAndBoundsGeometry(RSPaintFilterCanvas& canvas);

@@ -174,9 +174,7 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
         if (auto prop = node->GetProperty(propertyId)) {
             property = prop;
         }
-        if (auto animationManager = node->GetAnimationManager()) {
-            animationManager->AttemptCancelAnimationByAnimationId(animations);
-        }
+        node->GetOrCreateAnimationManager()->AttemptCancelAnimationByAnimationId(animations);
     }
 }
 
