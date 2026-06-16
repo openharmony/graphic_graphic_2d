@@ -1023,6 +1023,8 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId,
         TextBlobRenderOption(), 10, 10, paintHandle}; // 10: x, y
     handler.GenerateCachedOpItem(*drawCmdList, &canvas);
+    std::string out = "";
+    opItem.DumpItems(out);
 }
 
 /**
