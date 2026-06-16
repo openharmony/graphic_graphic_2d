@@ -2581,8 +2581,8 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
                 OfflineDeviceType::HPAE_OFFLINE_DEVICE);
         }
         std::vector<uint64_t> offlineNodeIds;
-        for(const auto& elem : strategy) {
-            if(elem.second == RequestCompositionType::OFFLINE_DEVICE ||
+        for (const auto& elem : strategy) {
+            if (elem.second == RequestCompositionType::OFFLINE_DEVICE ||
                 elem.second == RequestCompositionType::OFFLINE_VCLD_OFF) {
                 offlineNodeIds.push_back(elem.first);
             }

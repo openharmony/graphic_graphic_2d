@@ -33,7 +33,7 @@
 namespace OHOS {
 namespace Rosen {
 
-enum OfflineContextType:: uint32_t {
+enum OfflineContextType : uint32_t {
     INVALID = 0,
     SCALE,
     AI2020
@@ -151,7 +151,7 @@ private:
     bool GetOfflineProcessInput(RSSurfaceRenderParams& params, OfflineProcessInputInfo& inputInfo,
         sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence, HpaeOfflineSubThreadData& taskData);
     void FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& dstSurfaceBuffer, HpaeOfflineSubThreadData& taskData);
-    void OfflineTaskFunc(RSRenderParams* surfaceParams, 
+    void OfflineTaskFunc(RSRenderParams* surfaceParams,
         std::shared_ptr<ProcessOfflineFuture>& futurePtr, HpaeOfflineSubThreadData& taskData);
     bool DoProcessOffline(RSSurfaceRenderParams& params, ProcessOfflineResult& processOfflineResult,
         HpaeOfflineSubThreadData& taskData);

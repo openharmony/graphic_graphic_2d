@@ -68,7 +68,7 @@ RSHpaeOfflineContext::~RSHpaeOfflineContext()
 {
 }
 
-RSHpaeOfflineContext::isSkipDraw() 
+RSHpaeOfflineContext::isSkipDraw()
 {
     return contextType == OfflineContextType::AI2020 ? skipDraw.load() : false;
 }
@@ -256,7 +256,7 @@ void RSHpaeOfflineDevice::InitHpaeOfflineResource()
     });
 }
 
-bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params, OfflineProcessInputInfo& inputInfo, 
+bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params, OfflineProcessInputInfo& inputInfo,
     sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence, HpaeOfflineSubThreadData taskData)
 {
     // get offline buffer
@@ -335,7 +335,7 @@ void RSHpaeOfflineDevice::CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessOffl
     std::lock_guard<std::mutex> lock(futurePtr->mtx);
     if (futurePtr->timeout) {
         // to self-recovery from HPAE failed, once timeout, offline will be disabled until scene changed
-        RS_OFFLINE_LOGW("hpae timeout! disable offline in this scene"); 
+        RS_OFFLINE_LOGW("hpae timeout! disable offline in this scene");
         auto context = GetOfflineContext(nodeId);
         if (context != nullptr) {
             context->timeout = true;
@@ -496,7 +496,7 @@ bool RSHpaeOfflineDevice::PostProcessOfflineTask(
     }
     auto* params = surfaceNode->GetStagingRenderParams().get();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params);
-    RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "-%{public}" PRIu64 "] by node", 
+    RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "-%{public}" PRIu64 "] by node",
         taskId.first, taskId.second);
     return PostOfflineTaskCommon(context, surfaceParams, taskId, nodeId);
 }
@@ -553,7 +553,7 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
 }
 
 bool RSHpaeOfflineDevice::SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineContext>& context,
-    RSSurfaceRenderParams* surfaceParams,, offlineTaskId taskId)
+    RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId)
 {
     RS_OFFLINE_LOGD("RSHpaeOfflineDevice::skipDraw: skip offline task[%{public}"PRIu64 "-%{public}"PRIu64 "]",
         taskId.first, taskId.second);
@@ -611,7 +611,7 @@ void RSHpaeOfflineDevice::SetArsrTag(const std::vector<uint64_t>& offlineNodeIds
         return;
     }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    for(const auto& nodeId : offlineNodeIds) {
+    for (const auto& nodeId : offlineNodeIds) {
         auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
         if (node != nullptr) {
             node->SetArsrTag(false);
@@ -652,7 +652,7 @@ void RSHpaeOfflineDevice::ClearOfflineContext(const std::vector<uint64_t>& offli
     {
         // step 1. get contexts need be cleared
         std::lock_guard<std::mutex> lock(contextPoolMutex_);
-        for(auto it = hpaeOfflineContextPool_.begin; it != hpaeOfflineContextPool_.end(); ++it) {
+        for (auto it = hpaeOfflineContextPool_.begin; it != hpaeOfflineContextPool_.end(); ++it) {
             if (std::find(offlineNodeIds.begin(), offlineNodeIds.end(), it->first) == offlineNodeIds.end()) {
                 auto context = it->second;
                 context->invalidFrames++;
@@ -662,7 +662,7 @@ void RSHpaeOfflineDevice::ClearOfflineContext(const std::vector<uint64_t>& offli
             }
         }
         // step 2. clear context and get offlinelayers need be cleared
-        for(auto offlineNodeId : needClearNodeIds) {
+        for (auto offlineNodeId : needClearNodeIds) {
             auto context = hpaeOfflineContextPool_.at(offlineNodeId);
             needClearOfflineLayers.push_back(context->offlineLayer);
             hpaeOfflineContextPool_.erase(offlineNodeId);
@@ -673,7 +673,7 @@ void RSHpaeOfflineDevice::ClearOfflineContext(const std::vector<uint64_t>& offli
     if (!needClearOfflineLayers.empty()) {
         offlineThreadManager_.PostTask([this, needClearOfflineLayers]() mutable {
             RS_TRACE_NAME("hpae_offline: Post ClearOfflineCacheTask.");
-            for(auto offlineLayer : needClearOfflineLayers) {
+            for (auto offlineLayer : needClearOfflineLayers) {
                 offlineLayer->CleanCache(true);
             }
         });
@@ -681,7 +681,7 @@ void RSHpaeOfflineDevice::ClearOfflineContext(const std::vector<uint64_t>& offli
 }
 
 std::shared_ptr<RSHpaeOfflineContext> RSHpaeOfflineDevice::GetOrCreateOfflineContext(
-    std::shared_ptr<rsSurfaceRenderNode>& node) 
+    std::shared_ptr<rsSurfaceRenderNode>& node)
 {
     std::lock_guard<std::mutex> lock(contextPoolMutex_);
     auto nodeId = node->GetId();
