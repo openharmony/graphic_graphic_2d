@@ -28,6 +28,14 @@ namespace Rosen {
 #ifdef OHOS_PLATFORM
 static sptr<RSApplicationAgentImpl> gRSApplicationAgentImplInstance;
 #endif
+
+RSApplicationAgentImpl::~RSApplicationAgentImpl()
+{
+#ifdef OHOS_PLATFORM
+    RSRenderServiceConnectHub::RemoveOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, isDestreuctionProcess_);
+#endif
+}
+
 RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
 {
 #ifdef OHOS_PLATFORM
@@ -37,10 +45,29 @@ RSApplicationAgentImpl* RSApplicationAgentImpl::Instance()
             gRSApplicationAgentImplInstance = new RSApplicationAgentImpl();
         }
     }
+
+    RSRenderServiceConnectHub::SetOnDiedCallback(RSOnDiedCallbackCode::APPLICATION_AGENT, []() {
+        RSApplicationAgentImpl::Destroy();
+    });
     return gRSApplicationAgentImplInstance.GetRefPtr();
 #else
     return nullptr;
 #endif
+}
+
+void RSApplicationAgentImpl::Destroy()
+{
+#ifdef OHOS_PLATFORM
+    if (gRSApplicationAgentImplInstance) {
+        gRSApplicationAgentImplInstance->SetDestreuctionProcess(true);
+        gRSApplicationAgentImplInstance = nullptr;
+    }
+#endif
+}
+
+void RSApplicationAgentImpl::SetDestreuctionProcess(bool isDestreuctionProcess)
+{
+    isDestreuctionProcess_ = isDestreuctionProcess;
 }
 
 void RSApplicationAgentImpl::RegisterRSApplicationAgent(std::shared_ptr<RSUIContext> rsUIContext)
