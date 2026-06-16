@@ -147,11 +147,11 @@ private:
     void CloseOfflineHandle(const std::string& errSymbol, const char* errNo);
     void LoadPreProcessHandle();
     bool GetOutputConfig(std::shared_ptr<RSHpaeOfflineContext>& context, std::shared_ptr<RSSurfaceRenderNode>& node);
-    void CheckAndPostPreAllocBuffersTask(std::shared_ptr<RSHpaeOfflineContext> context);
+    void CheckAndPostPreAllocBuffersTask(std::shared_ptr<RSHpaeOfflineContext>& context);
     bool GetOfflineProcessInput(RSSurfaceRenderParams& params, OfflineProcessInputInfo& inputInfo,
         sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence, HpaeOfflineSubThreadData& taskData);
     void FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& dstSurfaceBuffer, HpaeOfflineSubThreadData& taskData);
-    void OfflineTaskFunc(RSRenderParams* surfaceParams,
+    void OfflineTaskFunc(RSSurfaceRenderParams* surfaceParams,
         std::shared_ptr<ProcessOfflineFuture>& futurePtr, HpaeOfflineSubThreadData& taskData);
     bool DoProcessOffline(RSSurfaceRenderParams& params, ProcessOfflineResult& processOfflineResult,
         HpaeOfflineSubThreadData& taskData);
@@ -165,8 +165,8 @@ private:
     bool UpdateContext(std::shared_ptr<RSSurfaceRenderNode>& node, std::shared_ptr<RSHpaeOfflineContext>& context);
     void InitHpaeOfflineResource();
     bool FillOfflineResult(ProcessOfflineResult& processOfflineResult, HpaeOfflineSubThreadData& taskData,
-        RSSurfaceRenderParams& params, std::shared_ptr<RSSurfaceHander>& offlineSurfaceHandler);
-    bool PostOfflineTaskCommon(std::shared_pt<RSHpaeOfflineContext>& context,
+        RSSurfaceRenderParams& params, std::shared_ptr<RSSurfaceHandler>& offlineSurfaceHandler);
+    bool PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineContext>& context,
         RSSurfaceRenderParams& params, offlineTaskId taskId);
     bool SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineContext>& context,
         RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId);
@@ -183,7 +183,7 @@ private:
 
     RSHpaeOfflineProcessSyncer offlineResultSync_;
     RSHpaeOfflineThreadManager offlineThreadManager_;
-    std::unordered_map<uint64_t, std:::shared_ptr<RSHpaeOfflineContext>> hpaeOfflineContextPool_;
+    std::unordered_map<uint64_t, std::shared_ptr<RSHpaeOfflineContext>> hpaeOfflineContextPool_;
     std::mutex contextPoolMutex_;
 };
 } // Rosen

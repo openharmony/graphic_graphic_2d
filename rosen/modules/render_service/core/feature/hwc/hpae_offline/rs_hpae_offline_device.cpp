@@ -154,7 +154,7 @@ bool RSHpaeOfflineDevice::GetOutputConfig(std::shared_ptr<RSHpaeOfflineContext>&
         return false;
     }
     std::lock_guard<std::mutex> localLock(context->offlineConfigMutex);
-    context->layerconfig = {
+    context->layerConfig = {
         .width = outputInfo.bufferConfig.width,
         .height = outputInfo.bufferConfig.height,
         .format = outputInfo.bufferConfig.format,
@@ -162,12 +162,12 @@ bool RSHpaeOfflineDevice::GetOutputConfig(std::shared_ptr<RSHpaeOfflineContext>&
         .timeout = outputInfo.bufferConfig.timeout,
         .colorGamut = static_cast<GraphicColorGamut>(outputInfo.bufferConfig.colorGamut),
     };
-    if (layerConfig_.width <= 0 || layerConfig_.height <= 0) {
+    if (context->layerConfig.width <= 0 || lcontext->layerConfig.height <= 0) {
         RS_OFFLINE_LOGW("Layer config is invalid! Width/height is zero");
         return false;
     }
     context->offlineRect = outputInfo.outRect;
-    RS_OFFLINE_LOGD("Got hpae offline config, layerconfig.size: %{public}d, %{public}d, "
+    RS_OFFLINE_LOGD("Got hpae offline config, layerConfig.size: %{public}d, %{public}d, "
         "format: %{public}d, colorGamut: %{public}d, timeout: %{public}d, "
         "offline rect: [%{public}d, %{public}d, %{public}d, %{public}d]",
         context->layerConfig.width, context->layerConfig.height,
@@ -257,11 +257,11 @@ void RSHpaeOfflineDevice::InitHpaeOfflineResource()
 }
 
 bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params, OfflineProcessInputInfo& inputInfo,
-    sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence, HpaeOfflineSubThreadData taskData)
+    sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence, HpaeOfflineSubThreadData& taskData)
 {
     // get offline buffer
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Get Offline Process Input Info");
-    dstSurfaceBuffer = taskData.offlineLayer.RequestSurfaceBuffer(taskData.layerConfig, releaseFence);
+    dstSurfaceBuffer = taskData.offlineLayer->RequestSurfaceBuffer(taskData.layerConfig, releaseFence);
     if (!dstSurfaceBuffer) {
         RS_OFFLINE_LOGW("RS offline dstSurfaceHandler get buffer failed! layerConfig_: %{public}d, %{public}d",
             taskData.layerConfig.width, taskData.layerConfig.height);
@@ -307,7 +307,7 @@ void RSHpaeOfflineDevice::FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& dstSu
 {
     // release buffer
     taskData.flushConfig.timestamp = 0;
-    task.offlineLayer->FlushSurfaceBuffer(dstSurfaceBuffer, -1, taskData.flushConfig);
+    taskData.offlineLayer->FlushSurfaceBuffer(dstSurfaceBuffer, -1, taskData.flushConfig);
     IConsumerSurface::AcquireBufferReturnValue returnValue;
     returnValue.fence = SyncFence::InvalidFence();
     auto surfaceHandler = taskData.offlineLayer->GetMutableRSSurfaceHandler();
@@ -398,7 +398,7 @@ bool RSHpaeOfflineDevice::DoProcessOffline(
 }
 
 bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
-    HpaeOfflineSubThreadData taskData,
+    HpaeOfflineSubThreadData& taskData,
     RSSurfaceRenderParams& params,
     sptr<SurfaceBuffer>& dstSurfaceBuffer,
     ProcessOfflineResult& processOfflineResult)
@@ -420,7 +420,7 @@ bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
     if (offlineSurfaceHandler->IsCurrentFrameBufferConsumed()) {
         auto offlinePreBufferCount = offlineSurfaceHandler->GetPreBufferOwnerCount();
         if (offlinePreBufferCount) {
-            offlinePreBufferCount->DecRef()
+            offlinePreBufferCount->DecRef();
         }
     }
     return FillOfflineResult(processOfflineResult, taskData, params, offlineSurfaceHandler);
@@ -428,7 +428,7 @@ bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
 
 bool RSHpaeOfflineDevice::FillOfflineResult(ProcessOfflineResult& processOfflineResult,
     HpaeOfflineSubThreadData& taskData, RSSurfaceRenderParams& params,
-    std::shared_ptr<RSSurfaceHander>& offlineSurfaceHandler)
+    std::shared_ptr<RSSurfaceHandler>& offlineSurfaceHandler)
 {
     // set to offline result
     if (taskData.contextType == OfflineContextType::AI2020) {

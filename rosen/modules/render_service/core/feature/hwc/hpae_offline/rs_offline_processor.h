@@ -45,7 +45,7 @@ public:
     bool WaitForProcessOfflineResult(offlineTaskId taskId, std::chrono::milliseconds timeout,
         ProcessOfflineResult& processOfflineResult);
     void CheckAndPostClearOfflineResourceTask(OfflineDeviceType offlineDeviceType,
-        ocnst std::vector<uint64_t>& offlineNodeIds = {});
+        const std::vector<uint64_t>& offlineNodeIds = {});
 
 private:
     RSOfflineProcessor();
