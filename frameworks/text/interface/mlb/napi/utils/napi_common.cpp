@@ -15,7 +15,7 @@
 
 #include <cstdint>
 
-#include "ability.h"
+#include "application_context.h"
 #include "font_collection_mgr.h"
 #include "napi_common.h"
 #include "text_style.h"

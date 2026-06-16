@@ -18,7 +18,6 @@
 #include <fstream>
 #include <tuple>
 
-#include "ability.h"
 #include "file_ex.h"
 #include "font_collection_mgr.h"
 
