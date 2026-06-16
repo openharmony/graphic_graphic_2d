@@ -10154,8 +10154,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateScreenHdrForceHwcState_001, TestSize.Leve
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curScreenNode_ = nullptr;
-    std::unordered_set<pid_t> hdrForceHwcNodes;
-    hdrForceHwcNodes.emplace(123456);
+    std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr> hdrForceHwcNodes;
     rsUniRenderVisitor->UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
     ASSERT_EQ(rsUniRenderVisitor->curScreenNode_, nullptr);
 }

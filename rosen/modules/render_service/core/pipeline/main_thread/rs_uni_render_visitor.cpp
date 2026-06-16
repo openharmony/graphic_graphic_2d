@@ -823,6 +823,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
         ProcessUnpairedSharedTransitionNode();
     }
     PrepareColorPickers();
+    node.HandleHdrForceHwcNodes();
     node.HandleCurMainAndLeashSurfaceNodes();
     layerNum_ += node.GetSurfaceCountForMultiLayersPerf();
     node.RenderTraceDebug();
@@ -2500,26 +2501,31 @@ void RSUniRenderVisitor::UpdateAncoNodeHWCDisabledState(
     }
 }
 
-void RSUniRenderVisitor::UpdateScreenHdrForceHwcState(const std::unordered_set<pid_t>& hdrForceHwcNodes)
+void RSUniRenderVisitor::UpdateScreenHdrForceHwcState(
+    const std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes)
 {
     if (curScreenNode_ == nullptr) {
         RS_LOGE("UpdateScreenHdrForceHwcState curScreenNode_ is nullptr");
         return;
     }
+    curScreenNode_->ClearHdrForceHwcNodes();
     if (!RSSystemProperties::GetXcomponentEdrEnabled() || RSBaseHdrUtil::GetRGBA1010108Enabled() ||
         hdrForceHwcNodes.empty()) {
-        curScreenNode_->SetHasForceHwcHdrSurface(false);
         return;
     }
     const auto& hdrStatusMap = curScreenNode_->GetDisplayHdrStatusMap();
     if (std::find_if(hdrStatusMap.begin(), hdrStatusMap.end(), [hdrForceHwcNodes](const auto& iter) {
+            auto pid = ExtractPid(iter.first);
             return iter.second != HdrStatus::NO_HDR &&
-                   hdrForceHwcNodes.find(ExtractPid(iter.first)) == hdrForceHwcNodes.end();
+                   std::find_if(hdrForceHwcNodes.begin(), hdrForceHwcNodes.end(), [pid](const auto& item) {
+                       return ExtractPid(item.first) == pid;
+                   }) == hdrForceHwcNodes.end();
         }) != hdrStatusMap.end()) {
-        curScreenNode_->SetHasForceHwcHdrSurface(false);
-    } else {
-        curScreenNode_->SetHasForceHwcHdrSurface(true);
+        // other hdr node which isHdrForceHwcEnabled = false should abort SetHdrForceHwcNodes to screen
+        return;
     }
+    // only hdr node with isHdrForceHwcEnabled = true can SetHdrForceHwcNodes to screen
+    curScreenNode_->SetHdrForceHwcNodes(hdrForceHwcNodes);
 }
 
 void RSUniRenderVisitor::PrevalidateHwcNode()
@@ -2661,9 +2667,9 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
         bool isHardwareHdrDisabled = RSLuminanceControl::Get().IsHardwareHdrDisabled() &&
             (isHdrSurface || RSLuminanceControl::Get().IsHdrOn(curScreenNode_->GetScreenId()));
         bool hasUniRenderHdrSurface = curScreenNode_->GetHasUniRenderHdrSurface();
-        bool hasForceHwcHdrSurface = curScreenNode_->GetHasForceHwcHdrSurface() && hwcNodePtr->IsHdrForceHwcEnabled();
-        bool isDisableHwcForHdrSurface =
-            hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled() && !hasForceHwcHdrSurface;
+        auto hdrForceHwcNodes = curScreenNode_->GetHdrForceHwcNodes();
+        bool isDisableHwcForHdrSurface = hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled() &&
+            hdrForceHwcNodes.find(hwcNodePtr->GetId()) == hdrForceHwcNodes.end();
         bool hasProtectedLayer = hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
         if ((isHardwareHdrDisabled || isDisableHwcForHdrSurface || !drmNodes_.empty() || hasFingerprint_) &&
             !hasProtectedLayer) {

@@ -765,24 +765,50 @@ void RSScreenRenderNode::ResetVideoHeadroomInfo()
 
 void RSScreenRenderNode::SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface)
 {
-    if (hasForceHwcHdrSurface_ == hasForceHwcHdrSurface) {
-        return;
-    }
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
     if (screenParams == nullptr) {
         RS_LOGE("RSScreenRenderNode::SetHasForceHwcHdrSurface screenParams is null");
         return;
     }
-    hasForceHwcHdrSurface_ = hasForceHwcHdrSurface;
     screenParams->SetHasForceHwcHdrSurface(hasForceHwcHdrSurface);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
 }
 
-bool RSScreenRenderNode::GetHasForceHwcHdrSurface() const
+void RSScreenRenderNode::SetHdrForceHwcNodes(
+    const std::unordered_map<NodeId, std::weak_ptr<RSSurfaceRenderNode>>& hdrForceHwcNodes)
 {
-    return hasForceHwcHdrSurface_;
+    hdrForceHwcNodes_ = hdrForceHwcNodes;
+}
+
+const std::unordered_map<NodeId, std::weak_ptr<RSSurfaceRenderNode>>& RSScreenRenderNode::GetHdrForceHwcNodes() const
+{
+    return hdrForceHwcNodes_;
+}
+
+void RSScreenRenderNode::ClearHdrForceHwcNodes()
+{
+    hdrForceHwcNodes_.clear();
+}
+
+void RSScreenRenderNode::HandleHdrForceHwcNodes()
+{
+    if (!RSSystemProperties::GetXcomponentEdrEnabled() || hdrForceHwcNodes_.empty()) {
+        SetHasForceHwcHdrSurface(false);
+        ClearHdrForceHwcNodes();
+        return;
+    }
+    if (std::find_if(hdrForceHwcNodes_.begin(), hdrForceHwcNodes_.end(), [](const auto& iter) {
+            auto nodePtr = iter.second.lock();
+            return nodePtr && !nodePtr->IsHardwareForcedDisabled();
+        }) != hdrForceHwcNodes_.end()) {
+        RS_OPTIONAL_TRACE_FMT("RSScreenRenderNode::SetHasForceHwcHdrSurface: Node: %" PRIu64, GetId());
+        SetHasForceHwcHdrSurface(true);
+    } else {
+        SetHasForceHwcHdrSurface(false);
+    }
+    ClearHdrForceHwcNodes();
 }
 } // namespace Rosen
 } // namespace OHOS
