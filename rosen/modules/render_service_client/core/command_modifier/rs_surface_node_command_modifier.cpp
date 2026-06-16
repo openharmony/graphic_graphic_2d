@@ -601,5 +601,19 @@ void HDRTypeCmdModifier::DumpParam(std::string& out) const
     out += "{hdrType:" + std::to_string(param_.hdrType_) + "}";
 }
 
+void DarkColorModeCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetDarkColorMode>(
+        node->GetId(), param_.isDarkColorMode_);
+    AddCommand(command, true);
+}
+
+void DarkColorModeCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{isDarkColorMode:" + std::string(param_.isDarkColorMode_ ? "true" : "false") + "}";
+}
+
 } // namespace Rosen
 } // namespace OHOS

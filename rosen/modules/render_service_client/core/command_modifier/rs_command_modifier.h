@@ -95,6 +95,7 @@ enum class RSCmdModifierType : uint16_t {
     FORCE_HARDWARE_AND_FIX_ROTATION,
     APP_ROTATION_CORRECTION,
     HDR_TYPE,
+    SET_DARK_COLOR_MODE,
 
     // RSDepthNode
     SET_DEPTH_SPACE_TYPE,

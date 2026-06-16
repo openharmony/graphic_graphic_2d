@@ -2458,5 +2458,41 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, HDRTypeTest002, TestSize.Level1)
     mod->UpdateToRender();
 }
 
+/**
+ * @tc.name: DarkColorModeTest001
+ * @tc.desc: Test all methods
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, DarkColorModeTest001, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    DarkColorModeCmdParam param{true};
+    auto mod = std::make_shared<DarkColorModeCmdModifier>(node, param);
+    EXPECT_EQ(mod->GetType(), RSCmdModifierType::SET_DARK_COLOR_MODE);
+    EXPECT_TRUE(mod->GetParam().isDarkColorMode_);
+
+    DarkColorModeCmdParam param2{false};
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(mod->GetParam().isDarkColorMode_);
+
+    std::string out;
+    mod->DumpParam(out);
+    EXPECT_NE(out.find("isDarkColorMode"), std::string::npos);
+}
+
+/**
+ * @tc.name: DarkColorModeTest002
+ * @tc.desc: Test UpdateToRender with null node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, DarkColorModeTest002, TestSize.Level1)
+{
+    DarkColorModeCmdParam param{true};
+    auto mod = std::make_shared<DarkColorModeCmdModifier>(MakeExpiredNode(), param);
+    ASSERT_TRUE(mod);
+    mod->UpdateToRender();
+}
+
 } // namespace Rosen
 } // namespace OHOS

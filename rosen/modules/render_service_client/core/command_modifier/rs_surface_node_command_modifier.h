@@ -1400,6 +1400,43 @@ private:
     HDRTypeCmdParam param_;
 };
 
+struct DarkColorModeCmdParam {
+    bool isDarkColorMode_;
+};
+
+class DarkColorModeCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::SET_DARK_COLOR_MODE;
+
+    DarkColorModeCmdModifier(std::weak_ptr<RSNode> node, const DarkColorModeCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param)
+    {
+    }
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const DarkColorModeCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const DarkColorModeCmdParam& GetParam() const
+    {
+        return param_;
+    }
+
+private:
+    DarkColorModeCmdParam param_;
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

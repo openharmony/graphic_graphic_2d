@@ -4395,6 +4395,7 @@ std::string RSCmdModifierTypeToString(RSCmdModifierType type)
         { RSCmdModifierType::FORCE_HARDWARE_AND_FIX_ROTATION,  "FORCE_HARDWARE_AND_FIX_ROTATION" },
         { RSCmdModifierType::APP_ROTATION_CORRECTION,          "APP_ROTATION_CORRECTION" },
         { RSCmdModifierType::HDR_TYPE,                         "HDR_TYPE" },
+        { RSCmdModifierType::SET_DARK_COLOR_MODE,              "SET_DARK_COLOR_MODE" },
         { RSCmdModifierType::SET_DEPTH_SPACE_TYPE,             "SET_DEPTH_SPACE_TYPE" },
         { RSCmdModifierType::PRE_FREEZE,                       "PRE_FREEZE" },
         { RSCmdModifierType::ATTACH_ROOT_NODE,                 "ATTACH_ROOT_NODE" },

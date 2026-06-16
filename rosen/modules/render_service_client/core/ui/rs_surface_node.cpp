@@ -1166,9 +1166,9 @@ void RSSurfaceNode::SetDarkColorMode(bool isDark)
         return;
     }
     isDarkColorMode_ = isDark;
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetDarkColorMode>(GetId(), isDark);
-    AddCommand(command, true);
+    SetRSCmdProperty<DarkColorModeCmdModifier>(DarkColorModeCmdParam{
+        isDark
+    });
     ROSEN_LOGD("RSSurfaceNode::SetDarkColorMode, surfaceNodeId:[%" PRIu64 "] isDarkColorMode:%s", GetId(),
         isDark ? "true" : "false");
 }
