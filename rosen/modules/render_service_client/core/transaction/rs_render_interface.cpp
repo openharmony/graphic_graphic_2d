@@ -643,5 +643,14 @@ void RSRenderInterface::SetFreeMultiWindowStatus(bool enable)
 {
     renderPipelineClient_->SetFreeMultiWindowStatus(enable);
 }
+
+void RSRenderInterface::SetOnRenderProcessDiedCallback(const std::function<void()>& callback)
+{
+    if (renderPipelineClient_ == nullptr) {
+        ROSEN_LOGE("RSRenderInterface::SetOnRenderProcessDiedCallback renderPipelineClient_ nullptr");
+        return;
+    }
+    renderPipelineClient_->SetOnRenderProcessDiedCallback(callback);
+}
 }
 }

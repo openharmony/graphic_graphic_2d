@@ -176,7 +176,12 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
 
     if (toDelete) {
         auto token = iface_cast<RSIConnectionToken>(GetToken());
-        renderPipelineAgent_->RemoveConnection(token);
+        renderPipelineAgent_->RemoveConnection(remotePid_, token);
+
+        auto appToken = renderPipelineAgent_->UnRegisterApplicationAgent(remotePid_);
+        if (appToken && appToken->AsObject() && applicationDeathRecipient_) {
+            appToken->AsObject()->RemoveDeathRecipient(applicationDeathRecipient_);
+        }
     }
 }
 

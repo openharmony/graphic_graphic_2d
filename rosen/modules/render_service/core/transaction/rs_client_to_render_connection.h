@@ -243,6 +243,7 @@ private:
     friend class RSProfiler;
 #endif
     friend class RSRenderServiceStub;
+    friend class RSConnectToRenderProcessStub;
 };
 } // namespace Rosen
 } // namespace OHOS
