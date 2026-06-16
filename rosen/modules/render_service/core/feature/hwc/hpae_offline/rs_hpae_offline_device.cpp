@@ -221,9 +221,15 @@ void RSHpaeOfflineDevice::CheckAndPostPreAllocBuffersTask(std::shared_ptr<RSHpae
 {
     if (offlineResultSync_.GetResultPoolSize() < 1) {
         RS_OFFLINE_LOGD("Start to post Preallocbuffer task.");
-        std::lock_guard<std::mutex> localLock(context->offlineConfigMutex);
-        BufferRequestConfig config = context->layerConfig;
+        BufferRequestConfig config;
+        {
+            std::lock_guard<std::mutex> localLock(context->offlineConfigMutex);
+            BufferRequestConfig config = context->layerConfig;
+        }
         offlineThreadManager_.PostTask([this, context, config = std::move(config)]() mutable {
+            if (context->preAllocBufferSucc == true) {
+                return;
+            }
             RS_TRACE_NAME_FMT("hpae_offline: PreAllocBuffer.");
             bool ret = context->offlineLayer->PreAllocBuffers(config);
             context->preAllocBufferSucc = ret;
