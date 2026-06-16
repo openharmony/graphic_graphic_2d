@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <charconv>
 #include "rs_profiler.h"
 #include "rs_client_to_service_connection.h"
 
@@ -64,6 +65,8 @@
 #endif
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
+#include "rs_frame_rate_vote.h"
+#include "singleton.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -2477,6 +2480,15 @@ ErrCode RSClientToServiceConnection::SendVideoRateInfo(
         auto ret = conn->SendVideoRateInfo(videoRateInfo);
         if (ret != ERR_OK) {
             return ret;
+        }
+    }
+#else
+    auto pidIt = videoRateInfo.find("pid");
+    if (pidIt != videoRateInfo.end()) {
+        pid_t pid = 0;
+        auto resultPid = std::from_chars(pidIt->second.data(), pidIt->second.data() + pidIt->second.size(), pid);
+        if (resultPid.ec == std::errc() && pid > 0) {
+            DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
         }
     }
 #endif
