@@ -29,6 +29,7 @@
 #include "render_context/render_context.h"
 
 namespace OHOS::Rosen {
+
 enum class DrawingError {
     ERR_OK = 0,
     ERR_NOT_PREPARED,
@@ -73,8 +74,8 @@ public:
     ~EffectImageChain();
 
     DrawingError Prepare(const std::shared_ptr<Media::PixelMap>& srcPixelMap, bool forceCPU);
-    DrawingError PrepareNativeBuffer(
-        const std::shared_ptr<Media::PixelMap> &srcPixelMap, std::shared_ptr<OH_NativeBuffer> &dstNativeBuffer);
+    DrawingError PrepareNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+        std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer, bool forceCPU);
     DrawingError ApplyDrawingFilter(const std::shared_ptr<Drawing::ImageFilter>& filter);
     DrawingError ApplyBlur(float radius, const Drawing::TileMode& tileMode,
         bool isDirection = false, float angle = 0.0);
@@ -84,19 +85,17 @@ public:
     DrawingError ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
         float maskRadiusX, float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees);
     DrawingError ApplySDFCreation(int spreadFactor, bool generateDerivs);
-    DrawingError ApplyWaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& waterGlassDate);
-    DrawingError ApplyReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& reededGlassDate);
     DrawingError ApplyMaskTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
         const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse);
     DrawingError ApplyWaterDropletTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
         const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
-
+    DrawingError ApplyWaterGlass(const std::shared_ptr<Drawing::GEWaterGlassDataParams>& waterGlassDate);
+    DrawingError ApplyReededGlass(const std::shared_ptr<Drawing::GEReededGlassDataParams>& reededGlassDate);
     DrawingError Draw();
     DrawingError DrawNativeBuffer();
-    int32_t GetfenceId();
 
     std::shared_ptr<Media::PixelMap> GetPixelMap();
-    void SetForceReleaseGpuContext(bool releaseGpuContext);
+    void Release();
 
 private:
     bool CheckPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
@@ -107,7 +106,6 @@ private:
     DrawingError ApplyHpsBlur(float radius);
     void DrawOnFilter();
     std::shared_ptr<Drawing::Image> ConvertPixelMapToDrawingImage(const std::shared_ptr<Media::PixelMap>& pixelMap);
-    void UpdateCanvas();
     void ScaleCanvas(float scaleX, float scaleY);
     void UpdateImage();
 
@@ -115,7 +113,6 @@ private:
 
     bool prepared_ = false;
     bool forceCPU_ = true;
-    bool forceReleaseGpuContext_ = true;
 
     Drawing::ImageInfo imageInfo_ = {};
     std::shared_ptr<Drawing::Image> image_ = nullptr;
@@ -126,7 +123,6 @@ private:
 
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
-    int32_t fenceId_ = -1;
     std::shared_ptr<Drawing::Canvas> canvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
     Drawing::Rect imageRec_{};
@@ -136,4 +132,4 @@ private:
     Drawing::MipmapMode mipmapMode_ = Drawing::MipmapMode::LINEAR;
 };
 } // namespace OHOS::Rosen
-#endif /* EFFECT_IMAGE_CHAIN_H */
+#endif // EFFECT_IMAGE_CHAIN_H

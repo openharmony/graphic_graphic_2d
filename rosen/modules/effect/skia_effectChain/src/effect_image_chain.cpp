@@ -32,9 +32,12 @@
 #include "surface_buffer.h"
 
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/native_buffer_utils.h"
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#include "platform/ohos/backend/native_buffer_utils.h"
+#else
+#include "rs_vulkan_context.h"
+#endif
 #endif
 
 namespace OHOS::Rosen {
@@ -158,60 +161,49 @@ DrawingError EffectImageChain::Prepare(const std::shared_ptr<Media::PixelMap>& s
         return DrawingError::ERR_SURFACE;
     }
     canvas_ = surface_->GetCanvas();
-    imageRec_ = Drawing::Rect{0, 0, image_->GetWidth(), image_->GetHeight()};
-    canvasRec_ = imageRec_;
-    surfaceRec_ = imageRec_;
 
     prepared_ = true;
     return DrawingError::ERR_OK;
 }
 
-void EffectImageChain::UpdateCanvas()
-{
-    if (canvasRec_.GetRight() != imageRec_.GetRight() || canvasRec_.GetBottom() != imageRec_.GetBottom()) {
-        float scaleX = imageRec_.GetRight() / canvasRec_.GetRight();
-        float scaleY = imageRec_.GetBottom() / canvasRec_.GetBottom();
-        ScaleCanvas(scaleX, scaleY);
-    }
-}
-
-#ifdef RS_ENABLE_VK
-DrawingError EffectImageChain::PrepareNativeBuffer(
-    const std::shared_ptr<Media::PixelMap> &srcPixelMap, std::shared_ptr<OH_NativeBuffer> &dstNativeBuffer)
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+DrawingError EffectImageChain::PrepareNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+    std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer, bool forceCPU)
 {
     std::lock_guard<std::mutex> lock(apiMutex_);
     // CPU not supported
-    forceCPU_ = false;
+    forceCPU_ = forceCPU;
     if (forceCPU_) {
-        EFFECT_LOG_E("EffectImageChain::PrepareNativeBuffer: Not support CPU.");
+        EFFECT_LOG_E("EffectImageChain::ApplyMaskTransitionFilter: Not support CPU.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
     if (!CheckPixelMap(srcPixelMap)) {
-        EFFECT_LOG_E("EffectImageChain::PrepareNativeBuffer: Invalid pixelmap.");
-        return DrawingError::ERR_ILLEGAL_INPUT;
-    }
-    if (dstNativeBuffer == nullptr) {
-        EFFECT_LOG_E("EffectImageChain::PrepareNativeBuffer: Invalid dstNativeBuffer.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
     srcPixelMap_ = srcPixelMap;
-
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::PrepareNativeBuffer");
+ 
     imageInfo_ = Drawing::ImageInfo{srcPixelMap_->GetWidth(),
         srcPixelMap_->GetHeight(),
         ImageUtil::PixelFormatToDrawingColorType(srcPixelMap_->GetPixelFormat()),
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
  
-    image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
-
+    Drawing::Bitmap bitmap;
+    bitmap.InstallPixels(imageInfo_,
+        reinterpret_cast<void *>(srcPixelMap_->GetWritablePixels()),
+        static_cast<uint32_t>(srcPixelMap_->GetRowStride()));
+    image_ = std::make_shared<Drawing::Image>();
+    image_->BuildFromBitmap(bitmap);
+    if (image_ == nullptr) {
+        EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: image_ is null.");
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+  
     if (RSSystemProperties::IsUseVulkan()) {
         gpuContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        gpuContext_->SetResourceCacheLimits(0, 0);
     }
     if (gpuContext_ == nullptr) {
-        EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: create gpuContext failed.");
-        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        EFFECT_COMM_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
@@ -226,21 +218,23 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
     surface_ = NativeBufferUtils::CreateSurfaceFromNativeBuffer(
         RsVulkanContext::GetSingleton(), info, dstNativeBuffer.get(), info.GetColorSpace());
     if (surface_ == nullptr) {
-        EFFECT_LOG_E("EffectImageChain::PrepareNativeBuffer: Failed to create surface %{public}d.", forceCPU_);
-        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        EFFECT_LOG_E("EffectImageChain::Prepare: Failed to create surface %{public}d.", forceCPU_);
         return DrawingError::ERR_SURFACE;
     }
     canvas_ = surface_->GetCanvas();
-    UpdateCanvas();
+    if (canvasRec_.GetRight() != imageRec_.GetRight() || canvasRec_.GetBottom() != imageRec_.GetBottom()) {
+        float scaleX = imageRec_.GetRight() / canvasRec_.GetRight();
+        float scaleY = imageRec_.GetBottom() / canvasRec_.GetBottom();
+        ScaleCanvas(scaleX, scaleY);
+    }
     prepared_ = true;
-    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;
 }
 #else
-DrawingError EffectImageChain::PrepareNativeBuffer(
-    const std::shared_ptr<Media::PixelMap> &srcPixelMap, std::shared_ptr<OH_NativeBuffer> &dstNativeBuffer)
+DrawingError EffectImageChain::PrepareNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+    std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer, bool forceCPU)
 {
-    EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: Failed. Requires Vulkan backend");
+    EFFECT_COMM_LOG_E("EffectImageChain::PrepareDstNative: Failed. Requires Vulkan backend");
     return DrawingError::ERR_ILLEGAL_INPUT;
 }
 #endif
@@ -334,20 +328,19 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
     auto variableRadiusBlurFilter = std::make_shared<GEVariableRadiusBlurShaderFilter>(filterParams);
     image_ = variableRadiusBlurFilter->ProcessImage(*canvas_,
         image_,
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()));
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;
 }
 
-static std::shared_ptr<GEShaderFilter> GenerateGEXShaderFilter(Drawing::GEFilterType type, uint32_t len, void* param)
+static std::shared_ptr<GEShaderFilter> GenerateGEXShaderFilter(uint32_t type, uint32_t len, void* param)
 {
     if (!param) {
         return nullptr;
     }
 
-    auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(static_cast<uint32_t>(type),
-        len, param);
+    auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(type, len, param);
     if (!object) {
         return nullptr;
     }
@@ -382,16 +375,18 @@ DrawingError EffectImageChain::ApplyMapColorByBrightness(
         return DrawingError::ERR_IMAGE_NULL;
     }
     Drawing::GEMapColorByBrightnessFilterParams params = {colors, positions};
-    auto filterShader = GenerateGEXShaderFilter(Drawing::GEFilterType::MAP_COLOR_BY_BRIGHTNESS,
-        sizeof(Drawing::GEMapColorByBrightnessFilterParams), static_cast<void*>(&params));
+    auto filterShader = GenerateGEXShaderFilter(
+        static_cast<uint32_t>(Drawing::GEFilterType::MAP_COLOR_BY_BRIGHTNESS),
+        sizeof(Drawing::GEMapColorByBrightnessFilterParams),
+        static_cast<void*>(&params));
     if (!filterShader) {
         EFFECT_LOG_E("EffectImageChain::ApplyMapColorByBrightness: Generate Filter failed.");
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         return DrawingError::ERR_MEMORY;
     }
 
-    auto width = image_->GetWidth();
-    auto height = image_->GetHeight();
+    auto width = srcPixelMap_->GetWidth();
+    auto height = srcPixelMap_->GetHeight();
     image_ = filterShader->ProcessImage(*canvas_, image_,
         Drawing::Rect(0, 0, width, height), Drawing::Rect(0, 0, width, height));
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -423,7 +418,8 @@ DrawingError EffectImageChain::ApplyGammaCorrection(float gamma)
         return DrawingError::ERR_IMAGE_NULL;
     }
     float gammaValue = gamma;
-    auto gammaCorrectionShader = GenerateGEXShaderFilter(Drawing::GEFilterType::GAMMA_CORRECTION,
+    auto gammaCorrectionShader = GenerateGEXShaderFilter(
+        static_cast<uint32_t>(Drawing::GEFilterType::GAMMA_CORRECTION),
         sizeof(float), static_cast<void*>(&gammaValue));
     if (!gammaCorrectionShader) {
         EFFECT_LOG_E("EffectImageChain::ApplyGammaCorrection: Generate Filter failed.");
@@ -431,8 +427,8 @@ DrawingError EffectImageChain::ApplyGammaCorrection(float gamma)
         return DrawingError::ERR_MEMORY;
     }
 
-    auto width = image_->GetWidth();
-    auto height = image_->GetHeight();
+    auto width = srcPixelMap_->GetWidth();
+    auto height = srcPixelMap_->GetHeight();
     image_ = gammaCorrectionShader->ProcessImage(*canvas_, image_,
         Drawing::Rect(0, 0, width, height), Drawing::Rect(0, 0, width, height));
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -451,8 +447,8 @@ DrawingError EffectImageChain::ApplyMesaBlur(float radius, const Drawing::TileMo
     Drawing::GEMESABlurShaderFilterParams params { radius, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, static_cast<int>(tileMode),
         0.f, 0.f, isDirection, angle};
     auto mesaBlurFilter = std::make_shared<GEMESABlurShaderFilter>(params);
-    auto width = image_->GetWidth();
-    auto height = image_->GetHeight();
+    auto width = srcPixelMap_->GetWidth();
+    auto height = srcPixelMap_->GetHeight();
     image_ = mesaBlurFilter->ProcessImage(*canvas_, image_,
         Drawing::Rect(0, 0, width, height), Drawing::Rect(0, 0, width, height));
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -516,13 +512,36 @@ DrawingError EffectImageChain::ApplySDFCreation(int spreadFactor, bool generateD
     Drawing::GESDFFromImageFilterParams params{spreadFactor, generateDerivs};
     auto sdfFromImageFilter = std::make_shared<GESDFFromImageFilter>(params);
     image_ = sdfFromImageFilter->ProcessImage(*canvas_, image_,
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()));
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;
 }
 
+std::shared_ptr<Drawing::Image> EffectImageChain::ConvertPixelMapToDrawingImage(
+    const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (!CheckPixelMap(pixelMap)) {
+        return nullptr;
+    }
+ 
+    auto imageInfo = Drawing::ImageInfo {
+        pixelMap->GetWidth(), pixelMap->GetHeight(),
+        ImageUtil::PixelFormatToDrawingColorType(pixelMap->GetPixelFormat()),
+        ImageUtil::AlphaTypeToDrawingAlphaType(pixelMap->GetAlphaType()),
+        RSPixelMapUtil::GetPixelmapColorSpace(pixelMap)};
+ 
+    Drawing::Bitmap bitmap;
+    bitmap.InstallPixels(imageInfo,
+        reinterpret_cast<void *>(pixelMap->GetWritablePixels()),
+        static_cast<uint32_t>(pixelMap->GetRowStride()));
+    auto image = std::make_shared<Drawing::Image>();
+    image->BuildFromBitmap(bitmap);
+ 
+    return image;
+}
+ 
 DrawingError EffectImageChain::ApplyMaskTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
     const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse)
 {
@@ -553,7 +572,7 @@ DrawingError EffectImageChain::ApplyMaskTransitionFilter(const std::shared_ptr<M
     canvasInfo.geoWidth = srcPixelMap_->GetWidth();
     canvasInfo.geoHeight = srcPixelMap_->GetHeight();
 
-    auto topLayer = RSPixelMapUtil::ExtractDrawingImage(topLayerMap);
+    auto topLayer = ConvertPixelMapToDrawingImage(topLayerMap);
     if (!topLayer || canvasInfo.geoHeight <= 0 || canvasInfo.geoWidth <= 0) {
         EFFECT_LOG_E("EffectImageChain::ApplyMaskTransitionFilter: input image is null or invalid.");
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -577,8 +596,8 @@ DrawingError EffectImageChain::ApplyMaskTransitionFilter(const std::shared_ptr<M
     maskTransitionFilter->SetCache(topLayer, invertTopLayerMatrix);
  
     image_ = maskTransitionFilter->ProcessImage(*canvas_, image_,
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()));
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
  
     return DrawingError::ERR_OK;
@@ -625,7 +644,7 @@ DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shar
         EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: geWaterDropletParams is null.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    geWaterDropletParams->topLayer = RSPixelMapUtil::ExtractDrawingImage(topLayerMap);
+    geWaterDropletParams->topLayer = ConvertPixelMapToDrawingImage(topLayerMap);
     if (!geWaterDropletParams->topLayer) {
         EFFECT_LOG_E("EffectImageChain::ApplyWaterDropletTransitionFilter: ConvertPixelMapToDrawingImage null.");
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -643,13 +662,13 @@ DrawingError EffectImageChain::ApplyWaterDropletTransitionFilter(const std::shar
         return DrawingError::ERR_IMAGE_NULL;
     }
     Drawing::CanvasInfo canvasInfo;
-    canvasInfo.geoWidth = image_->GetWidth();
-    canvasInfo.geoHeight = image_->GetHeight();
+    canvasInfo.geoWidth = srcPixelMap_->GetWidth();
+    canvasInfo.geoHeight = srcPixelMap_->GetHeight();
     waterDropletTransitionFilter->SetShaderFilterCanvasinfo(canvasInfo);
  
     image_ = waterDropletTransitionFilter->ProcessImage(*canvas_, image_,
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()));
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
  
     return DrawingError::ERR_OK;
@@ -686,6 +705,7 @@ void EffectImageChain::DrawOnFilter()
     } else {
         canvas_->DrawImage(*image_, 0, 0, Drawing::SamplingOptions());
     }
+    canvas_->DrawImage(*image_, 0, 0, Drawing::SamplingOptions());
     canvas_->DetachPaint();
     canvas_->Restore();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -718,60 +738,28 @@ DrawingError EffectImageChain::Draw()
     return ret;
 }
 
-#ifdef RS_ENABLE_VK
 DrawingError EffectImageChain::DrawNativeBuffer()
 {
     std::lock_guard<std::mutex> lock(apiMutex_);
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::DrawNativeBuffer");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::Draw");
     auto ret = DrawingError::ERR_OK;
     do {
-        if (forceCPU_) {
-            EFFECT_LOG_E("EffectImageChain::Draw: DrawNativeBuffer() Not support CPU.");
-            ret = DrawingError::ERR_ILLEGAL_INPUT;
-            break;
-        }
         if (!prepared_) {
             EFFECT_LOG_E("EffectImageChain::Draw: Not ready, need prepare first.");
             ret = DrawingError::ERR_NOT_PREPARED;
             break;
         }
-        UpdateCanvas();
+        if (canvasRec_.GetRight() != surfaceRec_.GetRight() || canvasRec_.GetBottom() != surfaceRec_.GetBottom()) {
+            float scaleX = surfaceRec_.GetRight() / canvasRec_.GetRight();
+            float scaleY = surfaceRec_.GetBottom() / canvasRec_.GetBottom();
+            ScaleCanvas(scaleX, scaleY);
+        }
         DrawOnFilter();
-
-        VkSemaphore semaphore;
-        NativeBufferUtils::CreateVkSemaphore(semaphore);
-        GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
-        auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-        auto* destroyInfo = new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
- 
-        Drawing::FlushInfo flushInfo;
-        flushInfo.backendSurfaceAccess = true;
-        flushInfo.numSemaphores = 1;
-        flushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
-        flushInfo.finishedProc = [](void* context) { DestroySemaphoreInfo::DestroySemaphore(context); };
-        flushInfo.finishedContext = destroyInfo;
-        surface_->Flush(&flushInfo);
-        gpuContext_->Submit();
- 
-        // Get fence fd from semaphore right after flush
-        NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, fenceId_);
-        DestroySemaphoreInfo::DestroySemaphore(destroyInfo); // semaphore inits with ref count = 2
+        gpuContext_->FlushAndSubmit();
     } while (false);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
  
     return ret;
-}
-#else
-DrawingError EffectImageChain::DrawNativeBuffer()
-{
-    EFFECT_COMM_LOG_E("EffectImageChain::DrawNativeBuffer: Failed. Requires Vulkan backend");
-    return DrawingError::ERR_ILLEGAL_INPUT;
-}
-#endif
-
-int32_t EffectImageChain::GetfenceId()
-{
-    return fenceId_;
 }
 
 bool EffectImageChain::CheckPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)
@@ -806,14 +794,18 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_) };
 
-    image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+    Drawing::Bitmap bitmap;
+    bitmap.InstallPixels(imageInfo_, reinterpret_cast<void*>(srcPixelMap_->GetWritablePixels()),
+        static_cast<uint32_t>(srcPixelMap_->GetRowStride()));
+    image_ = std::make_shared<Drawing::Image>();
+    image_->BuildFromBitmap(bitmap);
 
     Media::InitializationOptions opts;
     opts.size = { srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight() };
     opts.pixelFormat = srcPixelMap_->GetPixelFormat();
     opts.alphaType = srcPixelMap_->GetAlphaType();
     opts.editable = true;
-    opts.useDMA = true;
+    opts.allocatorType = Media::AllocatorType::DMA_ALLOC;
     auto dstPixelMap = Media::PixelMap::Create(opts);
     if (dstPixelMap == nullptr) {
         image_ = nullptr;
@@ -869,17 +861,34 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
 #endif
 }
 
-EffectImageChain::~EffectImageChain()
+void EffectImageChain::Release()
 {
-    if (gpuContext_ && forceReleaseGpuContext_) {
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::Release");
+
+    surface_ = nullptr;
+    canvas_ = nullptr;
+
+    if (gpuContext_) {
         gpuContext_->ReleaseResourcesAndAbandonContext();
         gpuContext_ = nullptr;
     }
+    renderContext_ = nullptr;
+    prepared_ = false;
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
-void EffectImageChain::SetForceReleaseGpuContext(bool releaseGpuContext)
+EffectImageChain::~EffectImageChain()
 {
-    forceReleaseGpuContext_ = releaseGpuContext;
+    surface_ = nullptr;
+    canvas_ = nullptr;
+    filters_ = nullptr;
+    image_ = nullptr;
+    if (gpuContext_) {
+        gpuContext_->ReleaseResourcesAndAbandonContext();
+        gpuContext_ = nullptr;
+    }
+    renderContext_ = nullptr;
 }
 
 static std::shared_ptr<GEShaderFilter> GenerateExtShaderWaterGlass(
@@ -943,8 +952,8 @@ DrawingError EffectImageChain::ApplyWaterGlass(const std::shared_ptr<Drawing::GE
         return DrawingError::ERR_IMAGE_NULL;
     }
     image_ = dmShader->ProcessImage(*canvas_, image_,
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()));
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;
@@ -984,8 +993,8 @@ DrawingError EffectImageChain::ApplyReededGlass(
         return DrawingError::ERR_IMAGE_NULL;
     }
     image_ = dmShader->ProcessImage(*canvas_, image_,
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()),
-        Drawing::Rect(0, 0, image_->GetWidth(), image_->GetHeight()));
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;
@@ -997,9 +1006,6 @@ DrawingError EffectImageChain::ApplyScale(
     if (scaleX <= 0.0f || scaleY <= 0.0f) {
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    if (scaleX == 1.0f || scaleY == 1.0f) {
-        return DrawingError::ERR_OK;
-    }
     if (!prepared_) {
         EFFECT_LOG_E("EffectImageChain::ApplyScale: Not ready, need prepare first.");
         return DrawingError::ERR_NOT_PREPARED;
@@ -1010,7 +1016,6 @@ DrawingError EffectImageChain::ApplyScale(
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
 
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyScale");
     filterMode_ = filterMode;
     mipmapMode_ = mipmapMode;
     if (filters_ != nullptr) {
@@ -1018,7 +1023,6 @@ DrawingError EffectImageChain::ApplyScale(
     }
     ScaleCanvas(scaleX, scaleY);
     UpdateImage();
-    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;
 }
 } // namespace OHOS::Rosen
