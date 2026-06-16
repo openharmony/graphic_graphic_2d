@@ -76,12 +76,12 @@ private:
     void DrawLight(Drawing::Canvas* canvas) const;
     void ProcessLightSourcesData(std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray,
         std::shared_ptr<Drawing::RuntimeShaderBuilder> builder) const;
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> CreateShaderBuilder() const;
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> CreateShaderBuilder(size_t lightLength) const;
     void DrawLightByIlluminatedType(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder> builder,
         const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
-    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetPhongShaderBuilder();
-    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetFeatheringBorderLightShaderBuilder();
-    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetNormalLightShaderBuilder();
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetPhongShaderBuilder(size_t lightLength);
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetFeatheringBorderLightShaderBuilder(size_t lightLength);
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetNormalLightShaderBuilder(size_t lightLength);
     static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetSDFBorderLightShaderBuilder();
     static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetSDFContentLightShaderBuilder();
     static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetSDFContentAndBorderLightShaderBuilder();
@@ -91,8 +91,8 @@ private:
     static std::optional<float> CalcBezierResultY(
         const Vector2f& start, const Vector2f& end, const Vector2f& control, float input);
 
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeFeatheringBoardLightShaderBuilder() const;
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeNormalLightShaderBuilder() const;
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeFeatheringBoardLightShaderBuilder(size_t lightLength) const;
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeNormalLightShaderBuilder(size_t lightLength) const;
     void DrawContentLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
         Drawing::Brush& brush, const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
     bool DrawSDFContentLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect,
@@ -107,6 +107,18 @@ private:
     void DrawSDFContentAndBorderLight(Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffectContent,
         std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect, Drawing::Brush& brush) const;
+
+    void ProcessSingleLightSourcesData(std::array<float, 1>& lightIntensityArray,
+        std::shared_ptr<Drawing::RuntimeShaderBuilder> builder) const;
+    void DrawSingleLightByIlluminatedType(Drawing::Canvas& canvas,
+        std::shared_ptr<Drawing::RuntimeShaderBuilder> builder, const std::array<float, 1>& lightIntensityArray) const;
+    void DrawSingleContentLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
+        Drawing::Brush& brush, const std::array<float, 1>& lightIntensityArray) const;
+    void DrawSingleBorderLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
+        Drawing::Pen& pen, const std::array<float, 1>& lightIntensityArray) const;
+    void DrawSingleContentAndBorderLight(Drawing::Canvas& canvas,
+ 	    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Drawing::Pen& pen,
+ 	    const std::array<float, 1>& lightIntensityArray) const;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
