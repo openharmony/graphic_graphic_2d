@@ -62,6 +62,11 @@ public:
     void SetScreenLinearMatrix(const std::vector<float>& matirx) override {}
     void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override {}
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) override {}
+    void MarkTunnelSurfaceInvalid(uint64_t surfaceId) override
+    {
+        markTunnelInvalidCalled = true;
+        markTunnelInvalidSurfaceId = surfaceId;
+    }
 
     bool commitTunnelCalled = false;
     uint64_t lastSurfaceId = 0;
@@ -69,6 +74,8 @@ public:
     uint32_t lastBufferSeqNum = 0;
     int32_t lastAcquireFenceFd = -2;
     int32_t returnValue = GRAPHIC_DISPLAY_SUCCESS;
+    bool markTunnelInvalidCalled = false;
+    uint64_t markTunnelInvalidSurfaceId = 0;
 };
 
 sptr<SurfaceBuffer> CreateTunnelTestBuffer()
@@ -378,5 +385,78 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_CommitTunnelLayerBySurface
     EXPECT_EQ(stub->lastAcquireFenceFd, -1);
     ASSERT_NE(releaseFence, nullptr);
     EXPECT_GE(releaseFence->Get(), 0);
+}
+
+/**
+ * @tc.name: Proxy_MarkTunnelSurfaceInvalid_Success
+ * @tc.desc: Test proxy sends MarkTunnelSurfaceInvalid and stub receives correct surfaceId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_MarkTunnelSurfaceInvalid_Success, TestSize.Level1)
+{
+    auto stub = sptr<RecordingRenderToComposerConnectionStub>::MakeSptr();
+    ASSERT_NE(stub, nullptr);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+
+    constexpr uint64_t surfaceId = 50001u;
+    EXPECT_FALSE(stub->markTunnelInvalidCalled);
+
+    proxy.MarkTunnelSurfaceInvalid(surfaceId);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    EXPECT_TRUE(stub->markTunnelInvalidCalled);
+    EXPECT_EQ(stub->markTunnelInvalidSurfaceId, surfaceId);
+}
+
+/**
+ * @tc.name: Proxy_MarkTunnelSurfaceInvalid_ZeroSurfaceId_Sent
+ * @tc.desc: Test proxy sends MarkTunnelSurfaceInvalid with zero surfaceId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_MarkTunnelSurfaceInvalid_ZeroSurfaceId_Sent, TestSize.Level1)
+{
+    auto stub = sptr<RecordingRenderToComposerConnectionStub>::MakeSptr();
+    ASSERT_NE(stub, nullptr);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+
+    proxy.MarkTunnelSurfaceInvalid(0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    EXPECT_TRUE(stub->markTunnelInvalidCalled);
+    EXPECT_EQ(stub->markTunnelInvalidSurfaceId, 0u);
+}
+
+/**
+ * @tc.name: Proxy_MarkTunnelSurfaceInvalid_MultipleCalls_AllReceived
+ * @tc.desc: Test proxy sends multiple MarkTunnelSurfaceInvalid calls correctly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest,
+    Proxy_MarkTunnelSurfaceInvalid_MultipleCalls_AllReceived, TestSize.Level1)
+{
+    auto stub = sptr<RecordingRenderToComposerConnectionStub>::MakeSptr();
+    ASSERT_NE(stub, nullptr);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+
+    constexpr uint64_t surfaceId1 = 50010u;
+    constexpr uint64_t surfaceId2 = 50011u;
+    constexpr uint64_t surfaceId3 = 50012u;
+
+    proxy.MarkTunnelSurfaceInvalid(surfaceId1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    EXPECT_TRUE(stub->markTunnelInvalidCalled);
+    EXPECT_EQ(stub->markTunnelInvalidSurfaceId, surfaceId1);
+
+    stub->markTunnelInvalidCalled = false;
+    proxy.MarkTunnelSurfaceInvalid(surfaceId2);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    EXPECT_TRUE(stub->markTunnelInvalidCalled);
+    EXPECT_EQ(stub->markTunnelInvalidSurfaceId, surfaceId2);
+
+    stub->markTunnelInvalidCalled = false;
+    proxy.MarkTunnelSurfaceInvalid(surfaceId3);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    EXPECT_TRUE(stub->markTunnelInvalidCalled);
+    EXPECT_EQ(stub->markTunnelInvalidSurfaceId, surfaceId3);
 }
 } // namespace OHOS::Rosen

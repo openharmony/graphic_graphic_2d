@@ -105,7 +105,7 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     NodeId id = GetData<NodeId>();
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     bool isOnTheTree = GetData<bool>();
-    RSBaseRenderNode::SharedPtr child = std::make_shared<RSCanvasRenderNode>(id, context);
+    auto child = std::make_shared<RSSurfaceRenderNode>(id, context);
     int index = GetData<int>();
     bool skipTransition = GetData<bool>();
     std::vector<RSBaseRenderNode::SharedPtr> vec = { child };

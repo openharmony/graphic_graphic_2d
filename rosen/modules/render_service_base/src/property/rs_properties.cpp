@@ -1438,6 +1438,8 @@ void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
         }
         GetEffect().dynamicLightUpPara_->rate = rate.value();
         isDrawn_ = true;
+    } else if (GetEffect().dynamicLightUpPara_) {
+        GetEffect().dynamicLightUpPara_->rate = 0;
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1452,6 +1454,8 @@ void RSProperties::SetDynamicLightUpDegree(const std::optional<float>& degree)
         }
         GetEffect().dynamicLightUpPara_->degree = degree.value();
         isDrawn_ = true;
+    } else if (GetEffect().dynamicLightUpPara_) {
+        GetEffect().dynamicLightUpPara_->degree = 0;
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1556,6 +1560,9 @@ void RSProperties::SetDistortionK(const std::optional<float>& distortionK)
         GetEffect().distortionPara_->distortionK = distortionK.value();
         GetEffect().distortionPara_->dirty = ROSEN_GNE(*distortionK, 0.0f) && ROSEN_LE(*distortionK, 1.0f);
         isDrawn_ = true;
+    } else if (GetEffect().distortionPara_) {
+        GetEffect().distortionPara_->distortionK = 0;
+        GetEffect().distortionPara_->dirty = false;
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -3434,8 +3441,8 @@ void RSProperties::GenerateBackgroundBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    float backgroundBlurRadiusXForHash = GetBackgroundBlurRadiusX();
-    uint32_t hash = hashFunc(&backgroundBlurRadiusXForHash, sizeof(backgroundBlurRadiusXForHash), 0);
+    float backgroundBlurRadiusX_ = GetBackgroundBlurRadiusX();
+    uint32_t hash = hashFunc(&backgroundBlurRadiusX_, sizeof(backgroundBlurRadiusX_), 0);
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
     if (NeedLightBlur(GetBgBlurDisableSystemAdaptation())) {
@@ -3565,8 +3572,8 @@ void RSProperties::GenerateForegroundBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    float foregroundBlurRadiusXForHash = GetForegroundBlurRadiusX();
-    uint32_t hash = hashFunc(&foregroundBlurRadiusXForHash, sizeof(foregroundBlurRadiusXForHash), 0);
+    float foregroundBlurRadiusX_ = GetForegroundBlurRadiusX();
+    uint32_t hash = hashFunc(&foregroundBlurRadiusX_, sizeof(foregroundBlurRadiusX_), 0);
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
     // fuse grey-adjustment and pixel-stretch with blur filter
@@ -3622,8 +3629,8 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    float foregroundBlurRadiusForHash = GetForegroundBlurRadius();
-    uint32_t hash = hashFunc(&foregroundBlurRadiusForHash, sizeof(foregroundBlurRadiusForHash), 0);
+    float foregroundBlurRadius_ = GetForegroundBlurRadius();
+    uint32_t hash = hashFunc(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         GetForegroundBlurSaturation(), GetForegroundBlurBrightness());
     if (NeedLightBlur(GetFgBlurDisableSystemAdaptation())) {
@@ -3658,10 +3665,10 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
             originalFilter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
-        float saturationForHash = GetForegroundBlurSaturation();
-        float brightnessForHash = GetForegroundBlurBrightness();
-        hash = hashFunc(&saturationForHash, sizeof(saturationForHash), hash);
-        hash = hashFunc(&brightnessForHash, sizeof(brightnessForHash), hash);
+        float foregroundBlurSaturation_ = GetForegroundBlurSaturation();
+        float foregroundBlurBrightness_ = GetForegroundBlurBrightness();
+        hash = hashFunc(&foregroundBlurSaturation_, sizeof(foregroundBlurSaturation_), hash);
+        hash = hashFunc(&foregroundBlurBrightness_, sizeof(foregroundBlurBrightness_), hash);
         originalFilter = originalFilter?
             originalFilter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }
@@ -3691,8 +3698,8 @@ void RSProperties::GenerateBackgroundMaterialFuzedBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    float foregroundBlurRadiusForHash = GetForegroundBlurRadius();
-    uint32_t hash = hashFunc(&foregroundBlurRadiusForHash, sizeof(foregroundBlurRadiusForHash), 0);
+    float backgroundBlurRadius_ = GetBackgroundBlurRadius();
+    uint32_t hash = hashFunc(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         GetBackgroundBlurSaturation(), GetBackgroundBlurBrightness());
     auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -3721,7 +3728,7 @@ void RSProperties::GenerateCompositingMaterialFuzedBlurFilter()
 #else
     const auto hashFunc = SkOpts::hash;
 #endif
-    const auto& foregroundBlurRadius_ = GetEffect().foregroundBlurPara_->radius;
+    float foregroundBlurRadius_ = GetForegroundBlurRadius();
     uint32_t hash = hashFunc(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         GetForegroundBlurSaturation(), GetForegroundBlurBrightness());
@@ -4337,11 +4344,13 @@ void RSProperties::SetUseShadowBatching(bool useShadowBatching)
 
 void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
 {
-    if (stretchSize.has_value() && !stretchSize->IsZero()) {
+    if (stretchSize.has_value()) {
         if (!GetEffect().pixelStretchPara_) {
             GetEffect().pixelStretchPara_ = std::make_unique<RSPixelStretchPara>();
         }
         GetEffect().pixelStretchPara_->size = stretchSize.value();
+    } else if (GetEffect().pixelStretchPara_) {
+        GetEffect().pixelStretchPara_->size = Vector4f();
     }
     SetDirty();
     pixelStretchNeedUpdate_ = true;
@@ -4365,26 +4374,26 @@ RectI RSProperties::GetPixelStretchDirtyRect() const
 
 void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent)
 {
-    if (stretchPercent.has_value() && !stretchPercent->IsZero()) {
+    if (stretchPercent.has_value()) {
         if (!GetEffect().pixelStretchPara_) {
             GetEffect().pixelStretchPara_ = std::make_unique<RSPixelStretchPara>();
         }
         GetEffect().pixelStretchPara_->percent = stretchPercent.value();
+    } else if (GetEffect().pixelStretchPara_) {
+        GetEffect().pixelStretchPara_->percent = Vector4f();
     }
     SetDirty();
     pixelStretchNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
-void RSProperties::SetPixelStretchTileMode(const std::optional<int>& tileMode)
+void RSProperties::SetPixelStretchTileMode(int tileMode)
 {
-    if (tileMode.has_value()) {
-        if (!GetEffect().pixelStretchPara_) {
-            GetEffect().pixelStretchPara_ = std::make_unique<RSPixelStretchPara>();
-        }
-        GetEffect().pixelStretchPara_->tileMode = std::clamp<int>(tileMode.value(),
-            static_cast<int>(Drawing::TileMode::CLAMP), static_cast<int>(Drawing::TileMode::DECAL));
+    if (!GetEffect().pixelStretchPara_) {
+        GetEffect().pixelStretchPara_ = std::make_unique<RSPixelStretchPara>();
     }
+    GetEffect().pixelStretchPara_->tileMode = std::clamp<int>(tileMode,
+        static_cast<int>(Drawing::TileMode::CLAMP), static_cast<int>(Drawing::TileMode::DECAL));
     SetDirty();
     pixelStretchNeedUpdate_ = true;
     contentDirty_ = true;

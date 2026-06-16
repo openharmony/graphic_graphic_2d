@@ -78,6 +78,8 @@ class RSNGRenderShapeHelper {
 public:
     static RectF CalcRect(
         const std::shared_ptr<RSNGRenderShapeBase>& shape, const RectF& bound, bool needUpdate = true);
+    static void FillEmptyDistortOpShape(std::shared_ptr<RSNGRenderShapeBase>& sdfShape, const RRect& sdfRRect,
+        NodeId nodeId);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

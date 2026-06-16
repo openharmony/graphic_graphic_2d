@@ -21,6 +21,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+const std::string FG_TEST_JPG_PATH = "/data/local/tmp/fg_test.jpg";
+
 class NGSDFDistortOpShapeTest : public RSGraphicTest {
 public:
     void BeforeEach() override
@@ -414,6 +417,111 @@ GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_0
         GetRootNode()->AddChild(childNode);
         RegisterNode(childNode);
     }
+}
+
+// Test08: innerShape!=null, sync=true, RRect should be synced from node bounds
+GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_08)
+{
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    RegisterNode(backgroundTestNode);
+    Rosen::Vector4f bounds{200.f, 200.f, 800.f, 1600.f};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetCornerRadius(30.f);
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+    auto distortShape = CreateShape(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    auto sdfDistortOpShape = std::static_pointer_cast<RSNGSDFDistortOpShape>(distortShape);
+    sdfDistortOpShape->Setter<SDFDistortOpShapeLUCornerTag>(Vector2f{0.1f, 0.01f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeRUCornerTag>(Vector2f{0.9f, 0.01f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeRBCornerTag>(Vector2f{1.1f, 0.7f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeLBCornerTag>(Vector2f{-0.1f, 0.7f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeBarrelDistortionTag>(Vector4f{0.5f, 0.5f, 0.1f, 0.1f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeSyncTag>(true);
+
+    auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+    rRectChildShape->Setter<SDFRRectShapeRRectTag>(RRect{RectT<float>{200.f, 200.f, 1000.f, 1000.f}, 0.0f, 0.0f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeShapeTag>(childShape);
+
+    backgroundTestNode->SetSDFShape(distortShape);
+    backgroundTestNode->SetShadowRadius(50.f);
+    backgroundTestNode->SetShadowColor(0xFFFF0000);
+
+    auto childNode = SetUpNodeBgImage(FG_TEST_JPG_PATH, {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+// Test09: innerShape!=null, sync=false, RRect should NOT be synced
+GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_09)
+{
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    RegisterNode(backgroundTestNode);
+    Rosen::Vector4f bounds{200.f, 200.f, 800.f, 1600.f};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+    auto distortShape = CreateShape(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    auto sdfDistortOpShape = std::static_pointer_cast<RSNGSDFDistortOpShape>(distortShape);
+    sdfDistortOpShape->Setter<SDFDistortOpShapeLUCornerTag>(Vector2f{0.1f, 0.01f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeRUCornerTag>(Vector2f{0.9f, 0.01f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeRBCornerTag>(Vector2f{1.1f, 0.7f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeLBCornerTag>(Vector2f{-0.1f, 0.7f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeBarrelDistortionTag>(Vector4f{0.5f, 0.5f, 0.2f, 0.2f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeSyncTag>(false);
+
+    auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+    rRectChildShape->Setter<SDFRRectShapeRRectTag>(RRect{RectT<float>{0.0f, 0.0f, 800.0f, 800.0f}, 50.0f, 50.0f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeShapeTag>(childShape);
+
+    backgroundTestNode->SetSDFShape(distortShape);
+    backgroundTestNode->SetShadowRadius(30.f);
+    backgroundTestNode->SetShadowColor(0xFF00FF00);
+
+    auto childNode = SetUpNodeBgImage(FG_TEST_JPG_PATH, {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+// Test10: innerShape==null, auto create innerShape and sync RRect
+GRAPHIC_TEST(NGSDFDistortOpShapeTest, EFFECT_TEST, Set_SDF_DistortOpShape_Test_10)
+{
+    auto backgroundTestNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    RegisterNode(backgroundTestNode);
+    Rosen::Vector4f bounds{200.f, 200.f, 800.f, 1600.f};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+    auto distortShape = CreateShape(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    auto sdfDistortOpShape = std::static_pointer_cast<RSNGSDFDistortOpShape>(distortShape);
+    sdfDistortOpShape->Setter<SDFDistortOpShapeLUCornerTag>(Vector2f{0.2f, 0.1f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeRUCornerTag>(Vector2f{0.8f, 0.1f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeRBCornerTag>(Vector2f{1.2f, 0.8f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeLBCornerTag>(Vector2f{-0.2f, 0.8f});
+    sdfDistortOpShape->Setter<SDFDistortOpShapeBarrelDistortionTag>(Vector4f{0.4f, 0.4f, 0.2f, 0.2f});
+    backgroundTestNode->SetSDFShape(distortShape);
+    backgroundTestNode->SetShadowRadius(30.f);
+    backgroundTestNode->SetShadowColor(0xFF0000FF);
+
+    auto childNode = SetUpNodeBgImage(FG_TEST_JPG_PATH, {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
 }
 
 }  // namespace OHOS::Rosen

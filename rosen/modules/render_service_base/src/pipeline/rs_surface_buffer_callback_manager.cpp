@@ -430,9 +430,10 @@ std::vector<DrawingSurfaceBufferInfo> RSSurfaceBufferCallbackManager::GetSurface
         pid_t entryPid = static_cast<pid_t>(key >> 32);
         if (entryPid == pid && !bufferList.empty()) {
             const auto& entry = bufferList.front();
-            if (entry.surfaceBuffer != nullptr) {
+            auto surfaceBuffer = entry.surfaceBuffer.promote();
+            if (surfaceBuffer != nullptr) {
                 DrawingSurfaceBufferInfo info;
-                info.surfaceBuffer_ = entry.surfaceBuffer;
+                info.surfaceBuffer_ = surfaceBuffer;
                 info.pid_ = entry.pid;
                 info.uid_ = entry.uid;
                 info.dstRect_ = entry.dstRect;

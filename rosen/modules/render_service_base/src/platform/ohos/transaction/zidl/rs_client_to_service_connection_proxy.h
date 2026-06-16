@@ -295,6 +295,9 @@ public:
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
     void RunOnRemoteDiedCallback() override;
+
+    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) override;
+
 #ifndef ENABLE_RS_PROXY
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
@@ -343,6 +346,8 @@ public:
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
+
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params) override;
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 

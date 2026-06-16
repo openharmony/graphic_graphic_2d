@@ -59,8 +59,9 @@ void RSEffectNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
         ROSEN_LOGI("RSEffectNode[%{public}lld]::SetFreeze: %{public}d", static_cast<long long>(GetId()), isFreeze);
     }
     preFreeze_ = isFreeze;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze, isMarkedByUI);
-    AddCommand(command, true);
+    SetRSCmdProperty<PreFreezeCmdModifier>(PreFreezeCmdParam{
+        isFreeze, isMarkedByUI
+    });
 }
 
 void RSEffectNode::RegisterNodeMap()

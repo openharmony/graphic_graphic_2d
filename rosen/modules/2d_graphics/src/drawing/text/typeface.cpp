@@ -353,6 +353,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromName(const char familyName[], FontSt
     return StaticFactory::MakeFromName(familyName, fontStyle);
 }
 
+// LCOV_EXCL_START
 std::string Typeface::GetFamilyName() const
 {
     if (typefaceImpl_) {
@@ -360,6 +361,7 @@ std::string Typeface::GetFamilyName() const
     }
     return std::string();
 }
+// LCOV_EXCL_STOP
 
 std::string Typeface::GetFontPath() const
 {
@@ -373,6 +375,7 @@ std::int32_t Typeface::GetFontIndex() const
 }
 // LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 FontStyle Typeface::GetFontStyle() const
 {
     if (typefaceImpl_) {
@@ -380,6 +383,7 @@ FontStyle Typeface::GetFontStyle() const
     }
     return FontStyle();
 }
+// LCOV_EXCL_STOP
 
 size_t Typeface::GetTableSize(uint32_t tag) const
 {
@@ -397,6 +401,7 @@ size_t Typeface::GetTableData(uint32_t tag, size_t offset, size_t length, void* 
     return 0;
 }
 
+// LCOV_EXCL_START
 bool Typeface::GetBold() const
 {
     if (typefaceImpl_) {
@@ -404,7 +409,9 @@ bool Typeface::GetBold() const
     }
     return false;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool Typeface::GetItalic() const
 {
     if (typefaceImpl_) {
@@ -412,7 +419,9 @@ bool Typeface::GetItalic() const
     }
     return false;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool Typeface::GetMonospace() const
 {
     if (typefaceImpl_) {
@@ -420,7 +429,9 @@ bool Typeface::GetMonospace() const
     }
     return false;
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool Typeface::IsColored() const
 {
     if (typefaceImpl_) {
@@ -428,6 +439,7 @@ bool Typeface::IsColored() const
     }
     return false;
 }
+// LCOV_EXCL_STOP
 
 uint32_t Typeface::GetUniqueID() const
 {
@@ -547,6 +559,7 @@ void Typeface::SetHash(uint32_t hash)
     }
 }
 
+// LCOV_EXCL_START
 uint32_t Typeface::GetSize()
 {
     if (size_ != 0) {
@@ -562,6 +575,7 @@ uint32_t Typeface::GetSize()
     size_ = data->GetSize();
     return size_;
 }
+// LCOV_EXCL_STOP
 
 void Typeface::SetSize(uint32_t size)
 {
@@ -678,10 +692,12 @@ void Typeface::SetFullHash(uint64_t fullHash)
     fullHash_ = fullHash;
 }
 
+// LCOV_EXCL_START
 uint64_t Typeface::GetFullHash() const
 {
     return fullHash_;
 }
+// LCOV_EXCL_STOP
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

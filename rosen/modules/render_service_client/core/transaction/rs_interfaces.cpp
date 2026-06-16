@@ -1161,6 +1161,11 @@ int32_t RSInterfaces::SetOverlayDisplayMode(int32_t mode)
 }
 #endif
 
+int32_t RSInterfaces::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    return renderServiceClient_->SendVideoRateInfo(videoRateInfo);
+}
+
 void RSInterfaces::NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter)
 {
     auto pageNameList = RSFrameRatePolicy::GetInstance()->GetPageNameList();
@@ -1194,6 +1199,11 @@ bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
 bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 {
     return renderServiceClient_->GetBehindWindowFilterEnabled(enabled);
+}
+
+bool RSInterfaces::SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    return renderServiceClient_->SetApsConfigParams(event, params);
 }
 
 void RSInterfaces::ClearUifirstCache(NodeId id)

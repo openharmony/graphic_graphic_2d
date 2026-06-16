@@ -16,6 +16,7 @@
 #ifndef FONT_FILETYPE_H
 #define FONT_FILETYPE_H
 
+#include <cstddef>
 #include <string>
 
 #include "typeface.h"
@@ -56,6 +57,15 @@ public:
      * @return           file type of aimed typeface.
      */
     static FontFileFormat GetFontFileType(const std::vector<uint8_t>& data, int& fileCount);
+
+    /**
+     * @brief            Returns the file type and face numbers of aimed file data.
+     * @param data       raw pointer to file data (must remain valid during call).
+     * @param length     length of data in bytes.
+     * @param fileCount  number of faces contained in object.
+     * @return           file type of aimed typeface.
+     */
+    static FontFileFormat GetFontFileType(const void* data, size_t length, int& fileCount);
 };
 } // Drawing
 } // Rosen

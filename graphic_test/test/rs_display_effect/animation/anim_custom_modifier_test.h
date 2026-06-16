@@ -16,6 +16,10 @@
 #ifndef ANIM_CUSTOM_MODIFIER_TEST_H
 #define ANIM_CUSTOM_MODIFIER_TEST_H
 
+#include <cstdint>
+#include <memory>
+#include <vector>
+
 #include "modifier_ng/custom/rs_content_style_modifier.h"
 
 namespace OHOS {
@@ -24,19 +28,25 @@ using ContentStyleModifier = Rosen::ModifierNG::RSContentStyleModifier;
 using DrawingContext = Rosen::ModifierNG::RSDrawingContext;
 class AnimationCustomModifier : public ContentStyleModifier {
 public:
-    ~AnimationCustomModifier() = default;
+    ~AnimationCustomModifier() override;
 
-    void Draw(DrawingContext& context) const;
+    void Draw(DrawingContext& context) const override;
     void SetPosition(float position);
     // Set the horizontal pixel unit of an animation graph
     void SetTimeInterval(float timeInterval);
     void SetPointColor(Drawing::Color color);
+    void RecordCurrentPosition() const;
 
 private:
+    void RegisterAnimationFrameCallback();
+    void DrawEmpty(DrawingContext& context) const;
+    void DrawPositionCurve(DrawingContext& context) const;
+
     std::shared_ptr<OHOS::Rosen::RSAnimatableProperty<float>> position_;
     float timeInterval_ = 1.0f;
     mutable std::vector<float> positionVec_ = {};
     Drawing::Color pointColor_ = Drawing::Color::COLOR_BLACK;
+    uint64_t animationFrameCallbackId_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

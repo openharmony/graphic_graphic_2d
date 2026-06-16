@@ -46,6 +46,7 @@ ohos_shared_library("cj_color_manager_ffi") {
       "napi:ace_napi",
       "napi:cj_bind_ffi",
       "napi:cj_bind_native",
+      "c_utils:utils",
     ]
     sources = [
       "cj_color_manager.cpp",

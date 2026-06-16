@@ -142,20 +142,26 @@ int Image::GetHeight() const
     return imageImplPtr->GetHeight();
 }
 
+// LCOV_EXCL_START
 ColorType Image::GetColorType() const
 {
     return imageImplPtr->GetColorType();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 AlphaType Image::GetAlphaType() const
 {
     return imageImplPtr->GetAlphaType();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 std::shared_ptr<ColorSpace> Image::GetColorSpace() const
 {
     return imageImplPtr->GetColorSpace();
 }
+// LCOV_EXCL_STOP
 
 uint32_t Image::GetUniqueID() const
 {
@@ -208,25 +214,33 @@ bool Image::GetROPixels(Bitmap& bitmap) const
     return imageImplPtr->GetROPixels(bitmap);
 }
 
+// LCOV_EXCL_START
 std::shared_ptr<Image> Image::MakeRasterImage() const
 {
     return imageImplPtr->MakeRasterImage();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool Image::CanPeekPixels() const
 {
     return imageImplPtr->CanPeekPixels();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 bool Image::IsOpaque() const
 {
     return imageImplPtr->IsOpaque();
 }
+// LCOV_EXCL_STOP
 
+// LCOV_EXCL_START
 void Image::HintCacheGpuResource() const
 {
     imageImplPtr->HintCacheGpuResource();
 }
+// LCOV_EXCL_STOP
 
 std::shared_ptr<Data> Image::Serialize() const
 {

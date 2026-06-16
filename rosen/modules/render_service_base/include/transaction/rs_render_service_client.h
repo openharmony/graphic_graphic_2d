@@ -43,6 +43,7 @@
 #include "platform/drawing/rs_surface.h"
 #endif
 #include "rs_render_service_client_info.h"
+#include "screen_manager/screen_types.h"
 #ifndef ENABLE_RS_PROXY
 #include "rs_hrp_service.h"
 #include "rs_irender_client.h"
@@ -372,6 +373,9 @@ public:
     void SetCacheEnabledForRotation(bool isEnabled);
 #endif
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
+
+    int32_t SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
+
 #ifndef ENABLE_RS_PROXY
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
  
@@ -420,6 +424,8 @@ public:
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
+
+    bool SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB);
 

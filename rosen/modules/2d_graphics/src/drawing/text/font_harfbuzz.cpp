@@ -157,7 +157,7 @@ hb_blob_t* GetTable(hb_face_t* face, hb_tag_t tag, void* userData)
     auto rawData = data.release();
     return hb_blob_create(rawData, size,
                           HB_MEMORY_MODE_READONLY, rawData, [](void* ctx) {
-                              std::unique_ptr<char[]>((char*)ctx);
+                              std::unique_ptr<char[]>(static_cast<char*>(ctx));
                           });
 }
 

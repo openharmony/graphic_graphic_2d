@@ -189,6 +189,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     SET_OVERLAY_DISPLAY_MODE = 0x010001,
 #endif
+    SET_VIDEO_RATE_INFO = 0x010002,
 
     ON_FIRST_FRAME_COMMIT = 0x011000,
     ON_EXPOSED_EVENT = 0x011001,
@@ -216,6 +217,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 1010,
     NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID = 1011,
     NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME = 1012,
+    SET_APS_CONFIG_PARAMS = 1015,
 };
 } // namespace Rosen
 } // namespace OHOS

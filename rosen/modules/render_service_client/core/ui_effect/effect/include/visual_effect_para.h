@@ -36,6 +36,7 @@ public:
         HARMONIUM_EFFECT,
         FROSTED_GLASS_EFFECT,
         SPATIAL_GLASS_EFFECT,
+        DISTORTION_COLLAPSE_EFFECT,
         // The value in the OpenHarmony project should be less than this value.
         HDS_EFFECT_BEGIN = 2048,
     };

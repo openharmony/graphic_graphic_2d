@@ -1444,6 +1444,8 @@ public:
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
 
+    int32_t SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
+
     /**
      * @brief Notify pageName change.
      * @param packageName the name of package.
@@ -1455,6 +1457,14 @@ public:
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
+
+    /**
+     * @brief Set Aps config parameters.
+     * @param event Indicates the Aps event type, see ApsEventType.
+     * @param params Indicates the config parameters key-value pairs.
+     * @return Returns true if success, false otherwise.
+     */
+    bool SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
 

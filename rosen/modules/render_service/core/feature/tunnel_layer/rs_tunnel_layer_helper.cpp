@@ -23,7 +23,8 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_tunnel_runtime_state.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "rs_composer_client_manager.h"
@@ -97,7 +98,7 @@ bool CanCommitBufferDirect(const std::shared_ptr<RSSurfaceRenderNode>& node,
     if (consumer == nullptr) {
         return RejectDirectCommit(nodeId, "consumer_null");
     }
-    if (!node->GetTunnelRuntimeState().IsTunnelDirectAllowed()) {
+    if (!RSTunnelRuntimeStore::GetOrCreate(nodeId).IsTunnelDirectAllowed()) {
         return RejectDirectCommit(nodeId, "runtime_not_active");
     }
     if (!node->IsOnTheTree()) {
@@ -226,7 +227,7 @@ bool RSTunnelLayerHelper::TryCommitBufferDirect(const std::shared_ptr<RSSurfaceR
     if (node == nullptr) {
         return false;
     }
-    auto& tunnelRuntime = node->GetTunnelRuntimeState();
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
     if (!tunnelRuntime.IsTunnelDirectAllowed()) {
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s reject, nodeId=%" PRIu64 ", state=%s",
             __func__, node->GetId(), ToTunnelStateName(tunnelRuntime.GetTunnelState()));
@@ -260,7 +261,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     if (surfaceHandler == nullptr) {
         return false;
     }
-    auto& tunnelRuntime = node->GetTunnelRuntimeState();
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
     RSSurfaceHandler::SurfaceBufferEntry pendingBuffer;
     if (!tunnelRuntime.TakePendingBuffer(pendingBuffer)) {
         return false;
@@ -286,7 +287,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     commitInfo.buffer = pendingBuffer.buffer;
     commitInfo.acquireFence = pendingBuffer.acquireFence;
     if (!CommitBuffer(commitInfo, composerClientManager, releaseFence)) {
-        node->SetTunnelLayerInfo(0, TUNNEL_PROP_INVALID);
+        RSTunnelRuntimeStore::SetLayerInfo(node->GetId(), 0, TUNNEL_PROP_INVALID);
         tunnelRuntime.SetLayerInfo(0, TUNNEL_PROP_INVALID);
         tunnelRuntime.SetBuilding();
         if (fallbackOnFailure) {
@@ -323,33 +324,29 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     return true;
 }
 
-void RSTunnelLayerHelper::BeginTunnelBuilding(const std::shared_ptr<RSSurfaceRenderNode>& node,
-    uint64_t tunnelLayerId, uint32_t property)
+void RSTunnelLayerHelper::BeginTunnelBuilding(NodeId nodeId, uint64_t tunnelLayerId, uint32_t property)
 {
-    if (node == nullptr) {
-        return;
-    }
-    auto& tunnelRuntime = node->GetTunnelRuntimeState();
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(nodeId);
     uint64_t currentTunnelLayerId = 0;
     uint32_t currentProperty = TUNNEL_PROP_INVALID;
-    node->GetTunnelLayerInfo(currentTunnelLayerId, currentProperty);
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(nodeId, currentTunnelLayerId, currentProperty);
     if (currentTunnelLayerId != tunnelLayerId || currentProperty != property) {
         tunnelRuntime.Clear();
     }
-    node->SetTunnelLayerInfo(tunnelLayerId, property);
+    RSTunnelRuntimeStore::SetLayerInfo(nodeId, tunnelLayerId, property);
     tunnelRuntime.SetBuilding();
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s BUILDING, nodeId=%" PRIu64 ", tunnelLayerId=%" PRIu64
-        ", property=%u", __func__, node->GetId(), tunnelLayerId, property);
+        ", property=%u", __func__, nodeId, tunnelLayerId, property);
     RS_LOGD("%{public}s%{public}s BUILDING, nodeId:%{public}" PRIu64 ", tunnelLayerId:%{public}" PRIu64
         ", property:%{public}u",
-        TUNNEL_DEBUG_PREFIX, __func__, node->GetId(), tunnelLayerId, property);
+        TUNNEL_DEBUG_PREFIX, __func__, nodeId, tunnelLayerId, property);
 }
 
 void RSTunnelLayerHelper::ResetTunnelState(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (node != nullptr) {
-        node->SetTunnelLayerInfo(0, TUNNEL_PROP_INVALID);
-        node->GetTunnelRuntimeState().Clear();
+        RSTunnelRuntimeStore::SetLayerInfo(node->GetId(), 0, TUNNEL_PROP_INVALID);
+        RSTunnelRuntimeStore::Clear(node->GetId());
     }
 }
 
@@ -358,8 +355,9 @@ bool RSTunnelLayerHelper::AcquirePendingBuffer(const std::shared_ptr<RSSurfaceRe
     if (node == nullptr) {
         return false;
     }
-    auto tunnelState = node->GetTunnelRuntimeState().GetTunnelState();
-    if (!node->GetTunnelRuntimeState().IsTunnelDirectAllowed()) {
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
+    auto tunnelState = tunnelRuntime.GetTunnelState();
+    if (!tunnelRuntime.IsTunnelDirectAllowed()) {
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s reject, nodeId=%" PRIu64 ", state=%s",
             __func__, node->GetId(), ToTunnelStateName(tunnelState));
         RS_LOGD("%{public}s%{public}s reject, nodeId:%{public}" PRIu64 ", state:%{public}s",
@@ -387,7 +385,7 @@ bool RSTunnelLayerHelper::AcquirePendingBuffer(const std::shared_ptr<RSSurfaceRe
     auto pendingBuffer = CreateTunnelPendingBuffer(returnValue);
     RSUniRenderThread::Instance().AddPendingReleaseBuffer(
         consumer, pendingBuffer.buffer, SyncFence::InvalidFence(), pendingBuffer.bufferOwnerCount_);
-    node->GetTunnelRuntimeState().SetPendingBuffer(pendingBuffer);
+    tunnelRuntime.SetPendingBuffer(pendingBuffer);
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s success, nodeId=%" PRIu64 ", bufferId=%" PRIu64 ", available=%u",
         __func__, surfaceHandler->GetNodeId(), returnValue.buffer->GetBufferId(),
         consumer->GetAvailableBufferCount());
@@ -407,7 +405,7 @@ RSTunnelLayerHelper::ListenerHandleResult RSTunnelLayerHelper::HandleListenerBuf
     if (node == nullptr || surfaceHandler == nullptr) {
         return result;
     }
-    auto& tunnelRuntime = node->GetTunnelRuntimeState();
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node->GetId());
     auto tunnelState = tunnelRuntime.GetTunnelState();
     if (composerClientManager == nullptr) {
         RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, nodeId=%" PRIu64 ", reason=composer_null, state=%s",
@@ -438,18 +436,25 @@ RSTunnelLayerHelper::ListenerHandleResult RSTunnelLayerHelper::HandleListenerBuf
     }
     auto claimedFrom = RSTunnelRuntimeState::Phase::TUNNEL_IDLE;
     if (!tunnelRuntime.TryClaimByListener(claimedFrom)) {
-        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, nodeId=%" PRIu64 ", reason=phase, phase=%s, pending=%d",
-            __func__, node->GetId(), ToPhaseName(tunnelRuntime.GetPhase()), tunnelRuntime.IsPendingParam());
+        RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s rejected, nodeId=%" PRIu64 ", reason=phase,"
+            "phase=%s, pending=%d, claimedFrom:%d",
+            __func__, node->GetId(), ToPhaseName(tunnelRuntime.GetPhase()),
+            tunnelRuntime.IsPendingParam(), claimedFrom);
         RS_LOGD("TUNNEL_DEBUG %{public}s rejected, nodeId:%{public}" PRIu64
             ", reason:phase, phase:%{public}s, pending:%{public}d",
             __func__, node->GetId(), ToPhaseName(tunnelRuntime.GetPhase()), tunnelRuntime.IsPendingParam());
         return result;
     }
-    bool previousFrameWasRs = claimedFrom == RSTunnelRuntimeState::Phase::NORMAL_COMMITTED;
+    RS_OPTIONAL_TRACE_NAME_FMT("HandleListenerBuffer claimedFrom:%d", claimedFrom);
+    bool previousFrameWasRs = claimedFrom == RSTunnelRuntimeState::Phase::NORMAL_COMMITTED ||
+        claimedFrom == RSTunnelRuntimeState::Phase::TUNNEL_IDLE;
     bool hasCommitCandidateBuffer = surfaceHandler->GetAvailableBufferCount() > 0 ||
         tunnelRuntime.HasPendingBuffer();
     bool directCommitted = hasCommitCandidateBuffer &&
         TryCommitBufferDirect(node, composerClientManager, true, previousFrameWasRs);
+    if (directCommitted) {
+        RSMainThread::Instance()->ResetConsecutiveDoCompSuccessCount();
+    }
     bool needRequestVsync = tunnelRuntime.ReleaseByListener();
     RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s nodeId=%" PRIu64
         ", candidate=%d, committed=%d, available=%d, pending=%d",

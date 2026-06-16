@@ -39,6 +39,7 @@
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "feature/hdr/rs_colorspace_util.h"
@@ -49,6 +50,7 @@
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "params/rs_render_params.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -615,9 +617,6 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         RS_LOGD("RSRenderNode::SetIsOnTheTree on tree: node[id:%{public}" PRIu64 "]", GetId());
         InitRenderDrawableAndDrawableVec();
     }
-    if (autoClearCloneNode_ && !flag) {
-        ClearCloneCrossNode();
-    }
 
     if (enableHdrEffect_) {
         NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
@@ -815,65 +814,7 @@ void RSRenderNode::UpdateChildrenRect(const RectI& subRect)
     }
 }
 
-void RSRenderNode::ClearCloneCrossNode()
-{
-    if (cloneCrossNodeVec_.size() == 0) {
-        return;
-    }
-
-    for (auto it = cloneCrossNodeVec_.begin(); it != cloneCrossNodeVec_.end(); ++it) {
-        if (auto parent = (*it)->GetParent().lock()) {
-            parent->RemoveChild(*it, true);
-        }
-    }
-    cloneCrossNodeVec_.clear();
-}
-
-void RSRenderNode::SetIsCrossNode(bool isCrossNode)
-{
-    if (!isCrossNode) {
-        ClearCloneCrossNode();
-    }
-    isCrossNode_ = isCrossNode;
-}
-
-bool RSRenderNode::IsCrossNode() const
-{
-    return isCrossNode_ || isCloneCrossNode_;
-}
-
-bool RSRenderNode::HasVisitedCrossNode() const
-{
-    return hasVisitedCrossNode_;
-}
-
-void RSRenderNode::SetCrossNodeVisitedStatus(bool hasVisited)
-{
-    if (isCrossNode_) {
-        hasVisitedCrossNode_ = hasVisited;
-        RS_LOGD("%{public}s NodeId[%{public}" PRIu64 "] hasVisited:%{public}d", __func__, GetId(), hasVisited);
-        for (auto cloneNode : cloneCrossNodeVec_) {
-            if (!cloneNode) {
-                RS_LOGE("%{public}s cloneNode is nullptr sourceNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
-                        __func__, GetId(), hasVisited);
-                continue;
-            }
-            cloneNode->hasVisitedCrossNode_ = hasVisited;
-            RS_LOGD("%{public}s cloneNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
-                    __func__, cloneNode->GetId(), hasVisited);
-        }
-    } else if (isCloneCrossNode_) {
-        auto sourceNode = GetSourceCrossNode().lock();
-        if (!sourceNode) {
-            RS_LOGE("%{public}s sourceNode is nullptr cloneNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
-                    __func__, GetId(), hasVisited);
-            return;
-        }
-        sourceNode->SetCrossNodeVisitedStatus(hasVisited);
-    }
-}
-
-void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
+void RSRenderNode::AddCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, int32_t index)
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
     // so this child will not remove from the old parent.
@@ -902,7 +843,7 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent)
+void RSRenderNode::RemoveCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, const WeakPtr& newParent)
 {
     // RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
     // set the newParentId to rebuild the parent-child relationship.
@@ -934,8 +875,8 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     isFullChildrenListValid_ = false;
 }
 
-void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index,
-    bool autoClearCloneNode)
+void RSRenderNode::AddCrossScreenChild(const std::shared_ptr<RSSurfaceRenderNode>& child, NodeId cloneNodeId,
+    int32_t index, bool autoClearCloneNode)
 {
     auto context = GetContext().lock();
     if (child == nullptr || context == nullptr) {
@@ -961,7 +902,7 @@ void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeI
             "" PRIu64 "", cloneNode->GetId());
         return;
     }
-    auto& cloneNodeParams = cloneNode->GetStagingRenderParams();
+    auto cloneNodeParams = static_cast<RSSurfaceRenderParams*>(cloneNode->GetStagingRenderParams().get());
     if (cloneNodeParams == nullptr) {
         ROSEN_LOGE("RSRenderNode::AddCrossScreenChild failed! clone node params is null. id=%{public}"
             "" PRIu64 "", GetId());
@@ -981,12 +922,7 @@ void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeI
     AddChild(cloneNode, index);
 }
 
-void RSRenderNode::RecordCloneCrossNode(SharedPtr node)
-{
-    cloneCrossNodeVec_.emplace_back(node);
-}
-
-void RSRenderNode::RemoveCrossScreenChild(const SharedPtr& child)
+void RSRenderNode::RemoveCrossScreenChild(const std::shared_ptr<RSSurfaceRenderNode>& child)
 {
     if (child == nullptr) {
         ROSEN_LOGE("RSRenderNode::RemoveCrossScreenChild child is null");
@@ -1799,7 +1735,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
     }
-    if (animationManager_->animations_.empty()) {
+    if (animationManager_->animations_.empty() && animationManager_->pendingCancelAnimation_.empty()) {
         animationManager_.reset();
         ROSEN_LOGD("%{public}s: animationManager reset", __func__);
     }
@@ -3442,20 +3378,32 @@ void RSRenderNode::UpdateDrawableVecV2()
 void RSRenderNode::UpdateShadowRect()
 {
 #ifdef RS_ENABLE_GPU
-    if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::SHADOW)) != nullptr &&
-        GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+    auto shadowDrawable = findMapValueRef(GetDrawableVec(__func__),
+        static_cast<int8_t>(RSDrawableSlot::SHADOW));
+    if (shadowDrawable != nullptr) {
         RectI shadowRect;
         auto rRect = GetRenderProperties().GetRRect();
-        RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rRect, false, false);
-        stagingRenderParams_->SetShadowRect(Drawing::Rect(
-            static_cast<float>(shadowRect.GetLeft()),
-            static_cast<float>(shadowRect.GetTop()),
-            static_cast<float>(shadowRect.GetRight()),
-            static_cast<float>(shadowRect.GetBottom())));
-        RS_OPTIONAL_TRACE_NAME_FMT("UpdateShadowRect id:%llu shadowRect:%s",
-            GetId(), shadowRect.ToString().c_str());
+        if (GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+            // Color strategy is active: compute shadowRect only
+            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rRect, false, false);
+            stagingRenderParams_->SetShadowRect(Drawing::Rect(
+                static_cast<float>(shadowRect.GetLeft()),
+                static_cast<float>(shadowRect.GetTop()),
+                static_cast<float>(shadowRect.GetRight()),
+                static_cast<float>(shadowRect.GetBottom())));
+        } else {
+            // Color strategy is NONE: compute realShadowRect only, clear shadowRect
+            RSPropertiesPainter::GetShadowDirtyRect(shadowRect, GetRenderProperties(), &rRect, false, true);
+            stagingRenderParams_->SetRealShadowRect(Drawing::Rect(
+                static_cast<float>(shadowRect.GetLeft()),
+                static_cast<float>(shadowRect.GetTop()),
+                static_cast<float>(shadowRect.GetRight()),
+                static_cast<float>(shadowRect.GetBottom())));
+            stagingRenderParams_->SetShadowRect(Drawing::Rect());
+        }
     } else {
         stagingRenderParams_->SetShadowRect(Drawing::Rect());
+        stagingRenderParams_->SetRealShadowRect(Drawing::Rect());
     }
 #endif
 }
@@ -4368,6 +4316,14 @@ std::shared_ptr<RSAnimationManager> RSRenderNode::GetAnimationManager() const
     return animationManager_;
 }
 
+std::shared_ptr<RSAnimationManager> RSRenderNode::GetOrCreateAnimationManager()
+{
+    if (!animationManager_) {
+        animationManager_ = std::make_shared<RSAnimationManager>();
+    }
+    return animationManager_;
+}
+
 void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     if (!animationManager_) {
@@ -4607,12 +4563,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetNodeType(GetType());
     stagingRenderParams_->SetEffectNodeShouldPaint(EffectNodeShouldPaint());
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
-    stagingRenderParams_->SetFirstLevelCrossNode(isFirstLevelCrossNode_);
     stagingRenderParams_->SetAbsRotation(absRotation_);
-    auto cloneSourceNode = GetSourceCrossNode().lock();
-    if (cloneSourceNode) {
-        stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());
-    }
     stagingRenderParams_->MarkRepaintBoundary(isRepaintBoundary_);
     stagingRenderParams_->SetNeedClipHoleForFilter(GetRenderProperties().NeedClipHoleForRenderGroup());
     stagingRenderParams_->SetDoubleSidedEnabled(GetRenderProperties().GetDoubleSidedEnabled());
@@ -4629,11 +4580,6 @@ void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
     oldChildrenRect_ = childrenRect_;
     oldClipRect_ = clipRect;
     oldAbsMatrix_ = geoPtr->GetAbsMatrix();
-}
-
-void RSRenderNode::SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_)
-{
-    stagingRenderParams_->SetCrossNodeOffScreenStatus(isCrossNodeOffscreenOn_);
 }
 
 bool RSRenderNode::UpdateLocalDrawRect()
@@ -5601,9 +5547,11 @@ std::shared_ptr<RSFilter> RSRenderNode::GetRSFilterWithSlot(RSDrawableSlot slot)
 
 void RSRenderNode::UpdateSDFTransformRectInfo()
 {
-    auto boundsRect = GetRenderProperties().GetBoundsRect();
-    auto sdfShape = GetRenderProperties().GetSDFShape();
+    auto& properties = GetRenderProperties();
+    auto sdfShape = properties.GetSDFShape();
+    auto boundsRect = properties.GetBoundsRect();
     if (sdfShape) {
+        RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, properties.GetRRectForSDF(), GetId());
         // Calc transform draw rect and store in sdf shape instance
         RSNGRenderShapeHelper::CalcRect(sdfShape, boundsRect);
     }

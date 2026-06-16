@@ -467,7 +467,7 @@ void RSUIDirector::SetRequestVsyncCallback(const std::function<void()>& callback
         return;
     }
     std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
-    if (rsUIContext_) {
+    if (rsUIContext_ && RSSystemProperties::GetUniRenderEnabled()) {
         rsUIContext_->SetRequestVsyncCallback(callback);
     } else {
         requestVsyncCallbacks_[this] = callback;

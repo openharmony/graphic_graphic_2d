@@ -118,6 +118,14 @@ ErrCode RSServiceToRenderConnection::SetOverlayDisplayMode(int32_t mode)
 }
 #endif
 
+#ifdef RS_ENABLE_TV_PQ_METADATA
+ErrCode RSServiceToRenderConnection::SendVideoRateInfo(
+    const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    return renderPipelineAgent_->SendVideoRateInfo(videoRateInfo);
+}
+#endif
+
 void RSServiceToRenderConnection::ReportGameStateData(GameStateData info)
 {
     RS_LOGI("[game_accelerate_schedule] ReportGameStateData = %{public}s, uid = %{public}d, state = %{public}d,"
@@ -135,6 +143,13 @@ ErrCode RSServiceToRenderConnection::SetBehindWindowFilterEnabled(bool enabled)
 ErrCode RSServiceToRenderConnection::GetBehindWindowFilterEnabled(bool& enabled)
 {
     enabled = renderPipelineAgent_->GetBehindWindowFilterEnabled();
+    return ERR_OK;
+}
+
+ErrCode RSServiceToRenderConnection::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    renderPipelineAgent_->SetApsConfigParams(event, params);
     return ERR_OK;
 }
 

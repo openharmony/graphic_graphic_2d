@@ -91,6 +91,15 @@ bool RSRenderGroupCache::SetNeedClearRenderGroupCache(bool needClear)
     return true;
 }
 
+bool RSRenderGroupCache::SetRealShadowRect(const Drawing::Rect& rect)
+{
+    if (realShadowRect_ == rect) {
+        return false;
+    }
+    realShadowRect_ = rect;
+    return true;
+}
+
 bool RSRenderGroupCache::SetRenderGroupIncludeProperty(bool includeProperty)
 {
     if (renderGroupIncludeProperty_ == includeProperty) {

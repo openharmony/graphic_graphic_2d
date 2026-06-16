@@ -1,0 +1,55 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "command_modifier/rs_window_keyframe_node_command_modifier.h"
+
+#include "command/rs_node_command.h"
+#include "feature/window_keyframe/rs_window_keyframe_node_command.h"
+#include "feature/window_keyframe/rs_window_keyframe_node.h"
+
+namespace OHOS {
+namespace Rosen {
+
+void WkfIsFreezeCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSWindowKeyFrameNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(
+        node->GetId(), param_.isFreeze_, param_.isMarkedByUI_);
+    AddCommand(command, true);
+}
+
+void WkfLinkedNodeIdCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSWindowKeyFrameNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSWindowKeyFrameNodeLinkNode>(node->GetId(), param_.linkedNodeId_);
+    AddCommand(command, true);
+}
+
+void WkfIsFreezeCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{isFreeze:" + std::string(param_.isFreeze_ ? "true" : "false") +
+           ", isMarkedByUI:" + std::string(param_.isMarkedByUI_ ? "true" : "false") + "}";
+}
+
+void WkfLinkedNodeIdCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{linkedNodeId:" + std::to_string(param_.linkedNodeId_) + "}";
+}
+
+} // namespace Rosen
+} // namespace OHOS

@@ -37,7 +37,6 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
-#include "pipeline/rs_tunnel_runtime_state.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_surface_ext.h"
 #include "platform/common/rs_system_properties.h"
@@ -1812,6 +1811,43 @@ public:
     {
         crossNodeSkipDisplayConversionMatrices_.clear();
     }
+
+    void ClearCloneCrossNode();
+    void SetCrossNodeVisitedStatus(bool hasVisited);
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn);
+    void RecordCloneCrossNode(std::shared_ptr<RSSurfaceRenderNode> node)
+    {
+        cloneCrossNodeVec_.emplace_back(node);
+    }
+
+    void SetIsCrossNode(bool isCrossNode)
+    {
+        if (!isCrossNode) {
+            ClearCloneCrossNode();
+        }
+        isCrossNode_ = isCrossNode;
+    }
+
+    bool IsCrossNode() const override
+    {
+        return isCrossNode_ || isCloneCrossNode_;
+    }
+
+    bool IsCloneCrossNode() const
+    {
+        return isCloneCrossNode_;
+    }
+
+    bool HasVisitedCrossNode() const
+    {
+        return hasVisitedCrossNode_;
+    }
+
+    std::weak_ptr<RSSurfaceRenderNode> GetSourceCrossNode() const
+    {
+        return sourceCrossNode_;
+    }
+
     HdrStatus GetVideoHdrStatus() const
     {
         return hdrVideoSurface_;
@@ -1937,28 +1973,6 @@ public:
     void SetHDRType(uint32_t hdrType);
     uint32_t GetHDRType() const;
 
-    void GetTunnelLayerInfo(uint64_t& tunnelLayerId, uint32_t& property)
-    {
-        tunnelRuntimeState_->GetLayerInfo(tunnelLayerId, property);
-    }
-
-    void SetTunnelLayerInfo(uint64_t tunnelLayerId, uint32_t property)
-    {
-        if (tunnelLayerId == 0) {
-            property = TUNNEL_PROP_INVALID;
-        }
-        tunnelRuntimeState_->SetLayerInfo(tunnelLayerId, property);
-    }
-
-    RSTunnelRuntimeState& GetTunnelRuntimeState()
-    {
-        return *tunnelRuntimeState_;
-    }
-
-    const RSTunnelRuntimeState& GetTunnelRuntimeState() const
-    {
-        return *tunnelRuntimeState_;
-    }
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -2108,6 +2122,14 @@ private:
     bool arsrTag_ = true;
     bool copybitTag_ = false;
 
+    // cross node
+    bool isCrossNode_ = false;
+    bool isCloneCrossNode_ = false;
+    bool autoClearCloneNode_ = false;
+    bool hasVisitedCrossNode_ = false;
+    std::weak_ptr<RSSurfaceRenderNode> sourceCrossNode_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> cloneCrossNodeVec_;
+
     // hpae offline
     bool deviceOfflineEnable_ = false;
 
@@ -2226,7 +2248,6 @@ private:
 
     std::string name_;
     std::string bundleName_;
-    std::unique_ptr<RSTunnelRuntimeState> tunnelRuntimeState_ = nullptr;
     std::vector<NodeId> childSurfaceNodeIds_;
     std::shared_ptr<RSRenderPipelineClient> rsRenderPipelineClient_;
     friend class RSRenderThreadVisitor;

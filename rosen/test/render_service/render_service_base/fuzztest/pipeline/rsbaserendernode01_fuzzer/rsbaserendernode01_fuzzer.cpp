@@ -80,8 +80,8 @@ bool RSBaseRenderNode01FuzzTest(const uint8_t* data, size_t size)
     NodeId idChild = GetData<NodeId>();
     NodeId idChildOne = GetData<NodeId>();
     NodeId idChildTwo = GetData<NodeId>();
-    RSBaseRenderNode::SharedPtr child = std::make_shared<RSCanvasRenderNode>(idChild, context);
-    RSBaseRenderNode::SharedPtr childOne = std::make_shared<RSCanvasRenderNode>(idChildOne, context);
+    auto child = std::make_shared<RSSurfaceRenderNode>(idChild, context);
+    auto childOne = std::make_shared<RSSurfaceRenderNode>(idChildOne, context);
     RSBaseRenderNode::SharedPtr childTwo = std::make_shared<RSCanvasRenderNode>(idChildTwo, context);
 
     int indexChild = GetData<int>();

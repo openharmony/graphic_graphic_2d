@@ -511,5 +511,66 @@ HWTEST_F(RSPixelMapUtilTest, GetPixelmapColorSpaceTest002, TestSize.Level1)
     pixelmap->grColorSpace_ = grColorSpace;
     EXPECT_EQ(*(pixelmap->grColorSpace_), OHOS::ColorManager::ColorSpaceName::ADOBE_RGB);
 }
+
+/**
+ * @tc.name: AlphaTypeToDrawingAlphaType001
+ * @tc.desc: Verify function AlphaTypeToDrawingAlphaType with IMAGE_ALPHA_TYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issue#24335
+ */
+HWTEST_F(RSPixelMapUtilTest, AlphaTypeToDrawingAlphaType001, TestSize.Level1)
+{
+    auto drawingAlphaType = RSPixelMapUtil::AlphaTypeToDrawingAlphaType(AlphaType::IMAGE_ALPHA_TYPE_UNKNOWN);
+    EXPECT_EQ(static_cast<int>(drawingAlphaType), static_cast<int>(Drawing::AlphaType::ALPHATYPE_UNKNOWN));
+}
+
+/**
+ * @tc.name: AlphaTypeToDrawingAlphaType002
+ * @tc.desc: Verify function AlphaTypeToDrawingAlphaType with IMAGE_ALPHA_TYPE_OPAQUE
+ * @tc.type: FUNC
+ * @tc.require: issue#24335
+ */
+HWTEST_F(RSPixelMapUtilTest, AlphaTypeToDrawingAlphaType002, TestSize.Level1)
+{
+    auto drawingAlphaType = RSPixelMapUtil::AlphaTypeToDrawingAlphaType(AlphaType::IMAGE_ALPHA_TYPE_OPAQUE);
+    EXPECT_EQ(static_cast<int>(drawingAlphaType), static_cast<int>(Drawing::AlphaType::ALPHATYPE_OPAQUE));
+}
+
+/**
+ * @tc.name: AlphaTypeToDrawingAlphaType003
+ * @tc.desc: Verify function AlphaTypeToDrawingAlphaType with IMAGE_ALPHA_TYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issue#24335
+ */
+HWTEST_F(RSPixelMapUtilTest, AlphaTypeToDrawingAlphaType003, TestSize.Level1)
+{
+    auto drawingAlphaType = RSPixelMapUtil::AlphaTypeToDrawingAlphaType(AlphaType::IMAGE_ALPHA_TYPE_PREMUL);
+    EXPECT_EQ(static_cast<int>(drawingAlphaType), static_cast<int>(Drawing::AlphaType::ALPHATYPE_PREMUL));
+}
+
+/**
+ * @tc.name: AlphaTypeToDrawingAlphaType004
+ * @tc.desc: Verify function AlphaTypeToDrawingAlphaType with IMAGE_ALPHA_TYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issue#24335
+ */
+HWTEST_F(RSPixelMapUtilTest, AlphaTypeToDrawingAlphaType004, TestSize.Level1)
+{
+    auto drawingAlphaType = RSPixelMapUtil::AlphaTypeToDrawingAlphaType(AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL);
+    EXPECT_EQ(static_cast<int>(drawingAlphaType), static_cast<int>(Drawing::AlphaType::ALPHATYPE_UNPREMUL));
+}
+
+/**
+ * @tc.name: AlphaTypeToDrawingAlphaType005
+ * @tc.desc: Verify function AlphaTypeToDrawingAlphaType with invalid AlphaType for default branch
+ * @tc.type: FUNC
+ * @tc.require: issue#24335
+ */
+HWTEST_F(RSPixelMapUtilTest, AlphaTypeToDrawingAlphaType005, TestSize.Level1)
+{
+    auto invalidAlphaType = static_cast<AlphaType>(100);
+    auto drawingAlphaType = RSPixelMapUtil::AlphaTypeToDrawingAlphaType(invalidAlphaType);
+    EXPECT_EQ(static_cast<int>(drawingAlphaType), static_cast<int>(Drawing::AlphaType::ALPHATYPE_UNKNOWN));
+}
 } // namespace Rosen
 } // namespace OHOS

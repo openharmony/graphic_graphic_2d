@@ -1,0 +1,143 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "command_modifier/rs_canvas_node_command_modifier.h"
+
+#include "command/rs_canvas_node_command.h"
+#include "ui/rs_canvas_node.h"
+#include "platform/common/rs_log.h"
+
+namespace OHOS {
+namespace Rosen {
+
+void HdrPresentCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetHDRPresent>(
+        node->GetId(), param_.hdrPresent_);
+    if (AddCommand(command, true)) {
+        ROSEN_LOGD("RSCanvasNode::SetHDRPresent HDRClient set hdr true");
+    }
+}
+
+void ColorGamutCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetColorGamut>(
+        node->GetId(), param_.colorGamut_);
+    AddCommand(command, true);
+}
+
+void IsFreezeCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(
+        node->GetId(), param_.isFreeze_, param_.isMarkedByUI_);
+    AddCommand(command, true);
+}
+
+void ClearRecordingCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeClearRecording>(
+        node->GetId());
+    AddCommand(command, node->IsRenderServiceNode());
+}
+
+void FinishRecordCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeUpdateRecording>(
+        node->GetId(), param_.drawCmdList_, param_.modifierType_);
+    AddCommand(command, node->IsRenderServiceNode());
+}
+
+void DrawOnNodeCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> clearRecordingCommand = std::make_unique<RSCanvasNodeClearRecording>(
+        node->GetId());
+    AddCommand(clearRecordingCommand, node->IsRenderServiceNode());
+
+    std::unique_ptr<RSCommand> updateRecordingCommand = std::make_unique<RSCanvasNodeUpdateRecording>(
+        node->GetId(), param_.drawCmdList_, param_.modifierType_);
+    AddCommand(updateRecordingCommand, node->IsRenderServiceNode());
+}
+
+RSCmdModifier::UpdateResult DrawOnNodeCmdModifier::UpdateToRenderWithResult()
+{
+    auto node = std::static_pointer_cast<RSCanvasNode>(GetNode());
+    if (!node) return false;
+    std::unique_ptr<RSCommand> clearRecordingCommand = std::make_unique<RSCanvasNodeClearRecording>(
+        node->GetId());
+    AddCommand(clearRecordingCommand, node->IsRenderServiceNode());
+
+    std::unique_ptr<RSCommand> updateRecordingCommand = std::make_unique<RSCanvasNodeUpdateRecording>(
+        node->GetId(), param_.drawCmdList_, param_.modifierType_);
+    return AddCommand(updateRecordingCommand, node->IsRenderServiceNode());
+}
+
+void HdrPresentCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{hdrPresent:" + std::string(param_.hdrPresent_ ? "true" : "false") + "}";
+}
+
+void ColorGamutCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{colorGamut:" + std::to_string(param_.colorGamut_) + "}";
+}
+
+void IsFreezeCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{isFreeze:" + std::string(param_.isFreeze_ ? "true" : "false") +
+           ", isMarkedByUI:" + std::string(param_.isMarkedByUI_ ? "true" : "false") + "}";
+}
+
+void ClearRecordingCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{width:" + std::to_string(param_.width_) +
+           ", height:" + std::to_string(param_.height_) + "}";
+}
+
+void FinishRecordCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{drawCmdList:";
+    if (param_.drawCmdList_) {
+        out += "[size:" + std::to_string(param_.drawCmdList_->GetSize()) + "]";
+    } else {
+        out += "null";
+    }
+    out += ", modifierType:" + std::to_string(param_.modifierType_) + "}";
+}
+
+void DrawOnNodeCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{drawCmdList:";
+    if (param_.drawCmdList_) {
+        out += "[size:" + std::to_string(param_.drawCmdList_->GetSize()) + "]";
+    } else {
+        out += "null";
+    }
+    out += ", modifierType:" + std::to_string(param_.modifierType_) + "}";
+}
+
+} // namespace Rosen
+} // namespace OHOS

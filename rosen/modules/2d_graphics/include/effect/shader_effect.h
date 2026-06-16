@@ -135,6 +135,23 @@ public:
         const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
         TileMode mode, scalar startAngle, scalar endAngle, const Matrix* matrix = nullptr);
 
+    static std::shared_ptr<ShaderEffect> CreateLinearGradientNotLazy(const Point& startPt, const Point& endPt,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, const Matrix* matrix = nullptr);
+
+    static std::shared_ptr<ShaderEffect> CreateRadialGradientNotLazy(const Point& centerPt, scalar radius,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, const Matrix* matrix = nullptr);
+
+    static std::shared_ptr<ShaderEffect> CreateTwoPointConicalNotLazy(const Point& startPt, scalar startRadius,
+        const Point& endPt, scalar endRadius, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+        const Matrix* matrix = nullptr);
+
+    static std::shared_ptr<ShaderEffect> CreateSweepGradientNotLazy(const Point& centerPt,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+        TileMode mode, scalar startAngle, scalar endAngle, const Matrix* matrix = nullptr);
+
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel& parcel);
     static std::shared_ptr<ShaderEffect> Unmarshalling(Parcel& parcel, bool& isValid);

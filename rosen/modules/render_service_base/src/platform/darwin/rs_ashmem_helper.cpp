@@ -83,7 +83,7 @@ void* AshmemAllocator::Realloc(void* data, size_t newSize)
 
 AshmemFdContainer& AshmemFdContainer::Instance()
 {
-    static AshmemFdContainer instance;
+    thread_local AshmemFdContainer instance;
     return instance;
 }
 

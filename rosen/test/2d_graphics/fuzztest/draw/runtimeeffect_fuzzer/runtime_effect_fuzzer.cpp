@@ -25,11 +25,33 @@
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
 #include "image/image.h"
+#include "image/image_info.h"
+#include "utils/matrix44.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 static constexpr int32_t MAX_SIZE = 5000;
+static Matrix GetFuzzMatrix()
+{
+    Matrix matrix;
+    matrix.SetMatrix(
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()
+    );
+    return matrix;
+}
+static Matrix44 GetFuzzMatrix44()
+{
+    Matrix44 matrix44;
+    Matrix44::Buffer buffer;
+    for (int i = 0; i < Matrix44::MATRIX44_SIZE; i++) {
+        buffer[i] = GetObject<scalar>();
+    }
+    matrix44.SetMatrix44ColMajor(buffer);
+    return matrix44;
+}
 bool RuntimeEffectFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -64,6 +86,61 @@ bool RuntimeEffectFuzzTest(const uint8_t* data, size_t size)
         delete [] dataText;
         dataText = nullptr;
     }
+    if (text != nullptr) {
+        delete [] text;
+        text = nullptr;
+    }
+
+    return true;
+}
+
+bool RuntimeEffectShaderWithOptionsFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* text = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        text[i] = GetObject<char>();
+    }
+    text[length - 1] = '\0';
+    std::string sl(text);
+    RuntimeEffectOptions options;
+    options.forceNoInline = GetObject<bool>();
+    options.useAF = GetObject<bool>();
+    options.useHighpLocalCoords = GetObject<bool>();
+    options.needDrawingslToSksl = GetObject<bool>();
+    std::shared_ptr<RuntimeEffect> runtimeEffect = RuntimeEffect::CreateForShader(sl, options);
+    runtimeEffect->GetDrawingType();
+    bool isOpaque = GetObject<bool>();
+    runtimeEffect->MakeShader(nullptr, nullptr, 0, nullptr, isOpaque);
+    if (text != nullptr) {
+        delete [] text;
+        text = nullptr;
+    }
+
+    return true;
+}
+
+bool RuntimeEffectES3ShaderFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* text = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        text[i] = GetObject<char>();
+    }
+    text[length - 1] = '\0';
+    std::string sl(text);
+    std::shared_ptr<RuntimeEffect> runtimeEffect = RuntimeEffect::CreateForES3Shader(sl);
+    runtimeEffect->GetDrawingType();
+    bool isOpaque = GetObject<bool>();
+    runtimeEffect->MakeShader(nullptr, nullptr, 0, nullptr, isOpaque);
     if (text != nullptr) {
         delete [] text;
         text = nullptr;
@@ -128,6 +205,65 @@ bool RuntimeShaderFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
+bool RuntimeShaderBuilderFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    static constexpr char prog[] = R"(
+        uniform shader imageInput;
+        uniform float2 in_blurOffset;
+        uniform float3 in_coeff3;
+        uniform float4 in_coeff4;
+        half4 main(float2 xy) {
+            half4 c = imageInput.eval(xy);
+            c += imageInput.eval(float2(in_blurOffset.x + xy.x, in_blurOffset.y + xy.y));
+            c += half4(in_coeff3.x, in_coeff3.y, in_coeff3.z, in_coeff4.w);
+            return half4(c.rgba * 0.2);
+        }
+    )";
+
+    std::shared_ptr<Drawing::RuntimeEffect> runtimeEffect = Drawing::RuntimeEffect::CreateForShader(prog);
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder =
+        std::make_shared<Drawing::RuntimeShaderBuilder>(runtimeEffect);
+
+    Drawing::Matrix matrix = GetFuzzMatrix();
+
+    bool mipmapped = GetObject<bool>();
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    Drawing::ImageInfo resultInfo = Drawing::ImageInfo::MakeN32Premul(width, height);
+
+    builder->MakeImage(nullptr, &matrix, resultInfo, mipmapped);
+
+    Drawing::RecordingCanvas recordingCanvas(GetObject<int32_t>(), GetObject<int32_t>());
+    builder->MakeImage(recordingCanvas, &matrix, resultInfo, mipmapped);
+
+    builder->SetUniform("in_blurOffset", GetObject<float>(), GetObject<float>());
+    builder->SetUniform("in_coeff3", GetObject<float>(), GetObject<float>(), GetObject<float>());
+    builder->SetUniform("in_coeff4", GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
+
+    size_t arrSize = GetObject<size_t>() % MAX_SIZE + 1;
+    std::vector<float> values(arrSize);
+    for (size_t i = 0; i < arrSize; i++) {
+        values[i] = GetObject<float>();
+    }
+    builder->SetUniform("in_blurOffset", values.data(), arrSize);
+
+    Drawing::Matrix uniformMatrix33 = GetFuzzMatrix();
+    builder->SetUniform("uniformMatrix33", uniformMatrix33);
+
+    Drawing::Matrix44 uniformMatrix44 = GetFuzzMatrix44();
+    builder->SetUniform("uniformMatrix44", uniformMatrix44);
+
+    builder->SetUniformVec4("in_color", GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
+
+    return true;
+}
+
 bool RuntimeBlenderFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -189,7 +325,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     OHOS::Rosen::Drawing::RuntimeEffectFuzzTest(data, size);
+    OHOS::Rosen::Drawing::RuntimeEffectShaderWithOptionsFuzzTest(data, size);
+    OHOS::Rosen::Drawing::RuntimeEffectES3ShaderFuzzTest(data, size);
     OHOS::Rosen::Drawing::RuntimeShaderFuzzTest(data, size);
+    OHOS::Rosen::Drawing::RuntimeShaderBuilderFuzzTest(data, size);
     OHOS::Rosen::Drawing::RuntimeBlenderFuzzTest(data, size);
     return 0;
 }

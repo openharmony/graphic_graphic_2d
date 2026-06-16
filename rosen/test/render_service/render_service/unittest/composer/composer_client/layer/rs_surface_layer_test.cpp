@@ -25,6 +25,7 @@
 
 #include "connection/rs_render_to_composer_connection.h"
 #include "common/rs_tunnel_layer_utils.h"
+#include "consumer_surface.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer_backend/hdi_output.h"
 #ifdef RS_ENABLE_VK
@@ -44,6 +45,10 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint64_t TEST_TUNNEL_LAYER_ID = 789u;
+constexpr uint64_t TEST_NODE_ID = 456u;
+constexpr uint64_t TEST_LAYER_ID_BASE = 1200u;
+
 class ScopedNewTunnelSwitch {
 public:
     explicit ScopedNewTunnelSwitch(bool enabled) : oldValue_(Rosen::IsNewTunnelEnabled())
@@ -59,6 +64,26 @@ public:
 private:
     bool oldValue_;
 };
+
+std::shared_ptr<RSComposerContext> CreateContextWithLayerStateRecorder(
+    const std::shared_ptr<RSRenderComposerManager>& manager, uint32_t screenId,
+    std::vector<LayerStateChange>& reportedStates)
+{
+    if (manager == nullptr) {
+        return nullptr;
+    }
+    auto conn = manager->GetRSComposerConnection(screenId);
+    sptr<IRSRenderToComposerConnection> ifaceConn = conn;
+    auto localClient = RSComposerClient::Create(ifaceConn, nullptr);
+    if (localClient == nullptr) {
+        return nullptr;
+    }
+    localClient->RegisterLayerStateChangedCB(
+        [&reportedStates](uint64_t, LayerStateChange state, uint64_t) {
+            reportedStates.emplace_back(state);
+        });
+    return localClient->GetComposerContext();
+}
 } // namespace
 
 class RSSurfaceLayerTest : public testing::Test {
@@ -216,6 +241,61 @@ HWTEST_F(RSSurfaceLayerTest, TunnelLayerDestroyedCallback002, Function | SmallTe
     ASSERT_EQ(reportedStates.size(), 1u);
     EXPECT_EQ(reportedNodeId, 457u);
     EXPECT_EQ(reportedStates[0], LayerStateChange::UNAVAILABLE);
+}
+
+/**
+ * @tc.name: TunnelLayerDestroyedCallback003
+ * @tc.desc: Test tunnel layer destruction skips callback for disabled, null-surface, and invalid fallback states.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceLayerTest, TunnelLayerDestroyedCallback003, Function | SmallTest | Level2)
+{
+    struct TestCase {
+        const char* name;
+        bool newTunnelEnabled;
+        bool setSurface;
+        bool initSurface;
+        uint64_t layerTunnelId;
+        uint32_t layerProperty;
+    };
+    const std::vector<TestCase> testCases = {
+        { "new_tunnel_disabled", false, true, true, TEST_TUNNEL_LAYER_ID, TUNNEL_PROP_BUFFER_ADDR },
+        { "surface_null", true, false, false, TEST_TUNNEL_LAYER_ID, TUNNEL_PROP_BUFFER_ADDR },
+        { "fallback_get_info_failed", true, true, false, 0, TUNNEL_PROP_INVALID },
+        { "fallback_tunnel_layer_id_zero", true, true, true, 0, TUNNEL_PROP_INVALID },
+    };
+
+    for (size_t index = 0; index < testCases.size(); ++index) {
+        const auto& testCase = testCases[index];
+        SCOPED_TRACE(testing::Message() << "case=" << testCase.name);
+        ScopedNewTunnelSwitch scopedNewTunnelSwitch(testCase.newTunnelEnabled);
+        std::vector<LayerStateChange> reportedStates;
+        auto context = CreateContextWithLayerStateRecorder(sMgr, screenId, reportedStates);
+        ASSERT_NE(context, nullptr);
+
+        sptr<IConsumerSurface> consumer = nullptr;
+        if (testCase.initSurface) {
+            consumer = IConsumerSurface::Create(testCase.name);
+        } else {
+            consumer = new ConsumerSurface(testCase.name);
+        }
+        ASSERT_NE(consumer, nullptr);
+
+        {
+            auto rsLayer = std::static_pointer_cast<RSSurfaceLayer>(
+                RSSurfaceLayer::Create(TEST_LAYER_ID_BASE + index, context));
+            ASSERT_NE(rsLayer, nullptr);
+            rsLayer->SetNodeId(TEST_NODE_ID + index);
+            if (testCase.setSurface) {
+                rsLayer->SetSurface(consumer);
+            }
+            rsLayer->SetTunnelLayerId(testCase.layerTunnelId);
+            rsLayer->SetTunnelLayerProperty(testCase.layerProperty);
+        }
+
+        EXPECT_TRUE(reportedStates.empty());
+    }
 }
 
 /**

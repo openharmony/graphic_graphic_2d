@@ -311,4 +311,144 @@ HWTEST_F(RSRenderShapeBaseTest, CalcRect_NeedUpdateFalse, TestSize.Level1)
     EXPECT_TRUE(shape->GetTransformDrawRect().IsEmpty());
 }
 
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_NullShape, TestSize.Level1)
+{
+    std::shared_ptr<RSNGRenderShapeBase> sdfShape = nullptr;
+    RRect sdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
+    NodeId nodeId = 1;
+
+    RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, sdfRRect, nodeId);
+    EXPECT_EQ(sdfShape, nullptr);
+}
+
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_NotDistortOpShape, TestSize.Level1)
+{
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    RRect sdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
+    NodeId nodeId = 1;
+
+    RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, sdfRRect, nodeId);
+    EXPECT_EQ(sdfShape->GetType(), RSNGEffectType::SDF_RRECT_SHAPE);
+}
+
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_AlreadyHasInnerShape, TestSize.Level1)
+{
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
+    auto existingShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(existingShape);
+    RRect sdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
+    NodeId nodeId = 1;
+
+    RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, sdfRRect, nodeId);
+    auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
+    EXPECT_EQ(innerShape, existingShape);
+}
+
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SyncTrueWithExistingShape, TestSize.Level1)
+{
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
+    auto existingShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(existingShape);
+    distortOpShape->Setter<SDFDistortOpShapeSyncRenderTag>(true);
+    RRect sdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
+    NodeId nodeId = 1;
+
+    RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, sdfRRect, nodeId);
+    auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
+    EXPECT_EQ(innerShape, existingShape);
+    auto rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(innerShape);
+    auto actualRRect = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetLeft(), sdfRRect.rect_.GetLeft());
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetTop(), sdfRRect.rect_.GetTop());
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetWidth(), sdfRRect.rect_.GetWidth());
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetHeight(), sdfRRect.rect_.GetHeight());
+    EXPECT_FLOAT_EQ(actualRRect.radius_[0][0], sdfRRect.radius_[0][0]);
+    EXPECT_FLOAT_EQ(actualRRect.radius_[0][1], sdfRRect.radius_[0][1]);
+}
+
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_Success, TestSize.Level1)
+{
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
+    RRect sdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
+    NodeId nodeId = 1;
+
+    RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, sdfRRect, nodeId);
+    auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
+    ASSERT_NE(innerShape, nullptr);
+    EXPECT_EQ(innerShape->GetType(), RSNGEffectType::SDF_RRECT_SHAPE);
+    auto rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(innerShape);
+    auto actualRRect = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetLeft(), sdfRRect.rect_.GetLeft());
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetTop(), sdfRRect.rect_.GetTop());
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetWidth(), sdfRRect.rect_.GetWidth());
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetHeight(), sdfRRect.rect_.GetHeight());
+    EXPECT_FLOAT_EQ(actualRRect.radius_[0][0], sdfRRect.radius_[0][0]);
+    EXPECT_FLOAT_EQ(actualRRect.radius_[0][1], sdfRRect.radius_[0][1]);
+}
+
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_SyncFalseWithExistingShape, TestSize.Level1)
+{
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
+
+    // Set existing inner shape
+    auto existingShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(existingShape, nullptr);
+    auto existingRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(existingShape);
+
+    // Set initial RRect values
+    RRect initialRRect(RectF(10.0f, 10.0f, 50.0f, 50.0f), 5.0f, 5.0f);
+    existingRRectShape->Setter<SDFRRectShapeRRectRenderTag>(initialRRect);
+    distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(existingShape);
+
+    // Set sync to false - should not update RRect
+    distortOpShape->Setter<SDFDistortOpShapeSyncRenderTag>(false);
+
+    RRect newSdfRRect(RectF(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f);
+    NodeId nodeId = 1;
+
+    RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, newSdfRRect, nodeId);
+
+    // Verify inner shape remains unchanged
+    auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
+    EXPECT_EQ(innerShape, existingShape);
+
+    // Verify RRect was not updated (sync is false)
+    auto actualRRect = existingRRectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetLeft(), initialRRect.rect_.GetLeft());
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetTop(), initialRRect.rect_.GetTop());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, FillEmptyDistortOpShape_NullSdfRRect, TestSize.Level1)
+{
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+    auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
+
+    // Use default zero RRect
+    RRect emptySdfRRect;
+    NodeId nodeId = 1;
+
+    RSNGRenderShapeHelper::FillEmptyDistortOpShape(sdfShape, emptySdfRRect, nodeId);
+
+    auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
+    ASSERT_NE(innerShape, nullptr);
+    EXPECT_EQ(innerShape->GetType(), RSNGEffectType::SDF_RRECT_SHAPE);
+
+    auto rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(innerShape);
+    auto actualRRect = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetLeft(), 0.f);
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetTop(), 0.f);
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetWidth(), 0.f);
+    EXPECT_FLOAT_EQ(actualRRect.rect_.GetHeight(), 0.f);
+}
+
 } // namespace OHOS::Rosen

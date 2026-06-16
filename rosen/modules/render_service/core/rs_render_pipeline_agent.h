@@ -20,10 +20,13 @@
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 
 namespace OHOS {
+class IConsumerSurface;
+class SurfaceUtils;
+
 namespace Rosen {
 class RSRenderPipelineAgent : public RefBase {
 public:
-    explicit RSRenderPipelineAgent(std::shared_ptr<RSRenderPipeline>& rsRenderPipeline);
+    explicit RSRenderPipelineAgent(std::shared_ptr<RSRenderPipeline> rsRenderPipeline);
     ~RSRenderPipelineAgent() = default;
 
     ErrCode CommitTransaction(pid_t callingPid, bool isTokenTypeValid, bool isNonSystemAppCalling,
@@ -164,8 +167,12 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode);
 #endif
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo);
+#endif
     void SetBehindWindowFilterEnabled(bool enabled);
     bool GetBehindWindowFilterEnabled();
+    bool SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false);
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface);
@@ -204,11 +211,13 @@ public:
     void ForceRefreshOneFrameWithNextVSync();
     std::string GetBundleName(pid_t pid);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
-    bool RemoveConnection(const sptr<RSIConnectionToken>& token);
+    sptr<IApplicationAgent> UnRegisterApplicationAgent(uint32_t pid);
+    bool RemoveConnection(pid_t remotePid, const sptr<RSIConnectionToken>& token);
     void AddTransactionDataPidInfo(pid_t remotePid);
-    void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
+    void AddConnection(pid_t remotePid, uint64_t tokenMaskId,
+        sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
     void SetCacheEnabledForRotation(bool enabled);
-    sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
+    std::pair<sptr<RSIClientToRenderConnection>, uint64_t> FindClientToRenderConnection(uint64_t remotePid);
     int32_t RegisterFrameStabilityDetection(
         pid_t pid,
         const FrameStabilityTarget& target,
@@ -227,7 +236,11 @@ public:
         const FrameStabilityTarget& newTarget
     );
 private:
-    std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
+    void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface);
+    void ConfigureForceTunnelLayer(
+        const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface, SurfaceUtils* utils);
+
+    std::weak_ptr<RSRenderPipeline> rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;
     mutable std::mutex pidToBundleMutex_;
     mutable std::mutex mutex_;

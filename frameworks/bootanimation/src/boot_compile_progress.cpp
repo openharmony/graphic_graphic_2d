@@ -108,6 +108,13 @@ void BootCompileProgress::Init(const std::string& configPath, const BootAnimatio
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
     windowHeight_ = modeInfo.GetScreenHeight();
+
+    uint32_t width = 0;
+    uint32_t height = 0;
+    interface.GetRogScreenResolution(config.screenId, width, height);
+    rogWidth_ = static_cast<int32_t>(width);
+    rogHeight_ = static_cast<int32_t>(height);
+
     fontSize_ = isWearable_ ? FONT_SIZE_WEARABLE :
         TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? FONT_SIZE_OTHER : FONT_SIZE_PHONE);
     currentRadius_ = isWearable_ ? RADIUS_WEARABLE :
@@ -359,6 +366,19 @@ void BootCompileProgress::UpdateCompileProgress()
     LOGD("update progress: %{public}d", progress_);
 }
 
+void BootCompileProgress::SetFrameForRog()
+{
+    float posX = static_cast<float>(rogWidth_ - windowWidth_) / NUMBER_TWO;
+    float posY = static_cast<float>(rogHeight_ - rogHeight_ * OFFSET_Y_PERCENT);
+    int32_t rogMin = std::min(rogWidth_, rogHeight_);
+    fontSize_ = TranslateVp2Pixel(rogMin, FONT_SIZE_PHONE);
+    currentRadius_ = TranslateVp2Pixel(rogMin, RADIUS);
+
+    rsCanvasNode_->SetFrame(posX, posY, rogWidth_, rogHeight_ * HEIGHT_PERCENT);
+    LOGI("SetFrame ROG Rect:[%{public}f, %{public}f, %{public}d, %{public}f], fontSize: %{public}d, "
+         "currentRadius: %{public}f", posX, posY, rogWidth_, rogHeight_ * HEIGHT_PERCENT, fontSize_, currentRadius_);
+}
+
 Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int32_t frameNum)
 {
     int32_t fpsNo = frameNum % LOADING_FPS;
@@ -419,8 +439,14 @@ void BootCompileProgress::SetFrame()
     } else if (isWearable_) {
         rsCanvasNode_->SetFrame(0, windowHeight_ - OFFSET_Y_WEARABLE - HEIGHT_WEARABLE, windowWidth_, HEIGHT_WEARABLE);
     } else {
-        rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
-            maxLength * HEIGHT_PERCENT);
+        int32_t rogMaxLen = std::max(rogWidth_, rogHeight_);
+        bool isRogMode = rogWidth_ > 0 && rogHeight_ > 0 && rogMaxLen != maxLength;
+        if (isRogMode) {
+            SetFrameForRog();
+        } else {
+            rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
+                                    maxLength * HEIGHT_PERCENT);
+        }
     }
 }
 

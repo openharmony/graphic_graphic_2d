@@ -18,7 +18,11 @@
 #include <gtest/gtest.h>
 #include <thread>
 
+#include "feature/hyper_graphic_manager/rs_ui_display_soloist.h"
 #include "native_display_soloist.h"
+#include "transaction/rs_interfaces.h"
+#include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,6 +38,7 @@ namespace {
     constexpr int32_t EXEC_SUCCESS = 0;
     constexpr int32_t SOLOIST_ERROR = -1;
     constexpr int32_t WAIT_TASK_FINISH_NS = 100000;
+    static std::shared_ptr<RSUIContext> rsUIContext = nullptr;
 }
 class NativeDisplaySoloistTest : public testing::Test {
 public:
@@ -43,10 +48,19 @@ public:
     void TearDown();
 
     static inline OH_DisplaySoloist* nativeDisplaySoloist = nullptr;
+
+    static std::shared_ptr<RSUIContext> CreateRSUIContext()
+    {
+        auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+        sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+        return rsUIContext;
+    }
 };
 
 void NativeDisplaySoloistTest::SetUpTestCase()
 {
+    rsUIContext = CreateRSUIContext();
 }
 
 void NativeDisplaySoloistTest::TearDownTestCase()
@@ -79,6 +93,8 @@ HWTEST_F(NativeDisplaySoloistTest, OH_DisplaySoloist_Create001, Function | Mediu
     EXPECT_EQ(nullptr, nativeDisplaySoloist);
     nativeDisplaySoloist = OH_DisplaySoloist_Create(false);
     EXPECT_NE(nullptr, nativeDisplaySoloist);
+    auto& soloistManager = RSDisplaySoloistManager::GetInstance();
+    soloistManager.frameRateLinker_->rsUIContext_ = rsUIContext;
 }
 
 /**

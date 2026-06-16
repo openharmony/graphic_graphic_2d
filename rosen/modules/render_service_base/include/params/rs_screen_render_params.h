@@ -99,8 +99,7 @@ public:
     void SetExistHWCNode(bool isExistHWCNode);
     bool GetExistHWCNode() const;
 
-    void CollectHdrStatus(NodeId id, HdrStatus hdrStatus);
-    const std::unordered_map<NodeId, HdrStatus>& GetScreenHDRStatusMap() const;
+    void CollectHdrStatus(HdrStatus hdrStatus);
     void ResetDisplayHdrStatus();
     HdrStatus GetScreenHDRStatus() const;
 
@@ -253,7 +252,6 @@ private:
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     uint32_t childDisplayCount_ = 0;
     HdrStatus screenHDRStatus_ = HdrStatus::NO_HDR;
-    std::unordered_map<NodeId, HdrStatus> screenHDRStatusMap_ = {};
     bool isMirrorScreen_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;

@@ -112,6 +112,9 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
         case TAG_FROSTEDGLASS_EFFECT :
             tagType = "frostedglass_effect";
             break;
+        case TAG_WINDOW_SURFACE_CACHE :
+            tagType = "window_surface_cache";
+            break;
         case TAG_UNTAGGED :
             tagType = "untagged";
             break;

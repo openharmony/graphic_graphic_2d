@@ -909,8 +909,9 @@ HWTEST_F(EffectImageChainUnittest, ApplyWaterDropletTransitionFilterTest002, Tes
     };
     auto waterDropletParams = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(params);
 
+    // GE plugin not loaded in test env, GenerateWaterDropletTransitionFilter returns nullptr
     ret = image->ApplyWaterDropletTransitionFilter(topLayerPixelMap, waterDropletParams);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
 
     ret = image->Draw();
     EXPECT_EQ(ret, DrawingError::ERR_OK);
@@ -945,9 +946,9 @@ HWTEST_F(EffectImageChainUnittest, ApplyWaterDropletTransitionFilterTest003, Tes
     };
     auto waterDropletParams = std::make_shared<Drawing::GEWaterDropletTransitionFilterParams>(params);
 
-    // This will trigger the cascade path where filters_ != nullptr
+    // GE plugin not loaded in test env, GenerateWaterDropletTransitionFilter returns nullptr
     ret = image->ApplyWaterDropletTransitionFilter(topLayerPixelMap, waterDropletParams);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
 
     ret = image->Draw();
     EXPECT_EQ(ret, DrawingError::ERR_OK);

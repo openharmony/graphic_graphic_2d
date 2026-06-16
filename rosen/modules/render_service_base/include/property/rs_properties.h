@@ -653,7 +653,7 @@ public:
         return effect_ && effect_->pixelStretchPara_ ? effect_->pixelStretchPara_->percent : Vector4f();
     }
 
-    void SetPixelStretchTileMode(const std::optional<int>& tileMode);
+    void SetPixelStretchTileMode(int tileMode);
     int GetPixelStretchTileMode() const;
 
     void SetAiInvert(const std::optional<Vector4f>& aiInvert);

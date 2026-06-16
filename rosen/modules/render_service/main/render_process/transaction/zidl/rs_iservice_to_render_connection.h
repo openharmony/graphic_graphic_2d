@@ -109,7 +109,9 @@ public:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
-
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    virtual ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) = 0;
+#endif
     // Energy Consumption
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(
         pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
@@ -128,6 +130,10 @@ public:
     // Behind Window Filter
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
+
+    // Aps
+    virtual ErrCode SetApsConfigParams(
+        ApsEventType event, const std::unordered_map<std::string, std::string>& params) = 0;
 
     // Others
     virtual ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) = 0;

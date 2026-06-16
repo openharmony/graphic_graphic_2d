@@ -23,6 +23,7 @@
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_core.h"
 #include "hpae_base/rs_hpae_hianimation.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render_server/rs_render_service.h"
 #include "rs_render_composer_manager.h"
@@ -40,6 +41,7 @@ auto& hgmCore = HgmCore::Instance();
 auto frameRateMgr = hgmCore.GetFrameRateMgr();
 // used for ProcessHgmFrameRateTest to prevent crash
 std::shared_ptr<HgmContext> hgmContextForProcess = nullptr;
+auto renderService = sptr<RSRenderService>::MakeSptr();
 }
 
 class HgmContextTest : public testing::Test {
@@ -1422,7 +1424,6 @@ HWTEST_F(HgmContextTest, RegisterScreenManagerCallbacksAndInvokeAllMethods, Test
 */
 HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenConnectedTest, TestSize.Level1)
 {
-    auto renderService = sptr<RSRenderService>::MakeSptr();
     ASSERT_NE(renderService, nullptr);
     auto runner = AppExecFwk::EventRunner::Create(false);
     renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
@@ -1462,7 +1463,6 @@ HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenConnectedTest, TestSize.Le
 */
 HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenDisconnectedTest, TestSize.Level1)
 {
-    auto renderService = sptr<RSRenderService>::MakeSptr();
     ASSERT_NE(renderService, nullptr);
     auto runner = AppExecFwk::EventRunner::Create(false);
     renderService->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
@@ -1471,7 +1471,6 @@ HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenDisconnectedTest, TestSize
     renderService->vsyncManager_->init(renderService->screenManager_);
     renderService->InitRenderServerConfig();
     renderService->rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(renderService->handler_);
-    renderService->RenderProcessManagerInit();
     // Enable HGM to make GetHgmContext() return non-null
     HgmCore::Instance().hgmAbilityEnabled_ = true;
     renderService->HgmInit();
@@ -1488,6 +1487,8 @@ HWTEST_F(HgmContextTest, ScreenManagerListenerOnScreenDisconnectedTest, TestSize
     screenManagerListener->OnScreenDisconnected(1);
     // Cleanup
     HgmCore::Instance().hgmAbilityEnabled_ = true;
+    RSMainThread::Instance()->receiver_->fd_ = -1;
+    RSMainThread::Instance()->receiver_->connection_ = nullptr;
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     HianimationManager::GetInstance().hianimationDevice_.closeDevice = nullptr;
 }

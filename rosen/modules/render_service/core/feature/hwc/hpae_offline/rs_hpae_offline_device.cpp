@@ -1,0 +1,495 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "feature/hwc/hpae_offline/rs_hpae_offline_device.h"
+
+#include <cmath>
+#include <future>
+#include <vector>
+
+#include "display_engine/rs_luminance_control.h"
+#include "rs_trace.h"
+#include "string_utils.h"
+#include "surface_type.h"
+
+#include "common/rs_optional_trace.h"
+#include "drawable/rs_screen_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/hwc/hpae_offline/rs_offline_util.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
+#include "params/rs_screen_render_params.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
+#include "platform/common/rs_log.h"
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "metadata_helper.h"
+#endif
+namespace OHOS {
+namespace Rosen {
+namespace {
+constexpr size_t MAX_NUM_INVALID_FRAME = 2;
+constexpr uint32_t WAIT_FENCE_TIMEOUT_MS = 500;
+}
+
+RSHpaeOfflineDevice::RSHpaeOfflineDevice()
+{
+    if (LoadPreProcessHandle()) {
+        layerConfig_.strideAlignment = 0x08; // default stride is 8 Bytes.
+        layerConfig_.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
+        layerConfig_.usage = BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_CPU_READ;
+        layerConfig_.timeout = 0;
+    }
+}
+
+RSHpaeOfflineDevice::~RSHpaeOfflineDevice()
+{
+    if (preProcessHandle_) {
+        dlclose(preProcessHandle_);
+        preProcessHandle_ = nullptr;
+    }
+}
+
+void RSHpaeOfflineDevice::CloseOfflineHandle(const std::string& errSymbol, const char* errNo)
+{
+    RS_OFFLINE_LOGW("load %{public}s failed, reason: %{public}s", errSymbol.c_str(), errNo);
+    dlclose(preProcessHandle_);
+    preProcessHandle_ = nullptr;
+}
+
+bool RSHpaeOfflineDevice::LoadPreProcessHandle()
+{
+    loadSuccess_ = false;
+    RS_TRACE_NAME_FMT("hpae_offline: LoadPreProcessHandle");
+    preProcessHandle_ = dlopen("libprevalidate_client.z.so", RTLD_NOW);
+    if (preProcessHandle_ == nullptr) {
+        RS_OFFLINE_LOGW("[%{public}s]: load library failed, reason: %{public}s", __func__, dlerror());
+        return false;
+    }
+
+    PreValidateInitFunc initFunc = reinterpret_cast<PreValidateInitFunc>(dlsym(preProcessHandle_, "InitPrevalidate"));
+    if ((initFunc == nullptr) || (initFunc() != 0)) {
+        RS_OFFLINE_LOGW("prevalidate init failed");
+        dlclose(preProcessHandle_);
+        return false;
+    }
+
+    preProcessFunc_ = reinterpret_cast<ProcessOfflineFunc>(dlsym(preProcessHandle_, "ProcessOfflineSurface"));
+    if (preProcessFunc_ == nullptr) {
+        CloseOfflineHandle("ProcessOfflineSurface", dlerror());
+        return false;
+    }
+    getConfigFunc_ = reinterpret_cast<GetOfflineConfigFunc>(dlsym(preProcessHandle_, "GetOfflineConfig"));
+    if (getConfigFunc_ == nullptr) {
+        CloseOfflineHandle("GetOfflineConfig", dlerror());
+        return false;
+    }
+    initOfflineFunc_ = reinterpret_cast<InitOfflineResourceFunc>(dlsym(preProcessHandle_, "InitOfflineResource"));
+    if (initOfflineFunc_ == nullptr) {
+        CloseOfflineHandle("InitOfflineResource", dlerror());
+        return false;
+    }
+    deInitOfflineFunc_ = reinterpret_cast<DeInitOfflineResourceFunc>(dlsym(preProcessHandle_, "DeInitOfflineResource"));
+    if (deInitOfflineFunc_ == nullptr) {
+        CloseOfflineHandle("DeInitOfflineResource", dlerror());
+        return false;
+    }
+    getFenceFunc_ = reinterpret_cast<GetFenceFunc>(dlsym(preProcessHandle_, "GetOfflineOutputFence"));
+    if (getFenceFunc_ == nullptr) {
+        CloseOfflineHandle("GetOfflineOutputFence", dlerror());
+        return false;
+    }
+    RS_OFFLINE_LOGI("[%{public}s]: load success", __func__);
+    loadSuccess_ = true;
+    return true;
+}
+
+bool RSHpaeOfflineDevice::InitForOfflineProcess()
+{
+    int32_t ret = -1;
+    OfflineProcessOutputInfo outputInfo;
+    // get offline buffer config and rect from prevalidate
+    if (getConfigFunc_) {
+        ret = getConfigFunc_(outputInfo);
+    }
+    if (ret != 0) {
+        RS_OFFLINE_LOGW("getConfigFunc_ call failed!");
+        return false;
+    }
+
+    std::lock_guard<std::mutex> localLock(offlineConfigMutex_);
+    layerConfig_.width = outputInfo.bufferConfig.width;
+    layerConfig_.height = outputInfo.bufferConfig.height;
+    layerConfig_.format = outputInfo.bufferConfig.format;
+    layerConfig_.usage = outputInfo.bufferConfig.usage;
+    layerConfig_.timeout = outputInfo.bufferConfig.timeout;
+    layerConfig_.colorGamut = static_cast<GraphicColorGamut>(outputInfo.bufferConfig.colorGamut);
+    if (layerConfig_.width <= 0 || layerConfig_.height <= 0) {
+        RS_OFFLINE_LOGW("Layer config is invalid! Width/height is zero");
+        return false;
+    }
+    offlineRect_ = outputInfo.outRect;
+    RS_OFFLINE_LOGD("Got hpae offline config, layerconfig.size: %{public}d, %{public}d, "
+        "format: %{public}d, colorGamut: %{public}d, timeout: %{public}d, "
+        "offline rect: [%{public}d, %{public}d, %{public}d, %{public}d]",
+        layerConfig_.width, layerConfig_.height, layerConfig_.format, layerConfig_.colorGamut,
+        layerConfig_.timeout, offlineRect_.x, offlineRect_.y, offlineRect_.w, offlineRect_.h);
+    return true;
+}
+
+bool RSHpaeOfflineDevice::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRenderNode>surfaceNode)
+{
+    if (!loadSuccess_) {
+        RS_OFFLINE_LOGW("hape so is not loaded.");
+        return false;
+    }
+
+    if (timeout_) {
+        RS_OFFLINE_LOGI("This scene has experienced a timeout event!!! banned hpae offline");
+        return false;
+    }
+
+    if (!InitForOfflineProcess()) {
+        RS_OFFLINE_LOGW("Get offline config failed.");
+        return false;
+    }
+
+    if (!preAllocBufferSucc_) {
+        RS_OFFLINE_LOGD("Buffers is not warmed up.");
+        CheckAndPostPreAllocBuffersTask();
+        return false;
+    }
+
+    return true;
+}
+
+void RSHpaeOfflineDevice::CheckAndPostPreAllocBuffersTask()
+{
+    if (offlineResultSync_.GetResultPoolSize() < 1 && !isBusy_) {
+        RS_OFFLINE_LOGD("Start to post Preallocbuffer task.");
+        offlineThreadManager_.PostTask([this]() mutable {
+            RS_TRACE_NAME_FMT("hpae_offline: PreAllocBuffer.");
+            std::lock_guard<std::mutex> localLock(offlineConfigMutex_);
+            isBusy_ = true;
+            if (!initOfflineFunc_) {
+                RS_OFFLINE_LOGW("initOfflineFunc_ is nullptr, disable offline.");
+                isBusy_ = false;
+                return;
+            }
+            if (initOfflineFunc_() != 0) {
+                RS_OFFLINE_LOGW("initOfflineFunc_ failed, disable offline.");
+                isBusy_ = false;
+                return;
+            }
+            bool ret = offlineLayer_.PreAllocBuffers(layerConfig_);
+            preAllocBufferSucc_ = ret;
+            isBusy_ = false;
+        });
+    }
+}
+
+bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params,
+    OfflineProcessInputInfo& inputInfo, sptr<SurfaceBuffer>& srcSurfaceBuffer,
+    sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence)
+{
+    // get offline buffer
+    RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Get Offline Process Input Info");
+    std::lock_guard<std::mutex> configLock(offlineConfigMutex_);
+    dstSurfaceBuffer = offlineLayer_.RequestSurfaceBuffer(layerConfig_, releaseFence);
+    if (!dstSurfaceBuffer) {
+        RS_OFFLINE_LOGW("RS offline dstSurfaceHandler get buffer failed! layerConfig_: %{public}d, %{public}d",
+            layerConfig_.width, layerConfig_.height);
+        return false;
+    }
+
+    BufferHandle* dstHandle = dstSurfaceBuffer->GetBufferHandle();
+    if (!dstHandle) {
+        RS_OFFLINE_LOGW("Offline buffer handle is not available.");
+        return false;
+    }
+
+    inputInfo.id = params.GetId();
+    inputInfo.srcHandle = srcSurfaceBuffer->GetBufferHandle();
+    inputInfo.dstHandle = dstHandle;
+    auto src = params.GetLayerInfo().srcRect;
+    Rect crop{0, 0, 0, 0};
+    if (srcSurfaceBuffer->GetCropMetadata(crop)) {
+        float scaleX = static_cast<float>(crop.w) / srcSurfaceBuffer->GetWidth();
+        float scaleY = static_cast<float>(crop.h) / srcSurfaceBuffer->GetHeight();
+        inputInfo.srcRect = {
+            static_cast<uint32_t>(std::ceil(src.x * scaleX)),
+            static_cast<uint32_t>(std::ceil(src.y * scaleY)),
+            static_cast<uint32_t>(std::floor(src.w * scaleX)),
+            static_cast<uint32_t>(std::floor(src.h * scaleY))
+        };
+    } else {
+        inputInfo.srcRect = {src.x, src.y, src.w, src.h};
+    }
+    inputInfo.dstRect = {offlineRect_.x, offlineRect_.y, offlineRect_.w, offlineRect_.h};
+    inputInfo.transform = static_cast<uint32_t>(params.GetLayerInfo().transformType);
+    return true;
+}
+
+void RSHpaeOfflineDevice::FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& dstSurfaceBuffer)
+{
+    // release buffer
+    flushConfig_.timestamp = 0;
+    offlineLayer_.FlushSurfaceBuffer(dstSurfaceBuffer, -1, flushConfig_);
+    IConsumerSurface::AcquireBufferReturnValue returnValue;
+    returnValue.fence = SyncFence::InvalidFence();
+    auto surfaceHandler = offlineLayer_.GetMutableRSSurfaceHandler();
+    const auto surfaceConsumer = surfaceHandler->GetConsumer();
+    int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, 0, false);
+    if (ret != OHOS::SURFACE_ERROR_OK) {
+        RS_OFFLINE_LOGW("RSBaseSurfaceUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
+            " ret: %{public}d), do nothing ", surfaceHandler->GetNodeId(), ret);
+        return;
+    }
+
+    ret = surfaceConsumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
+    if (ret != OHOS::SURFACE_ERROR_OK) {
+        RS_OFFLINE_LOGW("RSBaseSurfaceUtil::DropFrameProcess(node: %{public}" PRIu64
+            "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
+            surfaceHandler->GetNodeId(), ret);
+    }
+    surfaceHandler->SetAvailableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
+    RS_OFFLINE_LOGD("RSBaseSurfaceUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
+        surfaceHandler->GetNodeId());
+}
+
+void RSHpaeOfflineDevice::CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessOfflineFuture>& futurePtr)
+{
+    std::lock_guard<std::mutex> lock(futurePtr->mtx);
+    if (futurePtr->timeout) {
+        // to self-recovery from HPAE failed, once timeout, offline will be disabled until scene changed
+        RS_OFFLINE_LOGW("hpae timeout! disable offline in this scene");
+        timeout_ = true;
+    }
+}
+
+static void WaitFence(const sptr<SyncFence>& srcAcquireFence, int32_t releaseFenceFd)
+{
+    // wait acquire fence of source buffer and release fence of offline buffer
+    RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Wait Offline Acquire & Release Fence.");
+    RS_OFFLINE_LOGD("start to wait fence.");
+    sptr<SyncFence> dstReleaseFence = sptr<SyncFence>::MakeSptr(releaseFenceFd);
+    dstReleaseFence->Wait(WAIT_FENCE_TIMEOUT_MS);
+    srcAcquireFence->Wait(WAIT_FENCE_TIMEOUT_MS);
+    RS_OFFLINE_LOGD("wait fence done.");
+}
+
+bool RSHpaeOfflineDevice::DoProcessOffline(
+    RSSurfaceRenderParams& params, ProcessOfflineResult& processOfflineResult)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: do process offline");
+    // reset invalid frameCnt
+    invalidFrames_ = 0;
+
+    // get Hpae inputInfo
+    OfflineProcessInputInfo inputInfo;
+    sptr<SurfaceBuffer> dstSurfaceBuffer = nullptr;
+    int32_t releaseFence = -1;
+    auto srcSurfaceBuffer = params.GetBuffer();
+    auto srcBufferOwnerCount = params.GetBufferOwnerCount();
+    if (!srcSurfaceBuffer || !srcBufferOwnerCount) {
+        RS_OFFLINE_LOGW("Offline srcSurfaceBuffer get buffer failed!");
+        lastProcessSuccess_ = false;
+        return false;
+    }
+    BufferOwnerCountGuard guard(srcBufferOwnerCount);
+    if (!GetOfflineProcessInput(params, inputInfo, srcSurfaceBuffer, dstSurfaceBuffer, releaseFence)) {
+        RS_OFFLINE_LOGW("Get offline process input failed.");
+        lastProcessSuccess_ = false;
+        return false;
+    }
+
+    WaitFence(params.GetAcquireFence(), releaseFence);
+
+    // hpae offline process
+    int32_t ret = -1;
+    if (preProcessFunc_) {
+        ret = preProcessFunc_(inputInfo);
+    }
+    if (ret != 0) {
+        RS_OFFLINE_LOGW("Hpae offline process fail.");
+        FlushAndReleaseOfflineLayer(dstSurfaceBuffer);
+        lastProcessSuccess_ = false;
+        return false;
+    }
+
+    int32_t offlineFenceFd = -1;
+    if (getFenceFunc_) {
+        ret = getFenceFunc_(offlineFenceFd);
+        if (ret != 0) {
+            RS_OFFLINE_LOGW("Hpae get offline fence fail.");
+            FlushAndReleaseOfflineLayer(dstSurfaceBuffer);
+            lastProcessSuccess_ = false;
+            return false;
+        }
+    }
+
+    return SubmitOfflineBuffer(inputInfo, dstSurfaceBuffer, offlineFenceFd, processOfflineResult);
+}
+
+bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
+    const OfflineProcessInputInfo& inputInfo,
+    sptr<SurfaceBuffer>& dstSurfaceBuffer,
+    int32_t offlineFenceFd,
+    ProcessOfflineResult& processOfflineResult)
+{
+    // flush and consume offline buffer
+    flushConfig_.timestamp = 0;
+    flushConfig_.damage = {.x = inputInfo.dstRect.x, .y = inputInfo.dstRect.y,
+        .w = inputInfo.dstRect.w, .h = inputInfo.dstRect.h};
+    offlineLayer_.FlushSurfaceBuffer(dstSurfaceBuffer, offlineFenceFd, flushConfig_);
+    auto offlineSurfaceHandler = offlineLayer_.GetMutableRSSurfaceHandler();
+    if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
+        RS_OFFLINE_LOGW("DeviceOfflineLayer consume buffer failed. %{public}d",
+            !offlineSurfaceHandler->GetBuffer());
+        lastProcessSuccess_ = false;
+        return false;
+    }
+    if (offlineSurfaceHandler->IsCurrentFrameBufferConsumed()) {
+        auto offlinePreBufferCount = offlineSurfaceHandler->GetPreBufferOwnerCount();
+        if (offlinePreBufferCount) {
+            if (offlinePreBufferCount->DecRef()) {
+                offlineSurfaceHandler->ResetPreBuffer();
+            }
+        }
+    }
+
+    // set to offline result
+    processOfflineResult.bufferRect = {
+        .x = inputInfo.dstRect.x, .y = inputInfo.dstRect.y, .w = inputInfo.dstRect.w, .h = inputInfo.dstRect.h};
+    processOfflineResult.consumer = offlineSurfaceHandler->GetConsumer();
+    auto damageRect = offlineSurfaceHandler->GetDamageRegion();
+    damageRect.y = offlineSurfaceHandler->GetBuffer()->GetHeight() - damageRect.y - damageRect.h;
+    processOfflineResult.damageRect = damageRect;
+    processOfflineResult.preBuffer = lastProcessSuccess_ ? offlineSurfaceHandler->GetPreBuffer() : nullptr;
+    processOfflineResult.buffer = offlineSurfaceHandler->GetBuffer();
+    processOfflineResult.acquireFence = offlineSurfaceHandler->GetAcquireFence();
+    processOfflineResult.bufferOwnerCount = offlineSurfaceHandler->GetBufferOwnerCount();
+    lastProcessSuccess_ = true;
+    RS_OFFLINE_LOGD("Offline process done, bufferRect: [%{public}d %{public}d %{public}d %{public}d], "
+        "fence: %{public}d",
+        processOfflineResult.bufferRect.x, processOfflineResult.bufferRect.y,
+        processOfflineResult.bufferRect.w, processOfflineResult.bufferRect.h, offlineFenceFd);
+    return true;
+}
+
+void RSHpaeOfflineDevice::OfflineTaskFunc(RSRenderParams* paramsPtr,
+    std::shared_ptr<ProcessOfflineFuture>& futurePtr)
+{
+    isBusy_ = true;
+    ProcessOfflineResult processOfflineResult;
+    auto& param = *static_cast<RSSurfaceRenderParams*>(paramsPtr);
+    processOfflineResult.taskSuccess = DoProcessOffline(param, processOfflineResult);
+    offlineResultSync_.MarkTaskDoneAndSetResult(futurePtr, processOfflineResult);
+    CheckAndHandleTimeoutEvent(futurePtr);
+    isBusy_ = false;
+}
+
+bool RSHpaeOfflineDevice::PostProcessOfflineTask(
+    std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, offlineTaskId taskId)
+{
+    if (!loadSuccess_) {
+        RS_OFFLINE_LOGW("hape so is not loaded.");
+        return false;
+    }
+    // while doing direct composition, there is no IsRSHpaeOfflineDeviceReady to check status
+    if (timeout_) {
+        RS_OFFLINE_LOGI("This scene has experienced a timeout event!!! banned hpae offline");
+        return false;
+    }
+    auto futurePtr = offlineResultSync_.RegisterPostedTask(taskId);
+    if (!futurePtr) {
+        RS_OFFLINE_LOGE("register post task failed!");
+        return false;
+    }
+    RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "-%{public}" PRIu64 "] by node", taskId.first, taskId.second);
+    offlineThreadManager_.PostTask([surfaceNode, futurePtr, taskId, this]() mutable {
+        RS_TRACE_NAME("hpae_offline: ProcessOffline");
+        RS_OFFLINE_LOGD("start to proces offline surface (by node), task[%{public}" PRIu64 "-%{public}" PRIu64 "]",
+            taskId.first, taskId.second);
+        OfflineTaskFunc(surfaceNode->GetStagingRenderParams().get(), futurePtr);
+    });
+    return true;
+}
+
+bool RSHpaeOfflineDevice::PostProcessOfflineTask(
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, offlineTaskId taskId)
+{
+    if (!loadSuccess_) {
+        RS_OFFLINE_LOGW("hape so is not loaded.");
+        return false;
+    }
+    // while posting offline task in rt thread, there is prevalidate to avoid piling up, post directly
+    auto futurePtr = offlineResultSync_.RegisterPostedTask(taskId);
+    if (!futurePtr) {
+        RS_OFFLINE_LOGE("register post task failed!");
+        return false;
+    }
+    RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "-%{public}" PRIu64 "] by drawable",
+        taskId.first, taskId.second);
+    offlineThreadManager_.PostTask([surfaceDrawable, futurePtr, taskId, this]() mutable {
+        RS_TRACE_NAME("hpae_offline: ProcessOffline");
+        RS_OFFLINE_LOGD("start to proces offline surface (by drawable), task[%{public}" PRIu64 "-%{public}" PRIu64 "]",
+            taskId.first, taskId.second);
+        OfflineTaskFunc(surfaceDrawable->GetRenderParams().get(), futurePtr);
+    });
+    return true;
+}
+
+void RSHpaeOfflineDevice::CheckAndPostClearOfflineResourceTask()
+{
+    if (!loadSuccess_) {
+        RS_OFFLINE_LOGD("hape so is not loaded.");
+        return;
+    }
+    if (offlineResultSync_.GetResultPoolSize() < 1 && preAllocBufferSucc_ && !isBusy_) {
+        invalidFrames_++;
+        if (invalidFrames_ < MAX_NUM_INVALID_FRAME) {
+            return;
+        }
+        offlineThreadManager_.PostTask([this]() mutable {
+            RS_TRACE_NAME("hpae_offline: Post ClearOfflineCacheTask.");
+            RS_OFFLINE_LOGD("The number of disabled frames exceeds threshold, clean buffers.");
+            isBusy_ = true;
+            offlineLayer_.CleanCache(true);
+            offlineResultSync_.ClearResultPool();
+            invalidFrames_ = 0;
+            if (deInitOfflineFunc_) {
+                deInitOfflineFunc_();
+            }
+            preAllocBufferSucc_ = false;
+            lastProcessSuccess_ = false;
+            isBusy_ = false;
+            timeout_ = false;
+        });
+    }
+}
+
+bool RSHpaeOfflineDevice::WaitForProcessOfflineResult(offlineTaskId taskId,
+    std::chrono::milliseconds timeout, ProcessOfflineResult& processOfflineResult)
+{
+    if (!loadSuccess_) {
+        RS_OFFLINE_LOGW("hape so is not loaded.");
+        return false;
+    }
+    RS_TRACE_NAME("hpae_offline: Wait for node offline process");
+    RS_OFFLINE_LOGD("start to wait for offline result, task[%{public}" PRIu64 "-%{public}" PRIu64 "]",
+        taskId.first, taskId.second);
+    return offlineResultSync_.WaitForTaskAndGetResult(taskId, timeout, processOfflineResult);
+}
+} // namespace Rosen
+} // namespace OHOS

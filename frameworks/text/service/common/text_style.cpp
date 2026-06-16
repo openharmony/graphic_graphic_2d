@@ -15,7 +15,11 @@
 
 #include "rosen_text/text_style.h"
 
+#include <limits>
+#include <mutex>
 #include <sstream>
+
+#include "utils/text_histogram.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -57,7 +61,12 @@ void FontFeatures::Clear()
 
 void FontVariations::SetAxisValue(const std::string& tag, float value, bool isNormalization)
 {
-    axis_[tag] = {value, isNormalization};
+    axis_[tag] = { value, isNormalization };
+    constexpr float FONT_WEIGHT_NORMAL = 400.0f;
+    static std::once_flag flag;
+    if (tag != "wght" || std::abs(value - FONT_WEIGHT_NORMAL) >= std::numeric_limits<float>::epsilon()) {
+        std::call_once(flag, [] { TEXT_HISTOGRAM_BOOLEAN_NAME("FontVariationAxis", true); });
+    }
 }
 
 const std::map<std::string, std::pair<float, bool>>& FontVariations::GetAxisValues() const

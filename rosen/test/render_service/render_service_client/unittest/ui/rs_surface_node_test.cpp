@@ -2332,4 +2332,46 @@ HWTEST_F(RSSurfaceNodeTest, DumpSubClass004, TestSize.Level1)
     EXPECT_TRUE(out.find("isShadowNode[true") != std::string::npos);
     EXPECT_TRUE(out.find("existsDuplicateModifier[true") != std::string::npos);
 }
+
+/**
+ * @tc.name: SendDataToRender001
+ * @tc.desc: Test SendDataToRender returns false when rsUIContext is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SendDataToRender001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::CreateSurfaceNode(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    bool result = surfaceNode->SendDataToRender(c, RSSurfaceNodeType::DEFAULT, true, false);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SendDataToRender002
+ * @tc.desc: Test SendDataToRender returns false when rsUIContext is nullptr with isWindow=false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SendDataToRender002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::CreateSurfaceNode(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    bool result = surfaceNode->SendDataToRender(c, RSSurfaceNodeType::DEFAULT, false, false);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SendDataToRender003
+ * @tc.desc: Test SendDataToRender returns false with LEASH_WINDOW_NODE type and rsUIContext nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SendDataToRender003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::CreateSurfaceNode(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    bool result = surfaceNode->SendDataToRender(c, RSSurfaceNodeType::LEASH_WINDOW_NODE, true, false);
+    EXPECT_FALSE(result);
+}
 } // namespace OHOS::Rosen

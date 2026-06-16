@@ -843,101 +843,6 @@ HWTEST_F(RSLayerCacheManagerTest, ShouldEnableLayerCacheTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessLayerNodesTest
- * @tc.desc: Test ProcessLayerNodes & IsNodeUnSupportLayer
- * @tc.type: FUNC
- */
-HWTEST_F(RSLayerCacheManagerTest, ProcessLayerNodesTest, TestSize.Level1)
-{
-    RSLayerCacheManagerBase::isLayerSuggested_ = false;
-    RSLayerCacheManagerBase::ProcessLayerNodes();
-    EXPECT_FALSE(RSLayerCacheManagerBase::isLayerSuggested_);
-
-    RSLayerCacheManagerBase::isLayerSuggested_ = true;
-    RSLayerCacheManagerBase::layerFrameCount_ = 2;
-
-    {
-        constexpr NodeId nodeId = 1;
-        constexpr NodeId parentNodeId = 2;
-        auto node = std::make_shared<RSRenderNode>(nodeId);
-        ASSERT_NE(node, nullptr);
-        auto parent = std::make_shared<RSRenderNode>(parentNodeId);
-        ASSERT_NE(parent, nullptr);
-        node->InitRenderParams();
-        parent->InitRenderParams();
-        parent->AddChild(node);
-        RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
-        EXPECT_TRUE(!RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
-        RSLayerCacheManagerBase::ProcessLayerNodes();
-        EXPECT_TRUE(RSLayerCacheManagerBase::layerFrameCount_ == 3);
-    }
-    {
-        RSLayerCacheManagerBase::layerFrameCount_ = 5;
-        constexpr NodeId nodeId = 1;
-        constexpr NodeId parentNodeId = 5;
-        auto node = std::make_shared<RSRenderNode>(nodeId);
-        ASSERT_NE(node, nullptr);
-        auto parent = std::make_shared<RSRenderNode>(parentNodeId);
-        ASSERT_NE(parent, nullptr);
-        node->InitRenderParams();
-        parent->InitRenderParams();
-        parent->AddChild(node);
-        RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
-        EXPECT_TRUE(!RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
-        RSLayerCacheManagerBase::ProcessLayerNodes();
-        EXPECT_TRUE(RSLayerCacheManagerBase::layerFrameCount_ == 6);
-    }
-}
-
-/**
- * @tc.name: ProcessLayerNodesTest001
- * @tc.desc: Test ProcessLayerNodes & IsNodeUnSupportLayer
- * @tc.type: FUNC
- */
-HWTEST_F(RSLayerCacheManagerTest, ProcessLayerNodesTest001, TestSize.Level1)
-{
-    RSLayerCacheManagerBase::isLayerSuggested_ = false;
-    RSLayerCacheManagerBase::ProcessLayerNodes();
-    EXPECT_FALSE(RSLayerCacheManagerBase::isLayerSuggested_);
-
-    RSLayerCacheManagerBase::isLayerSuggested_ = true;
-    RSLayerCacheManagerBase::layerFrameCount_ = 2;
-
-    {
-        constexpr NodeId nodeId = 1;
-        constexpr NodeId parentNodeId = 2;
-        auto node = std::make_shared<RSRenderNode>(nodeId);
-        ASSERT_NE(node, nullptr);
-        auto parent = std::make_shared<RSRenderNode>(parentNodeId);
-        ASSERT_NE(parent, nullptr);
-        node->InitRenderParams();
-        parent->InitRenderParams();
-        parent->AddChild(node);
-        RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
-        EXPECT_TRUE(!RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
-        RSLayerCacheManagerBase::ProcessLayerNodes();
-        EXPECT_TRUE(RSLayerCacheManagerBase::layerFrameCount_ == 3);
-    }
-    {
-        RSLayerCacheManagerBase::layerFrameCount_ = 2;
-        constexpr NodeId nodeId = 1;
-        constexpr NodeId parentNodeId = 2;
-        auto node = std::make_shared<RSRenderNode>(nodeId);
-        ASSERT_NE(node, nullptr);
-        auto parent = std::make_shared<RSRenderNode>(parentNodeId);
-        ASSERT_NE(parent, nullptr);
-        node->InitRenderParams();
-        parent->InitRenderParams();
-        parent->AddChild(node);
-        RSLayerCacheManagerBase::suggestedLayerNodes_.emplace_back(node);
-        RSLayerCacheManagerBase::unSupportLayerNodeMap_[node->GetId()] = true;
-        EXPECT_FALSE(!RSLayerCacheManagerBase::IsNodeUnSupportLayer(node));
-        RSLayerCacheManagerBase::ProcessLayerNodes();
-        EXPECT_TRUE(RSLayerCacheManagerBase::layerFrameCount_ == 3);
-    }
-}
-
-/**
  * @tc.name: LayerCacheRegionDfxTest
  * @tc.desc: Test LayerCacheRegionDfx
  * @tc.type: FUNC
@@ -968,6 +873,46 @@ HWTEST_F(RSLayerCacheManagerTest, LayerCacheRegionDfxTest, TestSize.Level1)
     EXPECT_TRUE(RSSystemProperties::GetLayerDebugEnabled());
     EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
     (void)system::SetParameter(debugKey, oldDebugValue);
+}
+
+/**
+ * @tc.name: IsNodeUnSupportLayerTest
+ * @tc.desc: Test IsNodeUnSupportLayer
+ * @tc.type: FUNC
+ * @tc.require: issues/22969
+ */
+HWTEST_F(RSLayerCacheManagerTest, IsNodeUnSupportLayerTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
+    canvasNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    EXPECT_FALSE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(canvasNode));
+    EXPECT_FALSE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(*canvasNode));
+
+    canvasNode->stagingRenderParams_->SetLayerParamsIsUnSupportLayer(true);
+    EXPECT_TRUE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(canvasNode));
+    EXPECT_TRUE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(*canvasNode));
+
+    canvasNode->stagingRenderParams_ = nullptr;
+    EXPECT_FALSE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(canvasNode));
+    EXPECT_FALSE(RSLayerCacheManagerBase::IsNodeUnSupportLayer(*canvasNode));
+}
+
+/**
+ * @tc.name: SetLayerParamsIsUnSupportLayerTest
+ * @tc.desc: Test SetLayerParamsIsUnSupportLayer
+ * @tc.type: FUNC
+ * @tc.require: issues/22969
+ */
+HWTEST_F(RSLayerCacheManagerTest, SetLayerParamsIsUnSupportLayerTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
+    canvasNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    EXPECT_FALSE(canvasNode->stagingRenderParams_ == nullptr);
+    RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*canvasNode, true);
+    canvasNode->stagingRenderParams_ = nullptr;
+    RSLayerCacheManagerBase::SetLayerParamsIsUnSupportLayer(*canvasNode, true);
 }
 #endif
 } // namespace Rosen

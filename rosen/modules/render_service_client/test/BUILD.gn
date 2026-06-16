@@ -261,6 +261,10 @@ ohos_executable("render_service_client_ui_capture_demo") {
     "c_utils:utils",
     "hilog:libhilog",
     "init:libbegetutil",
+    "$public_deps_skia",
+    "libpng:libpng",
+    "window_manager:libwm",
+    "zlib:libz",
   ]
 
   defines = []
@@ -271,13 +275,6 @@ ohos_executable("render_service_client_ui_capture_demo") {
     ]
     defines += [ "SUPPORT_ACCESS_TOKEN" ]
   }
-
-  public_external_deps = [
-    "$public_deps_skia",
-    "libpng:libpng",
-    "window_manager:libwm",
-    "zlib:libz",
-  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -572,9 +569,9 @@ ohos_executable("render_service_client_watermark_demo") {
 
   deps = [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
 
-  public_external_deps = [ "skia:skia_canvaskit" ]
+  external_deps = [ "skia:skia_canvaskit" ]
 
-  external_deps = [
+  external_deps += [
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
@@ -894,10 +891,37 @@ ohos_executable("render_service_client_pixelmap_get_demo") {
 ohos_executable("snapshot_surface") {
   sources = [ "snapshot_surface.cpp" ]
   include_dirs = [
-    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/render_service/main",
     "$graphic_2d_root/rosen/modules/render_service/core",
-    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend/gpuComposition",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   deps = [
@@ -907,9 +931,8 @@ ohos_executable("snapshot_surface") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  public_external_deps = [ "libpng:libpng" ]
-
   external_deps = [
+    "libpng:libpng",
     "c_utils:utils",
     "hilog:libhilog",
   ]

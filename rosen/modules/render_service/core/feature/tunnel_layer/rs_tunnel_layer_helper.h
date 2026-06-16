@@ -43,8 +43,7 @@ public:
     static bool TryCommitBufferDirect(const std::shared_ptr<RSSurfaceRenderNode>& node,
         const std::shared_ptr<RSComposerClientManager>& composerClientManager, bool consumePendingBuffer,
         bool previousFrameWasRs = false);
-    static void BeginTunnelBuilding(
-        const std::shared_ptr<RSSurfaceRenderNode>& node, uint64_t tunnelLayerId, uint32_t property);
+    static void BeginTunnelBuilding(NodeId nodeId, uint64_t tunnelLayerId, uint32_t property);
     static void ResetTunnelState(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static ListenerHandleResult HandleListenerBuffer(
         const std::shared_ptr<RSSurfaceRenderNode>& node,

@@ -66,7 +66,7 @@ public:
     static void RenderServiceAllNodeDump(DfxString& log);
     static void RenderServiceAllSurfaceDump(DfxString& log);
     static void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
-        std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize);
+        std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize, DfxString& log);
     static void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
         pid_t pid = 0, bool isLite = false);
     static void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,

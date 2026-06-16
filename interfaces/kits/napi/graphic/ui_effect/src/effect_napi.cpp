@@ -124,6 +124,7 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("colorGradient", CreateColorGradientEffect),
         DECLARE_NAPI_FUNCTION("liquidMaterial", CreateHarmoniumEffect),
         DECLARE_NAPI_FUNCTION("frostedGlass", CreateFrostedGlassEffect),
+        DECLARE_NAPI_FUNCTION("distortionCollapse", CreateDistortionCollapseEffect),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
@@ -1196,6 +1197,85 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
         UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect napi_unwrap fail"));
     visualEffectObj->AddPara(para);
     API_STATS_HISTOGRAM("Arkgraphics2d.UIEffect.liquidMaterial", 1);
+    return thisVar;
+}
+
+bool EffectNapi::ParseDistortionCollapseEffectPara(napi_env env, napi_value jsObject,
+    DistortionCollapseEffectPara* para)
+{
+    // Mark as disabled when the JS parameter is undefined or null
+    napi_valuetype valueType = UIEffectNapiUtils::GetType(env, jsObject);
+    if (valueType == napi_undefined || valueType == napi_null) {
+        para->SetDisabled(true);
+        return true;
+    }
+    napi_value tmpValue = nullptr;
+    Vector2f tmpVector2;
+    Vector4f tmpVector4;
+    int parseTimes = 0;
+
+    if (napi_get_named_property(env, jsObject, "topLeft", &tmpValue) == napi_ok && tmpValue != nullptr) {
+        if (ParseJsPoint(env, tmpValue, tmpVector2)) {
+            para->SetLUCorner(tmpVector2);
+            parseTimes++;
+        }
+    }
+    if (napi_get_named_property(env, jsObject, "topRight", &tmpValue) == napi_ok && tmpValue != nullptr) {
+        if (ParseJsPoint(env, tmpValue, tmpVector2)) {
+            para->SetRUCorner(tmpVector2);
+            parseTimes++;
+        }
+    }
+    if (napi_get_named_property(env, jsObject, "bottomLeft", &tmpValue) == napi_ok && tmpValue != nullptr) {
+        if (ParseJsPoint(env, tmpValue, tmpVector2)) {
+            para->SetLBCorner(tmpVector2);
+            parseTimes++;
+        }
+    }
+    if (napi_get_named_property(env, jsObject, "bottomRight", &tmpValue) == napi_ok && tmpValue != nullptr) {
+        if (ParseJsPoint(env, tmpValue, tmpVector2)) {
+            para->SetRBCorner(tmpVector2);
+            parseTimes++;
+        }
+    }
+    napi_value barrelValue = nullptr;
+    if (napi_get_named_property(env, jsObject, "barrelDistortion", &barrelValue) == napi_ok && barrelValue != nullptr) {
+        if (ParseJsVector4f(env, barrelValue, tmpVector4)) {
+            para->SetBarrelDistortion(tmpVector4);
+            parseTimes++;
+        }
+    }
+    return (parseTimes == NUM_5);
+}
+
+napi_value EffectNapi::CreateDistortionCollapseEffect(napi_env env, napi_callback_info info)
+{
+    constexpr size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value argv[requireArgc];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateDistortionCollapseEffect parsing input fail"));
+
+    napi_value jsObject = argv[0];
+    UIEFFECT_NAPI_CHECK_RET_D(jsObject != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateDistortionCollapseEffect jsObject is nullptr"));
+
+    auto para = std::make_shared<DistortionCollapseEffectPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateDistortionCollapseEffect para is nullptr"));
+
+    UIEFFECT_NAPI_CHECK_RET_D(ParseDistortionCollapseEffectPara(env, jsObject, para.get()), nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateDistortionCollapseEffect parse fail"));
+
+    VisualEffect* visualEffectObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateDistortionCollapseEffect napi_unwrap fail"));
+
+    visualEffectObj->AddPara(para);
     return thisVar;
 }
 

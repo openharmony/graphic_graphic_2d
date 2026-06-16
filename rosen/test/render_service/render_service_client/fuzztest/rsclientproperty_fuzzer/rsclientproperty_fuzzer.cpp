@@ -380,6 +380,76 @@ bool DoUpdateToRender003(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoUpdateToRender004(const uint8_t* data, size_t size)
+{
+    // test
+    PropertyUpdateType EnumNumber = static_cast<PropertyUpdateType>(GetData<int>() % 3);
+    std::vector<float> valueVectorFloat;
+    uint8_t count1 = GetData<uint8_t>() % 8;
+    for (uint8_t i = 0; i < count1; i++) {
+        valueVectorFloat.push_back(GetData<float>());
+    }
+    RSProperty rsPropertyVectorFloat(valueVectorFloat);
+    rsPropertyVectorFloat.UpdateToRender(valueVectorFloat, EnumNumber);
+    std::vector<Vector2f> valueVectorVector2f;
+    uint8_t count2 = GetData<uint8_t>() % 8;
+    for (uint8_t i = 0; i < count2; i++) {
+        valueVectorVector2f.push_back(GetData<Vector2f>());
+    }
+    RSProperty rsPropertyVectorVector2f(valueVectorVector2f);
+    rsPropertyVectorVector2f.UpdateToRender(valueVectorVector2f, EnumNumber);
+    std::vector<Vector4f> valueVectorVector4f;
+    uint8_t count3 = GetData<uint8_t>() % 8;
+    for (uint8_t i = 0; i < count3; i++) {
+        valueVectorVector4f.push_back(GetData<Vector4f>());
+    }
+    RSProperty rsPropertyVectorVector4f(valueVectorVector4f);
+    rsPropertyVectorVector4f.UpdateToRender(valueVectorVector4f, EnumNumber);
+    Vector3f valueVector3f = GetData<Vector3f>();
+    RSProperty rsPropertyVector3f(valueVector3f);
+    rsPropertyVector3f.UpdateToRender(valueVector3f, EnumNumber);
+    return true;
+}
+
+bool DoUpdateToRender005(const uint8_t* data, size_t size)
+{
+    // test
+    PropertyUpdateType EnumNumber = static_cast<PropertyUpdateType>(GetData<int>() % 3);
+    auto pixelmap = std::make_shared<Media::PixelMap>();
+    RSProperty rsPropertyPixelMap(pixelmap);
+    rsPropertyPixelMap.UpdateToRender(pixelmap, EnumNumber);
+    RSShadowBlenderPara shadowBlenderPara;
+    RSProperty rsPropertyShadowBlenderPara(shadowBlenderPara);
+    rsPropertyShadowBlenderPara.UpdateToRender(shadowBlenderPara, EnumNumber);
+    RSHdrDarkenBlenderPara hdrDarkenBlenderPara;
+    RSProperty rsPropertyHdrDarkenBlenderPara(hdrDarkenBlenderPara);
+    rsPropertyHdrDarkenBlenderPara.UpdateToRender(hdrDarkenBlenderPara, EnumNumber);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>(0, 0);
+    RSProperty rsPropertyDrawCmdList(drawCmdList);
+    rsPropertyDrawCmdList.UpdateToRender(drawCmdList, EnumNumber);
+    return true;
+}
+
+bool DoUpdateToRender006(const uint8_t* data, size_t size)
+{
+    // test
+    PropertyUpdateType EnumNumber = static_cast<PropertyUpdateType>(GetData<int>() % 3);
+    auto emitterUpdater = std::make_shared<EmitterUpdater>(GetData<uint32_t>());
+    std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdaters = {emitterUpdater};
+    RSProperty rsPropertyEmitterUpdaters(emitterUpdaters);
+    rsPropertyEmitterUpdaters.UpdateToRender(emitterUpdaters, EnumNumber);
+    auto particleRippleFields = std::make_shared<ParticleRippleFields>();
+    RSProperty rsPropertyParticleRippleFields(particleRippleFields);
+    rsPropertyParticleRippleFields.UpdateToRender(particleRippleFields, EnumNumber);
+    auto particleVelocityFields = std::make_shared<ParticleVelocityFields>();
+    RSProperty rsPropertyParticleVelocityFields(particleVelocityFields);
+    rsPropertyParticleVelocityFields.UpdateToRender(particleVelocityFields, EnumNumber);
+    auto particleFieldCollection = std::make_shared<ParticleFieldCollection>();
+    RSProperty rsPropertyParticleFieldCollection(particleFieldCollection);
+    rsPropertyParticleFieldCollection.UpdateToRender(particleFieldCollection, EnumNumber);
+    return true;
+}
+
 bool DoIsValid(const uint8_t* data, size_t size)
 {
     // test
@@ -513,6 +583,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoUpdateToRender001(data, size);
     OHOS::Rosen::DoUpdateToRender002(data, size);
     OHOS::Rosen::DoUpdateToRender003(data, size);
+    OHOS::Rosen::DoUpdateToRender004(data, size);
+    OHOS::Rosen::DoUpdateToRender005(data, size);
+    OHOS::Rosen::DoUpdateToRender006(data, size);
     OHOS::Rosen::DoIsValid(data, size);
     OHOS::Rosen::DoGetPropertyType(data, size);
     OHOS::Rosen::DoRSPropertyBase002(data, size);

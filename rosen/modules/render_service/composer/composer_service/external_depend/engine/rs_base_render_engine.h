@@ -272,6 +272,7 @@ public:
         const ComposerScreenInfo& composerScreenInfo = {}) = 0;
 #endif
 
+    void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
@@ -321,7 +322,6 @@ public:
 #endif
 
 protected:
-    void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;

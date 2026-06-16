@@ -17,7 +17,7 @@ group("fuzztest") {
   deps = [
     "bitmap_fuzzer:fuzztest",
     "gpucontext_fuzzer:fuzztest",
-    "image_fuzzer:fuzztest",
+    "drawimage_fuzzer:fuzztest",
     "picture_fuzzer:fuzztest",
     "pixmap_fuzzer:fuzztest",
     "yuvinfo_fuzzer:fuzztest",

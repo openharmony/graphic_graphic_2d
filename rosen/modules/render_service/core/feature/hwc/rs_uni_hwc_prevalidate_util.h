@@ -56,6 +56,12 @@ using RequestCompositionType = enum class RequestComposition : int32_t {
     OFFLINE_VCLD_OFF = 6,
 };
 
+using OfflineDeviceType = enum class OfflineDevice : int32_t {
+    INVALID = 0,
+    HPAE_OFFLINE_DEVICE = 3,
+    GPU_OFFLINE_DEVICE = 7,
+};
+
 using PreValidateFunc = int32_t (*)(uint32_t,
     const std::vector<RequestLayerInfo> &, std::map<uint64_t, RequestCompositionType> &);
 using HandleEventFunc = int32_t (*)(uint32_t, uint32_t, const std::vector<int32_t>& eventData);

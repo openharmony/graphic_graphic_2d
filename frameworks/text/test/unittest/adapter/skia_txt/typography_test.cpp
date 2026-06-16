@@ -2374,5 +2374,82 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyForceReuseRasterResultTest009, Tes
     EXPECT_NO_FATAL_FAILURE(typography->Paint(&canvas, 0, 0));
     EXPECT_FALSE(typography->GetForceReuseRasterResult());
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyBalanceTest001
+ * @tc.desc: test for score algorithm in old balanced strategy with special characters, no freeze
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyBalanceTest001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.breakStrategy = BreakStrategy::BALANCED;
+    TextTab myTab;
+    myTab.alignment = TextAlign::CENTER;
+    myTab.location = 1;
+    typographyStyle.tab = myTab;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    style.fontSize = 76;
+    std::u16string text =
+        u"\u{0046}\u{007d}\u{00b7}\u{0038}\u{5572}\u{5a36}\u{0030}\u{5784}\u{0075}\u{0621}\u{0033}\u{00bf}\u{007b}"
+        u"\u{5f7f}\u{0036}\u{0038}\u{0075}\u{007b}\u{0037}\u{007b}\u{0033}\u{0034}\u{0075}\u{0075}\u{0075}\u{0609}"
+        u"\u{007d}\u{005c}\u{0075}\u{30cb}\u{530b}\u{007d}\u{0045}\u{0044}\u{4f31}\u{005c}\u{0075}\u{005c}\u{007d}"
+        u"\u{0041}\u{618a}\u{0032}\u{000a}\u{0034}\u{0033}\u{0038}\u{59d0}\u{0031}\u{000a}\u{5285}\u{0044}\u{0032}"
+        u"\u{007d}\u{0075}\u{0075}\u{5781}\u{0041}\u{005c}\u{0035}\u{007b}\u{5cde}\u{0046}\u{007d}\u{0037}\u{52e6}"
+        u"\u{005c}\u{6120}\u{0034}\u{007b}\u{007d}\u{0075}\u{005c}\u{007d}\u{007b}\u{5a27}\u{4f74}\u{56ae}\u{0037}"
+        u"\u{60eb}\u{007d}\u{005c}\u{007b}\u{0033}\u{5311}\u{ff1b}\u{5644}\u{0044}\u{007d}\u{007d}\u{007b}\u{005c}"
+        u"\u{005c}\u{0034}\u{007b}\u{0038}\u{04cb}\u{007b}\u{000a}\u{007d}\u{005c}";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(0.1);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyGetImageBounds001
+ * @tc.desc: test for run get image bounds with special characters, no crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetImageBounds001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style;
+    std::u16string text =
+        u"\u{0043}\u{0046}\u{0046}\u{0041}\u{5230}\u{007b}\u{007d}\u{0031}\u{0030}\u{2026}\u{0042}\u{500d}\u{0035}"
+        u"\u{005c}\u{0043}\u{0033}\u{007d}\u{005c}\u{0075}\u{0036}\u{0075}\u{007d}\u{005c}\u{0044}\u{0035}\u{0030}"
+        u"\u{0075}\u{0030}\u{005c}\u{0031}\u{0032}\u{007b}\u{0075}\u{0037}\u{007b}\u{0046}\u{007b}\u{4e28}\u{005c}"
+        u"\u{007d}\u{0035}\u{005c}\u{0030}\u{595d}\u{0037}\u{0037}\u{007b}\u{0075}\u{005c}\u{007d}\u{5b94}\u{5a87}"
+        u"\u{005c}\u{005c}\u{0039}\u{0032}\u{0038}\u{0075}\u{0037}\u{005c}\u{0075}\u{0038}\u{0033}\u{0038}\u{0039}"
+        u"\u{0039}\u{0034}\u{0f79}\u{0030}\u{0036}\u{007d}\u{52e4}\u{0041}\u{005c}\u{ff09}\u{007d}\u{0075}\u{005c}"
+        u"\u{007b}\u{0039}\u{0037}\u{0039}\u{005c}\u{0030}\u{007b}\u{0075}\u{0031}\u{0044}\u{0035}\u{0038}\u{300b}"
+        u"\u{0044}\u{0037}\u{0039}\u{0037}\u{005c}\u{007b}\u{007b}\u{007b}\u{007d}";
+    typographyCreate->PushStyle(style);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(980);
+    SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraph, nullptr);
+    auto lines = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->GetTextLines();
+    size_t expectLineSize = 1;
+    EXPECT_EQ(lines.size(), expectLineSize);
+    for (size_t i = 0; i < lines.size(); i++) {
+        auto runs = lines[i]->getGlyphRuns();
+        for (size_t j = 0; j < runs.size(); j++) {
+            runs[j]->getImageBounds();
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -44,8 +44,6 @@ ohos_static_library("test_utils") {
   sources = [ "test_utils.cpp" ]
   public_configs = [ ":test_utils_config" ]
 
-  configs = [ "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_all_deps_config" ]
-
   if (rosen_is_ohos) {
     external_deps += [ "image_framework:image_native" ]
   }

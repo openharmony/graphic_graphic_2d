@@ -2136,5 +2136,132 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenSurface004, Te
     auto ret = mockProxy->RemoveVirtualScreenSurface(screenId, surfaces);
     EXPECT_EQ(ret, 0);
 }
+
+/**
+ * @tc.name: SendVideoRateInfo_SendRequestFailed
+ * @tc.desc: Test SendVideoRateInfo when SendRequest fails, expect ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendVideoRateInfo_SendRequestFailed, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+    std::unordered_map<std::string, std::string> videoRateInfo = {{"key", "value"}};
+    auto ret = mockProxy->SendVideoRateInfo(videoRateInfo);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+ 
+/**
+ * @tc.name: SendVideoRateInfo_Success
+ * @tc.desc: Test SendVideoRateInfo success path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendVideoRateInfo_Success, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(ERR_OK));
+    std::unordered_map<std::string, std::string> videoRateInfo = {{"key", "value"}};
+    auto ret = mockProxy->SendVideoRateInfo(videoRateInfo);
+    EXPECT_EQ(ret, ERR_OK);
+}
+ 
+/**
+ * @tc.name: SendVideoRateInfo_EmptyMap
+ * @tc.desc: Test SendVideoRateInfo with empty map (mapSize=0)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendVideoRateInfo_EmptyMap, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    std::unordered_map<std::string, std::string> videoRateInfo = {};
+    auto ret = mockProxy->SendVideoRateInfo(videoRateInfo);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+ 
+/**
+ * @tc.name: SendVideoRateInfo_MapSizeExceedMax
+ * @tc.desc: Test SendVideoRateInfo with mapSize > MAX_VIDEO_INFO_SIZE(32)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SendVideoRateInfo_MapSizeExceedMax, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    std::unordered_map<std::string, std::string> videoRateInfo;
+    const uint32_t maxVideoInfoSize = 32; // video rate info max map size is 32
+    for (uint32_t i = 0; i <= maxVideoInfoSize; i++) {
+        videoRateInfo["key" + std::to_string(i)] = "value" + std::to_string(i);
+    }
+    auto ret = mockProxy->SendVideoRateInfo(videoRateInfo);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_ParamsSizeExceed
+ * @tc.desc: Test SetApsConfigParams when paramsSize exceeds MAX_APS_PARAMS_SIZE (129 > 128)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetApsConfigParams_ParamsSizeExceed, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+
+    std::unordered_map<std::string, std::string> params;
+    for (uint32_t i = 0; i < 129; i++) {
+        params["key" + std::to_string(i)] = "value" + std::to_string(i);
+    }
+
+    ErrCode ret = mockProxy->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_SendRequestFailed
+ * @tc.desc: Test SetApsConfigParams when SendRequest returns non-NO_ERROR
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetApsConfigParams_SendRequestFailed, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Return(-1));
+
+    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    ErrCode ret = mockProxy->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_Success
+ * @tc.desc: Test SetApsConfigParams with valid params (success case)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetApsConfigParams_Success, TestSize.Level1)
+{
+    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly(testing::Return(NO_ERROR));
+
+    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    ErrCode ret = mockProxy->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
 } // namespace Rosen
 } // namespace OHOS

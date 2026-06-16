@@ -438,6 +438,11 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     RS_LOGI("RSDividedUICaptureVisitor::ProcessSurfaceRenderNode nodeId is %{public}" PRIu64, node.GetId());
     std::shared_ptr<RSOffscreenRenderCallback> callback = std::make_shared<RSOffscreenRenderCallback>();
     auto rsUIContext = RSUIContextManager::Instance().GetRSUIContext(node.GetUIContextToken());
+    auto isInvaildUIContext = (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr);
+    if (isInvaildUIContext) {
+        ROSEN_LOGE("rsUIContext or GetRSRenderInterface is nullptr");
+        return;
+    }
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = scaleX_;
     captureConfig.scaleY = scaleY_;

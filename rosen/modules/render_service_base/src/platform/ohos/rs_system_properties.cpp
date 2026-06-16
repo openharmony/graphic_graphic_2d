@@ -967,6 +967,22 @@ bool RSSystemProperties::GetHeterogeneousHDREnabled()
     return flag;
 }
 
+bool RSSystemProperties::GetGPUOfflineEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.gpuoffline.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetXcomponentEdrEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("const.display.xcomponent_edr_support", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.surfaceOffscreenEnabled", "1");

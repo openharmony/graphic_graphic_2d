@@ -140,6 +140,31 @@ bool ColorFilterFuzzTest003(const uint8_t* data, size_t size)
     std::shared_ptr<ColorFilter> colorFilterTwo = ColorFilter::CreateLightingColorFilter(mulColor, addColor);
     return true;
 }
+
+/*
+ * 测试以下 ColorFilter 接口：
+ * 1. Compose(const ColorFilter& filter)
+ */
+bool ColorFilterFuzzTest004(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    uint32_t type1 = GetObject<uint32_t>();
+    ColorQuad colorQuad = GetObject<ColorQuad>();
+    uint32_t mode = GetObject<uint32_t>();
+    ColorFilter filter1 = ColorFilter(static_cast<ColorFilter::FilterType>(type1 % FILTERTYPE_SIZE), colorQuad,
+        static_cast<BlendMode>(mode % BLENDMODE_SIZE));
+
+    uint32_t type2 = GetObject<uint32_t>();
+    ColorMatrix matrix;
+    ColorFilter filter2 = ColorFilter(static_cast<ColorFilter::FilterType>(type2 % FILTERTYPE_SIZE), matrix);
+
+    filter1.Compose(filter2);
+
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -156,5 +181,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::ColorFilterFuzzTest001(data, size);
     OHOS::Rosen::Drawing::ColorFilterFuzzTest002(data, size);
     OHOS::Rosen::Drawing::ColorFilterFuzzTest003(data, size);
+    OHOS::Rosen::Drawing::ColorFilterFuzzTest004(data, size);
     return 0;
 }

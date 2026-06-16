@@ -216,6 +216,8 @@ private:
     void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
+void ProcessGpuOfflineForTopLayer(
+        const std::shared_ptr<RSSurfaceRenderNode>& topLayer, bool hwcDisabled);
     void UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode, std::vector<RectI>& hwcRects);
     bool CheckIfRoundCornerIntersectDRM(const float ratio, std::vector<float>& ratioVector,
         const Vector4f& instanceCornerRadius, const RectI& instanceAbsRect, const RectI& hwcAbsRect);
@@ -416,6 +418,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcCleanFilter_;
     // map of surface node color gamut collected in CheckColorSpace
     std::unordered_map<NodeId, GraphicColorGamut> surfaceColorGamutMap_;
+    RSRenderThreadParams::TunnelLayerSnapshotMap tunnelLayerSnapshots_;
     // record nodes which ......
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, Rect>>> transparntHwcDirtyFilter_;
     // record DRM nodes
@@ -563,7 +566,8 @@ public:
     /**
      * @brief Constructor with force-prepare state reference and trigger condition
      * @param isCurSubTreeForcePrepare
-     *        Reference of the RSUniRenderVisitor::isCurSubTreeForcePrepare_, depends current subtree need force-prepare
+     *        Reference of the RSUniRenderVisitor::isCurSubTreeForcePrepare_,
+     *        depends current subtree need force-prepare
      * @param condition Trigger condition for enabling force-prepare
      */
     RSSubTreePrepareController(bool& isCurSubTreeForcePrepare, bool condition);

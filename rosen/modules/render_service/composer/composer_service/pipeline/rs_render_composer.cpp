@@ -1445,6 +1445,14 @@ void RSRenderComposer::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     hdiOutput_->CleanLayerBufferBySurfaceId(surfaceId);
 }
 
+void RSRenderComposer::MarkTunnelSurfaceInvalid(uint64_t surfaceId)
+{
+    if (hdiOutput_ == nullptr || surfaceId == 0) {
+        return;
+    }
+    hdiOutput_->MarkTunnelSurfaceInvalid(surfaceId);
+}
+
 int32_t RSRenderComposer::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
 {

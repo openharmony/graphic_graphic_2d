@@ -302,6 +302,31 @@ HWTEST_F(RSBaseNodeCommandText, RemoveCrossParentChild001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsCrossNodeTest001
+ * @tc.desc: Test SetIsCrossNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSBaseNodeCommandText, SetIsCrossNodeTest001, TestSize.Level1)
+{
+    RSContext context;
+    auto& nodeMap = context.GetMutableNodeMap();
+    NodeId nodeId = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+
+    // when not registered
+    BaseNodeCommandHelper::SetIsCrossNode(context, nodeId, true);
+
+    // when registered
+    bool res = nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(surfaceNode));
+    EXPECT_TRUE(res);
+    BaseNodeCommandHelper::SetIsCrossNode(context, nodeId, true);
+
+    // restore
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
  * @tc.name: AddCrossScreenChild
  * @tc.desc: test results of AddCrossScreenChild
  * @tc.type: FUNC

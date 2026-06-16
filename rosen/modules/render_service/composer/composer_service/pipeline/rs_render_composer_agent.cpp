@@ -180,6 +180,23 @@ void RSRenderComposerAgent::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     );
 }
 
+void RSRenderComposerAgent::MarkTunnelSurfaceInvalid(uint64_t surfaceId)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, surfaceId]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->MarkTunnelSurfaceInvalid(surfaceId);
+        }
+    );
+}
+
 int32_t RSRenderComposerAgent::CommitTunnelLayerBySurfaceId(uint64_t surfaceId, uint64_t tunnelLayerId,
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, sptr<SyncFence>& releaseFence)
 {

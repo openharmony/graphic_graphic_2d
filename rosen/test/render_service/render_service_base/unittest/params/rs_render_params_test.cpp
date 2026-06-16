@@ -1146,6 +1146,37 @@ HWTEST_F(RSRenderParamsTest, SetNodeColorSpace002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetLayerParamsTest
+ * @tc.desc: Test GetLayerParamsTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+
+HWTEST_F(RSRenderParamsTest, GetLayerParamsTest, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    EXPECT_TRUE(params.layerParams_ == nullptr);
+    params.GetLayerParams();
+}
+
+/**
+ * @tc.name: SetLayerParamsIsUnSupportLayerTest
+ * @tc.desc: Test SetLayerParamsIsUnSupportLayerTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+
+HWTEST_F(RSRenderParamsTest, SetLayerParamsIsUnSupportLayerTest, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    EXPECT_TRUE(params.layerParams_ == nullptr);
+    params.SetLayerParamsIsUnSupportLayer(true);
+    params.SetLayerParamsIsUnSupportLayer(false);
+}
+
+/**
  * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixTrue
  * @tc.desc: Test HasSandBox is false, applyMatrix is true
  * @tc.type: FUNC
@@ -1314,5 +1345,41 @@ HWTEST_F(RSRenderParamsTest, ApplySandboxMatrixToCanvas_HasOriginalCanvas_Withou
     renderParams.ApplySandboxMatrixToCanvas(mainCanvas);
     surfaceParentMatrix.PreConcat(testMatrix);
     ASSERT_TRUE(mainCanvas.GetTotalMatrix() == surfaceParentMatrix);
+}
+
+/**
+ * @tc.name: SetAndGetRealShadowRectTest001
+ * @tc.desc: Test SetRealShadowRect and GetRealShadowRect when renderGroupCache_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParamsTest, SetAndGetRealShadowRectTest001, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    Drawing::Rect defaultRect;
+    EXPECT_EQ(params.GetRealShadowRect(), defaultRect);
+
+    Drawing::Rect rect(1.0f, 2.0f, 3.0f, 4.0f);
+    params.SetRealShadowRect(rect);
+    EXPECT_EQ(params.GetRealShadowRect(), rect);
+}
+
+/**
+ * @tc.name: SetAndGetRealShadowRectTest002
+ * @tc.desc: Test SetRealShadowRect updates value correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParamsTest, SetAndGetRealShadowRectTest002, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+
+    Drawing::Rect rect1(10.0f, 20.0f, 30.0f, 40.0f);
+    params.SetRealShadowRect(rect1);
+    EXPECT_EQ(params.GetRealShadowRect(), rect1);
+
+    Drawing::Rect rect2(50.0f, 60.0f, 70.0f, 80.0f);
+    params.SetRealShadowRect(rect2);
+    EXPECT_EQ(params.GetRealShadowRect(), rect2);
 }
 } // namespace OHOS::Rosen

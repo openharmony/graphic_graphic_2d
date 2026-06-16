@@ -26,6 +26,7 @@
 #include <refbase.h>
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
+#include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 #include <surface.h>
 #include <utility>
@@ -221,6 +222,8 @@ public:
         const FrameStabilityTarget& oldTarget,
         const FrameStabilityTarget& newTarget
     );
+
+    void SetOnRenderProcessDiedCallback(const std::function<void()>& callback);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
@@ -276,8 +279,7 @@ private:
     std::map<std::pair<uint64_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
     std::mutex transactionDataCallbackMutex_;
 #ifndef ROSEN_CROSS_PLATFORM
-    sptr<RSIClientToRenderConnection> clientToRenderConnection_;
-    sptr<RSIConnectionToken> token_;
+    uint64_t tokenMaskId_ = INVALID_TOKEN_MASK_ID;
 #endif
     friend class SurfaceCaptureCallbackDirector;
     friend class SurfaceBufferCallbackDirector;

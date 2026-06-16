@@ -518,6 +518,22 @@ void RSRenderParams::SetShadowRect(Drawing::Rect rect)
     needSync_ = true;
 }
 
+void RSRenderParams::SetRealShadowRect(const Drawing::Rect& rect)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    renderGroupCache_->SetRealShadowRect(rect);
+}
+
+Drawing::Rect RSRenderParams::GetRealShadowRect() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->GetRealShadowRect();
+    }
+    return Drawing::Rect();
+}
+
 void RSRenderParams::SetNeedSync(bool needSync)
 {
     needSync_ = needSync;
@@ -720,9 +736,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->uifirstRootNodeId_ = uifirstRootNodeId_;
     target->instanceRootNodeId_ = instanceRootNodeId_;
     target->instanceRootNodeName_ = instanceRootNodeName_;
-    target->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
-    target->cloneSourceDrawable_ = cloneSourceDrawable_;
-    target->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
     target->absRotation_ = absRotation_;
     target->hasUnobscuredUEC_ = hasUnobscuredUEC_;
 
@@ -821,11 +834,6 @@ DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetMirrorSource
 {
     static DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr defaultPtr;
     return defaultPtr;
-}
-
-void RSRenderParams::SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
-{
-    cloneSourceDrawable_ = drawable;
 }
 
 // [Attention] Only used in PC window resize scene now

@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "pipeline/rs_tunnel_runtime_state.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -30,6 +30,7 @@ constexpr uint64_t TEST_TUNNEL_LAYER_ID = 1001;
 constexpr uint32_t TEST_TUNNEL_PROPERTY = TUNNEL_PROP_BUFFER_ADDR;
 constexpr uint64_t FIRST_BUFFER_ID = 11;
 constexpr uint64_t SECOND_BUFFER_ID = 12;
+constexpr NodeId TEST_NODE_ID = TEST_TUNNEL_LAYER_ID + 1;
 } // namespace
 
 class RSTunnelRuntimeStateTest : public testing::Test {
@@ -443,6 +444,33 @@ HWTEST_F(RSTunnelRuntimeStateTest, AbandonNormalClaimClearsPendingParam, TestSiz
     state.AbandonNormalClaim();
     EXPECT_EQ(state.GetPhase(), RSTunnelRuntimeState::Phase::TUNNEL_IDLE);
     EXPECT_FALSE(state.IsPendingParam());
+}
+
+/**
+ * @tc.name: RuntimeStoreNonCreatingQueries001
+ * @tc.desc: test runtime store query APIs do not create default runtime entries
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTunnelRuntimeStateTest, RuntimeStoreNonCreatingQueries001, TestSize.Level1)
+{
+    RSTunnelRuntimeStore::Erase(TEST_NODE_ID);
+
+    uint64_t tunnelLayerId = 1;
+    uint32_t property = TEST_TUNNEL_PROPERTY;
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(TEST_NODE_ID, tunnelLayerId, property);
+    EXPECT_EQ(tunnelLayerId, 0u);
+    EXPECT_EQ(property, TUNNEL_PROP_INVALID);
+    EXPECT_EQ(RSTunnelRuntimeStore::GetTunnelLayerGeneration(TEST_NODE_ID), 0u);
+    EXPECT_FALSE(RSTunnelRuntimeStore::HasPendingBuffer(TEST_NODE_ID));
+    EXPECT_FALSE(RSTunnelRuntimeStore::IsTunnelActive(TEST_NODE_ID));
+
+    auto& runtime = RSTunnelRuntimeStore::GetOrCreate(TEST_NODE_ID);
+    runtime.SetBuilding();
+    ASSERT_TRUE(runtime.SetActiveFromTunnelLayerAvailable(runtime.GetTunnelLayerGeneration()));
+    EXPECT_TRUE(RSTunnelRuntimeStore::IsTunnelActive(TEST_NODE_ID));
+
+    RSTunnelRuntimeStore::Erase(TEST_NODE_ID);
 }
 
 } // namespace OHOS::Rosen

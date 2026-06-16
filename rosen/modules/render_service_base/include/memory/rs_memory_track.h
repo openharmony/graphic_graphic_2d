@@ -82,8 +82,6 @@ private:
     size_t drawableNodeSize_ = 0;
 };
 
-using NodeInfoCallback = std::function<void(const NodeId&, const MemoryInfo&)>;
-
 class RSB_EXPORT MemoryTrack {
 public:
     static MemoryTrack& Instance();
@@ -99,7 +97,7 @@ public:
     MemoryGraphic CountRSMemory(const pid_t pid);
     void RemovePidRecord(const pid_t pid);
     float GetAppMemorySizeInMB();
-    const std::unordered_map<NodeId, MemoryInfo>& GetMemNodeMap() { return memNodeMap_; }
+    std::unordered_map<NodeId, MemoryInfo> GetMemNodeMap();
 #ifdef RS_MEMORY_INFO_MANAGER
     void SetGlobalRootNodeStatusChangeFlag(bool flag);
     bool GetGlobalRootNodeStatusChangeFlag();
@@ -111,7 +109,6 @@ public:
     size_t GetNodeMemoryOfPid(const pid_t pid, MEMORY_TYPE type);
     void DumpMemoryPicStatisticsForReport(DfxString& log, const pid_t pid);
     size_t GetNodeNumOfPid(const pid_t pid);
-    void GetNodeInfo(NodeInfoCallback callback);
 
 private:
     MemoryTrack() = default;

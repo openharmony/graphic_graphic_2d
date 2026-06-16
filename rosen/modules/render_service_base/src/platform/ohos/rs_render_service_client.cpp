@@ -1742,6 +1742,16 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
         clientToService->SetOnRemoteDiedCallback(callback);
     }
 }
+
+int32_t RSRenderServiceClient::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->SendVideoRateInfo(videoRateInfo);
+}
+
 #ifndef ENABLE_RS_PROXY
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
@@ -2019,6 +2029,21 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
     auto ret = clientToService->GetBehindWindowFilterEnabled(enabled);
     if (ret != ERR_OK) {
         ROSEN_LOGE("RSRenderServiceClient::GetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderServiceClient::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return false;
+    }
+    auto ret = clientToService->SetApsConfigParams(event, params);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__, ret);
         return false;
     }
     return true;

@@ -141,38 +141,6 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerSourceTuning, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTunnelLayerId
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderParamsTest, SetTunnelLayerId, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(DEFAULT_NODEID);
-    EXPECT_EQ(params.GetTunnelLayerId(), 0);
-    params.SetTunnelLayerId(1);
-    EXPECT_EQ(params.GetTunnelLayerId(), 1);
-}
-
-/**
- * @tc.name: SetTunnelLayerInfo
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderParamsTest, SetTunnelLayerInfo, TestSize.Level1)
-{
-    RSSurfaceRenderParams params(DEFAULT_NODEID);
-    constexpr uint64_t tunnelLayerId = 2001;
-    constexpr uint32_t property = TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT | TUNNEL_PROP_RS_FORCE;
-
-    params.SetTunnelLayerInfo(tunnelLayerId, property);
-
-    EXPECT_EQ(params.GetTunnelLayerId(), tunnelLayerId);
-    EXPECT_EQ(params.GetTunnelLayerProperty(), property);
-}
-
-/**
  * @tc.name: SetFixRotationByUser
  * @tc.desc:
  * @tc.type:FUNC
@@ -377,29 +345,6 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerTop_002, TestSize.Level2)
     params.SetLayerTop(isLayerTop);
     EXPECT_EQ(params.needSync_, true);
     EXPECT_EQ(params.isLayerTop_, isLayerTop);
-}
-
-/**
- * @tc.name: SetHdrForceHwcEnabledTest
- * @tc.desc: Test function SetHdrForceHwcEnabled
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSSurfaceRenderParamsTest, SetHdrForceHwcEnabledTest, TestSize.Level2)
-{
-    RSSurfaceRenderParams params(115);
-    params.needSync_ = false;
-    params.isHdrForceHwcEnabled_  = false;
-
-    bool isHdrForceHwcEnabled = params.isHdrForceHwcEnabled_;
-    params.SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
-    EXPECT_EQ(params.needSync_, false);
-    EXPECT_EQ(params.isHdrForceHwcEnabled_, isHdrForceHwcEnabled);
-
-    isHdrForceHwcEnabled = !params.isHdrForceHwcEnabled_;
-    params.SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
-    EXPECT_EQ(params.needSync_, true);
-    EXPECT_EQ(params.isHdrForceHwcEnabled_, isHdrForceHwcEnabled);
 }
 
 /**

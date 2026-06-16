@@ -436,7 +436,7 @@ HWTEST_F(NdkFontDescriptorTest, MatchFontDescriptorsDefault, TestSize.Level0)
     OH_Drawing_DestroyFontDescriptor(desc);
     EXPECT_NE(descArr, nullptr);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(num, 144);
+        EXPECT_EQ(num, 145);
     } else {
         EXPECT_EQ(num, 143);
     }
@@ -613,7 +613,7 @@ HWTEST_F(NdkFontDescriptorTest, GetGenericFontFullNames, TestSize.Level0)
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(size, 143);
+        EXPECT_EQ(size, 144);
     } else {
         EXPECT_EQ(size, 142);
     }
@@ -672,7 +672,7 @@ HWTEST_F(NdkFontDescriptorTest, GetFontFullNamesByAllOrStylish, TestSize.Level0)
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(size, 144);
+        EXPECT_EQ(size, 145);
     } else {
         EXPECT_EQ(size, 142);
     }
@@ -728,7 +728,7 @@ HWTEST_F(NdkFontDescriptorTest, RegisterFontAndGetAllFontFullNames, TestSize.Lev
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(ALL);
     size_t num = OH_Drawing_GetDrawingArraySize(ttfs);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(num, 144);
+        EXPECT_EQ(num, 145);
     } else {
         EXPECT_EQ(num, 142);
     }
@@ -914,17 +914,17 @@ HWTEST_F(NdkFontDescriptorTest, GetFontPathsByAllTypes, TestSize.Level0)
         free(fontPaths);
     };
     if (ExistStylishFontConfigFile()) {
-        // 141 = 1 stylish font + 139 generic fonts + 1 rare font + 3 installed fonts but duplicate with generic fonts
-        expectFunc(OH_Drawing_SystemFontType::ALL, 142);
-        // 140 = 139 generic fonts + 1 rare font
-        expectFunc(OH_Drawing_SystemFontType::GENERIC, 141);
+        // 142 = 1 stylish font + 140 generic fonts + 3 installed fonts but duplicate with generic fonts
+        expectFunc(OH_Drawing_SystemFontType::ALL, 143);
+        // 141 = 140 generic fonts + 1 rare font
+        expectFunc(OH_Drawing_SystemFontType::GENERIC, 142);
         // 1 = 1 stylish font
         expectFunc(OH_Drawing_SystemFontType::STYLISH, 1);
     } else {
-        // 140 = generic fonts + 3 installed fonts but duplicate with generic fonts
-        expectFunc(OH_Drawing_SystemFontType::ALL, 141);
-        // 140 = 140 generic font
-        expectFunc(OH_Drawing_SystemFontType::GENERIC, 141);
+        // 141 = generic fonts + 3 installed fonts but duplicate with generic fonts
+        expectFunc(OH_Drawing_SystemFontType::ALL, 142);
+        // 141 = 141 generic font
+        expectFunc(OH_Drawing_SystemFontType::GENERIC, 142);
         expectFunc(OH_Drawing_SystemFontType::STYLISH, 0);
     }
     // 3 = 3 installed fonts

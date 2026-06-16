@@ -241,7 +241,9 @@ bool SkiaCanvas::AddSdfPara(SkRuntimeShaderBuilder& builder, const SDFShapeBase&
         }
     }
     std::vector<float> color = shape.GetColorPara();
-    builder.uniform("sdfalpha") = color[0]; // color_[0] is color alpha channel.
+    if (color.size() > 0) {
+        builder.uniform("sdfalpha") = color[0]; // color_[0] is color alpha channel.
+    }
     for (uint64_t i = 1; i < color.size(); i++) {
         char buf[MAX_PARA_LEN] = {0}; // maximum length of string needed is 15.
         if (sprintf_s(buf, sizeof(buf), "colpara%lu", i) != -1) {
@@ -823,8 +825,8 @@ void SkiaCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect
         return;
     }
 
-    SkRSXform skRSXform[count];
-    SkRect skTex[count];
+    std::vector<SkRSXform> skRSXform(count);
+    std::vector<SkRect> skTex(count);
     for (int i = 0; i < count; ++i) {
         SkiaConvertUtils::DrawingRSXformCastToSkXform(xform[i], skRSXform[i]);
         SkiaConvertUtils::DrawingRectCastToSkRect(tex[i], skTex[i]);
@@ -848,7 +850,7 @@ void SkiaCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect
     const SkRect* skCullRect = reinterpret_cast<const SkRect*>(cullRect);
     skPaint_ = defaultPaint_;
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
-    skCanvas_->drawAtlas(img.get(), skRSXform, skTex, skColors.empty() ? nullptr : skColors.data(), count,
+    skCanvas_->drawAtlas(img.get(), skRSXform.data(), skTex.data(), skColors.empty() ? nullptr : skColors.data(), count,
         static_cast<SkBlendMode>(mode), *samplingOptions, skCullRect, &skPaint_);
 }
 

@@ -388,31 +388,44 @@ HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
 
 void RSScreenRenderNode::CollectHdrStatus(NodeId id, HdrStatus hdrStatus)
 {
+    CollectHdrStatusMap(id, hdrStatus);
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
     if (screenParams == nullptr) {
         RS_LOGE("%{public}s screenParams is nullptr", __func__);
         return;
     }
-    screenParams->CollectHdrStatus(id, hdrStatus);
+    HdrStatus currentHDRStatus = screenParams->GetScreenHDRStatus();
+    HdrStatus newHDRStatus = static_cast<HdrStatus>(currentHDRStatus | hdrStatus);
+    screenParams->CollectHdrStatus(newHDRStatus);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
 }
 
-const std::unordered_map<NodeId, HdrStatus>& RSScreenRenderNode::GetDisplayHdrStatusMap() const
+void RSScreenRenderNode::CollectHdrStatusMap(NodeId id, HdrStatus hdrStatus)
 {
-    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
-    if (screenParams == nullptr) {
-        RS_LOGE("%{public}s screenParams is nullptr", __func__);
-        static const std::unordered_map<NodeId, HdrStatus> emptyMap;
-        return emptyMap;
+    if (!RSSystemProperties::GetXcomponentEdrEnabled() || hdrStatus == HdrStatus::NO_HDR) {
+        return;
     }
-    return screenParams->GetScreenHDRStatusMap();
+    auto iter = displayHDRStatusMap_.find(id);
+    if (iter == displayHDRStatusMap_.end()) {
+        displayHDRStatusMap_.emplace(id, hdrStatus);
+    } else {
+        uint32_t currentNodeHDRStatus = iter->second;
+        uint32_t newNodeHDRStatus = (currentNodeHDRStatus | hdrStatus);
+        iter->second = newNodeHDRStatus;
+    }
+}
+
+const std::unordered_map<NodeId, uint32_t>& RSScreenRenderNode::GetDisplayHdrStatusMap() const
+{
+    return displayHDRStatusMap_;
 }
 
 // LCOV_EXCL_START
 void RSScreenRenderNode::ResetDisplayHdrStatus()
 {
+    displayHDRStatusMap_.clear();
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
     if (screenParams == nullptr) {
         RS_LOGE("%{public}s screenParams is nullptr", __func__);

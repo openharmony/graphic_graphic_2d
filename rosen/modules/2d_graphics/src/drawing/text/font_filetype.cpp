@@ -366,6 +366,27 @@ FontFileType::FontFileFormat FontFileType::GetFontFileType(const std::vector<uin
     }
     return DetectFormatWithFileCount(hbBlob, fileCount);
 }
+
+FontFileType::FontFileFormat FontFileType::GetFontFileType(const void* data, size_t length, int& fileCount)
+{
+    if (data == nullptr || length == 0) {
+        fileCount = INVALID_FONT_FILE_NUM;
+        LOGE("Drawing_Text [GetFontFileType] data or length is invalid!");
+        return FontFileType::FontFileFormat::UNKNOWN;
+    }
+    HBBlob hbBlob;
+    hbBlob.reset(hb_blob_create_or_fail(reinterpret_cast<const char*>(data),
+                                        length,
+                                        HB_MEMORY_MODE_READONLY,
+                                        nullptr,
+                                        nullptr));
+    if (!hbBlob.get()) {
+        LOGE("Drawing_Text [GetFontFileType] font file type can't be resolved, HarfBuzz error!");
+        fileCount = INVALID_FONT_FILE_NUM;
+        return FontFileType::FontFileFormat::UNKNOWN;
+    }
+    return DetectFormatWithFileCount(hbBlob, fileCount);
+}
 } // Drawing
 } // Rosen
 } // OHOS

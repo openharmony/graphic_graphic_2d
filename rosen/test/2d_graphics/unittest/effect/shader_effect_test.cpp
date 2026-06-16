@@ -486,7 +486,7 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient003, TestSize.Level1)
 
 /*
  * @tc.name: CreateLinearGradient004
- * @tc.desc: Test CreateLinearGradient with UIColor
+ * @tc.desc: Test CreateLinearGradient returns lazy shader with UIColor
  * @tc.type: FUNC
  * @tc.author:
  */
@@ -498,18 +498,31 @@ HWTEST_F(ShaderEffectTest, CreateLinearGradient004, TestSize.Level1)
     colors.push_back(UIColor(0.1f, 0.2f, 0.3f, 1.0f, 10.0f));
     std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
     std::vector<scalar> position;
+
     auto newShaderEffect = ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors, colorSpace,
         position, TileMode::CLAMP);
-    EXPECT_TRUE(newShaderEffect != nullptr);
+    ASSERT_TRUE(newShaderEffect != nullptr);
+    EXPECT_TRUE(newShaderEffect->IsLazy());
+    EXPECT_EQ(newShaderEffect->GetType(), ShaderEffect::ShaderEffectType::LAZY_SHADER);
+
+    // Cast to ShaderEffectLazy and Materialize to get non-lazy shader
+    auto lazyShader = std::static_pointer_cast<ShaderEffectLazy>(newShaderEffect);
+    ASSERT_TRUE(lazyShader != nullptr);
+    auto materialized = lazyShader->Materialize();
+    ASSERT_TRUE(materialized != nullptr);
+    EXPECT_FALSE(materialized->IsLazy());
+    EXPECT_EQ(materialized->GetType(), ShaderEffect::ShaderEffectType::LINEAR_GRADIENT);
+
+    // Test with empty colors
     colors.clear();
     auto newShaderEffect2 = ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors, colorSpace,
         position, TileMode::CLAMP);
-    EXPECT_TRUE(newShaderEffect2 != nullptr);
+    EXPECT_TRUE(newShaderEffect2 == nullptr); // Should return nullptr for empty colors
 }
 
 /*
  * @tc.name: CreateRadialGradient004
- * @tc.desc: Test CreateRadialGradient with UIColor
+ * @tc.desc: Test CreateRadialGradient returns lazy shader with UIColor
  * @tc.type: FUNC
  * @tc.author:
  */
@@ -523,13 +536,26 @@ HWTEST_F(ShaderEffectTest, CreateRadialGradient004, TestSize.Level1)
     std::vector<scalar> position;
     TileMode tileMode = TileMode::REPEAT;
     Matrix matrix;
+
     auto newShaderEffect = ShaderEffect::CreateRadialGradient(centerPoint, radius, colors, colorSpace, position,
         tileMode, &matrix);
-    EXPECT_TRUE(newShaderEffect != nullptr);
+    ASSERT_TRUE(newShaderEffect != nullptr);
+    EXPECT_TRUE(newShaderEffect->IsLazy());
+    EXPECT_EQ(newShaderEffect->GetType(), ShaderEffect::ShaderEffectType::LAZY_SHADER);
+
+    // Cast to ShaderEffectLazy and Materialize to get non-lazy shader
+    auto lazyShader = std::static_pointer_cast<ShaderEffectLazy>(newShaderEffect);
+    ASSERT_TRUE(lazyShader != nullptr);
+    auto materialized = lazyShader->Materialize();
+    ASSERT_TRUE(materialized != nullptr);
+    EXPECT_FALSE(materialized->IsLazy());
+    EXPECT_EQ(materialized->GetType(), ShaderEffect::ShaderEffectType::RADIAL_GRADIENT);
+
+    // Test with empty colors
     colors.clear();
     auto newShaderEffect2 = ShaderEffect::CreateRadialGradient(centerPoint, radius, colors, colorSpace, position,
         tileMode, &matrix);
-    EXPECT_TRUE(newShaderEffect2 != nullptr);
+    EXPECT_TRUE(newShaderEffect2 == nullptr); // Should return nullptr for empty colors
 }
 
 /*
@@ -550,13 +576,26 @@ HWTEST_F(ShaderEffectTest, CreateTwoPointConical004, TestSize.Level1)
     std::vector<scalar> position;
     TileMode tileMode = TileMode::REPEAT;
     Matrix matrix;
+
     auto newShaderEffect = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
         colorSpace, position, tileMode, &matrix);
-    EXPECT_TRUE(newShaderEffect != nullptr);
+    ASSERT_TRUE(newShaderEffect != nullptr);
+    EXPECT_TRUE(newShaderEffect->IsLazy());
+    EXPECT_EQ(newShaderEffect->GetType(), ShaderEffect::ShaderEffectType::LAZY_SHADER);
+
+    // Cast to ShaderEffectLazy and Materialize to get non-lazy shader
+    auto lazyShader = std::static_pointer_cast<ShaderEffectLazy>(newShaderEffect);
+    ASSERT_TRUE(lazyShader != nullptr);
+    auto materialized = lazyShader->Materialize();
+    ASSERT_TRUE(materialized != nullptr);
+    EXPECT_FALSE(materialized->IsLazy());
+    EXPECT_EQ(materialized->GetType(), ShaderEffect::ShaderEffectType::CONICAL_GRADIENT);
+
+    // Test with empty colors
     colors.clear();
     auto newShaderEffect2 = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
         colorSpace, position, tileMode, &matrix);
-    EXPECT_TRUE(newShaderEffect2 != nullptr);
+    EXPECT_TRUE(newShaderEffect2 == nullptr); // Should return nullptr for empty colors
 }
 
 /*
@@ -575,15 +614,26 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient004, TestSize.Level1)
     TileMode tileMode = TileMode::REPEAT;
     scalar startAngle = 10.2f;
     scalar endAngle = 10.5f;
-    auto newShaderEffect =
-        ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
-        endAngle, nullptr);
-    EXPECT_TRUE(newShaderEffect != nullptr);
+
+    auto newShaderEffect = ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position,
+        tileMode, startAngle, endAngle, nullptr);
+    ASSERT_TRUE(newShaderEffect != nullptr);
+    EXPECT_TRUE(newShaderEffect->IsLazy());
+    EXPECT_EQ(newShaderEffect->GetType(), ShaderEffect::ShaderEffectType::LAZY_SHADER);
+
+    // Cast to ShaderEffectLazy and Materialize to get non-lazy shader
+    auto lazyShader = std::static_pointer_cast<ShaderEffectLazy>(newShaderEffect);
+    ASSERT_TRUE(lazyShader != nullptr);
+    auto materialized = lazyShader->Materialize();
+    ASSERT_TRUE(materialized != nullptr);
+    EXPECT_FALSE(materialized->IsLazy());
+    EXPECT_EQ(materialized->GetType(), ShaderEffect::ShaderEffectType::SWEEP_GRADIENT);
+
+    // Test with empty colors
     colors.clear();
-    auto newShaderEffect2 =
-        ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
-        endAngle, nullptr);
-    EXPECT_TRUE(newShaderEffect2 != nullptr);
+    auto newShaderEffect2 = ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position,
+        tileMode, startAngle, endAngle, nullptr);
+    EXPECT_TRUE(newShaderEffect2 == nullptr); // Should return nullptr for empty colors
 }
 
 /*

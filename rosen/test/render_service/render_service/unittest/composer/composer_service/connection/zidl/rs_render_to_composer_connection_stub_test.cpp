@@ -388,4 +388,80 @@ HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_PreAllocProtected
         data, reply, opt);
     EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
 }
+
+/**
+ * @tc.name: OnRemoteRequest_MarkTunnelSurfaceInvalid_Success
+ * @tc.desc: Test stub correctly deserializes surfaceId and calls MarkTunnelSurfaceInvalid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_MarkTunnelSurfaceInvalid_Success, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    RSRenderToComposerConnection conn("ut", 0u, agent);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+    data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+
+    constexpr uint64_t surfaceId = 70001u;
+    data.WriteUint64(surfaceId);
+
+    int ret = conn.OnRemoteRequest(
+        IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_MARK_TUNNEL_SURFACE_INVALID,
+        data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+}
+
+/**
+ * @tc.name: OnRemoteRequest_MarkTunnelSurfaceInvalid_ReadFail
+ * @tc.desc: Test stub returns binder error when surfaceId read fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, OnRemoteRequest_MarkTunnelSurfaceInvalid_ReadFail, TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption opt;
+    data.WriteInterfaceToken(IRSRenderToComposerConnection::GetDescriptor());
+
+    int ret = conn.OnRemoteRequest(
+        IRSRenderToComposerConnection::IRENDER_TO_COMPOSER_CONNECTION_MARK_TUNNEL_SURFACE_INVALID,
+        data, reply, opt);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * @tc.name: MarkTunnelSurfaceInvalidSurfaceIdStub_ReadFailure_ReturnsError
+ * @tc.desc: Test MarkTunnelSurfaceInvalidSurfaceIdStub returns error on read failure.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, MarkTunnelSurfaceInvalidSurfaceIdStub_ReadFailure_ReturnsError,
+    TestSize.Level1)
+{
+    RSRenderToComposerConnection conn("ut", 0u, nullptr);
+    MessageParcel parcel;
+
+    int32_t ret = conn.MarkTunnelSurfaceInvalidSurfaceIdStub(parcel);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_BINDER_ERROR);
+}
+
+/**
+ * @tc.name: MarkTunnelSurfaceInvalidSurfaceIdStub_ValidSurfaceId_ReturnsOk
+ * @tc.desc: Test MarkTunnelSurfaceInvalidSurfaceIdStub returns OK with valid surfaceId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderToComposerConnectionStubTest, MarkTunnelSurfaceInvalidSurfaceIdStub_ValidSurfaceId_ReturnsOk,
+    TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    RSRenderToComposerConnection conn("ut", 0u, agent);
+    MessageParcel parcel;
+
+    constexpr uint64_t surfaceId = 70002u;
+    parcel.WriteUint64(surfaceId);
+
+    int32_t ret = conn.MarkTunnelSurfaceInvalidSurfaceIdStub(parcel);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
+}
 } // namespace OHOS::Rosen

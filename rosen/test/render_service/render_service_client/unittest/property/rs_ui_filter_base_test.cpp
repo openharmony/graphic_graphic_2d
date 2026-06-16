@@ -18,6 +18,7 @@
 #include "ui_effect/filter/include/filter_heat_distortion_para.h"
 #include "ui_effect/filter/include/filter_blur_bubbles_rise_para.h"
 #include "ui_effect/filter/include/filter_motion_blur_para.h"
+#include "ui_effect/effect/include/distortion_collapse_effect_para.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -354,6 +355,211 @@ HWTEST_F(RSUIFilterBaseTest, CreateMotionBlurFilterFromPara002, TestSize.Level1)
     std::shared_ptr<MotionBlurPara> nullptrPara = nullptr;
     auto motionBlurFilter = RSNGFilterBase::Create(nullptrPara);
     EXPECT_EQ(motionBlurFilter, nullptr);
+}
+
+/**
+ * @tc.name: DistortionCollapseEffectParaDefaultValues
+ * @tc.desc: test DistortionCollapseEffectPara default values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, DistortionCollapseEffectParaDefaultValues, TestSize.Level1)
+{
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    EXPECT_EQ(distortionPara->GetParaType(), VisualEffectPara::ParaType::DISTORTION_COLLAPSE_EFFECT);
+    EXPECT_EQ(distortionPara->GetLUCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetRUCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetLBCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetRBCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetBarrelDistortion(), Vector4f(0.f, 0.f, 0.f, 0.f));
+}
+
+/**
+ * @tc.name: DistortionCollapseEffectParaSettersAndGetters
+ * @tc.desc: test DistortionCollapseEffectPara setters and getters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, DistortionCollapseEffectParaSettersAndGetters, TestSize.Level1)
+{
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    Vector2f luCorner(0.1f, 0.2f);
+    Vector2f ruCorner(0.3f, 0.4f);
+    Vector2f lbCorner(0.5f, 0.6f);
+    Vector2f rbCorner(0.7f, 0.8f);
+    Vector4f barrelDistortion(0.1f, 0.2f, 0.3f, 0.4f);
+
+    distortionPara->SetLUCorner(luCorner);
+    distortionPara->SetRUCorner(ruCorner);
+    distortionPara->SetLBCorner(lbCorner);
+    distortionPara->SetRBCorner(rbCorner);
+    distortionPara->SetBarrelDistortion(barrelDistortion);
+
+    EXPECT_EQ(distortionPara->GetLUCorner(), luCorner);
+    EXPECT_EQ(distortionPara->GetRUCorner(), ruCorner);
+    EXPECT_EQ(distortionPara->GetLBCorner(), lbCorner);
+    EXPECT_EQ(distortionPara->GetRBCorner(), rbCorner);
+    EXPECT_EQ(distortionPara->GetBarrelDistortion(), barrelDistortion);
+}
+
+/**
+ * @tc.name: CreateNGDistortionCollapseFilterNullptr
+ * @tc.desc: test CreateNGDistortionCollapseFilter with nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGDistortionCollapseFilterNullptr, TestSize.Level1)
+{
+    auto filter = RSNGFilterHelper::CreateNGDistortionCollapseFilter(nullptr);
+    EXPECT_EQ(filter, nullptr);
+
+    auto filter2 = RSNGFilterHelper::CreateNGDistortionCollapseFilter(nullptr);
+    EXPECT_EQ(filter2, nullptr);
+    EXPECT_EQ(filter, filter2);
+}
+
+/**
+ * @tc.name: CreateNGDistortionCollapseFilterWithParams
+ * @tc.desc: test CreateNGDistortionCollapseFilter with custom params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGDistortionCollapseFilterWithParams, TestSize.Level1)
+{
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    Vector2f luCorner(0.1f, 0.2f);
+    Vector2f ruCorner(0.3f, 0.4f);
+    Vector2f lbCorner(0.5f, 0.6f);
+    Vector2f rbCorner(0.7f, 0.8f);
+    Vector4f barrelDistortion(0.1f, 0.2f, 0.3f, 0.4f);
+
+    distortionPara->SetLUCorner(luCorner);
+    distortionPara->SetRUCorner(ruCorner);
+    distortionPara->SetLBCorner(lbCorner);
+    distortionPara->SetRBCorner(rbCorner);
+    distortionPara->SetBarrelDistortion(barrelDistortion);
+
+    auto filter = RSNGFilterHelper::CreateNGDistortionCollapseFilter(distortionPara);
+    ASSERT_NE(filter, nullptr);
+    ASSERT_EQ(filter->GetType(), RSNGEffectType::DISTORTION_COLLAPSE);
+
+    auto distortFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseLUCornerTag>()->Get(), luCorner);
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseRUCornerTag>()->Get(), ruCorner);
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseLBCornerTag>()->Get(), lbCorner);
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseRBCornerTag>()->Get(), rbCorner);
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseBarrelDistortionTag>()->Get(), barrelDistortion);
+}
+
+/**
+ * @tc.name: CreateNGDistortionCollapseFilterDefaultValues
+ * @tc.desc: test CreateNGDistortionCollapseFilter with default values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGDistortionCollapseFilterDefaultValues, TestSize.Level1)
+{
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    EXPECT_EQ(distortionPara->GetLUCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetRUCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetLBCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetRBCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetBarrelDistortion(), Vector4f(0.f, 0.f, 0.f, 0.f));
+
+    auto filter = RSNGFilterHelper::CreateNGDistortionCollapseFilter(distortionPara);
+    ASSERT_NE(filter, nullptr);
+    ASSERT_EQ(filter->GetType(), RSNGEffectType::DISTORTION_COLLAPSE);
+
+    auto distortFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseLUCornerTag>()->Get(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseRUCornerTag>()->Get(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseLBCornerTag>()->Get(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseRBCornerTag>()->Get(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortFilter->Getter<DistortionCollapseBarrelDistortionTag>()->Get(), Vector4f(0.f, 0.f, 0.f, 0.f));
+}
+
+/**
+ * @tc.name: CreateNGSDFDistortOpShapeNullptr
+ * @tc.desc: test CreateNGSDFDistortOpShape with nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGSDFDistortOpShapeNullptr, TestSize.Level1)
+{
+    auto shape = RSNGFilterHelper::CreateNGSDFDistortOpShape(nullptr);
+    EXPECT_EQ(shape, nullptr);
+
+    auto shape2 = RSNGFilterHelper::CreateNGSDFDistortOpShape(nullptr);
+    EXPECT_EQ(shape2, nullptr);
+    EXPECT_EQ(shape, shape2);
+}
+
+/**
+ * @tc.name: CreateNGSDFDistortOpShapeWithParams
+ * @tc.desc: test CreateNGSDFDistortOpShape with custom params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGSDFDistortOpShapeWithParams, TestSize.Level1)
+{
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    Vector2f luCorner(0.1f, 0.2f);
+    Vector2f ruCorner(0.3f, 0.4f);
+    Vector2f lbCorner(0.5f, 0.6f);
+    Vector2f rbCorner(0.7f, 0.8f);
+    Vector4f barrelDistortion(0.1f, 0.2f, 0.3f, 0.4f);
+
+    distortionPara->SetLUCorner(luCorner);
+    distortionPara->SetRUCorner(ruCorner);
+    distortionPara->SetLBCorner(lbCorner);
+    distortionPara->SetRBCorner(rbCorner);
+    distortionPara->SetBarrelDistortion(barrelDistortion);
+
+    auto shape = RSNGFilterHelper::CreateNGSDFDistortOpShape(distortionPara);
+    ASSERT_NE(shape, nullptr);
+    ASSERT_EQ(shape->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+
+    auto distortShape = std::static_pointer_cast<RSNGSDFDistortOpShape>(shape);
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeLUCornerTag>()->Get(), luCorner);
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeRUCornerTag>()->Get(), ruCorner);
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeLBCornerTag>()->Get(), lbCorner);
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeRBCornerTag>()->Get(), rbCorner);
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeBarrelDistortionTag>()->Get(), barrelDistortion);
+
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeShapeTag>()->Get(), nullptr);
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeSyncTag>()->Get(), false);
+}
+
+/**
+ * @tc.name: CreateNGSDFDistortOpShapeDefaultValues
+ * @tc.desc: test CreateNGSDFDistortOpShape with default values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIFilterBaseTest, CreateNGSDFDistortOpShapeDefaultValues, TestSize.Level1)
+{
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    EXPECT_EQ(distortionPara->GetLUCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetRUCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetLBCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetRBCorner(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortionPara->GetBarrelDistortion(), Vector4f(0.f, 0.f, 0.f, 0.f));
+
+    auto shape = RSNGFilterHelper::CreateNGSDFDistortOpShape(distortionPara);
+    ASSERT_NE(shape, nullptr);
+    ASSERT_EQ(shape->GetType(), RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+
+    auto distortShape = std::static_pointer_cast<RSNGSDFDistortOpShape>(shape);
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeLUCornerTag>()->Get(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeRUCornerTag>()->Get(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeLBCornerTag>()->Get(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeRBCornerTag>()->Get(), Vector2f(0.f, 0.f));
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeBarrelDistortionTag>()->Get(), Vector4f(0.f, 0.f, 0.f, 0.f));
+
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeShapeTag>()->Get(), nullptr);
+    EXPECT_EQ(distortShape->Getter<SDFDistortOpShapeSyncTag>()->Get(), false);
+}
+
+HWTEST_F(RSUIFilterBaseTest, CreateNGDistortionWithDisableFlag, TestSize.Level1)
+{
+    auto distortionPara = std::make_shared<DistortionCollapseEffectPara>();
+    distortionPara->SetDisabled(true);
+    auto filter = RSNGFilterHelper::CreateNGDistortionCollapseFilter(distortionPara);
+    auto shape = RSNGFilterHelper::CreateNGSDFDistortOpShape(distortionPara);
+    EXPECT_EQ(filter, nullptr);
+    EXPECT_EQ(shape, nullptr);
 }
 
 } // namespace OHOS::Rosen

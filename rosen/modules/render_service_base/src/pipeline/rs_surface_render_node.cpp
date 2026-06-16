@@ -42,6 +42,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties_painter.h"
@@ -163,8 +164,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
-      bundleName_(config.bundleName),
-      tunnelRuntimeState_(std::make_unique<RSTunnelRuntimeState>())
+      bundleName_(config.bundleName)
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -184,6 +184,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContex
 
 RSSurfaceRenderNode::~RSSurfaceRenderNode()
 {
+    RSTunnelRuntimeStore::Erase(GetId());
 #ifdef USE_SURFACE_TEXTURE
     SetSurfaceTexture(nullptr);
 #endif
@@ -209,8 +210,8 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
     if (surfaceHandler == nullptr) {
         return;
     }
-    if (surfaceHandler->GetConsumer() != consumer && tunnelRuntimeState_ != nullptr) {
-        tunnelRuntimeState_->Clear();
+    if (surfaceHandler->GetConsumer() != consumer) {
+        RSTunnelRuntimeStore::Clear(GetId());
     }
     surfaceHandler->SetConsumer(consumer);
 }
@@ -1430,13 +1431,6 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop, bool isTopLayerForceRefresh)
 void RSSurfaceRenderNode::SetHdrForceHwcEnabled(bool isHdrForceHwcEnabled)
 {
     isHdrForceHwcEnabled_ = isHdrForceHwcEnabled;
-    SetContentDirty();
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams == nullptr) {
-        return;
-    }
-    surfaceParams->SetHdrForceHwcEnabled(isHdrForceHwcEnabled);
-    AddToPendingSyncList();
 }
 
 void RSSurfaceRenderNode::SetForceRefresh(bool isForceRefresh)
@@ -2965,6 +2959,11 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             monitor.EraseCurRectMap(GetId());
         }
     }
+
+    if (isOnTheTree_ && !onTree && autoClearCloneNode_) {
+        ClearCloneCrossNode();
+    }
+
     RSBaseRenderNode::SetIsOnTheTree(
         onTree, instanceRootNodeId, firstLevelNodeId, INVALID_NODEID, screenNodeId, logicalDisplayNodeId);
 }
@@ -3156,7 +3155,7 @@ void RSSurfaceRenderNode::UpdatePartialRenderParams()
     surfaceParams->SetTransparentRegion(GetTransparentRegion());
     surfaceParams->SetOpaqueRegion(GetOpaqueRegion());
     surfaceParams->SetRoundedCornerRegion(GetRoundedCornerRegion());
-    surfaceParams->SetFirstLevelCrossNode(IsFirstLevelCrossNode());
+    surfaceParams->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
 #endif
 }
 
@@ -3243,6 +3242,11 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->allSubSurfaceNodeIds_ = GetAllSubSurfaceNodeIds();
     surfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     surfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
+    surfaceParams->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
+    std::shared_ptr<RSSurfaceRenderNode> cloneSourceNode = sourceCrossNode_.lock();
+    if (cloneSourceNode) {
+        surfaceParams->cloneSourceDrawable_ = cloneSourceNode->GetRenderDrawable();
+    }
     if (occlusionParams_ != nullptr && occlusionParams_->IsOcclusionCullingOn()) {
         surfaceParams->isOcclusionCullingOn_ = true;
         surfaceParams->culledNodes_ = occlusionParams_->TakeCulledNodes();
@@ -4137,6 +4141,56 @@ void RSSurfaceRenderNode::ClearRelatedSourceCache(bool value)
     }
     surfaceParams->SetNeedClearRelatedCache(value);
     AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderNode::%{public}s surfaceParams is null", __func__);
+        return;
+    }
+    surfaceParams->SetCrossNodeOffScreenStatus(isCrossNodeOffscreenOn);
+}
+
+void RSSurfaceRenderNode::ClearCloneCrossNode()
+{
+    if (cloneCrossNodeVec_.size() == 0) {
+        return;
+    }
+
+    for (auto it = cloneCrossNodeVec_.begin(); it != cloneCrossNodeVec_.end(); ++it) {
+        if (auto parent = (*it)->GetParent().lock()) {
+            parent->RemoveChild(*it, true);
+        }
+    }
+    cloneCrossNodeVec_.clear();
+}
+
+void RSSurfaceRenderNode::SetCrossNodeVisitedStatus(bool hasVisited)
+{
+    if (isCrossNode_) {
+        hasVisitedCrossNode_ = hasVisited;
+        RS_LOGD("%{public}s NodeId[%{public}" PRIu64 "] hasVisited:%{public}d", __func__, GetId(), hasVisited);
+        for (auto cloneNode : cloneCrossNodeVec_) {
+            if (!cloneNode) {
+                RS_LOGE("%{public}s cloneNode is nullptr sourceNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
+                        __func__, GetId(), hasVisited);
+                continue;
+            }
+            cloneNode->hasVisitedCrossNode_ = hasVisited;
+            RS_LOGD("%{public}s cloneNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
+                    __func__, cloneNode->GetId(), hasVisited);
+        }
+    } else if (isCloneCrossNode_) {
+        std::shared_ptr<RSSurfaceRenderNode> sourceNode = GetSourceCrossNode().lock();
+        if (!sourceNode) {
+            RS_LOGE("%{public}s sourceNode is nullptr cloneNodeId[%{public}" PRIu64 "] hasVisited:%{public}d",
+                    __func__, GetId(), hasVisited);
+            return;
+        }
+        sourceNode->SetCrossNodeVisitedStatus(hasVisited);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -395,11 +395,15 @@ private:
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
 
+    ErrCode SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo) override;
+
     ErrCode NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter) override;
 
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
+
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params) override;
 
     ErrCode AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime) override;

@@ -59,7 +59,6 @@ __attribute__((constructor)) void Init()
 }
 } // namespace
 
-static std::shared_ptr<OHOS::Rosen::Drawing::ObjectMgr> objectMgr = OHOS::Rosen::Drawing::ObjectMgr::GetInstance();
 static std::map<void*, size_t> arrSizeMgr;
 static std::shared_mutex arrSizeMgrMutex;
 
@@ -419,7 +418,7 @@ OH_Drawing_TypographyCreate* OH_Drawing_CreateTypographyHandler(
     if (auto fc = OHOS::Rosen::FontCollectionMgr::GetInstance().FindSharedFontColleciton(fontCollection)) {
         handler = TypographyCreate::Create(*typoStyle, fc);
     } else {
-        objectMgr->RemoveObject(fontCollection);
+        OHOS::Rosen::Drawing::ObjectMgr::GetInstance().RemoveObject(fontCollection);
 
         handler = TypographyCreate::Create(
             *typoStyle, std::shared_ptr<FontCollection>(ConvertToOriginalText<FontCollection>(fontCollection)));

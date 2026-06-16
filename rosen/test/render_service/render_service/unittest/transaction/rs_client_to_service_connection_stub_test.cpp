@@ -4452,6 +4452,10 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest002, TestSize.
         connectionStub_->RegisterTypeface(sharedTypeface, needUpdate), -1);
     EXPECT_TRUE(connectionStub_->UnRegisterTypeface(typeface->GetHash()));
     EXPECT_TRUE(connectionStub_->UnRegisterTypeface(sharedTypeface.id_));
+    // UnRegisterTypeface delays removal via ref-count, force cleanup to avoid
+    // leaking cache entries into subsequent tests.
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(typeface->GetHash());
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(sharedTypeface.id_);
 }
 
 /**
@@ -6036,6 +6040,117 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_RemoveVirtualScree
     data.WriteUint64(INVALID_SCREEN_ID);
     data.WriteUint32(0);
     ASSERT_EQ(ERR_NONE, connectionStub_->OnRemoteRequest(code, data, reply, option));
+}
+
+/**
+ * @tc.name: SendVideoRateInfo_ReadMapFiled
+ * @tc.desc: Test SendVideoRateInfo stub when read map size failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_ReadMapFiled, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    // 不写入MapSize
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SendVideoRateInfo_ReadMapSize0
+ * @tc.desc: Test SendVideoRateInfo stub when map size is 0.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_ReadMapSize0, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(0);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SendVideoRateInfo_ReadMapSizeExceedMax
+ * @tc.desc: Test SendVideoRateInfo stub when map size > MAX_VIDEO_INFO_SIZE(32).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_ReadMapSizeExceedMax, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(33); // 33表示map的大小，大于MAX_VIDEO_INFO_SIZE(32)
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SendVideoRateInfo_ReadKeyFailed
+ * @tc.desc: Test SendVideoRateInfo stub when read key failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_ReadKeyFailed, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(1);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SendVideoRateInfo_ReadValueFailed
+ * @tc.desc: Test SendVideoRateInfo stub when read value failed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_ReadValueFailed, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(1);
+    data.WriteString("key");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SendVideoRateInfo_Success
+ * @tc.desc: Test SendVideoRateInfo stub when success.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SendVideoRateInfo_Success, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(1);
+    data.WriteString("key");
+    data.WriteString("value");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIDEO_RATE_INFO);
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 } // namespace OHOS::Rosen
 #endif

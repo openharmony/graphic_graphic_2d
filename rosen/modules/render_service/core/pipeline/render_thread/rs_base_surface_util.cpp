@@ -172,9 +172,10 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
             surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
         if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
             RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, parentNodeId = %"
-                PRIu64 ", acquireTimeStamp = %" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
+                PRIu64 ", acquireTimeStamp = %" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 "."
+                " uniqueId = %" PRIu64 ".",
                 surfaceHandler.GetNodeId(), parentNodeId, acquireTimeStamp, surfaceBuffer->timestamp,
-                surfaceBuffer->buffer->GetSeqNum());
+                surfaceBuffer->buffer->GetSeqNum(), consumer->GetUniqueId());
         }
         // The damages of buffer will be merged here, only single damage is supported so far
         MergeBufferDamages(surfaceBuffer->damageRect, returnValue.damages);

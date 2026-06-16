@@ -48,6 +48,9 @@ namespace {
     constexpr int32_t TEST_FRAME_NUM_15 = 15;
     constexpr int32_t TEST_FRAME_NUM_25 = 25;
     constexpr int32_t TEST_MAX_LENGTH = 1920;
+    constexpr int32_t TEST_ROG_WIDTH_1440 = 1440;
+    constexpr int32_t TEST_ROG_HEIGHT_2560 = 2560;
+    constexpr int32_t TEST_FRAME_NUM_0 = 0;
     constexpr float TEST_SHARP_CURVE_CTLX1 = 0.33f;
     constexpr float TEST_SHARP_CURVE_CTLY1 = 0.0f;
     constexpr float TEST_SHARP_CURVE_CTLX2 = 0.67f;
@@ -476,4 +479,63 @@ HWTEST_F(BootCompileProgressTest, SetSpecialProgressFrame_ScreenIdNotFound_Retur
     progress->SetSpecialProgressFrame(TEST_MAX_LENGTH, INVALID_SCREEN_ID);
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: SetFrame_RogMode_Normal
+ * @tc.desc: Verify the Setframe function with ROG mode activated.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, SetFrame_RogMode_Normal, TestSize.Level1)
+{
+    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    progress->rsCanvasNode_ = Rosen::RSCanvasNode::Create();
+    progress->progressConfigsMap_.clear();
+    progress->isWearable_ = false;
+    progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
+    progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
+    progress->rogWidth_ = TEST_ROG_WIDTH_1440;
+    progress->rogHeight_ = TEST_ROG_HEIGHT_2560;
+    progress->SetFrame();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetFrame_RogModeInactive
+ * @tc.desc: Verify the Setframe function with ROG mode inactive.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, SetFrame_RogModeInactive, TestSize.Level1)
+{
+    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    progress->rsCanvasNode_ = Rosen::RSCanvasNode::Create();
+    progress->progressConfigsMap_.clear();
+    progress->isWearable_ = false;
+    progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
+    progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
+    progress->rogWidth_ = TEST_FRAME_NUM_0;
+    progress->rogHeight_ = TEST_FRAME_NUM_0;
+    progress->SetFrame();
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetFrameForRog_Normal
+ * @tc.desc: Verify the SetFrameForRog function executes successsfully.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootCompileProgressTest, SetFrameForRog_Normal, TestSize.Level1)
+{
+    std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
+    ASSERT_NE(progress, nullptr);
+    progress->rsCanvasNode_ = Rosen::RSCanvasNode::Create();
+    progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
+    progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
+    progress->rogWidth_ = TEST_ROG_WIDTH_1440;
+    progress->rogHeight_ = TEST_ROG_HEIGHT_2560;
+    progress->SetFrameForRog();
+    EXPECT_TRUE(true);
+}
+
 }

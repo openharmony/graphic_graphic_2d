@@ -144,6 +144,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSPixelStretchDrawable::OnGenerate,                              // PIXEL_STRETCH,
 
     // Restore state
+    nullptr,                                                         // RESTORE_CLIP_TO_BOUNDS
     RSEndBlenderDrawable::OnGenerate,                                // RESTORE_BLENDER,
     RSForegroundFilterRestoreDrawable::OnGenerate,                   // RESTORE_FOREGROUND_FILTER
     nullptr,                                                         // RESTORE_ALL,
@@ -242,6 +243,7 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         RSDrawableSlot::FG_SAVE_BOUNDS,
         RSDrawableSlot::FG_CLIP_TO_BOUNDS,
         RSDrawableSlot::FG_RESTORE_BOUNDS,
+        RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS,
     };
     for (auto& slot : boundsSlotsToErase) {
         drawableVec.erase(static_cast<int8_t>(slot));
@@ -252,6 +254,8 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         // add one clip, and reuse SAVE_ALL and RESTORE_ALL.
         assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS),
             RSClipToBoundsDrawable::OnGenerate(node));
+        SaveRestoreHelper(drawableVec, RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS,
+            RSPaintFilterCanvas::kCanvas);
         return;
     }
 

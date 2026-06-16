@@ -30,7 +30,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_EFFECT_NODE_H
 
 #include "ui/rs_node.h"
-
+#include "command_modifier/rs_effect_node_command_modifier.h"
 namespace OHOS {
 namespace Rosen {
 

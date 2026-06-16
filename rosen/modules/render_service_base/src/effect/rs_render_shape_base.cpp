@@ -179,5 +179,31 @@ RectF RSNGRenderShapeHelper::CalcRect(
     }
     return result;
 }
+
+void RSNGRenderShapeHelper::FillEmptyDistortOpShape(
+    std::shared_ptr<RSNGRenderShapeBase>& sdfShape, const RRect& sdfRRect, NodeId nodeId)
+{
+    if (!sdfShape || sdfShape->GetType() != RSNGEffectType::SDF_DISTORT_OP_SHAPE) {
+        return;
+    }
+    auto distortOpShape = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(sdfShape);
+    auto innerShape = distortOpShape->Getter<SDFDistortOpShapeShapeRenderTag>()->Get();
+    bool sync = distortOpShape->Getter<SDFDistortOpShapeSyncRenderTag>()->Get();
+    if (!innerShape) {
+        sync = true;
+        innerShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+        distortOpShape->Setter<SDFDistortOpShapeShapeRenderTag>(innerShape,
+            PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+        distortOpShape->Setter<SDFDistortOpShapeSyncRenderTag>(true, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+        ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, add default SDF_RRECT_SHAPE, node %{public}"
+            PRIu64, nodeId);
+    }
+    if (sync) {
+        auto defaultShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(innerShape);
+        defaultShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
+        ROSEN_LOGD("RSNGRenderShapeHelper::FillEmptyDistortOpShape, update SDF_RRECT_SHAPE, node %{public}"
+            PRIu64, nodeId);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

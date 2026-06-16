@@ -249,6 +249,10 @@ void DoHDRBrightnessModifier(FuzzedDataProvider& fdp)
     auto modifier = std::make_shared<ModifierNG::RSHDRBrightnessModifier>();
     modifier->SetHDRBrightness(fdp.ConsumeFloatingPoint<float>());
     modifier->GetHDRBrightness();
+    modifier->SetHDRUIBrightness(fdp.ConsumeFloatingPoint<float>());
+    modifier->GetHDRUIBrightness();
+    modifier->SetHDRBrightnessFactor(fdp.ConsumeFloatingPoint<float>());
+    modifier->GetHDRBrightnessFactor();
     modifier->SetHDRColorHeadroom(fdp.ConsumeFloatingPoint<float>());
     modifier->GetHDRColorHeadroom();
 }

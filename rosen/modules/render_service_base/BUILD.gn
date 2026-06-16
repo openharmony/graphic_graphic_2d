@@ -289,7 +289,6 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_surface_handler.cpp",
     "src/pipeline/rs_surface_render_node_utils.cpp",
     "src/pipeline/rs_surface_render_node.cpp",
-    "src/pipeline/rs_tunnel_runtime_state.cpp",
     "src/pipeline/rs_task_dispatcher.cpp",
     "src/pipeline/rs_uni_render_judgement.cpp",
     "src/pipeline/rs_union_render_node.cpp",
@@ -423,6 +422,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/render_group/rs_render_group_cache.cpp",
     "src/feature/render_group/rs_render_group_cache_adapter.cpp",
     "src/feature/single_frame_composer/rs_single_frame_composer.cpp",
+    "src/feature/tunnel_layer/rs_tunnel_runtime_state.cpp",
     "src/feature/capture/rs_capture_pixelmap_manager.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_node_command.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
@@ -859,15 +859,6 @@ ohos_source_set("render_service_base_src") {
   subsystem_name = "graphic"
 }
 
-config("render_service_base_all_deps_config") {
-  include_dirs = [
-    "include",
-    "$rosen_root/modules/2d_graphics/include",
-    "$rosen_root/modules/2d_graphics/src",
-    "$rosen_root/modules/2d_graphics/src/drawing/engine_adapter",
-  ]
-}
-
 config("render_service_base_link_config") {
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     ldflags = [
@@ -933,11 +924,13 @@ ohos_shared_library("librender_service_base") {
   sources = [ "src/common/rs_common_hook.cpp" ]
 
   public_configs = [
-    ":render_service_base_all_deps_config",
     ":export_config",
     "$graphic_2d_root/utils/socketpair:socketpair_public_config",
     "$graphic_2d_root/rosen/modules/composer/vsync:vsync_public_config",
   ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    public_configs += [ "$rosen_root/modules/2d_graphics:export_config" ]
+  }
   if (enhanced_opt) {
     configs = [ ":render_service_base_link_config" ]
   }
@@ -993,16 +986,21 @@ ohos_source_set("librender_service_base_static") {
     blocklist = "./rs_base_blocklist.txt"
   }
 
-  public_configs = [ ":render_service_base_all_deps_config" ]
+  public_configs = [ ":export_config" ]
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    public_configs += [ "$rosen_root/modules/2d_graphics:export_config" ]
+  }
 
   if (is_arkui_x) {
     sources = [ "src/common/rs_common_hook.cpp" ]
   }
 
-  deps = [ "$rosen_root/modules/platform:eventhandler" ]
-  public_deps = [
-    ":render_service_base_src",
+  deps = [ 
+    "$rosen_root/modules/platform:eventhandler",
     "src/platform:platform",
+  ]
+  public_deps = [
+    ":render_service_base_src",    
   ]
 
   external_deps = [ "hilog:libhilog" ]

@@ -66,23 +66,26 @@ void RSFoldScreenManagerTest::TearDown() {}
 HWTEST_F(RSFoldScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
 {
     ASSERT_NE(nullptr, foldScreenManager_);
-    foldScreenManager_->HandleSensorData(0.f);
+    foldScreenManager_->externalScreenId_ = 1;
+    foldScreenManager_->HandleSensorData(0.f, 0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
-    foldScreenManager_->HandleSensorData(0.f);
+    foldScreenManager_->HandleSensorData(0.f, 0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
-    foldScreenManager_->HandleSensorData(0.f);
+    foldScreenManager_->HandleSensorData(0.f, 0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
-    foldScreenManager_->HandleSensorData(180.f);
+    foldScreenManager_->HandleSensorData(180.f, 0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->innerScreenId_);
-    foldScreenManager_->HandleSensorData(180.f);
+    foldScreenManager_->HandleSensorData(180.f, 0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->innerScreenId_);
-    foldScreenManager_->HandleSensorData(180.f);
+    foldScreenManager_->HandleSensorData(180.f, 0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->innerScreenId_);
-    foldScreenManager_->HandleSensorData(0.f);
+    foldScreenManager_->HandleSensorData(0.f, 0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
     foldScreenManager_->activeScreenId_ = 0;
-    foldScreenManager_->HandleSensorData(-1.f);
-    foldScreenManager_->HandleSensorData(200.f);
+    foldScreenManager_->HandleSensorData(-1.f, 0.f);
+    foldScreenManager_->HandleSensorData(0.f, -1.f);
+    foldScreenManager_->HandleSensorData(200.f, 0.f);
+    foldScreenManager_->HandleSensorData(0.f, 200.f);
 }
 
 /*

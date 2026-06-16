@@ -1618,4 +1618,144 @@ HWTEST_F(NdkTextLineTest, CreateTruncatedLineAndCheckEllipsisGlyphCount, TestSiz
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
+
+/*
+ * @tc.name: GetTextLinesMultipleTimes
+ * @tc.desc: test for calling OH_Drawing_TypographyGetTextLines multiple times returns same results.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTextLineTest, GetTextLinesMultipleTimes, TestSize.Level0)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+
+    // First call
+    OH_Drawing_Array* textLines1 = OH_Drawing_TypographyGetTextLines(typography_);
+    EXPECT_TRUE(textLines1 != nullptr);
+    size_t size1 = OH_Drawing_GetDrawingArraySize(textLines1);
+    EXPECT_EQ(size1, 3);
+
+    // Collect glyph counts from first call
+    std::vector<double> glyphCounts1;
+    for (size_t i = 0; i < size1; i++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines1, i);
+        EXPECT_TRUE(textLine != nullptr);
+        glyphCounts1.push_back(OH_Drawing_TextLineGetGlyphCount(textLine));
+    }
+    OH_Drawing_DestroyTextLines(textLines1);
+
+    // Second call - should return same results after first call destroyed the lines
+    OH_Drawing_Array* textLines2 = OH_Drawing_TypographyGetTextLines(typography_);
+    EXPECT_TRUE(textLines2 != nullptr);
+    size_t size2 = OH_Drawing_GetDrawingArraySize(textLines2);
+    EXPECT_EQ(size2, 3);
+
+    for (size_t i = 0; i < size2; i++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines2, i);
+        EXPECT_TRUE(textLine != nullptr);
+        double count = OH_Drawing_TextLineGetGlyphCount(textLine);
+        EXPECT_EQ(count, glyphCounts1[i]);
+    }
+    OH_Drawing_DestroyTextLines(textLines2);
+
+    // Third call without destroying second call first - both should be valid
+    OH_Drawing_Array* textLines3a = OH_Drawing_TypographyGetTextLines(typography_);
+    EXPECT_TRUE(textLines3a != nullptr);
+    EXPECT_EQ(OH_Drawing_GetDrawingArraySize(textLines3a), 3);
+
+    OH_Drawing_Array* textLines3b = OH_Drawing_TypographyGetTextLines(typography_);
+    EXPECT_TRUE(textLines3b != nullptr);
+    EXPECT_EQ(OH_Drawing_GetDrawingArraySize(textLines3b), 3);
+
+    for (size_t i = 0; i < 3; i++) {
+        OH_Drawing_TextLine* line3a = OH_Drawing_GetTextLineByIndex(textLines3a, i);
+        OH_Drawing_TextLine* line3b = OH_Drawing_GetTextLineByIndex(textLines3b, i);
+        EXPECT_TRUE(line3a != nullptr);
+        EXPECT_TRUE(line3b != nullptr);
+        EXPECT_EQ(OH_Drawing_TextLineGetGlyphCount(line3a), OH_Drawing_TextLineGetGlyphCount(line3b));
+    }
+    OH_Drawing_DestroyTextLines(textLines3a);
+    OH_Drawing_DestroyTextLines(textLines3b);
+}
+
+/*
+ * @tc.name: GetGlyphRunsMultipleTimes
+ * @tc.desc: test for calling OH_Drawing_TextLineGetGlyphRuns multiple times on same text line.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTextLineTest, GetGlyphRunsMultipleTimes, TestSize.Level0)
+{
+    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    EXPECT_EQ(size, 3);
+
+    std::vector<int32_t> expectedSizeArr = {4, 1, 6};
+    for (size_t index = 0; index < size; index++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
+        EXPECT_TRUE(textLine != nullptr);
+
+        // First call to GetGlyphRuns
+        OH_Drawing_Array* runs1 = OH_Drawing_TextLineGetGlyphRuns(textLine);
+        EXPECT_TRUE(runs1 != nullptr);
+        size_t runsSize1 = OH_Drawing_GetDrawingArraySize(runs1);
+        EXPECT_EQ(runsSize1, expectedSizeArr[index]);
+
+        // Second call to GetGlyphRuns on the same text line
+        OH_Drawing_Array* runs2 = OH_Drawing_TextLineGetGlyphRuns(textLine);
+        EXPECT_TRUE(runs2 != nullptr);
+        size_t runsSize2 = OH_Drawing_GetDrawingArraySize(runs2);
+        EXPECT_EQ(runsSize2, expectedSizeArr[index]);
+        EXPECT_EQ(runsSize1, runsSize2);
+
+        OH_Drawing_DestroyRuns(runs1);
+        OH_Drawing_DestroyRuns(runs2);
+    }
+    OH_Drawing_DestroyTextLines(textLines);
+}
+
+/*
+ * @tc.name: GetTextLinesAndGlyphRunsMultipleTimes
+ * @tc.desc: test for calling GetTextLines then GetGlyphRuns multiple times.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTextLineTest, GetTextLinesAndGlyphRunsMultipleTimes, TestSize.Level0)
+{
+    PrepareCreateTextLine(
+        "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/ Drawing testlp 试 "
+        "Drawing \n\n   ⌚ 儻"
+        " ©️ aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本\n123");
+
+    // Call GetTextLines first time and collect run counts
+    OH_Drawing_Array* textLines1 = OH_Drawing_TypographyGetTextLines(typography_);
+    EXPECT_TRUE(textLines1 != nullptr);
+    size_t lineCount1 = OH_Drawing_GetDrawingArraySize(textLines1);
+    EXPECT_EQ(lineCount1, 7);
+
+    std::vector<size_t> runCounts;
+    for (size_t i = 0; i < lineCount1; i++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines1, i);
+        EXPECT_TRUE(textLine != nullptr);
+        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+        runCounts.push_back(OH_Drawing_GetDrawingArraySize(runs));
+        OH_Drawing_DestroyRuns(runs);
+    }
+    OH_Drawing_DestroyTextLines(textLines1);
+
+    // Call GetTextLines second time - should still return same line count and run counts
+    OH_Drawing_Array* textLines2 = OH_Drawing_TypographyGetTextLines(typography_);
+    EXPECT_TRUE(textLines2 != nullptr);
+    size_t lineCount2 = OH_Drawing_GetDrawingArraySize(textLines2);
+    EXPECT_EQ(lineCount2, lineCount1);
+
+    for (size_t i = 0; i < lineCount2; i++) {
+        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines2, i);
+        EXPECT_TRUE(textLine != nullptr);
+
+        // GetGlyphRuns should work on text lines from second GetTextLines call
+        OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+        EXPECT_EQ(OH_Drawing_GetDrawingArraySize(runs), runCounts[i]);
+        OH_Drawing_DestroyRuns(runs);
+    }
+    OH_Drawing_DestroyTextLines(textLines2);
+}
 }

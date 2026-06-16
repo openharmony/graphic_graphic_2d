@@ -33,10 +33,25 @@ const uint8_t TARGET_SIZE = 3;
 void DoBgColorModifier(FuzzedDataProvider& fdp)
 {
     auto modifier = std::make_shared<ModifierNG::RSBackgroundColorModifier>();
+    Color bgColor{fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>(),
+        fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>()};
+    modifier->SetBackgroundColor(bgColor);
+    modifier->GetBackgroundColor();
     Vector4f brightnessRates(fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
         fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>());
     modifier->SetBgBrightnessRates(brightnessRates);
     modifier->GetBgBrightnessRates();
+    float brightnessSaturation = fdp.ConsumeFloatingPoint<float>();
+    modifier->SetBgBrightnessSaturation(brightnessSaturation);
+    modifier->GetBgBrightnessSaturation();
+    Vector4f posCoeff(fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
+        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>());
+    modifier->SetBgBrightnessPosCoeff(posCoeff);
+    modifier->GetBgBrightnessPosCoeff();
+    Vector4f negCoeff(fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
+        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>());
+    modifier->SetBgBrightnessNegCoeff(negCoeff);
+    modifier->GetBgBrightnessNegCoeff();
     float brightnessFract = fdp.ConsumeFloatingPoint<float>();
     modifier->SetBgBrightnessFract(brightnessFract);
     modifier->GetBgBrightnessFract();

@@ -16,24 +16,31 @@
 #ifndef RS_HPAE_OFFLINE_PROCESS_SYNC_H
 #define RS_HPAE_OFFLINE_PROCESS_SYNC_H
 
-#include "feature/hwc/hpae_offline/rs_hpae_offline_result.h"
+#include <utility>
+#include "feature/hwc/hpae_offline/rs_offline_result.h"
 
 namespace OHOS::Rosen {
+
+using offlineTaskId = std::pair<uint64_t, uint64_t>;  // vsyncId, nodeId
+
 class RSB_EXPORT RSHpaeOfflineProcessSyncer final {
 public:
     RSHpaeOfflineProcessSyncer() = default;
 
-    std::shared_ptr<ProcessOfflineFuture> RegisterPostedTask(uint64_t taskId);
+    std::shared_ptr<ProcessOfflineFuture> RegisterPostedTask(offlineTaskId taskId);
     void MarkTaskDoneAndSetResult(std::shared_ptr<ProcessOfflineFuture> futurePtr,
         const ProcessOfflineResult& processOfflineResult);
-    bool WaitForTaskAndGetResult(uint64_t taskId, std::chrono::milliseconds timeout,
+    bool WaitForTaskAndGetResult(offlineTaskId taskId, std::chrono::milliseconds timeout,
         ProcessOfflineResult& processOfflineResult);
     int32_t GetResultPoolSize();
+    int32_t GetResultPoolSizeByNode(NodeId nodeId);
     void ClearResultPool();
+    void SetDirectResult(offlineTaskId taskId, const ProcessOfflineResult& result);
 
 private:
-    std::shared_ptr<ProcessOfflineFuture> GetTaskFuture(uint64_t taskId);
-    std::unordered_map<uint64_t, std::shared_ptr<ProcessOfflineFuture>> resultPool_;
+    std::shared_ptr<ProcessOfflineFuture> GetTaskFuture(offlineTaskId taskId);
+    std::map<offlineTaskId, std::shared_ptr<ProcessOfflineFuture>> resultPool_;
+    std::map<offlineTaskId, ProcessOfflineResult> directResultCache_;
     std::mutex poolMtx_;
 };
 }

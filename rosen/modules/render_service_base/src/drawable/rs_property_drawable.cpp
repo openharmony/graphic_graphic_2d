@@ -143,7 +143,7 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
     if (properties.GetClipBounds() != nullptr) {
         stagingType_ = RSClipToBoundsType::CLIP_PATH;
         stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
-    } else if (auto sdfShape = properties.GetSDFShape()) {
+    } else if (auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties)) {
         stagingType_ = RSClipToBoundsType::CLIP_SDF;
         std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
         std::shared_ptr<Drawing::GEShaderShape> geShape =

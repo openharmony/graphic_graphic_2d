@@ -506,8 +506,8 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
 
 void RSScreen::UpdateSamplingScale(uint32_t phyWidth, uint32_t phyHeight, uint32_t width, uint32_t height)
 {
-    bool isSamplingOn = (width >= phyWidth && height >= phyHeight) && !(width == phyWidth && height == phyHeight) &&
-        width > 0 && height > 0;
+    bool isSamplingOn = !isRogResolution_ && (width >= phyWidth && height >= phyHeight) &&
+        !(width == phyWidth && height == phyHeight) && width > 0 && height > 0;
     float samplingScale = 1.f;
     float translateX = 0.f;
     float translateY = 0.f;

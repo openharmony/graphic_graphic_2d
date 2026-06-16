@@ -23,6 +23,7 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -541,6 +542,29 @@ HWTEST_F(RSDividedUICaptureTest, ProcessSurfaceRenderNode, TestSize.Level1)
     EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
 
     node.GetMutableRenderProperties().visible_ = false;
+    rsDividedUICaptureVisitor.ProcessSurfaceRenderNode(node);
+    EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
+}
+
+/**
+ * @tc.name: ProcessSurfaceRenderNode01
+ * @tc.desc: test results of ProcessSurfaceRenderNode01
+ * @tc.type: FUNC
+ * @tc.require: issueI5HRIF
+ */
+HWTEST_F(RSDividedUICaptureTest, ProcessSurfaceRenderNode01, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    float scaleX = 1.0;
+    float scaleY = 1.0;
+    RSDividedUICapture::RSDividedUICaptureVisitor rsDividedUICaptureVisitor(nodeId, scaleX, scaleY);
+    RSSurfaceRenderNode node(nodeId);
+    auto uiDirector = RSUIDirector::Create(nullptr, nullptr);
+    auto uiContext = uiDirector->GetRSUIContext();
+    node.SetUIContextToken(uiContext->GetToken());
+    Drawing::Canvas canvas;
+    rsDividedUICaptureVisitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    RSUIContextManager::MutableInstance().DestroyContext(uiContext->GetToken());
     rsDividedUICaptureVisitor.ProcessSurfaceRenderNode(node);
     EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
 }

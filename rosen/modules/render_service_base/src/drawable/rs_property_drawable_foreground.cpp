@@ -560,8 +560,11 @@ void RSBorderDrawable::DrawBorderSDFShader(Drawing::Canvas& canvas, Drawing::Rec
     }
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     shader->AppendToGEContainer(visualEffectContainer);
+    visualEffectContainer->SetGeometry(canvas.GetTotalMatrix(), rect, rect, rect.GetWidth(), rect.GetHeight());
+    auto sdfTransformRect = shape->GetTransformDrawRect();
+    auto drawRect = sdfTransformRect.IsEmpty() ? rect : RSPropertyDrawableUtils::Rect2DrawingRect(sdfTransformRect);
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    geRender->DrawShaderEffect(canvas, *visualEffectContainer, rect);
+    geRender->DrawShaderEffect(canvas, *visualEffectContainer, drawRect);
 }
 
 void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,

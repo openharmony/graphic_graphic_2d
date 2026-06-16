@@ -1319,51 +1319,15 @@ HWTEST_F(RSScreenRenderNodeTest, CollectHdrStatus_WithNeedSync, TestSize.Level1)
 }
 
 /**
- * @tc.name: CollectHdrStatus_WithoutNeedSync
- * @tc.desc: Test CollectHdrStatus when NeedSync is false
+ * @tc.name: GetDisplayHdrStatusMapTest
+ * @tc.desc: Test GetDisplayHdrStatusMap
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSScreenRenderNodeTest, CollectHdrStatus_WithoutNeedSync, TestSize.Level1)
+HWTEST_F(RSScreenRenderNodeTest, GetDisplayHdrStatusMapTest, TestSize.Level1)
 {
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
-
-    screenNode->CollectHdrStatus(id, HdrStatus::HDR_VIDEO);
-    const auto& map = screenNode->GetDisplayHdrStatusMap();
-    EXPECT_FALSE(map.empty());
-    ASSERT_TRUE(map.find(id) != map.end());
-    EXPECT_EQ(map.at(id), HdrStatus::HDR_VIDEO);
-}
-
-/**
- * @tc.name: GetDisplayHdrStatusMap_NullScreenParams
- * @tc.desc: Test GetDisplayHdrStatusMap when screenParams is nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSScreenRenderNodeTest, GetDisplayHdrStatusMap_NullScreenParams, TestSize.Level1)
-{
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-
-    const auto& map = screenNode->GetDisplayHdrStatusMap();
-    EXPECT_TRUE(map.empty());
-}
-
-/**
- * @tc.name: GetDisplayHdrStatusMap_NonNullScreenParams
- * @tc.desc: Test GetDisplayHdrStatusMap when screenParams is valid
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSScreenRenderNodeTest, GetDisplayHdrStatusMap_NonNullScreenParams, TestSize.Level1)
-{
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
-    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
-
-    screenNode->CollectHdrStatus(id, HdrStatus::HDR_PHOTO);
-    const auto& map = screenNode->GetDisplayHdrStatusMap();
-    EXPECT_FALSE(map.empty());
+    EXPECT_TRUE(screenNode->GetDisplayHdrStatusMap().empty());
 }
 
 /**

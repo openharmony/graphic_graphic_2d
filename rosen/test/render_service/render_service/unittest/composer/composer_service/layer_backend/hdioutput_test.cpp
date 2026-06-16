@@ -5088,6 +5088,106 @@ HWTEST_F(HdiOutputTest, TunnelFallbackDeclineEmitsOncePerGenerationOnCreate,
     EXPECT_EQ(output->CreateLayerLocked(TEST_SURFACE_ID, sameGenerationRsLayer), GRAPHIC_DISPLAY_FAILURE);
     EXPECT_EQ(callbackData.count, 1u);
 }
+
+HWTEST_F(HdiOutputTest, MarkTunnelSurfaceInvalid_ValidSurfaceId_InsertsToSet, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+
+    constexpr uint64_t surfaceId1 = 10001;
+    constexpr uint64_t surfaceId2 = 10002;
+    constexpr uint64_t surfaceId3 = 10003;
+
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+
+    output->MarkTunnelSurfaceInvalid(surfaceId1);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 1u);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId1) > 0);
+
+    output->MarkTunnelSurfaceInvalid(surfaceId2);
+    output->MarkTunnelSurfaceInvalid(surfaceId3);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 3u);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId2) > 0);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId3) > 0);
+}
+
+HWTEST_F(HdiOutputTest, MarkTunnelSurfaceInvalid_DuplicateSurfaceId_NoChange, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+
+    constexpr uint64_t surfaceId = 20001;
+
+    output->MarkTunnelSurfaceInvalid(surfaceId);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 1u);
+
+    output->MarkTunnelSurfaceInvalid(surfaceId);
+    output->MarkTunnelSurfaceInvalid(surfaceId);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 1u);
+}
+
+HWTEST_F(HdiOutputTest, EraseTunnelSurfaceInvalid_ValidSurfaceId_RemovesFromSet, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+
+    constexpr uint64_t surfaceId1 = 30001;
+    constexpr uint64_t surfaceId2 = 30002;
+
+    output->MarkTunnelSurfaceInvalid(surfaceId1);
+    output->MarkTunnelSurfaceInvalid(surfaceId2);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 2u);
+
+    output->EraseTunnelSurfaceInvalid(surfaceId1);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 1u);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId1) == 0);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId2) > 0);
+
+    output->EraseTunnelSurfaceInvalid(surfaceId2);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+}
+
+HWTEST_F(HdiOutputTest, EraseTunnelSurfaceInvalid_NonExistentSurfaceId_NoChange, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+
+    constexpr uint64_t surfaceId = 40001;
+    constexpr uint64_t nonExistentId = 40099;
+
+    output->MarkTunnelSurfaceInvalid(surfaceId);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 1u);
+
+    output->EraseTunnelSurfaceInvalid(nonExistentId);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 1u);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) > 0);
+}
+
+HWTEST_F(HdiOutputTest, MarkEraseTunnelSurfaceInvalid_MixedOperations_CorrectState, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+
+    constexpr uint64_t id1 = 50001;
+    constexpr uint64_t id2 = 50002;
+    constexpr uint64_t id3 = 50003;
+
+    output->MarkTunnelSurfaceInvalid(id1);
+    output->MarkTunnelSurfaceInvalid(id2);
+    output->MarkTunnelSurfaceInvalid(id3);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 3u);
+
+    output->EraseTunnelSurfaceInvalid(id2);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 2u);
+
+    output->MarkTunnelSurfaceInvalid(id2);
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 3u);
+
+    output->EraseTunnelSurfaceInvalid(id1);
+    output->EraseTunnelSurfaceInvalid(id2);
+    output->EraseTunnelSurfaceInvalid(id3);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

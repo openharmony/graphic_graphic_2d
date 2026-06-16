@@ -108,28 +108,31 @@ void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::
         RS_TRACE_NAME("RSServiceDumpManager::DoDump args is [ " + cmdStr + " ]");
         RSDumpManager::CmdExec(serviceArgSets, dumpString);
     }
-    if (rsDumpCallbackDirector_ == nullptr) {
-        rsDumpCallbackDirector_ = new RSDumpCallbackDirector(this);
-    }
-    if (!processManager || processArgSets.empty()) {
-        return;
-    }
-    if (screenId != INVALID_SCREEN_ID) {
-        auto serviceToRenderConn = processManager->GetServiceToRenderConn(screenId);
-        if (!serviceToRenderConn) {
-            RS_LOGW("RSServiceDumpManager::DoDump screen[%{public}" PRIu64 "] does not exist", screenId);
+    {
+        std::lock_guard<std::mutex> lock(callbackDirectorMutex_);
+        if (rsDumpCallbackDirector_ == nullptr) {
+            rsDumpCallbackDirector_ = new RSDumpCallbackDirector(this);
+        }
+        if (!processManager || processArgSets.empty()) {
             return;
         }
-        InitProcessDumpTask(1);
-        serviceToRenderConn->DoDump(processArgSets, rsDumpCallbackDirector_);
-    } else {
-        auto serviceToRenderConns = processManager->GetServiceToRenderConns();
-        InitProcessDumpTask(static_cast<int32_t>(serviceToRenderConns.size()));
-        for (auto conn : serviceToRenderConns) {
-            conn->DoDump(processArgSets, rsDumpCallbackDirector_);
+        if (screenId != INVALID_SCREEN_ID) {
+            auto serviceToRenderConn = processManager->GetServiceToRenderConn(screenId);
+            if (!serviceToRenderConn) {
+                RS_LOGW("RSServiceDumpManager::DoDump screen[%{public}" PRIu64 "] does not exist", screenId);
+                return;
+            }
+            InitProcessDumpTask(1);
+            serviceToRenderConn->DoDump(processArgSets, rsDumpCallbackDirector_);
+        } else {
+            auto serviceToRenderConns = processManager->GetServiceToRenderConns();
+            InitProcessDumpTask(static_cast<int32_t>(serviceToRenderConns.size()));
+            for (auto conn : serviceToRenderConns) {
+                conn->DoDump(processArgSets, rsDumpCallbackDirector_);
+            }
         }
+        WaitForDump(dumpString);
     }
-    WaitForDump(dumpString);
 }
 
 ScreenId RSServiceDumpManager::GetScreenIdFormArgs(const std::vector<std::u16string>& args)

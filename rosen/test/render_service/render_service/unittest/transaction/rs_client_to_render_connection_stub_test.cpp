@@ -4233,11 +4233,11 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest016, 
     // Test AddConnection
     sptr<IRemoteObject> remoteObj = token_->AsObject();
     sptr<RSIClientToRenderConnection> connection = nullptr;
-    agent->AddConnection(remoteObj, connection);
+    agent->AddConnection(getpid(), 0, remoteObj, connection);
     // Should return without crash
 
     // Test FindClientToRenderConnection
-    sptr<RSIClientToRenderConnection> foundConnection = agent->FindClientToRenderConnection(token_->AsObject());
+    sptr<RSIClientToRenderConnection> foundConnection = agent->FindClientToRenderConnection(getpid());
     EXPECT_EQ(foundConnection, nullptr);
 }
 
@@ -4764,6 +4764,267 @@ HWTEST_F(RSClientToRenderConnectionStubTest, UpdateFrameStabilityDetectionTest00
 
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(res, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_RPEvent_NullAgent
+ * @tc.desc: Test SetApsConfigParams renderProcessManagerAgent_ == nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_RPEvent_NullAgent, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    auto backupAgent = connectionStub_->renderProcessManagerAgent_;
+    connectionStub_->renderProcessManagerAgent_ = nullptr;
+
+    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    connectionStub_->renderProcessManagerAgent_ = backupAgent;
+}
+
+/**
+ * @tc.name: SetApsConfigParams_RPEvent_NullConn
+ * @tc.desc: Test SetApsConfigParams serviceToRenderConn == nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_RPEvent_NullConn, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    ASSERT_NE(connectionStub_->renderProcessManagerAgent_, nullptr);
+
+    auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
+    auto backupConn = connectionStub_->renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
+
+    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_RPEvent_Success
+ * @tc.desc: Test SetApsConfigParams normal forwarding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_RPEvent_Success, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    ASSERT_NE(connectionStub_->renderProcessManagerAgent_, nullptr);
+
+    auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
+    auto serviceToRenderConn = connectionStub_->renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
+    ASSERT_NE(serviceToRenderConn, nullptr);
+
+    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: SetApsConfigParams_RSEvent
+ * @tc.desc: Test SetApsConfigParams RS event returns OK directly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_RSEvent, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+
+    auto backupAgent = connectionStub_->renderProcessManagerAgent_;
+    connectionStub_->renderProcessManagerAgent_ = nullptr;
+
+    std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
+    auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
+    EXPECT_EQ(ret, ERR_OK);
+
+    connectionStub_->renderProcessManagerAgent_ = backupAgent;
+}
+/**
+ * @tc.name: SetApsConfigParamsStub_ReadEventFailed
+ * @tc.desc: Test SetApsConfigParams when Read event fails (data parcel lacks event field)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_ReadEventFailed, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetApsConfigParamsStub_ReadParamsSizeFailed
+ * @tc.desc: Test SetApsConfigParams when ReadParamsSize fails (data parcel lacks paramsSize field)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_ReadParamsSizeFailed, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(ApsEventType::SPLIT_LAYER));
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetApsConfigParamsStub_ParamsSizeExceed
+ * @tc.desc: Test SetApsConfigParams when paramsSize exceeds MAX_APS_PARAMS_SIZE (129 > 128)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_ParamsSizeExceed, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(ApsEventType::SPLIT_LAYER));
+    data.WriteUint32(129);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetApsConfigParamsStub_ReadStringKeyFailedValueOk
+ * @tc.desc: Test SetApsConfigParams when ReadString(key) fails and ReadString(value) succeeds
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_ReadStringKeyFailedValueOk, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(ApsEventType::SPLIT_LAYER));
+    data.WriteUint32(1);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetApsConfigParamsStub_ReadStringKeyOkValueFailed
+ * @tc.desc: Test SetApsConfigParams when ReadString(key) succeeds and ReadString(value) fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_ReadStringKeyOkValueFailed, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(ApsEventType::SPLIT_LAYER));
+    data.WriteUint32(1);
+    data.WriteString("key1");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetApsConfigParamsStub_ReadStringBothFailed
+ * @tc.desc: Test SetApsConfigParams when both ReadString(key) and ReadString(value) fail
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_ReadStringBothFailed, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(ApsEventType::SPLIT_LAYER));
+    data.WriteUint32(1);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetApsConfigParamsStub_SuccessEmptyParams
+ * @tc.desc: Test SetApsConfigParams with paramsSize=0 (empty map)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_SuccessEmptyParams, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(ApsEventType::SPLIT_LAYER));
+    data.WriteUint32(0);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetApsConfigParamsStub_SuccessOneParam
+ * @tc.desc: Test SetApsConfigParams with paramsSize=1 (single element)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_SuccessOneParam, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(ApsEventType::SPLIT_LAYER));
+    data.WriteUint32(1);
+    data.WriteString("key1");
+    data.WriteString("value1");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetApsConfigParamsStub_SuccessMultipleParams
+ * @tc.desc: Test SetApsConfigParams with paramsSize=2 (multiple elements)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParamsStub_SuccessMultipleParams, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(static_cast<uint32_t>(ApsEventType::SPLIT_LAYER));
+    data.WriteUint32(2);
+    data.WriteString("key1");
+    data.WriteString("value1");
+    data.WriteString("key2");
+    data.WriteString("value2");
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+
+    auto ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
 }
 } // namespace OHOS::Rosen
 #endif

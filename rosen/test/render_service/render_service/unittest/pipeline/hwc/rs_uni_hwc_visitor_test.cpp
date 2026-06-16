@@ -23,7 +23,6 @@
 #include "common/rs_common_def.h"
 #include "draw/color.h"
 #include "effect/rs_render_shape_base.h"
-#include "feature/hdr/rs_hdr_util.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature_cfg/feature_param/performance_feature/hwc_param.h"
@@ -4226,60 +4225,90 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_003, TestSize.Level2)
 }
 
 /**
- * @tc.name: CollectHdrForceHwcNodes_Test
- * @tc.desc: Test CollectHdrForceHwcNodes
+ * @tc.name: UpdateHwcNodeEnableByGlobalPosition_001
+ * @tc.desc: Test UpdateHwcNodeEnableByGlobalPosition when firstLevelNode is null
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUniHwcVisitorTest, CollectHdrForceHwcNodes_Test, TestSize.Level2)
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalPosition_001, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
-    ASSERT_NE(rsUniHwcVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
 
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    NodeId surfaceNodeId = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
     ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
 
-    NodeId screenNodeId = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    auto displayNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
-    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(hwcNodePtr, nullptr);
-    hwcNodePtr->SetHardwareForcedDisabledState(false);
-    hwcNodePtr->SetIsOnTheTree(true);
-    ASSERT_TRUE(hwcNodePtr->IsOnTheTree());
-    surfaceNode->AddChildHardwareEnabledNode(hwcNodePtr);
-    displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
-    rsUniRenderVisitor->curScreenNode_ = displayNode;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalPosition(*surfaceNode);
 
-    bool debugSwitch = system::GetBoolParameter("persist.sys.graphic.rgba_1010108.enabled", true);
-    system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", "false");
-    EXPECT_FALSE(RSBaseHdrUtil::GetRGBA1010108Enabled());
-    hwcNodePtr->SetHdrForceHwcEnabled(false);
-    EXPECT_FALSE(hwcNodePtr->IsHdrForceHwcEnabled());
+    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+}
 
-    rsUniHwcVisitor->UpdateHwcNodeEnable();
-    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+/**
+ * @tc.name: UpdateHwcNodeEnableByGlobalPosition_002
+ * @tc.desc: Test UpdateHwcNodeEnableByGlobalPosition when GlobalPositionEnabled is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalPosition_002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
 
-    hwcNodePtr->SetHdrForceHwcEnabled(true);
-    EXPECT_TRUE(hwcNodePtr->IsHdrForceHwcEnabled());
-    rsUniHwcVisitor->UpdateHwcNodeEnable();
-    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
 
-    bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
-    system::SetParameter("const.graphics.rgba_1010108_supported", "true");
-    system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", "true");
-    EXPECT_FALSE(RSBaseHdrUtil::GetRGBA1010108Enabled());
+    NodeId firstLevelNodeId = 1;
+    auto firstLevelNode = std::make_shared<RSSurfaceRenderNode>(firstLevelNodeId, context);
+    ASSERT_NE(firstLevelNode, nullptr);
+    context->GetMutableNodeMap().renderNodeMap_[ExtractPid(firstLevelNodeId)][firstLevelNodeId] = firstLevelNode;
+    firstLevelNode->isGlobalPositionEnabled_ = false;
 
-    rsUniHwcVisitor->UpdateHwcNodeEnable();
-    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
+    NodeId surfaceNodeId = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    context->GetMutableNodeMap().renderNodeMap_[ExtractPid(surfaceNodeId)][surfaceNodeId] = surfaceNode;
+    surfaceNode->firstLevelNodeId_ = firstLevelNodeId;
+    surfaceNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
 
-    hwcNodePtr->SetHdrForceHwcEnabled(false);
-    EXPECT_FALSE(hwcNodePtr->IsHdrForceHwcEnabled());
-    rsUniHwcVisitor->UpdateHwcNodeEnable();
-    EXPECT_FALSE(rsUniRenderVisitor->curScreenNode_->GetHasForceHwcHdrSurface());
-    system::SetParameter("const.graphics.rgba_1010108_supported", rgba1010108 ? "true" : "false");
-    system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", debugSwitch ? "true" : "false");
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalPosition(*surfaceNode);
+
+    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnableByGlobalPosition_003
+ * @tc.desc: Test UpdateHwcNodeEnableByGlobalPosition when GlobalPositionEnabled is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalPosition_003, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+
+    NodeId firstLevelNodeId = 1;
+    auto firstLevelNode = std::make_shared<RSSurfaceRenderNode>(firstLevelNodeId, context);
+    ASSERT_NE(firstLevelNode, nullptr);
+    context->GetMutableNodeMap().renderNodeMap_[ExtractPid(firstLevelNodeId)][firstLevelNodeId] = firstLevelNode;
+    firstLevelNode->isGlobalPositionEnabled_ = true;
+
+    NodeId surfaceNodeId = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    context->GetMutableNodeMap().renderNodeMap_[ExtractPid(surfaceNodeId)][surfaceNodeId] = surfaceNode;
+    surfaceNode->firstLevelNodeId_ = firstLevelNodeId;
+    surfaceNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalPosition(*surfaceNode);
+
+    ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
 }
 } // namespace OHOS::Rosen

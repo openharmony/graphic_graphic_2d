@@ -33,6 +33,7 @@ constexpr const char* POINT_STRING[2] = { "x", "y" };
 constexpr const char* POINT3D_STRING[3] = { "x", "y", "z" };
 constexpr const char* COLOR_STRING[4] = {"red", "green", "blue", "alpha"};
 constexpr const char* RECT_STRING[4] = {"left", "top", "right", "bottom"};
+constexpr const char* VECTOR4_STRING[4] = {"x", "y", "z", "w"};
 
 bool ConvertDoubleValueFromJsElement(napi_env env, napi_value jsObject, uint32_t idx, double& data)
 {
@@ -196,6 +197,22 @@ bool ParseJsPoint(napi_env env, napi_value jsObject, Vector2f& point)
         }
 
         point[idx] = static_cast<float>(value);
+    }
+    return true;
+}
+
+bool ParseJsVector4f(napi_env env, napi_value jsObject, Vector4f& vec)
+{
+    napi_value tmpValue = nullptr;
+    for (size_t idx = 0; idx < NUM_4; idx++) {
+        if (napi_get_named_property(env, jsObject, VECTOR4_STRING[idx], &tmpValue) != napi_ok || tmpValue == nullptr) {
+            return false;
+        }
+        double value = 0.0;
+        if (napi_get_value_double(env, tmpValue, &value) != napi_ok) {
+            return false;
+        }
+        vec[idx] = static_cast<float>(value);
     }
     return true;
 }

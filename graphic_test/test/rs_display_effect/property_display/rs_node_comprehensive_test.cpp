@@ -441,7 +441,9 @@ GRAPHIC_TEST(RSNodeComprehensiveTest, CONTENT_DISPLAY_TEST, RSNodeComprehensiveT
     std::vector<bool> isCrossValues = { true, false, true };
 
     for (size_t i = 0; i < isCrossValues.size(); i++) {
-        auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+        RSSurfaceNodeConfig surfaceNodeConfig;
+        auto testNode = RSSurfaceNode::Create(surfaceNodeConfig, true,
+            RSGraphicTestDirector::Instance().GetRSUIContext());
         testNode->SetBounds({ (int)i * 380 + 50, 50, 350, 350 });
         testNode->SetBackgroundColor(0xffff0000);
         testNode->SetIsCrossNode(isCrossValues[i]);
@@ -461,7 +463,9 @@ GRAPHIC_TEST(RSNodeComprehensiveTest, CONTENT_DISPLAY_TEST, RSNodeComprehensiveT
     parent->SetBounds({ 50, 50, 500, 500 });
     parent->SetBackgroundColor(0xffff0000);
 
-    auto child = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    RSSurfaceNodeConfig surfaceNodeConfig;
+    auto child = RSSurfaceNode::Create(surfaceNodeConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     child->SetBounds({ 100, 100, 200, 200 });
     child->SetBackgroundColor(0xff00ff00);
 
@@ -482,7 +486,9 @@ GRAPHIC_TEST(RSNodeComprehensiveTest, CONTENT_DISPLAY_TEST, RSNodeComprehensiveT
     parent->SetBounds({ 50, 50, 500, 500 });
     parent->SetBackgroundColor(0xffff0000);
 
-    auto child = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    RSSurfaceNodeConfig surfaceNodeConfig;
+    auto child = RSSurfaceNode::Create(surfaceNodeConfig, true,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
     child->SetBounds({ 100, 100, 200, 200 });
     child->SetBackgroundColor(0xff00ff00);
 

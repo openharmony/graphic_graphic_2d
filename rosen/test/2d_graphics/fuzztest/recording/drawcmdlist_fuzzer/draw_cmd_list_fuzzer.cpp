@@ -310,6 +310,54 @@ void DrawCmdListFuzzTest006(const uint8_t* data, size_t size)
         obj = nullptr;
     }
 }
+
+void DrawCmdListFuzzTest007(const uint8_t* data, size_t size)
+{
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* obj = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        obj[i] = GetObject<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(obj);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+
+    Font font;
+    auto textBlob = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
+    Paint paint;
+    auto opItem = std::make_shared<DrawTextBlobOpItem>(textBlob.get(), 0, 0, paint);
+    drawCmdList->AddDrawOp(opItem);
+
+    uint32_t hybridType = GetObject<uint32_t>() %
+        static_cast<uint32_t>(DrawCmdList::HybridRenderType::TYPE_MAX);
+    auto hybridRenderType = static_cast<DrawCmdList::HybridRenderType>(hybridType);
+    drawCmdList->SetHybridRenderType(hybridRenderType);
+    drawCmdList->GetHybridRenderType();
+
+    drawCmdList->SetHybridRenderType(DrawCmdList::HybridRenderType::CANVAS);
+    drawCmdList->IsHybridRenderEnabled(GetObject<uint32_t>(), GetObject<uint32_t>());
+
+    drawCmdList->SetHybridRenderType(DrawCmdList::HybridRenderType::NONE);
+    drawCmdList->IsHybridRenderEnabled(GetObject<uint32_t>(), GetObject<uint32_t>());
+
+    OpDataHandle textBlobHandle = { 0, 0 };
+    PaintHandle paintHandle;
+    TextBlobRenderOption renderOption;
+    auto constructorHandle = std::make_shared<DrawTextBlobOpItem::ConstructorHandle>(
+        textBlobHandle, GetObject<uint64_t>(), renderOption,
+        GetObject<scalar>(), GetObject<scalar>(), paintHandle);
+    drawCmdList->ProfilerTextBlob(static_cast<void*>(constructorHandle.get()), GetObject<uint32_t>(), nullptr);
+    drawCmdList->ProfilerTextBlob(static_cast<void*>(constructorHandle.get()), GetObject<uint32_t>(), drawCmdList);
+
+    drawCmdList->ClearOp();
+    drawCmdList->ClearCache();
+    if (obj != nullptr) {
+        delete [] obj;
+        obj = nullptr;
+    }
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -330,5 +378,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::DrawCmdListFuzzTest004(data, size);
     OHOS::Rosen::Drawing::DrawCmdListFuzzTest005(data, size);
     OHOS::Rosen::Drawing::DrawCmdListFuzzTest006(data, size);
+    OHOS::Rosen::Drawing::DrawCmdListFuzzTest007(data, size);
     return 0;
 }

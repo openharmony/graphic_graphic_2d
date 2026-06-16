@@ -15,7 +15,7 @@
 
 #include "anim_custom_modifier_test.h"
 #include "rs_graphic_test.h"
-#include "ui/rs_ui_context_manager.h"
+#include "rs_graphic_test_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,14 +34,9 @@ public:
     }
 };
 
-static std::shared_ptr<RSUIContext> GetRSUIContext()
+static std::shared_ptr<RSUIContext> GetAnimationTestRSUIContext()
 {
-    static std::shared_ptr<RSUIContext> rsUIContext = nullptr;
-    if (rsUIContext == nullptr) {
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-        rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    }
-    return rsUIContext;
+    return RSGraphicTestDirector::Instance().GetRSUIContext();
 }
 
 /*
@@ -51,7 +46,7 @@ static std::shared_ptr<RSUIContext> GetRSUIContext()
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_1)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({ 0, 0, 500, 500 });
     auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(animationCustomModifier);
@@ -62,7 +57,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(GetAnimationTestRSUIContext(),
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         []() { std::cout << "Animation_Curve_Test_1 animation finish callback" << std::endl; });
 }
@@ -74,7 +69,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_1)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_2)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({ 0, 0, 500, 500 });
     auto animationCustomModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(animationCustomModifier);
@@ -86,7 +81,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_2)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    RSNode::Animate(GetRSUIContext(),
+    RSNode::Animate(GetAnimationTestRSUIContext(),
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         []() { std::cout << "Animation_Curve_Test_2 animation finish callback" << std::endl; });
 }
@@ -98,7 +93,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_2)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_3)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -110,7 +105,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_3)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         lineaModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_3 animation finish callback" << std::endl;
@@ -124,7 +119,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_3)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_4)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -136,7 +131,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_4)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         lineaModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_4 animation finish callback" << std::endl;
@@ -150,7 +145,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_4)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_5)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -162,7 +157,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_5)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         lineaModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_5 animation finish callback" << std::endl;
@@ -176,7 +171,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_5)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_6)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -188,7 +183,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_6)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         lineaModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_6 animation finish callback" << std::endl;
@@ -202,7 +197,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_6)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_7)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto lineaModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(lineaModifier);
@@ -214,7 +209,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_7)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         lineaModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_7 animation finish callback" << std::endl;
@@ -228,7 +223,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_7)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_8)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -240,7 +235,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_8)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::EASE;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_8 animation finish callback" << std::endl;
@@ -254,7 +249,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_8)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_9)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -266,7 +261,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_9)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_9 animation finish callback" << std::endl;
@@ -280,7 +275,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_9)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_10)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -292,7 +287,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_10)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_10 animation finish callback" << std::endl;
@@ -306,7 +301,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_10)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_11)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -318,7 +313,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_11)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::EASE;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_11 animation finish callback" << std::endl;
@@ -332,7 +327,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_11)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_12)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeModifier);
@@ -344,7 +339,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_12)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::EASE;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_12 animation finish callback" << std::endl;
@@ -358,7 +353,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_12)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_13)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -370,7 +365,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_13)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_13 animation finish callback" << std::endl;
@@ -384,7 +379,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_13)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_14)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -396,7 +391,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_14)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_14 animation finish callback" << std::endl;
@@ -410,7 +405,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_14)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_15)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -422,7 +417,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_15)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_15 animation finish callback" << std::endl;
@@ -436,7 +431,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_15)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_16)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -448,7 +443,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_16)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_16 animation finish callback" << std::endl;
@@ -462,7 +457,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_16)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_17)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInModifier);
@@ -474,7 +469,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_17)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_17 animation finish callback" << std::endl;
@@ -488,7 +483,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_17)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_18)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -500,7 +495,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_18)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_18 animation finish callback" << std::endl;
@@ -514,7 +509,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_18)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_19)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -526,7 +521,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_19)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_19 animation finish callback" << std::endl;
@@ -540,7 +535,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_19)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_20)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -552,7 +547,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_20)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_20 animation finish callback" << std::endl;
@@ -566,7 +561,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_20)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_21)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -578,7 +573,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_21)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_21 animation finish callback" << std::endl;
@@ -592,7 +587,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_21)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_22)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeOutInModifier);
@@ -604,7 +599,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_22)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::EASE_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_22 animation finish callback" << std::endl;
@@ -618,7 +613,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_22)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_23)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -630,7 +625,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_23)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_23 animation finish callback" << std::endl;
@@ -644,7 +639,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_23)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_24)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -656,7 +651,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_24)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_24 animation finish callback" << std::endl;
@@ -670,7 +665,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_24)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_25)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -682,7 +677,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_25)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_25 animation finish callback" << std::endl;
@@ -696,7 +691,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_25)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_26)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -708,7 +703,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_26)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_26 animation finish callback" << std::endl;
@@ -722,7 +717,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_26)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_27)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto easeInOutInModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(easeInOutInModifier);
@@ -734,7 +729,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_27)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         easeInOutInModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_27 animation finish callback" << std::endl;
@@ -748,7 +743,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_27)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_28)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -760,7 +755,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_28)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         defaultModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_28 animation finish callback" << std::endl;
@@ -774,7 +769,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_28)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_29)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -786,7 +781,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_29)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         defaultModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_29 animation finish callback" << std::endl;
@@ -800,7 +795,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_29)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_30)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -812,7 +807,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_30)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         defaultModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_30 animation finish callback" << std::endl;
@@ -826,7 +821,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_30)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_31)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -838,7 +833,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_31)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         defaultModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_31 animation finish callback" << std::endl;
@@ -852,7 +847,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_31)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_32)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto defaultModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(defaultModifier);
@@ -864,7 +859,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_32)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::DEFAULT;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         defaultModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_32 animation finish callback" << std::endl;
@@ -878,7 +873,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_32)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_33)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -890,7 +885,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_33)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         springModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_33 animation finish callback" << std::endl;
@@ -904,7 +899,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_33)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_34)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -916,7 +911,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_34)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         springModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_34 animation finish callback" << std::endl;
@@ -930,7 +925,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_34)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_35)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -942,7 +937,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_35)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         springModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_35 animation finish callback" << std::endl;
@@ -956,7 +951,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_35)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_36)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -968,7 +963,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_36)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         springModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_36 animation finish callback" << std::endl;
@@ -982,7 +977,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_36)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_37)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto springModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(springModifier);
@@ -994,7 +989,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_37)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         springModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_37 animation finish callback" << std::endl;
@@ -1008,7 +1003,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_37)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_38)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -1020,7 +1015,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_38)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         interactiveSpringModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_38 animation finish callback" << std::endl;
@@ -1034,7 +1029,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_38)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_39)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -1046,7 +1041,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_39)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         interactiveSpringModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_39 animation finish callback" << std::endl;
@@ -1060,7 +1055,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_39)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_40)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -1072,7 +1067,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_40)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         interactiveSpringModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_40 animation finish callback" << std::endl;
@@ -1086,7 +1081,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_40)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_41)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -1098,7 +1093,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_41)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         interactiveSpringModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_41 animation finish callback" << std::endl;
@@ -1112,7 +1107,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_41)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_42)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto interactiveSpringModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(interactiveSpringModifier);
@@ -1124,7 +1119,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_42)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve::INTERACTIVE_SPRING;
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         interactiveSpringModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_42 animation finish callback" << std::endl;
@@ -1138,7 +1133,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_42)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_43)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);
@@ -1150,7 +1145,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_43)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve();
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         timeCurveModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_43 animation finish callback" << std::endl;
@@ -1164,7 +1159,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_43)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_44)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);
@@ -1176,7 +1171,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_44)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(300);
     auto timingCurve = RSAnimationTimingCurve();
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         timeCurveModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_44 animation finish callback" << std::endl;
@@ -1190,7 +1185,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_44)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_45)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);
@@ -1202,7 +1197,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_45)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve();
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         timeCurveModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_45 animation finish callback" << std::endl;
@@ -1216,7 +1211,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_45)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_46)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);
@@ -1228,7 +1223,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_46)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(700);
     auto timingCurve = RSAnimationTimingCurve();
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         timeCurveModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_46 animation finish callback" << std::endl;
@@ -1242,7 +1237,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_46)
  */
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_47)
 {
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    auto testNode = RSCanvasNode::Create(false, false, GetAnimationTestRSUIContext());
     testNode->SetBounds({0, 0, 1200, 2000});
     auto timeCurveModifier = std::make_shared<AnimationCustomModifier>();
     testNode->AddModifier(timeCurveModifier);
@@ -1254,7 +1249,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_Curve_Test_47)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(900);
     auto timingCurve = RSAnimationTimingCurve();
-    RSNode::Animate(GetRSUIContext(), protocol, timingCurve, [&]() {
+    RSNode::Animate(GetAnimationTestRSUIContext(), protocol, timingCurve, [&]() {
         timeCurveModifier->SetPosition(1050);
     }, []() {
         std::cout << "Animation_Curve_Test_47 animation finish callback" << std::endl;

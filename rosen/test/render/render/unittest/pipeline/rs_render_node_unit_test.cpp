@@ -762,8 +762,9 @@ HWTEST_F(RSRenderNodeUnitTest, IsSubTreeNeedPrepareTest001, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeUnitTest, IsSubTreeNeedPrepareTest002, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(0);
+    std::shared_ptr<RSSurfaceRenderNode> parent = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(parent, nullptr);
+    parent->InitRenderParams();
 
     system::SetParameter("persist.sys.graphic.SubTreePrepareCheckType.type", "1");
     auto checkType = RSSystemProperties::GetSubTreePrepareCheckType();

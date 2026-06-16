@@ -237,52 +237,6 @@ int32_t RSSurfaceRenderParams::GetLayerSourceTuning() const
     return layerSource_;
 }
 
-void RSSurfaceRenderParams::SetTunnelLayerId(const uint64_t& tunnelLayerId)
-{
-    if (tunnelLayerId_ == tunnelLayerId) {
-        return;
-    }
-    tunnelLayerId_ = tunnelLayerId;
-    needSync_ = true;
-}
-
-uint64_t RSSurfaceRenderParams::GetTunnelLayerId() const
-{
-    return tunnelLayerId_;
-}
-
-void RSSurfaceRenderParams::SetTunnelLayerInfo(uint64_t tunnelLayerId, uint32_t property)
-{
-    if (tunnelLayerId == 0) {
-        property = TUNNEL_PROP_INVALID;
-    }
-    if (tunnelLayerId_ == tunnelLayerId && tunnelLayerProperty_ == property) {
-        return;
-    }
-    tunnelLayerId_ = tunnelLayerId;
-    tunnelLayerProperty_ = property;
-    needSync_ = true;
-}
-
-uint32_t RSSurfaceRenderParams::GetTunnelLayerProperty() const
-{
-    return tunnelLayerProperty_;
-}
-
-void RSSurfaceRenderParams::SetTunnelLayerGeneration(uint64_t tunnelLayerGeneration)
-{
-    if (tunnelLayerGeneration_ == tunnelLayerGeneration) {
-        return;
-    }
-    tunnelLayerGeneration_ = tunnelLayerGeneration;
-    needSync_ = true;
-}
-
-uint64_t RSSurfaceRenderParams::GetTunnelLayerGeneration() const
-{
-    return tunnelLayerGeneration_;
-}
-
 bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
 {
     return isLastFrameHardwareEnabled_;
@@ -541,20 +495,6 @@ bool RSSurfaceRenderParams::IsLayerTop() const
     return isLayerTop_;
 }
 
-void RSSurfaceRenderParams::SetHdrForceHwcEnabled(bool isHdrForceHwcEnabled)
-{
-    if (isHdrForceHwcEnabled_ == isHdrForceHwcEnabled) {
-        return;
-    }
-    isHdrForceHwcEnabled_ = isHdrForceHwcEnabled;
-    needSync_ = true;
-}
-
-bool RSSurfaceRenderParams::isHdrForceHwcEnabled() const
-{
-    return isHdrForceHwcEnabled_;
-}
-
 void RSSurfaceRenderParams::SetForceRefresh(bool isForceRefresh)
 {
     if (isForceRefresh_ == isForceRefresh) {
@@ -683,6 +623,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isAttractionAnimation_ = isAttractionAnimation_;
     targetSurfaceParams->isParentScaling_ = isParentScaling_;
     targetSurfaceParams->isCrossNode_ = isCrossNode_;
+    targetSurfaceParams->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
+    targetSurfaceParams->cloneSourceDrawable_ = cloneSourceDrawable_;
+    targetSurfaceParams->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
     targetSurfaceParams->rrect_ = rrect_;
@@ -728,16 +671,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->ancoFlags_ = ancoFlags_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
-    targetSurfaceParams->isHdrForceHwcEnabled_ = isHdrForceHwcEnabled_;
     targetSurfaceParams->isForceRefresh_ = isForceRefresh_;
     targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
-    targetSurfaceParams->tunnelLayerId_ = tunnelLayerId_;
-    targetSurfaceParams->tunnelLayerProperty_ = tunnelLayerProperty_;
-    targetSurfaceParams->tunnelLayerGeneration_ = tunnelLayerGeneration_;
     targetSurfaceParams->hasHdrPresent_ = hasHdrPresent_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;

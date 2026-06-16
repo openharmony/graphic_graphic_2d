@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
 
 #include "feature/render_group/rs_render_group_cache.h"
+#include "feature/layer/rs_layer_cache_manager_base.h"
 
 #include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
@@ -264,11 +265,6 @@ public:
     bool NodeGroupHasChildInBlacklist() const;
 
     void SetNodeGroupHasChildInBlacklist(bool inBlacklist);
-    
-    inline bool IsSnapshotSkipLayer() const
-    {
-        return isSnapshotSkipLayer_;
-    }
 
     inline bool IsLayerDirty() const
     {
@@ -369,6 +365,9 @@ public:
         return shadowRect_;
     }
 
+    void SetRealShadowRect(const Drawing::Rect& rect);
+    Drawing::Rect GetRealShadowRect() const;
+
     void SetStartingWindowFlag(bool b)
     {
         if (startingWindowFlag_ == b) {
@@ -465,6 +464,21 @@ public:
         absDrawRect_ = absRect;
     }
 
+    std::shared_ptr<LayerParams> GetLayerParams()
+    {
+        return layerParams_;
+    }
+
+    void SetLayerParamsIsUnSupportLayer(bool isUnSupportLayer)
+    {
+        if (layerParams_) {
+            layerParams_->isUnSupportLayer = isUnSupportLayer;
+        } else {
+            layerParams_ = std::make_shared<LayerParams>();
+            layerParams_->isUnSupportLayer = isUnSupportLayer;
+        }
+    }
+
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
     virtual bool IsLeashWindow() const { return true; }
@@ -508,21 +522,6 @@ public:
     virtual void SetFingerprint(bool hasFingerprint) {}
     // virtual display params
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const
-    {
-        return cloneSourceDrawable_;
-    }
-    void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
-    virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
-    virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
-    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
-    {
-        return isCrossNodeOffscreenOn_;
-    }
-    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffScreenOn)
-    {
-        isCrossNodeOffscreenOn_ = isCrossNodeOffScreenOn;
-    }
 
     void SetAbsRotation(float degree)
     {
@@ -595,7 +594,6 @@ private:
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
-    bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
     bool alphaOffScreen_ = false;
@@ -619,9 +617,6 @@ private:
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     std::string instanceRootNodeName_ = "";
-    bool isFirstLevelCrossNode_ = false;
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
-    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
     bool hasUnobscuredUEC_ = false;
@@ -632,6 +627,9 @@ private:
 
     // used for DFX
     bool isOnTheTree_ = false;
+
+    // used for Layer
+    std::shared_ptr<LayerParams> layerParams_ = nullptr;
 
     std::unordered_set<ScreenId> screensWithSubTreeWhitelist_;
 };

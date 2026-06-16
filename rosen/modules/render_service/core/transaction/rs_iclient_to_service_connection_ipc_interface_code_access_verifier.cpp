@@ -544,6 +544,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             break;
         }
 #endif
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIDEO_RATE_INFO): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIDEO_RATE_INFO");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_BEHIND_WINDOW_FILTER_ENABLED): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_BEHIND_WINDOW_FILTER_ENABLED");
             break;
@@ -582,6 +586,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PANEL_POWER_STATUS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PANEL_POWER_STATUS");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_APS_CONFIG_PARAMS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_APS_CONFIG_PARAMS");
             break;
         }
         default: {

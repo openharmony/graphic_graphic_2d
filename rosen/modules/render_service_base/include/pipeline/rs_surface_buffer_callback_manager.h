@@ -94,7 +94,7 @@ private:
     };
 #ifdef ROSEN_OHOS
     struct SurfaceBufferInfoEntry {
-        sptr<SurfaceBuffer> surfaceBuffer;
+        wptr<SurfaceBuffer> surfaceBuffer;
         uint32_t bufferId;
         pid_t pid;
         uint64_t uid;

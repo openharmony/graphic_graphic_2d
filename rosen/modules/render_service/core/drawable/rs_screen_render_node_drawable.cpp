@@ -82,7 +82,7 @@
 // xml parser
 #include "graphic_feature_param_manager.h"
 // hpae offline
-#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
+#include "feature/hwc/hpae_offline/rs_offline_processor.h"
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
@@ -714,7 +714,8 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
     if (isHdrOn) {
-        auto nonRGBA1010108Fmt = !RSBaseHdrUtil::GetRGBA1010108Enabled() && params->GetHasForceHwcHdrSurface() ?
+        auto nonRGBA1010108Fmt = RSSystemProperties::GetXcomponentEdrEnabled() &&
+            !RSBaseHdrUtil::GetRGBA1010108Enabled() && params->GetHasForceHwcHdrSurface() ?
             GRAPHIC_PIXEL_FMT_RGBA_8888 : GRAPHIC_PIXEL_FMT_RGBA_1010102;
         params->SetNewPixelFormat(RSBaseHdrUtil::GetRGBA1010108Enabled() && params->GetExistHWCNode() ?
             GRAPHIC_PIXEL_FMT_RGBA_1010108 : nonRGBA1010108Fmt);
@@ -1129,8 +1130,10 @@ void RSScreenRenderNodeDrawable::CheckAndPostAsyncProcessOfflineTask()
         auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
         if (surfaceDrawable->GetRenderParams()->GetHardwareEnabled() &&
             surfaceDrawable->GetRenderParams()->GetLayerInfo().useDeviceOffline) {
-            if (!RSHpaeOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(
-                surfaceDrawable, RSUniRenderThread::Instance().GetVsyncId())) {
+                offlineTaskId taskId = std::make_pair(RSUniRenderThread::Instance().GetVsyncId(),
+                    surfaceDrawable->GetId());
+            if (!RSOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(
+                surfaceDrawable, taskId)) {
                 RS_LOGW("RSUniRenderProcessor::ProcessSurface: post offline task failed, go redraw");
             }
         }

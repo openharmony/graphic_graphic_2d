@@ -641,6 +641,11 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
 {
 }
 
+int32_t RSRenderServiceClient::SendVideoRateInfo(const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+    return {};
+}
+
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
     return {};
@@ -738,6 +743,12 @@ bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
 }
 
 bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
     return false;
 }

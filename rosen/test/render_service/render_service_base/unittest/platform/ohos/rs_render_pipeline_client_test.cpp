@@ -834,7 +834,7 @@ HWTEST_F(RSPipelineClientTest, UpdateFrameStabilityDetection002, TestSize.Level1
     FrameStabilityTarget oldTarget = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
     FrameStabilityTarget newTarget = { .id = 200, .type = FrameStabilityTargetType::WINDOW };
     int32_t ret = rsClient->UpdateFrameStabilityDetection(oldTarget, newTarget);
-    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(ret, RENDER_SERVICE_NULL);
 
     RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
 }

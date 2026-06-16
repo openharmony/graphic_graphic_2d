@@ -77,6 +77,24 @@ void DoRSBoundsModifierFuzzTest(FuzzedDataProvider& fdp)
     modifier->GetBoundsPosition();
     modifier->GetBoundsPositionX();
     modifier->GetBoundsPositionY();
+    bool useUnion = fdp.ConsumeBool();
+    modifier->SetUseUnion(useUnion);
+    modifier->GetUseUnion();
+    float unionSpacing = fdp.ConsumeFloatingPoint<float>();
+    modifier->SetUnionSpacing(unionSpacing);
+    modifier->GetUnionSpacing();
+    int unionMode = fdp.ConsumeIntegral<int>();
+    modifier->SetUnionMode(unionMode);
+    modifier->GetUnionMode();
+    bool gravityPullCenterFlag = fdp.ConsumeBool();
+    modifier->SetGravityPullCenterFlag(gravityPullCenterFlag);
+    modifier->GetGravityPullCenterFlag();
+    float gravityPullStrength = fdp.ConsumeFloatingPoint<float>();
+    modifier->SetGravityPullStrength(gravityPullStrength);
+    modifier->GetGravityPullStrength();
+    float gravityHotZone = fdp.ConsumeFloatingPoint<float>();
+    modifier->SetGravityHotZone(gravityHotZone);
+    modifier->GetGravityHotZone();
 }
 
 void DoRSFrameClipModifierFuzzTest(FuzzedDataProvider& fdp)

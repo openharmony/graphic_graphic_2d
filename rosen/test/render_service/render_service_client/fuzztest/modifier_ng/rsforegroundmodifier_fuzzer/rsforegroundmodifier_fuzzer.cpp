@@ -33,6 +33,10 @@ void DoEnvFgColorModifier(FuzzedDataProvider& fdp)
 {
     auto modifier = std::make_shared<ModifierNG::RSEnvForegroundColorModifier>();
     modifier->GetType();
+    Color envColor{fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>(),
+        fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>()};
+    modifier->SetEnvForegroundColor(envColor);
+    modifier->GetEnvForegroundColor();
     ForegroundColorStrategyType strategyType =
         static_cast<ForegroundColorStrategyType>(fdp.ConsumeIntegral<uint32_t>() % FG_COLOR_STRATEGY_MAX);
     modifier->SetEnvForegroundColorStrategy(strategyType);

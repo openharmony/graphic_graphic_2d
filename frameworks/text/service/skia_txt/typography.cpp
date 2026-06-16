@@ -314,7 +314,7 @@ Boundary Typography::GetGlyphRangeForCharacterRange(size_t charStart, size_t cha
 
 Boundary Typography::GetWordBoundaryByIndex(size_t index)
 {
-    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     auto range = paragraph_->GetWordBoundary(index);
     return Convert(range);
 }

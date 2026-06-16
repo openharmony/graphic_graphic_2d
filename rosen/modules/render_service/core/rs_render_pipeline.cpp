@@ -326,7 +326,7 @@ void RSRenderPipeline::InitDumper(const std::shared_ptr<AppExecFwk::EventHandler
     rpDumper_->RenderPipelineDumpInit(rpDumpManager_);
 }
 
-bool RSRenderPipeline::RemoveConnection(const sptr<RSIConnectionToken>& token)
+bool RSRenderPipeline::RemoveConnection(pid_t remotePid, const sptr<RSIConnectionToken>& token)
 {
     if (token == nullptr) {
         RS_LOGE("RemoveConnection: token is nullptr");
@@ -339,30 +339,49 @@ bool RSRenderPipeline::RemoveConnection(const sptr<RSIConnectionToken>& token)
     if (iter == renderConnections_.end()) {
         return false;
     }
+    uint64_t tokenMaskId = iter->second.first;
+    tokenMaskIdMapTokens_.erase(tokenMaskId);
     renderConnections_.erase(tokenObj);
+    connectionProcessPid_.erase(remotePid);
     lock.unlock();
     return true;
 }
 
-void RSRenderPipeline::AddConnection(
+void RSRenderPipeline::AddConnection(pid_t remotePid, uint64_t tokenMaskId,
     sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection)
 {
     std::unique_lock<std::mutex> lock(renderConnectionMutex_);
     if (renderConnections_.find(token) != renderConnections_.end()) {
+        RS_LOGE("RSRenderPipeline::AddConnection: token already exists");
         return;
     }
-    renderConnections_[token] = connectToRenderConnection;
+
+    if (tokenMaskIdMapTokens_.find(tokenMaskId) != tokenMaskIdMapTokens_.end()) {
+        RS_LOGE("RSRenderPipeline::AddConnection: tokenMaskId already exists");
+        return;
+    }
+    renderConnections_[token] = {tokenMaskId, connectToRenderConnection};
+    tokenMaskIdMapTokens_[tokenMaskId] = token;
+    connectionProcessPid_[remotePid] = token;
 }
 
-sptr<RSIClientToRenderConnection> RSRenderPipeline::FindClientToRenderConnection(const sptr<IRemoteObject>& token)
+std::pair<sptr<RSIClientToRenderConnection>, uint64_t> RSRenderPipeline::FindClientToRenderConnection(
+    uint64_t remotePid)
 {
     std::unique_lock<std::mutex> lock(renderConnectionMutex_);
-    auto it = renderConnections_.find(token);
-    if (it != renderConnections_.end()) {
-        auto clientToRenderConnection = it->second;
-        return clientToRenderConnection;
+
+    auto iter = connectionProcessPid_.find(remotePid);
+    if (iter == connectionProcessPid_.end() || iter->second == nullptr) {
+        return {nullptr, INVALID_TOKEN_MASK_ID};
     }
-    return nullptr;
+
+    sptr<IRemoteObject> tmpToken = iter->second;
+    auto it = renderConnections_.find(tmpToken);
+    if (it != renderConnections_.end()) {
+        auto [tokenMaskId, clientToRenderConnection] = it->second;
+        return {clientToRenderConnection, tokenMaskId};
+    }
+    return {nullptr, INVALID_TOKEN_MASK_ID};
 }
 
 void RSRenderPipeline::RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn)

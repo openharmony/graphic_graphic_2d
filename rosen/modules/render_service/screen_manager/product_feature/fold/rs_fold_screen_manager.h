@@ -49,7 +49,7 @@ private:
     static void OnBootComplete(const char* key, const char* value, void* context);
     void OnBootCompleteEvent();
     void HandlePostureData(const SensorEvent* const event);
-    void HandleSensorData(float angle);
+    void HandleSensorData(float angle, float abAngle);
 #endif
 
     RSScreenPreprocessor& screenPreprocessor_;

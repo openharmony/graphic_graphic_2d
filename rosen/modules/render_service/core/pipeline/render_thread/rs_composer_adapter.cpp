@@ -31,6 +31,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_log.h"
 #include "rs_render_surface_layer.h"
 #include "rs_trace.h"
@@ -519,7 +520,7 @@ RSLayerPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) const
     }
     layer->SetNodeId(node.GetId());  // node id only for dfx
     layer->SetRSLayerId(node.GetId());
-    layer->SetTunnelLayerGeneration(node.GetTunnelRuntimeState().GetTunnelLayerGeneration());
+    layer->SetTunnelLayerGeneration(RSTunnelRuntimeStore::GetTunnelLayerGeneration(node.GetId()));
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer(), &node);
     LayerRotate(layer, node);
     RS_LOGD("RsDebug RSComposerAdapter::CreateTunnelLayer surfaceNode id:%{public}" PRIu64 " name:[%{public}s] dst"

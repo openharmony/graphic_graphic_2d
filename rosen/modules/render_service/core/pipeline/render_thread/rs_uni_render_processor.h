@@ -63,11 +63,12 @@ private:
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr);
     void CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRenderParams& params);
-    void HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer);
+    void HandleTunnelLayerParameters(NodeId nodeId, RSLayerPtr& layer);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<std::weak_ptr<RSLayer>> layers_;
     RSLayerPtr uniLayer_ = nullptr;
     std::shared_ptr<RSComposerClient> composerClient_ = nullptr;
+    bool hasTunnelLayer_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

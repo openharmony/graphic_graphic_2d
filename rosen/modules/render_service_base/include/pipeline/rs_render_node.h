@@ -158,29 +158,13 @@ public:
     void RemoveFromTree(bool skipTransition = false);
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
-    void AddCrossParentChild(const SharedPtr& child, int32_t index = -1);
-    void RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent);
-    void SetIsCrossNode(bool isCrossNode);
+    void AddCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, int32_t index = -1);
+    void RemoveCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, const WeakPtr& newParent);
 
     // Only used in PC extend screen
-    void AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index = -1,
+    void AddCrossScreenChild(const std::shared_ptr<RSSurfaceRenderNode>& child, NodeId cloneNodeId, int32_t index = -1,
         bool autoClearCloneNode = false);
-    void RemoveCrossScreenChild(const SharedPtr& child);
-    void ClearCloneCrossNode();
-
-    WeakPtr GetSourceCrossNode() const
-    {
-        return sourceCrossNode_;
-    }
-
-    bool IsCloneCrossNode() const
-    {
-        return isCloneCrossNode_;
-    }
-
-    bool HasVisitedCrossNode() const;
-
-    void SetCrossNodeVisitedStatus(bool hasVisited);
+    void RemoveCrossScreenChild(const std::shared_ptr<RSSurfaceRenderNode>& child);
 
     void SetCurCloneNodeParent(SharedPtr node)
     {
@@ -536,6 +520,7 @@ public:
     bool UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEnabled);
 
     std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
+    std::shared_ptr<RSAnimationManager> GetOrCreateAnimationManager();
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
 
     void ApplyAlphaAndBoundsGeometry(RSPaintFilterCanvas& canvas);
@@ -794,7 +779,9 @@ public:
     virtual void SetNewOnTree(bool isNewOnTree) {}
 
     // mark cross node in physical extended screen model
-    bool IsCrossNode() const;
+    virtual bool IsCrossNode() const{
+        return false;
+    }
 
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
@@ -870,7 +857,6 @@ public:
     virtual void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
-    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn);
 
     virtual RectI GetFilterRect() const;
     RectI GetAbsRect() const;
@@ -1223,6 +1209,8 @@ protected:
     bool srcOrClipedAbsDrawRectChangeFlag_ = false;
     bool startingWindowFlag_ = false;
     bool childHasSharedTransition_ = false;
+    bool isFirstLevelCrossNode_ = false;
+    WeakPtr curCloneNodeParent_;
     std::atomic<bool> isStaticCached_ = false;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
@@ -1248,10 +1236,6 @@ private:
     // mark cross node in physical extended screen model
     bool isRepaintBoundary_ = false;
     bool hasForceSubmit_ = false;
-    bool isCrossNode_ = false;
-    bool isCloneCrossNode_ = false;
-    bool isFirstLevelCrossNode_ = false;
-    bool autoClearCloneNode_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
     bool shouldPaint_ = true;
     bool isAccumulatedClipFlagChanged_ = false;
@@ -1328,8 +1312,6 @@ private:
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
-    WeakPtr sourceCrossNode_;
-    WeakPtr curCloneNodeParent_;
     std::weak_ptr<RSContext> context_ = {};
     WeakPtr parent_;
     // including enlarged draw region
@@ -1362,8 +1344,6 @@ private:
     };
     std::unique_ptr<FilterRegionInfo> filterRegionInfo_;
     RectI lastFilterRegion_;
-    std::vector<SharedPtr> cloneCrossNodeVec_;
-    bool hasVisitedCrossNode_ = false;
 
     ModifiersNGMap modifiersNG_;
     std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
@@ -1454,8 +1434,6 @@ private:
 
     void UpdateDisplayList();
     void UpdateShadowRect();
-
-    void RecordCloneCrossNode(SharedPtr node);
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
 

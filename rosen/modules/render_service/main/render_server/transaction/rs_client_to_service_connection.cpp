@@ -1542,7 +1542,7 @@ bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
     };
     RSUniRenderThread::Instance().PostTask(task);
 
-    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(globalUniqueId);
+    RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
         return conn->UnRegisterTypeface(globalUniqueId);
     });
@@ -2480,6 +2480,29 @@ ErrCode RSClientToServiceConnection::SetOverlayDisplayMode(int32_t mode)
 }
 #endif
 
+ErrCode RSClientToServiceConnection::SendVideoRateInfo(
+    const std::unordered_map<std::string, std::string>& videoRateInfo)
+{
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.empty()) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    for (auto conn : serviceToRenderConns) {
+        auto ret = conn->SendVideoRateInfo(videoRateInfo);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+    }
+#endif
+    return ERR_OK;
+}
+
 ErrCode RSClientToServiceConnection::SetBehindWindowFilterEnabled(bool enabled)
 {
     if (renderProcessManagerAgent_ == nullptr) {
@@ -2516,6 +2539,21 @@ ErrCode RSClientToServiceConnection::GetBehindWindowFilterEnabled(bool& enabled)
         // Multiple users are performing the same operation temporarily
         conn->GetBehindWindowFilterEnabled(enabled);
         break;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnection::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
+    auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
+    if (serviceToRenderConn) {
+        serviceToRenderConn->SetApsConfigParams(event, params);
     }
     return ERR_OK;
 }

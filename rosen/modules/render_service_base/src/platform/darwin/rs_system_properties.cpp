@@ -914,5 +914,10 @@ bool RSSystemProperties::GetNewTunnelEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetXcomponentEdrEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

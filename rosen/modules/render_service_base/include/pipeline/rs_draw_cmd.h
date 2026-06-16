@@ -83,7 +83,7 @@ public:
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
-        const Drawing::SamplingOptions& sampling,
+        const Drawing::SamplingOptions& sampling, Drawing::AlphaType alphaType,
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
     bool GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
         SurfaceBuffer *surfaceBuffer, const Drawing::SamplingOptions& sampling,

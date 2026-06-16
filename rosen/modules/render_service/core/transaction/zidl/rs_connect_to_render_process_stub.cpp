@@ -16,6 +16,8 @@
 #include "rs_connect_to_render_process_stub.h"
 
 #include <iremote_proxy.h>
+#include "transaction/rs_connect_to_render_process.h"
+#include "transaction/rs_client_to_render_connection.h"
 
 #include "message_parcel.h"
 
@@ -37,6 +39,12 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
+            uint64_t tokenMaskId = INVALID_TOKEN_MASK_ID;
+            if (!data.ReadUint64(tokenMaskId)) {
+                RS_LOGE("RSConnectToRenderProcessStub::CREATE_CONNECTION ReadUint64 tokenMaskId failed!");
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
             auto remoteObj = data.ReadRemoteObject();
             if (remoteObj == nullptr) {
                 RS_LOGE("RSConnectToRenderProcessStub::CREATE_CONNECTION Read remoteObj failed!");
@@ -53,11 +61,24 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
                 RS_LOGW("RSConnectToRenderProcessStub::CREATE_CONNECTION remoteObj Read needRefresh Faild");
             }
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
-            auto newRenderConn = CreateRenderConnection(token, needRefresh);
-            reply.WriteBool(newRenderConn != nullptr);
-            if (newRenderConn) {
-                auto replyObj = newRenderConn->AsObject();
-                reply.WriteRemoteObject(replyObj);
+            auto [newRenderConn, returnTokenMaskId] = CreateRenderConnection(tokenMaskId, token, needRefresh);
+            if (newRenderConn == nullptr) {
+                ret = ERR_UNKNOWN_OBJECT;
+                RS_LOGE("RSConnectToRenderProcessStub::CREATE_CONNECTION WriteBool replyBool failed");
+                break;
+            }
+
+            auto replyObj = newRenderConn->AsObject();
+            if (replyObj == nullptr || !reply.WriteRemoteObject(replyObj)) {
+                ret = ERR_UNKNOWN_OBJECT;
+                RS_LOGE("RSConnectToRenderProcessStub::CREATE_CONNECTION WriteRemoteObject replyObj failed");
+                break;
+            }
+
+            if (!reply.WriteUint64(returnTokenMaskId)) {
+                RS_LOGE("RSConnectToRenderProcessStub::CREATE_CONNECTION WriteUint64 returnTokenMaskId failed");
+                ret = ERR_INVALID_STATE;
+                break;
             }
             break;
         }
@@ -68,25 +89,24 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            auto remoteObj = data.ReadRemoteObject();
-            if (remoteObj == nullptr) {
-                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION Read remoteObj failed!");
+            uint64_t tokenMaskId = INVALID_TOKEN_MASK_ID;
+            if (!data.ReadUint64(tokenMaskId) || tokenMaskId == INVALID_TOKEN_MASK_ID) {
+                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION ReadUint64 tokenMaskId failed!");
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            if (!remoteObj->IsProxyObject()) {
-                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION remoteObj !IsProxyObject() failed!");
-                ret = ERR_UNKNOWN_OBJECT;
-                break;
+
+            auto [renderConnection, pidTokenMaskId] =
+                static_cast<RSConnectToRenderProcess*>(this)->FindClientToRenderConnection();
+            bool result = false;
+            if (tokenMaskId == pidTokenMaskId && renderConnection != nullptr) {
+                auto connection = static_cast<RSClientToRenderConnection*>(renderConnection.GetRefPtr());
+                connection->CleanAll(true);
+                result = true;
+            } else {
+                RS_LOGE("RSConnectToRenderProcessStub::pidTokenMaskId != tokenMaskId or renderConnection is nullptr");
             }
-            auto token = iface_cast<RSIConnectionToken>(remoteObj);
-            if (token == nullptr) {
-                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION RSIConnectionToken failed!");
-                ret = ERR_UNKNOWN_OBJECT;
-                break;
-            }
-            
-            auto result = RemoveConnection(token);
+
             if (!reply.WriteBool(result)) {
                 RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION WriteBool failed!");
                 ret = ERR_UNKNOWN_OBJECT;

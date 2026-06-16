@@ -16,7 +16,7 @@
 #include <cinttypes>
 #include <cstdint>
 
-#include "ability.h"
+#include "application_context.h"
 #include "font_collection_mgr.h"
 #include "font_napi/js_typeface.h"
 #include "napi_common.h"
