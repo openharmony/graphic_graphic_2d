@@ -112,7 +112,7 @@ public:
         offlineTaskId taskId) override;
     bool WaitForProcessOfflineResult(offlineTaskId taskId, std::chrono::milliseconds timeout,
         ProcessOfflineResult& result) override;
-    void CheckAndPostClearOfflineResourceTask(const std::vector<uint64_t>&bofflineNodeIds) override;
+    void CheckAndPostClearOfflineResourceTask(const std::vector<uint64_t>& offlineNodeIds) override;
     bool CanDeleteDevice() override;
 
 private:

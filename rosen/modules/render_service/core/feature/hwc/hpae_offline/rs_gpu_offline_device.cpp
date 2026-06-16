@@ -221,7 +221,7 @@ bool RSGPUOfflineDevice::WaitForProcessOfflineResult(offlineTaskId taskId,
     return waitSuccess;
 }
 
-void RSGPUOfflineDevice::CheckAndPostClearOfflineResourceTask(const std::vector<uint64_t>&bofflineNodeIds)
+void RSGPUOfflineDevice::CheckAndPostClearOfflineResourceTask(const std::vector<uint64_t>& offlineNodeIds)
 {
     std::vector<NodeId> nodesToRemove;
     {

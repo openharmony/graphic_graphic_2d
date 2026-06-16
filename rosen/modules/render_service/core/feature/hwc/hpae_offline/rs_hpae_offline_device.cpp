@@ -76,7 +76,7 @@ RSHpaeOfflineContext::isSkipDraw()
 
 RSHpaeOfflineDevice::RSHpaeOfflineDevice()
 {
-    LoadPreProcessHandle()
+    LoadPreProcessHandle();
 }
 
 RSHpaeOfflineDevice::~RSHpaeOfflineDevice()
@@ -170,11 +170,11 @@ bool RSHpaeOfflineDevice::GetOutputConfig(std::shared_ptr<RSHpaeOfflineContext>&
     RS_OFFLINE_LOGD("Got hpae offline config, layerconfig.size: %{public}d, %{public}d, "
         "format: %{public}d, colorGamut: %{public}d, timeout: %{public}d, "
         "offline rect: [%{public}d, %{public}d, %{public}d, %{public}d]",
-        context->layerConfig.width, context->layerConfig.height, 
-        context->layerConfig.format, l
+        context->layerConfig.width, context->layerConfig.height,
+        context->layerConfig.format,
         context->ayerConfig.colorGamut,
         context->layerConfig.timeout,
-        context->offlineRect.x, context->offlineRect.y, 
+        context->offlineRect.x, context->offlineRect.y,
         context->offlineRect.w, context->offlineRect.h);
     return true;
 }
@@ -221,12 +221,12 @@ void RSHpaeOfflineDevice::CheckAndPostPreAllocBuffersTask(std::shared_ptr<RSHpae
 {
     if (offlineResultSync_.GetResultPoolSize() < 1) {
         RS_OFFLINE_LOGD("Start to post Preallocbuffer task.");
+        std::lock_guard<std::mutex> localLock(context->offlineConfigMutex);
         BufferRequestConfig config = context->layerConfig;
         offlineThreadManager_.PostTask([this, context, config = std::move(config)]() mutable {
             RS_TRACE_NAME_FMT("hpae_offline: PreAllocBuffer.");
-            std::lock_guard<std::mutex> localLock(context->offlineConfigMutex);
             bool ret = context->offlineLayer->PreAllocBuffers(config);
-            preAllocBufferSucc_ = ret;
+            context->preAllocBufferSucc = ret;
         });
     }
 }
@@ -290,7 +290,7 @@ bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params, 
             inputInfo.srcRect = {src.x, src.y, src.w, src.h};
         }
     }
-    inputInfo.dstRect = {taskData.offlineRect.x, taskData.offlineRect.y, 
+    inputInfo.dstRect = {taskData.offlineRect.x, taskData.offlineRect.y,
         taskData.offlineRect.w, taskData.offlineRect.h};
     inputInfo.transform = static_cast<uint32_t>(params.GetLayerInfo().transformType);
     return true;
@@ -353,7 +353,6 @@ bool RSHpaeOfflineDevice::DoProcessOffline(
 {
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: do process offline");
     // get Hpae inputInfo
-    OfflineProcessInputInfo inputInfo;
     sptr<SurfaceBuffer> dstSurfaceBuffer = nullptr;
     int32_t releaseFence = -1;
     auto srcSurfaceBuffer = params.GetBuffer();
@@ -363,7 +362,7 @@ bool RSHpaeOfflineDevice::DoProcessOffline(
         return false;
     }
     BufferOwnerCountGuard guard(srcBufferOwnerCount);
-    if (!GetOfflineProcessInput(params, inputInfo, dstSurfaceBuffer, releaseFence, taskData)) {
+    if (!GetOfflineProcessInput(params, taskData.inputInfo, dstSurfaceBuffer, releaseFence, taskData)) {
         RS_OFFLINE_LOGW("Get offline process input failed.");
         return false;
     }
@@ -372,7 +371,7 @@ bool RSHpaeOfflineDevice::DoProcessOffline(
     // hpae offline process
     int32_t ret = -1;
     if (preProcessFunc_) {
-        ret = preProcessFunc_(inputInfo);
+        ret = preProcessFunc_(taskData.inputInfo);
     }
     if (ret != 0) {
         RS_OFFLINE_LOGW("Hpae offline process fail.");
@@ -380,9 +379,8 @@ bool RSHpaeOfflineDevice::DoProcessOffline(
         return false;
     }
 
-    int32_t offlineFenceFd = -1;
     if (getFenceFunc_) {
-        ret = getFenceFunc_(offlineFenceFd);
+        ret = getFenceFunc_(taskData.offlineFenceFd);
         if (ret != 0) {
             RS_OFFLINE_LOGW("Hpae get offline fence fail.");
             FlushAndReleaseOfflineLayer(dstSurfaceBuffer, taskData);
@@ -390,24 +388,22 @@ bool RSHpaeOfflineDevice::DoProcessOffline(
         }
     }
 
-    return SubmitOfflineBuffer(taskData, params, inputInfo, dstSurfaceBuffer, offlineFenceFd, processOfflineResult);
+    return SubmitOfflineBuffer(taskData, params, dstSurfaceBuffer, processOfflineResult);
 }
 
 bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
     HpaeOfflineSubThreadData taskData,
     RSSurfaceRenderParams& params,
-    const OfflineProcessInputInfo& inputInfo,
     sptr<SurfaceBuffer>& dstSurfaceBuffer,
-    int32_t offlineFenceFd,
     ProcessOfflineResult& processOfflineResult)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: submit offline buffer");
 
     // flush and consume offline buffer
     taskData.flushConfig.timestamp = 0;
-    taskData.flushConfig.damage = {.x = inputInfo.dstRect.x, .y = inputInfo.dstRect.y,
-        .w = inputInfo.dstRect.w, .h = inputInfo.dstRect.h};
-    taskData.offlineLayer->FlushSurfaceBuffer(dstSurfaceBuffer, offlineFenceFd, taskData.flushConfig);
+    taskData.flushConfig.damage = {.x = taskData.inputInfo.dstRect.x, .y = taskData.inputInfo.dstRect.y,
+        .w = taskData.inputInfo.dstRect.w, .h = taskData.inputInfo.dstRect.h};
+    taskData.offlineLayer->FlushSurfaceBuffer(dstSurfaceBuffer, taskData.offlineFenceFd, taskData.flushConfig);
     auto offlineSurfaceHandler = taskData.offlineLayer->GetMutableRSSurfaceHandler();
     if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
         RS_OFFLINE_LOGW("DeviceOfflineLayer consume buffer failed. %{public}d",
@@ -421,20 +417,21 @@ bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
             offlinePreBufferCount->DecRef()
         }
     }
-    return FillOfflineResult(processOfflineResult,
-        taskData.contextType, params, offlineSurfaceHandler, taskData.offlineRect);
+    return FillOfflineResult(processOfflineResult, taskData, params, offlineSurfaceHandler);
 }
 
-bool RSHpaeOfflineDevice::FillOfflineResult(ProcessOfflineResult& processOfflineResult, OfflineContextType contextType,
-    RSSurfaceRenderParams& params, std::shared_ptr<RSSurfaceHander>& offlineSurfaceHandler, RequestRect offlineRect)
+bool RSHpaeOfflineDevice::FillOfflineResult(ProcessOfflineResult& processOfflineResult,
+    HpaeOfflineSubThreadData& taskData, RSSurfaceRenderParams& params,
+    std::shared_ptr<RSSurfaceHander>& offlineSurfaceHandler)
 {
     // set to offline result
-    if (contextType == OfflineContextType::AI2020) {
+    if (taskData.contextType == OfflineContextType::AI2020) {
         auto src = params.GetLayerInfo().srcRect;
         processOfflineResult.bufferRect = {.x = src.x, .y = src.y, .w = src.w, .h = src.h};
     } else {
         processOfflineResult.bufferRect = {
-            .x = inputInfo.dstRect.x, .y = inputInfo.dstRect.y, .w = inputInfo.dstRect.w, .h = inputInfo.dstRect.h};
+            .x = taskData.inputInfo.dstRect.x, .y = taskData.inputInfo.dstRect.y,
+            .w = taskData.inputInfo.dstRect.w, .h = taskData.inputInfo.dstRect.h};
     }
     processOfflineResult.consumer = offlineSurfaceHandler->GetConsumer();
     auto damageRect = offlineSurfaceHandler->GetDamageRegion();
@@ -443,7 +440,7 @@ bool RSHpaeOfflineDevice::FillOfflineResult(ProcessOfflineResult& processOffline
     }
     damageRect.y = offlineSurfaceHandler->GetBuffer()->GetHeight() - damageRect.y - damageRect.h;
     processOfflineResult.damageRect = damageRect;
-    processOfflineResult.preBuffer = offlineSurfaceHandler->GetPreBuffer();
+    processOfflineResult.preBuffer = taskData.lastProcessSuccess ? offlineSurfaceHandler->GetPreBuffer() : nullptr;
     processOfflineResult.buffer = offlineSurfaceHandler->GetBuffer();
     processOfflineResult.acquireFence = offlineSurfaceHandler->GetAcquireFence();
     processOfflineResult.bufferOwnerCount = offlineSurfaceHandler->GetBufferOwnerCount();
@@ -458,6 +455,10 @@ void RSHpaeOfflineDevice::OfflineTaskFunc(RSSurfaceRenderParams* surfaceParams,
 {
     ProcessOfflineResult processOfflineResult;
     processOfflineResult.taskSuccess = DoProcessOffline(*surfaceParams, processOfflineResult, taskData);
+    auto context = GetOfflineContext(nodeId);
+    if (context != nullptr) {
+        context->lastProcessSuccess = taskSuccess;
+    }
     offlineResultSync_.MarkTaskDoneAndSetResult(futurePtr, processOfflineResult);
     CheckAndHandleTimeoutEvent(futurePtr, taskData.nodeId);
 }
@@ -535,6 +536,7 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
     taskData.offlineRect = context->offlineRect;
     taskData.offlineLayer = context->offlineLayer;
     taskData.contextType = context->contextType;
+    taskData.lastProcessSuccess = context->lastProcessSuccess;
     offlineThreadManager_.PostTask([surfaceParams, futurePtr, taskId, this, taskData = std::move(taskData)]() mutable {
         RS_TRACE_NAME("hpae_offline: ProcessOffline");
         RS_OFFLINE_LOGD("start to proces offline surface (by drawable), task[%{public}" PRIu64 "-%{public}" PRIu64 "]",
@@ -619,7 +621,7 @@ bool RSHpaeOfflineDevice::WaitForProcessOfflineResult(offlineTaskId taskId,
     if (context == nullptr) {
         return waitSuccess;
     }
-    context=>hasDrawn = processOfflineResult.taskSuccess;
+    context->hasDrawn = processOfflineResult.taskSuccess;
     context->invalidFrames = processOfflineResult.taskSuccess ? 0 : context->invalidFrames + 1;
     return waitSuccess;
 }
@@ -714,13 +716,13 @@ bool RSHpaeOfflineDevice::UpdateContext(std::shared_ptr<RSSurfaceRenderNode>& no
     // skipDraw: buffer consumed + previous frame drawn
     bool bufferConsumed = surfaceHandler->IsCurrentFrameBufferConsumed();
     if (!bufferConsumed && context->hasDrawn) {
-        context-skipDraw = true;
+        context->skipDraw = true;
         RS_OFFLINE_LOGD("skipDraw: reuse previous frame");
         return true;
     }
     // normal drawing
     context->skipDraw = false;
-    context->hasDrawn - false;
+    context->hasDrawn = false;
     RS_OFFLINE_LOGD("need hpae offline process, bufferConsumed=%{public}d", bufferConsumed);
     return true;
 }
