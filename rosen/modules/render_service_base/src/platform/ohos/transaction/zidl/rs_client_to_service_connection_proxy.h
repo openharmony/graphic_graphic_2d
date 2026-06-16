@@ -345,6 +345,8 @@ public:
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params) override;
+
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 
     RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,

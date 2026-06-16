@@ -2523,6 +2523,21 @@ ErrCode RSClientToServiceConnection::GetBehindWindowFilterEnabled(bool& enabled)
     return ERR_OK;
 }
 
+ErrCode RSClientToServiceConnection::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
+    auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
+    if (serviceToRenderConn) {
+        serviceToRenderConn->SetApsConfigParams(event, params);
+    }
+    return ERR_OK;
+}
+
 int32_t RSClientToServiceConnection::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 {
     if (renderProcessManagerAgent_ == nullptr) {

@@ -253,6 +253,7 @@ group("test") {
     "render_service_client/fuzztest/rsinterfaces_extern/clearUifirstCache_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/setVmaCacheStatus_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/setAncoForceDoDirect_fuzzer:fuzztest",
+    "render_service_client/fuzztest/rsinterfaces_extern/setApsConfigParams_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/setOverlayDisplayMode_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/setGlobalDarkColorMode_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_extern/dropFrameByPid_fuzzer:fuzztest",

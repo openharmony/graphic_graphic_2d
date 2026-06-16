@@ -790,6 +790,9 @@ enum class EnergyEvent : int32_t {
     ANIMATION_EXEC_TIME = 2,
 };
 
+enum class ApsEventType : uint32_t {
+    SPLIT_LAYER = 0,
+};
 using EnergyCommonDataMap = std::unordered_map<EnergyEvent, std::unordered_map<std::string, std::string>>;
 } // namespace Rosen
 } // namespace OHOS

@@ -55,6 +55,7 @@ namespace OHOS {
 namespace Rosen {
 constexpr size_t SCREEN_WIDTH = 100;
 constexpr size_t SCREEN_HEIGHT = 100;
+constexpr size_t MAX_APS_PARAMS_SIZE = 128;
 sptr<RSIClientToServiceConnection> rsToServiceConn_ = nullptr;
 sptr<RSIClientToRenderConnection> rsToRenderConn_ = nullptr;
 namespace {
@@ -1464,6 +1465,23 @@ bool DoProfilerIsSecureScreen()
     return true;
 }
 
+bool DoSetApsConfigParams()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    ApsEventType event = static_cast<ApsEventType>(GetData<uint32_t>());
+    uint32_t paramsSize = GetData<uint32_t>();
+    std::unordered_map<std::string, std::string> params;
+    for (uint32_t i = 0; i < paramsSize && i < MAX_APS_PARAMS_SIZE; ++i) {
+        std::string key = GetData<std::string>();
+        std::string value = GetData<std::string>();
+        params[key] = value;
+    }
+    rsToServiceConn_->SetApsConfigParams(event, params);
+    return true;
+}
+
 class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
 public:
     explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
@@ -1673,6 +1691,7 @@ void DoFuzzerTest3()
     DoNotifySoftVsyncRateDiscountEvent();
     DoSetBehindWindowFilterEnabled();
     DoGetBehindWindowFilterEnabled();
+    DoSetApsConfigParams();
     DoSetVirtualScreenAutoRotation();
     DoProfilerServiceOpenFile();
     DoProfilerServicePopulateFiles();

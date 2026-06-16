@@ -401,6 +401,9 @@ public:
 
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
 
+    virtual ErrCode SetApsConfigParams(
+        ApsEventType event, const std::unordered_map<std::string, std::string>& params) = 0;
+
     virtual int32_t GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB) = 0;
 
     virtual RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,

@@ -56,6 +56,7 @@ static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map s
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "client_to_service";
 #endif
+constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID),
@@ -220,6 +221,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -3262,6 +3264,39 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::GET_BEHIND_WINDOW_FILTER_ENABLED write enabled failed!");
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS): {
+            uint32_t eventVal = 0;
+            if (!data.ReadUint32(eventVal)) {
+                RS_LOGE("%{public}s Read event failed!", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ApsEventType event = static_cast<ApsEventType>(eventVal);
+            uint32_t paramsSize = 0;
+            if (!data.ReadUint32(paramsSize) || paramsSize > MAX_APS_PARAMS_SIZE) {
+                RS_LOGE("%{public}s Read paramsSize failed!", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::unordered_map<std::string, std::string> params;
+            bool errFlag = false;
+            for (uint32_t i = 0; i < paramsSize; ++i) {
+                std::string key;
+                std::string value;
+                if (!data.ReadString(key) || !data.ReadString(value)) {
+                    RS_LOGE("%{public}s Read kv failed!", __func__);
+                    errFlag = true;
+                    break;
+                }
+                params[key] = value;
+            }
+            if (errFlag) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetApsConfigParams(event, params);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB): {

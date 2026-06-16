@@ -39,6 +39,7 @@ static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemp
 static constexpr uint32_t EDID_DATA_MAX_SIZE = 64 * 1024;
 static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map size not exceed 100
 static constexpr int ZERO = 0; // empty map size
+static constexpr uint32_t MAX_APS_PARAMS_SIZE = 128;
 #endif
 static constexpr uint32_t MAX_VIDEO_INFO_SIZE = 32; // video rate info max map size
 }
@@ -5239,6 +5240,46 @@ ErrCode RSClientToServiceConnectionProxy::GetBehindWindowFilterEnabled(bool& ena
     }
     if (!reply.ReadBool(enabled)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetBehindWindowFilterEnabled ReadBool err.");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnectionProxy::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    uint32_t paramsSize = static_cast<uint32_t>(params.size());
+    if (paramsSize > MAX_APS_PARAMS_SIZE) {
+        ROSEN_LOGE("%{public}s: params verify failed.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(event))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 event err.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(paramsSize)) {
+        ROSEN_LOGE("%{public}s: WriteUint32 params size err.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    for (const auto& [key, value] : params) {
+        if (!data.WriteString(key) || !data.WriteString(value)) {
+            ROSEN_LOGE("%{public}s: WriteString params err.", __func__);
+            return ERR_INVALID_VALUE;
+        }
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: Send Request err.", __func__);
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;

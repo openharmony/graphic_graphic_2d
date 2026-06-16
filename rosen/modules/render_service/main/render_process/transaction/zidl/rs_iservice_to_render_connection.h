@@ -128,6 +128,10 @@ public:
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
 
+    // Aps
+    virtual ErrCode SetApsConfigParams(
+        ApsEventType event, const std::unordered_map<std::string, std::string>& params) = 0;
+
     // Others
     virtual ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) = 0;
     virtual ErrCode RepaintEverything() = 0;

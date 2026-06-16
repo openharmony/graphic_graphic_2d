@@ -423,6 +423,8 @@ public:
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
+    bool SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
+
     int32_t GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB);
 
     RetCodeHrpService ProfilerServiceOpenFile(const HrpServiceDirInfo& dirInfo,

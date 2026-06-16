@@ -742,6 +742,12 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
     return false;
 }
 
+bool RSRenderServiceClient::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    return false;
+}
+
 int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
 {
     return {};
