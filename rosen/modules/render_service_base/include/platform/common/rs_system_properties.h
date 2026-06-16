@@ -282,6 +282,7 @@ public:
     static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
     static bool GetHeterogeneousHDREnabled();
+    static bool GetGPUOfflineEnabled();
     static bool GetXcomponentEdrEnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetUIFirstOptScheduleEnabled();

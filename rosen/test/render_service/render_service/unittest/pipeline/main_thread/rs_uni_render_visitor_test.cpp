@@ -56,7 +56,6 @@
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen.h"
-#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
@@ -9989,9 +9988,6 @@ HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode004, TestSize.Level2)
                 return 0;
             }
         );
-
-    RSHpaeOfflineProcessor::GetOfflineProcessor().loadSuccess_ = true;
-
     rsUniRenderVisitor->curScreenNode_ = displayNode;
     rsUniRenderVisitor->PrevalidateHwcNode();
     // When TunnelLayerId == 0 and other conditions are met, node->SetDeviceOfflineEnable(true) is called

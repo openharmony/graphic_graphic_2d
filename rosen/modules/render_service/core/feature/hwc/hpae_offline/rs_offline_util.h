@@ -15,7 +15,32 @@
 
 #ifndef RS_CORE_FEATURE_HPAE_OFFLINE_UTIL_H
 #define RS_CORE_FEATURE_HPAE_OFFLINE_UTIL_H
+#include "pipeline/rs_surface_handler.h"
 #include "platform/common/rs_log.h"
+
+class BufferOwnerCountGuard {
+public:
+    explicit BufferOwnerCountGuard(
+        std::shared_ptr<OHOS::Rosen::RSSurfaceHandler::BufferOwnerCount> count) : count_(count)
+    {
+        if (count_) {
+            count_->AddRef();
+        }
+    }
+    ~BufferOwnerCountGuard()
+    {
+        if (count_) {
+            count_->DecRef();
+        }
+    }
+
+    BufferOwnerCountGuard(const BufferOwnerCountGuard&) = delete;
+    BufferOwnerCountGuard& operator=(const BufferOwnerCountGuard&) = delete;
+    BufferOwnerCountGuard(BufferOwnerCountGuard&&) = delete;
+    BufferOwnerCountGuard& operator=(BufferOwnerCountGuard&&) = delete;
+private:
+    std::shared_ptr<OHOS::Rosen::RSSurfaceHandler::BufferOwnerCount> count_;
+};
 
 #if defined(ROSEN_OHOS)
 #define RS_OFFLINE_LOGD(fmt, ...) RS_LOGD("hpae_offline: " fmt, ##__VA_ARGS__)

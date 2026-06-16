@@ -20,7 +20,6 @@
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "limit_number.h"
 #include "metadata_helper.h"
@@ -2747,8 +2746,6 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessOfflineLayer_SurfaceDrawableSyncPostSu
     if (RSUniRenderJudgement::IsUniRender()) {
         ASSERT_NE(renderProcessor, nullptr);
 
-        RSHpaeOfflineProcessor::GetOfflineProcessor().loadSuccess_ = true;
-
         auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
@@ -2807,8 +2804,6 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessOfflineLayer_NodePtrPostSuccessTest001
 {
     if (RSUniRenderJudgement::IsUniRender()) {
         ASSERT_NE(renderProcessor, nullptr);
-
-        RSHpaeOfflineProcessor::GetOfflineProcessor().loadSuccess_ = true;
 
         auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
         ASSERT_NE(node, nullptr);

@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 #include "feature/hwc/hpae_offline/rs_hpae_offline_process_syncer.h"
-#include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
+#include "feature/hwc/hpae_offline/rs_offline_util.h"
 #include "common/rs_optional_trace.h"
 
 namespace OHOS {
 namespace Rosen {
 
 std::shared_ptr<ProcessOfflineFuture> RSHpaeOfflineProcessSyncer::RegisterPostedTask(
-    uint64_t taskId)
+    offlineTaskId taskId)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Register task [%" PRIu64 "].", taskId);
-    RS_OFFLINE_LOGD("hpae_offline: Register task [%{public}" PRIu64 "].", taskId);
+    RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Register task [%" PRIu64 "-%" PRIu64 "]", taskId.first, taskId.second);
+    RS_OFFLINE_LOGD("Register task, taskId=[%{public}" PRIu64 "-%{public}" PRIu64 "]", taskId.first, taskId.second);
     {
         std::lock_guard<std::mutex> lock(poolMtx_);
         if (resultPool_.find(taskId) == resultPool_.end()) {
@@ -32,7 +32,8 @@ std::shared_ptr<ProcessOfflineFuture> RSHpaeOfflineProcessSyncer::RegisterPosted
             return future;
         }
     }
-    RS_OFFLINE_LOGW("Task with %{public}" PRIu64 " already exists.", taskId);
+    RS_OFFLINE_LOGW("Register task, taskId=[%{public}" PRIu64 "-%{public}" PRIu64 "] already exists.",
+         taskId.first, taskId.second);
     return nullptr;
 }
 
@@ -47,7 +48,7 @@ void RSHpaeOfflineProcessSyncer::MarkTaskDoneAndSetResult(
     }
 }
 
-std::shared_ptr<ProcessOfflineFuture> RSHpaeOfflineProcessSyncer::GetTaskFuture(uint64_t taskId)
+std::shared_ptr<ProcessOfflineFuture> RSHpaeOfflineProcessSyncer::GetTaskFuture(offlineTaskId taskId)
 {
     std::lock_guard<std::mutex> lock(poolMtx_);
     auto iter = resultPool_.find(taskId);
@@ -60,10 +61,21 @@ std::shared_ptr<ProcessOfflineFuture> RSHpaeOfflineProcessSyncer::GetTaskFuture(
     return future;
 }
 
-bool RSHpaeOfflineProcessSyncer::WaitForTaskAndGetResult(uint64_t taskId,
+bool RSHpaeOfflineProcessSyncer::WaitForTaskAndGetResult(offlineTaskId taskId,
     std::chrono::milliseconds timeout, ProcessOfflineResult& processOfflineResult)
 {
     RS_TRACE_NAME_FMT("Wait for offline task.");
+    {
+        std::lock_guard<std::mutex> lock(poolMtx_);
+        auto it = directResultCache_.find(taskId);
+        if (it != directResultCache_.end()) {
+            processOfflineResult = it->second;
+            directResultCache_.erase(it);
+            RS_OFFLINE_LOGD("task[%{public}" PRIu64 "-%{public}" PRIu64 "] use direct result",
+                taskId.first, taskId.second);
+            return true;
+        }
+    }
     auto future = GetTaskFuture(taskId);
     if (!future) {
         RS_OFFLINE_LOGE("%{public}s, task is null.", __func__);
@@ -76,25 +88,51 @@ bool RSHpaeOfflineProcessSyncer::WaitForTaskAndGetResult(uint64_t taskId,
     } else {
         if (!future->cv.wait_for(lock, timeout, [future] { return future->done; })) {
             future->timeout = true;
-            RS_OFFLINE_LOGW("%{public}s, wait task[%{public}" PRIu64 "] timeout!!!", __func__, taskId);
+            RS_OFFLINE_LOGW("%{public}s, wait task[%{public}" PRIu64 "-%{public}" PRIu64 "] timeout!!!", __func__,
+                taskId.first, taskId.second);
             return false;
         }
     }
     processOfflineResult = future->result;
-    RS_OFFLINE_LOGD("wait for task[%{public}" PRIu64 "] done!", taskId);
+    RS_OFFLINE_LOGD("wait for task[%{public}" PRIu64 "-%{public}" PRIu64 "] done!",
+        taskId.first, taskId.second);
     return true;
 }
 
 int32_t RSHpaeOfflineProcessSyncer::GetResultPoolSize()
 {
     std::lock_guard<std::mutex> lock(poolMtx_);
-    return resultPool_.size();
+    return resultPool_.size() + directResultCache_.size();
+}
+
+int32_t RSHpaeOfflineProcessSyncer::GetResultPoolSizeByNode(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(poolMtx_);
+    int32_t count = 0;
+    for (auto it = resultPool_.begin(); it != resultPool_.end(); ++it) {
+        if (it->first.second == nodeId) {
+            count++;
+        }
+    }
+    for (auto it = directResultCache_.begin(); it != directResultCache_.end(); ++it) {
+        if (it->first.second == nodeId) {
+            count++;
+        }
+    }
+    return count;
 }
 
 void RSHpaeOfflineProcessSyncer::ClearResultPool()
 {
     std::lock_guard<std::mutex> lock(poolMtx_);
     resultPool_.clear();
+    directResultCache_.clear();
+}
+
+void RSHpaeOfflineProcessSyncer::SetDirectResult(offlineTaskId taskId, const ProcessOfflineResult& result)
+{
+    std::lock_guard<std::mutex> lock(poolMtx_);
+    directResultCache_[taskId] = result;
 }
 
 } // namespace Rosen

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RS_CORE_FEATURE_HPAE_OFFLINE_RESULT_H
-#define RS_CORE_FEATURE_HPAE_OFFLINE_RESULT_H
+#ifndef RS_CORE_FEATURE_HWC_OFFLINE_RESULT_H
+#define RS_CORE_FEATURE_HWC_OFFLINE_RESULT_H
 #include <cstdint>
 #include <buffer_handle.h>
 #include "common/rs_common_def.h"
@@ -31,7 +31,12 @@ struct ProcessOfflineResult {
     sptr<SyncFence> acquireFence = nullptr;
     GraphicIRect bufferRect = {0, 0, 0, 0};
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr;
+    GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     bool taskSuccess = false;
+
+    // for GPU offline
+    bool isGPUOffline = false;
+    std::vector<float> linearMatrix = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 };
 
 struct ProcessOfflineFuture {

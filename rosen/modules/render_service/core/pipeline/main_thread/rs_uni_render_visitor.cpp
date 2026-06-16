@@ -87,7 +87,7 @@
 #include "feature/round_corner_display/rs_message_bus.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 // hpae offline
-#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
+#include "feature/hwc/hpae_offline/rs_offline_processor.h"
 
 #include "rs_profiler.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -2540,7 +2540,8 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     if (prevalidLayers.size() == 0) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "PrevalidateHwcNode no hardware layer");
         hwcVisitor_->PrintHiperfCounterLog("counter2", INPUT_HWC_LAYERS);
-        RSHpaeOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask();
+        RSOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask(
+            OfflineDeviceType::HPAE_OFFLINE_DEVICE);
         return;
     }
     // add display layer
@@ -2576,7 +2577,8 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
                 elem.second == RequestCompositionType::OFFLINE_VCLD_OFF);
         });
         if (iter == strategy.end()) {
-            RSHpaeOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask();
+            RSOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask(
+                OfflineDeviceType::HPAE_OFFLINE_DEVICE);
         }
     }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
@@ -2609,7 +2611,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, Req
 #ifdef HETERO_HDR_ENABLE
             !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
 #endif
-            RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady()) {
+            RSOfflineProcessor::GetOfflineProcessor().IsRSOfflineProcessorReady(node,
+                OfflineDeviceType::HPAE_OFFLINE_DEVICE)) {
             node->SetDeviceOfflineEnable(true);
             if (it.second == RequestCompositionType::OFFLINE_VCLD_OFF) {
                 node->ResetVcldInfo();
@@ -2724,6 +2727,11 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
 
 void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers)
 {
+    if (topLayers.empty()) {
+        RSOfflineProcessor::GetOfflineProcessor().CheckAndPostClearOfflineResourceTask(
+            OfflineDeviceType::GPU_OFFLINE_DEVICE);
+        return;
+    }
     for (const auto& topLayer : topLayers) {
         std::shared_ptr<RSSurfaceHandler> topLayerSurfaceHandler = topLayer->GetMutableRSSurfaceHandler();
         if (topLayerSurfaceHandler) {
@@ -2736,6 +2744,9 @@ void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::share
             bool hwcDisabled = !IsHardwareComposerEnabled() || !topLayer->ShouldPaint() ||
                 !drmNodes_.empty() || hwcVisitor_->IsDisableHwcOnExpandScreen();
             topLayer->SetHardwareForcedDisabledState(hwcDisabled);
+            topLayer->SetDeviceOfflineEnable(false);
+            // gpu offline
+            ProcessGpuOfflineForTopLayer(topLayer, hwcDisabled);
             if (hwcDisabled) {
                 RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by toplayers dirty status, "
                     "IsHardwareComposerEnabled[%d],TopLayerShouldPaint[%d],DrmNodeEmpty[%d]",
@@ -2748,6 +2759,23 @@ void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::share
             topLayer->UpdateHwcNodeLayerInfo(transform);
         }
     }
+}
+ 
+void RSUniRenderVisitor::ProcessGpuOfflineForTopLayer(
+    const std::shared_ptr<RSSurfaceRenderNode>& topLayer, bool hwcDisabled)
+{
+    if (hwcDisabled || !RSGPUOfflineDevice::CheckCondition(topLayer)) {
+        return;
+    }
+
+    if (!RSOfflineProcessor::GetOfflineProcessor().IsRSOfflineProcessorReady(
+        topLayer, OfflineDeviceType::GPU_OFFLINE_DEVICE)) {
+        topLayer->SetHardwareForcedDisabledState(true);
+        topLayer->SetDeviceOfflineEnable(false);
+        return;
+    }
+
+    topLayer->SetDeviceOfflineEnable(true);
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
@@ -2817,9 +2845,8 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
                 dirtyManager && dirtyManager->IsCurrentFrameDirty() &&
                 surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion());
         });
-    if (!topLayers.empty()) {
-        UpdateTopLayersDirtyStatus(topLayers);
-    }
+    UpdateTopLayersDirtyStatus(topLayers);
+
     curScreenNode_->SetMainAndLeashSurfaceDirty(hasMainAndLeashSurfaceDirty);
     CheckMergeDebugRectforRefreshRate(curMainAndLeashSurfaces);
     CheckMergeScreenDirtyByRoundCornerDisplay();

@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef RS_CORE_PIPELINE_HPAE_OFFLINE_PROCESSOR_H
-#define RS_CORE_PIPELINE_HPAE_OFFLINE_PROCESSOR_H
-#include "feature/hwc/hpae_offline/rs_hpae_offline_layer.h"
-#include "feature/hwc/hpae_offline/rs_hpae_offline_thread_manager.h"
-#include "feature/hwc/hpae_offline/rs_hpae_offline_process_syncer.h"
-#include "feature/hwc/hpae_offline/rs_hpae_offline_result.h"
-#include "feature/hwc/rs_uni_hwc_prevalidate_common.h"
-
-#include <cstdint>
+#ifndef RS_CORE_FEATURE_HWC_HPAE_OFFLINE_DEVICE_H
+#define RS_CORE_FEATURE_HWC_HPAE_OFFLINE_DEVICE_H
 #include <atomic>
 #include <buffer_handle.h>
+#include <cstdint>
+
+#include "feature/hwc/hpae_offline/rs_hpae_offline_layer.h"
+#include "feature/hwc/hpae_offline/rs_hpae_offline_process_syncer.h"
+#include "feature/hwc/hpae_offline/rs_hpae_offline_thread_manager.h"
+#include "feature/hwc/hpae_offline/rs_offline_device.h"
+#include "feature/hwc/hpae_offline/rs_offline_result.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_common.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -60,25 +61,26 @@ using InitOfflineResourceFunc = int32_t (*)();
 using DeInitOfflineResourceFunc = void (*)();
 using GetFenceFunc = int32_t (*)(int32_t &);
 
-class RSHpaeOfflineProcessor : public std::enable_shared_from_this<RSHpaeOfflineProcessor> {
+class RSHpaeOfflineDevice : public RSOfflineDevice, public std::enable_shared_from_this<RSHpaeOfflineDevice> {
 public:
-    static RSHpaeOfflineProcessor& GetOfflineProcessor();
-    ~RSHpaeOfflineProcessor();
+    explicit RSHpaeOfflineDevice();
+    ~RSHpaeOfflineDevice() override;
+    OfflineDeviceType GetDeviceType() const override { return OfflineDeviceType::HPAE_OFFLINE_DEVICE; }
 
-    bool PostProcessOfflineTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
-        uint64_t taskId);
-    bool PostProcessOfflineTask(std::shared_ptr<RSSurfaceRenderNode>& node, uint64_t taskId);
-    bool IsRSHpaeOfflineProcessorReady();
-    void CheckAndPostClearOfflineResourceTask();
-    bool WaitForProcessOfflineResult(uint64_t taskId, std::chrono::milliseconds timeout,
-        ProcessOfflineResult& processOfflineResult);
+    bool IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRenderNode> surfaceNode) override;
+    bool PostProcessOfflineTask(
+        std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, offlineTaskId taskId) override;
+    bool PostProcessOfflineTask(std::shared_ptr<RSSurfaceRenderNode>& node, offlineTaskId taskId) override;
+    bool WaitForProcessOfflineResult(
+        offlineTaskId taskId, std::chrono::milliseconds timeout, ProcessOfflineResult& processOfflineResult) override;
+    void CheckAndPostClearOfflineResourceTask() override;
+    bool CanDeleteDevice() override { return false; }
 
 private:
-    RSHpaeOfflineProcessor();
-    RSHpaeOfflineProcessor(const RSHpaeOfflineProcessor&) = delete;
-    RSHpaeOfflineProcessor(const RSHpaeOfflineProcessor&&) = delete;
-    RSHpaeOfflineProcessor& operator=(const RSHpaeOfflineProcessor&) = delete;
-    RSHpaeOfflineProcessor& operator=(const RSHpaeOfflineProcessor&&) = delete;
+    RSHpaeOfflineDevice(const RSHpaeOfflineDevice&) = delete;
+    RSHpaeOfflineDevice(const RSHpaeOfflineDevice&&) = delete;
+    RSHpaeOfflineDevice& operator=(const RSHpaeOfflineDevice&) = delete;
+    RSHpaeOfflineDevice& operator=(const RSHpaeOfflineDevice&&) = delete;
     void CloseOfflineHandle(const std::string& errSymbol, const char* errNo);
     bool LoadPreProcessHandle();
     bool InitForOfflineProcess();
@@ -88,6 +90,8 @@ private:
     void FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& dstSurfaceBuffer);
     void OfflineTaskFunc(RSRenderParams* paramsPtr, std::shared_ptr<ProcessOfflineFuture>& futurePtr);
     bool DoProcessOffline(RSSurfaceRenderParams& params, ProcessOfflineResult& processOfflineResult);
+    bool SubmitOfflineBuffer(const OfflineProcessInputInfo& inputInfo, sptr<SurfaceBuffer>& dstSurfaceBuffer,
+        int32_t offlineFenceFd, ProcessOfflineResult& processOfflineResult);
     void CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessOfflineFuture>& futurePtr);
 
     // so handler
@@ -129,4 +133,4 @@ private:
 };
 } // Rosen
 } // OHOS
-#endif // RS_CORE_PIPELINE_HPAE_OFFLINE_PROCESSOR_H
+#endif // RS_CORE_FEATURE_HWC_HPAE_OFFLINE_DEVICE_H

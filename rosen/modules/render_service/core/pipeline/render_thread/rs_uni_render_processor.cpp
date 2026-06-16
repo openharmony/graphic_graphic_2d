@@ -36,8 +36,8 @@
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
 // hpae offline
-#include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
-#include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
+#include "feature/hwc/hpae_offline/rs_offline_processor.h"
+#include "feature/hwc/hpae_offline/rs_offline_util.h"
 #include "gpuComposition/rs_gpu_cache_manager.h"
 #include "hpae_offline/rs_hpae_offline_layer_info.h"
 #include "info_collection/rs_layer_compose_collection.h"
@@ -190,7 +190,11 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
     layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
-    layer->SetLayerLinearMatrix(params.GetLayerLinearMatrix());
+    if (offlineResult && offlineResult->isGPUOffline) {
+        layer->SetLayerLinearMatrix(offlineResult->linearMatrix);
+    } else {
+        layer->SetLayerLinearMatrix(params.GetLayerLinearMatrix());
+    }
     if (bufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayer SetBufferOwnerCount bufferId %" PRIu64
             " layerId %" PRIu64, bufferOwnerCount->bufferId_, layer->GetRSLayerId());
@@ -258,7 +262,11 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetSdrNit(renderParams.GetSdrNit());
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
-    layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
+    if (offlineResult && offlineResult->isGPUOffline) {
+        layer->SetLayerLinearMatrix(offlineResult->linearMatrix);
+    } else {
+        layer->SetLayerLinearMatrix(params.GetLayerLinearMatrix());
+    }
     if (bufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderProcessor::CreateLayerForRenderThread SetBufferOwnerCount "
             "bufferId %" PRIu64 " layerId %" PRIu64, bufferOwnerCount->bufferId_, layer->GetRSLayerId());
@@ -474,7 +482,8 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetGravity(layerInfo.gravity);
     if (offlineResult) {
         layer->SetCropRect(offlineResult->bufferRect);
-        layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+        layer->SetTransform(
+            offlineResult->isGPUOffline ? offlineResult->transformType : GraphicTransformType::GRAPHIC_ROTATE_NONE);
         layer->SetUseDeviceOffline(true);
     } else {
         layer->SetCropRect(layerInfo.srcRect);
@@ -509,15 +518,16 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
 bool RSUniRenderProcessor::ProcessOfflineLayer(
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable, bool async)
 {
-    uint64_t taskId = RSUniRenderThread::Instance().GetVsyncId();
+    offlineTaskId taskId = std::make_pair(RSUniRenderThread::Instance().GetVsyncId(),
+        surfaceDrawable->GetId());
     if (!async) {
-        if (!RSHpaeOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(surfaceDrawable, taskId)) {
+        if (!RSOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(surfaceDrawable, taskId)) {
             RS_LOGW("RSUniRenderProcessor::ProcessOfflineLayer: post offline task failed, go redraw");
             return false;
         }
     }
     std::shared_ptr<ProcessOfflineResult> processOfflineResult = std::make_shared<ProcessOfflineResult>();
-    bool waitSuccess = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
+    bool waitSuccess = RSOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
         taskId, HPAE_OFFLINE_TIMEOUT, *processOfflineResult);
     if (waitSuccess && processOfflineResult->taskSuccess) {
         CreateLayerForRenderThread(*surfaceDrawable, processOfflineResult);
@@ -531,13 +541,13 @@ bool RSUniRenderProcessor::ProcessOfflineLayer(
 bool RSUniRenderProcessor::ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     RS_OFFLINE_LOGD("ProcessOfflineLayer(node)");
-    uint64_t taskId = RSUniRenderThread::Instance().GetVsyncId();
-    if (!RSHpaeOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(node, taskId)) {
+    offlineTaskId taskId = std::make_pair(RSUniRenderThread::Instance().GetVsyncId(), node->GetId());
+    if (!RSOfflineProcessor::GetOfflineProcessor().PostProcessOfflineTask(node, taskId)) {
         RS_LOGW("RSUniRenderProcessor::ProcessOfflineLayer: post offline task failed, go redraw");
         return false;
     }
     std::shared_ptr<ProcessOfflineResult> processOfflineResult = std::make_shared<ProcessOfflineResult>();
-    bool waitSuccess = RSHpaeOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
+    bool waitSuccess = RSOfflineProcessor::GetOfflineProcessor().WaitForProcessOfflineResult(
         taskId, HPAE_OFFLINE_TIMEOUT, *processOfflineResult);
     if (waitSuccess && processOfflineResult->taskSuccess) {
         auto params = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());

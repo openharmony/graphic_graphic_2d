@@ -14,7 +14,7 @@
  */
 
 #include "rs_hpae_offline_thread_manager.h"
-#include "rs_hpae_offline_util.h"
+#include "rs_offline_util.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #if defined(ROSEN_OHOS)
