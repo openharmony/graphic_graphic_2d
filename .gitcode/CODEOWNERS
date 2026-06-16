@@ -3,6 +3,10 @@
 .gitcode/CODEOWNERS @lijj01
 bundle.json @lijj01
 
+[knowledge]
+AGENTS.md @yaozhupeng
+docs/ @yaozhupeng
+
 [cross-platform]
 rosen/modules/glfw_render_context/ @aslklw
 
