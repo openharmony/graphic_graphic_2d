@@ -975,7 +975,7 @@ bool RSSystemProperties::GetGPUOfflineEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
-bool RSSystemParameters::GetHpaeOfflineEnabled()
+bool RSSystemProperties::GetHpaeOfflineEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.hpaeoffline.enabled", "1");
     int changed = 0;

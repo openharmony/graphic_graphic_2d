@@ -181,7 +181,7 @@ bool RSHpaeOfflineDevice::GetOutputConfig(std::shared_ptr<RSHpaeOfflineContext>&
 
 bool RSHpaeOfflineDevice::IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
-    bool offlineProcessEnable = RSSystemParameters::GetHpaeOfflineEnabled();
+    bool offlineProcessEnable = RSSystemProperties::GetHpaeOfflineEnabled();
     if (!offlineProcessEnable) {
         RS_OFFLINE_LOGD("RSHpaeOfflineDevice::HpaeOffline is not open, offlineProcessorEnabled: %{public}d.",
             offlineProcessEnable);
