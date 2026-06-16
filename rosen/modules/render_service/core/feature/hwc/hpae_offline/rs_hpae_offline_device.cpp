@@ -224,7 +224,7 @@ void RSHpaeOfflineDevice::CheckAndPostPreAllocBuffersTask(std::shared_ptr<RSHpae
         BufferRequestConfig config;
         {
             std::lock_guard<std::mutex> localLock(context->offlineConfigMutex);
-            BufferRequestConfig config = context->layerConfig;
+            config = context->layerConfig;
         }
         offlineThreadManager_.PostTask([this, context, config = std::move(config)]() mutable {
             if (context->preAllocBufferSucc == true) {
@@ -436,8 +436,8 @@ bool RSHpaeOfflineDevice::FillOfflineResult(ProcessOfflineResult& processOffline
         processOfflineResult.bufferRect = {.x = src.x, .y = src.y, .w = src.w, .h = src.h};
     } else {
         processOfflineResult.bufferRect = {
-            .x = taskData.inputInfo.dstRect.x, .y = taskData.inputInfo.dstRect.y,
-            .w = taskData.inputInfo.dstRect.w, .h = taskData.inputInfo.dstRect.h};
+            .x = taskData.offlineRect.x, .y = taskData.offlineRect.y,
+            .w = taskData.offlineRect.w, .h = taskData.offlineRect.h};
     }
     processOfflineResult.consumer = offlineSurfaceHandler->GetConsumer();
     auto damageRect = offlineSurfaceHandler->GetDamageRegion();
@@ -461,9 +461,9 @@ void RSHpaeOfflineDevice::OfflineTaskFunc(RSSurfaceRenderParams* surfaceParams,
 {
     ProcessOfflineResult processOfflineResult;
     processOfflineResult.taskSuccess = DoProcessOffline(*surfaceParams, processOfflineResult, taskData);
-    auto context = GetOfflineContext(nodeId);
+    auto context = GetOfflineContext(taskData.nodeId);
     if (context != nullptr) {
-        context->lastProcessSuccess = taskSuccess;
+        context->lastProcessSuccess = processOfflineResult.taskSuccess;
     }
     offlineResultSync_.MarkTaskDoneAndSetResult(futurePtr, processOfflineResult);
     CheckAndHandleTimeoutEvent(futurePtr, taskData.nodeId);
@@ -521,11 +521,11 @@ bool RSHpaeOfflineDevice::PostProcessOfflineTask(
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params);
     RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "-%{public}" PRIu64 "] by drawable",
         taskId.first, taskId.second);
-    return PostOfflineTaskCommon(context, surfaceParams, taskId, nodeId);
+    return PostOfflineTaskCommon(context, surfaceParams, taskId);
 }
 
 bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineContext>& context,
-    RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId, NodeId nodeId)
+    RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId)
 {
     if (context->isSkipDraw()) {
         return SetResultWhenSkipDraw(context, surfaceParams, taskId);
@@ -537,7 +537,7 @@ bool RSHpaeOfflineDevice::PostOfflineTaskCommon(std::shared_ptr<RSHpaeOfflineCon
         return false;
     }
     HpaeOfflineSubThreadData taskData;
-    taskData.nodeId = nodeId;
+    taskData.nodeId = context->nodeId;
     taskData.layerConfig = context->layerConfig;
     taskData.offlineRect = context->offlineRect;
     taskData.offlineLayer = context->offlineLayer;
@@ -559,8 +559,15 @@ bool RSHpaeOfflineDevice::SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineCon
         taskId.first, taskId.second);
     ProcessOfflineResult result;
     auto offlineSurfaceHandler = context->offlineLayer->GetMutableRSSurfaceHandler();
-    bool fillOutRet = FillOfflineResult(result, context->contextType,
-        *surfaceParams, offlineSurfaceHandler, context->offlineRect);
+
+    HpaeOfflineSubThreadData taskData;
+    taskData.nodeId = context->nodeId;
+    taskData.layerConfig = context->layerConfig;
+    taskData.offlineRect = context->offlineRect;
+    taskData.offlineLayer = context->offlineLayer;
+    taskData.contextType = context->contextType;
+    taskData.lastProcessSuccess = context->lastProcessSuccess;
+    bool fillOutRet = FillOfflineResult(result, taskData, *surfaceParams, offlineSurfaceHandler);
     if (!fillOutRet) {
         RS_OFFLINE_LOGW("RSHpaeOfflineDevice::FillOfflineResult failed");
         return false;
@@ -694,6 +701,7 @@ std::shared_ptr<RSHpaeOfflineContext> RSHpaeOfflineDevice::GetOrCreateOfflineCon
         context = std::make_shared<RSHpaeOfflineContext>(OfflineContextType::SCALE);
     }
     hpaeOfflineContextPool_[nodeId] = context;
+    context->nodeId = nodeId;
     return context;
 }
 

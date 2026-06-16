@@ -97,6 +97,7 @@ public:
     bool isSkipDraw();
 
     OfflineContextType contextType = OfflineContextType::INVALID;
+    NodeId nodeId = 0;
     std::shared_ptr<RSHpaeOfflineLayer> offlineLayer = nullptr;
     BufferRequestConfig layerConfig = {
         .width = 0,
@@ -166,7 +167,7 @@ private:
     bool FillOfflineResult(ProcessOfflineResult& processOfflineResult, HpaeOfflineSubThreadData& taskData,
         RSSurfaceRenderParams& params, std::shared_ptr<RSSurfaceHander>& offlineSurfaceHandler);
     bool PostOfflineTaskCommon(std::shared_pt<RSHpaeOfflineContext>& context,
-        RSSurfaceRenderParams& params, offlineTaskId taskId, NodeId nodeId);
+        RSSurfaceRenderParams& params, offlineTaskId taskId);
     bool SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineContext>& context,
         RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId);
     void SetNodeArsrTag(const std::vector<uint64_t>& offlineNodeIds);
