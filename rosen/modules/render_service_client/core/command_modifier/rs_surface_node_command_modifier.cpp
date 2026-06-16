@@ -559,5 +559,61 @@ void SurfaceDefaultSizeCmdModifier::DumpParam(std::string& out) const
     out += "{width:" + std::to_string(param_.width_) + ", height:" + std::to_string(param_.height_) + "}";
 }
 
+void ForceHardwareAndFixRotationCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHardwareAndFixRotation>(
+        node->GetId(), param_.flag_);
+    AddCommand(command, true);
+}
+
+void ForceHardwareAndFixRotationCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{flag:" + std::string(param_.flag_ ? "true" : "false") + "}";
+}
+
+void AppRotationCorrectionCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetAppRotationCorrection>(
+        node->GetId(), param_.appRotationCorrection_);
+    AddCommand(command, true);
+}
+
+void AppRotationCorrectionCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{appRotationCorrection:" + std::to_string(static_cast<uint32_t>(param_.appRotationCorrection_)) + "}";
+}
+
+void HDRTypeCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHDRType>(
+        node->GetId(), param_.hdrType_);
+    AddCommand(command, true);
+}
+
+void HDRTypeCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{hdrType:" + std::to_string(param_.hdrType_) + "}";
+}
+
+void DarkColorModeCmdModifier::UpdateToRender()
+{
+    auto node = std::static_pointer_cast<RSSurfaceNode>(GetNode());
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetDarkColorMode>(
+        node->GetId(), param_.isDarkColorMode_);
+    AddCommand(command, true);
+}
+
+void DarkColorModeCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{isDarkColorMode:" + std::string(param_.isDarkColorMode_ ? "true" : "false") + "}";
+}
+
 } // namespace Rosen
 } // namespace OHOS

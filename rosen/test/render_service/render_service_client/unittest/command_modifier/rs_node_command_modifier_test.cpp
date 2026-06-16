@@ -918,5 +918,61 @@ HWTEST_F(RSNodeCommandModifierTest, NodeGroupTest003, TestSize.Level1)
     mod->UpdateToRender();
 }
 
+/**
+ * @tc.name: LayerPartRenderTest001
+ * @tc.desc: Test all methods
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandModifierTest, LayerPartRenderTest001, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    LayerPartRenderCmdParam param{true};
+    auto mod = std::make_shared<LayerPartRenderCmdModifier>(node, param);
+    EXPECT_EQ(mod->GetType(), RSCmdModifierType::MARK_LAYER_PART_RENDER);
+    EXPECT_TRUE(mod->GetParam().isLayerPartRender_);
+
+    LayerPartRenderCmdParam param2{false};
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(mod->GetParam().isLayerPartRender_);
+
+    std::string out;
+    mod->DumpParam(out);
+    EXPECT_NE(out.find("isLayerPartRender"), std::string::npos);
+}
+
+/**
+ * @tc.name: LayerPartRenderTest002
+ * @tc.desc: Test UpdateToRender with null node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandModifierTest, LayerPartRenderTest002, TestSize.Level1)
+{
+    LayerPartRenderCmdParam param{true};
+    std::weak_ptr<RSNode> expired;
+    {
+        auto n = RSCanvasNode::Create();
+        expired = n;
+    }
+    auto mod = std::make_shared<LayerPartRenderCmdModifier>(expired, param);
+    ASSERT_TRUE(mod);
+    mod->UpdateToRender();
+}
+
+/**
+ * @tc.name: LayerPartRenderTest003
+ * @tc.desc: Test SetParam same param and UpdateToRender with valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandModifierTest, LayerPartRenderTest003, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    LayerPartRenderCmdParam param{true};
+    auto mod = std::make_shared<LayerPartRenderCmdModifier>(node, param);
+    bool ret = mod->SetParam(param);
+    EXPECT_TRUE(ret);
+    mod->UpdateToRender();
+}
+
 } // namespace Rosen
 } // namespace OHOS

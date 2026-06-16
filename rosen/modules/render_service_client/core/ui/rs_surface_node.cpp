@@ -946,8 +946,9 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
 
 void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHardwareAndFixRotation>(GetId(), flag);
-    AddCommand(command, true);
+    SetRSCmdProperty<ForceHardwareAndFixRotationCmdModifier>(ForceHardwareAndFixRotationCmdParam{
+        flag
+    });
 }
 
 void RSSurfaceNode::SetBootAnimation(bool isBootAnimation)
@@ -1165,9 +1166,9 @@ void RSSurfaceNode::SetDarkColorMode(bool isDark)
         return;
     }
     isDarkColorMode_ = isDark;
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetDarkColorMode>(GetId(), isDark);
-    AddCommand(command, true);
+    SetRSCmdProperty<DarkColorModeCmdModifier>(DarkColorModeCmdParam{
+        isDark
+    });
     ROSEN_LOGD("RSSurfaceNode::SetDarkColorMode, surfaceNodeId:[%" PRIu64 "] isDarkColorMode:%s", GetId(),
         isDark ? "true" : "false");
 }
@@ -1363,17 +1364,18 @@ void RSSurfaceNode::SetAppRotationCorrection(ScreenRotation appRotationCorrectio
             "RSSurfaceNode::SetAppRotationCorrection %{public}" PRIu64 " set invalid AppRotationCorrection", GetId());
         return;
     }
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetAppRotationCorrection>(GetId(), appRotationCorrection);
-    AddCommand(command, true);
+    SetRSCmdProperty<AppRotationCorrectionCmdModifier>(AppRotationCorrectionCmdParam{
+        appRotationCorrection
+    });
     RS_LOGI("RSSurfaceNode::SetAppRotationCorrection: Node: %{public}" PRIu64 ", appRotationCorrection: %{public}u",
         GetId(), appRotationCorrection);
 }
 
 void RSSurfaceNode::SetHDRType(uint32_t hdrType)
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHDRType>(GetId(), hdrType);
-    AddCommand(command, true);
+    SetRSCmdProperty<HDRTypeCmdModifier>(HDRTypeCmdParam{
+        hdrType
+    });
 }
 void RSSurfaceNode::SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType)
 {

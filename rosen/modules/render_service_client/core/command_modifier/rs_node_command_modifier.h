@@ -626,6 +626,43 @@ private:
     NodeGroupCmdParam param_;
 };
 
+struct LayerPartRenderCmdParam {
+    bool isLayerPartRender_;
+};
+
+class LayerPartRenderCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::MARK_LAYER_PART_RENDER;
+
+    LayerPartRenderCmdModifier(std::weak_ptr<RSNode> node, const LayerPartRenderCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param)
+    {
+    }
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const LayerPartRenderCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const LayerPartRenderCmdParam& GetParam() const
+    {
+        return param_;
+    }
+
+private:
+    LayerPartRenderCmdParam param_;
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

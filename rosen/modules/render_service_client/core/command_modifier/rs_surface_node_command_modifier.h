@@ -22,6 +22,7 @@
 #include "common/rs_common_def.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "iremote_stub.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1286,6 +1287,154 @@ public:
 
 private:
     SurfaceDefaultSizeCmdParam param_;
+};
+
+struct ForceHardwareAndFixRotationCmdParam {
+    bool flag_;
+};
+
+class ForceHardwareAndFixRotationCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::FORCE_HARDWARE_AND_FIX_ROTATION;
+
+    ForceHardwareAndFixRotationCmdModifier(std::weak_ptr<RSNode> node, const ForceHardwareAndFixRotationCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param)
+    {
+    }
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const ForceHardwareAndFixRotationCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const ForceHardwareAndFixRotationCmdParam& GetParam() const
+    {
+        return param_;
+    }
+
+private:
+    ForceHardwareAndFixRotationCmdParam param_;
+};
+
+struct AppRotationCorrectionCmdParam {
+    ScreenRotation appRotationCorrection_;
+};
+
+class AppRotationCorrectionCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::APP_ROTATION_CORRECTION;
+
+    AppRotationCorrectionCmdModifier(std::weak_ptr<RSNode> node, const AppRotationCorrectionCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param)
+    {
+    }
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const AppRotationCorrectionCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const AppRotationCorrectionCmdParam& GetParam() const
+    {
+        return param_;
+    }
+
+private:
+    AppRotationCorrectionCmdParam param_;
+};
+
+struct HDRTypeCmdParam {
+    uint32_t hdrType_;
+};
+
+class HDRTypeCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::HDR_TYPE;
+
+    HDRTypeCmdModifier(std::weak_ptr<RSNode> node, const HDRTypeCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param)
+    {
+    }
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const HDRTypeCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const HDRTypeCmdParam& GetParam() const
+    {
+        return param_;
+    }
+
+private:
+    HDRTypeCmdParam param_;
+};
+
+struct DarkColorModeCmdParam {
+    bool isDarkColorMode_;
+};
+
+class DarkColorModeCmdModifier : public RSCmdModifier {
+public:
+    static inline constexpr auto Type = RSCmdModifierType::SET_DARK_COLOR_MODE;
+
+    DarkColorModeCmdModifier(std::weak_ptr<RSNode> node, const DarkColorModeCmdParam& param)
+        : RSCmdModifier(std::move(node)), param_(param)
+    {
+    }
+
+    RSCmdModifierType GetType() const override
+    {
+        return Type;
+    }
+
+    bool SetParam(const DarkColorModeCmdParam& param)
+    {
+        param_ = param;
+        return true;
+    }
+
+    void UpdateToRender() override;
+
+    void DumpParam(std::string& out) const override;
+
+    const DarkColorModeCmdParam& GetParam() const
+    {
+        return param_;
+    }
+
+private:
+    DarkColorModeCmdParam param_;
 };
 
 } // namespace Rosen
