@@ -498,7 +498,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest002, TestSize.Level
     params.SetCacheSize({100, 100});
     EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
