@@ -246,8 +246,8 @@ DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& s
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageRender::Render");
 
     auto ret = DrawingError::ERR_OK;
+    auto effectImage = std::make_shared<EffectImageChain>();
     do {
-        auto effectImage = std::make_shared<EffectImageChain>();
         ret = effectImage->Prepare(srcPixelMap, forceCPU);
         if (ret != DrawingError::ERR_OK) {
             EFFECT_LOG_E("EffectImageRender::Render: Failed to prepare image, ret=%{public}d.", ret);
@@ -276,8 +276,13 @@ DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& s
         }
 
         dstPixelMap = effectImage->GetPixelMap();
+        if (dstPixelMap == nullptr) {
+            EFFECT_LOG_E("EffectImageRender::Render: dstPixelMap null.");
+            break;
+        }
         dstPixelMap->MarkDirty();
     } while (false);
+    effectImage->Release();
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return ret;
@@ -313,21 +318,19 @@ DrawingError EffectImageReededGlassFilter::Apply(const std::shared_ptr<EffectIma
     return image->ApplyReededGlass(reededGlassData_);
 }
 
-DrawingError EffectImageRender::RenderNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
+#ifndef ROSEN_ARKUI_X
+DrawingError EffectImageRender::RenderDstNative(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
     std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer,
-    const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters,
-    int32_t* syncFenceFd,
-    bool releaseGpuContext)
+    const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU)
 {
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageRender::RenderNativeBuffer");
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageRender::Render");
  
     auto ret = DrawingError::ERR_OK;
     do {
         auto effectImage = std::make_shared<EffectImageChain>();
-        effectImage->SetForceReleaseGpuContext(releaseGpuContext);
-        ret = effectImage->PrepareNativeBuffer(srcPixelMap, dstNativeBuffer);
+        ret = effectImage->PrepareNativeBuffer(srcPixelMap, dstNativeBuffer, forceCPU);
         if (ret != DrawingError::ERR_OK) {
-            EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Failed to prepare image, ret=%{public}d.", ret);
+            EFFECT_LOG_E("EffectImageRender::Render: Failed to prepare image, ret=%{public}d.", ret);
             break;
         }
  
@@ -338,25 +341,17 @@ DrawingError EffectImageRender::RenderNativeBuffer(const std::shared_ptr<Media::
  
             ret = filter->Apply(effectImage);
             if (ret != DrawingError::ERR_OK) {
-                EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Failed to apply filter, ret=%{public}d.", ret);
+                EFFECT_LOG_E("EffectImageRender::Render: Failed to apply filter, ret=%{public}d.", ret);
                 break;
             }
         }
         if (ret != DrawingError::ERR_OK) {
-            EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Break on filter");
-            break;
-        }
-
-        *syncFenceFd = effectImage->GetfenceId();
-        effectImage->SetForceReleaseGpuContext(releaseGpuContext);
-        if (syncFenceFd == nullptr) {
-            EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: syncFenceFd is an empty pointer.");
-            ret = DrawingError::ERR_ILLEGAL_INPUT;
+            EFFECT_LOG_E("EffectImageRender::Render: Break on filter");
             break;
         }
         ret = effectImage->DrawNativeBuffer();
         if (ret != DrawingError::ERR_OK) {
-            EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Failed to draw image, ret=%{public}d.", ret);
+            EFFECT_LOG_E("EffectImageRender::Render: Failed to draw image, ret=%{public}d.", ret);
             break;
         }
     } while (false);
@@ -364,6 +359,7 @@ DrawingError EffectImageRender::RenderNativeBuffer(const std::shared_ptr<Media::
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return ret;
 }
+#endif
 
 DrawingError EffectImageScaleFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
 {
