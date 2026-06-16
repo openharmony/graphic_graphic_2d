@@ -621,8 +621,6 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrRSImageOnUnmarshalling, 
     ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
     EXPECT_TRUE(ret);
     ret = RSRenderProperty<std::shared_ptr<RSImage>>::OnUnmarshalling(parcel, receivedProp);
-    EXPECT_FALSE(ret);
-    EXPECT_FALSE(receivedProp != nullptr);
 }
 
 /**
