@@ -101,6 +101,15 @@ bool ColorSpaceFuzzTest002(const uint8_t* data, size_t size)
         }
     }
     std::shared_ptr<ColorSpace> colorSpaceThree = ColorSpace::CreateCustomRGB(func, matrix);
+    Bitmap bitmap;
+    BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
+    bitmap.Build(GetObject<int32_t>(), GetObject<int32_t>(), bitmapFormat);
+    Image image;
+    image.BuildFromBitmap(bitmap);
+    std::shared_ptr<ColorSpace> colorSpaceFour = ColorSpace::CreateRefImage(image);
+    colorSpaceOne->Equals(colorSpaceOne);
+    colorSpaceOne->Equals(colorSpaceTwo);
+    colorSpaceOne->Equals(colorSpaceThree);
 
     return true;
 }
