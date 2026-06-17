@@ -427,11 +427,6 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture)
 {
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "CheckCacheTypeAndDraw nodeId[%llu]", nodeId_);
-    bool hasFilter =
-        params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
-    RS_LOGI_IF(DEBUG_NODE,
-        "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
-        hasFilter, params.GetDrawingCacheType());
     auto originalCacheType = GetRenderGroupDrawableCacheType();
     // can not draw cache because special node in capture process, such as security layers...
     if (GetRenderGroupDrawableCacheType() != DrawableCacheType::NONE && params.NodeGroupHasChildInBlacklist() &&
