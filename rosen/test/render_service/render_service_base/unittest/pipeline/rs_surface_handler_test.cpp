@@ -25,7 +25,7 @@
 
 using namespace testing;
 using namespace testing::ext;
-
+ 
 namespace OHOS::Rosen {
 #ifndef ROSEN_CROSS_PLATFORM
 class FakeConsumerSurface : public IConsumerSurface {

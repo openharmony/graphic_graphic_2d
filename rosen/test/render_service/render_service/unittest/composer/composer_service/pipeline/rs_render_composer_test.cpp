@@ -22,7 +22,7 @@
 #include "rs_layer.h"
 #include "rs_surface_layer.h"
 #include "rs_layer_common_def.h"
-#include "rs_layer_transaction_data.h" 
+#include "rs_layer_transaction_data.h"
 #include "rs_render_composer.h"
 #include "rs_render_composer_context.h"
 #ifdef RS_ENABLE_VK
