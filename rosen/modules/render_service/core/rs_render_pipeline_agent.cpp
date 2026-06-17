@@ -1763,7 +1763,6 @@ void RSRenderPipelineAgent::ShowWatermark(const std::shared_ptr<Media::PixelMap>
     pipeline->GetMainThread()->PostTask(task);
 }
 
-
 ErrCode RSRenderPipelineAgent::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
 {
     auto pipeline = rsRenderPipeline_.lock();
