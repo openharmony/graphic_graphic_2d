@@ -164,6 +164,7 @@ public:
     virtual void SetIndents(const std::vector<float>& indents) = 0;
     virtual float DetectIndents(size_t index) = 0;
     virtual void Layout(double width) = 0;
+    virtual bool IsLayoutDone() const = 0;
     virtual void Paint(SkCanvas* canvas, double x, double y) = 0; // SKIA
     virtual void Paint(Drawing::Canvas* canvas, double x, double y) = 0; // DRAWING
     virtual void Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset) = 0; // DRAWING

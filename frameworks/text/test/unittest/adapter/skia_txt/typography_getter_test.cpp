@@ -254,6 +254,67 @@ HWTEST_F(OH_Drawing_TypographyGetterTest, OH_Drawing_TypographyGetProcessState00
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographyIsLayoutDone001
+ * @tc.desc: test for IsLayoutDone before layout (should be false)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyGetterTest, OH_Drawing_TypographyIsLayoutDone001, TestSize.Level0)
+{
+    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(typographyStyle_, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+    typographyCreate_->PushStyle(textStyle_);
+    typographyCreate_->AppendText(text_);
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+
+    EXPECT_FALSE(typography_->IsLayoutDone());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyIsLayoutDone002
+ * @tc.desc: test for IsLayoutDone after layout (should be true)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyGetterTest, OH_Drawing_TypographyIsLayoutDone002, TestSize.Level0)
+{
+    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(typographyStyle_, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+    typographyCreate_->PushStyle(textStyle_);
+    typographyCreate_->AppendText(text_);
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    typography_->Layout(500);
+
+    EXPECT_TRUE(typography_->IsLayoutDone());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyIsLayoutDone003
+ * @tc.desc: test for IsLayoutDone when paragraph is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyGetterTest, OH_Drawing_TypographyIsLayoutDone003, TestSize.Level0)
+{
+    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(typographyStyle_, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+    typographyCreate_->PushStyle(textStyle_);
+    typographyCreate_->AppendText(text_);
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+
+    // Swap out paragraph to trigger null branch
+    std::unique_ptr<SPText::Paragraph> paragraphTemp = nullptr;
+    AdapterTxt::Typography* typographyImpl = static_cast<AdapterTxt::Typography*>(typography_.get());
+    typographyImpl->paragraph_.swap(paragraphTemp);
+
+    // When paragraph is null, layout is not done
+    EXPECT_FALSE(typography_->IsLayoutDone());
+
+    // Restore paragraph
+    typographyImpl->paragraph_.swap(paragraphTemp);
+}
+
+/*
  * @tc.name: OH_Drawing_TypographyGetTextDisplayState001
  * @tc.desc: test for GetTextDisplayState before layout
  * @tc.type: FUNC
