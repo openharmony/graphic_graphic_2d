@@ -18,6 +18,7 @@
 #include <iremote_proxy.h>
 #include "transaction/rs_connect_to_render_process.h"
 #include "transaction/rs_client_to_render_connection.h"
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 
 #include "message_parcel.h"
 
@@ -30,15 +31,13 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     int ret = ERR_NONE;
+    if (auto interfaceToken = data.ReadInterfaceToken();
+        interfaceToken != RSIConnectToRenderProcess::GetDescriptor()) {
+        RS_LOGE("%{public}s: Read interfaceToken failed!", __func__);
+        return ERR_INVALID_STATE;
+    }
     switch (code) {
         case static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::CREATE_CONNECTION) : {
-            RS_LOGE("ccc: RSConnectToRenderProcessStub::CREATE_CONNECTION !");
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIConnectToRenderProcess::GetDescriptor()) {
-                RS_LOGE("RSConnectToRenderProcessStub::CREATE_CONNECTION ReadInterfaceToken failed");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             uint64_t tokenMaskId = INVALID_TOKEN_MASK_ID;
             if (!data.ReadUint64(tokenMaskId)) {
                 RS_LOGE("RSConnectToRenderProcessStub::CREATE_CONNECTION ReadUint64 tokenMaskId failed!");
@@ -83,12 +82,6 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::REMOVE_CONNECTION) : {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIConnectToRenderProcess::GetDescriptor()) {
-                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION ReadInterfaceToken failed");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             uint64_t tokenMaskId = INVALID_TOKEN_MASK_ID;
             if (!data.ReadUint64(tokenMaskId) || tokenMaskId == INVALID_TOKEN_MASK_ID) {
                 RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION ReadUint64 tokenMaskId failed!");
