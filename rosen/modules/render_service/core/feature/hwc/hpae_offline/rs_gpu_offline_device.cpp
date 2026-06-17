@@ -50,7 +50,7 @@ RSGPUOfflineDevice::~RSGPUOfflineDevice()
     RS_LOGD("RSGPUOfflineDevice::Destructed");
 }
 
-bool RSGPUOfflineDevice::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+bool RSGPUOfflineDevice::IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
     uint64_t currentVsync = RSMainThread::Instance()->GetVsyncId();
     if (currentVsyncId_ != currentVsync) {
@@ -221,7 +221,7 @@ bool RSGPUOfflineDevice::WaitForProcessOfflineResult(offlineTaskId taskId,
     return waitSuccess;
 }
 
-void RSGPUOfflineDevice::CheckAndPostClearOfflineResourceTask()
+void RSGPUOfflineDevice::CheckAndPostClearOfflineResourceTask(const std::vector<uint64_t>& offlineNodeIds)
 {
     std::vector<NodeId> nodesToRemove;
     {
@@ -258,12 +258,10 @@ void RSGPUOfflineDevice::OfflineTaskFuncWithData(RSSurfaceRenderParams* surfaceP
     if (surfaceParams == nullptr) {
         return;
     }
-    isBusy_ = true;
     ProcessOfflineResult result;
     result.taskSuccess = DoProcessOfflineWithContext(*surfaceParams, result, taskContext);
     offlineResultSync_.MarkTaskDoneAndSetResult(futurePtr, result);
     CheckAndHandleTimeoutEvent(futurePtr, taskContext.nodeId);
-    isBusy_ = false;
 }
 
 void RSGPUOfflineDevice::CheckAndHandleTimeoutEvent(std::shared_ptr<ProcessOfflineFuture>& futurePtr, NodeId nodeId)

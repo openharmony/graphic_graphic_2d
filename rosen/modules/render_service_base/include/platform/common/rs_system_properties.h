@@ -283,6 +283,7 @@ public:
     static bool GetUIFirstEnabled();
     static bool GetHeterogeneousHDREnabled();
     static bool GetGPUOfflineEnabled();
+    static bool GetHpaeOfflineEnabled();
     static bool GetXcomponentEdrEnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetUIFirstOptScheduleEnabled();

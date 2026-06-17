@@ -43,6 +43,8 @@ public:
     }
 
 private:
+    bool ConvertColorGamutToSpaceType(const GraphicColorGamut& colorGamut,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType);
     uint32_t bufferSize_ = 4;
     sptr<Surface> pSurface_ = nullptr;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
