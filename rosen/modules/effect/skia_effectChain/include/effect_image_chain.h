@@ -73,8 +73,10 @@ public:
     ~EffectImageChain();
 
     DrawingError Prepare(const std::shared_ptr<Media::PixelMap>& srcPixelMap, bool forceCPU);
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     DrawingError PrepareNativeBuffer(
         const std::shared_ptr<Media::PixelMap> &srcPixelMap, std::shared_ptr<OH_NativeBuffer> &dstNativeBuffer);
+#endif
     DrawingError ApplyDrawingFilter(const std::shared_ptr<Drawing::ImageFilter>& filter);
     DrawingError ApplyBlur(float radius, const Drawing::TileMode& tileMode,
         bool isDirection = false, float angle = 0.0);
