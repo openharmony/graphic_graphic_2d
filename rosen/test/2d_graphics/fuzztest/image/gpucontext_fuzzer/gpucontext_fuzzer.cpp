@@ -18,11 +18,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
+#include <iostream>
 
 #include "get_object.h"
 
 #include "image/gpu_context.h"
 #include "render_context/shader_cache.h"
+#include "common/rs_background_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -256,6 +258,48 @@ bool GPUContextFuzzTest005(const uint8_t* data, size_t size)
     gpuContext->SetParam(name, value);
     return true;
 }
+
+/*
+ * 测试以下 GPUContext 接口：
+ * 1. RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func)
+ * 2. GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
+ * 3. SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority)
+ * 4. SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) 空接口不需要测
+ * 5. InitGpuMemoryLimit(MemoryOverflowCallback callback, uint64_t size)
+ */
+bool GPUContextFuzzTest007(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return false;
+    }
+
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+
+    gpuContext->RegisterPostFunc([](const std::function<void()>& task) {
+        RSBackgroundThread::Instance().PostTask(task);
+    });
+
+    pid_t um1 = GetObject<pid_t>();
+    size_t um2 = GetObject<size_t>();
+    std::unordered_map <pid_t, size_t> out = {
+        {um1, um2}
+    };
+    gpuContext->GetUpdatedMemoryMap(out);
+
+    bool enabled = GetObject<bool>();
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled, []() {
+        std::cout << "SetGpuMemoryAsyncReclaimerSwitch Fuzz Test.\n";
+    });
+
+    auto callback = [](pid_t, size_t, bool) { return true; };
+    uint64_t limitSize = GetObject<uint64_t>();
+    gpuContext->InitGpuMemoryLimit(callback, limitSize);
+
+    auto callback2 = [](pid_t, size_t, bool) -> bool { return true; };
+    gpuContext->InitGpuMemoryInfoStatProc(callback2);
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -274,5 +318,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::GPUContextFuzzTest003(data, size);
     OHOS::Rosen::Drawing::GPUContextFuzzTest004(data, size);
     OHOS::Rosen::Drawing::GPUContextFuzzTest005(data, size);
+    OHOS::Rosen::Drawing::GPUContextFuzzTest007(data, size);
     return 0;
 }
