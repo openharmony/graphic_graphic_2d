@@ -5,14 +5,14 @@
 改动涉及以下任一内容时，必须先读本文：
 
 - LTPO、LTPS、fps、frame rate、refresh rate、刷新率切换、刷新率拆分。
-- 刷新率投票、软 VSync、DVSync、触控提频、空闲降频、多应用帧率策略。
+- 刷新率投票、软 VSync、DVSync、AdaptiveVsync、触控提频、空闲降频、多应用帧率策略。
 - `rosen/modules/hyper_graphic_manager/` 或 Render Service 中 HGM 初始化、IPC、回调和 per-frame 同步。
 
 ## 模块定位
 
 HGM 是 OpenHarmony 图形子系统中的 Hyper Graphic Manager 模块，编译为
 `libhyper_graphic_manager` 共享库。
-它通过 XML 策略和投票框架动态决策显示刷新率，典型目标包括 30Hz、60Hz、90Hz 和 120Hz。
+它通过 XML 策略和投票框架动态决策显示刷新率，典型目标包括并不限于 30Hz、60Hz、90Hz 和 120Hz。
 本文所有代码路径均以仓库根目录为基准。
 
 ## 目录结构
@@ -73,8 +73,9 @@ Render Service 启动时，`RSRenderService::Init()` 只执行一次，并调用
 3. 服务端执行 `HgmContext::ProcessHgmFrameRate()`。
 4. 服务端填充 `HgmServiceToProcessInfo`，判断本帧是否需要刷新帧率决策。
 5. 服务端投递任务到 `HgmTaskHandleThread`，调用 `frameRateManager->UniProcessDataForLtpo()`。
-6. 服务端组合外部输入计算下一帧刷新率，并把结果传给硬件层。
+6. 服务端组合外部输入计算下一帧刷新率，并把结果保存到下一帧通过NotifyRpHgmFrameRate接口回传给渲染端。
 7. 调用返回后，渲染端通过 `SetServiceToProcessInfo()` 同步服务端返回的数据。
+8. 渲染端获得决策的刷新率数据随帧传递给服务端的composer模块，composer模块调用屏幕管理接口给硬件层设置新的刷新率。
 
 当 `HgmServiceToProcessInfo` 中 `hgmDataChangeTypes.test(HGM_CONFIG_DATA)` 为真时，
 渲染端配置更新回调 `rpFrameRatePolicy_->HgmConfigUpdateCallback()` 才会执行。
@@ -246,6 +247,7 @@ HGM 还会接收外部 IPC 输入参与帧率决策，典型链路如下：
 - 不要在 `rosen/modules/hyper_graphic_manager/core/frame_rate_manager/` 中直接访问
   `PolicyConfigData` 字段，优先使用 `PolicyConfigVisitor`。
 - 不要从 `render_service` 直接调用 `HgmFrameRateManager`，应通过 `HgmContext` 或 `HgmRenderContext`。
+- 不要在 `RenderProcessManager` 相关的实现中 使用HgmCore这个单例。
 - 不要直接访问对侧对象；服务端和渲染端只能通过 `renderToServiceConnection_` 或
   `RSRenderToServiceConnection` 交换运行时数据。
 - 不要在没有 `pendingMutex_` 锁的情况下修改 `currRefreshRate_`。
