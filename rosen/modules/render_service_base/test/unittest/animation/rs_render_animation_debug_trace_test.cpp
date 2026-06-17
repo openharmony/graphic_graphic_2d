@@ -191,6 +191,9 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, ParseRenderPropertyValue001, TestSize.
     auto vector2fProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(1.0f, 2.0f));
     EXPECT_NE(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(vector2fProperty),
         "None");
+    auto vector3fProperty = std::make_shared<RSRenderAnimatableProperty<Vector3f>>(Vector3f(1.0f, 2.0f, 3.0f));
+    EXPECT_NE(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(vector3fProperty),
+        "None");
     auto vector4fProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(1.0f, 2.0f, 3.0f, 4.0f));
     EXPECT_NE(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyValue(vector4fProperty),
         "None");

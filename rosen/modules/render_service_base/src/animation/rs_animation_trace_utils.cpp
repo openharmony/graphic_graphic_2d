@@ -104,6 +104,12 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyValueInner(
             str = "Vector2f:x:" + std::to_string(property.x_) + "," + "y:" + std::to_string(property.y_);
             break;
         }
+        case RSPropertyType::VECTOR3F: {
+            auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector3f>>(value)->Get();
+            str = "Vector3f:x:" + std::to_string(property.x_) + "," + "y:" + std::to_string(property.y_) + "," +
+                  "z:" + std::to_string(property.z_);
+            break;
+        }
         case RSPropertyType::VECTOR4F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(value)->Get();
             str = "Vector4f:x:" + std::to_string(property.x_) + "," + "y:" + std::to_string(property.y_) + "," +
