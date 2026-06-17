@@ -1374,7 +1374,8 @@ NodeId RSUifirstManager::LeashWindowContainMainWindowAndStarting(RSSurfaceRender
             continue;
         }
         auto surfaceChild = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-        if (surfaceChild && surfaceChild->IsMainWindowType() && canvasNodeNum == 0) {
+        if (surfaceChild && surfaceChild->IsMainWindowType() &&
+            surfaceChild->ShouldPaint() && canvasNodeNum == 0) {
             mainwindowNum++;
             if (IsContentAppWindow(surfaceChild)) {
                 hasContentAppWindow = true;
