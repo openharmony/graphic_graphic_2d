@@ -19,6 +19,7 @@
 #include "get_object.h"
 #include "effect/color_filter.h"
 #include "utils/data.h"
+#include "draw/brush.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -123,6 +124,13 @@ bool ColorFilterFuzzTest002(const uint8_t* data, size_t size)
     }
     std::shared_ptr<ColorFilter> colorFilterEight = ColorFilter::CreateOverDrawColorFilter(colors);
     std::shared_ptr<ColorFilter> colorFilterNine = ColorFilter::CreateLumaColorFilter();
+    colorFilterEight->Compose(*colorFilterNine);
+
+    Brush brush;
+    auto filter = Drawing::Filter();
+    filter.SetColorFilter(colorFilterNine);
+    brush.SetFilter(filter);
+    brush.CanComputeFastBounds();
     return true;
 }
 
