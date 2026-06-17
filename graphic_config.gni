@@ -60,7 +60,6 @@ declare_args() {
   graphic_2d_feature_enable_mediacommon = false
   graphic_2d_feature_enable_image_detail_enhancer = false
   graphic_2d_feature_rs_modifiers_draw_enable = false
-  arkgraphic2d_api_metrics = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
