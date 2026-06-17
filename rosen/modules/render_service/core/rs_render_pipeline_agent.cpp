@@ -1740,13 +1740,14 @@ ErrCode RSRenderPipelineAgent::SetWatermark(
 ErrCode RSRenderPipelineAgent::SetUifirstScale(float scaleFactor)
 {
     RS_LOGD("RSRenderPipelineAgent::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
-    if (rsRenderPipeline_ == nullptr) {
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
         return ERR_INVALID_VALUE;
     }
-    auto task = [renderPipeline = rsRenderPipeline_, scaleFactor]() -> void {
+    auto task = [renderPipeline = pipeline, scaleFactor]() -> void {
         renderPipeline->GetMainThread()->SetUifirstScale(scaleFactor);
     };
-    rsRenderPipeline_->GetMainThread()->PostTask(task);
+    pipeline->GetMainThread()->PostTask(task);
     return ERR_OK;
 }
 
