@@ -810,7 +810,16 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_) };
 
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
     image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+#else
+    Drawing::Bitmap bitmap;
+ 	bitmap.InstallPixels(imageInfo_,
+ 	    reinterpret_cast<void *>(srcPixelMap_->GetWritablePixels()),
+ 	    static_cast<uint32_t>(srcPixelMap_->GetRowStride()));
+ 	image_ = std::make_shared<Drawing::Image>();
+ 	image_->BuildFromBitmap(bitmap);
+#endif
 
     Media::InitializationOptions opts;
     opts.size = { srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight() };
