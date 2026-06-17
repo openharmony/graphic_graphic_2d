@@ -317,6 +317,8 @@ void ProcessGpuOfflineForTopLayer(
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void UpdateFilterRegionInSkippedSurfaceNode(const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
+    void UpdateFilterRenderContextForSkippedSubTree(RSDirtyRegionManager& dirtyManager, RSRenderNode& filterNode,
+        const RSRenderNode& rootNode, RectI& filterRect);
     void UpdateVisibleEffectChildrenStatus(const RSRenderNode& rootNode);
     void CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(const RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager);

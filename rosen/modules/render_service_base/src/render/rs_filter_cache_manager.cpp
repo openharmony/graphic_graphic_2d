@@ -539,8 +539,8 @@ void RSFilterCacheManager::MarkFilterRegionIsLargeArea()
 
 void RSFilterCacheManager::MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId)
 {
-    stagingInForegroundFilter_ = offscreenCanvasNodeId;
-    if (stagingInForegroundFilter_ != lastInForegroundFilter_ && lastCacheType_ != FilterCacheType::NONE) {
+    offscreenNodeId_ = offscreenCanvasNodeId;
+    if (offscreenNodeId_ != lastOffscreenNodeId_ && lastCacheType_ != FilterCacheType::NONE) {
         MarkFilterForceClearCache();
     }
 }
@@ -629,6 +629,7 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
     cacheManager->ClearFilterCache();
     cacheManager->forceUseCache_ = stagingForceUseCache_;
     cacheManager->belowDirty_ = stagingFilterInteractWithDirty_;
+    cacheManager->offscreenNodeId_ = offscreenNodeId_;
 
     // renderParams to stagingParams
     lastCacheType_ = cacheManager->lastCacheType_;
@@ -636,7 +637,7 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
     cacheManager->lastHpaeClearCache_ = false;
 
     // save staging param value
-    lastInForegroundFilter_ = stagingInForegroundFilter_;
+    lastOffscreenNodeId_ = offscreenNodeId_;
     lastStagingFilterInteractWithDirty_ = stagingFilterInteractWithDirty_;
 
     // stagingParams init
@@ -656,8 +657,6 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
     stagingIsLargeArea_ = false;
     isFilterCacheValid_ = false;
 
-    stagingInForegroundFilter_ = false;
-
     debugEnabled_ = false;
 }
 
@@ -666,24 +665,24 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
     RS_TRACE_NAME_FMT("RSFilterCacheManager::MarkNeedClearFilterCache nodeId[%llu] forceUseCache_:%d,"
         "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,"
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, filterType_:%d, pendingPurge_:%d,"
-        "forceClearCacheWithLastFrame:%d, rotationChanged:%d, offscreenCanvasNodeId:%llu", nodeId,
+        "forceClearCacheWithLastFrame:%d, rotationChanged:%d, offscreenNodeId:%llu", nodeId,
         stagingForceUseCache_, stagingForceClearCache_, stagingFilterHashChanged_,
         stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
         filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_,
-        stagingInForegroundFilter_);
+        offscreenNodeId_);
 
     ROSEN_LOGD("RSFilterDrawable::MarkNeedClearFilterCache, forceUseCache_:%{public}d,"
         "forceClearCache_:%{public}d, hashChanged:%{public}d, regionChanged_:%{public}d, belowDirty_:%{public}d,"
         "lastCacheType:%{public}hhu, cacheUpdateInterval_:%{public}d, canSkip:%{public}d, isLargeArea:%{public}d,"
         "filterType_:%{public}d, pendingPurge_:%{public}d,"
         "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d,"
-        "offscreenCanvasNodeId:%{public}" PRIu64,
+        "offscreenNodeId:%{public}" PRIu64,
         stagingForceUseCache_, stagingForceClearCache_,
         stagingFilterHashChanged_, stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
         filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_,
-        stagingInForegroundFilter_);
+        offscreenNodeId_);
 
     // if do not request NextVsync, close skip
     if (stagingForceClearCacheForLastFrame_) {
@@ -780,12 +779,14 @@ void RSFilterCacheManager::MarkRotationChanged()
 bool RSFilterCacheManager::IsFilterCacheValidForOcclusion()
 {
     auto cacheType = GetCachedType();
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%d renderClearType_:%d",
-        cacheType, renderClearType_);
-    ROSEN_LOGD("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%{public}d renderClearType_:%{public}d",
-        static_cast<int>(cacheType), static_cast<int>(renderClearType_));
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%d renderClearType_:%d"
+        " offscreenNodeId_: %" PRIu64,
+        cacheType, renderClearType_, offscreenNodeId_);
+    ROSEN_LOGD("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%{public}d renderClearType_:%{public}d"
+        " offscreenNodeId_: %{public}" PRIu64,
+        static_cast<int>(cacheType), static_cast<int>(renderClearType_), offscreenNodeId_);
 
-    return cacheType != FilterCacheType::NONE;
+    return cacheType != FilterCacheType::NONE && offscreenNodeId_ == INVALID_NODEID;
 }
 
 bool RSFilterCacheManager::IsFilterCacheValidForPartialRender() const

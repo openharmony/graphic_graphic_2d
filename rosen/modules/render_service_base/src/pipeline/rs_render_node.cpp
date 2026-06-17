@@ -53,6 +53,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -2559,6 +2560,31 @@ void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirt
     filterRect = GetFilterRegionInfo().filterRegion_;
 }
 
+void RSRenderNode::UpdateFilterRenderContextInSkippedSubTree(const RSRenderNode& subTreeRoot,
+    NodeId offscreenNodeId, const RectI& clipRect, const std::optional<RectI>& surfaceClipRect,
+    FilterRenderContext& context)
+{
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
+    auto& rootProperties = subTreeRoot.GetRenderProperties();
+    auto rootGeo = rootProperties.GetBoundsGeometry();
+    if (rootGeo == nullptr || geoPtr == nullptr) {
+        return;
+    }
+
+    context.absMatrix = rootGeo->GetAbsMatrix();
+    context.offscreenNodeId = offscreenNodeId;
+    if (!RSEffectUtils::AccumulateFilterRenderContext(*this, subTreeRoot, context)) {
+        return;
+    }
+
+    geoPtr->SetAbsMatrix(context.absMatrix);
+    absDrawRect_ = RSObjAbsGeometry::MapRect(selfDrawRect_, context.absMatrix);
+    oldDirtyInSurface_ = absDrawRect_.IntersectRect(clipRect);
+    auto boundsRect = GetRenderProperties().GetBoundsRect();
+    auto totalRect = RSObjAbsGeometry::MapRect(boundsRect, context.absMatrix);
+    CalVisibleFilterRect(totalRect, context.absMatrix, clipRect, surfaceClipRect);
+}
+
 void RSRenderNode::FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager, const RectI& filterRect)
 {
     if (filterRect == lastFilterRegion_) {
@@ -4339,8 +4365,7 @@ RectI RSRenderNode::GetOldDirty() const
 
 bool RSRenderNode::IsForegroundFilterEnable()
 {
-    return findMapValueRef(GetDrawableVec(__func__),
-        static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)) != nullptr;
+    return GetRenderProperties().GetForegroundFilter() != nullptr;
 }
 
 void RSRenderNode::SetStaticCached(bool isStaticCached, bool isMarkedByUI)

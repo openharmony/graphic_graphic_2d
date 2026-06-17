@@ -193,6 +193,8 @@ private:
     static inline std::atomic_bool filterInvalid_ = false;
 
     // flags for clearing filter cache
+    NodeId offscreenNodeId_ = INVALID_NODEID;
+
     // All stagingXXX variables should be read & written by render_service thread
     bool stagingForceUseCache_ = false;
     bool stagingForceClearCache_ = false;
@@ -204,7 +206,6 @@ private:
     bool stagingForceClearCacheForLastFrame_ = false;
     bool stagingIsAIBarInteractWithHWC_ = false;
     bool stagingIsEffectNode_ = false;
-    NodeId stagingInForegroundFilter_ = INVALID_NODEID;
 
     // clear one of snapshot cache and filtered cache after drawing
     // All renderXXX variables should be read & written by render_thread or OnSync() function
@@ -234,8 +235,8 @@ private:
     // Whether we need to purge the cache after this frame.
     bool pendingPurge_ = false;
 
-    // last stagingInForegroundFilter_ value
-    NodeId lastInForegroundFilter_ = INVALID_NODEID;
+    // last offscreenNodeId_ value
+    NodeId lastOffscreenNodeId_ = INVALID_NODEID;
 
     bool lastStagingFilterInteractWithDirty_ = false;
 
