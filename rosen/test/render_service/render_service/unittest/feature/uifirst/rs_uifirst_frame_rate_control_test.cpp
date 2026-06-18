@@ -41,7 +41,8 @@ void RSUifirstFrameRateControlTest::SetUpTestCase()
     frameControl = system::GetParameter("const.graphic.subthread.control.framerate", "false");
     system::SetParameter("const.graphic.subthread.control.framerate", "false");
 }
-void RSUifirstFrameRateControlTest::TearDownTestCase() {
+void RSUifirstFrameRateControlTest::TearDownTestCase()
+{
     system::SetParameter("const.graphic.subthread.control.framerate", frameControl);
 }
 void RSUifirstFrameRateControlTest::TearDownTestCase() {}
@@ -270,10 +271,9 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo004, TestSize.Level
     DataBaseRs eventInfo;
     eventInfo.sceneId = "LAUNCHER_APP_LAUNCH_FROM_RECENT";
     control.SetAnimationStartInfo(eventInfo);
-    if(frameControl == "true") {
+    if (frameControl == "true") {
         EXPECT_FALSE(control.forceRefreshOnce_);
-    }
-    else {
+    } else {
         EXPECT_TRUE(control.forceRefreshOnce_);
     }
 }
