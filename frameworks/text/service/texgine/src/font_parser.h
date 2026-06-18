@@ -200,10 +200,6 @@ private:
         const std::string& targetType);
 #endif
 
-#ifdef ENABLE_OHOS_ENHANCE
-    static std::vector<uint8_t> GetFontDataFromFd(int fd);
-#endif
-
     const char* data_;
     unsigned int length_;
     std::vector<std::string> fontSet_;
