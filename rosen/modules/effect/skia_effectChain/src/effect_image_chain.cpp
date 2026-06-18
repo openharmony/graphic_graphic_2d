@@ -815,8 +815,8 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
 #else
     Drawing::Bitmap bitmap;
     bitmap.InstallPixels(imageInfo_,
- 	    reinterpret_cast<void *>(srcPixelMap_->GetWritablePixels()),
- 	    static_cast<uint32_t>(srcPixelMap_->GetRowStride()));
+        reinterpret_cast<void *>(srcPixelMap_->GetWritablePixels()),
+        static_cast<uint32_t>(srcPixelMap_->GetRowStride()));
     image_ = std::make_shared<Drawing::Image>();
     image_->BuildFromBitmap(bitmap);
 #endif
