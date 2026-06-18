@@ -28,6 +28,8 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static inline std::string frameControl;
 };
 
 void RSUifirstFrameRateControlTest::SetUpTestCase()
@@ -36,6 +38,11 @@ void RSUifirstFrameRateControlTest::SetUpTestCase()
     EventInfo eventInfo_;
     eventInfo_.description = "";
     eventInfo_.eventStatus = 0;
+    frameControl = system::GetParameter("const.graphic.subthread.control.framerate", "false");
+    system::SetParameter("const.graphic.subthread.control.framerate", "false");
+}
+void RSUifirstFrameRateControlTest::TearDownTestCase() {
+    system::SetParameter("const.graphic.subthread.control.framerate", frameControl);
 }
 void RSUifirstFrameRateControlTest::TearDownTestCase() {}
 void RSUifirstFrameRateControlTest::SetUp() {}
@@ -264,7 +271,12 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo004, TestSize.Level
     eventInfo.sceneId = "LAUNCHER_APP_LAUNCH_FROM_RECENT";
     control.SetAnimationStartInfo(eventInfo);
     control.forceRefreshOnce_ = true;
-    EXPECT_TRUE(control.forceRefreshOnce_);
+    if(frameControl == "true") {
+        EXPECT_FALSE(control.forceRefreshOnce_);
+    }
+    else {
+        EXPECT_TRUE(control.forceRefreshOnce_);
+    }
 }
 
 /**
