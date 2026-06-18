@@ -583,6 +583,15 @@ Drawing::RectI Typography::GeneratePaintRegion(double x, double y) const
     return paragraph_->GeneratePaintRegion(x, y);
 }
 
+bool Typography::IsLayoutDone() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return false;
+    }
+    return paragraph_->IsLayoutDone();
+}
+
 std::vector<TextBlobRecordInfo> Typography::GetTextBlobRecordInfo() const
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
