@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <charconv>
+
 #include "rs_profiler.h"
 #include "rs_client_to_service_connection.h"
 
@@ -95,6 +97,9 @@
 #include "app_mgr_client.h"
 #include "surface_utils.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
+
+#include "rs_frame_rate_vote.h"
+#include "singleton.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -2477,6 +2482,14 @@ ErrCode RSClientToServiceConnection::SendVideoRateInfo(
         auto ret = conn->SendVideoRateInfo(videoRateInfo);
         if (ret != ERR_OK) {
             return ret;
+        }
+    }
+#else
+    if (auto pidIt = videoRateInfo.find("pid"); pidIt != videoRateInfo.end()) {
+        pid_t pid = 0;
+        auto resultPid = std::from_chars(pidIt->second.data(), pidIt->second.data() + pidIt->second.size(), pid);
+        if (resultPid.ec == std::errc() && pid > 0) {
+            DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoRateInfo(videoRateInfo);
         }
     }
 #endif
