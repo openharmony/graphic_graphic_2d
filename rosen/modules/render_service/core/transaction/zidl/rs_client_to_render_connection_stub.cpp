@@ -236,8 +236,7 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
         if (nodeType != RSSurfaceNodeType::DEFAULT &&
             nodeType != RSSurfaceNodeType::APP_WINDOW_NODE &&
             nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE &&
-            nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE &&
-            nodeType != RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
+            nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
             RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid RSSurfaceNodeType %{public}d, pid %d",
                 typeNum, pid);
             return false;
@@ -508,9 +507,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool isNonSystemAppCalling = false;
-            bool isTokenTypeValid = true;
-            RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+            if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
+                RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             std::string surfaceName;
             uint8_t type { 0 };
@@ -527,13 +528,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             if (!CheckCreateNodeAndSurface(callingPid, static_cast<RSSurfaceNodeType>(type),
                                            static_cast<SurfaceWindowType>(surfaceWindowType))) {
                 RS_LOGE("RSClientToRenderConnectionStub::CREATE_NODE_AND_SURFACE CheckCreateNodeAndSurface failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (isNonSystemAppCalling && (type != static_cast<int>(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE)) &&
-                (type != static_cast<int>(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE)) &&
-                !IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
-                RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
             }

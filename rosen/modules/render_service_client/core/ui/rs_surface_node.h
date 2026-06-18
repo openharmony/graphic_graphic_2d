@@ -74,8 +74,6 @@ struct RSSurfaceNodeConfig {
     std::shared_ptr<RSUIContext> rsUIContext = nullptr;
     /* isSkipCheckInMultiInstance true to skip Multi-Instance check; false otherwise. */
     bool isSkipCheckInMultiInstance = true;
-
-    NodeId nodeId = 0;
 };
 
 enum class ShadowPropertyType : uint8_t {
@@ -213,7 +211,7 @@ public:
      * @param parcel The Parcel object containing the serialized RSSurfaceNode data.
      * @return A shared pointer to the deserialized RSSurfaceNode instance.
      */
-    static SharedPtr Unmarshalling(Parcel& parcel, bool skip = true);
+    static SharedPtr Unmarshalling(Parcel& parcel);
 
     /**
      * @brief Create RSProxyNode by unmarshalling RSSurfaceNode.
