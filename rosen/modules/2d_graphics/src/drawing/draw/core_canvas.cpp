@@ -171,9 +171,9 @@ void CoreCanvas::RecordState(Canvas* canvas)
     impl_->RecordState(canvas);
 }
 
-bool CoreCanvas::InheritStateAndContentFrom(Canvas* canvas)
+bool CoreCanvas::InheritStateAndContentFrom(Canvas* canvas, bool willReleaseSrcCanvas)
 {
-    return impl_->InheritStateAndContentFrom(canvas);
+    return impl_->InheritStateAndContentFrom(canvas, willReleaseSrcCanvas);
 }
 
 RectI CoreCanvas::GetRoundInDeviceClipBounds() const

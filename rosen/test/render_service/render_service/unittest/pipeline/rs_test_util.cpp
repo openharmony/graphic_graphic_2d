@@ -47,7 +47,8 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode(const RSSurfa
         uniRenderThread_ = std::make_shared<RSUniRenderThread>();
         uniRenderThread_->composerClientManager_ = std::make_shared<RSComposerClientManager>();
     }
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode,
+    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode, surfaceHandler,
         uniRenderThread_->GetComposerClientManager());
     csurf->RegisterConsumerListener(listener);
     return rsSurfaceRenderNode;

@@ -178,6 +178,7 @@ class MockRSRenderAnimation : public RSRenderAnimation {
 public:
     MockRSRenderAnimation(AnimationId id) : RSRenderAnimation(id) {}
     ~MockRSRenderAnimation() = default;
+    void RebuildPropertyValue(float fraction) override {}
 
     void DumpAnimation(std::string& out)
     {
@@ -203,6 +204,7 @@ class MockRSAnimation : public RSAnimation {
 public:
     MockRSAnimation(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
     ~MockRSAnimation() = default;
+    void RebuildInRender() override {}
 
     void OnReverse() override
     {

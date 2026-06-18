@@ -6221,17 +6221,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartRenderDisa
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
     rsUniRenderVisitor->curSurfaceDirtyManager_ = rsUniRenderVisitor->curSurfaceNode_->GetDirtyManager();
 
-    auto& uifirstManager = RSUifirstManager::Instance();
-    uifirstManager.currentFrameEvent_.clear();
-    RSUifirstManager::EventInfo info;
-    info.sceneId = "APP_LIST_FLING";
-    uifirstManager.currentFrameEvent_.push_back(info);
-
-    OPIncParam::SetLayerPartRenderEnable(true);
-    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*canvasNode);
-    OPIncParam::SetLayerPartRenderEnable(false);
-    uifirstManager.currentFrameEvent_.clear();
-
     auto& dirtyManager = canvasNode->GetLayerPartRenderCache().GetLayerPartRenderDirtyManager();
     auto& stagingRenderParams = canvasNode->GetStagingRenderParams();
     ASSERT_NE(dirtyManager, nullptr);

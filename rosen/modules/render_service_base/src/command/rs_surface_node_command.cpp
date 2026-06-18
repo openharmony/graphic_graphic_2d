@@ -24,6 +24,8 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #ifndef ROSEN_CROSS_PLATFORM
+#include "iconsumer_surface.h"
+#include "pipeline/rs_surface_handler.h"
 #include "surface_type.h"
 #endif
 
@@ -72,7 +74,8 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
 }
 
 std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigInRS(
-    const RSSurfaceRenderNodeConfig& config, RSContext& context, bool unobscured)
+    const RSSurfaceRenderNodeConfig& config, RSContext& context, bool unobscured,
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler)
 {
     if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(config.id))) {
         ROSEN_LOGI("SurfaceNodeCommandHelper::CreateWithConfigInRS command is not vaild because there have "
@@ -80,7 +83,7 @@ std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigI
         return nullptr;
     }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
-        context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+        context.weak_from_this(), surfaceHandler), RSRenderNodeGC::NodeDestructor);
     node->SetUIExtensionUnobscured(unobscured);
     return node;
 }
@@ -500,5 +503,94 @@ void SurfaceNodeCommandHelper::SetHDRType(RSContext& context, NodeId nodeId, uin
         node->SetHDRType(hdrType);
     }
 }
+
+void SurfaceNodeCommandHelper::UpdateCompositeLayerdToRender(
+    RSContext& context, NodeId nodeId, bool isTop, uint32_t TopLayerZOrder)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetLayerTop(isTop, false);
+        node->SetTopLayerZOrder(TopLayerZOrder);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetStaticCachedToRender(RSContext& context, NodeId nodeId, bool isStaticCached)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetStaticCached(isStaticCached);
+    }
+}
+
+void SurfaceNodeCommandHelper::RegisterBufferAvailableListener(
+    RSContext& context, NodeId nodeId, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->RegisterBufferAvailableListener(callback, isFromRenderThread);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetHardwareEnabled(RSContext& context, NodeId nodeId, bool isHardwareEnabled,
+    SelfDrawingNodeType isSelfDrawingNodeType, bool isDynamicHardwareEnabled)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetHardwareEnabled(isHardwareEnabled, isSelfDrawingNodeType, isDynamicHardwareEnabled);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetHidePrivacyContent(RSContext& context, NodeId nodeId, bool needHidePrivacyContent)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetHidePrivacyContent(needHidePrivacyContent);
+    }
+}
+
+#ifndef ROSEN_CROSS_PLATFORM
+    void SurfaceNodeCommandHelper::RecreateNodeAndSurface(
+        RSContext& context, const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId, bool unobscured)
+{
+    NodeId nodeId = config.id;
+    if (context.GetNodeMap().GetRenderNode(nodeId)) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::RecreateNodeAndSurface node already exists in map! nodeId:%{public}"
+            PRIu64, nodeId);
+        return;
+    }
+    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> savedInfo =
+        context.GetNodeMap().GetSurfaceHandlerInfo(nodeId);
+    auto surfaceHandler = savedInfo.first;
+    if (surfaceHandler == nullptr) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::RecreateNodeAndSurface surfaceHandler is null! nodeId:%{public}" PRIu64,
+            nodeId);
+        return;
+    }
+    sptr<IConsumerSurface> consumer = surfaceHandler->GetConsumer();
+    if (consumer == nullptr) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::RecreateNodeAndSurface consumer is null! nodeId:%{public}" PRIu64,
+            nodeId);
+        return;
+    }
+    if (savedInfo.second == nullptr) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::RecreateNodeAndSurface listener is null! nodeId:%{public}" PRIu64,
+            nodeId);
+        return;
+    }
+    auto node = CreateWithConfigInRS(config, context, unobscured, surfaceHandler);
+    if (node == nullptr) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::RecreateNodeAndSurface create node failed! nodeId:%{public}" PRIu64,
+            nodeId);
+        return;
+    }
+    RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::RecreateNodeAndSurface nodeId : %" PRId64 " , uniqueId : %" PRId64,
+        nodeId, consumer->GetUniqueId());
+
+
+    context.InvokeRecreateNodeCallBack(nodeId, std::weak_ptr<RSSurfaceBufferInterface>(node));
+    context.GetMutableNodeMap().RegisterRenderNode(node);
+    node->UpdateBufferInfo(surfaceHandler->GetBuffer(), surfaceHandler->GetBufferOwnerCount(),
+        surfaceHandler->GetDamageRegion(), surfaceHandler->GetAcquireFence(), surfaceHandler->GetPreBuffer(),
+        surfaceHandler->GetPreBufferOwnerCount());
+    ROSEN_LOGI("SurfaceNodeCommandHelper::RecreateNodeAndSurface nodeId:%{public}" PRIu64
+               " reuse consumer:%{public}" PRIu64 " unobscured:%{public}d",
+        nodeId, consumer->GetUniqueId(), unobscured);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

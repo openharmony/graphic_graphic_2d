@@ -162,24 +162,6 @@ HWTEST_F(DrawCmdTest, BrushHandleToBrush002, TestSize.Level1)
 }
 
 /**
- * @tc.name: BrushToBrushHandle001
- * @tc.desc: Test BrushToBrushHandle
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(DrawCmdTest, BrushToBrushHandle001, TestSize.Level1)
-{
-    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
-    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
-    Drawing::Brush brush;
-    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
-    brush.SetUIColor(color, nullptr);
-    Drawing::BrushHandle brushHandle;
-    Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
-    EXPECT_TRUE(brushHandle.IsUIColor());
-}
-
-/**
  * @tc.name: GeneratePaintFromHandle001
  * @tc.desc: Test GeneratePaintFromHandle
  * @tc.type: FUNC
@@ -1264,51 +1246,6 @@ HWTEST_F(DrawCmdTest, HybridRenderType001, TestSize.Level1)
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     auto hybridRenderTypeGet = drawCmdList->GetHybridRenderType();
     EXPECT_EQ(hybridRenderTypeGet, DrawCmdList::HybridRenderType::NONE);
-}
-
-/**
- * @tc.name: HybridRenderType002
- * @tc.desc: Test SetHybridRenderType and GetHybridRenderType
- * @tc.type: FUNC
- * @tc.require: IBWDR2
- */
-HWTEST_F(DrawCmdTest, HybridRenderType002, TestSize.Level1)
-{
-    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    auto hybridRenderTypeSet = DrawCmdList::HybridRenderType::TEXT;
-    drawCmdList->SetHybridRenderType(hybridRenderTypeSet);
-    auto hybridRenderTypeGet = drawCmdList->GetHybridRenderType();
-    EXPECT_EQ(hybridRenderTypeGet, hybridRenderTypeSet);
-}
-
-/**
- * @tc.name: HybridRenderType003
- * @tc.desc: Test SetHybridRenderType and GetHybridRenderType
- * @tc.type: FUNC
- * @tc.require: IBWDR2
- */
-HWTEST_F(DrawCmdTest, HybridRenderType003, TestSize.Level1)
-{
-    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    auto hybridRenderTypeSet = DrawCmdList::HybridRenderType::SVG;
-    drawCmdList->SetHybridRenderType(hybridRenderTypeSet);
-    auto hybridRenderTypeGet = drawCmdList->GetHybridRenderType();
-    EXPECT_EQ(hybridRenderTypeGet, hybridRenderTypeSet);
-}
-
-/**
- * @tc.name: HybridRenderType004
- * @tc.desc: Test SetHybridRenderType and GetHybridRenderType
- * @tc.type: FUNC
- * @tc.require: IBWDR2
- */
-HWTEST_F(DrawCmdTest, HybridRenderType004, TestSize.Level1)
-{
-    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    auto hybridRenderTypeSet = DrawCmdList::HybridRenderType::HMSYMBOL;
-    drawCmdList->SetHybridRenderType(hybridRenderTypeSet);
-    auto hybridRenderTypeGet = drawCmdList->GetHybridRenderType();
-    EXPECT_EQ(hybridRenderTypeGet, hybridRenderTypeSet);
 }
 
 /**

@@ -36,6 +36,7 @@
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_buffer_interface.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_surface_ext.h"
@@ -114,7 +115,7 @@ private:
     std::unordered_set<NodeId> culledEntireSubtree_;
 };
 
-class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode {
+class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode, public RSSurfaceBufferInterface {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceRenderNode>;
@@ -126,6 +127,11 @@ public:
     }
 
     ~RSSurfaceRenderNode() override;
+
+    NodeId GetId() const override;
+    void SetContentDirty();
+    void SetTunnelHandleChange(bool changed);
+    bool GetIsTextureExportNode() const;
 
     void PrepareRenderBeforeChildren(RSPaintFilterCanvas& canvas);
     void PrepareRenderAfterChildren(RSPaintFilterCanvas& canvas);
@@ -555,7 +561,7 @@ public:
 
     bool IsLeashWindowSurfaceNodeVisible();
 
-    const std::string& GetName() const
+    const std::string& GetName() const override
     {
         return name_;
     }
@@ -847,8 +853,15 @@ public:
     {
         return ancoFlags_.load();
     }
+    RSSurfaceRenderNode* AsRSSurfaceRenderNode() override { return this; }
     // Set the buffer srcRect of the anco node. Only used on anco nodes.
     void SetAncoSrcCrop(const Rect& srcCrop);
+
+    bool OnBufferAvailable() override;
+    void OnTunnelHandleChange() override;
+    void OnCleanCache(std::set<uint64_t>& bufferCacheSet) override;
+    void OnSurfaceGoBackground() override;
+    void OnTransformChange() override;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const
@@ -887,9 +900,11 @@ public:
         srcRect_ = rect;
     }
 
-    void NeedClearBufferCache(std::set<uint64_t>& bufferCacheSet);
+#ifndef ROSEN_CROSS_PLATFORM
+    void NeedClearBufferCache(std::set<uint64_t>& bufferCacheSet) override;
 
     void NeedClearPreBuffer(std::set<uint64_t>& bufferCacheSet);
+#endif
 
     const RectI& GetSrcRect() const
     {
@@ -1267,6 +1282,18 @@ public:
     {
         childHardwareEnabledNodes_.clear();
     }
+
+    void SetHasDestoryRebuild(bool hasDestoryRebuild)
+    {
+        hasDestoryRebuild_ = hasDestoryRebuild;
+    }
+
+    bool HasDestoryRebuild() const
+    {
+        return hasDestoryRebuild_;
+    }
+
+    bool IsChildDestoryRebuild();
 
     void AddChildHardwareEnabledNode(WeakPtr childNode);
     const std::vector<WeakPtr>& GetChildHardwareEnabledNodes() const
@@ -1983,7 +2010,8 @@ protected:
 private:
     explicit RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
-    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
+    explicit RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context = {},
+        std::shared_ptr<RSSurfaceHandler> surfaceHandler = nullptr);
     void OnResetParent() override;
     void ClearChildrenCache();
     Vector4f GetWindowCornerRadius();
@@ -2357,6 +2385,7 @@ private:
     bool isClonedNodeOnTheTree_ = false;
     bool clonedSourceNodeNeedOffscreen_ = true;
     int relatedNodeNum_ = 0;
+    bool hasDestoryRebuild_ = false;
 
     std::optional<std::pair<ScreenId, bool>> attachedInfo_ = std::nullopt;
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;

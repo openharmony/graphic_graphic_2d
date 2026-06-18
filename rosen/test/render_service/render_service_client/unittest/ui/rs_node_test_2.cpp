@@ -98,11 +98,7 @@ public:
 
 void RSNodeTest2::SetUpTestCase() {}
 
-void RSNodeTest2::TearDownTestCase()
-{
-    RSModifiersDrawThread::Instance().runner_ = nullptr;
-    RSModifiersDrawThread::Instance().handler_ = nullptr;
-}
+void RSNodeTest2::TearDownTestCase() {}
 
 void RSNodeTest2::SetUp() {}
 void RSNodeTest2::TearDown() {}

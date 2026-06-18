@@ -96,8 +96,10 @@ public:
     NodeId GetNodeId() const override
     {
         using idType = typename std::tuple_element<0, decltype(params_)>::type;
-        if (std::is_same<NodeId, idType>::value) {
+        if constexpr (std::is_same<NodeId, idType>::value) {
             return std::get<0>(params_);
+        } else if constexpr (std::is_same<RSSurfaceRenderNodeConfig, idType>::value) {
+            return std::get<0>(params_).id;
         }
         return 0; // invalidId
     }

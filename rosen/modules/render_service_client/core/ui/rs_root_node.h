@@ -30,6 +30,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_ROOT_NODE_H
 
 #include "ui/rs_canvas_node.h"
+#include "command/rs_root_node_command.h"
 #include "command_modifier/rs_root_node_command_modifier.h"
 namespace OHOS {
 namespace Rosen {
@@ -86,6 +87,8 @@ protected:
     RSRootNode& operator=(const RSRootNode&) = delete;
     RSRootNode& operator=(const RSRootNode&&) = delete;
 
+    // recreate node
+    void CreateRenderNode() override;
 private:
 /**
      * @brief Registers the node in the node map.

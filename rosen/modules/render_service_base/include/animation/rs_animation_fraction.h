@@ -56,8 +56,10 @@ public:
     void SetDirectionAfterStart(const ForwardDirection& direction);
     void FlipDirection();
     void SetLastFrameTime(int64_t lastFrameTime);
+    void SetAnimationId(AnimationId animationId) { animationId_ = animationId; }
     int64_t GetLastFrameTime() const;
     void ResetFraction();
+    void SetRebuildFraction(float fraction, int64_t time, bool isReverseCycle);
     int GetRemainingRepeatCount() const;
     bool GetCurrentIsReverseCycle() const;
     float GetCurrentTimeFraction() const { return currentTimeFraction_; }
@@ -95,6 +97,7 @@ private:
     static std::atomic<float> animationScale_;
     static std::atomic<bool> isInitialized_;
 
+    AnimationId animationId_ { 0 };
     ForwardDirection direction_ { ForwardDirection::NORMAL };
     int64_t playTime_ { 0 };
     float currentTimeFraction_ { 0.0f };

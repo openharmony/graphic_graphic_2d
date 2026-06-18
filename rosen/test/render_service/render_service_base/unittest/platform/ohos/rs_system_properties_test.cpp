@@ -1138,22 +1138,6 @@ HWTEST_F(RSSystemPropertiesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTypicalResidentProcessTest
- * @tc.desc: set isTypicalResidentProcess_ to true
- * @tc.type:FUNC
- * @tc.require: issuesIC5OEB
- */
-HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest, TestSize.Level1)
-{
-    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
-    RSSystemProperties::SetTypicalResidentProcess(!enabled);
-    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
-    // recover isTypicalResidentProcess_
-    RSSystemProperties::SetTypicalResidentProcess(enabled);
-    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
-}
-
-/**
  * @tc.name: GetCompositeLayerEnabledTest
  * @tc.desc: GetCompositeLayerEnabledTest
  * @tc.type:FUNC
@@ -1163,22 +1147,6 @@ HWTEST_F(RSSystemPropertiesTest, GetCompositeLayerEnabledTest, TestSize.Level1)
 {
     bool enabled = RSSystemProperties::GetCompositeLayerEnabled();
     EXPECT_EQ(enabled, true);
-}
-
-/**
- * @tc.name: SetTypicalResidentProcessTest001
- * @tc.desc: set isTypicalResidentProcess_ to true and GetHybridRenderEnabled
- * @tc.type:FUNC
- * @tc.require: issuesIC5OEB
- */
-HWTEST_F(RSSystemPropertiesTest, SetTypicalResidentProcessTest001, TestSize.Level1)
-{
-    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
-    RSSystemProperties::SetTypicalResidentProcess(true);
-    EXPECT_EQ(RSSystemProperties::GetHybridRenderEnabled(), false);
-    // recover isTypicalResidentProcess_
-    RSSystemProperties::SetTypicalResidentProcess(enabled);
-    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
 }
 
 /**

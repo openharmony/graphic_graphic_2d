@@ -47,6 +47,9 @@ protected:
     void OnStart() override;
     void StartRenderTransition();
 
+    // Transition animation does not need to rebuild in render as it does not evolve
+    void RebuildInRender() override {}
+
 private:
     bool isTransitionIn_ { false };
     std::shared_ptr<const RSTransitionEffect> effect_;

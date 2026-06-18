@@ -129,8 +129,7 @@ public:
         const std::vector<std::string>& surfaceNameList, uint32_t fps);
     ErrCode AvcodecVideoGet(uint64_t uniqueId);
     ErrCode AvcodecVideoGetRecent();
-    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
-        bool unobscured = false);
+    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured = false);
     int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback);
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
@@ -234,11 +233,20 @@ public:
         const FrameStabilityTarget& oldTarget,
         const FrameStabilityTarget& newTarget
     );
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    sptr<Surface> GetCanvasSurface(NodeId nodeId, pid_t remotePid);
+    void RemoveCanvasSurface(NodeId nodeId, pid_t remotePid);
+#endif
+
 private:
     void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface);
     void ConfigureForceTunnelLayer(
         const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface, SurfaceUtils* utils);
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    static std::shared_ptr<RSSurfaceHandler> CreateCanvasSurfaceHandler(NodeId nodeId);
+#endif
     std::weak_ptr<RSRenderPipeline> rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;
     mutable std::mutex pidToBundleMutex_;

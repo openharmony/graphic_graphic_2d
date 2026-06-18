@@ -30,6 +30,8 @@ public:
 
 private:
     int32_t ParseNodeMemReleaseInternal(xmlNode& node);
+
+    void ParseCanvasDrawingNodeBufferBlacklist(xmlNode& node, std::string& name);
 };
 } // namespace OHOS::Rosen
 #endif // NODE_MEM_RELEASE_PARAM_PARSE_H

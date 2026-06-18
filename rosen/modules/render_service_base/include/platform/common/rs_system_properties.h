@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_BASE_COMMON_RS_COMMON_DEF_H
 
 #include <atomic>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -137,11 +136,6 @@ enum class DdgrOpincType {
 enum class DdgrOpincDfxType {
     OPINC_DFX_NONE,
     OPINC_DFX_AUTO,
-};
-
-struct GetComponentSwitch {
-    ComponentEnableSwitch type;
-    bool (*ComponentHybridSwitch)();
 };
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
@@ -315,6 +309,9 @@ public:
     static bool GetSingleFrameComposerEnabled();
     static bool GetSingleFrameComposerCanvasNodeEnabled();
 
+    static float GetSplitTransactionMaxProcessTimeMs();
+    static size_t GetSplitTransactionCheckInterval();
+
     static bool GetSecurityPermissionCheckEnabled();
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
@@ -376,20 +373,8 @@ public:
     static bool GetDebugFmtTraceEnabled();
     static bool GetTimeVsyncDisabled();
 
-    static bool GetHybridRenderEnabled();
-    static bool GetHybridRenderDfxEnabled();
-    static uint32_t GetHybridRenderTextBlobLenCount();
-    static bool GetHybridRenderParallelConvertEnabled();
     static bool GetHybridRenderCanvasEnabled();
-    static bool GetHybridRenderMemeoryReleaseEnabled();
-    static bool GetHybridRenderSystemEnabled();
-    static int32_t GetHybridRenderCcmEnabled();
-    static bool GetHybridRenderSwitch(ComponentEnableSwitch bitSeq);
-    static bool GetHybridRenderTextBlobEnabled();
-    static bool GetHybridRenderSvgEnabled();
-    static bool GetHybridRenderHmsymbolEnabled();
-    static bool GetTypicalResidentProcess();
-    static void SetTypicalResidentProcess(bool isTypicalResidentProcess);
+    static bool GetHybridRenderDfxEnabled();
 
     static bool GetVKImageUseEnabled();
     static bool GetVKImageAdaptationForWallpaperEnabled();
@@ -425,6 +410,10 @@ public:
     static bool GetReleaseImageOneByOneFlag();
     static bool GetUsePrimList();
 
+    static bool GetRebuildSceneEnabled();
+    static bool IsRenderNodeRebuildEnabled();
+    static bool RebuildDebugEnabled();
+
 private:
     RSSystemProperties() = default;
 
@@ -435,7 +424,6 @@ private:
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool animationTestEnable_ = false;
     static inline bool isBehindWindowFilterEnabled_ = true;
-    static inline bool isTypicalResidentProcess_ = false;
     static bool isEnableEarlyZ_;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;

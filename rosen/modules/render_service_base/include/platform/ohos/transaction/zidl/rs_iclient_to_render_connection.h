@@ -90,8 +90,8 @@ public:
 
     virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;
 
-    virtual ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-        sptr<Surface>& sfc, bool unobscured) = 0;
+    virtual ErrCode CreateNodeAndSurface(
+        const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured) = 0;
 
     virtual ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
@@ -196,6 +196,11 @@ public:
     virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
 
     virtual int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    virtual sptr<Surface> GetCanvasSurface(NodeId nodeId) = 0;
+    virtual void RemoveCanvasSurface(NodeId nodeId) = 0;
+#endif
 
     virtual int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,

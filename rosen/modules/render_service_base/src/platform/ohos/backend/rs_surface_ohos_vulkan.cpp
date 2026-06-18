@@ -724,6 +724,19 @@ bool RSSurfaceOhosVulkan::FlushBuffer(std::unique_ptr<RSSurfaceFrame>& frame, ui
     return true;
 }
 
+void RSSurfaceOhosVulkan::OnFlushBuffer()
+{
+    if (mSurfaceList.empty()) {
+        return;
+    }
+    auto it = mSurfaceMap.find(mSurfaceList.front());
+    if (it == mSurfaceMap.end()) {
+        return;
+    }
+    mSurfaceList.pop_front();
+    it->second.fence.reset();
+}
+
 void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
 {
     if (colorSpace != colorSpace_) {
@@ -765,6 +778,34 @@ void RSSurfaceOhosVulkan::ClearBuffer()
     }
 }
 
+void RSSurfaceOhosVulkan::CleanReleasedBuffers()
+{
+    if (producer_ == nullptr) {
+        return;
+    }
+ 
+    ROSEN_LOGD("RSSurfaceOhosVulkan: clean released buffers");
+    std::vector<uint32_t> cleanedSeqNums;
+    auto ret = producer_->CleanReleasedBuffers(cleanedSeqNums);
+    if (ret != GSError::GSERROR_OK || cleanedSeqNums.empty()) {
+        return;
+    }
+ 
+    for (auto it = mSurfaceMap.begin(); it != mSurfaceMap.end();) {
+        if (it->first->sfbuffer == nullptr) {
+            ++it;
+            continue;
+        }
+        if (std::find(cleanedSeqNums.begin(), cleanedSeqNums.end(), it->first->sfbuffer->GetSeqNum()) !=
+            cleanedSeqNums.end()) {
+            it = mSurfaceMap.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    // No released buffer in mSurfaceList, so no need to clean it.
+}
+
 void RSSurfaceOhosVulkan::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceOhosVulkan: Reset Buffer Age!");
@@ -786,6 +827,31 @@ void RSSurfaceOhosVulkan::ReleasePreAllocateBuffer()
     mPreAllocateProtectedBuffer = nullptr;
     mProtectedFenceFd = -1;
     NativeWindowCleanCache(mNativeWindow);
+}
+
+void RSSurfaceOhosVulkan::CopyContentBuffer(sptr<SurfaceBuffer> surfaceBufferSrc)
+{
+    auto windowBuffer = mSurfaceList.back();
+    if (windowBuffer == nullptr || windowBuffer->sfbuffer == nullptr) {
+        RS_LOGE("RSSurfaceOhosVulkan::CopyContentBuffer: windowBuffer or sfbuffer is nullptr!");
+        return;
+    }
+    auto surfaceBufferDst = windowBuffer->sfbuffer;
+    void* dstData = surfaceBufferDst->GetVirAddr();
+    void* srcData = surfaceBufferSrc->GetVirAddr();
+ 
+    auto srcSize = surfaceBufferSrc->GetSize();
+    auto dstSize = surfaceBufferDst->GetSize();
+ 
+    auto ret = memcpy_s(dstData, dstSize, srcData, srcSize);
+    if (ret != 0) {
+        RS_LOGE("RSSurfaceOhosVulkan::CopyContentBuffer: Copy pixel fail, errorCode=%d", ret);
+    } else {
+        RS_LOGI("RSSurfaceOhosVulkan::CopyContentBuffer: Copy pixel success! width=%d, height=%d, size=%u",
+            surfaceBufferSrc->GetWidth(), surfaceBufferSrc->GetHeight(), srcSize);
+    }
+    surfaceBufferSrc->InvalidateCache();
+    surfaceBufferDst->FlushCache();
 }
 } // namespace Rosen
 } // namespace OHOS

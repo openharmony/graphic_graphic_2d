@@ -16,6 +16,8 @@
 #ifndef NODE_MEM_RELEASE_PARAM_H
 #define NODE_MEM_RELEASE_PARAM_H
 
+#include <map>
+
 #include "feature_param.h"
 
 namespace OHOS::Rosen {
@@ -26,14 +28,20 @@ public:
 
     static bool IsCanvasDrawingNodeDMAMemEnabled();
     static bool IsRsRenderNodeGCMemReleaseEnabled();
+    static bool IsCanvasDrawingNodeBufferEnabled();
+    static bool IsCanvasBufferEnabled(const std::string& processName);
 
 protected:
     static void SetCanvasDrawingNodeDMAMemEnabled(bool isEnable);
     static void SetRsRenderNodeGCMemReleaseEnabled(bool isEnable);
+    static void SetCanvasDrawingNodeBufferEnabled(bool isEnable);
+    static void AddToCanvasBufferBlacklist(std::string processName, std::string value);
 
 private:
     inline static bool isCanvasDrawingNodeDMAMemEnabled_ = true;
     inline static bool isRsRenderNodeGCMemReleaseEnabled_ = true;
+    inline static bool isCanvasDrawingNodeBufferEnabled_ = true;
+    inline static std::shared_ptr<std::map<std::string, std::string>> canvasBufferBlacklist_ = nullptr;
 
     friend class NodeMemReleaseParamParse;
 };

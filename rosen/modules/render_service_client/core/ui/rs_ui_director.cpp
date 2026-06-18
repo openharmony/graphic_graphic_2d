@@ -17,11 +17,12 @@
 
 #include "rs_trace.h"
 #include "sandbox_utils.h"
+#include <parameters.h>
+#include "platform/common/rs_system_properties.h"
 
 #include "animation/rs_animation_trace_utils.h"
 #include "command/rs_message_processor.h"
-#include "command/rs_node_command.h"
-#include "hyper_graphic_manager/core/utils/hgm_command.h"
+#include "command/rs_ui_director_command.h"
 #include "modifier/rs_modifier_manager.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "pipeline/rs_node_map.h"
@@ -40,10 +41,6 @@
 #include "ui/rs_ui_context_manager.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
-#endif
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-#include "modifier_render_thread/rs_modifiers_draw_thread.h"
-#include "modifier_render_thread/rs_modifiers_draw.h"
 #endif
 
 #ifdef _WIN32
@@ -66,8 +63,7 @@ namespace Rosen {
 constexpr int32_t INSTANCE_ID_UNDEFINED_TASK_RUNNER = 0;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
-static std::once_flag g_isResidentProcessFlag;
-static std::once_flag g_initHybridCallback;
+
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectToRenderRemote,
     std::shared_ptr<RSUIContext> rsUIContext)
@@ -85,6 +81,7 @@ RSUIDirector::~RSUIDirector()
 void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext)
 {
     AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
+    AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(AnimationDestroyInRenderCallbackProcessor);
     RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor);
     std::call_once(g_initDumpNodeTreeProcessorFlag,
         []() { RSNodeCommandHelper::SetDumpNodeTreeProcessor(RSUIDirector::DumpNodeTreeProcessor); });
@@ -116,7 +113,9 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     } else {
         // force fallback animaiions send to RS if no render thread
         RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
+#ifdef RS_MODIFIERS_DRAW_ENABLE
         InitHybridRender();
+#endif
     }
     if (!cacheDir_.empty()) {
         RSRenderThread::Instance().SetCacheDir(cacheDir_);
@@ -124,7 +123,8 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     if (auto rsApplicationAgent = RSApplicationAgentImpl::Instance()) {
         rsApplicationAgent->RegisterRSApplicationAgent(rsUIContext_);
     }
-
+    GoCreate();
+    GoResume();
     GoForeground();
     RSInterpolator::Init();
     RSAnimationFraction::Init();
@@ -144,90 +144,55 @@ void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
         }
     }
 }
-
+#ifdef RS_MODIFIERS_DRAW_ENABLE
 void RSUIDirector::InitHybridRender()
 {
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-    if (RSSystemProperties::GetHybridRenderEnabled()) {
-        CommitTransactionCallback callback =
-            [] (std::shared_ptr<RSRenderPipelineClient> &renderPiplineClient,
-            std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
-            std::shared_ptr<RSTransactionHandler> transactionHandler) {
-            auto task = [renderPiplineClient, transactionData = std::move(rsTransactionData),
-                &transactionDataIndex, transactionHandler]() mutable {
-                bool isNeedCommit = true;
-                RSModifiersDrawThread::ConvertTransaction(transactionData, renderPiplineClient, isNeedCommit);
-                if (isNeedCommit) {
-                    renderPiplineClient->CommitTransaction(transactionData);
-                }
-                transactionDataIndex = transactionData->GetIndex();
-                // destroy semaphore after commitTransaction for which syncFence was duped
-                RSModifiersDraw::DestroySemaphore();
-                std::shared_ptr<RSUIContext> rsUICtx;
-                {
-                    int32_t instanceId = INSTANCE_ID_UNDEFINED;
-                    if (!transactionHandler) {
-                        for (auto& [id, _, cmd] : transactionData->GetPayload()) {
-                            if (cmd == nullptr) {
-                                continue;
-                            }
-                            if (instanceId == INSTANCE_ID_UNDEFINED) {
-                                NodeId realId = id == 0 ? cmd->GetNodeId() : id;
-                                instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
-                                instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
-                                    RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                    auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
-                    std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
-                    auto task = [dataHolder]() {
-                        std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
-                        (void) dataHolder;
-                    };
-                    (transactionHandler == nullptr) ? RSUIDirector::PostTask(task, instanceId) :
-                        transactionHandler->PostTask(task);
-                }
-            };
-            RSModifiersDrawThread::Instance().ScheduleTask(task);
-        };
-        SetCommitTransactionCallback(callback);
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        return;
+    }
+    if (rsUIContext_ == nullptr) {
+        return;
+    }
+    if (auto transaction = rsUIContext_->GetRSTransaction()) {
+        transaction->SetCommitTransactionCallback(rsUIContext_->CreateCommitTransactionCallback());
+    }
+}
+
+void RSUIDirector::FlushCanvasDrawingNodeBuffers()
+{
+    if (rsUIContext_ != nullptr) {
+        rsUIContext_->FlushCanvasDrawingNodeBuffers();
+    } else {
+        RS_LOGE("RSUIDirector::FlushCanvasDrawingNodeBuffers, null uiContext.");
+    }
+}
+#endif // RS_MODIFIERS_DRAW_ENABLE
+
+void RSUIDirector::OnCanvasDrawingNodeRenderStart(NodeId nodeId)
+{
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    canvasDrawingNodeIds_.emplace(nodeId);
+#endif
+}
+
+void RSUIDirector::OnCanvasDrawingNodeRenderEnd(NodeId nodeId)
+{
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    canvasDrawingNodeIds_.erase(nodeId);
+    if (canvasDrawingNodeIds_.empty()) {
+        FlushCanvasDrawingNodeBuffers();
     }
 #endif
 }
 
-void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
+RSUIDirectorLifecycleState RSUIDirector::GetCurrentState() const
 {
-    if (rsUIContext_) {
-        auto transaction = rsUIContext_->GetRSTransaction();
-        if (transaction != nullptr) {
-            std::call_once(g_initHybridCallback, [commitTransactionCallback]() {
-                    RSTransactionHandler::SetCommitTransactionCallback(commitTransactionCallback);
-            });
-        }
-    } else {
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->SetCommitTransactionCallback(commitTransactionCallback);
-        }
-    }
+    return currentUIDirectorState_;
 }
 
-bool RSUIDirector::IsHybridRenderEnabled()
+bool RSUIDirector::GetHybridRenderCanvasEnabled()
 {
-    return RSSystemProperties::GetHybridRenderEnabled();
-}
-
-bool RSUIDirector::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
-{
-    return RSSystemProperties::GetHybridRenderSwitch(bitSeq);
-}
-
-uint32_t RSUIDirector::GetHybridRenderTextBlobLenCount()
-{
-    return RSSystemProperties::GetHybridRenderTextBlobLenCount();
+    return RSSystemProperties::GetHybridRenderCanvasEnabled();
 }
 
 std::shared_ptr<RSUIDirector> RSUIDirector::CreateRSUIDirector()
@@ -257,9 +222,123 @@ void RSUIDirector::StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext)
     RSRenderThread::Instance().UpdateWindowStatus(true);
 }
 
+template <typename CommandType>
+void RSUIDirector::AddUIDirectorCommand()
+{
+    if (rsUIContext_ == nullptr) {
+        RS_LOGE("RSUIDirector::AddUIDirectorCommand, RSUIContext is nullptr");
+        return;
+    }
+
+    auto transaction = rsUIContext_->GetRSTransaction();
+    if (transaction == nullptr) {
+        RS_LOGE("RSUIDirector::AddUIDirectorCommand, transaction is nullptr");
+        return;
+    }
+
+    auto rootNode = rootNode_.lock();
+    NodeId nodeId = rootNode ? rootNode->GetId() : 0;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<CommandType>(nodeId, getpid(), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    RS_TRACE_NAME_FMT(
+        "RSUIDirector::AddUIDirectorCommand type is %d, token is %lu", command->GetSubType(), rsUIContext_->GetToken());
+    transaction->AddCommand(command, true);
+}
+
+void RSUIDirector::GoCreate()
+{
+    RS_TRACE_NAME_FMT("RSUIDirector::GoCreate CurrentState:%d, UIContext:%lu",
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    RS_LOGI("RSUIDirector::GoCreate CurrentState:%{public}d, UIContext:%{public}" PRIu64,
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    // Generate command
+    ExecuteGoCreate();
+    AddUIDirectorCommand<RSUIDirectorGoCreate>();
+    // Change the state
+    currentUIDirectorState_ = RSUIDirectorLifecycleState::CREATE;
+}
+
+void RSUIDirector::ExecuteGoCreate()
+{}
+
+void RSUIDirector::GoResume()
+{
+    RS_TRACE_NAME_FMT("RSUIDirector::GoResume CurrentState:%d, UIContext:%lu",
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    RS_LOGI("RSUIDirector::GoResume CurrentState:%{public}d, UIContext:%{public}" PRIu64,
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    // Invalid states
+    if (currentUIDirectorState_ == RSUIDirectorLifecycleState::DESTROYED ||
+        currentUIDirectorState_ == RSUIDirectorLifecycleState::FOREGROUND ||
+        currentUIDirectorState_ == RSUIDirectorLifecycleState::BACKGROUND) {
+        RS_LOGE("RSUIDirector::GoResume, CurrentState %{public}d is invalid.",
+            static_cast<int>(currentUIDirectorState_));
+        return;
+    }
+    // Normal states
+    if (currentUIDirectorState_ == RSUIDirectorLifecycleState::CREATE ||
+        currentUIDirectorState_ == RSUIDirectorLifecycleState::STOP) {
+        // Resume directly
+        ExecuteGoResume();
+        AddUIDirectorCommand<RSUIDirectorGoResume>();
+    }
+    currentUIDirectorState_ = RSUIDirectorLifecycleState::RESUME;
+}
+
+// Excute resume
+void RSUIDirector::ExecuteGoResume()
+{
+    if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::RebuildDebugEnabled()) {
+        RebuildNodeTree();
+    }
+}
+
+void RSUIDirector::RebuildNodeTree()
+{
+    if (auto rootNode = rootNode_.lock()) {
+        RS_TRACE_NAME_FMT("GoResume");
+        if (rsUIContext_) {
+            rsUIContext_->SetRebuildState(RebuildState::Rebuilding);
+            auto transaction = rsUIContext_->GetRSTransaction();
+            if (RSSystemProperties::GetRebuildSceneEnabled()) {
+                transaction->SetRSTransactionDataScene(RSTransactionDataScenes::Rebuild);
+            }
+        }
+        rootNode->RebuildTree();
+        if (rsUIContext_) {
+            rsUIContext_->SetRebuildState(RebuildState::Normal);
+        }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        FlushCanvasDrawingNodeBuffers();
+#endif
+    }
+}
+
 void RSUIDirector::GoForeground(bool isTextureExport)
 {
-    ROSEN_LOGD("RSUIDirector::GoForeground");
+    RS_TRACE_NAME_FMT("RSUIDirector::GoForeground CurrentState:%d, UIContext:%lu",
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    RS_LOGI("RSUIDirector::GoForeground CurrentState:%{public}d, UIContext:%{public}" PRIu64,
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    // Invalid states
+    if (currentUIDirectorState_ == RSUIDirectorLifecycleState::DESTROYED ||
+        currentUIDirectorState_ == RSUIDirectorLifecycleState::CREATE ||
+        currentUIDirectorState_ == RSUIDirectorLifecycleState::STOP) {
+        RS_LOGE("RSUIDirector::GoForeground, CurrentState %{public}d is invalid.",
+            static_cast<int>(currentUIDirectorState_));
+        return;
+    }
+    // Normal states
+    if (currentUIDirectorState_ == RSUIDirectorLifecycleState::RESUME ||
+        currentUIDirectorState_ == RSUIDirectorLifecycleState::BACKGROUND) {
+        ExecuteGoForeground(isTextureExport);
+        AddUIDirectorCommand<RSUIDirectorGoForeground>();
+    }
+    currentUIDirectorState_ = RSUIDirectorLifecycleState::FOREGROUND;
+}
+
+void RSUIDirector::ExecuteGoForeground(bool isTextureExport)
+{
     if (!isActive_) {
         auto nowTime = std::chrono::system_clock::now().time_since_epoch();
         lastUiSkipTimestamp_ = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
@@ -277,9 +356,6 @@ void RSUIDirector::GoForeground(bool isTextureExport)
             surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
         }
     }
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-    RSModifiersDraw::InsertForegroundRoot(root_);
-#endif
 }
 
 void RSUIDirector::ReportUiSkipEvent(const std::string& abilityName)
@@ -294,7 +370,22 @@ void RSUIDirector::ReportUiSkipEvent(const std::string& abilityName)
 
 void RSUIDirector::GoBackground(bool isTextureExport)
 {
-    ROSEN_LOGD("RSUIDirector::GoBackground");
+    RS_TRACE_NAME_FMT("RSUIDirector::GoBackground CurrentState:%d, UIContext:%lu",
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    RS_LOGI("RSUIDirector::GoBackground CurrentState:%{public}d, UIContext:%{public}" PRIu64,
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    // Invalid states
+    if (currentUIDirectorState_ != RSUIDirectorLifecycleState::FOREGROUND) {
+        RS_LOGE("RSUIDirector::GoForeground, currentUIDirectorState_ is not FOREGROUND.");
+        return;
+    }
+    ExecuteGoBackground(isTextureExport);
+    AddUIDirectorCommand<RSUIDirectorGoBackground>();
+    currentUIDirectorState_ = RSUIDirectorLifecycleState::BACKGROUND;
+}
+
+void RSUIDirector::ExecuteGoBackground(bool isTextureExport)
+{
     if (isActive_) {
         if (!isUniRenderEnabled_ || isTextureExport) {
             RSRenderThread::Instance().UpdateWindowStatus(false);
@@ -311,9 +402,6 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
         }
         if (isTextureExport || isUniRenderEnabled_) {
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-            RSModifiersDraw::EraseForegroundRoot(root_);
-#endif
             return;
         }
         // clean bufferQueue cache
@@ -322,9 +410,6 @@ void RSUIDirector::GoBackground(bool isTextureExport)
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
                 if (rsSurface == nullptr) {
                     ROSEN_LOGE("rsSurface is nullptr");
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-                    RSModifiersDraw::EraseForegroundRoot(root_);
-#endif
                     return;
                 }
                 rsSurface->ClearBuffer();
@@ -341,12 +426,77 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         });
 #endif
     }
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-    RSModifiersDraw::EraseForegroundRoot(root_);
-#endif
+}
+
+void RSUIDirector::GoStop()
+{
+    RS_TRACE_NAME_FMT("RSUIDirector::GoStop CurrentState:%d, UIContext:%lu",
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    RS_LOGI("RSUIDirector::GoStop CurrentState:%{public}d, UIContext:%{public}" PRIu64,
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    // Invalid states
+    if (currentUIDirectorState_ == RSUIDirectorLifecycleState::DESTROYED ||
+        currentUIDirectorState_ == RSUIDirectorLifecycleState::FOREGROUND) {
+        RS_LOGE("RSUIDirector::GoStop, CurrentState %{public}d is invalid.",
+            static_cast<int>(currentUIDirectorState_));
+        return;
+    }
+    // Normal states
+    if (currentUIDirectorState_ == RSUIDirectorLifecycleState::BACKGROUND ||
+        currentUIDirectorState_ == RSUIDirectorLifecycleState::RESUME) {
+        if (RSSystemProperties::IsRenderNodeRebuildEnabled() && RSSystemProperties::RebuildDebugEnabled()) {
+            ExecuteGoStop();
+            AddUIDirectorCommand<RSUIDirectorGoStop>();
+        }
+    }
+    currentUIDirectorState_ = RSUIDirectorLifecycleState::STOP;
+}
+
+void RSUIDirector::ExecuteGoStop()
+{
+    ReleaseRenderNode();
+}
+
+void RSUIDirector::ReleaseRenderNode()
+{
+    if (!rsUIContext_ || skipDestroyUIContext_) {
+        return;
+    }
+    const auto& map = rsUIContext_->GetNodeMap();
+    NodeId appWindowNodeId = 0;
+    if (auto appWindowNode = GetRSSurfaceNode()) {
+        appWindowNodeId = appWindowNode->GetId();
+    }
+    map.TraversalNodes([appWindowNodeId](const std::shared_ptr<RSBaseNode>& baseNode) {
+        if (baseNode == nullptr) {
+            return;
+        }
+        if (baseNode->GetType() == RSUINodeType::SURFACE_NODE && baseNode->GetId() == appWindowNodeId) {
+            return;
+        }
+        if (baseNode->IsTextureExportNode()) {
+            return;
+        }
+        if (baseNode->GetNodeState() != RSNodeState::LAZY_LOAD) {
+            baseNode->ReleaseInRender();
+        }
+    });
 }
 
 void RSUIDirector::Destroy(bool isTextureExport)
+{
+    RS_TRACE_NAME_FMT("RSUIDirector::Destroy CurrentState:%d, UIContext:%lu",
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    RS_LOGI("RSUIDirector::Destroy CurrentState:%{public}d, UIContext:%{public}" PRIu64,
+        static_cast<int>(currentUIDirectorState_), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    ExecuteGoDestroy(isTextureExport);
+    AddUIDirectorCommand<RSUIDirectorGoDestroy>();
+    currentUIDirectorState_ = RSUIDirectorLifecycleState::DESTROYED;
+}
+
+void RSUIDirector::GoDestroy() {}
+
+void RSUIDirector::ExecuteGoDestroy(bool isTextureExport)
 {
     if (auto node = rootNode_.lock()) {
         if (!isUniRenderEnabled_ || isTextureExport) {
@@ -354,7 +504,6 @@ void RSUIDirector::Destroy(bool isTextureExport)
         }
         rootNode_.reset();
     }
-    GoBackground(isTextureExport);
     if (rsUIContext_ != nullptr) {
         // When a child window reuses the instance of the parent window, do not remove the UIContext from the
         // UIContextManager when the child window is destroyed, as this would cause the parent window or newly created
@@ -437,6 +586,9 @@ void RSUIDirector::SetRSRootNode(std::shared_ptr<RSRootNode> rootNode)
     if (rootNode_.lock() == rootNode) {
         return;
     }
+    if (rootNode != nullptr && rsUIContext_ != nullptr) {
+        rsUIContext_->rootNodeId_ = rootNode->GetId();
+    }
     rootNode_ = rootNode;
     AttachSurface();
 }
@@ -490,14 +642,17 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-    if (!cacheDir_.empty() && RSSystemProperties::GetHybridRenderEnabled()) {
-        RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (rsUIContext_ == nullptr) {
+        return;
+    }
+    if (cacheDir_.empty()) {
+        return;
+    }
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        rsUIContext_->GetCanvasModifiersDrawThread()->SetCacheDir(cacheDir_);
     }
 #endif
-    if (!cacheDir_.empty()) {
-        RSRenderThread::Instance().SetCacheDir(cacheDir_);
-    }
 }
 
 bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
@@ -798,6 +953,24 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     }
 }
 
+void RSUIDirector::AnimationDestroyInRenderCallbackProcessor(
+    NodeId nodeId, AnimationId animId, uint64_t token, float fraction, bool isReverseCycle)
+{
+    auto rsUIContext = RSUIContextManager::Instance().GetRSUIContext(token);
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSUIDirector::AnimationDestroyInRenderCallbackProcessor, rsUIContext is nullptr, "
+                   "token[%{public}" PRIu64 "] nodeId[%{public}" PRIu64 "] animId[%{public}" PRIu64 "]",
+            token, nodeId, animId);
+        return;
+    }
+    auto nodePtr = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
+    if (nodePtr == nullptr) {
+        ROSEN_LOGE("RSUIDirector::AnimationDestroyInRenderCallbackProcessor, could not find node %{public}" PRIu64, nodeId);
+        return;
+    }
+    nodePtr->AnimationDestroyInRenderCallback(animId, fraction, isReverseCycle);
+}
+
 void RSUIDirector::ColorPickerCallbackProcessor(NodeId nodeId, uint64_t token, uint32_t color)
 {
     auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
@@ -930,17 +1103,6 @@ int32_t RSUIDirector::GetAnimateExpectedRate() const
         }
     }
     return animateRate;
-}
-
-void RSUIDirector::SetTypicalResidentProcessOnce(bool isTypicalResidentProcess)
-{
-    std::call_once(g_isResidentProcessFlag,
-        [isTypicalResidentProcess]() { RSSystemProperties::SetTypicalResidentProcess(isTypicalResidentProcess); });
-}
-
-void RSUIDirector::SetTypicalResidentProcess(bool isTypicalResidentProcess)
-{
-    SetTypicalResidentProcessOnce(isTypicalResidentProcess);
 }
 
 void RSUIDirector::SetContainerWindowTransparent(bool isContainerWindowTransparent)

@@ -665,8 +665,10 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface_LayerNonNull_PositivePath
     cfg.id = 1;
     cfg.name = "surface";
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode), nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode), surfaceHandler,
+            RSUniRenderThread::Instance().GetComposerClientManager());
     auto consumer = IConsumerSurface::Create(cfg.name);
     consumer->RegisterConsumerListener(listener);
     surfaceNode->GetRSSurfaceHandler()->SetConsumer(consumer);

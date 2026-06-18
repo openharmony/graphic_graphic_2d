@@ -157,14 +157,13 @@ void OcclusionParams::CheckKeyOcclusionNodeValidity(
     }
 }
 
-RSSurfaceRenderNode::RSSurfaceRenderNode(
-    const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(config.id, context, config.isTextureExportNode),
-      nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
-      dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
+RSSurfaceRenderNode::RSSurfaceRenderNode(const RSSurfaceRenderNodeConfig& config,
+    const std::weak_ptr<RSContext>& context, std::shared_ptr<RSSurfaceHandler> surfaceHandler)
+    : RSRenderNode(config.id, context, config.isTextureExportNode), nodeType_(config.nodeType),
+      surfaceWindowType_(config.surfaceWindowType), dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
-      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name),
-      bundleName_(config.bundleName)
+      surfaceHandler_(surfaceHandler ? surfaceHandler : std::make_shared<RSSurfaceHandler>(config.id)),
+      name_(config.name), bundleName_(config.bundleName)
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -201,6 +200,26 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
             RSSingleFrameComposer::AddOrRemoveAppPidToMap(false, pid);
         }
     }
+}
+
+NodeId RSSurfaceRenderNode::GetId() const
+{
+    return RSRenderNode::GetId();
+}
+
+void RSSurfaceRenderNode::SetContentDirty()
+{
+    RSRenderNode::SetContentDirty();
+}
+
+void RSSurfaceRenderNode::SetTunnelHandleChange(bool changed)
+{
+    RSRenderNode::SetTunnelHandleChange(changed);
+}
+
+bool RSSurfaceRenderNode::GetIsTextureExportNode() const
+{
+    return RSRenderNode::GetIsTextureExportNode();
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -1634,6 +1653,8 @@ void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint64_t>& bufferCacheSe
         bufferCacheSet.insert(preBuffer->GetBufferId());
         RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache preBufferSeqNum:%" PRIu64 "", preBuffer->GetBufferId());
     }
+#else
+    (void)bufferCacheSet;
 #endif
 }
 
@@ -1748,6 +1769,21 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
             isNotifyRTBufferAvailable_ = false;
         }
     }
+}
+
+bool RSSurfaceRenderNode::IsChildDestoryRebuild()
+{
+    if (!IsLeashWindow()) {
+        return false;
+    }
+    for (auto& child : *GetChildren()) {
+        if (auto surfaceChild = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
+            if (surfaceChild->IsAppWindow()) {
+                return surfaceChild->HasDestoryRebuild();
+            }
+        }
+    }
+    return false;
 }
 
 void RSSurfaceRenderNode::NotifyUIBufferAvailable()
@@ -4124,23 +4160,23 @@ void RSSurfaceRenderNode::CopyModifierValue(ModifierNG::RSPropertyType propertyT
     }
 }
 
-void RSSurfaceRenderNode::CountRelatedNode(bool isIncrement)
-{
-    relatedNodeNum_ += isIncrement ? 1 : -1;
-    SetRelatedSourceNode(relatedNodeNum_ > 0);
-    if (!IsRelatedSourceNode()) {
-        ClearRelatedSourceCache(true);
+void RSSurfaceRenderNode::CountRelatedNode(bool isIncrement) 
+{ 
+    relatedNodeNum_ += isIncrement ? 1 : -1; 
+    SetRelatedSourceNode(relatedNodeNum_ > 0); 
+    if (!IsRelatedSourceNode()) { 
+        ClearRelatedSourceCache(true); 
     }
 }
 
-void RSSurfaceRenderNode::ClearRelatedSourceCache(bool value)
-{
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams == nullptr) {
-        return;
-    }
-    surfaceParams->SetNeedClearRelatedCache(value);
-    AddToPendingSyncList();
+void RSSurfaceRenderNode::ClearRelatedSourceCache(bool value) 
+{ 
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get()); 
+    if (surfaceParams == nullptr) { 
+        return; 
+    } 
+    surfaceParams->SetNeedClearRelatedCache(value); 
+    AddToPendingSyncList(); 
 }
 
 void RSSurfaceRenderNode::SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn)
@@ -4191,6 +4227,65 @@ void RSSurfaceRenderNode::SetCrossNodeVisitedStatus(bool hasVisited)
         }
         sourceNode->SetCrossNodeVisitedStatus(hasVisited);
     }
+}
+
+bool RSSurfaceRenderNode::OnBufferAvailable()
+{
+    if (!IsNotifyUIBufferAvailable()) {
+        RS_LOGD("RsDebug RSSurfaceRenderNode::OnBufferAvailable id = %{public}" PRIu64 "Notify UI buffer available",
+            GetId());
+        NotifyUIBufferAvailable();
+    }
+    if (GetIsTextureExportNode()) {
+        RS_LOGD("RsDebug RSSurfaceRenderNode::OnBufferAvailable id = %{public}" PRIu64 "Notify RT buffer available",
+            GetId());
+        NotifyRTBufferAvailable(GetIsTextureExportNode());
+    }
+
+    if (IsLayerTop() && IsTopLayerForceRefresh()) {
+        return true;
+    }
+    if ((GetAncoFlags() & static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)) != 0) {
+        SetAncoFlags(GetAncoFlags() & (~static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)));
+        return true;
+    }
+    return false;
+}
+
+void RSSurfaceRenderNode::OnTunnelHandleChange()
+{
+    SetTunnelHandleChange(true);
+    if (!IsNotifyUIBufferAvailable()) {
+        RS_LOGD("TUNNEL_DEBUG RsDebug RSSurfaceRenderNode::OnTunnelHandleChange id = %{public}" PRIu64
+                "Notify UI before available", GetId());
+        NotifyUIBufferAvailable();
+    }
+}
+
+void RSSurfaceRenderNode::OnCleanCache(std::set<uint64_t>& bufferCacheSet)
+{
+    RS_LOGD("RsDebug RSSurfaceRenderNode::OnCleanCache node id:%{public}" PRIu64, GetId());
+#ifndef ROSEN_CROSS_PLATFORM
+    NeedClearPreBuffer(bufferCacheSet);
+#endif
+}
+
+void RSSurfaceRenderNode::OnSurfaceGoBackground()
+{
+    RS_LOGD("RsDebug RSSurfaceRenderNode::OnSurfaceGoBackground node id:%{public}" PRIu64, GetId());
+#ifndef ROSEN_CROSS_PLATFORM
+    UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);
+#endif
+    SetNotifyRTBufferAvailable(false);
+    SetContentDirty();
+    ResetHardwareEnabledStates();
+}
+
+void RSSurfaceRenderNode::OnTransformChange()
+{
+    RS_LOGD("RsDebug RSSurfaceRenderNode::OnTransformChange node id:%{public}" PRIu64, GetId());
+    SetContentDirty();
+    SetDoDirectComposition(false);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -41,6 +41,11 @@
 
 namespace OHOS {
 namespace Rosen {
+struct RebuildParam {
+    float fraction { 0.f };
+    bool isReverseCycle { false };
+};
+
 class RSNode;
 class AnimationFinishCallback;
 class AnimationRepeatCallback;
@@ -69,6 +74,10 @@ public:
 
     void SetFraction(float fraction);
 
+    void SetRebuildParam(const RebuildParam& param) { rebuildParam_ = param; }
+
+    RebuildParam GetRebuildParam() const { return rebuildParam_; }
+
     bool IsStarted() const;
 
     bool IsRunning() const;
@@ -91,10 +100,7 @@ public:
 
     virtual bool IsSupportInteractiveAnimator() { return true; }
 
-    virtual ModifierNG::RSPropertyType GetPropertyType() const
-    {
-        return ModifierNG::RSPropertyType::INVALID;
-    }
+    virtual ModifierNG::RSPropertyType GetPropertyType() const { return ModifierNG::RSPropertyType::INVALID; }
 
     std::string DumpAnimation() const;
     virtual void DumpAnimationInfo(std::string& dumpInfo) const {}
@@ -127,6 +133,7 @@ protected:
 
     void StartCustomAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
     virtual void SetInitialVelocity(const std::shared_ptr<RSPropertyBase>& velocity) {};
+    virtual void RebuildInRender() = 0;
 
 private:
     static AnimationId GenerateId();
@@ -142,6 +149,7 @@ private:
     virtual void SetZeroThreshold(const float zeroThreshold) {};
 
     bool isReversed_ { false };
+    RebuildParam rebuildParam_;
     AnimationState state_ { AnimationState::INITIALIZED };
     std::weak_ptr<RSNode> target_;
     std::shared_ptr<AnimationFinishCallback> finishCallback_;
@@ -161,6 +169,8 @@ class RSC_EXPORT RSDummyAnimation : public RSAnimation {
 public:
     RSDummyAnimation(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
     ~RSDummyAnimation() = default;
+
+    void RebuildInRender() override {}
 };
 } // namespace Rosen
 } // namespace OHOS

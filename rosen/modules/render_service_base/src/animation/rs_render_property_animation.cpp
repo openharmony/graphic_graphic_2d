@@ -17,6 +17,7 @@
 
 #include "animation/rs_animation_trace_utils.h"
 #include "modifier/rs_render_property.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "rs_profiler.h"

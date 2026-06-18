@@ -61,9 +61,17 @@ int32_t NodeMemReleaseParamParse::ParseNodeMemReleaseInternal(xmlNode& node)
             NodeMemReleaseParam::SetRsRenderNodeGCMemReleaseEnabled(isEnabled);
             RS_LOGI("NodeMemReleaseParamParse parse RsRenderNodeGCMemReleaseEnabled %{public}d",
                     NodeMemReleaseParam::IsRsRenderNodeGCMemReleaseEnabled());
+        } else if (name == "CanvasDrawingNodeBufferEnabled") {
+            NodeMemReleaseParam::SetCanvasDrawingNodeBufferEnabled(isEnabled);
+            RS_LOGI("NodeMemReleaseParamParse parse CanvasDrawingNodeBufferEnabled %{public}d",
+                    NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled());
         } else {
             RS_LOGI("NodeMemReleaseParamParse parse %{public}s is not support!", name.c_str());
             return PARSE_ERROR;
+        }
+    } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
+        if (name == "CanvasDrawingNodeBufferBlacklist") {
+            ParseCanvasDrawingNodeBufferBlacklist(node, name);
         }
     } else {
         RS_LOGI("NodeMemReleaseParamParse fail! The xmlParamType is not support");
@@ -72,4 +80,25 @@ int32_t NodeMemReleaseParamParse::ParseNodeMemReleaseInternal(xmlNode& node)
     return PARSE_EXEC_SUCCESS;
 }
 
+void NodeMemReleaseParamParse::ParseCanvasDrawingNodeBufferBlacklist(xmlNode& node, std::string& name)
+{
+    xmlNode* currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        RS_LOGE("ParseCanvasDrawingNodeBufferBlacklist, stop parsing, no children nodes");
+        return;
+    }
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        auto val = ExtractPropertyValue("value", *currNode);
+        if (!IsNumber(val)) {
+            continue;
+        }
+        auto appName = ExtractPropertyValue("name", *currNode);
+        NodeMemReleaseParam::AddToCanvasBufferBlacklist(appName, val);
+        RS_LOGI("ParseCanvasDrawingNodeBufferBlacklist, name=%{public}s, val=%{public}s", appName.c_str(), val.c_str());
+    }
+}
 } // namespace OHOS::Rosen

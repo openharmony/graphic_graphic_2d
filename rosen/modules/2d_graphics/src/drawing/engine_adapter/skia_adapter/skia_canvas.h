@@ -68,7 +68,7 @@ public:
     void Bind(const Bitmap& bitmap) override;
 
     void RecordState(Canvas* canvas) override;
-    bool InheritStateAndContentFrom(Canvas* canvas) override;
+    bool InheritStateAndContentFrom(Canvas* canvas, bool willReleaseSrcCanvas = true) override;
     void SetParallelRender(bool parallelEnable) override;
     Matrix GetTotalMatrix() const override;
     Rect GetLocalClipBounds() const override;

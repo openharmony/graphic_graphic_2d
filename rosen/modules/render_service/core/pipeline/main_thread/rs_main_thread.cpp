@@ -46,6 +46,7 @@
 #include "command/rs_display_node_command.h"
 #include "command/rs_message_processor.h"
 #include "command/rs_node_command.h"
+#include "command/rs_ui_director_command.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
@@ -105,6 +106,7 @@
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node_utils.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "pipeline/rs_task_dispatcher.h"
@@ -143,6 +145,7 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
+#include "pipeline/main_thread/rs_render_service_listener.h"
 #endif
 
 #ifdef RS_ENABLE_GL
@@ -490,6 +493,12 @@ RSTunnelLayerStateHandler* RSMainThread::GetTunnelLayerStateHandler() const
 
 void RSMainThread::TraverseCanvasDrawingNodes()
 {
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (RSCanvasDrawingRenderNode::IsHybridEnabled()) {
+        return;
+    }
+#endif
+
     const auto& nodeMap = context_->GetNodeMap();
     bool hasCachedOp = false;
     nodeMap.TraverseCanvasDrawingNodes(
@@ -640,6 +649,19 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSMainThread::Instance()->RequestNextVSync();
         RSMainThread::Instance()->SetDirtyFlag();
     });
+    context_->SetRecreateNodeCallback(
+        [this](NodeId nodeId, std::weak_ptr<RSSurfaceBufferInterface> surfaceBufferInterface) {
+#ifndef ROSEN_CROSS_PLATFORM
+            auto savedInfo = context_->GetNodeMap().GetSurfaceHandlerInfo(nodeId);
+            if (savedInfo.second == nullptr) {
+                return;
+            }
+            auto rsListener = static_cast<RSRenderServiceListener*>(savedInfo.second.GetRefPtr());
+            if (rsListener != nullptr) {
+                rsListener->SetRSSurfaceBufferInterface(surfaceBufferInterface);
+            }
+#endif
+        });
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
 #ifdef RES_SCHED_ENABLE
     int qosRes = OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().SetSystemQoS(gettid(),
@@ -816,6 +838,7 @@ void RSMainThread::CleanRenderNodes(pid_t remotePid) noexcept
 
     RS_PROFILER_KILL_PID(remotePid);
     nodeMap.FilterNodeByPid(remotePid);
+    nodeMap.UnregisterSurfaceHandlerByPid(remotePid);
     RS_PROFILER_KILL_PID_END();
 
     RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
@@ -1552,22 +1575,6 @@ void RSMainThread::ProcessCommandForUniRender()
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by transactionDataEffective not empty");
     }
-    const auto& nodeMap = context_->GetNodeMap();
-    nodeMap.TraverseCanvasDrawingNodes([](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
-        if (canvasDrawingNode == nullptr) {
-            return;
-        }
-        if (canvasDrawingNode->IsNeedProcess()) {
-            auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasDrawingNode);
-            if (!drawableNode) {
-                RS_LOGE("ProcessCommandForUniRender GetCanvasDrawable Failed NodeId[%{public}" PRIu64 "]",
-                    canvasDrawingNode->GetId());
-                return;
-            }
-            std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)
-                ->PostPlaybackInCorrespondThread();
-        }
-    });
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     if (transactionFlags != "") {
         transactionFlags_ = transactionFlags;
@@ -1597,6 +1604,53 @@ void RSMainThread::ProcessCommandForUniRender()
     }
 #endif
     ProcessNeedAttachedNodes();
+
+    // 处理重建事务的命令（在 Vsync 之后）
+    ProcessSplitTransactionCommands();
+ 
+    const auto& nodeMap = context_->GetNodeMap();
+    nodeMap.TraverseCanvasDrawingNodes([this](const std::shared_ptr<RSCanvasDrawingRenderNode>& canvasDrawingNode) {
+        if (canvasDrawingNode == nullptr) {
+            return;
+        }
+        bool isHybridEnabled = false;
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        isHybridEnabled = RSCanvasDrawingRenderNode::IsHybridEnabled();
+#endif
+        if (isHybridEnabled) {
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+            auto surfaceHandler = canvasDrawingNode->GetMutableSurfaceHandler();
+            if (surfaceHandler == nullptr) {
+                return;
+            }
+            if (surfaceHandler->GetBuffer() != nullptr) {
+                canvasDrawingSelfDrawables_.emplace_back(canvasDrawingNode->GetRenderDrawable());
+            }
+            if (!RSBaseSurfaceUtil::ConsumeAndUpdateBufferSimple(*surfaceHandler, timestamp_)) {
+                return;
+            }
+            if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
+                doDirectComposition_ = false;
+                auto buffer = surfaceHandler->GetBuffer();
+                auto preBuffer = surfaceHandler->GetPreBuffer();
+                const auto& consumer = surfaceHandler->GetConsumer();
+                canvasDrawingNode->UpdateBufferInfo(buffer, surfaceHandler->GetBufferOwnerCount(),
+                    surfaceHandler->GetDamageRegion(), surfaceHandler->GetAcquireFence(), preBuffer,
+                    surfaceHandler->GetPreBufferOwnerCount());
+                canvasDrawingNode->SetContentDirty();
+            }
+#endif
+        } else if (canvasDrawingNode->IsNeedProcess()) {
+            auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasDrawingNode);
+            if (!drawableNode) {
+                RS_LOGE("ProcessCommandForUniRender GetCanvasDrawable Failed NodeId[%{public}" PRIu64 "]",
+                    canvasDrawingNode->GetId());
+                return;
+            }
+            std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)
+                ->PostPlaybackInCorrespondThread();
+        }
+    });
 }
 
 void RSMainThread::ProcessCommandForDividedRender()
@@ -1641,9 +1695,25 @@ void RSMainThread::ProcessCommandForDividedRender()
     RS_TRACE_END();
 }
 
+bool RSMainThread::CheckIfNeedSplitTransaction(std::unique_ptr<RSTransactionData>& rsTransactionData)
+{
+    if (rsTransactionData->GetRSTransactionDataScene() == RSTransactionDataScenes::Rebuild) {
+        return true;
+    }
+    return false;
+}
+
 void RSMainThread::ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid)
 {
     context_->transactionTimestamp_ = rsTransactionData->GetTimestamp();
+    // 检查是否为重建事务序列
+    if (CheckIfNeedSplitTransaction(rsTransactionData)) {
+        RS_TRACE_NAME("ProcessRSTransactionData: detected rebuild transaction sequence");
+        AddSplitTransaction(std::move(rsTransactionData));
+        return;
+    }
+
+    // 普通事务直接处理
     rsTransactionData->Process(*context_);
 }
 
@@ -2646,6 +2716,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 SetHasSurfaceLockLayer(node->GetFixRotationByUser());
             }
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
+            renderThreadParams_->canvasDrawingSelfDrawables_ = std::move(canvasDrawingSelfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
             renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
             RsFrameReport::DirectRenderEnd();
@@ -2714,6 +2785,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         SelfDrawingNodeMonitor::GetInstance().TriggerRectChangeCallback();
         rsVsyncRateReduceManager_.SetUniVsync();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
+        renderThreadParams_->canvasDrawingSelfDrawables_ = std::move(canvasDrawingSelfDrawables_);
         renderThreadParams_->hardCursorDrawableVec_ = RSPointerWindowManager::Instance().GetHardCursorDrawableVec();
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
@@ -3659,7 +3731,8 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
-        if (RSUnmarshalThread::Instance().CachedTransactionDataEmpty()) {
+        if (RSUnmarshalThread::Instance().CachedTransactionDataEmpty() ||
+            RSUnmarshalThread::Instance().IsNoNeedWaitUnmarshalling()) {
             // set needWaitUnmarshalFinished_ to false, it means mainLoop do not wait unmarshalBarrierTask_
             needWaitUnmarshalFinished_ = false;
         } else {
@@ -4957,6 +5030,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hardwareEnabledDrwawables_.clear();
         ClearSelfDrawingNodes();
         selfDrawables_.clear();
+        canvasDrawingSelfDrawables_.clear();
         RSPointerWindowManager::Instance().ResetHardCursorDrawables();
 #endif
     }
@@ -5872,6 +5946,75 @@ void RSMainThread::RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList)
             rmvSurfaceFpsOpMap_.erase(op.surfaceNodeId);
         }
     }
+}
+
+bool RSMainThread::IsRebuildTransactionInProgress() const
+{
+    return !pendingSplitTransactions_.empty();
+}
+ 
+pid_t RSMainThread::GetPendingSplitPid() const
+{
+    return pendingSplitPid_;
+}
+ 
+void RSMainThread::AddSplitTransaction(std::unique_ptr<RSTransactionData> transaction)
+{
+    if (!transaction) {
+        return;
+    }
+    pendingSplitPid_ = transaction->GetSendingPid();
+    pendingSplitTransactions_.push_back(std::move(transaction));
+    RS_TRACE_NAME_FMT("AddSplitTransaction: pending rebuild transactions count = %zu", pendingSplitTransactions_.size());
+}
+ 
+void RSMainThread::ProcessSplitTransactionCommands()
+{
+    if (pendingSplitTransactions_.empty()) {
+        return;
+    }
+ 
+    RS_TRACE_NAME("ProcessSplitTransactionCommands: start processing rebuild transactions");
+ 
+    constexpr int64_t MAX_PROCESS_TIME_MS = 3;
+    const int64_t startTime = GetCurrentSteadyTimeMs();
+    constexpr size_t CHECK_INTERVAL = 300;
+    bool isRemain = false;
+ 
+    while (!pendingSplitTransactions_.empty()) {
+        auto& transaction = pendingSplitTransactions_.front();
+        if (!transaction) {
+            pendingSplitTransactions_.pop_front();
+            continue;
+        }
+ 
+        auto& payload = transaction->GetPayload();
+        size_t commandCount = payload.size();
+ 
+        for (size_t i = 0; i < commandCount; ++i) {
+            if (i % CHECK_INTERVAL == 0) {
+                const int64_t currentTime = GetCurrentSteadyTimeMs();
+                if (currentTime - startTime >= MAX_PROCESS_TIME_MS) {
+                    RS_TRACE_NAME_FMT("ProcessSplitTransactionCommands: time limit reached, processed %zu/%zu "
+                        "commands", i, commandCount);
+                    payload.erase(payload.begin(), payload.begin() + i);
+                    RS_TRACE_NAME("ProcessSplitTransactionCommands: has remaining commands, requesting next vsync");
+                    RequestNextVSync("ProcessSplitTransactionCommands");
+                    return;
+                }
+            }
+ 
+            auto& [nodeId, followType, command] = payload[i];
+            if (command != nullptr && command->IsCallingPidValid()) {
+                RS_PROFILER_EXECUTE_COMMAND(&*command);
+                command->Process(*context_);
+            }
+        }
+ 
+        RS_TRACE_NAME_FMT("ProcessSplitTransactionCommands: processed transaction with %zu commands", commandCount);
+        pendingSplitTransactions_.pop_front();
+    }
+    pendingSplitPid_ = -1;
 }
 } // namespace Rosen
 } // namespace OHOS

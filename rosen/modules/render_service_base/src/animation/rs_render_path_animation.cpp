@@ -162,6 +162,21 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
     }
 }
 
+void RSRenderPathAnimation::RebuildPropertyValue(float fraction)
+{
+    if (GetOriginValue() == nullptr || interpolator_ == nullptr || valueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderPathAnimation::RebuildPropertyValue failed: "
+            "originValue[%{public}d] interpolator[%{public}d] valueEstimator[%{public}d]",
+            GetOriginValue() != nullptr, interpolator_ != nullptr, valueEstimator_ != nullptr);
+        return;
+    }
+    if (GetOriginValue()->GetPropertyType() != RSPropertyType::VECTOR4F) {
+        return;
+    }
+    auto interpolatedFraction = interpolator_->Interpolate(fraction);
+    valueEstimator_->RebuildValue(interpolatedFraction);
+}
+
 void RSRenderPathAnimation::OnRemoveOnCompletion()
 {
     auto target = GetTarget();

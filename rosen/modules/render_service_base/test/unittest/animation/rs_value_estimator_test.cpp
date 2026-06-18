@@ -119,5 +119,68 @@ HWTEST_F(RSValueEstimatorTest, UpdateAnimationValueTest, TestSize.Level1)
     curveValueEstimator->property_->Set(value1);
     curveValueEstimator->UpdateAnimationValue(0.f, true);
 }
+
+/**
+ * @tc.name: RebuildValue001
+ * @tc.desc: Verify RSCurveAnimationValueEstimator RebuildValue with valid parameters
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, RebuildValue001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue001 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<float>>();
+    curveValueEstimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    curveValueEstimator->RebuildValue(0.5f);
+    float expectedBase = 5.0f - (8.0f - 2.0f);
+    float expectedResult = expectedBase * (1.0f - 0.5f) + 5.0f * 0.5f;
+    EXPECT_FLOAT_EQ(property->Get(), expectedResult);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue001 end";
+}
+
+/**
+ * @tc.name: RebuildValue002
+ * @tc.desc: Verify RSCurveAnimationValueEstimator RebuildValue with fraction 0
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, RebuildValue002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue002 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(5.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<float>>();
+    curveValueEstimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    curveValueEstimator->RebuildValue(0.0f);
+    float expectedBase = 5.0f - (8.0f - 2.0f);
+    EXPECT_FLOAT_EQ(property->Get(), expectedBase);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue002 end";
+}
+
+/**
+ * @tc.name: RebuildValue003
+ * @tc.desc: Verify RSCurveAnimationValueEstimator RebuildValue with fraction 1
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSValueEstimatorTest, RebuildValue003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue003 start";
+    float propertyInit = 5.0f;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(propertyInit);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(2.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto lastValue = std::make_shared<RSRenderAnimatableProperty<float>>(8.0f);
+    auto curveValueEstimator = std::make_shared<RSCurveValueEstimator<float>>();
+    curveValueEstimator->InitCurveAnimationValue(property, startValue, endValue, lastValue);
+    curveValueEstimator->RebuildValue(1.0f);
+    float expectedResult = propertyInit;
+    EXPECT_FLOAT_EQ(property->Get(), expectedResult);
+    GTEST_LOG_(INFO) << "RSValueEstimatorTest RebuildValue003 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

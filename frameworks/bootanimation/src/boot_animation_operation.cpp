@@ -46,7 +46,6 @@ void BootAnimationOperation::Init(const BootAnimationConfig& config, int32_t wid
     sptr<IRemoteObject> connectToRender)
 {
     LOGI("Init enter, width: %{public}d, height: %{public}d, screenId : " BPUBU64 "", width, height, config.screenId);
-    OHOS::Rosen::RSSystemProperties::SetTypicalResidentProcess(true);
     currentScreenId_ = config.screenId;
     windowWidth_ = width;
     windowHeight_ = height;

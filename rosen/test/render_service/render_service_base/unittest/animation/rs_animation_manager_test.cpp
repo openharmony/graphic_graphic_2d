@@ -21,6 +21,15 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+class RSRenderAnimationMock : public RSRenderAnimation {
+public:
+    RSRenderAnimationMock() : RSRenderAnimation() {}
+    explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
+    ~RSRenderAnimationMock() override = default;
+    void RebuildPropertyValue(float fraction) override {}
+};
+
 class RSAnimationManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -42,7 +51,7 @@ void RSAnimationManagerTest::TearDown() {}
 HWTEST_F(RSAnimationManagerTest, DumpAnimationsTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
-    auto animation = std::make_shared<RSRenderAnimation>();
+    auto animation = std::make_shared<RSRenderAnimationMock>();
     std::string str = "out";
     std::string copy = str;
     rsAnimationManager.AddAnimation(animation);
@@ -63,7 +72,7 @@ HWTEST_F(RSAnimationManagerTest, AddAnimationTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
     bool isInitialized = false;
-    auto animation = std::make_shared<RSRenderAnimation>();
+    auto animation = std::make_shared<RSRenderAnimationMock>();
     rsAnimationManager.AddAnimation(animation);
     ASSERT_FALSE(isInitialized);
 }
@@ -143,7 +152,7 @@ HWTEST_F(RSAnimationManagerTest, GetAnimationTest001, TestSize.Level1)
 HWTEST_F(RSAnimationManagerTest, OnAnimationFinishedTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
-    auto animation = std::make_shared<RSRenderAnimation>();
+    auto animation = std::make_shared<RSRenderAnimationMock>();
     rsAnimationManager.OnAnimationFinished(animation);
     EXPECT_NE(animation, nullptr);
 }
@@ -273,7 +282,7 @@ HWTEST_F(RSAnimationManagerTest, QuerySpringAnimationTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
     PropertyId propertyId = 0;
-    auto res = std::make_shared<RSRenderAnimation>();
+    auto res = std::make_shared<RSRenderAnimationMock>();
     rsAnimationManager.QuerySpringAnimation(propertyId);
     ASSERT_NE(res, nullptr);
 }
@@ -315,7 +324,7 @@ HWTEST_F(RSAnimationManagerTest, QueryPathAnimationTest001, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
     PropertyId propertyId = 0;
-    auto res = std::make_shared<RSRenderAnimation>();
+    auto res = std::make_shared<RSRenderAnimationMock>();
     rsAnimationManager.QueryPathAnimation(propertyId);
     ASSERT_NE(res, nullptr);
 }
@@ -344,7 +353,7 @@ HWTEST_F(RSAnimationManagerTest, UnregisterParticleAnimationTest001, TestSize.Le
     RSAnimationManager rsAnimationManager;
     PropertyId propertyId = 0;
     AnimationId animId = 0;
-    auto animation = std::make_shared<RSRenderAnimation>();
+    auto animation = std::make_shared<RSRenderAnimationMock>();
     rsAnimationManager.AddAnimation(animation);
     rsAnimationManager.UnregisterParticleAnimation(propertyId, animId);
     ASSERT_NE(animation, nullptr);

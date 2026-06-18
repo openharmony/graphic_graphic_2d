@@ -35,6 +35,14 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+class RSRenderAnimationMock : public RSRenderAnimation {
+public:
+    RSRenderAnimationMock() : RSRenderAnimation() {}
+    explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
+    ~RSRenderAnimationMock() override = default;
+    void RebuildPropertyValue(float fraction) override {}
+};
+
 class RSNodeAnimationTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -108,7 +116,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext003, TestSize.Level1)
     AnimationId id = 1;
     auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(-1);
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     rsNode->animations_.insert({ id, animation });
 
     // FallbackAnimationsToContext should process the animation
@@ -139,7 +147,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext004, TestSize.Level1)
     AnimationId id2 = 2;
     auto animation2 = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation2->SetRepeatCount(-1);
-    animation2->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation2->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
 
     AnimationId id3 = 3;
     auto animation3 = std::make_shared<RSDummyAnimation>(rsUIContext);
@@ -198,7 +206,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToContext006, TestSize.Level1)
     AnimationId id = 1;
     auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(1);
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     rsNode->animations_.insert({ id, animation });
 
     // FallbackAnimationsToContext should move animation to context
@@ -266,7 +274,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot, TestSize.Level1)
 
     animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(-1);
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     rsNode->animations_.insert({ id, animation });
     rsNode->FallbackAnimationsToContext();
 
@@ -297,7 +305,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot002, TestSize.Level1)
     AnimationId id2 = 2;
     auto animation2 = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation2->SetRepeatCount(-1);
-    animation2->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation2->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
 
     AnimationId id3 = 3;
     auto animation3 = std::make_shared<RSDummyAnimation>(rsUIContext);
@@ -356,7 +364,7 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot004, TestSize.Level1)
     AnimationId id = 1;
     auto animation = std::make_shared<RSDummyAnimation>(rsUIContext);
     animation->SetRepeatCount(1);
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     rsNode->animations_.insert({ id, animation });
     rsNode->FallbackAnimationsToContext();
 
