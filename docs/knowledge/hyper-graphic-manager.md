@@ -29,7 +29,7 @@ rosen/modules
 │   │   └── native_display_soloist/                                       # OH_DisplaySoloist 应用帧率控制 C API
 │   └── frame_rate_vote/                                                  # RSFrameRateVote、RSVideoFrameRateVote
 ├── render_service/
-│   ├── core/feature/hyper_graphic_manager/                               # HGM模块跟其他模块的交互，包括IPC事件输入，渲染端数据输入，刷新率数据输出
+│   ├── core/feature/hyper_graphic_manager/                               # 跟其他模块的交互，包括IPC事件输入，渲染端数据输入，刷新率数据输出
 │   └── composer/composer_service/external_depend/hyper_graphic_manager/  # 切换屏幕刷新率档位和设置送显模式，跟硬件相关的业务
 ├── render_service_base/src/
 │   ├── transaction/rs_hgm_config_data.cpp                                # 应用端动画速度对应的帧率值配置数据
