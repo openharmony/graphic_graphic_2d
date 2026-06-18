@@ -274,6 +274,7 @@ void OcclusionNode::UpdateSubTreeProp()
 {
     isValidInCurrentFrame_ = true;
     auto parentShared = parentOcNode_.lock();
+    isSubTreeIgnored_ |= (parentShared == nullptr) || parentShared->isSubTreeIgnored_;
     if (parentShared && !isSubTreeIgnored_) {
         CalculateNodeAllBounds();
     }
