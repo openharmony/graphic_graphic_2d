@@ -167,7 +167,8 @@ RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, M
 
 bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
 {
-    auto customModifiers = node.GetModifiersNG(modifierTypeNG_);
+    const auto& modifiers = node.GetModifiersNG(modifierTypeNG_);
+    RSRenderNode::ModifierNGContainer customModifiers(modifiers.begin(), modifiers.end());
     if (customModifiers.empty()) {
         return false;
     }
