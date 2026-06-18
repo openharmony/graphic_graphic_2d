@@ -260,8 +260,6 @@ HGM 还会接收外部 IPC 输入参与帧率决策，典型链路如下：
 - 不要在 `RenderProcessManager` 相关的实现中 使用HgmCore这个单例。
 - 不要直接访问对侧对象；服务端和渲染端只能通过 `renderToServiceConnection_` 或
   `RSRenderToServiceConnection` 交换运行时数据。
-- 不要在没有 `pendingMutex_` 锁的情况下修改 `currRefreshRate_`。
-- 不要在错误返回前跳过必要的 `HGM_LOGE`。
 - 不要把多进程模式下帧率决策回调不执行误判为普通 bug；这是当前规格禁用路径。
 
 ## 验证建议
