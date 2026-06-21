@@ -1104,7 +1104,7 @@ void RSSurfaceRenderNode::UpdateSpecialLayerInfoByOnTreeStateChange()
     if (firstLevelNode) {
         if (specialLayerManager_.Find(SpecialLayerType::PROTECTED)) {
             firstLevelNode->SetDirty();
-        }        
+        }
         if (IsOnTheTree()) {
             firstLevelNode->specialLayerManager_.AddIds(specialLayerManager_.Get(), GetId());
         } else {
@@ -2004,6 +2004,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     if (GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) {
         surfaceParams->SetLayerSourceTuning(1);
     }
+    UpdateDelegateRectToSurfaceParams();
     AddToPendingSyncList();
 #endif
 #endif
@@ -4191,6 +4192,101 @@ void RSSurfaceRenderNode::SetCrossNodeVisitedStatus(bool hasVisited)
         }
         sourceNode->SetCrossNodeVisitedStatus(hasVisited);
     }
+}
+
+void RSSurfaceRenderNode::SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW)
+{
+    if (!delegateCompositeParams_) {
+        return;
+    }
+    delegateCompositeParams_->SetDelegateDstRect(positionX, positionY, positionZ, positionW);
+}
+
+Vector4f RSSurfaceRenderNode::GetDelegateDstRect()
+{
+    if (!delegateCompositeParams_) {
+        return { 0, 0, 0, 0 };
+    }
+    return delegateCompositeParams_->GetDelegateDstRect();
+}
+
+void RSSurfaceRenderNode::SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW)
+{
+    if (!delegateCompositeParams_) {
+        return;
+    }
+    delegateCompositeParams_->SetDelegateSrcRect(positionX, positionY, positionZ, positionW);
+}
+
+Vector4f RSSurfaceRenderNode::GetDelegateSrcRect()
+{
+    if (!delegateCompositeParams_) {
+        return { 0, 0, 0, 0 };
+    }
+    return delegateCompositeParams_->GetDelegateSrcRect();
+}
+
+bool RSSurfaceRenderNode::GetDelegateMode()
+{
+    if (!delegateCompositeParams_) {
+        return false;
+    }
+    return delegateCompositeParams_->GetDelegateMode();
+}
+
+void RSSurfaceRenderNode::SetDelegateMode(bool isSetDelegateMode)
+{
+    if (!isSetDelegateMode) {
+        return;
+    }
+
+    if (delegateCompositeParams_) {
+        return;
+    }
+
+    delegateCompositeParams_ = std::make_shared<RsDelegateCompositeParams>(name_, GetId());
+    if (delegateCompositeParams_) {
+        delegateCompositeParams_->SetDelegateMode(isSetDelegateMode);
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(GetStagingRenderParams().get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetDelegateMode(isSetDelegateMode);
+        if (stagingRenderParams_->NeedSync()) {
+            AddToPendingSyncList();
+        }
+    }
+}
+
+bool RSSurfaceRenderNode::IsDelegateModeNodeWithBuffer()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (!GetDelegateMode()) {
+        return false;
+    }
+
+    const std::shared_ptr<RSSurfaceHandler> surfaceHandler = GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        return false;
+    }
+
+    return surfaceHandler->GetBuffer() != nullptr;
+#else
+    return false;
+#endif
+}
+
+void RSSurfaceRenderNode::UpdateDelegateRectToSurfaceParams()
+{
+    if (!GetDelegateMode()) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    const Vector4f& boundRect = GetDelegateDstRect();
+    const Vector4f& frameRect = GetDelegateSrcRect();
+    surfaceParams->SetDelegateDstRect({boundRect.x_, boundRect.y_, boundRect.z_, boundRect.w_});
+    surfaceParams->SetDelegateSrcRect({frameRect.x_, frameRect.y_, frameRect.z_, frameRect.w_});
 }
 } // namespace Rosen
 } // namespace OHOS

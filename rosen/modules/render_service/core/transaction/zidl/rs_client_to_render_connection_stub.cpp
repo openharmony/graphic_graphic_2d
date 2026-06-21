@@ -121,6 +121,10 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::MARK_WEB_NODE),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_TRANSACTION_LISTENER),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_TRANSACTION_LISTENER),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -1744,6 +1748,77 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             SetFreeMultiWindowStatus(enable);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_TRANSACTION_LISTENER): {
+            sptr<IRemoteObject> listenerObject = data.ReadRemoteObject();
+            if (listenerObject == nullptr) {
+                RS_LOGE("DelegateModeDebugTag:REGISTER_SURFACE_TRANSACTION_LISTENER: ReadRemoteObject fail");
+                return ERR_INVALID_REPLY;
+            }
+            uint64_t listenerId = 0;
+            if (!data.ReadUint64(listenerId)) {
+                RS_LOGE("DelegateModeDebugTag:REGISTER_SURFACE_TRANSACTION_LISTENER: ReadUint64 fail, listenerId");
+                return ERR_INVALID_REPLY;
+            }
+            int32_t pid = 0;
+            uint32_t tid = 0;
+            if (!data.ReadInt32(pid) || !data.ReadUint32(tid)) {
+                RS_LOGE("DelegateModeDebugTag: REGISTER_SURFACE_TRANSACTION_LISTENER: ReadUint64 fail, pid/tid");
+                return ERR_INVALID_REPLY;
+            }
+            sptr<RSISurfaceTransactionListener> listener = iface_cast<RSISurfaceTransactionListener>(listenerObject);
+            if (listener == nullptr) {
+                RS_LOGE("DelegateModeDebugTag: REGISTER_SURFACE_TRANSACTION_LISTENER: iface_cast fail");
+                return ERR_INVALID_REPLY;
+            }
+            RegisterSurfaceTransactionListenerNew(listener, listenerId, pid, tid);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_TRANSACTION_LISTENER): {
+            uint64_t listenerId = 0;
+            if (!data.ReadUint64(listenerId)) {
+                RS_LOGE("DelegateModeDebugTag:UNREGISTER_SURFACE_TRANSACTION_LISTENER: ReadUint64 fail, listenerId");
+                return ERR_INVALID_REPLY;
+            }
+            UnRegisterSurfaceTransactionListener(listenerId);
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER): {
+            sptr<IRemoteObject> listenerObject = data.ReadRemoteObject();
+            if (listenerObject == nullptr) {
+                RS_LOGE("DelegateModeDebugTag:REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER: ReadRemoteObject fail");
+                return ERR_INVALID_REPLY;
+            }
+            sptr<RSISurfaceNodeBufferReleaseCallback> listener =
+                iface_cast<RSISurfaceNodeBufferReleaseCallback>(listenerObject);
+            if (listener == nullptr) {
+                RS_LOGE("DelegateModeDebugTag: REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER: iface_cast fail");
+                return ERR_INVALID_REPLY;
+            }
+            RegisterSurfaceNodeBufferReleaseListener(listener);
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::UNREGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER): {
+            UnRegisterSurfaceNodeBufferReleaseListener();
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::MARK_WEB_NODE): {
+            uint64_t id = 0;
+            bool isSetDelegateMode = false;
+            int32_t pid = 0;
+            if (!data.ReadUint64(id) || !data.ReadBool(isSetDelegateMode) || !data.ReadInt32(pid)) {
+                RS_LOGE("DelegateModeDebugTag:MARK_WEB_NODE: read data fail");
+                return IPC_STUB_INVALID_DATA_ERR;
+            }
+            RS_LOGI("MARK_WEB_NODE nodeId: %{public}" PRIu64 ", isSetDelegateMode: %{public}d", id, isSetDelegateMode);
+            if (!SetDelegateMode(id, isSetDelegateMode, pid)) {
+                RS_LOGE("DelegateModeDebugTag:MARK_WEB_NODE: SetDelegateMode fail");
+                return IPC_STUB_INVALID_DATA_ERR;
+            }
+            ret = ERR_NONE;
             break;
         }
         default: {

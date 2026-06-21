@@ -23,6 +23,7 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
 #include "feature/hpae/rs_hpae_manager.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "gpuComposition/rs_gpu_cache_manager.h"
@@ -95,6 +96,9 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
+#ifndef ROSEN_CROSS_PLATFORM
+    RsDelegateCompositeCallbackManager::GetInstance().NotifyCurrentSurfaceNodeBufferReleaseCallback();
+#endif
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),
         unirenderInstance_.GetMinAccumulatedBufferCount());
     unirenderInstance_.UpdateScreenNodeScreenId();

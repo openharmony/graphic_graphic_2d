@@ -470,6 +470,12 @@ public:
      */
     void SetOnRenderProcessDiedCallback(const std::function<void()>& callback);
 
+    /**
+     * @brief Set surfaceNode delegate mode flag
+     * @param id nodeId.
+     * @param isDelegateMode Indicates whether enable.
+     */
+    bool SetDelegateMode(NodeId id, bool isDelegateMode);
 private:
     RSRenderInterface();
     RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);

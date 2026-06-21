@@ -234,6 +234,13 @@ public:
         const FrameStabilityTarget& oldTarget,
         const FrameStabilityTarget& newTarget
     );
+    bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid);
+    bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,
+    uint64_t listenerId, uint32_t pid, uint32_t tid);
+    bool UnRegisterSurfaceTransactionListener(uint64_t listenerId);
+    bool RegisterSurfaceNodeBufferReleaseListener(pid_t pid, sptr<RSISurfaceNodeBufferReleaseCallback> listener);
+    bool UnRegisterSurfaceNodeBufferReleaseListener(pid_t pid);
+
 private:
     void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface);
     void ConfigureForceTunnelLayer(

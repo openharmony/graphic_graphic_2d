@@ -802,6 +802,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     hwcVisitor_->UpdateHwcNodeEnable();
     UpdateSurfaceDirtyAndGlobalDirty();
     UpdateSurfaceOcclusionInfo();
+    GetScreenRotation(node);
     if (needRecalculateOcclusion_) {
         // Callback for registered self drawing surfacenode
         RSMainThread::Instance()->SurfaceOcclusionCallback();
@@ -1285,7 +1286,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
     PostPrepare(node, !isSubTreeNeedPrepare);
     dynamicLayerSkipController_->DetectScreenLayerValidity(node);
-    if (node.IsHardwareEnabledTopSurface() && node.shared_from_this()) {
+    if ((node.IsHardwareEnabledTopSurface() || node.GetDelegateMode()) && node.shared_from_this()) {
         RSUniHwcComputeUtil::UpdateHwcNodeProperty(node.shared_from_this()->ReinterpretCastTo<RSSurfaceRenderNode>());
     }
     CalculateOpaqueAndTransparentRegion(node);
@@ -1995,7 +1996,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     if (isAccessibilityConfigChanged) {
         node.MarkAccessibilityConfigChanged(true);
     }
-    
+
     RSOpincManager::Instance().InitLayerPartRenderNode(OPIncParam::IsLayerPartRenderEnable(), node,
         curLayerPartRenderDirtyManager_);
 
@@ -2456,6 +2457,12 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
             return;
         }
         hwcVisitor_->UpdateHwcNodeInfo(node, geo->GetAbsMatrix());
+    } else if (node.IsHardwareEnabledType() && node.GetDelegateMode()) {
+        auto& geo = node.GetRenderProperties().GetBoundsGeometry();
+        if (geo == nullptr) {
+            return;
+        }
+        hwcVisitor_->UpdateHwcNodeInfo(node, geo->GetAbsMatrix());
     }
 }
 
@@ -2650,6 +2657,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
     if (hwcNodes.empty() || !curScreenNode_) {
         return;
     }
+    std::optional<bool> isHardwareForcedDisabled;
     for (auto hwcNode : hwcNodes) {
         auto hwcNodePtr = hwcNode.lock();
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
@@ -2696,9 +2704,28 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
             surfaceHandler->SetGlobalZOrder(globalZOrder_++);
         }
         auto transform = RSUniHwcComputeUtil::GetLayerTransform(*hwcNodePtr);
+
+        UpdateHardWareForcedDisabledStateForDelegateMode(hwcNodePtr, isHardwareForcedDisabled);
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
     }
     curScreenNode_->SetDisplayGlobalZOrder(globalZOrder_);
+}
+
+void RSUniRenderVisitor::UpdateHardWareForcedDisabledStateForDelegateMode(
+    std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr, std::optional<bool>& isHardwareForcedDisabled)
+{
+    if (hwcNodePtr && hwcNodePtr->GetDelegateMode()) {
+        if (!isHardwareForcedDisabled.has_value() && hwcNodePtr->IsHardwareForcedDisabled() &&
+            hwcNodePtr->GetName() == "delegate_child_video") {
+            RS_TRACE_NAME_FMT("nodeId: %" PRIu64 ", is delegateMode, dss disabled", hwcNodePtr->GetId());
+            isHardwareForcedDisabled = hwcNodePtr->IsHardwareForcedDisabled();
+        } else if (isHardwareForcedDisabled.has_value() && !hwcNodePtr->IsHardwareForcedDisabled() &&
+                   hwcNodePtr->GetName() == "delegate_child") {
+            RS_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " is disabled by other delegateMode node",
+                hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
+            hwcNodePtr->SetHardwareForcedDisabledState(isHardwareForcedDisabled.value());
+        }
+    }
 }
 
 void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
@@ -4487,6 +4514,41 @@ RSUniRenderVisitor::RotationStatus RSUniRenderVisitor::GetRotationStatus() const
     bool rotationStatusChanged = curLogicalDisplayNode_ ?
         curLogicalDisplayNode_->GetPreRotationStatus() != curLogicalDisplayNode_->GetCurRotationStatus() : false;
     return {rotationChanged, rotationStatusChanged};
+}
+
+bool RSUniRenderVisitor::InitForDelegateMode(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine)
+{
+    renderEngine_ = renderEngine;
+    const ScreenInfo& info = node.GetScreenInfo();
+    prepareClipRect_ = {0, 0, info.phyWidth, info.phyHeight};
+    return InitScreenInfo(node);
+}
+
+void RSUniRenderVisitor::GetScreenRotation(RSScreenRenderNode& node)
+{
+    auto children = node.GetChildrenList();
+    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
+
+    // Find the display node with boot animation first, or will cause black screen during boot animation.
+    for (const auto& child : children) {
+        if (auto node = child.lock()) {
+            if (node->GetBootAnimation()) {
+                displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+                break;
+            } else if (!displayNode) {
+                displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+            }
+        }
+    }
+
+    auto stagingDisplayParams = static_cast<RSScreenRenderParams*>(node.GetStagingRenderParams().get());
+    if (!stagingDisplayParams || !displayNode) {
+        RS_LOGW("RSUniRenderVisitor::GetScreenRotation fail");
+        return;
+    }
+
+    RS_TRACE_NAME_FMT("RSUniRenderVisitor::GetScreenRotation=%u", displayNode->GetRotation());
+    stagingDisplayParams->SetScreenRotationForDelegate(displayNode->GetRotation());
 }
 } // namespace Rosen
 } // namespace OHOS

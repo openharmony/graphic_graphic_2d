@@ -214,6 +214,7 @@ private:
                 surfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
+    void UpdateRectForDelegateMode(const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
     static void AddSurfaceFpsOpStatic(
         SurfaceFpsOpType surfaceFpsOpType, NodeId id, const std::string& name, uint64_t uniqueId);
 

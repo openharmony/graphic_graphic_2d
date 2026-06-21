@@ -83,6 +83,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_HDR_TYPE = 48,
     SURFACE_NODE_SET_DARK_COLOR_MODE = 49,
     SURFACE_NODE_SET_SURFACE_CAPTURE_CALLBACK = 50,
+    SURFACE_NODE_SET_DELEGATE_MODE = 51,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -144,6 +145,7 @@ public:
     static void SetAppRotationCorrection(RSContext& context, NodeId nodeId, ScreenRotation appRotationCorrection);
     static void SetHDRType(RSContext& context, NodeId nodeId, uint32_t hdrType);
     static void SetDarkColorMode(RSContext& context, NodeId nodeId, bool isDarkColorMode);
+    static void SetDelegateMode(RSContext& context, NodeId nodeId, bool isDelegateMode);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -296,6 +298,9 @@ ADD_COMMAND(RSSurfaceNodeSetAppRotationCorrection,
 ADD_COMMAND(RSSurfaceNodeSetHDRType,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_HDR_TYPE,
         SurfaceNodeCommandHelper::SetHDRType, NodeId, uint32_t))
+ADD_COMMAND(RSSurfaceNodeSetDelegateMode,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_DELEGATE_MODE,
+        SurfaceNodeCommandHelper::SetDelegateMode, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

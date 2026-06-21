@@ -160,6 +160,9 @@ void SurfaceNodeCommandHelper::SetColorSpace(RSContext& context, NodeId id, Grap
 void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, NodeId id, float width, float height)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        if (node->GetDelegateMode()) {
+            return;
+        }
         node->UpdateSurfaceDefaultSize(width, height);
     }
 }
@@ -498,6 +501,13 @@ void SurfaceNodeCommandHelper::SetHDRType(RSContext& context, NodeId nodeId, uin
 {
     if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetHDRType(hdrType);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetDelegateMode(RSContext& context, NodeId nodeId, bool isDelegateMode)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetDelegateMode(isDelegateMode);
     }
 }
 } // namespace Rosen

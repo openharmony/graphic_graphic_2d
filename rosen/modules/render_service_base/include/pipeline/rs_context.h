@@ -78,6 +78,11 @@ public:
         return nodeMap;
     }
 
+    std::set<NodeId>& GetWebNodeMap()
+    {
+        return webNodeIds;
+    }
+
     const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& GetAnimatingNodeList() const
     {
         return animatingNodeList_;
@@ -257,6 +262,7 @@ private:
     // The root of render node tree, Note: this node is not the animation fallback node.
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     RSRenderNodeMap nodeMap;
+    std::set<NodeId> webNodeIds;
     std::vector<std::string> uiFrameworkTypeTable_;
     std::vector<std::weak_ptr<RSRenderNode>> uiFrameworkDirtyNodes_;
     std::unordered_set<FrameRateLinkerId> frameRateLinkerDestroyIds_;

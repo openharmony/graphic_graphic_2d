@@ -19,6 +19,7 @@
 
 #include "rs_buffer_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -415,12 +416,15 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     }
 
     auto mergedFence = TryMergeFence(info.mergedFences_);
-    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseBufferById bufferId %" PRIu64 " Fence %d",
-        buffer->GetBufferId(), mergedFence ? mergedFence->Get() : -1);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseBufferById bufferId %" PRIu64 " Fence %d, seqnum=%u",
+        buffer->GetBufferId(), mergedFence ? mergedFence->Get() : -1, buffer->GetSeqNum());
     auto ret = consumer->ReleaseBuffer(buffer, mergedFence);
     if (ret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGD("RSBufferManager::ReleaseBufferById ReleaseBuffer failed(bufferId:%{public}" PRIu64
             ", ret:%{public}d)", bufferId, ret);
+#ifndef ROSEN_CROSS_PLATFORM
+        RsDelegateCompositeCallbackManager::GetInstance().AddBufferReleaseInfo(buffer, mergedFence, consumer);
+#endif
     }
     pendingReleaseBuffers_.erase(iter);
 }

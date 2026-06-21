@@ -506,7 +506,15 @@ public:
     {
         nodeId_ = nodeId;
     }
+    void SetDelegateMode(bool isDelegateMode)
+    {
+        isDelegateMode_ = isDelegateMode;
+    }
 
+    bool GetDelegateMode()
+    {
+        return isDelegateMode_;
+    }
     // only anco use these interfaces
     void SetAncoFlags(const uint32_t ancoFlags) { ancoFlags_ = ancoFlags; }
     uint32_t GetAncoFlags() const { return ancoFlags_; }
@@ -587,6 +595,7 @@ private:
     // hpae offline
     bool useDeviceOffline_ = false;
     bool ignoreAlpha_ = false;
+    bool isDelegateMode_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

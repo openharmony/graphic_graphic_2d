@@ -27,6 +27,7 @@
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
+#include <transaction/transaction.h>
 #include <utility>
 #endif
 
@@ -38,7 +39,9 @@
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
+#include "ipc_callbacks/rs_transaction_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
+#include "ipc_callbacks/rs_delegate_composite_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
 #endif

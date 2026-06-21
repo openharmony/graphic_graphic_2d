@@ -292,6 +292,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->logicalCameraRotationCorrection_ = logicalCameraRotationCorrection_;
     targetScreenParams->layerSkipContext_ = layerSkipContext_;
     targetScreenParams->hasForceHwcHdrSurface_ = hasForceHwcHdrSurface_;
+    targetScreenParams->rotation_ = rotation_;
 
     RSRenderParams::OnSync(target);
 }
@@ -397,5 +398,19 @@ void RSScreenRenderParams::SetLogicalCameraRotationCorrection(ScreenRotation log
 ScreenRotation RSScreenRenderParams::GetLogicalCameraRotationCorrection() const
 {
     return logicalCameraRotationCorrection_;
+}
+
+void RSScreenRenderParams::SetScreenRotationForDelegate(ScreenRotation rotation)
+{
+    if (rotation == rotation_) {
+        return;
+    }
+    rotation_ = rotation;
+    needSync_ = true;
+}
+
+ScreenRotation RSScreenRenderParams::GetScreenRotationForDelegate() const
+{
+    return rotation_;
 }
 } // namespace OHOS::Rosen

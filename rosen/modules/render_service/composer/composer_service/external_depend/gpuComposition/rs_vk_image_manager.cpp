@@ -148,7 +148,7 @@ std::shared_ptr<VkImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     auto bufferId = buffer->GetBufferId();
     auto iter = imageCacheSeqs_.find(bufferId);
     if (isProtectedCondition || iter == imageCacheSeqs_.end()) {
-        RS_TRACE_NAME_FMT("create vkImage, bufferId=%" PRIu64 "", bufferId);
+        RS_TRACE_NAME_FMT("create vkImage, bufferId=%" PRIu64 ", (bufferSeqNum=%u)", bufferId, buffer->GetSeqNum());
         return NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
     } else {
         const auto& imageCache = iter->second;
@@ -169,7 +169,7 @@ std::shared_ptr<VkImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
             imageCacheSeqs_.erase(iter);
             return NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
         }
-        RS_TRACE_NAME_FMT("find cache vkImage, bufferId=%" PRIu64 "", bufferId);
+        RS_TRACE_NAME_FMT("find cache vkImage, bufferId=%" PRIu64 ", (bufferSeqNum=%u)", bufferId, buffer->GetSeqNum());
         return imageCache;
     }
 }

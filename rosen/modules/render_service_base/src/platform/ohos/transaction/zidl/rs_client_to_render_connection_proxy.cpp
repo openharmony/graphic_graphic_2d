@@ -752,7 +752,7 @@ void RSClientToRenderConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurf
         ROSEN_LOGE("%{public}s write specifiedAreaRect failed", __func__);
         return;
     }
-    
+
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -940,7 +940,7 @@ ErrCode RSClientToRenderConnectionProxy::FreezeScreen(NodeId id, bool isFreeze, 
         ROSEN_LOGE("%{public}s write isFreeze failed", __func__);
         return ERR_INVALID_VALUE;
     }
-    
+
     if (!data.WriteBool(needSync)) {
         ROSEN_LOGE("%{public}s write needSync failed", __func__);
         return ERR_INVALID_VALUE;
@@ -1556,7 +1556,7 @@ void RSClientToRenderConnectionProxy::ClearSurfaceWatermarkForNodes(pid_t pid, c
         return;
     }
 }
-    
+
 void RSClientToRenderConnectionProxy::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
     MessageParcel data;
@@ -1946,6 +1946,131 @@ void RSClientToRenderConnectionProxy::SetFreeMultiWindowStatus(bool enable)
         ROSEN_LOGE("SetFreeMultiWindowStatus: Send Request err.");
         return;
     }
+}
+
+bool RSClientToRenderConnectionProxy::SetDelegateMode(NodeId id, bool isDelegate, pid_t pid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("DelegateModeDebugTag:SetDelegateMode: WriteInterfaceToken GetDescriptor err.");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(id) || !data.WriteBool(isDelegate) || !data.WriteInt32(pid)) {
+        ROSEN_LOGE("DelegateModeDebugTag:SetDelegateMode: Write data err.");
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::MARK_WEB_NODE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("DelegateModeDebugTag:SetDelegateMode: Send Request err.");
+        return false;
+    }
+    return true;
+}
+
+bool RSClientToRenderConnectionProxy::RegisterSurfaceTransactionListener(
+    sptr<RSISurfaceTransactionListener> listener, uint64_t listenerId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("DelegateModeDebugTag:RegisterSurfaceTransactionListener: WriteInterfaceToken GetDescriptor err");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteRemoteObject(listener->AsObject()) || !data.WriteUint64(listenerId) ||
+        !data.WriteInt32(pid_) || !data.WriteUint32(gettid())) {
+        ROSEN_LOGE("DelegateModeDebugTag:RegisterSurfaceTransactionListener: Write data err.");
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_TRANSACTION_LISTENER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("DelegateModeDebugTag:RegisterSurfaceTransactionListener: Send Request err.");
+        return false;
+    }
+    return true;
+}
+
+bool RSClientToRenderConnectionProxy::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("DelegateModeDebugTag: UnRegisterSurfaceTransactionListener: WriteInterfaceToken GetDescriptor err");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(listenerId)) {
+        ROSEN_LOGE("DelegateModeDebugTag: UnRegisterSurfaceTransactionListener: Write data err");
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_TRANSACTION_LISTENER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("DelegateModeDebugTag: UnRegisterSurfaceTransactionListener: Send Request err.");
+        return false;
+    }
+    return true;
+}
+
+bool RSClientToRenderConnectionProxy::RegisterSurfaceNodeBufferReleaseListener(
+    sptr<RSISurfaceNodeBufferReleaseCallback> listener)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!listener) {
+        ROSEN_LOGE("DelegateModeDebugTag:RegisterSurfaceNodeBufferReleaseListener: invalid listener");
+        return false;
+    }
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE(
+            "DelegateModeDebugTag:RegisterSurfaceNodeBufferReleaseListener: WriteInterfaceToken GetDescriptor err.");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteRemoteObject(listener->AsObject())) {
+        ROSEN_LOGE(
+            "DelegateModeDebugTag: RegisterSurfaceNodeBufferReleaseListener Write data err");
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("DelegateModeDebugTag: RegisterSurfaceNodeBufferReleaseListener fail, err=%{public}d", err);
+        return false;
+    }
+    return true;
+}
+
+bool RSClientToRenderConnectionProxy::UnRegisterSurfaceNodeBufferReleaseListener()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE(
+            "DelegateModeDebugTag: UnregisterSurfaceNodeBufferReleaseListener: WriteInterfaceToken GetDescriptor err");
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::UNREGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("DelegateModeDebugTag: UnregisterSurfaceNodeBufferReleaseListener: Send Request err");
+        return false;
+    }
+    return true;
 }
 
 } // namespace Rosen

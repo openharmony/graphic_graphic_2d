@@ -34,6 +34,8 @@ public:
     void OnGoBackground() override;
     void OnTransformChange() override;
     void OnDropBuffer() override;
+    void OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo> &infos) override;
+    bool IsNeedBufferInfo() override;
 
 private:
     void SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
