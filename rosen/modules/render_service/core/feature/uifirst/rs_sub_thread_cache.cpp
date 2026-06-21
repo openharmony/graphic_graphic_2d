@@ -31,6 +31,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature/opinc/rs_opinc_draw_cache.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -868,6 +869,15 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
         return;
     }
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
+
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (uifirstParams && DrawableV2::RSOpincDrawCache::IsAutoCacheEnable()) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(uifirstParams.get());
+        if (surfaceParams) {
+            DrawableV2::RSOpincDrawCache::SetScreenRectInfo(surfaceParams->GetScreenRect());
+        }
+    }
+#endif
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(IDENTITY_MATRIX);
