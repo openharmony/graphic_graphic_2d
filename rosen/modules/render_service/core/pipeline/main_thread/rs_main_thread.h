@@ -250,6 +250,16 @@ public:
         std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
         SurfaceWatermarkType watermarkType, bool isSystemCalling = false,
         uint32_t rowCount = 0, uint32_t colCount = 0);
+    // for uifirst
+    void SetUifirstScale(float scaleFactor)
+    {
+        // scaleFactor must in (0,1]
+        if (ROSEN_LE(scaleFactor, 0.0f) || ROSEN_GNE(scaleFactor, 1.0f)) {
+            uifirstScale_ = 1.0f;
+        } else {
+            uifirstScale_ = scaleFactor;
+        }
+    }
     void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
     void ClearSurfaceWatermark(pid_t pid);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
@@ -670,6 +680,7 @@ private:
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
     bool isImplicitAnimationEnd_ = false;
+    float uifirstScale_ = 1.0f;
 
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;

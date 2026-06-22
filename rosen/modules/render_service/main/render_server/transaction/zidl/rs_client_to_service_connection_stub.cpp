@@ -222,6 +222,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APS_CONFIG_PARAMS),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UIFIRST_SCALE),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -2345,6 +2346,22 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             ShowWatermark(watermarkImg, isShow);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_UIFIRST_SCALE): {
+            float scaleFactor { 1.0f };
+            if (!data.ReadFloat(scaleFactor)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SetUifirstScale read scaleFactor failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ROSEN_LOGD("RSClientToServiceConnectionStub::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
+            ret = SetUifirstScale(scaleFactor);
+            if (ret != ERR_OK) {
+                RS_LOGE("RSClientToServiceConnectionStub::SetUifirstScale SetUifirstScale failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN): {

@@ -188,6 +188,16 @@ bool RSInterfaceCodeAccessVerifierBase::IsFoundationCalling(const std::string& c
     return isFoundationCalling;
 }
 
+bool RSInterfaceCodeAccessVerifierBase::IsRssCalling(const std::string& callingCode) const
+{
+    static constexpr uint32_t RESOURCE_SCHEDULE_SERVICE_UID = 1096;
+    bool IsRssCalling = (OHOS::IPCSkeleton::GetCallingUid() == RESOURCE_SCHEDULE_SERVICE_UID);
+    if (!IsRssCalling) {
+        RS_LOGE("%{public}s ipc interface code access denied: not rss calling", callingCode.c_str());
+    }
+    return IsRssCalling;
+}
+
 void RSInterfaceCodeAccessVerifierBase::GetAccessType(bool& isTokenTypeValid, bool& isNonSystemAppCalling)
 {
     switch (GetTokenType()) {

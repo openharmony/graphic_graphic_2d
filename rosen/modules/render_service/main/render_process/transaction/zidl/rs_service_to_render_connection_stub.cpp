@@ -420,6 +420,17 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             ShowWatermark(watermarkImg, isShow);
             break;
         }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_UIFIRST_SCALE): {
+            float scaleFactor { 1.0f };
+            if (!data.ReadFloat(scaleFactor)) {
+                RS_LOGE("RSServiceToRenderStub::SetUifirstScale read scaleFactor failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RS_LOGD("RSServiceToRenderStub::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
+            SetUifirstScale(scaleFactor);
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE): {
             NodeId windowNodeId{UINT64_MAX};
             if (!data.ReadUint64(windowNodeId)) {

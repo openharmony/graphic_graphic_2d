@@ -156,6 +156,7 @@ public:
     void SetVmaCacheStatus(bool flag);
     ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success, uint32_t rowCount = 0, uint32_t colCount = 0);
+    ErrCode SetUifirstScale(float scaleFactor);
     ErrCode GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
