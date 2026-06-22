@@ -268,7 +268,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     }
 
     if (surfaceHandler->GetBuffer() &&
-        tunnelRuntime->IsBufferSizeChanged(surfaceHandler->GetBuffer()->GetSize())) {
+        tunnelRuntime.IsBufferSizeChanged(surfaceHandler->GetBuffer()->GetSize())) {
         return false;
     }
 
@@ -312,7 +312,7 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
         consumer, pendingBuffer.buffer, pendingReleaseFence, pendingBuffer.bufferOwnerCount_);
     tunnelRuntime.SetCommittedTunnelBufferId(pendingBuffer.buffer->GetBufferId());
     if (pendingBuffer.bufferOwnerCount_) {
-        pendingBuffer.bufferOwnerCount_->isTunnelCommit_ = true;
+        pendingBuffer.bufferOwnerCount_->isTunnel_ = true;
         pendingBuffer.bufferOwnerCount_->isLastTunnelRelease_ = true;
     }
     ToTunnelBufferStatus(true, tunnelRuntime.lastBufferStatus_);
