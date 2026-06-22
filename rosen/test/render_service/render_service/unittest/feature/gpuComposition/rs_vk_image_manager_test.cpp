@@ -143,7 +143,7 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVkImage003, TestSize.Level1)
         auto buffer = CreateBuffer();
         ASSERT_NE(buffer, nullptr);
 
-        bufferSeqNums[i - 1] = buffer->BufferId();
+        bufferSeqNums[i - 1] = buffer->GetBufferId();
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
             buffer, SyncFence::INVALID_FENCE, fakeTid_);
         EXPECT_NE(imageCache, nullptr);

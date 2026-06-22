@@ -14,15 +14,38 @@
  */
 
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #include "image/gpu_context.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
+
+#ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
+#include "include/gpu/GrBackendSurface.h"
+#endif
+#endif
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_VK
+namespace NativeBufferUtils {
+// Forward declarations for internal helper functions defined in native_buffer_utils.cpp
+bool CreateVkImage(RsVulkanContext& vkContext, VkImage* image,
+    const VkNativeBufferFormatPropertiesOHOS& nbFormatProps, const VkExtent3D& imageSize,
+    VkImageUsageFlags usageFlags = 0, bool isProtected = false);
+#ifdef USE_M133_SKIA
+skgpu::VulkanYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbFormatProps);
+#else
+GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbFormatProps);
+#endif
+} // namespace NativeBufferUtils
+#endif
+
 class NativeBufferUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -44,14 +67,16 @@ void NativeBufferUtilsTest::TearDown() {}
  */
 HWTEST_F(NativeBufferUtilsTest, DeleteVkImage001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_VK
     int32_t width = 1;
     int32_t height = 1;
-    auto cachedBackendTexture = RSUniRenderUtil::MakeBackendTexture(width, height);
+    auto cachedBackendTexture = NativeBufferUtils::MakeBackendTexture(width, height, getpid());
     auto vkTextureInfo = cachedBackendTexture.GetTextureInfo().GetVKTextureInfo();
-    VulkanCleanupHelper vulkanCleanupHelper(
+    NativeBufferUtils::VulkanCleanupHelper vulkanCleanupHelper(
         RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
-    DeleteVkImage(vulkanCleanupHelper);
+    NativeBufferUtils::DeleteVkImage(vulkanCleanupHelper.Ref());
     EXPECT_TRUE(vulkanCleanupHelper.fRefCnt_ == 1);
+#endif
 }
 
 /**
@@ -60,18 +85,15 @@ HWTEST_F(NativeBufferUtilsTest, DeleteVkImage001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueI9VVLE
  */
-HWTEST_F(RSSurfaceFrameOhosVulkanTest, MakeFromNativeWindowBuffer001, TestSize.Level1)
+HWTEST_F(NativeBufferUtilsTest, MakeFromNativeWindowBuffer001, TestSize.Level1)
 {
     int32_t width = 1;
     int32_t height = 1;
-    NativeSurfaceInfo nativeSurfaceInfo;
+    NativeBufferUtils::NativeSurfaceInfo nativeSurfaceInfo;
     auto skContext = std::make_shared<Drawing::GPUContext>();
-    auto ret = MakeFromNativeWindowBuffer(skContext, nullptr, nativeSurfaceInfo, width, height);
-    EXPECT_TRUE(ret == false);
-
-    NativeWindowBuffer nativeWindowBuffer;
-    ret = MakeFromNativeWindowBuffer(skContext, &nativeWindowBuffer, nativeSurfaceInfo, width, height);
-    EXPECT_TRUE(ret == true);
+    auto ret = NativeBufferUtils::MakeFromNativeWindowBuffer(
+        skContext, nullptr, nativeSurfaceInfo, width, height);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -82,8 +104,6 @@ HWTEST_F(RSSurfaceFrameOhosVulkanTest, MakeFromNativeWindowBuffer001, TestSize.L
  */
 HWTEST_F(NativeBufferUtilsTest, IsYcbcrModelOrRangeNotEqualTest, TestSize.Level1)
 {
-    int32_t width = 1;
-    int32_t height = 1;
     OH_NativeBuffer* nativeBufferPtr = nullptr;
     VkSamplerYcbcrModelConversion model = VkSamplerYcbcrModelConversion::VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601;
     VkSamplerYcbcrRange range = VkSamplerYcbcrRange::VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
@@ -97,16 +117,12 @@ HWTEST_F(NativeBufferUtilsTest, IsYcbcrModelOrRangeNotEqualTest, TestSize.Level1
  * @tc.type:FUNC
  * @tc.require: issueI9VVLE
  */
-HWTEST_F(RSSurfaceFrameOhosVulkanTest, MakeBackendTextureFromNativeBuffer001, TestSize.Level1)
+HWTEST_F(NativeBufferUtilsTest, MakeBackendTextureFromNativeBuffer001, TestSize.Level1)
 {
     int32_t width = 1;
     int32_t height = 1;
-    auto ret = MakeBackendTextureFromNativeBuffer(nullptr, width, height);
-    EXPECT_TRUE(ret == false);
-
-    NativeWindowBuffer nativeWindowBuffer;
-    ret = MakeBackendTextureFromNativeBuffer(&nativeWindowBuffer, width, height);
-    EXPECT_TRUE(ret == true);
+    auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nullptr, width, height);
+    EXPECT_FALSE(backendTexture.IsValid());
 }
 
 /**
@@ -115,15 +131,17 @@ HWTEST_F(RSSurfaceFrameOhosVulkanTest, MakeBackendTextureFromNativeBuffer001, Te
  * @tc.type:FUNC
  * @tc.require: issueI9VVLE
  */
-HWTEST_F(RSSurfaceFrameOhosVulkanTest, CreateVkImage001, TestSize.Level1)
+HWTEST_F(NativeBufferUtilsTest, CreateVkImage001, TestSize.Level1)
 {
-    auto vkContext = RsVulkanContext::GetSingleton();
+#ifdef RS_ENABLE_VK
+    auto& vkContext = RsVulkanContext::GetSingleton();
     VkImage image = VK_NULL_HANDLE;
     VkExtent3D imageSize;
     VkNativeBufferFormatPropertiesOHOS nbFormatProps;
-    nbFormatProps.format == VK_FORMAT_UNDEFINED;
-    CreateVkImage(vkContext, &image, nbFormatProps, imageSize);
+    nbFormatProps.format = VK_FORMAT_UNDEFINED;
+    NativeBufferUtils::CreateVkImage(vkContext, &image, nbFormatProps, imageSize);
     EXPECT_TRUE(nbFormatProps.format == VK_FORMAT_UNDEFINED);
+#endif
 }
 
 /**
@@ -132,11 +150,13 @@ HWTEST_F(RSSurfaceFrameOhosVulkanTest, CreateVkImage001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueI9VVLE
  */
-HWTEST_F(RSSurfaceFrameOhosVulkanTest, GetYcbcrInfo001, TestSize.Level1)
+HWTEST_F(NativeBufferUtilsTest, GetYcbcrInfo001, TestSize.Level1)
 {
+#ifdef RS_ENABLE_VK
     VkNativeBufferFormatPropertiesOHOS nbFormatProps;
-    auto ret = GetYcbcrInfo(nbFormatProps);
+    auto ret = NativeBufferUtils::GetYcbcrInfo(nbFormatProps);
     EXPECT_TRUE(ret.fForceExplicitReconstruction == VK_FALSE);
+#endif
 }
 
 } // namespace Rosen

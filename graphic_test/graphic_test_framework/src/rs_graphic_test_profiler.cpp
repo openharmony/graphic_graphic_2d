@@ -15,6 +15,7 @@
 
 #include "rs_graphic_test_profiler.h"
 
+#include "third_party/cJSON/cJSON.h"
 #include "ffrt.h"
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"

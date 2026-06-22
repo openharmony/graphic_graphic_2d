@@ -18,6 +18,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "third_party/cJSON/cJSON.h"
 #include "common/safuzz_log.h"
 #include "ipc/rs_irender_service_connection_ipc_interface_code_utils.h"
 

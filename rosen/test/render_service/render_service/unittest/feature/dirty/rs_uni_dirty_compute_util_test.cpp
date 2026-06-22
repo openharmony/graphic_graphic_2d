@@ -907,7 +907,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, HasMirrorDisplay001, TestSize.Level1)
     nodeMap.logicalDisplayNodeMap_.emplace(index++, displayNode1);
     nodeMap.logicalDisplayNodeMap_.emplace(index++, displayNode2);
     nodeMap.logicalDisplayNodeMap_.emplace(index, nullptr);
-    EXPECT_TRUE(RSUniDirtyComputeUtil::HasMirrorDisplay());
+    EXPECT_TRUE(RSMainThread::Instance()->HasMirrorDisplay());
     nodeMap.logicalDisplayNodeMap_.clear();
 }
 } // namespace OHOS::Rosen
