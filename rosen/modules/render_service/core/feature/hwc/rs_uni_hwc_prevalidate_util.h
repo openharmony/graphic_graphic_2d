@@ -99,7 +99,6 @@ private:
         RequestLayerInfo& info);
     void UpdateLayerUsage(const RSSurfaceRenderNode::SharedPtr node,
         RequestLayerInfo& info, bool isHwcEnabledBySolidLayer);
-    void SetArsrDoEnhance(const RSSurfaceRenderNode::SharedPtr node, RequestLayerInfo &info)
     static bool CheckHwcNode(const RSSurfaceRenderNode::SharedPtr& node);
     static bool IsPointerWindow(const RSSurfaceRenderNode::SharedPtr& node);
     static void EmplaceSurfaceNodeLayer(std::vector<RequestLayerInfo>& prevalidLayers,
