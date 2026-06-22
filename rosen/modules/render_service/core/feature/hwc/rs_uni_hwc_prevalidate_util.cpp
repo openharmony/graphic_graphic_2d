@@ -22,7 +22,7 @@
 #include "engine/rs_base_render_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
-#include "hwc_param.h"
+#include "feature_cfg/feature_param/performance_feature/hwc_param.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 
 #include "common/rs_common_hook.h"
@@ -130,21 +130,9 @@ void RSUniHwcPrevalidateUtil::UpdateVcldEnabledInfo()
 }
 
 void RSUniHwcPrevalidateUtil::SetArsrDoEnhance(
-    const RSSurfaceRenderNode::SharedPtr node, RequestLayerInfo &info)
-{
-    if (!arsrPreEnabled_ || !CheckIfDoArsrPre(node)) {
-        return;
+    const RSSurfaceRenderNode::SharedPtr node, RequestLayerInfo &info) {
+        
     }
-    std::string bundleName = node ->GetBundleName();
-    auto hwcHmsAppConfigFromHgm = HWCParam::GetSourceTuningForHmsApp();
-    auto hwcHmsAppIter = hwcHmsAppConfigFromHgm.find(bundleName);
-    if (hwcHmsAppIter != hwcHmsAppConfigFromHgm.end() && hwcHmsAppIter->second == "1") {
-        node->SetArsrTag(false);
-    } else {
-        info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
-        node->SetArsrTag(true);
-    }
-}
 
 bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info)
@@ -189,7 +177,18 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     } else {
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
-    SetArsrDoEnhance(node, info);
+
+    if (arsrPreEnabled_ && CheckIfDoArsrPre(node)) {
+        std::string bundleName = node ->GetBundleName();
+        auto hwcHmsAppConfigFromHgm = HWCParam::GetSourceTuningForHmsApp();
+        auto hwcHmsAppIter = hwcHmsAppConfigFromHgm.find(bundleName);
+        if (hwcHmsAppIter != hwcHmsAppConfigFromHgm.end() && hwcHmsAppIter->second == "1") {
+            node->SetArsrTag(false);
+        } else {
+            info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
+            node->SetArsrTag(true);
+        }
+    }
     if (IsVcldEnabled()) {
         std::vector<int8_t> valueBlob(sizeof(RSVcldParam));
         *reinterpret_cast<RSVcldParam*>(valueBlob.data()) = node->GetVcldInfo();
