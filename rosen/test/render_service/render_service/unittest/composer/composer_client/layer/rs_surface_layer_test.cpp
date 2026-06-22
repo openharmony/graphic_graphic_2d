@@ -753,7 +753,7 @@ HWTEST_F(RSSurfaceLayerTest, BufferOwnerCount_SetBufferOwnerCount_AddRefOnIsLast
  
     auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     boc->bufferId_ = 100u;
-    boc->isLastTunnelRealse_.store(true);
+    boc->isLastTunnelRelease_.store(true);
  
     int initialRef = boc->refCount_.load();
     lyr->SetBufferOwnerCount(boc, true);
@@ -847,13 +847,13 @@ HWTEST_F(RSSurfaceLayerTest, PopBufferOwnerCountById_ResetsIsLastTunnelRelease, 
  
     auto boc = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
     boc->bufferId_ = 300u;
-    boc->isLastTunnelRealse_.store(true);
+    boc->isLastTunnelRelease_.store(true);
     lyr->SetBufferOwnerCount(boc, false);
  
-    ASSERT_EQ(boc->isLastTunnelRealse_.load(), true);
+    ASSERT_EQ(boc->isLastTunnelRelease_.load(), true);
     auto got = lyr->PopBufferOwnerCountById(300u);
     ASSERT_NE(got, nullptr);
-    EXPECT_EQ(got->isLastTunnelRealse_.load(), false);
+    EXPECT_EQ(got->isLastTunnelRelease_.load(), false);
 }
 } // namespace Rosen
 } // namespace OHOS
