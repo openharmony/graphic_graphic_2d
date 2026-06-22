@@ -917,6 +917,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateLayerBufferDrawParam(RSLayerPtr): Parameters creation completed");
+    if (layer->GetDelegateMode()) {
+        auto srcRect = layer->GetCropRect();
+        params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
+        params.dstRect = Drawing::Rect(0, 0, localBounds.width_, localBounds.height_);
+        RS_TRACE_NAME_FMT("web node 3: src=[%s], dst=[%s]",
+            params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str());
+    }
     return params;
 }
 

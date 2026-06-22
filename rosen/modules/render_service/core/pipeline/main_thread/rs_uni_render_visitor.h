@@ -144,6 +144,8 @@ public:
 
     void UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node);
 
+    bool InitForDelegateMode(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine);
+    void GetScreenRotation(RSScreenRenderNode& node);
 private:
     /* Prepare relevant calculation */
     struct RotationStatus {
@@ -386,6 +388,9 @@ void ProcessGpuOfflineForTopLayer(
      * @brief Prepare color pickers with dirty region intersection checking
      */
     void PrepareColorPickers();
+
+    void UpdateHardWareForcedDisabledStateForDelegateMode(
+        std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr, std::optional<bool>& isHardwareForcedDisabled);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;

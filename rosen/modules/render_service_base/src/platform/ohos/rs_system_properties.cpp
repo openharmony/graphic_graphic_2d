@@ -1929,5 +1929,11 @@ bool RSSystemProperties::GetUsePrimList()
     static bool usePrimList = OHOS::system::GetBoolParameter("persist.sys.graphic.useprimlist", true);
     return usePrimList;
 }
+
+bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
+{
+    static bool enable = system::GetBoolParameter("persist.graphic.enable_delegate_composite_dfx", false);
+    return enable;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -50,6 +50,7 @@ enum RSCommandType : uint16_t {
     FRAME_RATE_LINKER = 12,
     UNION_NODE = 13,
     WINDOW_KEYFRAME_NODE = 14,
+    DELEGATE_COMPOSITE = 15,
 };
 
 enum RSCommandPermissionType : uint16_t {

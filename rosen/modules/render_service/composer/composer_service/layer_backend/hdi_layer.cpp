@@ -351,6 +351,19 @@ int32_t HdiLayer::SetLayerBlendType()
     return ret;
 }
 
+int32_t HdiLayer::SetDelegateModeLayerCrop()
+{
+    if (doLayerInfoCompare_ && Compare(rsLayer_->GetDelegateModeCropRect(), prevRSLayer_->GetDelegateModeCropRect())) {
+        return GRAPHIC_DISPLAY_SUCCESS;
+    }
+
+    GraphicIRect rect = rsLayer_->GetDelegateModeCropRect();
+    RS_TRACE_NAME_FMT("HdiLayer::SetDelegateModeLayerCrop, layerId=%u, rect={%d, %d, %d, %d}",
+        layerId_, rect.x, rect.y, rect.w, rect.h);
+    int32_t ret = device_->SetLayerCrop(screenId_, layerId_, rect);
+    return ret;
+}
+
 int32_t HdiLayer::SetLayerCrop()
 {
     if (doLayerInfoCompare_ && Compare(rsLayer_->GetCropRect(), prevRSLayer_->GetCropRect())) {
@@ -588,8 +601,8 @@ int32_t HdiLayer::SetHdiLayerInfo(bool isActiveRectSwitching)
     ret = SetLayerVisibleRegion();
     CheckRet(ret, "SetLayerVisibleRegion");
     // The crop needs to be set in the first order
-    ret = SetLayerCrop();
-    CheckRet(ret, "SetLayerCrop");
+    ret = (rsLayer_->GetDelegateMode() ? SetDelegateModeLayerCrop() : SetLayerCrop());
+    CheckRet(ret, rsLayer_->GetDelegateMode() ? "SetDelegateModeLayerCrop" : "SetLayerCrop");
     // The data space contained in the layerbuffer needs to be set in the second order
     ret = SetLayerBuffer();
     CheckRet(ret, "SetLayerBuffer");

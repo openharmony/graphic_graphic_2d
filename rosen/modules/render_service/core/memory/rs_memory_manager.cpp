@@ -44,6 +44,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_singleton.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 #include "feature_cfg/feature_param/extend_feature/mem_param.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
@@ -284,6 +285,9 @@ void MemoryManager::DumpMem(std::unordered_set<std::u16string>& argSets, std::st
     dumpString.append(log.GetString());
     if (!isLite) {
         RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
+#ifndef ROSEN_CROSS_PLATFORM
+        RsDelegateCompositeCallbackManager::GetInstance().DumpInfo(dumpString);
+#endif
     }
 #else
     dumpString.append("No GPU in this device");

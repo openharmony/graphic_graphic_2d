@@ -464,7 +464,7 @@ public:
     void TransitionDataMutexUnlock();
     void CleanResources(pid_t pid, bool forRefresh = false);
     bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
-    
+
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 
     std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet>& GetMutableAIBarNodes()
@@ -622,6 +622,14 @@ private:
     void ProcessNeedAttachedNodes();
     void PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSSurfaceHandler> surfaceHandler);
+
+    void UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
+    void UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
+    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor);
+    void TraverseNodeForDelegateMode();
+    void UpdateZorderForDelegateMode();
+    void ProcessDelegateCompositeCommand();
+
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
     bool clearMemoryFinished_ = true;
@@ -866,6 +874,7 @@ private:
     std::unique_ptr<RSTunnelRouteArbiter> tunnelRouteArbiter_ = nullptr;
     std::mutex dumpInfoMutex_;
 
+    bool isWebCommandOnly_ = false;
     bool hasCanvasDrawingNodeCachedOp_ = false;
 
     std::shared_ptr<HgmRenderContext> hgmRenderContext_ = nullptr;

@@ -659,5 +659,10 @@ void RSRenderInterface::SetOnRenderProcessDiedCallback(const std::function<void(
     }
     renderPipelineClient_->SetOnRenderProcessDiedCallback(callback);
 }
+
+bool RSRenderInterface::SetDelegateMode(NodeId id, bool isDelegateMode)
+{
+    return renderPipelineClient_->SetDelegateMode(id, isDelegateMode, getpid());
+}
 }
 }

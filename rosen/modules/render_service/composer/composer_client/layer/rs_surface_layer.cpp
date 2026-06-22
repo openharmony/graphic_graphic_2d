@@ -320,6 +320,24 @@ const GraphicIRect& RSSurfaceLayer::GetCropRect() const
     return cropRect_;
 }
 
+void RSSurfaceLayer::SetDelegateModeCropRect(const GraphicIRect& crop)
+{
+    if (delegateModeCropRect_ == crop) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("SetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+        rsLayerId_, crop.x, crop.y, crop.w, crop.h);
+    delegateModeCropRect_ = crop;
+    SetRSLayerCmd<RSRenderLayerDelegateModeCropRectCmd>(crop);
+}
+
+GraphicIRect RSSurfaceLayer::GetDelegateModeCropRect()
+{
+    RS_TRACE_NAME_FMT("GetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+        rsLayerId_, delegateModeCropRect_.x, delegateModeCropRect_.y, delegateModeCropRect_.w, delegateModeCropRect_.h);
+    return delegateModeCropRect_;
+}
+
 void RSSurfaceLayer::SetPreMulti(bool preMulti)
 {
     if (preMulti_ == preMulti) {
@@ -794,6 +812,20 @@ void RSSurfaceLayer::SetAncoFlags(uint32_t ancoFlags)
 uint32_t RSSurfaceLayer::GetAncoFlags() const
 {
     return ancoFlags_;
+}
+
+bool RSSurfaceLayer::GetDelegateMode() const
+{
+    return isDelegateMode_;
+}
+
+void RSSurfaceLayer::SetDelegateMode(bool isDelegateMode)
+{
+    if (isDelegateMode_ == isDelegateMode) {
+        return;
+    }
+    isDelegateMode_ = isDelegateMode;
+    SetRSLayerCmd<RSRenderLayerDelegateModeCmd>(isDelegateMode);
 }
 
 bool RSSurfaceLayer::IsAncoNative() const

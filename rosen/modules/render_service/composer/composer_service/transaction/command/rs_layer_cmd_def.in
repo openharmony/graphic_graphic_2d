@@ -37,6 +37,7 @@ DECLARE_RSLAYER_CMD(IsNeedComposition, bool, IS_NEED_COMPOSITION)
 DECLARE_RSLAYER_CMD(UseDeviceOffline, bool, USE_DEVICE_OFFLINE)
 DECLARE_RSLAYER_CMD(IgnoreAlpha, bool, IGNORE_ALPHA)
 DECLARE_RSLAYER_CMD(DeleteLayer, bool, DELETE_LAYER)
+DECLARE_RSLAYER_CMD(DelegateMode, bool, DELEGATE_MODE)
 
 // float command
 DECLARE_RSLAYER_CMD(SdrNit, float, SDR_NIT)
@@ -60,6 +61,7 @@ DECLARE_RSLAYER_CMD(CropRect, GraphicIRect, CROP_RECT)
 DECLARE_RSLAYER_CMD(AncoSrcRect, GraphicIRect, ANCO_SRC_RECT)
 DECLARE_RSLAYER_CMD(VisibleRegions, std::vector<GraphicIRect>, VISIBLE_REGIONS)
 DECLARE_RSLAYER_CMD(DirtyRegions, std::vector<GraphicIRect>, DIRTY_REGIONS)
+DECLARE_RSLAYER_CMD(DelegateModeCropRect, GraphicIRect, DELEGATE_MODE_CROP_RECT)
 
 // rect_matrix command
 DECLARE_RSLAYER_CMD(Matrix, GraphicMatrix, MATRIX)

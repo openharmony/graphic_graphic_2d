@@ -16,6 +16,7 @@
 #include "rs_render_pipeline_agent.h"
 #include "common/rs_background_thread.h"
 #include "command/rs_command_verify_helper.h"
+#include "command/rs_delegate_composite_command.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "surface_utils.h"
@@ -73,6 +74,7 @@
 #include "transaction/rs_transaction_data_callback_manager.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "app_mgr_client.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 #undef LOG_TAG
 #define LOG_TAG "RSRenderPipelineAgent"
 
@@ -158,6 +160,10 @@ ErrCode RSRenderPipelineAgent::CommitTransaction(pid_t callingPid, bool isTokenT
         RS_LOGW("RSRenderPipelineAgent::%{public}s, pipeline is nullptr", __func__);
         return ERR_INVALID_VALUE;
     }
+#ifndef ROSEN_CROSS_PLATFORM
+    RsDelegateCompositeCallbackManager::GetInstance().PrepareDelegateCompositeCommand(transactionData);
+#endif
+
     bool shouldDrop = RSUnmarshalThread::Instance().ReportTransactionDataStatistics(
         callingPid, transactionData.get(), isNonSystemAppCalling);
     if (shouldDrop) {
@@ -540,7 +546,7 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
             callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
             return;
         }
-        
+
         auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (captureConfig.isSyncRender && surfaceNode &&
             !surfaceNode->GetSpecialLayerMgr().Find(HAS_GENERAL_SPECIAL)) {
@@ -1619,8 +1625,10 @@ void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
                 static_cast<int>(bufferInfo.dstRect_.GetWidth()),
                 static_cast<int>(bufferInfo.dstRect_.GetHeight())
             );
-            textureBufferVector.push_back(std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect));
-            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=[%{public}" PRIu64 ",] "
+            textureBufferVector.push_back(
+                std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect));
+                RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from "
+                    "pid=%{public}d, uid=[%{public}" PRIu64 ",] "
                     "bufferId=%{public}u, size=%{public}dx%{public}d",
                     bufferInfo.pid_, bufferInfo.uid_,
                     bufferInfo.surfaceBuffer_->GetSeqNum(),
@@ -2064,6 +2072,9 @@ void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
     pipeline->PostUniRenderThreadSyncTask([pid]() {
         RSFrameStabilityManager::GetInstance().CleanResourcesByPid(pid);
     });
+#ifndef ROSEN_CROSS_PLATFORM
+    RsDelegateCompositeCallbackManager::GetInstance().RemoveAllListenerbyPid(pid);
+#endif
     RS_TRACE_NAME("RSRenderPipelineAgent::Clean end, remotePid: " + std::to_string(pid));
 }
 
@@ -2312,7 +2323,7 @@ uint32_t RSRenderPipelineAgent::SetSurfaceWatermark(pid_t pid, const std::string
     pipeline->PostMainThreadSyncTask(task);
     return res;
 }
-    
+
 void RSRenderPipelineAgent::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
     const std::vector<NodeId> &nodeIdList, bool isSystemCalling)
 {
@@ -2325,7 +2336,7 @@ void RSRenderPipelineAgent::ClearSurfaceWatermarkForNodes(pid_t pid, const std::
     };
     pipeline->PostMainThreadTask(task);
 }
-    
+
 void RSRenderPipelineAgent::ClearSurfaceWatermark(pid_t pid,
     const std::string &name, bool isSystemCalling)
 {
@@ -2500,5 +2511,83 @@ int32_t RSRenderPipelineAgent::UpdateFrameStabilityDetection(
     return repCode;
 }
 
+bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    RS_TRACE_NAME_FMT("RSRenderPipelineAgent::SetDelegateMode: NodeId=%llu, isSetDelegateMode=%d, pid=%u",
+        id, isSetDelegateMode, pid);
+    auto pipeline = rsRenderPipeline_.lock();
+    if (!pipeline) {
+        RS_LOGW("RSRenderPipelineAgent::%{public}s, pipeline is nullptr", __func__);
+        return false;
+    }
+    int32_t repCode = static_cast<int32_t>(FrameStabilityErrorCode::UNKNOWN);
+    auto task = [renderPipeline = pipeline, id, isSetDelegateMode, pid]() -> void {
+        auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+        if (!node || !node->GetRSSurfaceHandler()) {
+            return;
+        }
+        node->SetDelegateMode(isSetDelegateMode);
+        sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
+        if (consumer) {
+            RsDelegateCompositeCallbackManager::GetInstance().SetInfo(consumer, id, pid);
+        }
+        RS_TRACE_NAME_FMT("SetDelegateMode %llu, success", id);
+    };
+    pipeline->PostMainThreadSyncTask(task);
+
+    auto node = pipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+    if (node && node->GetRSSurfaceHandler()) {
+        sptr<IConsumerSurface> consumer = node->GetRSSurfaceHandler()->GetConsumer();
+        RsDelegateCompositeCallbackManager::GetInstance().RegisterReleaseListener(consumer);
+    }
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool RSRenderPipelineAgent::RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,
+    uint64_t listenerId, uint32_t pid, uint32_t tid)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    RsDelegateCompositeCallbackManager::GetInstance().RegisterSurfaceTransactionListener(
+        listener, listenerId, pid, tid);
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool RSRenderPipelineAgent::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    RsDelegateCompositeCallbackManager::GetInstance().UnRegisterSurfaceTransactionListener(listenerId);
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool RSRenderPipelineAgent::RegisterSurfaceNodeBufferReleaseListener(
+    pid_t pid, sptr<RSISurfaceNodeBufferReleaseCallback> listener)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    RsDelegateCompositeCallbackManager::GetInstance().RegisterSurfaceNodeBufferReleaseListener(pid, listener);
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool RSRenderPipelineAgent::UnRegisterSurfaceNodeBufferReleaseListener(pid_t pid)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    RsDelegateCompositeCallbackManager::GetInstance().UnRegisterSurfaceNodeBufferReleaseListener(pid);
+    return true;
+#else
+    return false;
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -21,6 +21,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
 #include "sync_fence.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -125,7 +126,9 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSu
     if (bufferInfo.isUrgent) {
         RSMainThread::Instance()->RequestNextVSync("UrgentSelfdrawing");
     } else {
-        RSMainThread::Instance()->RequestNextVSync("selfdrawing");
+        if (!node->GetDelegateMode()) {
+            RSMainThread::Instance()->RequestNextVSync("Selfdrawing", 0);
+        }
     }
 }
 
@@ -279,6 +282,35 @@ bool RSRenderServiceListener::ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> 
         return true;
     }
     return false;
+}
+
+void RSRenderServiceListener::OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo> &infos)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    auto node = surfaceRenderNode_.lock();
+    if (node == nullptr || !node->GetDelegateMode()) {
+        return;
+    }
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        return;
+    }
+    auto consumer = surfaceHandler->GetConsumer();
+    if (!consumer) {
+        return;
+    }
+    RsDelegateCompositeCallbackManager::GetInstance().OnCleanCacheForBufferInfoMap(
+        infos, node->GetId(), consumer->GetUniqueId());
+#endif
+}
+
+bool RSRenderServiceListener::IsNeedBufferInfo()
+{
+    auto node = surfaceRenderNode_.lock();
+    if (node == nullptr) {
+        return false;
+    }
+    return node->GetDelegateMode();
 }
 } // namespace Rosen
 } // namespace OHOS

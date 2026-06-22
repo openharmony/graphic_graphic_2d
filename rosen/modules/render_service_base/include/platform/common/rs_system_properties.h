@@ -425,6 +425,7 @@ public:
     static bool GetReleaseImageOneByOneFlag();
     static bool GetUsePrimList();
 
+    static bool GetRsDelegateCompositeCleanCacheDfxEnable();
 private:
     RSSystemProperties() = default;
 
