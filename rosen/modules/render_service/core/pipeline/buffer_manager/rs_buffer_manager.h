@@ -63,8 +63,8 @@ public:
     ~RSBufferManager() = default;
 
     struct TunnelBufferInfo {
-        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount_ = nullptr;
-        uint64_t vsyncId = 0;
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
+        uint64_t vsyncId_ = 0;
     }
 
     void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence,
