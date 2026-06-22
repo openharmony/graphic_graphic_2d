@@ -174,13 +174,13 @@ inline const char* ToClaimResultName(RSTunnelRuntimeState::ClaimResult result)
     }
 }
 
-inline const char* ToTunnelBufferStatus(bool isTunnel, RSTunnelRuntimeState::TunnelBufferStatus& result)
+inline void ToTunnelBufferStatus(bool isTunnel, RSTunnelRuntimeState::TunnelBufferStatus& result)
 {
     if (isTunnel) {
         status = RSTunnelRuntimeState::TunnelBufferStatus::TUNNEL_STATUS;
         return;
     }
-    switch (result) {
+    switch (status) {
         case RSTunnelRuntimeState::TunnelBufferStatus::FIRST_NORMAL_STATUS:
         case RSTunnelRuntimeState::TunnelBufferStatus::NORMAL_STATUS:
             status = RSTunnelRuntimeState::TunnelBufferStatus::NORMAL_STATUS;
