@@ -266,6 +266,13 @@ public:
         uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
+     * @brief Frames can be scaled when uifirst
+     * @param scaleFactor scaler ratio
+     * @return true means success, others failed.
+     */
+    bool SetUifirstScale(float scaleFactor);
+
+    /**
      * @brief Set watermark for surfaceNode.
      * @param pid pid of process.
      * @param name Watermark name. Note: ensure watermark name is unique.

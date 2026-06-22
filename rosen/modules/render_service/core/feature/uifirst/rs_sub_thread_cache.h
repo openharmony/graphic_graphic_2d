@@ -301,6 +301,7 @@ private:
         float alpha = -1.f;
         bool isContainShadow = false;
         GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
+        float scaleRatio = 1.0f;
         std::unordered_set<NodeId> processedSubSurfaceNodeIds;
         Occlusion::Region opaqueRegion;
         RectI absDrawRect;
@@ -313,10 +314,25 @@ private:
             alpha = -1.f;
             isContainShadow = false;
             colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
+            scaleRatio = 1.0f;
             processedSubSurfaceNodeIds.clear();
             opaqueRegion.Reset();
             absDrawRect = {};
             vsyncId = 0;
+        }
+
+        bool IsUifirstScale() const
+        {
+            return ROSEN_GNE(scaleRatio, 0.0f) && ROSEN_LNE(scaleRatio, 1.0f);
+        }
+
+        void SetCacheUifirstScale(float paramScaleRatio)
+        {
+            if (ROSEN_GNE(paramScaleRatio, 0.0f) && ROSEN_LE(paramScaleRatio, 1.0f)) {
+                scaleRatio = paramScaleRatio;
+            } else {
+                scaleRatio = 1.0f;
+            }
         }
     };
     CacheSurfaceInfo cacheSurfaceInfo_;
@@ -360,6 +376,7 @@ private:
 
     uint32_t cacheReuseCount_ = 0;
     bool isOcclusionEnabled_ = false;
+    float lastScale_ = 1.0f;
 };
 } // DrawableV2
 } // OHOS::Rosen

@@ -26,6 +26,7 @@
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
+#include "modifier_ng/appearance/rs_use_union_render_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_render_modifier.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -446,4 +447,66 @@ HWTEST_F(RSRenderModifierNGTest, RSCustomRenderModifier_OnSetDirty_Test, TestSiz
     modifier->OnSetDirty();
     EXPECT_TRUE(nodePtr->isContentDirty_);
 }
+
+/**
+ * @tc.name: ConstructorLUTUseUnionIndexTest
+ * @tc.desc: test that USE_UNION constructor is at correct array index (39)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, ConstructorLUTUseUnionIndexTest, TestSize.Level1)
+{
+    // USE_UNION = 39 in the enum, ConstructorLUT_ must have the constructor at index 39
+    auto constructor = ModifierNG::RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(
+        ModifierNG::RSModifierType::USE_UNION)];
+    EXPECT_NE(constructor, nullptr);
+    auto modifier = constructor();
+    EXPECT_NE(modifier, nullptr);
+    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::USE_UNION);
 }
+
+/**
+ * @tc.name: ConstructorLUTBoundsIndexTest
+ * @tc.desc: test that BOUNDS constructor is still at correct array index (1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, ConstructorLUTBoundsIndexTest, TestSize.Level1)
+{
+    auto constructor = ModifierNG::RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(
+        ModifierNG::RSModifierType::BOUNDS)];
+    EXPECT_NE(constructor, nullptr);
+    auto modifier = constructor();
+    EXPECT_NE(modifier, nullptr);
+    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::BOUNDS);
+}
+
+/**
+ * @tc.name: ConstructorLUTBlenderIndexTest
+ * @tc.desc: test that BLENDER constructor is at correct array index (19)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, ConstructorLUTBlenderIndexTest, TestSize.Level1)
+{
+    auto constructor = ModifierNG::RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(
+        ModifierNG::RSModifierType::BLENDER)];
+    EXPECT_NE(constructor, nullptr);
+    auto modifier = constructor();
+    EXPECT_NE(modifier, nullptr);
+    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::BLENDER);
+}
+
+/**
+ * @tc.name: UseUnionRenderModifierUnmarshallingTest
+ * @tc.desc: test that USE_UNION modifier can be marshalled and unmarshalled correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, UseUnionRenderModifierUnmarshallingTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSUseUnionRenderModifier>();
+    Parcel parcel;
+    bool ret = modifier->Marshalling(parcel);
+    EXPECT_TRUE(ret);
+    auto unmarshalled = ModifierNG::RSRenderModifier::Unmarshalling(parcel);
+    EXPECT_NE(unmarshalled, nullptr);
+    EXPECT_EQ(unmarshalled->GetType(), ModifierNG::RSModifierType::USE_UNION);
+}
+}

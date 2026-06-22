@@ -80,6 +80,7 @@
 #include "modifier_ng/appearance/rs_material_filter_modifier.h"
 #include "modifier_ng/appearance/rs_material_shader_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
+#include "modifier_ng/appearance/rs_use_union_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
 #include "modifier_ng/background/rs_background_color_modifier.h"
 #include "modifier_ng/background/rs_background_image_modifier.h"
@@ -2869,6 +2870,11 @@ void RSNode::SetUseEffectType(UseEffectType useEffectType)
     SetPropertyNG<ModifierNG::RSUseEffectModifier, &ModifierNG::RSUseEffectModifier::SetUseEffectType>(useEffectType);
 }
 
+void RSNode::SetSDFUnionMode(int sdfUnionMode)
+{
+    SetPropertyNG<ModifierNG::RSUseUnionModifier, &ModifierNG::RSUseUnionModifier::SetSDFUnionMode>(sdfUnionMode);
+}
+
 void RSNode::SetAlwaysSnapshot(bool enable)
 {
     SetPropertyNG<ModifierNG::RSBackgroundFilterModifier, &ModifierNG::RSBackgroundFilterModifier::SetAlwaysSnapshot>(
@@ -2877,25 +2883,30 @@ void RSNode::SetAlwaysSnapshot(bool enable)
 
 void RSNode::SetUseUnion(bool useUnion)
 {
-    SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetUseUnion>(useUnion);
+    SetPropertyNG<ModifierNG::RSUseUnionModifier, &ModifierNG::RSUseUnionModifier::SetUseUnion>(useUnion);
+}
+
+void RSNode::SetUnionSpacing(float unionSpacing)
+{
+    SetPropertyNG<ModifierNG::RSUseUnionModifier, &ModifierNG::RSUseUnionModifier::SetUnionSpacing>(unionSpacing);
 }
 
 void RSNode::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
 {
-    SetPropertyNG<ModifierNG::RSBoundsModifier,
-        &ModifierNG::RSBoundsModifier::SetGravityPullCenterFlag>(isGravityPullModeCenter);
+    SetPropertyNG<ModifierNG::RSUseUnionModifier,
+        &ModifierNG::RSUseUnionModifier::SetGravityPullCenterFlag>(isGravityPullModeCenter);
 }
 
 void RSNode::SetGravityPullStrength(float gravityPullStrength)
 {
-    SetPropertyNG<ModifierNG::RSBoundsModifier,
-        &ModifierNG::RSBoundsModifier::SetGravityPullStrength>(gravityPullStrength);
+    SetPropertyNG<ModifierNG::RSUseUnionModifier,
+        &ModifierNG::RSUseUnionModifier::SetGravityPullStrength>(gravityPullStrength);
 }
 
 void RSNode::SetGravityHotZone(float hotZone)
 {
-    SetPropertyNG<ModifierNG::RSBoundsModifier,
-        &ModifierNG::RSBoundsModifier::SetGravityHotZone>(hotZone);
+    SetPropertyNG<ModifierNG::RSUseUnionModifier,
+        &ModifierNG::RSUseUnionModifier::SetGravityHotZone>(hotZone);
 }
 
 void RSNode::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)

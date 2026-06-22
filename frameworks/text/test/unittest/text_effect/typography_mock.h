@@ -81,6 +81,7 @@ public:
     MOCK_METHOD(void, UpdateColor, (size_t from, size_t to, const Drawing::Color& color), (override));
     MOCK_METHOD(void*, GetParagraph, (), (override));
     MOCK_METHOD(Drawing::RectI, GeneratePaintRegion, (double x, double y), (const, override));
+    MOCK_METHOD(bool, IsLayoutDone, (), (const, override));
     MOCK_METHOD(void, Relayout,
         (double width, const TypographyStyle& typograhyStyle, const std::vector<TextStyle>& textStyles), (override));
     MOCK_METHOD(void, UpdateAllTextStyles, (const TextStyle& textStyleTemplate), (override));

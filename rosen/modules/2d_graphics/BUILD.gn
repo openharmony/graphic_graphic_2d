@@ -64,6 +64,7 @@ template("graphics2d_source_set") {
   forward_variables_from(invoker, "*")
 
   ohos_source_set(target_name) {
+    branch_protector_ret = "pac_ret"
     defines += invoker.defines
     cflags_cc += invoker.cflags_cc
     if (use_skia_txt) {

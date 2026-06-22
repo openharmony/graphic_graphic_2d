@@ -77,6 +77,9 @@ public:
         uint32_t rowCount = 0, uint32_t colCount = 0) override;
     void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) override;
 
+    // uifristscale
+    ErrCode SetUifirstScale(float scaleFactor) override;
+
     // Vrate
     ErrCode GetSurfaceRootNodeId(NodeId& windowNodeId) override;
 

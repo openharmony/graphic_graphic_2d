@@ -255,6 +255,16 @@ public:
         std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
         SurfaceWatermarkType watermarkType, bool isSystemCalling = false,
         uint32_t rowCount = 0, uint32_t colCount = 0);
+    // for uifirst
+    void SetUifirstScale(float scaleFactor)
+    {
+        // scaleFactor must in (0,1]
+        if (ROSEN_LE(scaleFactor, 0.0f) || ROSEN_GNE(scaleFactor, 1.0f)) {
+            uifirstScale_ = 1.0f;
+        } else {
+            uifirstScale_ = scaleFactor;
+        }
+    }
     void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
     void ClearSurfaceWatermark(pid_t pid);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
@@ -459,7 +469,7 @@ public:
     void TransitionDataMutexUnlock();
     void CleanResources(pid_t pid, bool forRefresh = false);
     bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
-    
+
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 
     std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet>& GetMutableAIBarNodes()
@@ -626,6 +636,14 @@ private:
     void ProcessNeedAttachedNodes();
     void PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSSurfaceHandler> surfaceHandler);
+
+    void UpdateDoDirectCompositionFlagForDelegateMode(std::shared_ptr<TransactionDataMap>& transactionDataEffective);
+    void UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData);
+    void UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId, const std::shared_ptr<RSNodeVisitor> &uniVisitor);
+    void TraverseNodeForDelegateMode();
+    void UpdateZorderForDelegateMode();
+    void ProcessDelegateCompositeCommand();
+
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
     bool clearMemoryFinished_ = true;
@@ -684,6 +702,7 @@ private:
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
     bool isImplicitAnimationEnd_ = false;
+    float uifirstScale_ = 1.0f;
 
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
@@ -870,6 +889,7 @@ private:
     std::unique_ptr<RSTunnelRouteArbiter> tunnelRouteArbiter_ = nullptr;
     std::mutex dumpInfoMutex_;
 
+    bool isWebCommandOnly_ = false;
     bool hasCanvasDrawingNodeCachedOp_ = false;
 
     std::shared_ptr<HgmRenderContext> hgmRenderContext_ = nullptr;

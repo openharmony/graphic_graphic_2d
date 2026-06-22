@@ -248,6 +248,13 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
     // Use user's gravity
     canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
+    // Apply inverse uifirst scale to resotre canvas to original size before drawing
+    // Since cache surface was scaled up during uifirst scaling, we need to apply
+    // inverse scale to draw the correct original size
+    if (cacheCompletedSurfaceInfo_.IsUifirstScale()) {
+        float inverseScale = 1.0f / cacheCompletedSurfaceInfo_.scaleRatio;
+        canvas.Scale(inverseScale, inverseScale);
+    }
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCacheSurface bound[%f %f] cache[%d %d] scale[%f %f]", boundSize.x_, boundSize.y_,
         cacheImage->GetWidth(), cacheImage->GetHeight(), scaleX, scaleY);
     if (RSSystemProperties::GetRecordingEnabled()) {
@@ -331,6 +338,15 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             params->GetLocalDrawRect().GetHeight() : size.y_;
     } else {
         RS_LOGE("uifirst cannot get cachesize");
+    }
+    // Get uifirst scaling parameter and apply scaling to cache size if enabled
+    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    // Apply uifirst scale ratio to cache widht/height when IsUifirstScale is enabled
+    if (LIKELY(uniParam) && uniParam->IsUifirstScale()) {
+        float uifirstScale = uniParam->GetUiFirstScale();
+        RS_TRACE_NAME_FMT("%s uifirstScale called scaleRatio is %f", __func__, uifirstScale);
+        width = width * uifirstScale;
+        height = height * uifirstScale;
     }
 
     auto params = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
@@ -420,6 +436,16 @@ bool RsSubThreadCache::IsCacheValid() const
 
 bool RsSubThreadCache::NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams)
 {
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (LIKELY(uniParam)) {
+        float uifirstScale = uniParam->GetUiFirstScale();
+        // if uifirst scale ratio changed, update cache and return true to InitCacheSurface
+        if (ROSEN_NE(lastScale_, uifirstScale)) {
+            RS_TRACE_NAME_FMT("%s lastScale_:%f uifirstScale:%f", __func__, lastScale_, uifirstScale);
+            lastScale_ = uifirstScale;
+            return true;
+        }
+    }
     int width = 0;
     int height = 0;
 
@@ -995,6 +1021,7 @@ void RsSubThreadCache::UpdateCacheSurfaceInfo(RSSurfaceRenderNodeDrawable* surfa
     cacheSurfaceInfo_.processedSubSurfaceNodeIds = surfaceParams->GetAllSubSurfaceNodeIds();
     if (const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
         cacheSurfaceInfo_.vsyncId = uniParam->GetVsyncId();
+        cacheSurfaceInfo_.SetCacheUifirstScale(uniParam->GetUiFirstScale());
     }
     if (isOcclusionEnabled_) {
         CalculateSurfaceOpaqueRegion(surfaceDrawable, surfaceParams, cacheSurfaceInfo_.opaqueRegion,

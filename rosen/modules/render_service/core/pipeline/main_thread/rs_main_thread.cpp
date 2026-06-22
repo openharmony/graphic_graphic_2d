@@ -185,6 +185,9 @@
 
 #include "rs_render_composer_manager.h"
 
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
+
 // HDRHeterogeneous
 #ifdef HETERO_HDR_ENABLE
 #include "rs_hetero_hdr_manager.h"
@@ -536,6 +539,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSRenderNodeGC::Instance().SetGCTaskEnable(true);
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
+        ProcessDelegateCompositeCommand();
         ConsumeAndUpdateAllNodes();
         ClearNeedDropframePidList();
         if (renderThreadParams_) {
@@ -585,6 +589,9 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSRenderNodeGC::Instance().ReleaseFromTree();
         // release node memory
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
+#ifndef ROSEN_CROSS_PLATFORM
+        RsDelegateCompositeCallbackManager::GetInstance().NotifySurfaceTransactionListener(timestamp_);
+#endif
         if (!isUniRender_) {
             RSRenderNodeGC::Instance().ReleaseDrawableMemory();
         }
@@ -1557,6 +1564,94 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
     }
 }
 
+void RSMainThread::UpdateZorderForDelegateMode()
+{
+    std::list<std::shared_ptr<RSSurfaceRenderNode>> delegateModeNodeList;
+    for (auto& node : hardwareEnabledNodes_) {
+        if (node && node->GetDelegateMode()) {
+            if (node->GetName() == "delegate_child_video") {
+                delegateModeNodeList.push_front(node);
+            } else {
+                delegateModeNodeList.push_back(node);
+            }
+        }
+    }
+    float globalZOrder = 0;
+    for (auto& node : delegateModeNodeList) {
+        if (node && node->GetRSSurfaceHandler()) {
+            node->GetRSSurfaceHandler()->SetGlobalZOrder(globalZOrder++);
+            auto transform = RSUniHwcComputeUtil::GetLayerTransform(*node);
+            node->UpdateHwcNodeLayerInfo(transform, false);
+        }
+    }
+}
+
+void RSMainThread::TraverseNodeForDelegateMode()
+{
+    if (!context_) {
+        return;
+    }
+
+    auto &webNodeIds = GetContext().GetWebNodeMap();
+    if (webNodeIds.size() == 0) {
+        return;
+    }
+    std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
+    if (!rootNode) {
+        return;
+    }
+
+    std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+    auto children = rootNode->GetChildrenList();
+    if (!children.empty()) {
+        for (const auto& child : children) {
+            auto node = child.lock();
+            if (node && node->GetChildrenCount() > 0) {
+                screenNode = node->ReinterpretCastTo<RSScreenRenderNode>();
+                break;
+            }
+        }
+    }
+    if (!screenNode) {
+        RS_LOGE("RSPointerWindowManager::UpdatePointerInfo screenManager is null!");
+        return;
+    }
+    RS_TRACE_NAME("TraverseNodeForDelegateMode");
+    auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
+    uniVisitor->InitForDelegateMode(*screenNode, GetRenderEngine());
+    for (const auto& nodeId : webNodeIds) {
+        UpdateNodeInfoForDelegateMode(nodeId, uniVisitor);
+    }
+
+    UpdateZorderForDelegateMode();
+    webNodeIds.clear();
+}
+
+void RSMainThread::UpdateNodeInfoForDelegateMode(const int64_t &rsNodeId,
+    const std::shared_ptr<RSNodeVisitor> &uniVisitor)
+{
+    if (rsNodeId <= 0) {
+        return;
+    }
+    auto node = GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(rsNodeId);
+    if (node == nullptr) {
+        return;
+    }
+    const Vector4f& delegateSrcRect = node->GetDelegateSrcRect();
+    const Vector4f& delegateDstRect = node->GetDelegateDstRect();
+    auto& properties = node->GetMutableRenderProperties();
+    RS_TRACE_NAME_FMT("UpdateNodeInfoForDelegateMode(node:%" PRId64 ") delegateDstRect{%.2f, %.2f, %.2f, %.2f},"
+        " delegateSrcRect{%.2f, %.2f, %.2f, %.2f}",
+        rsNodeId, delegateDstRect.x_, delegateDstRect.y_, delegateDstRect.z_, delegateDstRect.w_,
+        delegateSrcRect.x_, delegateSrcRect.y_, delegateSrcRect.z_, delegateSrcRect.w_);
+    properties.SetBounds({delegateDstRect.x_, delegateDstRect.y_, delegateDstRect.z_, delegateDstRect.w_});
+    node->SetDirty();
+    node->AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
+    node->AddDirtyType(ModifierNG::RSModifierType::FRAME);
+    RSUniHwcComputeUtil::UpdateHwcNodeProperty(node);
+    node->QuickPrepare(uniVisitor);
+}
+
 void RSMainThread::ProcessCommandForUniRender()
 {
 #ifdef RS_ENABLE_GPU
@@ -1574,6 +1669,7 @@ void RSMainThread::ProcessCommandForUniRender()
     if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by transactionDataEffective not empty");
+        UpdateDoDirectCompositionFlagForDelegateMode(transactionDataEffective);
     }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     if (transactionFlags != "") {
@@ -1595,12 +1691,17 @@ void RSMainThread::ProcessCommandForUniRender()
                 } else {
                     ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
                 }
+                UpdateDoDirectCompositionFlagForDelegateMode(rsTransaction);
             }
         }
-        RSBackgroundThread::Instance().PostTask([transactionDataEffective]() {
-            RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
+        if (isWebCommandOnly_ && doDirectComposition_) {
             transactionDataEffective->clear();
-        });
+        } else {
+            RSBackgroundThread::Instance().PostTask([transactionDataEffective]() {
+                RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
+                transactionDataEffective->clear();
+            });
+        }
     }
 #endif
     ProcessNeedAttachedNodes();
@@ -1651,6 +1752,43 @@ void RSMainThread::ProcessCommandForUniRender()
                 ->PostPlaybackInCorrespondThread();
         }
     });
+}
+
+void RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(
+    std::shared_ptr<TransactionDataMap>& transactionDataEffective)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    isWebCommandOnly_ =
+        RsDelegateCompositeCallbackManager::GetInstance().CheckIsDelegateCompositeOnly(transactionDataEffective);
+    if (isWebCommandOnly_ && !doDirectComposition_) {
+        doDirectComposition_ = true;
+    }
+#endif
+}
+
+void RSMainThread::UpdateDoDirectCompositionFlagForDelegateMode(std::unique_ptr<RSTransactionData>& transactionData)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (doDirectComposition_ && transactionData) {
+        if (!RsDelegateCompositeCallbackManager::GetInstance().CheckSurfaceTransactionIdentity(
+            transactionData->GetSendingPid(), transactionData->GetSendingTid())) {
+            doDirectComposition_ = false;
+            RS_OPTIONAL_TRACE_FMT("disable doDirectComposition, %u %u",
+                transactionData->GetSendingPid(), transactionData->GetSendingTid());
+            isWebCommandOnly_ = false;
+        }
+    }
+#endif
+}
+
+void RSMainThread::ProcessDelegateCompositeCommand()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (RsDelegateCompositeCallbackManager::GetInstance().ProcessDelegateCompositeCommand(GetContext())) {
+        RS_TRACE_NAME("ProcessDelegateCompositeCommand processed a delegate composite command, trigger next vsync");
+        RequestNextVSync();
+    }
+#endif
 }
 
 void RSMainThread::ProcessCommandForDividedRender()
@@ -2695,6 +2833,10 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by buffer not updated");
         }
         if (isHardwareEnabledBufferUpdated_) {
+            if (isWebCommandOnly_) {
+                TraverseNodeForDelegateMode();
+                isWebCommandOnly_ = false;
+            }
             needTraverseNodeTree = !DoDirectComposition(rootNode);
         } else if (forceUpdateUniRenderFlag_) {
             RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
@@ -3085,6 +3227,7 @@ void RSMainThread::Render()
         renderThreadParams_->SetCacheEnabledForRotation(RSSystemProperties::GetCacheEnabledForRotation());
         renderThreadParams_->SetHasLppVideo(lppVideoHandler_.HasLppVideo());
         renderThreadParams_->SetSurfaceFpsOp(pipelineParam_.SurfaceFpsOpNum, pipelineParam_.SurfaceFpsOpList);
+        renderThreadParams_->SetUifirstScale(uifirstScale_);
 #ifdef RS_ENABLE_TV_PQ_METADATA
         RSTvMetadataManager::Instance().SetUniRenderThreadParam(renderThreadParams_);
 #endif

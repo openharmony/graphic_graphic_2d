@@ -920,7 +920,7 @@ void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std:
     }
     clientToRenderConnection->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
 }
-    
+
 void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
     auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
@@ -1148,6 +1148,69 @@ int32_t RSRenderPipelineClient::UpdateFrameStabilityDetection(
         return RENDER_SERVICE_NULL;
     }
     return clientToRenderConnection->UpdateFrameStabilityDetection(oldTarget, newTarget);
+}
+
+bool RSRenderPipelineClient::SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("DelegateModeDebugTag:SetDelegateMode renderPipeline == nullptr!");
+        return false;
+    }
+    return renderPipeline->SetDelegateMode(id, isSetDelegateMode, pid);
+}
+
+bool RSRenderPipelineClient::RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,
+    uint64_t listenerId)
+{
+    if (listener == nullptr) {
+        RS_TRACE_NAME("RegisterSurfaceTransactionListener fail, listener is nullptr");
+        ROSEN_LOGE("DelegateModeDebugTag:RegisterSurfaceTransactionListener fail, listener is nullptr");
+        return false;
+    }
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("DelegateModeDebugTag:RegisterSurfaceTransactionListener renderPipeline == nullptr!");
+        return false;
+    }
+    return renderPipeline->RegisterSurfaceTransactionListener(listener, listenerId);
+}
+
+bool RSRenderPipelineClient::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("DelegateModeDebugTag:UnRegisterSurfaceTransactionListener renderPipeline == nullptr!");
+        return false;
+    }
+    return renderPipeline->UnRegisterSurfaceTransactionListener(listenerId);
+}
+
+bool RSRenderPipelineClient::RegisterSurfaceNodeBufferReleaseListener(
+    sptr<RSISurfaceNodeBufferReleaseCallback> listener)
+{
+    if (listener == nullptr) {
+        RS_TRACE_NAME("RegisterSurfaceNodeBufferReleaseListener fail, listener is nullptr");
+        ROSEN_LOGE("DelegateModeDebugTag:RegisterSurfaceNodeBufferReleaseListener renderPipeline == nullptr!");
+        return false;
+    }
+
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("DelegateModeDebugTag:RegisterSurfaceNodeBufferReleaseListener renderPipeline == nullptr!");
+        return false;
+    }
+    return renderPipeline->RegisterSurfaceNodeBufferReleaseListener(listener);
+}
+
+bool RSRenderPipelineClient::UnRegisterSurfaceNodeBufferReleaseListener()
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("DelegateModeDebugTag:UnRegisterSurfaceNodeBufferReleaseListener renderPipeline == nullptr!");
+        return false;
+    }
+    return renderPipeline->UnRegisterSurfaceNodeBufferReleaseListener();
 }
 } // namespace Rosen
 } // namespace OHOS

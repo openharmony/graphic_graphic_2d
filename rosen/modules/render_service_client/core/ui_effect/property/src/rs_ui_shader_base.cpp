@@ -242,6 +242,7 @@ std::shared_ptr<RSNGShaderBase> ConvertFrostedGlassEffectPara(std::shared_ptr<Vi
     frostedGlassEffect->Setter<FrostedGlassEffectEdLightNegTag>(frostedGlassEffectPara->GetEdLightNeg());
     frostedGlassEffect->Setter<FrostedGlassEffectMaterialColorTag>(frostedGlassEffectPara->GetMaterialColor());
     frostedGlassEffect->Setter<FrostedGlassEffectWaveMaskTag>(RSNGMaskBase::Create(frostedGlassEffectPara->GetMask()));
+    frostedGlassEffect->Setter<FrostedGlassEffectEnableSDFCacheTag>(frostedGlassEffectPara->GetEnableSDFCache());
     return frostedGlassEffect;
 #else
     return nullptr;

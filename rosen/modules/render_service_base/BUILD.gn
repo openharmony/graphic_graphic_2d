@@ -151,6 +151,7 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/appearance/rs_overlay_ng_shader_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_shadow_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_use_effect_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_use_union_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_visibility_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_color_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_image_render_modifier.cpp",
@@ -183,6 +184,7 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_surface_node_command.cpp",
     "src/command/rs_ui_director_command.cpp",
     "src/command/rs_union_node_command.cpp",
+    "src/command/rs_delegate_composite_command.cpp",
 
     #offscreen_render
     "src/offscreen_render/rs_offscreen_render_thread.cpp",
@@ -253,6 +255,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/surface_capture_callback_stub.cpp",
     "src/ipc_callbacks/dfx/rs_dump_callback_proxy.cpp",
     "src/ipc_callbacks/dfx/rs_dump_callback_stub.cpp",
+    "src/ipc_callbacks/rs_delegate_composite_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_delegate_composite_callback_stub.cpp",
 
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
@@ -391,7 +395,7 @@ ohos_source_set("render_service_base_src") {
     "src/screen_manager/rs_screen_hdr_capability.cpp",
     "src/screen_manager/rs_screen_mode_info.cpp",
     "src/screen_manager/rs_screen_property.cpp",
-    "src/screen_manager/rs_screen_props.cpp",  
+    "src/screen_manager/rs_screen_props.cpp",
     "src/screen_manager/rs_virtual_screen_resolution.cpp",
 
     #info_collection
@@ -432,6 +436,8 @@ ohos_source_set("render_service_base_src") {
     "src/feature/uifirst/rs_frame_control.cpp",
     "src/feature/uifirst/rs_drawable_updater.cpp",
     "src/feature/behind_window_filter/rs_behind_window_filter_manager.cpp",
+    "src/feature/delegate_composite/rs_delegate_composite_callback_manager.cpp",
+    "src/feature/delegate_composite/rs_delegate_composite_params.cpp",
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
@@ -616,6 +622,12 @@ ohos_source_set("render_service_base_src") {
 
   if (enable_export_macro) {
     defines += [ "ENABLE_EXPORT_MACRO" ]
+  }
+
+  if (!build_ohos_sdk) {
+    sources += [
+      "src/transaction/transaction.cpp",
+    ]
   }
 
   if (rs_enable_gpu) {
@@ -845,7 +857,7 @@ ohos_source_set("render_service_base_src") {
     }
   }
 
-  include_dirs += [ 
+  include_dirs += [
     "$graphic_2d_root/rosen/modules/render_service_profiler",
     "$graphic_2d_root/rosen/modules/render_service_profiler/trace3dapi",
   ]
@@ -1005,12 +1017,12 @@ ohos_source_set("librender_service_base_static") {
     sources = [ "src/common/rs_common_hook.cpp" ]
   }
 
-  deps = [ 
+  deps = [
     "$rosen_root/modules/platform:eventhandler",
     "src/platform:platform",
   ]
   public_deps = [
-    ":render_service_base_src",    
+    ":render_service_base_src",
   ]
 
   external_deps = [ "hilog:libhilog" ]

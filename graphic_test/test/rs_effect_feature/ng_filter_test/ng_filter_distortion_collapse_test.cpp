@@ -42,9 +42,9 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
     distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.2f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.4f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.4f, 0.4f});
+    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.2f, 0.4f});
     distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{0.5f, 0.5f, 0.5f, 0.5f});
 
     auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
@@ -60,11 +60,11 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
-    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.1f, 0.1f});
-    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.1f, 0.1f});
-    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.1f, 0.1f});
-    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.1f, 0.1f});
-    distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{0.2f, 0.2f, 0.2f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.2f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.4f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.4f, 0.4f});
+    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.2f, 0.4f});
+    distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{-0.3f, -0.3f, -0.3f, -0.3f});
 
     auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
     backgroundTestNode->SetBackgroundNGFilter(distortionCollapseFilter);
@@ -79,10 +79,10 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
-    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.3f, 0.3f});
-    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.3f, 0.3f});
+    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.1f, 0.1f});
+    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.1f, 0.3f});
     distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.3f, 0.3f});
-    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.3f, 0.3f});
+    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.3f, 0.1f});
     distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{0.8f, 0.8f, 0.8f, 0.8f});
 
     auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
@@ -98,11 +98,11 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
-    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.4f, 0.4f});
-    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.4f, 0.4f});
-    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.4f, 0.4f});
-    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.4f, 0.4f});
-    distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{100.0f, 100.0f});
+    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{101.0f, 100.0f});
+    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{101.0f, 101.0f});
+    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{100.0f, 101.0f});
+    distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{-0.5f, 0.0f, 0.5f, 1.0f});
 
     auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
     backgroundTestNode->SetBackgroundNGFilter(distortionCollapseFilter);
@@ -117,10 +117,10 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
-    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.2f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{-0.2f, -0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{1.2f, -0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{1.2f, 1.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{-0.2f, 1.2f});
     distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{0.0f, 0.0f, 0.0f, 0.0f});
 
     auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
@@ -136,10 +136,10 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
-    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.2f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{-0.2f, -0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{1.2f, -0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{1.2f, 1.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{-0.2f, 1.2f});
     distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{-0.5f, -0.5f, -0.5f, -0.5f});
 
     auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
@@ -174,10 +174,10 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
-    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.0f, 0.0f});
-    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.0f, 0.0f});
-    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.0f, 0.0f});
-    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.0f, 0.0f});
+    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.2f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.8f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.8f, 0.8f});
+    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.2f, 0.8f});
     distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{0.5f, 0.5f, 0.5f, 0.5f});
 
     auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
@@ -193,10 +193,10 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
-    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.8f, 0.8f});
-    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.8f, 0.8f});
-    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.8f, 0.8f});
-    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.8f, 0.8f});
+    distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.6f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.8f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.8f, 0.6f});
+    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.2f, 0.8f});
     distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{0.5f, 0.5f, 0.5f, 0.5f});
 
     auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});
@@ -213,9 +213,9 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
     distortionCollapseFilter->Setter<DistortionCollapseLUCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.2f, 0.2f});
-    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.2f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRUCornerTag>(Vector2f{0.8f, 0.2f});
+    distortionCollapseFilter->Setter<DistortionCollapseRBCornerTag>(Vector2f{0.8f, 0.8f});
+    distortionCollapseFilter->Setter<DistortionCollapseLBCornerTag>(Vector2f{0.2f, 0.8f});
     distortionCollapseFilter->Setter<DistortionCollapseBarrelDistortionTag>(Vector4f{-1.0f, 0.0f, 1.0f, 1.0f});
 
     auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, sizeX, sizeY});

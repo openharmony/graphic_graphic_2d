@@ -44,6 +44,7 @@
 #include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
+#include "modifier_ng/appearance/rs_use_union_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
 #include "modifier_ng/background/rs_background_color_modifier.h"
 #include "modifier_ng/background/rs_background_image_modifier.h"
@@ -962,18 +963,18 @@ HWTEST_F(RSNodeTest2, SetUseUnionAndUnionSpacing, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
 
-    auto boundsModifier = std::make_shared<ModifierNG::RSBoundsModifier>();
-    rsNode->AddModifier(boundsModifier);
+    auto useUnionModifier = std::make_shared<ModifierNG::RSUseUnionModifier>();
+    rsNode->AddModifier(useUnionModifier);
 
-    EXPECT_EQ(boundsModifier->GetUnionSpacing(), 0.0f);
-    EXPECT_EQ(boundsModifier->GetUseUnion(), false);
+    EXPECT_EQ(useUnionModifier->GetUnionSpacing(), 0.0f);
+    EXPECT_EQ(useUnionModifier->GetUseUnion(), false);
 
     // test the path of using modifier to set these properties
-    boundsModifier->SetUnionSpacing(0.5f);
-    boundsModifier->SetUseUnion(true);
+    useUnionModifier->SetUnionSpacing(0.5f);
+    useUnionModifier->SetUseUnion(true);
 
-    EXPECT_EQ(boundsModifier->GetUnionSpacing(), 0.5f);
-    EXPECT_EQ(boundsModifier->GetUseUnion(), true);
+    EXPECT_EQ(useUnionModifier->GetUnionSpacing(), 0.5f);
+    EXPECT_EQ(useUnionModifier->GetUseUnion(), true);
 }
 
 /**
@@ -983,7 +984,7 @@ HWTEST_F(RSNodeTest2, SetUseUnionAndUnionSpacing, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest2, SetUseUnion, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::USE_UNION;
     auto rsNode = RSCanvasNode::Create();
 
     EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -1201,7 +1202,7 @@ HWTEST_F(RSNodeTest2, SetHdrDarkenBlenderParams002, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest2, SetGravityPullCenterFlagTest, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::USE_UNION;
     auto rsNode = RSCanvasNode::Create();
 
     EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -1215,6 +1216,75 @@ HWTEST_F(RSNodeTest2, SetGravityPullCenterFlagTest, TestSize.Level1)
     rsNode->SetGravityPullCenterFlag(true);
     EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
     EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_CENTER_FLAG), properties.end());
+}
+
+/**
+ * @tc.name: SetSDFUnionModeTest
+ * @tc.desc: test results of RSNode::SetSDFUnionMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetSDFUnionModeTest, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::USE_UNION;
+    auto rsNode = RSCanvasNode::Create();
+
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    rsNode->SetSDFUnionMode(0);
+    auto& properties = rsNode->GetModifierCreatedBySetter(modifierType)->properties_;
+
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_UNION_MODE), properties.end());
+
+    rsNode->SetSDFUnionMode(1);
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_UNION_MODE), properties.end());
+}
+
+/**
+ * @tc.name: SetGravityPullStrengthTest
+ * @tc.desc: test results of RSNode::SetGravityPullStrength
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetGravityPullStrengthTest, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::USE_UNION;
+    auto rsNode = RSCanvasNode::Create();
+
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    rsNode->SetGravityPullStrength(0.5f);
+    auto& properties = rsNode->GetModifierCreatedBySetter(modifierType)->properties_;
+
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_UNION_STRENGTH), properties.end());
+
+    rsNode->SetGravityPullStrength(1.0f);
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_UNION_STRENGTH), properties.end());
+}
+
+/**
+ * @tc.name: SetGravityHotZoneTest
+ * @tc.desc: test results of RSNode::SetGravityHotZone
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetGravityHotZoneTest, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::USE_UNION;
+    auto rsNode = RSCanvasNode::Create();
+
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    rsNode->SetGravityHotZone(100.0f);
+    auto& properties = rsNode->GetModifierCreatedBySetter(modifierType)->properties_;
+
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_HOT_ZONE), properties.end());
+
+    rsNode->SetGravityHotZone(200.0f);
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_HOT_ZONE), properties.end());
 }
 
 /**

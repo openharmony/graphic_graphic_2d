@@ -717,6 +717,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
     targetSurfaceParams->uifirstParams_.leashAllEnabled = uifirstParams_.leashAllEnabled;
     targetSurfaceParams->uifirstParams_.isPartialSynced = uifirstParams_.isPartialSynced;
+    targetSurfaceParams->isWebProxyComposerNode_ = isWebProxyComposerNode_;
+    targetSurfaceParams->delegateDstRect_ = delegateDstRect_;
+    targetSurfaceParams->delegateSrcRect_ = delegateSrcRect_;
     RSRenderParams::OnSync(target);
 }
 
@@ -881,5 +884,47 @@ void RSSurfaceRenderParams::SwapRelatedRenderParams(RSSurfaceRenderParams& relat
     std::swap(isOccludedByFilterCache_, relatedRenderParams.isOccludedByFilterCache_);
     std::swap(isSkipDraw_, relatedRenderParams.isSkipDraw_);
     RSRenderParams::SwapRelatedRenderParams(relatedRenderParams);
+}
+
+void RSSurfaceRenderParams::SetDelegateMode(bool isWebProxyComposerNode)
+{
+    if (isWebProxyComposerNode_ == isWebProxyComposerNode) {
+        return;
+    }
+    isWebProxyComposerNode_ = isWebProxyComposerNode;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetDelegateMode() const
+{
+    return isWebProxyComposerNode_;
+}
+
+void RSSurfaceRenderParams::SetDelegateDstRect(const RectI& rect)
+{
+    if (delegateDstRect_ == rect) {
+        return;
+    }
+    delegateDstRect_ = rect;
+    needSync_ = true;
+}
+
+const RectI& RSSurfaceRenderParams::GetDelegateDstRect() const
+{
+    return delegateDstRect_;
+}
+
+void RSSurfaceRenderParams::SetDelegateSrcRect(const RectI& rect)
+{
+    if (delegateSrcRect_ == rect) {
+        return;
+    }
+    delegateSrcRect_ = rect;
+    needSync_ = true;
+}
+
+const RectI& RSSurfaceRenderParams::GetDelegateSrcRect() const
+{
+    return delegateSrcRect_;
 }
 } // namespace OHOS::Rosen

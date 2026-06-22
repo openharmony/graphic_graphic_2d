@@ -12,16 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef RS_DELEGATE_COMPOSITE_COMMAND_H
+#define RS_DELEGATE_COMPOSITE_COMMAND_H
 
-#ifndef RENDER_SERVICE_BASE_COMMAND_RS_DELEGATE_COMPOSITE_COMMAND_H
-#define RENDER_SERVICE_BASE_COMMAND_RS_DELEGATE_COMPOSITE_COMMAND_H
-
+#ifndef ROSEN_CROSS_PLATFORM
+#include <vector>
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
-#include "transaction/rs_buffer_transaction.h"
+#include "transaction/transaction.h"
 
 namespace OHOS {
 namespace Rosen {
+
 enum RSDelegateCompositeCommandType : uint16_t {
     TRANSACTION_BUFFER = 0,
     SURFACE_TRANSACTION_CMD = 1,
@@ -32,6 +34,7 @@ public:
     TransactionBufferCommand();
     TransactionBufferCommand(NodeId nodeId);
     TransactionBufferCommand(std::vector<RSTransactionConfig>& configs, NodeId nodeId);
+    TransactionBufferCommand(RectF rect, bool isSrcRect, NodeId nodeId);
 
     void Process(RSContext& context) override;
     [[nodiscard]] static RSCommand* Unmarshalling(Parcel& parcel);
@@ -69,7 +72,69 @@ private:
     std::vector<RSTransactionConfig> configList_;
     NodeId nodeId_ = 0;
     static Registrar instance_;
+    enum class CmdType : int32_t {
+        INVALID = -1,
+        SET_BUFFER = 0,
+        SET_RECT,
+    };
+
+    // common
+    CmdType cmdType_ = CmdType::INVALID;
+    NodeId nodeId_ = 0;
+
+    // setBuffer
+    void ProcessCmdTypeSetBuffer(RSContext& context);
+    void ProcessCmdTypeSetBufferwithAttach(sptr<Transaction> transaction,
+        sptr<IConsumerSurface> consumer, const RSTransactionConfig& config);
+    static RSCommand* UnmarshallingCmdTypeSetBuffer(MessageParcel* messageParcel);
+    bool MarshallingCmdTypeSetBuffer(MessageParcel* messageParcel) const;
+    std::vector<RSTransactionConfig> configList_;
+
+    // set rect
+    void ProcessCmdTypeSetRect(RSContext& context);
+    static RSCommand* UnmarshallingCmdTypeSetRect(MessageParcel* messageParcel);
+    bool MarshallingCmdTypeSetRect(MessageParcel* messageParcel) const;
+    bool isSrcRect_ = true;
+    RectF rect_;
+
+    // rs command define
+    using Register = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
+        RSDelegateCompositeCommandType::TRANSACTION_BUFFER, Unmarshalling>;
+    static Register instance_;
+};
+
+class RSB_EXPORT SurfaceTransactionCommand : public RSCommand {
+public:
+    SurfaceTransactionCommand(uint64_t srcId, uint64_t seqNum, pid_t pid, pid_t tid);
+
+    void Process(RSContext& context) override;
+    [[nodiscard]] static RSCommand* Unmarshalling(Parcel& parcel);
+    bool Marshalling(Parcel& parcel) const override;
+
+    uint16_t GetType() const override
+    {
+        return RSCommandType::DELEGATE_COMPOSITE;
+    }
+
+    uint16_t GetSubType() const override
+    {
+        return RSDelegateCompositeCommandType::SURFACE_TRANSACTION_CMD;
+    }
+
+    RSCommandPermissionType GetAccessPermission() const override
+    {
+        return RSCommandPermissionType::PERMISSION_APP;
+    }
+private:
+    uint64_t commandSrcId_ = 0;
+    uint64_t commandSeqNum_ = 0;
+    pid_t commandSendPid_ = 0;
+    pid_t commandSendTid_ = 0;
+    using Register = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
+        RSDelegateCompositeCommandType::SURFACE_TRANSACTION_CMD, Unmarshalling>;
+    static Register instance_;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_BASE_COMMAND_RS_DELEGATE_COMPOSITE_COMMAND_H
+#endif // ROSEN_CROSS_PLATFORM
+#endif // RS_DELEGATE_COMPOSITE_COMMAND_H

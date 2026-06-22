@@ -41,6 +41,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "feature/composite_layer/rs_composite_layer_utils.h"
+#include "feature/delegate_composite/rs_delegate_composite_buffer_manager.h"
 #include "rs_trace.h"
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_ui_context.h"
@@ -60,8 +61,10 @@ namespace Rosen {
 #ifdef ROSEN_OHOS
 namespace {
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
+constexpr size_t MAX_CACHE_SIZE = 16;
 }
 #endif
+
 RSSurfaceNode::SharedPtr RSSurfaceNode::Create(
     const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow, std::shared_ptr<RSUIContext> rsUIContext)
 {
@@ -76,7 +79,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::CreateSurfaceNode(const RSSurfaceNodeCon
     SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
     return node;
 }
- 
+
 bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfig,
     RSSurfaceNodeType type, bool isWindow, bool unobscured)
 {
@@ -87,7 +90,7 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
     }
     rsUIContext->GetMutableNodeMap().RegisterNode(shared_from_this());
     SetSkipCheckInMultiInstance(surfaceNodeConfig.isSkipCheckInMultiInstance);
- 
+
     // create node in RS
     RSSurfaceRenderNodeConfig config = {
         .id = GetId(),
@@ -119,7 +122,7 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
         }
 #endif
     }
- 
+
     SetClipToFrame(true);
     // create node in RT (only when in divided render and isRenderServiceNode_ == false)
     // create node in RT if is TextureExport node
@@ -142,7 +145,7 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
                 "RSSurfaceNodeConnectToNodeInRenderService rsUIContext is nullptr");
         }
 #endif
- 
+
         RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
         AddCommand(command, isWindow);
@@ -520,7 +523,7 @@ bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
     });
     return std::holds_alternative<bool>(result) ? std::get<bool>(result) : false;
 }
- 
+
 RSSurfaceNode::BufferAvailableCallback RSSurfaceNode::BufferAvailableCallbackFunc()
 {
     return [weakThis = weak_from_this()]() {
@@ -853,6 +856,9 @@ RSSurfaceNode::~RSSurfaceNode()
     }
     RS_LOGI("RSSurfaceNode::~RSSurfaceNode, Node: %{public}" PRIu64 ", Name: %{public}s", GetId(), GetName().c_str());
     // both divided and unirender need to unregister listener when surfaceNode destroy
+#ifndef ROSEN_CROSS_PLATFORM
+    delegateCompositeBufMgr_ = nullptr;
+#endif
     auto rsUIContext = GetRSUIContext();
     if (rsUIContext != nullptr && rsUIContext->GetRSRenderInterface() != nullptr) {
         rsUIContext->GetRSRenderInterface()->UnregisterBufferAvailableListener(GetId());
@@ -1439,6 +1445,7 @@ void RSSurfaceNode::DumpSubClass(std::string& out) const
 
 void RSSurfaceNode::SetIsDepthResource(bool isDepthResource) {}
 
+<<<<<<< HEAD
 void RSSurfaceNode::CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(), type, isTextureExportNode_);
@@ -1477,5 +1484,90 @@ void RSSurfaceNode::CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow
     }
 #endif
 }
+=======
+#ifndef ROSEN_CROSS_PLATFORM
+void RSSurfaceNode::SetDamageRegion(std::vector<Rect> rects)
+{
+    if (!delegateCompositeBufMgr_) {
+        return;
+    }
+    delegateCompositeBufMgr_->SetDamageRegion(rects);
+}
+
+void RSSurfaceNode::SetBufferTransform(GraphicTransformType transform)
+{
+    if (!delegateCompositeBufMgr_) {
+        return;
+    }
+    delegateCompositeBufMgr_->SetBufferTransform(transform);
+}
+
+void RSSurfaceNode::SetBuffer(sptr<SurfaceBuffer> buffer,
+    UniqueFd fenceFd, const BufferReleaseCallback& releaseCallback)
+{
+    if (!delegateCompositeBufMgr_) {
+        return;
+    }
+    delegateCompositeBufMgr_->SetBuffer(buffer, std::move(fenceFd), releaseCallback);
+}
+
+void RSSurfaceNode::CleanBuffer(bool cleanAll)
+{
+    if (!delegateCompositeBufMgr_) {
+        return;
+    }
+    delegateCompositeBufMgr_->CleanBuffer(cleanAll);
+}
+
+void RSSurfaceNode::SetDesiredPresentTime(int64_t desiredPresentTime)
+{
+    if (!delegateCompositeBufMgr_) {
+        return;
+    }
+    delegateCompositeBufMgr_->SetDesiredPresentTime(desiredPresentTime);
+}
+
+GSError RSSurfaceNode::ReleaseBuffer(uint32_t sequence, sptr<SyncFence> fence)
+{
+    if (!delegateCompositeBufMgr_) {
+        return GSERROR_NOT_INIT;
+    }
+    return delegateCompositeBufMgr_->ReleaseBuffer(sequence, fence);
+}
+
+void RSSurfaceNode::SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW)
+{
+    if (!delegateCompositeBufMgr_) {
+        return;
+    }
+    delegateCompositeBufMgr_->SetDelegateDstRect(positionX, positionY, positionZ, positionW);
+}
+
+void RSSurfaceNode::SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW)
+{
+    if (!delegateCompositeBufMgr_) {
+        return;
+    }
+    delegateCompositeBufMgr_->SetDelegateSrcRect(positionX, positionY, positionZ, positionW);
+}
+
+bool RSSurfaceNode::SetDelegateMode(bool isDelegateMode)
+{
+    if (delegateCompositeBufMgr_) {
+        return false;
+    }
+    if (!isDelegateMode) {
+        return true;
+    }
+    delegateCompositeBufMgr_ = std::make_shared<RSDelegateCompositeBufferManager>(
+        GetRSUIContext(), GetSurface(), GetId(), GetName());
+    if (!delegateCompositeBufMgr_) {
+        RS_LOGE("RSSurfaceNode::SetDelegateMode fail: create delegateCompositeBufMgr fail");
+        return false;
+    }
+    return delegateCompositeBufMgr_->SetDelegateMode(isDelegateMode);
+}
+#endif
+>>>>>>> master
 } // namespace Rosen
 } // namespace OHOS

@@ -240,6 +240,8 @@ public:
     void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
     bool GetHasForceHwcHdrSurface() const;
 
+    void SetScreenRotationForDelegate(ScreenRotation rotation);
+    ScreenRotation GetScreenRotationForDelegate() const;
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
@@ -289,6 +291,7 @@ private:
     bool hasMirroredScreenChanged_ = false;
     ScreenRotation logicalCameraRotationCorrection_ = ScreenRotation::ROTATION_0;
     bool hasForceHwcHdrSurface_ = false;
+    ScreenRotation rotation_ = ScreenRotation::ROTATION_0;
 };
 } // namespace OHOS::Rosen
 

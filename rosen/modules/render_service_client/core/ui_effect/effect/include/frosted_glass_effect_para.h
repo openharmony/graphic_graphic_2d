@@ -312,6 +312,10 @@ public:
         return maskPara_;
     }
 
+    bool GetEnableSDFCache() const
+    {
+        return enableSDFCache_;
+    }
 private:
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
@@ -346,6 +350,7 @@ private:
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
+    bool enableSDFCache_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

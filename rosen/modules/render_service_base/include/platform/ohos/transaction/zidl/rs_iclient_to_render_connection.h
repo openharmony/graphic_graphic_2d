@@ -70,6 +70,7 @@
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
+#include "ipc_callbacks/rs_delegate_composite_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -225,6 +226,13 @@ public:
     virtual void RegisterRemoteRefreshCallback() = 0;
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
+
+    virtual bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid) = 0;
+    virtual bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,
+        uint64_t listenerId) = 0;
+    virtual bool UnRegisterSurfaceTransactionListener(uint64_t listenerId) = 0;
+    virtual bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener) = 0;
+    virtual bool UnRegisterSurfaceNodeBufferReleaseListener() = 0;
 };
 
 } // namespace Rosen

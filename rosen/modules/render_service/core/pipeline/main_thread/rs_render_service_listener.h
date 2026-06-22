@@ -37,6 +37,8 @@ public:
     void OnTransformChange() override;
     void OnDropBuffer() override;
     void SetRSSurfaceBufferInterface(std::weak_ptr<RSSurfaceBufferInterface> surfaceBufferInterface);
+    void OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo> &infos) override;
+    bool IsNeedBufferInfo() override;
 
 private:
     void SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceHandler> &surfaceHandler,

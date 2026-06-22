@@ -32,9 +32,13 @@
 #include "surface_buffer.h"
 
 #ifdef RS_ENABLE_VK
+#ifndef ROSEN_ARKUI_X
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
+#include "rs_vulkan_context.h"
+#endif
 #endif
 
 namespace OHOS::Rosen {
@@ -175,7 +179,7 @@ void EffectImageChain::UpdateCanvas()
     }
 }
 
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 DrawingError EffectImageChain::PrepareNativeBuffer(
     const std::shared_ptr<Media::PixelMap> &srcPixelMap, std::shared_ptr<OH_NativeBuffer> &dstNativeBuffer)
 {
@@ -718,7 +722,7 @@ DrawingError EffectImageChain::Draw()
     return ret;
 }
 
-#ifdef RS_ENABLE_VK
+#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 DrawingError EffectImageChain::DrawNativeBuffer()
 {
     std::lock_guard<std::mutex> lock(apiMutex_);
@@ -806,7 +810,16 @@ DrawingError EffectImageChain::InitWithoutCanvas(const std::shared_ptr<Media::Pi
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_) };
 
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
     image_ = RSPixelMapUtil::ExtractDrawingImage(srcPixelMap_);
+#else
+    Drawing::Bitmap bitmap;
+    bitmap.InstallPixels(imageInfo_,
+        reinterpret_cast<void *>(srcPixelMap_->GetWritablePixels()),
+        static_cast<uint32_t>(srcPixelMap_->GetRowStride()));
+    image_ = std::make_shared<Drawing::Image>();
+    image_->BuildFromBitmap(bitmap);
+#endif
 
     Media::InitializationOptions opts;
     opts.size = { srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight() };

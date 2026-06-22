@@ -351,6 +351,27 @@ public:
         watermarkColCount_ = colCount;
     }
 
+    void SetUifirstScale(float scaleFactor)
+    {
+        // scaleFactor must in (0,1]
+        if (ROSEN_LE(scaleFactor, 0.0f) || ROSEN_GNE(scaleFactor, 1.0f)) {
+            uifirstScale_ = 1.0f;
+        } else {
+            uifirstScale_ = scaleFactor;
+        }
+    }
+
+    bool IsUifirstScale() const
+    {
+        return ROSEN_GNE(uifirstScale_, 0.0f) && ROSEN_LNE(uifirstScale_, 1.0f);
+    }
+
+    float GetUiFirstScale() const
+    {
+        // scaleFactor must in (0,1]
+        return ROSEN_GNE(uifirstScale_, 0.0f) && ROSEN_LE(uifirstScale_, 1.0f) ? uifirstScale_ : 1.0f;
+    }
+
     uint32_t GetWatermarkRowCount() const
     {
         return watermarkRowCount_;
@@ -719,6 +740,7 @@ private:
     bool isVirtualExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
+    float uifirstScale_ = 1.0f;
     NodeId currentVisitDisplayDrawableId_ = INVALID_NODEID;
     AdvancedDirtyRegionType advancedDirtyType_ = AdvancedDirtyRegionType::DISABLED;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;

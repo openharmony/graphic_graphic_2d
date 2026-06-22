@@ -90,6 +90,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_HARDWARE_ENABLED = 54,
     SURFACE_NODE_SET_HIDE_PRIVACY_CONTENT = 55,
     SURFACE_NODE_RECREATE_NODE_AND_SURFACE = 56,
+    SURFACE_NODE_SET_DELEGATE_MODE = 57,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -163,6 +164,7 @@ public:
     static void RecreateNodeAndSurface(RSContext& context, const RSSurfaceRenderNodeConfig& config,
         SurfaceId surfaceId, bool unobscured);
 #endif
+    static void SetDelegateMode(RSContext& context, NodeId nodeId, bool isDelegateMode);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -335,6 +337,9 @@ ADD_COMMAND(RSSurfaceNodeRecreateNodeAndSurface,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_RECREATE_NODE_AND_SURFACE,
         SurfaceNodeCommandHelper::RecreateNodeAndSurface, RSSurfaceRenderNodeConfig, SurfaceId, bool))
 #endif
+ADD_COMMAND(RSSurfaceNodeSetDelegateMode,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_DELEGATE_MODE,
+        SurfaceNodeCommandHelper::SetDelegateMode, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

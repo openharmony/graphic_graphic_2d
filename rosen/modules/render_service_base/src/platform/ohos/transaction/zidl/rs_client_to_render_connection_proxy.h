@@ -188,6 +188,12 @@ public:
     pid_t pid_ = GetRealPid();
     std::atomic<uint32_t> transactionDataIndex_ = 0;
     OnRemoteDiedCallback OnRemoteDiedCallback_;
+
+    bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid) override;
+    bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener, uint64_t listenerId) override;
+    bool UnRegisterSurfaceTransactionListener(uint64_t listenerId) override;
+    bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener) override;
+    bool UnRegisterSurfaceNodeBufferReleaseListener() override;
 };
 } // namespace Rosen
 } // namespace OHOS

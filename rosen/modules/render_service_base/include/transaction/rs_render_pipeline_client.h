@@ -64,6 +64,7 @@
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "utils/scalar.h"
+#include "ipc_callbacks/rs_delegate_composite_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -229,6 +230,11 @@ public:
     );
 
     void SetOnRenderProcessDiedCallback(const std::function<void()>& callback);
+    bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid);
+    bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener, uint64_t listenerId);
+    bool UnRegisterSurfaceTransactionListener(uint64_t listenerId);
+    bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener);
+    bool UnRegisterSurfaceNodeBufferReleaseListener();
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,

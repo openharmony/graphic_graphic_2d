@@ -163,6 +163,34 @@ const GraphicIRect& RSRenderSurfaceLayer::GetCropRect() const
     return cropRect_;
 }
 
+void RSRenderSurfaceLayer::SetDelegateModeCropRect(const GraphicIRect& crop)
+{
+    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+        rsLayerId_, crop.x, crop.y, crop.w, crop.h);
+    delegateModeCropRect_ = crop;
+}
+
+GraphicIRect RSRenderSurfaceLayer::GetDelegateModeCropRect()
+{
+    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateModeCropRect in layerId=%" PRIu64 ", %d %d %d %d",
+        rsLayerId_, delegateModeCropRect_.x, delegateModeCropRect_.y, delegateModeCropRect_.w, delegateModeCropRect_.h);
+    return delegateModeCropRect_;
+}
+
+bool RSRenderSurfaceLayer::GetDelegateMode() const
+{
+    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::GetDelegateMode in:layerId=%" PRIu64 ", %d",
+        rsLayerId_, isDelegateMode_);
+    return isDelegateMode_;
+}
+
+void RSRenderSurfaceLayer::SetDelegateMode(bool isDelegateMode)
+{
+    isDelegateMode_ = isDelegateMode;
+    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::SetDelegateMode in:layerId=%" PRIu64 ", %d",
+        rsLayerId_, isDelegateMode_);
+}
+
 void RSRenderSurfaceLayer::SetPreMulti(bool preMulti)
 {
     preMulti_ = preMulti;
@@ -734,6 +762,8 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     ignoreAlpha_ = rsLayer->GetIgnoreAlpha();
     ancoSrcRect_ = rsLayer->GetAncoSrcRect();
     vcldInfo_ = rsLayer->GetVcldInfo();
+    delegateModeCropRect_ = rsLayer->GetDelegateModeCropRect();
+    isDelegateMode_ = rsLayer->GetDelegateMode();
 }
 
 void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command)

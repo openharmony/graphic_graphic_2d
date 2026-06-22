@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "modifier_ng/geometry/rs_bounds_modifier.h"
+#include "modifier_ng/appearance/rs_use_union_modifier.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_union_node.h"
 
@@ -118,7 +118,7 @@ HWTEST_F(RSUnionNodeTest, CreateTest004, TestSize.Level1)
  */
 HWTEST_F(RSUnionNodeTest, SetUnionSpacingTest, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::USE_UNION;
     auto rsUnionNode = RSUnionNode::Create();
 
     EXPECT_EQ(rsUnionNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -159,7 +159,7 @@ HWTEST_F(RSUnionNodeTest, RegisterNodeMap001, TestSize.Level1)
  */
 HWTEST_F(RSUnionNodeTest, SetUnionModeTest, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::USE_UNION;
     auto rsUnionNode = RSUnionNode::Create();
 
     EXPECT_EQ(rsUnionNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -179,7 +179,7 @@ HWTEST_F(RSUnionNodeTest, SetUnionModeTest, TestSize.Level1)
  */
 HWTEST_F(RSUnionNodeTest, SetGravityPullStrengthTest, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::USE_UNION;
     auto rsUnionNode = RSUnionNode::Create();
 
     EXPECT_EQ(rsUnionNode->GetModifierCreatedBySetter(modifierType), nullptr);

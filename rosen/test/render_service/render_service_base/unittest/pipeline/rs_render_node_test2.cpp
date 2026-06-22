@@ -3566,6 +3566,23 @@ HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers002
 }
 
 /**
+ * @tc.name: ApplyModifiersProcessUnionInfoAfterApplyModifiers003
+ * @tc.desc: test ApplyModifiers with USE_UNION dirty type set (true branch coverage)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers003, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::USE_UNION), true);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+
+    node->ApplyModifiers();
+    ASSERT_FALSE(node->renderProperties_.GetUseUnion());
+}
+
+/**
  * @tc.name: ResetColorPickerAltMemoryOnTreeStateChange
  * @tc.desc: test ResetColorMemory is called when ColorPickAltManager node goes off the tree
  * @tc.type: FUNC

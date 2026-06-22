@@ -879,5 +879,10 @@ bool RSSystemProperties::GetXcomponentEdrEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -196,6 +196,13 @@ private:
     sptr<Surface> GetCanvasSurface(NodeId nodeId) override;
     void RemoveCanvasSurface(NodeId nodeId) override;
 #endif
+    bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid) override;
+    bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener, uint64_t listenerId) override;
+    bool UnRegisterSurfaceTransactionListener(uint64_t listenerId) override;
+    bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener) override;
+    bool UnRegisterSurfaceNodeBufferReleaseListener() override;
+    bool RegisterSurfaceTransactionListenerNew(sptr<RSISurfaceTransactionListener> listener,
+        uint64_t listenerId, uint32_t pid, uint32_t tid) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

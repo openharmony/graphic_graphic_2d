@@ -28,6 +28,8 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static inline std::string frameControl;
 };
 
 void RSUifirstFrameRateControlTest::SetUpTestCase()
@@ -36,6 +38,12 @@ void RSUifirstFrameRateControlTest::SetUpTestCase()
     EventInfo eventInfo_;
     eventInfo_.description = "";
     eventInfo_.eventStatus = 0;
+    frameControl = system::GetParameter("const.graphic.subthread.control.framerate", "false");
+    system::SetParameter("const.graphic.subthread.control.framerate", "false");
+}
+void RSUifirstFrameRateControlTest::TearDownTestCase()
+{
+    system::SetParameter("const.graphic.subthread.control.framerate", frameControl);
 }
 void RSUifirstFrameRateControlTest::TearDownTestCase() {}
 void RSUifirstFrameRateControlTest::SetUp() {}
@@ -263,7 +271,11 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo004, TestSize.Level
     DataBaseRs eventInfo;
     eventInfo.sceneId = "LAUNCHER_APP_LAUNCH_FROM_RECENT";
     control.SetAnimationStartInfo(eventInfo);
-    EXPECT_TRUE(control.forceRefreshOnce_);
+    if (frameControl == "true") {
+        EXPECT_FALSE(control.forceRefreshOnce_);
+    } else {
+        EXPECT_TRUE(control.forceRefreshOnce_);
+    }
 }
 
 /**
@@ -692,7 +704,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, GetSceneIdBitTest011, TestSize.Level1)
 {
     auto result = RSUifirstFrameRateControl::GetSceneIdBit(
         RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT);
-    EXPECT_EQ(result, 0);
+    EXPECT_EQ(result, RSUifirstFrameRateControl::FrameControlSceneBit::SCENE_APP_LAUNCH_FROM_RECENT);
 }
  
 /**

@@ -59,6 +59,8 @@ bool RSProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& sc
     offsetY_ = screenProperty.GetOffsetY();
     renderEngine_ = renderEngine;
     screenInfo_ = screenProperty.GetScreenInfo();
+    screenInfoForDelegateMode_ = screenInfo_;
+    screenInfoForDelegateMode_.rotation = screenParams->GetScreenRotationForDelegate();
 
     // set default render frame config
     ComposerScreenInfo composerScreenInfo;
@@ -132,6 +134,7 @@ bool RSProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEng
     ComposerScreenInfo composerScreenInfo;
     RSComposerClient::ConvertScreenInfo(screenInfo_, composerScreenInfo);
     renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo);
+    screenInfoForDelegateMode_ = screenInfo_;
     return true;
 }
 

@@ -414,6 +414,7 @@ public:
     static bool IsRenderNodeRebuildEnabled();
     static bool RebuildDebugEnabled();
 
+    static bool GetRsDelegateCompositeCleanCacheDfxEnable();
 private:
     RSSystemProperties() = default;
 

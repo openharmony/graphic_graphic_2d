@@ -765,5 +765,54 @@ void RSClientToRenderConnection::RemoveCanvasSurface(NodeId nodeId)
     }
 }
 #endif
+bool RSClientToRenderConnection::SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    return renderPipelineAgent_->SetDelegateMode(id, isSetDelegateMode, pid);
+}
+
+bool RSClientToRenderConnection::RegisterSurfaceTransactionListener(
+    sptr<RSISurfaceTransactionListener> listener, uint64_t listenerId)
+{
+    (void)listener;
+    (void)listenerId;
+    return false;
+}
+
+bool RSClientToRenderConnection::RegisterSurfaceTransactionListenerNew(sptr<RSISurfaceTransactionListener> listener,
+    uint64_t listenerId, uint32_t pid, uint32_t tid)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    return renderPipelineAgent_->RegisterSurfaceTransactionListener(listener, listenerId, pid, tid);
+}
+
+bool RSClientToRenderConnection::UnRegisterSurfaceTransactionListener(uint64_t listenerId)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    return renderPipelineAgent_->UnRegisterSurfaceTransactionListener(listenerId);
+}
+
+bool RSClientToRenderConnection::RegisterSurfaceNodeBufferReleaseListener(
+    sptr<RSISurfaceNodeBufferReleaseCallback> listener)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    return renderPipelineAgent_->RegisterSurfaceNodeBufferReleaseListener(remotePid_, listener);
+}
+
+bool RSClientToRenderConnection::UnRegisterSurfaceNodeBufferReleaseListener()
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return false;
+    }
+    return renderPipelineAgent_->UnRegisterSurfaceNodeBufferReleaseListener(remotePid_);
+}
 } // namespace Rosen
 } // namespace OHOS

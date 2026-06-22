@@ -19,6 +19,7 @@
 
 #include "modifier_ng/geometry/rs_bounds_clip_modifier.h"
 #include "modifier_ng/geometry/rs_bounds_modifier.h"
+#include "modifier_ng/appearance/rs_use_union_modifier.h"
 #include "modifier_ng/geometry/rs_frame_clip_modifier.h"
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 #include "modifier_ng/geometry/rs_transform_modifier.h"
@@ -31,7 +32,8 @@ const uint8_t DO_BOUNDS = 1;
 const uint8_t DO_FRAME_CLIP = 2;
 const uint8_t DO_FRAME = 3;
 const uint8_t DO_TRANSFORM = 4;
-const uint8_t TARGET_SIZE = 5;
+const uint8_t DO_USE_UNION = 5;
+const uint8_t TARGET_SIZE = 6;
 constexpr int32_t GRAVITY_MAX =
     static_cast<int32_t>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT) + 1;
 }
@@ -77,6 +79,13 @@ void DoRSBoundsModifierFuzzTest(FuzzedDataProvider& fdp)
     modifier->GetBoundsPosition();
     modifier->GetBoundsPositionX();
     modifier->GetBoundsPositionY();
+}
+
+void DoRSUseUnionModifierFuzzTest(FuzzedDataProvider& fdp)
+{
+    auto modifier = std::make_shared<ModifierNG::RSUseUnionModifier>();
+    modifier->GetType();
+    modifier->MarkNodeDirty();
     bool useUnion = fdp.ConsumeBool();
     modifier->SetUseUnion(useUnion);
     modifier->GetUseUnion();
@@ -84,8 +93,8 @@ void DoRSBoundsModifierFuzzTest(FuzzedDataProvider& fdp)
     modifier->SetUnionSpacing(unionSpacing);
     modifier->GetUnionSpacing();
     int unionMode = fdp.ConsumeIntegral<int>();
-    modifier->SetUnionMode(unionMode);
-    modifier->GetUnionMode();
+    modifier->SetSDFUnionMode(unionMode);
+    modifier->GetSDFUnionMode();
     bool gravityPullCenterFlag = fdp.ConsumeBool();
     modifier->SetGravityPullCenterFlag(gravityPullCenterFlag);
     modifier->GetGravityPullCenterFlag();
@@ -210,6 +219,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_TRANSFORM:
             OHOS::Rosen::DoRSTransformModifierFuzzTest(fdp);
+            break;
+        case OHOS::Rosen::DO_USE_UNION:
+            OHOS::Rosen::DoRSUseUnionModifierFuzzTest(fdp);
             break;
         default:
             break;

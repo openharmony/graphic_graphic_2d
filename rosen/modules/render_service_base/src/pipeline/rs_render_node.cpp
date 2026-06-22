@@ -3268,7 +3268,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         ProcessBehindWindowAfterApplyModifiers();
     }
 #ifndef ROSEN_ARKUI_X
-    if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS))) {
+    if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_UNION))) {
         RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(shared_from_this());
     }
 #endif

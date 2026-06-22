@@ -30,6 +30,7 @@
 #include "common/rs_vector4.h"
 #include "display_engine/rs_luminance_control.h"
 #include "feature/uifirst/rs_uifirst_params.h"
+#include "feature/delegate_composite/rs_delegate_composite_params.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
@@ -271,7 +272,7 @@ public:
     {
         existTransparentHardwareEnabledNode_ = exist;
     }
-    
+
     bool ExistTransparentHardwareEnabledNode() const
     {
         return existTransparentHardwareEnabledNode_;
@@ -637,7 +638,7 @@ public:
         return false;
 #endif
     }
-    
+
     // hpae offline
     bool GetDeviceOfflineEnable() const { return deviceOfflineEnable_; }
     void SetDeviceOfflineEnable(bool enabled) { deviceOfflineEnable_ = enabled; }
@@ -2000,6 +2001,14 @@ public:
     void SetHDRType(uint32_t hdrType);
     uint32_t GetHDRType() const;
 
+    void SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW);
+    Vector4f GetDelegateDstRect();
+    void SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW);
+    Vector4f GetDelegateSrcRect();
+    void SetDelegateMode(bool isSetDelegateMode);
+    bool GetDelegateMode();
+    bool IsDelegateModeNodeWithBuffer();
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -2045,9 +2054,11 @@ private:
     void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
         std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
         std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
-    
+
     void CountRelatedNode(bool isIncrement);
     void ClearRelatedSourceCache(bool value);
+
+    void UpdateDelegateRectToSurfaceParams();
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -2406,6 +2417,9 @@ private:
 
     // Used for control-level occlusion culling scene info and culled nodes transmission.
     std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;
+
+    // Used for delegateComposite
+    std::shared_ptr<RsDelegateCompositeParams> delegateCompositeParams_ = nullptr;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static RS_HIDDEN std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

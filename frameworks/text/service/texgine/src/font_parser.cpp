@@ -528,42 +528,81 @@ std::vector<uint32_t> FontParser::GetFontTypefaceUnicode(const void* data, size_
 }
 
 #ifdef ENABLE_OHOS_ENHANCE
-std::vector<uint8_t> FontParser::GetFontDataFromFd(int fd)
+namespace {
+class FontMmapData {
+public:
+    FontMmapData() = default;
+    explicit FontMmapData(void* addr, size_t size) : addr_(addr), size_(size) {}
+    ~FontMmapData()
+    {
+        if (addr_ != nullptr && addr_ != MAP_FAILED) {
+            ::munmap(addr_, size_);
+        }
+    }
+    FontMmapData(const FontMmapData&) = delete;
+    FontMmapData& operator=(const FontMmapData&) = delete;
+    FontMmapData(FontMmapData&& other) noexcept : addr_(other.addr_), size_(other.size_)
+    {
+        other.addr_ = nullptr;
+        other.size_ = 0;
+    }
+    FontMmapData& operator=(FontMmapData&& other) noexcept
+    {
+        if (this != &other) {
+            if (addr_ != nullptr && addr_ != MAP_FAILED) {
+                ::munmap(addr_, size_);
+            }
+            addr_ = other.addr_;
+            size_ = other.size_;
+            other.addr_ = nullptr;
+            other.size_ = 0;
+        }
+        return *this;
+    }
+
+    void* Data() const { return addr_; }
+    size_t Size() const { return size_; }
+    bool IsValid() const { return addr_ != nullptr && addr_ != MAP_FAILED; }
+
+private:
+    void* addr_{nullptr};
+    size_t size_{0};
+};
+
+FontMmapData GetFontDataFromFd(int fd)
 {
     struct stat st{};
     if (fstat(fd, &st) < 0 || st.st_size <= 0) {
         TEXT_LOGE("Failed to get fd size");
-        return {};
+        return FontMmapData();
     }
 
     void* startAddr = ::mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     if (startAddr == MAP_FAILED) {
         TEXT_LOGE("Failed to exec mmap");
-        return {};
+        return FontMmapData();
     }
-    uint8_t* byteData = static_cast<uint8_t*>(startAddr);
-    std::vector<uint8_t> fontData(byteData, byteData + st.st_size);
-    ::munmap(startAddr, st.st_size);
-    return fontData;
+    return FontMmapData(startAddr, static_cast<size_t>(st.st_size));
 }
+} // namespace
 #endif
 
 std::vector<std::string> FontParser::GetFontFullName(int fd)
 {
 #ifdef ENABLE_OHOS_ENHANCE
-    std::vector<uint8_t> fontData = GetFontDataFromFd(fd);
-#else
-    std::vector<uint8_t> fontData = {};
-#endif
+    FontMmapData fontData = GetFontDataFromFd(fd);
+    if (!fontData.IsValid()) {
+        return {};
+    }
     int32_t fileCount = 0;
-    Drawing::FontFileType::GetFontFileType(fontData, fileCount);
+    Drawing::FontFileType::GetFontFileType(fontData.Data(), fontData.Size(), fileCount);
     if (fileCount == 0) {
         TEXT_LOGE("Failed to get font count");
         return {};
     }
     std::vector<std::string> result;
     for (int32_t index = 0; index < fileCount; index++) {
-        auto stream = std::make_unique<Drawing::MemoryStream>(fontData.data(), fontData.size(), false);
+        auto stream = std::make_unique<Drawing::MemoryStream>(fontData.Data(), fontData.Size(), false);
         std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeFromStream(std::move(stream), index);
         if (typeface == nullptr) {
             TEXT_LOGE("Failed to make typeface");
@@ -578,6 +617,9 @@ std::vector<std::string> FontParser::GetFontFullName(int fd)
         result.emplace_back(desc.fullName);
     }
     return result;
+#else
+    return {};
+#endif
 }
 
 std::vector<std::string> FontParser::GetBcpTagList()
