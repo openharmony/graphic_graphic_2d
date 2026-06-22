@@ -4231,7 +4231,6 @@ void RSSurfaceRenderNode::SetCrossNodeVisitedStatus(bool hasVisited)
     }
 }
 
-<<<<<<< HEAD
 bool RSSurfaceRenderNode::OnBufferAvailable()
 {
     if (!IsNotifyUIBufferAvailable()) {
@@ -4289,7 +4288,6 @@ void RSSurfaceRenderNode::OnTransformChange()
     RS_LOGD("RsDebug RSSurfaceRenderNode::OnTransformChange node id:%{public}" PRIu64, GetId());
     SetContentDirty();
     SetDoDirectComposition(false);
-=======
 void RSSurfaceRenderNode::SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW)
 {
     if (!delegateCompositeParams_) {
@@ -4383,7 +4381,6 @@ void RSSurfaceRenderNode::UpdateDelegateRectToSurfaceParams()
     const Vector4f& frameRect = GetDelegateSrcRect();
     surfaceParams->SetDelegateDstRect({boundRect.x_, boundRect.y_, boundRect.z_, boundRect.w_});
     surfaceParams->SetDelegateSrcRect({frameRect.x_, frameRect.y_, frameRect.z_, frameRect.w_});
->>>>>>> master
 }
 } // namespace Rosen
 } // namespace OHOS

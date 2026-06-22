@@ -507,7 +507,6 @@ void SurfaceNodeCommandHelper::SetHDRType(RSContext& context, NodeId nodeId, uin
     }
 }
 
-<<<<<<< HEAD
 void SurfaceNodeCommandHelper::UpdateCompositeLayerdToRender(
     RSContext& context, NodeId nodeId, bool isTop, uint32_t TopLayerZOrder)
 {
@@ -595,13 +594,11 @@ void SurfaceNodeCommandHelper::SetHidePrivacyContent(RSContext& context, NodeId 
         nodeId, consumer->GetUniqueId(), unobscured);
 }
 #endif
-=======
 void SurfaceNodeCommandHelper::SetDelegateMode(RSContext& context, NodeId nodeId, bool isDelegateMode)
 {
     if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetDelegateMode(isDelegateMode);
     }
 }
->>>>>>> master
 } // namespace Rosen
 } // namespace OHOS

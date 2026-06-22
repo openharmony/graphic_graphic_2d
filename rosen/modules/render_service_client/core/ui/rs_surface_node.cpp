@@ -1445,7 +1445,6 @@ void RSSurfaceNode::DumpSubClass(std::string& out) const
 
 void RSSurfaceNode::SetIsDepthResource(bool isDepthResource) {}
 
-<<<<<<< HEAD
 void RSSurfaceNode::CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(), type, isTextureExportNode_);
@@ -1484,7 +1483,6 @@ void RSSurfaceNode::CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow
     }
 #endif
 }
-=======
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceNode::SetDamageRegion(std::vector<Rect> rects)
 {
@@ -1568,6 +1566,5 @@ bool RSSurfaceNode::SetDelegateMode(bool isDelegateMode)
     return delegateCompositeBufMgr_->SetDelegateMode(isDelegateMode);
 }
 #endif
->>>>>>> master
 } // namespace Rosen
 } // namespace OHOS

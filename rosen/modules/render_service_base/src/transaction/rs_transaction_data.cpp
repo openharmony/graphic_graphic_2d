@@ -426,11 +426,8 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         }
     }
     int32_t pid;
-<<<<<<< HEAD
     uint8_t scene = 0;
-=======
     int32_t tid = -1;
->>>>>>> master
     bool flag = parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) &&
         parcel.ReadInt32(syncTransactionCount_) && parcel.ReadUint64(token_) &&
         parcel.ReadUint64(timestamp_) && ({RS_PROFILER_PATCH_TRANSACTION_TIME(parcel, timestamp_); true;}) &&
