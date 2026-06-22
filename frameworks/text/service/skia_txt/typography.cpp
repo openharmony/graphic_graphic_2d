@@ -694,6 +694,7 @@ std::vector<TextPathInfo> Typography::GetTextPathsByIndex(size_t start, size_t e
 
 TextLayoutResult Typography::LayoutWithConstraints(const TextRectSize &constraint)
 {
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     return paragraph_->LayoutWithConstraints(constraint);
 }
 
