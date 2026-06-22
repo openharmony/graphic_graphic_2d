@@ -26,6 +26,8 @@
 #include "rs_trace.h"
 
 #include "animation/rs_render_animation.h"
+#include "command/rs_message_processor.h"
+#include "command/rs_node_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
 #include "common/rs_common_tools.h"
@@ -768,6 +770,12 @@ void RSRenderNode::ReleaseNodeMem()
         drawableVec_.reset();
         drawableVecStatus_ = 0;
     }
+}
+
+void RSRenderNode::ReleaseNodeInRender()
+{
+    DestroyAnimationInRender();
+    DestroyColorPickerInRender();
 }
 
 bool RSRenderNode::IsNodeMemClearEnable()
@@ -4419,6 +4427,25 @@ void RSRenderNode::DestroyAnimationInRender()
     if (animationManager_) {
         animationManager_->DestroyInRender(GetId(), context_);
     }
+}
+
+void RSRenderNode::DestroyColorPickerInRender()
+{
+    EquivalentDarkMode lastEquivalentDarkMode = EquivalentDarkMode::INVALID;
+    if (auto colorPickerDrawable = GetColorPickerDrawable()) {
+        lastEquivalentDarkMode = colorPickerDrawable->GetLastEquivalentDarkMode();
+    } else if (auto colorPicker = GetRenderProperties().GetColorPicker()) {
+        lastEquivalentDarkMode = colorPicker->lastEquivalentDarkMode;
+    }
+    if (lastEquivalentDarkMode == EquivalentDarkMode::INVALID) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("DestroyColorPickerInRender node[%" PRIu64 "] lastEquivalentDarkMode[%u]",
+        GetId(), static_cast<uint32_t>(lastEquivalentDarkMode));
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSColorPickerDestroyInRender>(
+            GetId(), GetUIContextToken(), static_cast<uint8_t>(lastEquivalentDarkMode));
+    RSMessageProcessor::Instance().AddUIMessage(ExtractPid(GetId()), command);
 }
 
 void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)

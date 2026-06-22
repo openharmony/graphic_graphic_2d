@@ -864,6 +864,59 @@ HWTEST_F(RSNodeCommandTest, SetColorPickerCallbackProcessorTest, TestSize.Level1
 }
 
 /**
+ * @tc.name: ColorPickerDestroyInRenderTest001
+ * @tc.desc: Test ColorPickerDestroyInRender with null processor
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, ColorPickerDestroyInRenderTest001, TestSize.Level1)
+{
+    RSContext context;
+    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(nullptr);
+    RSNodeCommandHelper::ColorPickerDestroyInRender(context, 1, 100, static_cast<uint8_t>(EquivalentDarkMode::LIGHT));
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: ColorPickerDestroyInRenderTest002
+ * @tc.desc: Test ColorPickerDestroyInRender with valid processor
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, ColorPickerDestroyInRenderTest002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    uint64_t token = 100;
+    auto darkMode = EquivalentDarkMode::DARK;
+
+    static bool callbackInvoked = false;
+    static NodeId receivedNodeId = 0;
+    static uint64_t receivedToken = 0;
+    static EquivalentDarkMode receivedDarkMode = EquivalentDarkMode::INVALID;
+
+    callbackInvoked = false;
+    receivedNodeId = 0;
+    receivedToken = 0;
+    receivedDarkMode = EquivalentDarkMode::INVALID;
+
+    auto processor = [](NodeId nid, uint64_t tokenValue, EquivalentDarkMode lastEquivalentDarkMode) {
+        callbackInvoked = true;
+        receivedNodeId = nid;
+        receivedToken = tokenValue;
+        receivedDarkMode = lastEquivalentDarkMode;
+    };
+
+    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(processor);
+    RSNodeCommandHelper::ColorPickerDestroyInRender(context, nodeId, token, static_cast<uint8_t>(darkMode));
+
+    EXPECT_TRUE(callbackInvoked);
+    EXPECT_EQ(receivedNodeId, nodeId);
+    EXPECT_EQ(receivedToken, token);
+    EXPECT_EQ(receivedDarkMode, darkMode);
+
+    RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(nullptr);
+}
+
+/**
  * @tc.name: ReSortChildrenByZIndexTest
  * @tc.desc: Test ReSortChildrenByZIndex
  * @tc.type: FUNC

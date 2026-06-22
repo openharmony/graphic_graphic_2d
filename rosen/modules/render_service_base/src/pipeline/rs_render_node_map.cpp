@@ -398,7 +398,7 @@ void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
                 return false;
 #endif
             }
-            pair.second->DestroyAnimationInRender();
+            pair.second->ReleaseNodeInRender();
 
             auto surfaceNode = pair.second->template ReinterpretCastTo<RSSurfaceRenderNode>();
             if (surfaceNode && surfaceNode->IsAppWindow()) {

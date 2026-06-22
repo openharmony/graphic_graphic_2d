@@ -65,4 +65,16 @@ Vector4f RSColorPickerModifier::GetColorPickerRect() const
 {
     return Getter<Vector4f>(RSPropertyType::COLOR_PICKER_RECT, Vector4f());
 }
+
+void RSColorPickerModifier::SetColorPickerLastEquivalentDarkMode(EquivalentDarkMode lastEquivalentDarkMode)
+{
+    Setter<RSProperty>(RSPropertyType::COLOR_PICKER_LAST_EQUIVALENT_DARK_MODE,
+        static_cast<int>(lastEquivalentDarkMode));
+}
+
+EquivalentDarkMode RSColorPickerModifier::GetColorPickerLastEquivalentDarkMode() const
+{
+    return static_cast<EquivalentDarkMode>(
+        Getter(RSPropertyType::COLOR_PICKER_LAST_EQUIVALENT_DARK_MODE, static_cast<int>(EquivalentDarkMode::INVALID)));
+}
 } // namespace OHOS::Rosen::ModifierNG

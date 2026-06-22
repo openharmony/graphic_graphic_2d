@@ -410,6 +410,28 @@ HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ColorPickerLastEquivalentDarkModeApplyLegacyPropertyTest
+ * @tc.desc: test color picker last equivalent dark mode legacy property apply
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderModifierNGTest, ColorPickerLastEquivalentDarkModeApplyLegacyPropertyTest, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSColorPickerRenderModifier>();
+    RSProperties properties;
+    auto property = std::make_shared<RSRenderProperty<int>>(static_cast<int>(EquivalentDarkMode::LIGHT), 0);
+    modifier->AttachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_LAST_EQUIVALENT_DARK_MODE, property);
+    modifier->ApplyLegacyProperty(properties);
+
+    ASSERT_NE(properties.GetColorPicker(), nullptr);
+    EXPECT_EQ(properties.GetColorPicker()->lastEquivalentDarkMode, EquivalentDarkMode::LIGHT);
+
+    auto invalidProperty = std::make_shared<RSRenderProperty<int>>(999, 0);
+    modifier->AttachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_LAST_EQUIVALENT_DARK_MODE, invalidProperty);
+    modifier->ApplyLegacyProperty(properties);
+    EXPECT_EQ(properties.GetColorPicker()->lastEquivalentDarkMode, EquivalentDarkMode::INVALID);
+}
+
+/**
  * @tc.name: RSCustomRenderModifier_Apply_Test
  * @tc.desc: test the function Apply of the class RSCustomRenderModifier
  * @tc.type: FUNC
@@ -509,4 +531,5 @@ HWTEST_F(RSRenderModifierNGTest, UseUnionRenderModifierUnmarshallingTest, TestSi
     EXPECT_NE(unmarshalled, nullptr);
     EXPECT_EQ(unmarshalled->GetType(), ModifierNG::RSModifierType::USE_UNION);
 }
-}
+}
+

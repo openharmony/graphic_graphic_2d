@@ -3264,6 +3264,12 @@ void RSNode::AnimationDestroyInRenderCallback(AnimationId animationId, float fra
     animationItr->second->SetRebuildParam({fraction, isReverseCycle});
 }
 
+void RSNode::ColorPickerDestroyInRenderCallback(EquivalentDarkMode lastEquivalentDarkMode)
+{
+    SetPropertyNG<ModifierNG::RSColorPickerModifier,
+        &ModifierNG::RSColorPickerModifier::SetColorPickerLastEquivalentDarkMode>(lastEquivalentDarkMode);
+}
+
 bool RSNode::FireColorPickerCallback(uint32_t color)
 {
     if (!colorPickerCallback_) {

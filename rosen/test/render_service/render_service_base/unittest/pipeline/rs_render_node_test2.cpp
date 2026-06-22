@@ -17,6 +17,7 @@
 #include <parameters.h>
 
 #include "animation/rs_render_curve_animation.h"
+#include "command/rs_message_processor.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -3907,6 +3908,45 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker003, TestSize.Level1)
     // Call PrepareColorPicker with darkMode = true, should not be overridden
     bool needSync = node.PrepareColorPicker(true);
     EXPECT_TRUE(needSync);
+}
+
+/**
+ * @tc.name: DestroyColorPickerInRender001
+ * @tc.desc: Test DestroyColorPickerInRender sends command from restored property fallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender001, TestSize.Level1)
+{
+    RSMessageProcessor::Instance().GetAllTransactions().clear();
+    constexpr NodeId nodeId = (static_cast<NodeId>(1) << 32) | 1;
+    RSRenderNode node(nodeId);
+    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::LIGHT);
+
+    node.DestroyColorPickerInRender();
+
+    auto transaction = RSMessageProcessor::Instance().GetTransaction(ExtractPid(nodeId));
+    ASSERT_NE(transaction, nullptr);
+    EXPECT_FALSE(transaction->IsEmpty());
+    RSMessageProcessor::Instance().GetAllTransactions().clear();
+}
+
+/**
+ * @tc.name: DestroyColorPickerInRender002
+ * @tc.desc: Test DestroyColorPickerInRender does not send command for invalid state
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender002, TestSize.Level1)
+{
+    RSMessageProcessor::Instance().GetAllTransactions().clear();
+    constexpr NodeId nodeId = (static_cast<NodeId>(1) << 32) | 2;
+    RSRenderNode node(nodeId);
+    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::INVALID);
+
+    node.DestroyColorPickerInRender();
+
+    EXPECT_EQ(RSMessageProcessor::Instance().GetTransaction(ExtractPid(nodeId)), nullptr);
 }
 
 /**

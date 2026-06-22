@@ -28,6 +28,7 @@ namespace {
 RSNodeCommandHelper::DumpNodeTreeProcessor gDumpNodeTreeProcessor = nullptr;
 RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = nullptr;
 RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
+RSNodeCommandHelper::ColorPickerDestroyInRenderProcessor gColorPickerDestroyInRenderProcessor = nullptr;
 }
 
 void RSNodeCommandHelper::UpdatePropertyDrawCmdList(
@@ -395,6 +396,19 @@ void RSNodeCommandHelper::ColorPickerCallback(
 void RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor)
 {
     gColorPickerCallbackProcessor = processor;
+}
+
+void RSNodeCommandHelper::ColorPickerDestroyInRender(
+    RSContext& context, NodeId nodeId, uint64_t token, uint8_t lastEquivalentDarkMode)
+{
+    if (gColorPickerDestroyInRenderProcessor != nullptr) {
+        gColorPickerDestroyInRenderProcessor(nodeId, token, static_cast<EquivalentDarkMode>(lastEquivalentDarkMode));
+    }
+}
+
+void RSNodeCommandHelper::SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor processor)
+{
+    gColorPickerDestroyInRenderProcessor = processor;
 }
 
 void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLayer)
