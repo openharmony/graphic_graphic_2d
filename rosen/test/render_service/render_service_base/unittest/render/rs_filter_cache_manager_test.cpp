@@ -992,13 +992,34 @@ HWTEST_F(RSFilterCacheManagerTest, MarkNeedClearFilterCacheForSkipFrameWithPrima
     rsFilterCacheManager->RecordFilterInfos(canSkipFrameFilter1_);
     rsFilterCacheManager->MarkFilterRegionIsLargeArea();
     rsFilterCacheManager->cacheUpdateInterval_ = 1;
-    rsFilterCacheManager->lastInForegroundFilter_ = 1000;
+    rsFilterCacheManager->lastOffscreenNodeId_ = 1000;
     rsFilterCacheManager->MarkInForegroundFilterAndCheckNeedForceClearCache(INVALID_NODEID);
 
     NodeId nodeId = 0;
     rsFilterCacheManager->MarkNeedClearFilterCache(nodeId);
 
     EXPECT_EQ(rsFilterCacheManager->stagingClearType_, FilterCacheType::BOTH);
+}
+
+/**
+ * @tc.name: MarkInForegroundFilterAndCheckNeedForceClearCacheWithNoneCacheType
+ * @tc.desc: test MarkInForegroundFilterAndCheckNeedForceClearCache when lastCacheType is NONE
+ * @tc.type: FUNC
+ * @tc.require: issue24382
+ */
+HWTEST_F(RSFilterCacheManagerTest, MarkInForegroundFilterAndCheckNeedForceClearCacheWithNoneCacheType, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->lastCacheType_ = FilterCacheType::NONE;
+    rsFilterCacheManager->lastOffscreenNodeId_ = 1000;
+    rsFilterCacheManager->stagingForceClearCache_ = false;
+
+    rsFilterCacheManager->MarkInForegroundFilterAndCheckNeedForceClearCache(INVALID_NODEID);
+
+    EXPECT_FALSE(rsFilterCacheManager->stagingForceClearCache_);
+    EXPECT_EQ(rsFilterCacheManager->offscreenNodeId_, INVALID_NODEID);
 }
 
 /**
@@ -2460,6 +2481,57 @@ HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataDstIsEmptyTest, Test
     auto result = rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
 
     EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForOcclusion001
+ * @tc.desc: test IsFilterCacheValidForOcclusion returns false when cacheType is NONE
+ * @tc.type: FUNC
+ * @tc.require: issue24382
+ */
+HWTEST_F(RSFilterCacheManagerTest, IsFilterCacheValidForOcclusion001, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->offscreenNodeId_ = INVALID_NODEID;
+
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForOcclusion002
+ * @tc.desc: test IsFilterCacheValidForOcclusion returns false when offscreenNodeId is not INVALID_NODEID
+ * @tc.type: FUNC
+ * @tc.require: issue24382
+ */
+HWTEST_F(RSFilterCacheManagerTest, IsFilterCacheValidForOcclusion002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->offscreenNodeId_ = 1000;
+
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForOcclusion003
+ * @tc.desc: test IsFilterCacheValidForOcclusion returns true
+ * when cacheType is valid and offscreenNodeId is INVALID_NODEID
+ * @tc.type: FUNC
+ * @tc.require: issue24382
+ */
+HWTEST_F(RSFilterCacheManagerTest, IsFilterCacheValidForOcclusion003, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    rsFilterCacheManager->offscreenNodeId_ = INVALID_NODEID;
+
+    EXPECT_TRUE(rsFilterCacheManager->IsFilterCacheValidForOcclusion());
 }
 
 } // namespace Rosen

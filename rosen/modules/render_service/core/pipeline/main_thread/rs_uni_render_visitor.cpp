@@ -3736,14 +3736,28 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
             filterNode->UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
         }
         RectI filterRect;
-        filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect,
-            prepareClipRect_, prepareFilterClipRect_);
+        UpdateFilterRenderContextForSkippedSubTree(dirtyManager, *filterNode, rootNode, filterRect);
         filterNode->FilterRectMergeDirtyRectInSkippedSubtree(dirtyManager, filterRect);
         hwcVisitor_->UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, *filterNode);
         CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager, filterRect, filterRect);
     }
 
     UpdateVisibleEffectChildrenStatus(rootNode);
+}
+
+void RSUniRenderVisitor::UpdateFilterRenderContextForSkippedSubTree(RSDirtyRegionManager& dirtyManager,
+    RSRenderNode& filterNode, const RSRenderNode& rootNode, RectI& filterRect)
+{
+    if (!filterNode.HasBlurFilter()) {
+        filterNode.UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect,
+            prepareClipRect_, prepareFilterClipRect_);
+        return;
+    }
+    FilterRenderContext context;
+    filterNode.UpdateFilterRenderContextInSkippedSubTree(rootNode,
+        offscreenCanvasNodeId_, prepareClipRect_, prepareFilterClipRect_, context);
+    filterNode.MarkFilterInForegroundFilterAndCheckNeedForceClearCache(context.offscreenNodeId);
+    filterRect = filterNode.GetFilterRegion();
 }
 
 void RSUniRenderVisitor::UpdateVisibleEffectChildrenStatus(const RSRenderNode& rootNode)

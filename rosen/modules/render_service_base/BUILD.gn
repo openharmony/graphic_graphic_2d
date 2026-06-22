@@ -275,6 +275,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_dirty_region_manager.cpp",
     "src/pipeline/rs_draw_cmd.cpp",
     "src/pipeline/rs_draw_cmd_list.cpp",
+    "src/pipeline/rs_effect_utils.cpp",
     "src/pipeline/rs_effect_render_node.cpp",
     "src/pipeline/rs_logical_display_render_node.cpp",
     "src/pipeline/rs_paint_filter_canvas.cpp",
