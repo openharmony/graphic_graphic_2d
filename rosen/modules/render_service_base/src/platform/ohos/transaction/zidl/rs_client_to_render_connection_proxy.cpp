@@ -2011,6 +2011,7 @@ void RSClientToRenderConnectionProxy::RemoveCanvasSurface(NodeId nodeId)
         ROSEN_LOGE("RemoveCanvasSurface: Send Request err.");
     }
 }
+#endif RS_MODIFIERS_DRAW_ENABLE
 
 bool RSClientToRenderConnectionProxy::SetDelegateMode(NodeId id, bool isDelegate, pid_t pid)
 {
