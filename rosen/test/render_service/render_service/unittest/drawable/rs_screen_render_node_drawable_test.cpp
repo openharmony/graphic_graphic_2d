@@ -906,13 +906,13 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest015, TestSize.Level1)
 HWTEST_F(RSScreenRenderNodeDrawableTest, SetDamageRegionTest001, TestSize.Level1)
 {
     ASSERT_NE(screenDrawable_, nullptr);
-    EXPECT_EQ(screenDrawable_->wiredMirrorRenderFrame_, nullptr);
+    EXPECT_EQ(screenDrawable_->physicalMirrorRenderFrame_, nullptr);
     std::vector<RectI> rects;
     screenDrawable_->SetDamageRegion(rects);
 
     auto wiredMirrorRenderFrame = std::make_unique<RSRenderFrame>(nullptr, nullptr);
-    screenDrawable_->wiredMirrorRenderFrame_ = std::move(wiredMirrorRenderFrame);
-    EXPECT_NE(screenDrawable_->wiredMirrorRenderFrame_, nullptr);
+    screenDrawable_->physicalMirrorRenderFrame_ = std::move(wiredMirrorRenderFrame);
+    EXPECT_NE(screenDrawable_->physicalMirrorRenderFrame_, nullptr);
     screenDrawable_->SetDamageRegion(rects);
     ASSERT_NE(screenDrawable_, nullptr);
 }

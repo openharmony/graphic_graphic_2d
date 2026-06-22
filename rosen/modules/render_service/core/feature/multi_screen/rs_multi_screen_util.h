@@ -32,27 +32,40 @@ class RSUniRenderVirtualProcessor;
 
 namespace DrawableV2 {
 
-enum class DrawingPath : int {
+class RSScreenRenderNodeDrawable;
+class RSLogicalDisplayRenderNodeDrawable;
+
+enum class RenderStrategy : int {
     INVALID = -1,  // Initial state
     DRAW_AS_MAIN_SCREEN = 0,
-    DRAW_VIRTUAL_EXTEND_DISPLAY = 1,
-    DRAW_VIRTUAL_MIRROR_COPY = 2,
+    DRAW_VIRTUAL_EXTEND = 1,
+    DRAW_VIRTUAL_MIRROR_FROM_CACHE = 2,
     DRAW_VIRTUAL_MIRROR_REBUILD = 3,
-    DRAW_WIRED_MIRROR_COPY = 4,
-    DRAW_WIRED_MIRROR_REBUILD = 5
+    DRAW_PHYSICAL_MIRROR_FROM_CACHE = 4,
+    DRAW_PHYSICAL_MIRROR_REBUILD = 5
+};
+
+enum RebuildReason : size_t {
+    PROCESS_SPECIAL_LAYER = 0,  // Need to process special layer
+    MIRROR_SCREEN_HDR_PRESENT,  // Mirror screen has HDR content
+    MIRROR_SOURCE_HDR_PRESENT,  // Mirror source screen has HDR content
+    CACHE_IMAGE_NULL,           // CacheImage is not available
+    VIRTUAL_SCREEN_MUTE,        // Virtual screen is muted
+    SCREEN_OFF,                 // Screen is off
+    COLOR_FILTER_MODE,          // Color filter mode is enabled
+
+    // Add new reasons above this line
+    MAX_VALUE
 };
 
 struct MultiScreenParams {
     std::shared_ptr<RSScreenRenderNodeDrawable> screenDrawable;
-    RSScreenRenderParams* screenParams;
+    RSScreenRenderParams* screenParams = nullptr;
     std::shared_ptr<RSLogicalDisplayRenderNodeDrawable> mirrorSourceDisplayDrawable;
-    RSLogicalDisplayRenderParams* mirrorSourceDisplayParams;
+    RSLogicalDisplayRenderParams* mirrorSourceDisplayParams = nullptr;
     std::shared_ptr<RSScreenRenderNodeDrawable> mirrorSourceScreenDrawable;
-    RSScreenRenderParams* mirrorSourceScreenParams;
+    RSScreenRenderParams* mirrorSourceScreenParams = nullptr;
 };
-
-class RSLogicalDisplayRenderNodeDrawable;
-class RSScreenRenderNodeDrawable;
 
 class RSMultiScreenUtil {
 public:
@@ -77,23 +90,23 @@ public:
         RSScreenRenderParams& params,
         const std::shared_ptr<RSProcessor>& processor);
     
-    static void DumpDrawingPath(
+    static void DumpRenderStrategy(
         RSLogicalDisplayRenderNodeDrawable& drawable,
         ScreenId screenId,
-        DrawingPath path,
+        RenderStrategy path,
         const std::string& reason);
 
 private:
-    static void DrawWiredMirrorDisplay(
+    static void DrawPhysicalMirrorDisplay(
         RSLogicalDisplayRenderNodeDrawable& drawable,
         RSLogicalDisplayRenderParams& params,
         const std::shared_ptr<RSProcessor>& processor);
 
-    static void DrawWiredMirrorCopy(
+    static void DrawPhysicalMirrorFromCache(
         RSLogicalDisplayRenderNodeDrawable& drawable,
         RSLogicalDisplayRenderParams& params);
 
-    static void DrawWiredMirrorRebuild(
+    static void DrawPhysicalMirrorRebuild(
         RSLogicalDisplayRenderNodeDrawable& drawable,
         RSLogicalDisplayRenderParams& params,
         const std::shared_ptr<RSProcessor>& processor);
@@ -102,6 +115,23 @@ private:
         RSLogicalDisplayRenderNodeDrawable& drawable,
         RSLogicalDisplayRenderParams& params,
         const std::shared_ptr<RSProcessor>& processor);
+
+    static void DrawVirtualMirrorFromCache(
+        RSLogicalDisplayRenderNodeDrawable& drawable,
+        RSLogicalDisplayRenderParams& params,
+        const std::shared_ptr<RSUniRenderVirtualProcessor>& processor,
+        RSRenderThreadParams& uniParam);
+
+    static void DrawVirtualMirrorRebuild(
+        RSLogicalDisplayRenderNodeDrawable& drawable,
+        RSLogicalDisplayRenderParams& params,
+        const std::shared_ptr<RSUniRenderVirtualProcessor>& processor,
+        RSRenderThreadParams& uniParam);
+
+    static void DrawVirtualExtend(
+        RSLogicalDisplayRenderNodeDrawable& drawable,
+        RSLogicalDisplayRenderParams& params,
+        const std::shared_ptr<RSUniRenderVirtualProcessor>& processor);
 
     static std::pair<MultiScreenParams, bool> GetMultiScreenParams(RSLogicalDisplayRenderParams& params);
 };

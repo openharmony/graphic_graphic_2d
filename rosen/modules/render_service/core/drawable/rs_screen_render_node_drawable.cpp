@@ -485,15 +485,15 @@ void RSScreenRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(
 
 int32_t RSScreenRenderNodeDrawable::GetBufferAge()
 {
-    return wiredMirrorRenderFrame_ ? wiredMirrorRenderFrame_->GetBufferAge() : 0;
+    return physicalMirrorRenderFrame_ ? physicalMirrorRenderFrame_->GetBufferAge() : 0;
 }
 
 void RSScreenRenderNodeDrawable::SetDamageRegion(const std::vector<RectI>& rects)
 {
-    if (wiredMirrorRenderFrame_ == nullptr) {
+    if (physicalMirrorRenderFrame_ == nullptr) {
         return;
     }
-    wiredMirrorRenderFrame_->SetDamageRegion(rects);
+    physicalMirrorRenderFrame_->SetDamageRegion(rects);
 }
 
 void RSScreenRenderNodeDrawable::SetAccumulateDirtyInSkipFrame(bool accumulateDirtyInSkipFrame)

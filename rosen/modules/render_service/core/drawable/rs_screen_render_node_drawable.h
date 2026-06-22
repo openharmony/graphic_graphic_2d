@@ -188,7 +188,7 @@ private:
     static Registrar instance_;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
     mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_ = nullptr;
-    std::unique_ptr<RSRenderFrame> wiredMirrorRenderFrame_ = nullptr;
+    std::unique_ptr<RSRenderFrame> physicalMirrorRenderFrame_ = nullptr;
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporarily holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen render
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;

@@ -163,6 +163,8 @@ void DisplayNodeCommandHelper::SetDisplayContentRect(RSContext& context, NodeId 
 
 void DisplayNodeCommandHelper::SetScreenRotation(RSContext& context, NodeId id, const ScreenRotation& screenRotation)
 {
+    RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::SetScreenRotation displayNodeId[%" PRIu64
+        "], screenRotation[%" PRIu32 "]", id, static_cast<uint32_t>(screenRotation));
     if (auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id)) {
         node->SetScreenRotation(screenRotation);
     } else {
