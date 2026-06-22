@@ -141,7 +141,7 @@ private:
 
     static inline thread_local std::unique_ptr<RSBufferCollectorHelper> bufferCollector_ = nullptr;
 
-    TunnelBufferInfo& tunnelBufferInfo;
+    TunnelBufferInfo tunnelBufferInfo_;
 };
 } // OHOS
 } // Rosen
