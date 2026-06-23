@@ -75,6 +75,10 @@ if (is_arkui_x) {
 
     external_deps = [ "hilog:libhilog" ]
 
+    if (platform_is_ohos) {
+      version_script = "rosen_text.versionscript"
+    }
+
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
