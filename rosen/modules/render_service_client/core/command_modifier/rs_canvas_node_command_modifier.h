@@ -21,10 +21,8 @@
 namespace OHOS {
 namespace Rosen {
 
-namespace Drawing {
-class DrawCmdList;
-using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
-}
+class RSSimpleDrawCmdList;
+using SimpleDrawCmdListPtr = std::shared_ptr<RSSimpleDrawCmdList>;
 
 class RSCanvasNode;
 
@@ -179,7 +177,7 @@ private:
 };
 
 struct FinishRecordCmdParam {
-    Drawing::DrawCmdListPtr drawCmdList_;
+    SimpleDrawCmdListPtr drawCmdList_;
     uint16_t modifierType_;
 };
 
@@ -217,7 +215,7 @@ private:
 };
 
 struct DrawOnNodeCmdParam {
-    Drawing::DrawCmdListPtr drawCmdList_;
+    SimpleDrawCmdListPtr drawCmdList_;
     uint16_t modifierType_;
 };
 

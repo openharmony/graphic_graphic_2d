@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_simple_draw_cmd_list.h"
 
+#include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
 #include "utils/performanceCaculate.h"
 
@@ -37,6 +38,23 @@ std::shared_ptr<RSSimpleDrawCmdList> RSSimpleDrawCmdList::CreateFromDrawCmdList(
 }
     
 RSSimpleDrawCmdList::RSSimpleDrawCmdList() = default;
+
+Drawing::DrawCmdListPtr RSSimpleDrawCmdList::ConvertToDrawCmdList() const
+{
+    auto recordingCanvas_ = ExtendRecordingCanvas::Obtain(10, 10, true);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (drawOpItems_.empty()) {
+        return recordingCanvas_->GetDrawCmdList();
+    }
+    Drawing::Rect tmpRect;
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    for (auto op : drawOpItems_) {
+        if (op) {
+            op->Playback(&recordingCanvas_, tmpRect);
+        }
+    }
+    return recordingCanvas_->GetDrawCmdList();
+}
 
 RSSimpleDrawCmdList::RSSimpleDrawCmdList(
     int32_t width, int32_t height, std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems)

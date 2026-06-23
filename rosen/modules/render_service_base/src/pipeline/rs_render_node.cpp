@@ -3035,7 +3035,7 @@ void RSRenderNode::DrawPropertyDrawableRange(RSDrawableSlot begin, RSDrawableSlo
         auto& drawableMap = GetDrawableVec(__func__);
         for (auto i = static_cast<int8_t>(begin);
             i <= static_cast<int8_t>(end); ++i) {
-            auto &ptr = findMapValueRef(drawableMap, i);
+            auto& ptr = findMapValueRef(drawableMap, i);
             if (ptr) {
                 ptr->OnSync();
                 ptr->OnDraw(&canvas, &rect);
