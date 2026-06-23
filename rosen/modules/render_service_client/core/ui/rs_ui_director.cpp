@@ -969,12 +969,12 @@ void RSUIDirector::ColorPickerCallbackProcessor(NodeId nodeId, uint64_t token, u
 }
 
 void RSUIDirector::ColorPickerDestroyInRenderProcessor(
-    NodeId nodeId, uint64_t token, EquivalentDarkMode lastEquivalentDarkMode)
+    NodeId nodeId, uint64_t token, ContrastColorScheme lastContrastColorScheme)
 {
     auto rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
     if (auto nodePtr =
             rsUICtx ? rsUICtx->GetNodeMap().GetNode<RSNode>(nodeId) : RSNodeMap::Instance().GetNode<RSNode>(nodeId)) {
-        nodePtr->ColorPickerDestroyInRenderCallback(lastEquivalentDarkMode);
+        nodePtr->ColorPickerDestroyInRenderCallback(lastContrastColorScheme);
         return;
     }
     ROSEN_LOGE(

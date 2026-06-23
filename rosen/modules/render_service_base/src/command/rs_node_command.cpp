@@ -399,10 +399,10 @@ void RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackPro
 }
 
 void RSNodeCommandHelper::ColorPickerDestroyInRender(
-    RSContext& context, NodeId nodeId, uint64_t token, uint8_t lastEquivalentDarkMode)
+    RSContext& context, NodeId nodeId, uint64_t token, uint8_t lastContrastColorScheme)
 {
     if (gColorPickerDestroyInRenderProcessor != nullptr) {
-        gColorPickerDestroyInRenderProcessor(nodeId, token, static_cast<EquivalentDarkMode>(lastEquivalentDarkMode));
+        gColorPickerDestroyInRenderProcessor(nodeId, token, static_cast<ContrastColorScheme>(lastContrastColorScheme));
     }
 }
 

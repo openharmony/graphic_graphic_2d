@@ -279,19 +279,19 @@ HWTEST_F(RSNodeTest, RegisterColorPickerCallbackTest003, TestSize.Level1)
  * @tc.desc: Test ColorPickerDestroyInRenderCallback stores last equivalent dark mode
  * @tc.type: FUNC
  */
-HWTEST_F(RSNodeTest, ColorPickerDestroyInRenderCallbackTest001, TestSize.Level1)
+HWTEST_F(RSNodeTest2, ColorPickerDestroyInRenderCallbackTest001, TestSize.Level1)
 {
     auto node = RSCanvasNode::Create();
     ASSERT_NE(node, nullptr);
 
     node->SetColorPickerParams(ColorPlaceholder::NONE, ColorPickStrategyType::CONTRAST, 500);
-    node->ColorPickerDestroyInRenderCallback(EquivalentDarkMode::DARK);
+    node->ColorPickerDestroyInRenderCallback(ContrastColorScheme::DARK);
 
     auto modifier = node->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
     ASSERT_NE(modifier, nullptr);
     auto colorPickerModifier = std::static_pointer_cast<ModifierNG::RSColorPickerModifier>(modifier);
     ASSERT_NE(colorPickerModifier, nullptr);
-    EXPECT_EQ(colorPickerModifier->GetColorPickerLastEquivalentDarkMode(), EquivalentDarkMode::DARK);
+    EXPECT_EQ(colorPickerModifier->GetColorPickerLastContrastColorScheme(), ContrastColorScheme::DARK);
 }
 
 /**

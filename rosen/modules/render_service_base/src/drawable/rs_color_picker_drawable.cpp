@@ -153,9 +153,9 @@ void RSColorPickerDrawable::ResetColorMemory()
     stagingNeedColorPick_ = false;
 }
 
-EquivalentDarkMode RSColorPickerDrawable::GetLastEquivalentDarkMode()
+ContrastColorScheme RSColorPickerDrawable::GetLastContrastColorScheme()
 {
-    return colorPickerManager_ ? colorPickerManager_->GetLastEquivalentDarkMode() : EquivalentDarkMode::INVALID;
+    return colorPickerManager_ ? colorPickerManager_->GetLastContrastColorScheme() : ContrastColorScheme::INVALID;
 }
 
 void RSColorPickerDrawable::SetState(DrawableV2::ColorPickerState state)

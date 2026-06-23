@@ -69,14 +69,13 @@ enum class ColorPickStrategyType : int16_t {
     MAX = CLIENT_CALLBACK
 };
 
-enum class EquivalentDarkMode : uint8_t {
+enum class ContrastColorScheme : uint8_t {
     INVALID = 0,
     LIGHT,
     DARK,
 };
 
 struct ColorPickerParam {
-    ColorPlaceholder placeholder = ColorPlaceholder::NONE;
     ColorPickStrategyType strategy = ColorPickStrategyType::NONE;
     uint64_t interval = 0;
     // {darkThreshold, lightThreshold} (0-255).
@@ -84,16 +83,16 @@ struct ColorPickerParam {
     std::pair<uint32_t, uint32_t> notifyThreshold = { 150, 220 };
     // Optional custom rect for color picking(left, top, right, bottom)
     std::optional<Drawing::Rect> rect;
-    EquivalentDarkMode lastEquivalentDarkMode = EquivalentDarkMode::INVALID;
+    ContrastColorScheme lastContrastColorScheme = ContrastColorScheme::INVALID;
 
     ColorPickerParam() = default;
     ColorPickerParam(ColorPlaceholder ph, ColorPickStrategyType st, uint64_t itv)
-        : placeholder(ph), strategy(st), interval(itv)
+        : strategy(st), interval(itv)
     {}
 
     bool operator==(const ColorPickerParam& other) const
     {
-        return placeholder == other.placeholder && strategy == other.strategy && interval == other.interval &&
+        return strategy == other.strategy && interval == other.interval &&
                notifyThreshold == other.notifyThreshold && rect == other.rect;
     }
 };

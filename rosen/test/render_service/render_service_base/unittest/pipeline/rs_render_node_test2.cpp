@@ -1186,7 +1186,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree003, TestSize.Leve
     parentNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     parentNode->AddChild(node);
     subTreeRoot->AddChild(parentNode);
-    
+
     // assign matrix.
     auto& nodeMatrix = node->GetMutableRenderProperties().boundsGeo_->matrix_;
     auto& nodeAbsMatrix = node->GetMutableRenderProperties().boundsGeo_->absMatrix_;
@@ -3831,7 +3831,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFPixelmapShape_CallsCalcR
 
 /**
  * @tc.name: PrepareColorPicker001
- * @tc.desc: Test PrepareColorPicker overrides darkMode when lastEquivalentDarkMode is LIGHT
+ * @tc.desc: Test PrepareColorPicker overrides darkMode when lastContrastColorScheme is LIGHT
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3846,8 +3846,8 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker001, TestSize.Level1)
     // Set it at COLOR_PICKER slot
     node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
-    // Set lastEquivalentDarkMode to LIGHT
-    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::LIGHT);
+    // Set lastContrastColorScheme to LIGHT
+    node.GetMutableRenderProperties().SetLastContrastColorScheme(ContrastColorScheme::LIGHT);
 
     // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
     colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
@@ -3859,7 +3859,7 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker001, TestSize.Level1)
 
 /**
  * @tc.name: PrepareColorPicker002
- * @tc.desc: Test PrepareColorPicker keeps darkMode when lastEquivalentDarkMode is INVALID
+ * @tc.desc: Test PrepareColorPicker keeps darkMode when lastContrastColorScheme is INVALID
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -3874,8 +3874,8 @@ HWTEST_F(RSRenderNodeTest2, PrepareColorPicker002, TestSize.Level1)
     // Set it at COLOR_PICKER slot
     node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
 
-    // Set lastEquivalentDarkMode to INVALID
-    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::INVALID);
+    // Set lastContrastColorScheme to INVALID
+    node.GetMutableRenderProperties().SetLastContrastColorScheme(ContrastColorScheme::INVALID);
 
     // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
     colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
@@ -3921,7 +3921,7 @@ HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender001, TestSize.Level1)
     RSMessageProcessor::Instance().GetAllTransactions().clear();
     constexpr NodeId nodeId = (static_cast<NodeId>(1) << 32) | 1;
     RSRenderNode node(nodeId);
-    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::LIGHT);
+    node.GetMutableRenderProperties().SetLastContrastColorScheme(ContrastColorScheme::LIGHT);
 
     node.DestroyColorPickerInRender();
 
@@ -3942,7 +3942,7 @@ HWTEST_F(RSRenderNodeTest2, DestroyColorPickerInRender002, TestSize.Level1)
     RSMessageProcessor::Instance().GetAllTransactions().clear();
     constexpr NodeId nodeId = (static_cast<NodeId>(1) << 32) | 2;
     RSRenderNode node(nodeId);
-    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::INVALID);
+    node.GetMutableRenderProperties().SetLastContrastColorScheme(ContrastColorScheme::INVALID);
 
     node.DestroyColorPickerInRender();
 

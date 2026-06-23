@@ -340,8 +340,8 @@ public:
             case RSPropertyType::COLOR_PICKER_STRATEGY : return "ColorPickerStrategy";
             case RSPropertyType::COLOR_PICKER_INTERVAL : return "ColorPickerInterval";
             case RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD : return "ColorPickerNotifyThreshold";
-            case RSPropertyType::COLOR_PICKER_LAST_EQUIVALENT_DARK_MODE :
-                return "ColorPickerLastEquivalentDarkMode";
+            case RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME :
+                return "ColorPickerLastContrastColorScheme";
             case RSPropertyType::COLOR_ADAPTIVE : return "ColorAdaptive";
             case RSPropertyType::COVERAGE_NG_SHADER: return "CoverageNGShader";
             case RSPropertyType::DOUBLE_SIDED: return "DoubleSided";

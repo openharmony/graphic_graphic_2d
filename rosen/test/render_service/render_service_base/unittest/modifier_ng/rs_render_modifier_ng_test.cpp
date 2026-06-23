@@ -410,25 +410,25 @@ HWTEST_F(RSRenderModifierNGTest, ApplyLegacyPropertyTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ColorPickerLastEquivalentDarkModeApplyLegacyPropertyTest
+ * @tc.name: ColorPickerLastContrastColorSchemeApplyLegacyPropertyTest
  * @tc.desc: test color picker last equivalent dark mode legacy property apply
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderModifierNGTest, ColorPickerLastEquivalentDarkModeApplyLegacyPropertyTest, TestSize.Level1)
+HWTEST_F(RSRenderModifierNGTest, ColorPickerLastContrastColorSchemeApplyLegacyPropertyTest, TestSize.Level1)
 {
     auto modifier = std::make_shared<ModifierNG::RSColorPickerRenderModifier>();
     RSProperties properties;
-    auto property = std::make_shared<RSRenderProperty<int>>(static_cast<int>(EquivalentDarkMode::LIGHT), 0);
-    modifier->AttachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_LAST_EQUIVALENT_DARK_MODE, property);
+    auto property = std::make_shared<RSRenderProperty<int>>(static_cast<int>(ContrastColorScheme::LIGHT), 0);
+    modifier->AttachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME, property);
     modifier->ApplyLegacyProperty(properties);
 
     ASSERT_NE(properties.GetColorPicker(), nullptr);
-    EXPECT_EQ(properties.GetColorPicker()->lastEquivalentDarkMode, EquivalentDarkMode::LIGHT);
+    EXPECT_EQ(properties.GetColorPicker()->lastContrastColorScheme, ContrastColorScheme::LIGHT);
 
     auto invalidProperty = std::make_shared<RSRenderProperty<int>>(999, 0);
-    modifier->AttachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_LAST_EQUIVALENT_DARK_MODE, invalidProperty);
+    modifier->AttachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_LAST_CONTRAST_COLOR_SCHEME, invalidProperty);
     modifier->ApplyLegacyProperty(properties);
-    EXPECT_EQ(properties.GetColorPicker()->lastEquivalentDarkMode, EquivalentDarkMode::INVALID);
+    EXPECT_EQ(properties.GetColorPicker()->lastContrastColorScheme, ContrastColorScheme::INVALID);
 }
 
 /**

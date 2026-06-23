@@ -2034,28 +2034,28 @@ HWTEST_F(PropertiesTest, UpdateHDRColorMaxHeadroomTest1, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetLastEquivalentDarkMode001
- * @tc.desc: test results of SetLastEquivalentDarkMode
+ * @tc.name: SetLastContrastColorScheme001
+ * @tc.desc: test results of SetLastContrastColorScheme
  * @tc.type: FUNC
  */
-HWTEST_F(PropertiesTest, SetLastEquivalentDarkMode001, TestSize.Level1)
+HWTEST_F(PropertiesTest, SetLastContrastColorScheme001, TestSize.Level1)
 {
     RSProperties properties;
 
-    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::LIGHT);
+    properties.SetLastContrastColorScheme(ContrastColorScheme::LIGHT);
     auto colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::LIGHT);
+    EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::LIGHT);
 
-    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::DARK);
+    properties.SetLastContrastColorScheme(ContrastColorScheme::DARK);
     colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::DARK);
+    EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::DARK);
 
-    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::INVALID);
+    properties.SetLastContrastColorScheme(ContrastColorScheme::INVALID);
     colorPicker = properties.GetColorPicker();
     ASSERT_NE(colorPicker, nullptr);
-    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::INVALID);
+    EXPECT_EQ(colorPicker->lastContrastColorScheme, ContrastColorScheme::INVALID);
 }
 
 /**

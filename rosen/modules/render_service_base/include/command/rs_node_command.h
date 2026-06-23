@@ -208,9 +208,9 @@ public:
     using ColorPickerCallbackProcessor = void (*)(NodeId, uint64_t, uint32_t);
     static void ColorPickerCallback(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t color);
     static RSB_EXPORT void SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor);
-    using ColorPickerDestroyInRenderProcessor = void (*)(NodeId, uint64_t, EquivalentDarkMode);
+    using ColorPickerDestroyInRenderProcessor = void (*)(NodeId, uint64_t, ContrastColorScheme);
     static void ColorPickerDestroyInRender(
-        RSContext& context, NodeId nodeId, uint64_t token, uint8_t lastEquivalentDarkMode);
+        RSContext& context, NodeId nodeId, uint64_t token, uint8_t lastContrastColorScheme);
     static RSB_EXPORT void SetColorPickerDestroyInRenderProcessor(ColorPickerDestroyInRenderProcessor processor);
 
     static void ReSortChildrenByZIndex(RSContext& context, NodeId nodeId);
