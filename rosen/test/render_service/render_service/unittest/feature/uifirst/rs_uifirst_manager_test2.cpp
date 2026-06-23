@@ -1198,6 +1198,31 @@ HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_TransparentChildNoBlurOut
 }
 
 /**
+ * @tc.name: CheckHasTransAndFilter_TransBlurChildEmptyDirty
+ * @tc.desc: Transparent blur child with empty dirty rect should not be treated as outside main → false
+ * @tc.type: FUNC
+ * @tc.require: issue23596
+ */
+HWTEST_F(RSUifirstManagerTest2, CheckHasTransAndFilter_TransBlurChildEmptyDirty, TestSize.Level1)
+{
+    auto leashNode = RSTestUtil::CreateSurfaceNode();
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->childHasVisibleFilter_ = false;
+    auto appWindow = RSTestUtil::CreateSurfaceNode();
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    SetNodeOpaque(*appWindow);
+    appWindow->oldDirty_ = {0, 0, 100, 100};
+    auto subWindow = RSTestUtil::CreateSurfaceNode();
+    SetNodeTransparent(*subWindow);
+    subWindow->childHasVisibleFilter_ = true;
+    subWindow->oldDirty_ = {0, 0, 0, 0}; // empty dirty rect
+    leashNode->AddChild(appWindow);
+    leashNode->AddChild(subWindow);
+    leashNode->GenerateFullChildrenList();
+    ASSERT_FALSE(uifirstManager_.CheckHasTransAndFilter(*leashNode));
+}
+
+/**
  * @tc.name: HasBgNodeBelowRootNode_NoChildren
  * @tc.desc: AppWindow with no children → false
  * @tc.type: FUNC
