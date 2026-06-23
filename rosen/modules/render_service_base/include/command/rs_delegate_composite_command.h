@@ -66,12 +66,6 @@ public:
 private:
     sptr<IConsumerSurface> GetConsumerSurface(RSContext& context, NodeId nodeId);
 
-    using Registrar = RSCommandRegister<RSCommandType::DELEGATE_COMPOSITE,
-        RSDelegateCompositeCommandType::TRANSACTION_BUFFER, Unmarshalling>;
-
-    std::vector<RSTransactionConfig> configList_;
-    NodeId nodeId_ = 0;
-    static Registrar instance_;
     enum class CmdType : int32_t {
         INVALID = -1,
         SET_BUFFER = 0,

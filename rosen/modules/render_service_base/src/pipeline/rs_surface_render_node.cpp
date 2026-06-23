@@ -4179,7 +4179,6 @@ void RSSurfaceRenderNode::ClearRelatedSourceCache(bool value)
     surfaceParams->SetNeedClearRelatedCache(value);
     AddToPendingSyncList();
 }
-}
 
 void RSSurfaceRenderNode::SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn)
 {

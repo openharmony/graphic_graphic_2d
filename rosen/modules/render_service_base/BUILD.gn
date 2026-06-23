@@ -482,8 +482,6 @@ ohos_source_set("render_service_base_src") {
 
   if (rosen_is_ohos) {
     sources += [
-      "src/common/rs_delegate_composite_command.cpp",
-
       #color_temperature
       "src/display_engine/rs_color_temperature.cpp",
 
