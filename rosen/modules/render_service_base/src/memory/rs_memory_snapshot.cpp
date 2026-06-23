@@ -121,7 +121,7 @@ void MemorySnapshot::EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet)
             totalCpuMemory_ -= it->second.cpuMemory;
             appMemorySnapshots_.erase(it);
         }
-        killProcessSet_.erase(pid);
+        RemoveAbnormalProcess(pid);
     }
 }
 
@@ -245,12 +245,19 @@ bool MemorySnapshot::UpdateGpuInfo(pid_t pid, size_t memorysize, bool isAdd, boo
         appMemorySnapshots_[pid] = info;
     }
 
-    // if gpu over, need to kill process.
-    if (pid > 0 && info.engineGpuMemory + info.nativeGpuMemory > singleGpuMemoryLimit_ &&
-        killProcessSet_.count(pid) == 0 && memoryOverflowCallback_ && memoryOverflowCallback_(pid, info, true)) {
-        killProcessSet_.insert(pid);
+    if (pid == 0 || info.TotalGpuMemory() < singleGpuMemoryLimit_) {
+        return true;
     }
-    
+    // process has been kill
+    if (IsAbnormalProcess(pid)) {
+        return false;
+    }
+    // need to report and kill
+    if (memoryOverflowCallback_ && memoryOverflowCallback_(pid, info, true)) {
+        SetAbnormalProcess(pid);
+        return false;
+    }
+
     return true;
 }
 
@@ -297,13 +304,27 @@ void MemorySnapshot::UpdateGpuInfoHelper(MemorySnapshotInfo& info, const size_t 
 
 void MemorySnapshot::SetAbnormalProcess(pid_t pid)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(killProcessSetMutex_);
     killProcessSet_.insert(pid);
+    killProcessSetSize_.store(killProcessSet_.size(), std::memory_order_relaxed);
+}
+
+void MemorySnapshot::RemoveAbnormalProcess(pid_t pid)
+{
+    if (killProcessSetSize_.load(std::memory_order_relaxed) <= 0) {
+        return;
+    }
+    std::unique_lock<std::shared_mutex> lock(killProcessSetMutex_);
+    killProcessSet_.erase(pid);
+    killProcessSetSize_.store(killProcessSet_.size(), std::memory_order_relaxed);
 }
 
 bool MemorySnapshot::IsAbnormalProcess(pid_t pid)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    if (killProcessSetSize_.load(std::memory_order_relaxed) <= 0) {
+        return false;
+    }
+    std::shared_lock<std::shared_mutex> lock(killProcessSetMutex_);
     return killProcessSet_.count(pid) > 0;
 }
 }
