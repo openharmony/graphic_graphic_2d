@@ -39,8 +39,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr size_t SCALE_MAX_NUM_INVALID_FRAME = 2;
-constexpr size_t AI2020_MAX_NUM_INVALID_FRAME = 2;
+constexpr size_t SCALE_MAX_NUM_INVALID_FRAME = 5;
+constexpr size_t AI2020_MAX_NUM_INVALID_FRAME = 5;
 constexpr uint32_t WAIT_FENCE_TIMEOUT_MS = 500;
 constexpr size_t MAX_CACHE_SIZE = 2;
 constexpr size_t DISABLE_ARSR_NODE_NUM = 2;
