@@ -214,7 +214,7 @@ public:
     virtual OHOS::Rosen::Drawing::FontMetrics GetFontMetricsResult(const OHOS::Rosen::SPText::TextStyle& textStyle) = 0;
     virtual bool GetLineFontMetrics(const size_t lineNumber,
         size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics) = 0;
-    virtual std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const = 0;
+    virtual std::vector<std::shared_ptr<SPText::TextLineBase>> GetTextLines() const = 0;
     virtual std::unique_ptr<Paragraph> CloneSelf() = 0;
     virtual TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle) = 0;
     virtual void UpdateColor(size_t from, size_t to, const RSColor& color,

@@ -1736,7 +1736,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest01, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1765,7 +1765,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest02, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1794,7 +1794,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest03, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1824,7 +1824,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest04, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1853,7 +1853,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest05, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1883,7 +1883,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest06, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }

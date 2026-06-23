@@ -1052,11 +1052,11 @@ napi_value JsParagraph::OnGetTextLines(napi_env env, [[maybe_unused]] napi_callb
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    std::vector<std::unique_ptr<TextLineBase>> textlineArr = paragraphCopy->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textlineArr = paragraphCopy->GetTextLines();
     napi_value array = nullptr;
     NAPI_CALL(env, napi_create_array(env, &array));
     uint32_t index = 0;
-    for (std::unique_ptr<TextLineBase>& item : textlineArr) {
+    for (std::shared_ptr<TextLineBase>& item : textlineArr) {
         napi_value itemObject = JsTextLine::CreateTextLine(env);
         if (!itemObject) {
             TEXT_LOGE("Failed to create text line");

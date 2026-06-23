@@ -348,7 +348,7 @@ HWTEST_F(ParagraphTest, ParagraphHyphenTest001, TestSize.Level0)
     std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
     ASSERT_NE(paragraph, nullptr);
     paragraph->Layout(687);
-    std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
+    std::vector<std::shared_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
     ASSERT_EQ(textLines.size(), 6);
     //expect lines 2,3,4 to have hyphenation breakpoints,
     //and the last charater of each line to have a hyphen glyphid of 800
@@ -386,7 +386,7 @@ HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level0)
     ASSERT_NE(paragraph, nullptr);
     // Test for layout width 519
     paragraph->Layout(519);
-    std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
+    std::vector<std::shared_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
     EXPECT_EQ(textLines.size(), 8);
     //expect lines 0,3,6 to have hyphenation breakpoints,
     size_t breakArr[3] = {0, 3, 6};
@@ -422,9 +422,9 @@ HWTEST_F(ParagraphTest, ParagraphTest016, TestSize.Level0)
     std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
     ASSERT_NE(paragraph, nullptr);
     paragraph->Layout(100);
-    std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
+    std::vector<std::shared_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
     ASSERT_EQ(textLines.size(), 1);
-    std::unique_ptr<SPText::TextLineBase>& textLine = textLines.at(0);
+    std::shared_ptr<SPText::TextLineBase>& textLine = textLines.at(0);
     std::vector<std::unique_ptr<SPText::Run>> runs = textLine->GetGlyphRuns();
     ASSERT_EQ(runs.size(), 2);
     // 'a' will hit HM Sans

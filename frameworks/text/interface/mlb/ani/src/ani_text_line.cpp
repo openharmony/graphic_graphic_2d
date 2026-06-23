@@ -97,14 +97,14 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
     return ANI_OK;
 }
 
-ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLine)
+ani_object AniTextLine::CreateTextLine(ani_env* env, std::shared_ptr<Rosen::TextLineBase> textLine)
 {
     if (textLine == nullptr) {
         TEXT_LOGE("Failed to create text line, emtpy ptr");
         return AniTextUtils::CreateAniUndefined(env);
     }
     AniTextLine* aniTextLine = new AniTextLine();
-    aniTextLine->textLine_ = std::shared_ptr<Rosen::TextLineBase>(textLine);
+    aniTextLine->textLine_ = std::move(textLine);
     ani_object textLineObj = AniTextUtils::CreateAniObject(
         env, AniGlobalClass::GetInstance().textLine, AniGlobalMethod::GetInstance().textLine);
     ani_status ret =
@@ -239,18 +239,15 @@ ani_object AniTextLine::CreateTruncatedLine(
         ellipsisModal = static_cast<EllipsisModal>(index);
     }
 
-    std::unique_ptr<TextLineBase> textLine =
+    std::shared_ptr<TextLineBase> textLine =
         aniTextline->textLine_->CreateTruncatedLine(width, ellipsisModal, ellipsisStr);
     if (textLine == nullptr) {
         TEXT_LOGE("Failed to create truncated textLine");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    TextLineBase* textLineBasePtr = textLine.release();
-    ani_object textLineObj = CreateTextLine(env, textLineBasePtr);
+    ani_object textLineObj = CreateTextLine(env, std::move(textLine));
     if (AniTextUtils::IsUndefined(env, textLineObj)) {
         TEXT_LOGE("Failed to create text line");
-        delete textLineBasePtr;
-        textLineBasePtr = nullptr;
     }
     return textLineObj;
 }

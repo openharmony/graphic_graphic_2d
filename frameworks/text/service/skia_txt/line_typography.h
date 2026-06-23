@@ -26,7 +26,7 @@ class LineTypography : public ::OHOS::Rosen::LineTypography {
 public:
     explicit LineTypography(std::unique_ptr<SPText::ParagraphLineFetcher> lineFetcher);
     size_t GetLineBreak(size_t startIndex, double width) const override;
-    std::unique_ptr<TextLineBase> CreateLine(size_t startIndex, size_t count) override;
+    std::shared_ptr<TextLineBase> CreateLine(size_t startIndex, size_t count) override;
     std::unique_ptr<OHOS::Rosen::Typography> GetTempTypography() override;
     void* GetLineFetcher() const override { return reinterpret_cast<void*>(lineFetcher_.get()); };
     size_t GetUnicodeSize() const override { return lineFetcher_->GetUnicodeSize(); };

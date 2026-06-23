@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace AdapterTxt {
-TextLineBaseImpl::TextLineBaseImpl(std::unique_ptr<SPText::TextLineBase> textlinebase)
+TextLineBaseImpl::TextLineBaseImpl(std::shared_ptr<SPText::TextLineBase> textlinebase)
     : textlinebase_(std::move(textlinebase))
 {
 }
@@ -67,20 +67,20 @@ void TextLineBaseImpl::Paint(Drawing::Canvas *canvas, double x, double y)
     return textlinebase_->Paint(canvas, x, y);
 }
 
-std::unique_ptr<TextLineBase> TextLineBaseImpl::CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
+std::shared_ptr<TextLineBase> TextLineBaseImpl::CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
     const std::string& ellipsisStr) const
 {
     if (!textlinebase_) {
         return nullptr;
     }
 
-    std::unique_ptr<SPText::TextLineBase> textLine = textlinebase_->CreateTruncatedLine(width,
+    std::shared_ptr<SPText::TextLineBase> textLine = textlinebase_->CreateTruncatedLine(width,
         static_cast<OHOS::Rosen::SPText::EllipsisModal>(ellipsisMode), ellipsisStr);
     if (textLine == nullptr) {
         return nullptr;
     }
 
-    return std::make_unique<TextLineBaseImpl>(std::move(textLine));
+    return std::make_shared<TextLineBaseImpl>(std::move(textLine));
 }
 
 double TextLineBaseImpl::GetTypographicBounds(double* ascent, double* descent, double* leading) const

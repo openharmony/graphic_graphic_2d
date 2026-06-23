@@ -324,16 +324,16 @@ bool ParagraphImpl::GetLineFontMetrics(const size_t lineNumber, size_t& charNumb
     return paragraph_->GetLineFontMetrics(lineNumber, charNumber, fontMetrics);
 }
 
-std::vector<std::unique_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines() const
+std::vector<std::shared_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines() const
 {
     if (!paragraph_) {
         return {};
     }
-    std::vector<std::unique_ptr<skt::TextLineBase>> textLineBases = paragraph_->GetTextLines();
-    std::vector<std::unique_ptr<SPText::TextLineBase>> lines;
-    for (std::unique_ptr<skt::TextLineBase>& textLineBase : textLineBases) {
-        std::unique_ptr<SPText::TextLineImpl> textLinePtr =
-            std::make_unique<SPText::TextLineImpl>(std::move(textLineBase), paints_);
+    std::vector<std::shared_ptr<skt::TextLineBase>> textLineBases = paragraph_->GetTextLines();
+    std::vector<std::shared_ptr<SPText::TextLineBase>> lines;
+    for (std::shared_ptr<skt::TextLineBase>& textLineBase : textLineBases) {
+        std::shared_ptr<SPText::TextLineImpl> textLinePtr =
+            std::make_shared<SPText::TextLineImpl>(std::move(textLineBase), paints_);
         lines.emplace_back(std::move(textLinePtr));
     }
     return lines;
