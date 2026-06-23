@@ -368,4 +368,29 @@ private:
         }                                                                                                             \
     }
 
+#define RS_COLD_LOGI(format, ...) \
+    ( [&]() __attribute__((noinline)) { \
+        HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__); \
+    } ())
+
+#define RS_COLD_LOGD(format, ...) \
+    ( [&]() __attribute__((noinline)) { \
+        HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__); \
+    } ())
+
+#define RS_COLD_LOGE(format, ...) \
+    ( [&]() __attribute__((noinline)) { \
+        HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__); \
+    } ())
+
+#define RS_COLD_LOGW(format, ...) \
+    ( [&]() __attribute__((noinline)) { \
+        HILOG_WARN(LOG_CORE, format, ##__VA_ARGS__); \
+    } ())
+
+#define RS_COLD_LOGF(format, ...) \
+    ( [&]() __attribute__((noinline)) { \
+        HILOG_FATAL(LOG_CORE, format, ##__VA_ARGS__); \
+    } ())
+
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H

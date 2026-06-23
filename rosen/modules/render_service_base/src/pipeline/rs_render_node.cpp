@@ -2032,7 +2032,8 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
 bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty,
     const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix)
 {
-    GetOpincCache().SetLayerPartRenderDirtyFlag(IsDirty() || IsContentDirty());
+    bool isDirty = IsDirty();
+    GetOpincCache().SetLayerPartRenderDirtyFlag(isDirty || IsContentDirty());
     auto& properties = GetMutableRenderProperties();
 #ifdef RS_ENABLE_PREFETCH
     // The 2 is the cache level.
@@ -2040,13 +2041,13 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     __builtin_prefetch(&(properties.frameGeo_), 0, 2);
 #endif
     // 1. update self drawrect if dirty
-    bool selfDrawRectChanged = IsDirty() ? UpdateSelfDrawRect() : false;
+    bool selfDrawRectChanged = isDirty ? UpdateSelfDrawRect() : false;
     if (selfDrawRectChanged) {
         UpdateChildrenOutOfRectFlag(!childrenRect_.ConvertTo<float>().IsInsideOf(selfDrawRect_));
     }
     // 2. update geoMatrix by parent for dirty collection
     // update geoMatrix and accumGeoDirty if needed
-    auto parent = curCloneNodeParent_.lock();
+    SharedPtr parent = curCloneNodeParent_.lock();
     if (parent == nullptr) {
         parent = GetParent().lock();
     }
@@ -2058,7 +2059,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         oldAbsMatrix_.PostConcat(oldMatrix_);
     }
     if (accumGeoDirty || properties.NeedClip() || properties.geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
-        UpdateDrawRect(accumGeoDirty, clipRect, parentSurfaceMatrix);
+        UpdateDrawRect(accumGeoDirty, clipRect, parentSurfaceMatrix, parent);
         // planning: double check if it would be covered by updateself without geo update
         auto& geoPtr = properties.boundsGeo_;
         // selfdrawing node's geo may not dirty when its dirty region changes
@@ -2091,7 +2092,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     // Only when satisfy following conditions, absDirtyRegion should update:
     // 1.The node is dirty; 2.The clip absDrawRect change; 3.Parent clip property change or has GeoUpdateDelay dirty;
     // When the subtree is all dirty and the node should not paint, it also needs to add dirty region
-    if ((IsDirty() || srcOrClipedAbsDrawRectChangeFlag_ || (parent && (parent->GetAccumulatedClipFlagChange() ||
+    if ((isDirty || srcOrClipedAbsDrawRectChangeFlag_ || (parent && (parent->GetAccumulatedClipFlagChange() ||
         parent->GetGeoUpdateDelay()))) && (shouldPaint_ || isLastVisible_ || properties.IsSubTreeAllDirty())) {
         // update ForegroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
@@ -2103,12 +2104,8 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
 }
 
 void RSRenderNode::UpdateDrawRect(
-    bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix)
+    bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix, const SharedPtr& parent)
 {
-    auto parent = curCloneNodeParent_.lock();
-    if (parent == nullptr) {
-        parent = GetParent().lock();
-    }
     auto& properties = GetMutableRenderProperties();
     if (auto sandbox = properties.GetSandBox(); sandbox.has_value()) {
         // case a. use parent sur_face matrix with sandbox
@@ -3245,9 +3242,12 @@ void RSRenderNode::ResetAndApplyModifiers()
 
 CM_INLINE void RSRenderNode::ApplyModifiers()
 {
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
-        " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
-        isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
+    bool debugMode = DEBUG_NODE;
+    if UNLIKELY(debugMode) {
+        RS_COLD_LOGI("RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
+            " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
+            isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
+    }
     if (const auto& sharedTransitionParam = GetSharedTransitionParam()) {
         sharedTransitionParam->UpdateHierarchy(GetId());
         SharedTransitionParam::UpdateUnpairedSharedTransitionMap(sharedTransitionParam);
@@ -3269,7 +3269,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
             isTransformDirty_ = false;
         }
 #endif
-        RS_LOGD("RSRenderNode::apply modifiers RSRenderNode's dirty is false or dirtyTypes_ is none");
+        RS_COLD_LOGD("RSRenderNode::apply modifiers RSRenderNode's dirty is false or dirtyTypes_ is none");
         // clean node, skip apply
         return;
     }
@@ -3298,10 +3298,10 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(shared_from_this());
     }
 #endif
-    RS_LOGI_IF(DEBUG_NODE,
-        "RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
-        " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(),
-        isTextureExportNode_);
+    if UNLIKELY(debugMode) {
+        RS_COLD_LOGI("RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
+            " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(), isTextureExportNode_);
+    }
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::FOREGROUND_FILTER)) ||
         dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS))) {
         std::shared_ptr<RSFilter> foregroundFilter = nullptr;
@@ -4573,27 +4573,28 @@ void RSRenderNode::UpdateRenderParams()
     if (!boundGeo) {
         return;
     }
-    stagingRenderParams_->SetHasSandBox(GetRenderProperties().GetSandBox().has_value());
-    stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
-    stagingRenderParams_->SetFrameGravity(GetRenderProperties().GetFrameGravity());
-    stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
-    stagingRenderParams_->SetFrameRect({ 0, 0, GetRenderProperties().GetFrameWidth(),
+    RSRenderParams* stagingRenderParams = stagingRenderParams_.get();
+    stagingRenderParams->SetHasSandBox(GetRenderProperties().GetSandBox().has_value());
+    stagingRenderParams->SetMatrix(boundGeo->GetMatrix());
+    stagingRenderParams->SetFrameGravity(GetRenderProperties().GetFrameGravity());
+    stagingRenderParams->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
+    stagingRenderParams->SetFrameRect({ 0, 0, GetRenderProperties().GetFrameWidth(),
         GetRenderProperties().GetFrameHeight() });
-    stagingRenderParams_->SetShouldPaint(shouldPaint_);
-    stagingRenderParams_->SetCacheSize(GetOptionalBufferSize());
-    stagingRenderParams_->SetAlphaOffScreen(GetRenderProperties().GetAlphaOffscreen());
-    stagingRenderParams_->SetForegroundFilterCache(GetRenderProperties().GetForegroundFilterCache());
-    stagingRenderParams_->SetNeedFilter(GetRenderProperties().NeedFilter());
-    stagingRenderParams_->SetHDRBrightness(GetHDRBrightness() *
+    stagingRenderParams->SetShouldPaint(shouldPaint_);
+    stagingRenderParams->SetCacheSize(GetOptionalBufferSize());
+    stagingRenderParams->SetAlphaOffScreen(GetRenderProperties().GetAlphaOffscreen());
+    stagingRenderParams->SetForegroundFilterCache(GetRenderProperties().GetForegroundFilterCache());
+    stagingRenderParams->SetNeedFilter(GetRenderProperties().NeedFilter());
+    stagingRenderParams->SetHDRBrightness(GetHDRBrightness() *
         GetRenderProperties().GetCanvasNodeHDRBrightnessFactor());
-    stagingRenderParams_->SetHasBlurFilter(HasBlurFilter());
-    stagingRenderParams_->SetNodeType(GetType());
-    stagingRenderParams_->SetEffectNodeShouldPaint(EffectNodeShouldPaint());
-    stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
-    stagingRenderParams_->SetAbsRotation(absRotation_);
-    stagingRenderParams_->MarkRepaintBoundary(isRepaintBoundary_);
-    stagingRenderParams_->SetNeedClipHoleForFilter(GetRenderProperties().NeedClipHoleForRenderGroup());
-    stagingRenderParams_->SetDoubleSidedEnabled(GetRenderProperties().GetDoubleSidedEnabled());
+    stagingRenderParams->SetHasBlurFilter(HasBlurFilter());
+    stagingRenderParams->SetNodeType(GetType());
+    stagingRenderParams->SetEffectNodeShouldPaint(EffectNodeShouldPaint());
+    stagingRenderParams->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
+    stagingRenderParams->SetAbsRotation(absRotation_);
+    stagingRenderParams->MarkRepaintBoundary(isRepaintBoundary_);
+    stagingRenderParams->SetNeedClipHoleForFilter(GetRenderProperties().NeedClipHoleForRenderGroup());
+    stagingRenderParams->SetDoubleSidedEnabled(GetRenderProperties().GetDoubleSidedEnabled());
 #endif
 }
 
@@ -5501,7 +5502,7 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(const std::unordered_set<
 }
 
 void RSRenderNode::NodePostPrepare(
-    std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect)
+    const std::shared_ptr<RSSurfaceRenderNode>& curSurfaceNode, const RectI& clipRect)
 {
     MapAndUpdateChildrenRect();
     UpdateSubTreeInfo(clipRect);

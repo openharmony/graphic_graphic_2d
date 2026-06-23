@@ -226,10 +226,11 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
         ROSEN_LOGW("RSRenderInterface::TakeSurfaceCaptureSoloNodeList rsnode is nullpter return");
         return pixelMapIdPairVector;
     }
-    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
+    auto type = node->GetType();
+    if (!((type == RSUINodeType::ROOT_NODE) ||
+          (type == RSUINodeType::CANVAS_NODE) ||
+          (type == RSUINodeType::CANVAS_DRAWING_NODE) ||
+          (type == RSUINodeType::SURFACE_NODE))) {
         ROSEN_LOGE("RSRenderInterface::TakeSurfaceCaptureSoloNodeList unsupported node type return");
         return pixelMapIdPairVector;
     }

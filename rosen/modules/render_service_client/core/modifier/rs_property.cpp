@@ -83,7 +83,8 @@ void RSPropertyBase::MarkCustomModifierDirty()
 {
     if (auto modifier = modifierNG_.lock()) {
         auto node = target_.lock();
-        if (node && node->GetRSUIContext()) {
+        auto ctx = node ? node->GetRSUIContext() : nullptr;
+        if (ctx) {
             modifier->SetDirty(true, node->GetRSUIContext()->GetRSModifierManager());
         } else {
             modifier->SetDirty(true, RSModifierManagerMap::Instance()->GetModifierManager());
@@ -108,7 +109,7 @@ void RSPropertyBase::UpdateExtendModifierForGeometry(const std::shared_ptr<RSNod
         }
     }
 }
- 
+
 bool RSPropertyBase::IsDeduplicationEnabled() const
 {
     auto modifier = modifierNG_.lock();

@@ -190,8 +190,8 @@ RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, st
       showingPropertiesFreezer_(id, rsUIContext), isOnTheTree_(isOnTheTree)
 {
     InitUniRenderEnabled();
-    if (auto rsUIContextPtr = rsUIContext_) {
-        auto transaction = rsUIContextPtr->GetRSTransaction();
+    if (rsUIContext_) {
+        auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr && g_isUniRenderEnabled && isTextureExportNode) {
             std::call_once(flag_, [transaction]() {
                 auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
@@ -284,11 +284,10 @@ RSNode::~RSNode()
 
 std::shared_ptr<RSTransactionHandler> RSNode::GetRSTransaction() const
 {
-    auto rsUIContext = rsUIContext_;
-    if (!rsUIContext) {
+    if (!rsUIContext_) {
         return nullptr;
     }
-    return rsUIContext->GetRSTransaction();
+    return rsUIContext_->GetRSTransaction();
 }
 
 void RSNode::OpenImplicitAnimation(const std::shared_ptr<RSUIContext> rsUIContext,
@@ -539,8 +538,7 @@ void RSNode::ExecuteWithoutAnimation(const PropertyCallback& callback, const std
 
 void RSNode::FallbackAnimationsToContext()
 {
-    auto rsUIContext = rsUIContext_;
-    if (rsUIContext == nullptr) {
+    if (rsUIContext_ == nullptr) {
         ROSEN_LOGE("RSNode::FallbackAnimationsToContext, rsUIContext is null!");
         return;
     }
@@ -553,7 +551,7 @@ void RSNode::FallbackAnimationsToContext()
         if (!animation || (animation->GetRepeatCount() == -1 && animation->IsUiAnimation())) {
             continue;
         }
-        rsUIContext->AddAnimationInner(std::move(animation));
+        rsUIContext_->AddAnimationInner(std::move(animation));
     }
     animations_.clear();
 }
@@ -3221,7 +3219,7 @@ void RSNode::ClearAllModifiers()
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    for (auto [id, modifier] : modifiersNG_) {
+    for (auto& [id, modifier] : modifiersNG_) {
         if (modifier) {
             modifier->OnDetach();
         }
@@ -3365,16 +3363,20 @@ std::shared_ptr<RSNode> RSNode::GetNodeInMap(NodeId id) const
 
 bool RSNode::CheckMultiThreadAccess(const std::string& func) const
 {
-    if (isSkipCheckInMultiInstance_) {
+    if LIKELY(isSkipCheckInMultiInstance_) {
         return true;
     }
-    auto rsContext = rsUIContext_;
-    if (rsContext == nullptr) {
+    return CheckMultiThreadContextAccess(func);
+}
+
+bool RSNode::CheckMultiThreadContextAccess(const std::string& func) const
+{
+    if (rsUIContext_ == nullptr) {
         return true;
     }
 #ifdef ROSEN_OHOS
     thread_local auto tid = gettid();
-    if ((tid != ExtractTid(rsContext->GetToken()))) {
+    if ((tid != ExtractTid(rsUIContext_->GetToken()))) {
         ROSEN_LOGE("RSNode::CheckMultiThreadAccess nodeId is %{public}" PRIu64 ", func:%{public}s is not "
                    "correspond tid is "
                    "%{public}d context "
@@ -3383,7 +3385,7 @@ bool RSNode::CheckMultiThreadAccess(const std::string& func) const
             GetId(),
             func.c_str(),
             tid,
-            ExtractTid(rsContext->GetToken()),
+            ExtractTid(rsUIContext_->GetToken()),
             GetType());
         return false;
     }

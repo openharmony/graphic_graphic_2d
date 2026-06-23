@@ -33,8 +33,9 @@ RSModifierExtractor::RSModifierExtractor(NodeId id, std::shared_ptr<RSUIContext>
 constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS_NG(T, modifierType, propertyType, defaultValue, operator)          \
     do {                                                                                               \
-        auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)       \
-                                        : RSNodeMap::Instance().GetNode<RSNode>(id_);                  \
+        auto context = rsUIContext_.lock();                                                            \
+        auto node = context ? context->GetNodeMap().GetNode<RSNode>(id_)                               \
+                            : RSNodeMap::Instance().GetNode<RSNode>(id_);                              \
         if (!node) {                                                                                   \
             return defaultValue;                                                                       \
         }                                                                                              \

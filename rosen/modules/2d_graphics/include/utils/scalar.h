@@ -26,10 +26,11 @@ typedef float scalar;
 static const scalar SCALAR_ONE = 1.0f;
 static const scalar BLUR_SIGMA_SCALE = 0.57735f;
 static const scalar FLOAT_PI = 3.14159265f;
+static const scalar SCALAR_TOLERANCE = std::numeric_limits<scalar>::min();
 
 inline bool IsScalarAlmostEqual(scalar a, scalar b)
 {
-    return fabs(a - b) < std::numeric_limits<scalar>::min();
+    return fabs(a - b) < SCALAR_TOLERANCE;
 }
 
 inline scalar ConvertRadiusToSigma(scalar radius)

@@ -21,6 +21,10 @@
 #include "utils/drawing_macros.h"
 #include "utils/scalar.h"
 
+#if defined(__aarch64__) && defined(__ARM_NEON)
+#include <arm_neon.h>
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -560,8 +564,23 @@ inline void RectF::Dump(std::string& out) const
 
 inline bool operator==(const RectF& r1, const RectF& r2)
 {
+    #if defined(__aarch64__) && defined(__ARM_NEON)
+    // v1 = [r1.left_, r1.top_, r1.right_, r1.bottom_], v2 = [r2.left_, r2.top_, r2.right_, r2.bottom_]
+    float32x4_t v1 = vld1q_f32(&r1.left_);
+    float32x4_t v2 = vld1q_f32(&r2.left_);
+
+    // absDiff = |v1 - v2|
+    float32x4_t absDiff = vabdq_f32(v1, v2);
+    float32x4_t threshold = vdupq_n_f32(SCALAR_TOLERANCE);
+
+    // mask representation of absDiff < threshold
+    uint32x4_t mask = vcltq_f32(absDiff, threshold);
+
+    return vminvq_u32(mask) == 0xFFFFFFFF;
+#else
     return IsScalarAlmostEqual(r1.left_, r2.left_) && IsScalarAlmostEqual(r1.right_, r2.right_) &&
         IsScalarAlmostEqual(r1.top_, r2.top_) && IsScalarAlmostEqual(r1.bottom_, r2.bottom_);
+#endif
 }
 
 inline bool operator!=(const RectF& r1, const RectF& r2)

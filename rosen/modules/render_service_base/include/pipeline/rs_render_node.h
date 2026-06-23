@@ -608,7 +608,7 @@ public:
     void UpdateSubTreeInfo(const RectI& clipRect);
     void UpdateParentChildrenRect(std::shared_ptr<RSRenderNode> parentNode) const;
     void NodePostPrepare(
-        std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect);
+        const std::shared_ptr<RSSurfaceRenderNode>& curSurfaceNode, const RectI& clipRect);
 
     void SetStaticCached(bool isStaticCached, bool isMarkedByUI = false);
     virtual bool IsStaticCached() const;
@@ -1431,7 +1431,8 @@ private:
     bool UpdateSelfDrawRect();
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
-    void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
+    void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect,
+        const Drawing::Matrix& parentSurfaceMatrix, const SharedPtr& parent);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
