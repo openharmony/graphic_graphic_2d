@@ -17,7 +17,6 @@
 
 #include "rs_trace.h"
 #include "sandbox_utils.h"
-#include <parameters.h>
 #include "platform/common/rs_system_properties.h"
 
 #include "animation/rs_animation_trace_utils.h"
