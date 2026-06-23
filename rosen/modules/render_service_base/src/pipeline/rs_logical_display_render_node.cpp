@@ -151,7 +151,7 @@ void RSLogicalDisplayRenderNode::ClearModifiersByPid(pid_t pid)
     RS_LOGI("RSLogicalDisplayRenderNode::ClearModifiersByPid %{public}u", static_cast<uint32_t>(pid));
     for (uint16_t i = 0; i < ModifierNG::MODIFIER_TYPE_COUNT; i++) {
         ModifierNG::RSModifierType type = static_cast<ModifierNG::RSModifierType>(i);
-        ModifierNGContainer slot = GetModifiersNG(type);
+        const ModifierNGContainer& slot = GetModifiersNG(type);
         if (slot.empty()) {
             continue;
         }
@@ -189,7 +189,7 @@ std::shared_ptr<RSBaseRenderNode> RSLogicalDisplayRenderNode::GetWindowContainer
 
 bool RSLogicalDisplayRenderNode::IsOnlyHDRAnimation()
 {
-    auto modifiers = GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS);
+    const auto& modifiers = GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS);
     if (modifiers.empty()) {
         return false;
     }

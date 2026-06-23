@@ -167,15 +167,10 @@ RSDrawable::Ptr RSCustomModifierDrawable::OnGenerate(const RSRenderNode& node, M
 
 bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
 {
-    auto customModifiers = node.GetModifiersNG(modifierTypeNG_);
-    if (customModifiers.empty()) {
+    const auto& modifiers = node.GetModifiersNG(modifierTypeNG_);
+    if (modifiers.empty()) {
         return false;
     }
-    std::stable_sort(
-        customModifiers.begin(), customModifiers.end(), [](const auto& modifierA, const auto& modifierB) -> bool {
-            return modifierA->template Getter<int16_t>(ModifierNG::RSPropertyType::CUSTOM_INDEX, 0) <
-                   modifierB->template Getter<int16_t>(ModifierNG::RSPropertyType::CUSTOM_INDEX, 0);
-        });
 
     stagingGravity_ = node.GetRenderProperties().GetFrameGravity();
     stagingIsCanvasNode_ = node.IsInstanceOf<RSCanvasRenderNode>() && !node.IsInstanceOf<RSCanvasDrawingRenderNode>();
@@ -194,8 +189,14 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
             stagingDrawCmdListVec_.emplace_back(cmd);
         }
     } else {
+        RSRenderNode::ModifierNGContainer customModifiers(modifiers.begin(), modifiers.end());
+        std::stable_sort(
+            customModifiers.begin(), customModifiers.end(), [](const auto& modifierA, const auto& modifierB) -> bool {
+                return modifierA->template Getter<int16_t>(ModifierNG::RSPropertyType::CUSTOM_INDEX, 0) <
+                       modifierB->template Getter<int16_t>(ModifierNG::RSPropertyType::CUSTOM_INDEX, 0);
+            });
+        auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifierTypeNG_);
         for (const auto& modifier : customModifiers) {
-            auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifierTypeNG_);
             auto drawCmdList = modifier->Getter<SimpleDrawCmdListPtr>(propertyType, nullptr);
             if (drawCmdList == nullptr || drawCmdList->IsEmpty()) {
                 continue;

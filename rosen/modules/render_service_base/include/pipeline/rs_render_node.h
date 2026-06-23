@@ -586,7 +586,7 @@ public:
     void RemoveAllModifiersNG();
     std::shared_ptr<ModifierNG::RSRenderModifier> GetModifierNG(
         ModifierNG::RSModifierType type, ModifierId id = 0) const;
-    ModifierNGContainer GetModifiersNG(ModifierNG::RSModifierType type) const;
+    const ModifierNGContainer& GetModifiersNG(ModifierNG::RSModifierType type) const;
     const ModifiersNGMap& GetAllModifiers() const;
     bool HasDrawCmdModifiers() const;
     bool HasValidDrawCmd() const;

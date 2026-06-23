@@ -1239,7 +1239,7 @@ std::string RSProfiler::DumpModifiers(const RSRenderNode& node)
     std::string out;
     out += "<";
     for (uint16_t type = 0; type < ModifierNG::MODIFIER_TYPE_COUNT; type++) {
-        auto slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
+        const auto& slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         if (slot.empty()) {
             continue;
         }
@@ -1463,7 +1463,7 @@ uint32_t RSProfiler::CalcNodeCmdListCount(RSRenderNode& node)
 {
     uint32_t nodeCmdListCount = 0;
     for (uint16_t type = 0; type < ModifierNG::MODIFIER_TYPE_COUNT; type++) {
-        auto slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
+        const auto& slot = node.GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         if (slot.empty()) {
             continue;
         }
