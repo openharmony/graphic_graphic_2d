@@ -164,12 +164,12 @@ public:
     }
 
     bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
-        std::shared_ptr<Drawing::DrawCmdListPtr> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr)
+        std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr)
     {
         return false;
     }
 
-    bool ResetSurface()
+    bool ResetSurface(int width, int height)
     {
         return false;
     }
