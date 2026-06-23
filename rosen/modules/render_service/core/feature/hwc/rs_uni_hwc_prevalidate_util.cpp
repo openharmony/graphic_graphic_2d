@@ -143,11 +143,6 @@ void RSUniHwcPrevalidateUtil::UpdateVcldEnabledInfo()
     (void)getVcldEnabledInfoFunc_(isVcldEnabled_);
 }
 
-void RSUniHwcPrevalidateUtil::SetArsrDoEnhance(
-    const RSSurfaceRenderNode::SharedPtr node, RequestLayerInfo &info) {
-        
-    }
-
 bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps,
     const RSScreenProperty& screenProperty, RequestLayerInfo &info)
