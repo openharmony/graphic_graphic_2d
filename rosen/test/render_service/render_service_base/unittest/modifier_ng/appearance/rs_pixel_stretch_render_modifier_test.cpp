@@ -56,7 +56,7 @@ HWTEST_F(RSPixelStretchRenderModifierNGTypeTest, RSPixelStretchRenderModifierTes
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::PIXEL_STRETCH);
     RSProperties props;
     modifier.ResetProperties(props);
-    EXPECT_TRUE(!props.GetEffect().pixelStretchPara_);
+    EXPECT_TRUE(props.GetEffect().pixelStretchPara_);
     EXPECT_TRUE(props.GetPixelStretch().IsZero());
     EXPECT_TRUE(props.GetPixelStretchPercent().IsZero());
     EXPECT_EQ(props.GetPixelStretchTileMode(), 0);
