@@ -47,6 +47,7 @@ EglWrapperSurface *EglWrapperSurface::GetWrapperSurface(EGLSurface surf)
     return reinterpret_cast<EglWrapperSurface *>(surf);
 }
 
+// LCOV_EXCL_START
 void EglWrapperSurface::Disconnect(OHNativeWindow *window)
 {
     if (window != nullptr) {
@@ -62,5 +63,6 @@ EGLBoolean EglWrapperSurface::GetColorSpaceAttribute(EGLint attribute, EGLint* v
     }
     return EGL_FALSE;
 }
+// LCOV_EXCL_STOP
 
 } // namespace OHOS

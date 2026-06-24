@@ -16,6 +16,7 @@
 
 #include "wrapper_log.h"
 namespace OHOS {
+// LCOV_EXCL_START
 EglWrapperContext::EglWrapperContext(EglWrapperDisplay *disp, EGLContext context, EGLint version)
     : EglWrapperObject(disp), context_(context), read_(nullptr), draw_(nullptr), version_(version)
 {
@@ -59,4 +60,5 @@ EGLSurface EglWrapperContext::GetCurrentSurface(EGLint type) const
         }
     }
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS

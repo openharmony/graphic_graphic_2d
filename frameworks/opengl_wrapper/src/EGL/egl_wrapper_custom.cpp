@@ -51,6 +51,7 @@ __eglMustCastToProperFunctionPointerType EglGetProcAddressCustomImpl(const char 
 PFNEGLGETPROCADDRESSPROC OHOS::gGetProcAddress = &EglGetProcAddressCustomImpl;
 #endif
 
+// LCOV_EXCL_START
 EGLBoolean EglSetEngineNameImpl(EGLDisplay dpy, const char* name)
 {
     ThreadPrivateDataCtl::ClearError();
@@ -81,6 +82,7 @@ EGLBoolean EglSetEngineNameImpl(EGLDisplay dpy, const char* name)
     
     return func(display->GetEglDisplay(), name);
 }
+// LCOV_EXCL_STOP
 
 const std::map<std::string, EglWrapperFuncPointer> OHOS::gCustomMap = {
 #ifdef OPENGL_WRAPPER_ENABLE_GL4

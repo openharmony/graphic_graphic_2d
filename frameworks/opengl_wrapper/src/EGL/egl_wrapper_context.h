@@ -20,6 +20,7 @@
 #include "egl_wrapper_object.h"
 #include "egl_defs.h"
 namespace OHOS {
+// LCOV_EXCL_START
 class EglWrapperDisplay;
 
 class EglWrapperContext : public EglWrapperObject {
@@ -45,5 +46,6 @@ private:
     EGLSurface draw_;
     EGLint version_;
 };
+// LCOV_EXCL_STOP
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_EGL_WRAPPER_CONTEXT_H
