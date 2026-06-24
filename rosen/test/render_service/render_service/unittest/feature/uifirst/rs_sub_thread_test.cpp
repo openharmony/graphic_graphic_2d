@@ -646,7 +646,7 @@ HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageMultipleColorSpaceChangesTest,
 
 /**
  * @tc.name: GetHdrParamsEarlyReturnBranches
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:
  */

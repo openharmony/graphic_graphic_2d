@@ -609,7 +609,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IsInBlendModeGroupMultipleGroupsTest, T
 
     EXPECT_TRUE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::SRC_OVER),
         RSLogicalDisplayRenderNode::ChildBlendModes));
-    EXPECT_FALSE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::NONE), 
+    EXPECT_FALSE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::NONE),
         RSLogicalDisplayRenderNode::EmptyBlendModes));
     EXPECT_TRUE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::SRC_IN),
         RSLogicalDisplayRenderNode::ParentBlendModes));
