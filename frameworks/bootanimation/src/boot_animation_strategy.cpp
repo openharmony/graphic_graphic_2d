@@ -53,7 +53,11 @@ bool BootAnimationStrategy::CheckExitAnimation()
 }
 
 #ifdef FEATURE_CHECK_EXIT_ANIMATION_EXT
-#define CHECK_EXIT_ANIMATION_EXT_PATH "libwatch_bootanimation_ext.z.so"
+#if (defined(__aarch64__) || defined(__x86_64__))
+#define CHECK_EXIT_ANIMATION_EXT_PATH "/system/lib64/libwatch_bootanimation_ext.z.so"
+#else
+#define CHECK_EXIT_ANIMATION_EXT_PATH "/system/lib/libwatch_bootanimation_ext.z.so"
+#endif
 #define CHECK_EXIT_ANIMATION_EXT_FUNC_NAME "CheckExitAnimationExt"
 typedef bool(*Func)();
 bool BootAnimationStrategy::CheckExitAnimationExt()

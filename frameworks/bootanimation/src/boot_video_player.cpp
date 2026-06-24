@@ -133,8 +133,10 @@ bool BootVideoPlayer::SetVideoSound()
 
 void BootVideoPlayer::SetCallback(const BootAnimationCallback* cb)
 {
-    vSyncCallback_ = cb->callback;
-    userData_ = cb->userData;
+    if (cb != nullptr) {
+        vSyncCallback_ = cb->callback;
+        userData_ = cb->userData;
+    }
 }
 
 #ifdef PLAYER_FRAMEWORK_ENABLE

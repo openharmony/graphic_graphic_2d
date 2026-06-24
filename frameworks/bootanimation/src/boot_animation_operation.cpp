@@ -120,6 +120,10 @@ bool BootAnimationOperation::InitRsDisplayNode()
 bool BootAnimationOperation::InitRsSurfaceNode(int32_t degree)
 {
     LOGI("InitRsSurfaceNode start");
+    if (!rsUIDirector_) {
+        LOGE("rsUIDirector_ is nullptr, InitRsDisplayNode may have failed");
+        return false;
+    }
     struct Rosen::RSSurfaceNodeConfig rsSurfaceNodeConfig;
     rsSurfaceNodeConfig.SurfaceNodeName =
         currentScreenId_ == 0 ? "BootAnimationNode" : "BootAnimationNodeExtra";
@@ -206,6 +210,10 @@ void BootAnimationOperation::PlaySound(const std::string& path)
 bool BootAnimationOperation::InitRsSurface()
 {
     LOGI("InitRsSurface start");
+    if (!rsSurfaceNode_) {
+        LOGE("rsSurfaceNode_ is nullptr, InitRsSurfaceNode may have failed");
+        return false;
+    }
     rsSurface_ = OHOS::Rosen::RSSurfaceExtractor::ExtractRSSurface(rsSurfaceNode_);
     if (rsSurface_ == nullptr) {
         LOGE("rsSurface is nullptr");
