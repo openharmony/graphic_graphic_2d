@@ -2331,4 +2331,67 @@ HWTEST_F(RSSurfaceNodeTest, DumpSubClass004, TestSize.Level1)
     EXPECT_TRUE(out.find("isShadowNode[true") != std::string::npos);
     EXPECT_TRUE(out.find("existsDuplicateModifier[true") != std::string::npos);
 }
+
+/**
+ * @tc.name: SetStaticCached001
+ * @tc.desc: Test SetStaticCached with the same false value branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetStaticCached001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_FALSE(surfaceNode->isStaticFreeze_);
+    surfaceNode->SetStaticCached(false);
+    EXPECT_FALSE(surfaceNode->isStaticFreeze_);
+}
+
+/**
+ * @tc.name: SetStaticCached002
+ * @tc.desc: Test SetStaticCached from false to true branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetStaticCached002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_FALSE(surfaceNode->isStaticFreeze_);
+    surfaceNode->SetStaticCached(true);
+    EXPECT_TRUE(surfaceNode->isStaticFreeze_);
+}
+
+/**
+ * @tc.name: SetStaticCached003
+ * @tc.desc: Test SetStaticCached with the same true value branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetStaticCached003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetStaticCached(true);
+    ASSERT_TRUE(surfaceNode->isStaticFreeze_);
+    surfaceNode->SetStaticCached(true);
+    EXPECT_TRUE(surfaceNode->isStaticFreeze_);
+}
+
+/**
+ * @tc.name: SetStaticCached004
+ * @tc.desc: Test SetStaticCached from true to false branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetStaticCached004, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetStaticCached(true);
+    ASSERT_TRUE(surfaceNode->isStaticFreeze_);
+    surfaceNode->SetStaticCached(false);
+    EXPECT_FALSE(surfaceNode->isStaticFreeze_);
+}
+
 } // namespace OHOS::Rosen
