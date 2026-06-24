@@ -733,7 +733,7 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsSuccessWithBrightnessRatio, TestSize.Level
 
 /**
  * @tc.name: DrawableCacheWithSkImageHDRParams
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:
  */
