@@ -8926,4 +8926,32 @@ HWTEST_F(RSNodeTest, SetMaterialShaderDetachPropertyTest, TestSize.Level1)
 
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: CheckMultiThreadAccess001
+ * @tc.desc: test result of CheckMultiThreadAccess
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CheckMultiThreadAccess001, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    rsNode->SetSkipCheckInMultiInstance(false);
+    rsNode->rsUIContext_ = nullptr;
+    std::string func = "";
+    ASSERT_TRUE(rsNode->CheckMultiThreadAccess(func));
+}
+
+/**
+ * @tc.name: CheckMultiThreadAccess002
+ * @tc.desc: test result of CheckMultiThreadAccess
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, CheckMultiThreadAccess002, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    rsNode->SetSkipCheckInMultiInstance(false);
+    rsNode->rsUIContext_->token_ = gettid();
+    std::string func = "";
+    ASSERT_TRUE(rsNode->CheckMultiThreadAccess(func));
+}
 } // namespace OHOS::Rosen

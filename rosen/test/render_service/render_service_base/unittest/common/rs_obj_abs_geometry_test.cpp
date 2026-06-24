@@ -1119,6 +1119,173 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MapRectWithoutRoundingI004
+ * @tc.desc: Verify function MapRectWithoutRounding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding004, TestSize.Level1)
+{
+    constexpr float srcRectLeft = 10.f;
+    constexpr float srcRectTop = 10.f;
+    constexpr float srcRectRight = 20.f;
+    constexpr float srcRectBottom = 20.f;
+    constexpr float expectDstRectLeft = 20.f;
+    constexpr float expectDstRectTop = 10.f;
+    constexpr float expectDstRectRight = 40.f;
+    constexpr float expectDstRectBottom = 20.f;
+
+    RectF srcRect(srcRectLeft, srcRectTop, srcRectRight - srcRectLeft, srcRectBottom - srcRectTop);
+    Drawing::Matrix matrix;
+    matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+    matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
+    matrix.Set(Drawing::Matrix::SKEW_X, 1.f);
+    matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
+    matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
+    RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
+    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
+    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
+    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
+    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+}
+
+/**
+ * @tc.name: MapRectWithoutRoundingI005
+ * @tc.desc: Verify function MapRectWithoutRounding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding005, TestSize.Level1)
+{
+    constexpr float srcRectLeft = 10.f;
+    constexpr float srcRectTop = 10.f;
+    constexpr float srcRectRight = 20.f;
+    constexpr float srcRectBottom = 20.f;
+    constexpr float expectDstRectLeft = -20.f;
+    constexpr float expectDstRectTop = 10.f;
+    constexpr float expectDstRectRight = -10.f;
+    constexpr float expectDstRectBottom = 20.f;
+
+    RectF srcRect(srcRectLeft, srcRectTop, srcRectRight - srcRectLeft, srcRectBottom - srcRectTop);
+    Drawing::Matrix matrix;
+    matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+    matrix.Set(Drawing::Matrix::SCALE_X, -1.f);
+    matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
+    matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
+    matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
+    RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
+    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
+    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
+    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
+    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+}
+
+/**
+ * @tc.name: MapRectWithoutRoundingI006
+ * @tc.desc: Verify function MapRectWithoutRounding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding006, TestSize.Level1)
+{
+    constexpr float srcRectLeft = 10.f;
+    constexpr float srcRectTop = 10.f;
+    constexpr float srcRectRight = 20.f;
+    constexpr float srcRectBottom = 20.f;
+    constexpr float expectDstRectLeft = 10.f;
+    constexpr float expectDstRectTop = 20.f;
+    constexpr float expectDstRectRight = 20.f;
+    constexpr float expectDstRectBottom = 40.f;
+
+    RectF srcRect(srcRectLeft, srcRectTop, srcRectRight - srcRectLeft, srcRectBottom - srcRectTop);
+    Drawing::Matrix matrix;
+    matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+    matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
+    matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
+    matrix.Set(Drawing::Matrix::SKEW_Y, 1.f);
+    matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
+    RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
+    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
+    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
+    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
+    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+}
+
+/**
+ * @tc.name: MapRectWithoutRoundingI007
+ * @tc.desc: Verify function MapRectWithoutRounding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding007, TestSize.Level1)
+{
+    constexpr float srcRectLeft = 10.f;
+    constexpr float srcRectTop = 10.f;
+    constexpr float srcRectRight = 20.f;
+    constexpr float srcRectBottom = 20.f;
+    constexpr float expectDstRectLeft = 10.f;
+    constexpr float expectDstRectTop = -20.f;
+    constexpr float expectDstRectRight = 20.f;
+    constexpr float expectDstRectBottom = -10.f;
+
+    RectF srcRect(srcRectLeft, srcRectTop, srcRectRight - srcRectLeft, srcRectBottom - srcRectTop);
+    Drawing::Matrix matrix;
+    matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+    matrix.Set(Drawing::Matrix::SCALE_X, 1.f);
+    matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
+    matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
+    matrix.Set(Drawing::Matrix::SCALE_Y, -1.f);
+    RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
+    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
+    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
+    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
+    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+}
+
+/**
+ * @tc.name: MapRectWithoutRoundingI008
+ * @tc.desc: Verify function MapRectWithoutRounding
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding008, TestSize.Level1)
+{
+    constexpr float srcRectLeft = 10.f;
+    constexpr float srcRectTop = 10.f;
+    constexpr float srcRectRight = 20.f;
+    constexpr float srcRectBottom = 20.f;
+    constexpr float expectDstRectLeft = 25.f;
+    constexpr float expectDstRectTop = 36.f;
+    constexpr float expectDstRectRight = 45.f;
+    constexpr float expectDstRectBottom = 66.f;
+
+    RectF srcRect(srcRectLeft, srcRectTop, srcRectRight - srcRectLeft, srcRectBottom - srcRectTop);
+    Drawing::Matrix matrix;
+    matrix.Set(Drawing::Matrix::PERSP_0, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_1, 0.f);
+    matrix.Set(Drawing::Matrix::PERSP_2, 0.f);
+    matrix.Set(Drawing::Matrix::SCALE_X, 2.f);
+    matrix.Set(Drawing::Matrix::SKEW_X, 0.f);
+    matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
+    matrix.Set(Drawing::Matrix::SCALE_Y, 3.f);
+    matrix.Set(Drawing::Matrix::TRANS_X, 5.f);
+    matrix.Set(Drawing::Matrix::TRANS_Y, 6.f);
+    RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
+    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
+    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
+    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
+    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+}
+
+/**
  * @tc.name: MapRegion001
  * @tc.desc: Verify function MapRegion, expecting behavior: map with inflate.
  * @tc.type: FUNC
