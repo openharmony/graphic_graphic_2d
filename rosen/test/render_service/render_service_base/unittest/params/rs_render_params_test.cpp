@@ -54,6 +54,7 @@ HWTEST_F(RSRenderParamsTest, OnSync001, TestSize.Level1)
     auto renderParams = static_cast<RSRenderParams*>(target.get());
     RSRenderParams params(id);
     params.childHasVisibleEffect_ = true;
+    params.foregroundFilterCache_ = std::make_shared<RSFilter>();
     params.OnSync(target);
     EXPECT_EQ(params.childHasVisibleEffect_, renderParams->childHasVisibleEffect_);
 }
