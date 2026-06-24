@@ -57,6 +57,11 @@ public:
     virtual void OnTransformChange() {}
 
     virtual void NeedClearBufferCache(std::set<uint64_t>& bufferCacheSet) {}
+
+    virtual bool GetDelegateMode()
+    {
+        return false;
+    };
 };
 } // namespace Rosen
 } // namespace OHOS

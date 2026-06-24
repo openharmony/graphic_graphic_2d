@@ -2008,6 +2008,7 @@ public:
     void SetDelegateMode(bool isSetDelegateMode);
     bool GetDelegateMode();
     bool IsDelegateModeNodeWithBuffer();
+    bool GetDelegateMode() override;
 
 protected:
     void OnSync() override;
