@@ -162,7 +162,6 @@ namespace OHOS {
         sptr<SyncFence> syncFence = SyncFence::INVALID_FENCE;
         hdiOutput->ReleaseFramebuffer(syncFence);
         hdiOutput->ClearFrameBuffer();
-        hdiOutput->Dump(result);
         hdiOutput->DumpFps(result, arg);
         hdiOutput->DumpHitchs(result, arg);
         hdiOutput->ClearFpsDump(result, arg);
