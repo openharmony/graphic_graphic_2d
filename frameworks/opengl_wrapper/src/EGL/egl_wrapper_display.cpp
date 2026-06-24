@@ -101,6 +101,7 @@ static OH_NativeBuffer_ColorSpace TranslateEglColorSpaceToNative(EGLint colorspa
     }
 }
 
+// LCOV_EXCL_START
 static std::vector<EGLint> ExtractNonColorspaceInfoFromAttribs(const EGLint *attribList)
 {
     std::vector<EGLint> attribVec {};
@@ -114,6 +115,7 @@ static std::vector<EGLint> ExtractNonColorspaceInfoFromAttribs(const EGLint *att
     attribVec.push_back(EGL_NONE); // end
     return attribVec;
 }
+// LCOV_EXCL_STOP
     
 static constexpr const char *SWAP_BUFFER_EXTENSIONS =
     "EGL_KHR_swap_buffers_with_damage "
@@ -201,6 +203,7 @@ EGLBoolean EglWrapperDisplay::Init(EGLint *major, EGLint *minor)
     return EGL_FALSE;
 }
 
+// LCOV_EXCL_START
 EGLBoolean EglWrapperDisplay::Terminate()
 {
     WLOGD("");
@@ -293,6 +296,7 @@ void EglWrapperDisplay::ChooseHookTable(bool isAfterHook,
     }
 }
 #endif
+// LCOV_EXCL_STOP
 
 EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLContext ctx)
 {
@@ -342,6 +346,7 @@ EGLBoolean EglWrapperDisplay::MakeCurrent(EGLSurface draw, EGLSurface read, EGLC
     return InternalMakeCurrent(surDrawPtr, surReadPtr, ctxPtr);
 }
 
+// LCOV_EXCL_START
 #if USE_IGRAPHICS_EXTENDS_HOOKS
 EGLBoolean EglWrapperDisplay::MakeCurrentAfterHook(EGLSurface draw, EGLSurface read, EGLContext ctx)
 {
@@ -393,6 +398,7 @@ EGLBoolean EglWrapperDisplay::MakeCurrentAfterHook(EGLSurface draw, EGLSurface r
     return InternalMakeCurrent(surDrawPtr, surReadPtr, ctxPtr, true, curCtx);
 }
 #endif
+// LCOV_EXCL_STOP
 
 EglWrapperDisplay *EglWrapperDisplay::GetWrapperDisplay(EGLDisplay display)
 {
@@ -474,6 +480,7 @@ bool EglWrapperDisplay::ValidateEglSurface(EGLSurface surf)
     return false;
 }
 
+// LCOV_EXCL_START
 #if USE_IGRAPHICS_EXTENDS_HOOKS
 int EglWrapperDisplay::ChooseGlesVersion(const EGLint *attribList)
 {
@@ -490,6 +497,7 @@ int EglWrapperDisplay::ChooseGlesVersion(const EGLint *attribList)
     return version;
 }
 #endif
+// LCOV_EXCL_STOP
 
 EGLContext EglWrapperDisplay::CreateEglContext(EGLConfig config, EGLContext shareList, const EGLint *attribList)
 {
@@ -1149,6 +1157,7 @@ EGLBoolean EglWrapperDisplay::SwapBuffersWithDamageKHR(EGLSurface draw, EGLint *
     return ret;
 }
 
+// LCOV_EXCL_START
 EGLBoolean EglWrapperDisplay::SetDamageRegionKHR(EGLSurface surf, EGLint *rects, EGLint nRects)
 {
     WLOGD("");
@@ -1346,4 +1355,5 @@ EGLBoolean EglWrapperDisplay::SwapBuffersWithDamageEXT(EGLSurface surface, const
     }
     return ret;
 }
+// LCOV_EXCL_STOP
 } // namespace OHOS

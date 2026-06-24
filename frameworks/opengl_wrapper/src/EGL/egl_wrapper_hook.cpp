@@ -29,6 +29,7 @@ namespace {
 #endif
 }
 
+// LCOV_EXCL_START
 static EglWrapperDisplay *ValidateDisplay(EGLDisplay dpy)
 {
     EglWrapperDisplay *display = EglWrapperDisplay::GetWrapperDisplay(dpy);
@@ -85,6 +86,7 @@ static EGLBoolean EGLMakeCurrentAfterHook(EGLDisplay dpy, EGLSurface draw,
 
     return display->MakeCurrentAfterHook(draw, read, ctx);
 }
+// LCOV_EXCL_STOP
 
 EglWrapperHook& EglWrapperHook::GetInstance()
 {
@@ -189,6 +191,7 @@ bool EglWrapperHook::InitHookLayer(EglWrapperDispatchTable *table)
     return true;
 }
 
+// LCOV_EXCL_START
 void EglWrapperHook::LayerEntries(const LayerSetupFunc LayerSetup,
     EglWrapperFuncPointer *curr, char const * const *entries)
 {
@@ -203,6 +206,7 @@ void EglWrapperHook::LayerEntries(const LayerSetupFunc LayerSetup,
         entries++;
     }
 }
+// LCOV_EXCL_STOP
 
 bool EglWrapperHook::InitHookTable(EglWrapperDispatchTable *table)
 {

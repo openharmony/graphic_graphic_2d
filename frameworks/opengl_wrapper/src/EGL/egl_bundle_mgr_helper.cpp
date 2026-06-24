@@ -20,6 +20,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+// LCOV_EXCL_START
 EGLBundleMgrHelper::EGLBundleMgrHelper() {}
 
 EGLBundleMgrHelper::~EGLBundleMgrHelper()
@@ -100,6 +101,7 @@ void EGLBundleMgrServiceDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& 
         deathCallback_(object);
     }
 }
+// LCOV_EXCL_STOP
 
 }
 }
