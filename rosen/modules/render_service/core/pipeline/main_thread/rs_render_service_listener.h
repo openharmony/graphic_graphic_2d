@@ -41,8 +41,7 @@ public:
     bool IsNeedBufferInfo() override;
 
 private:
-    void SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
-        const std::shared_ptr<RSSurfaceHandler> &surfaceHandler,
+    void SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceHandler> &surfaceHandler,
         const sptr<IConsumerSurface> &consumer, bool doFastCompose = false);
     void NotifyBufferAvailableOnce(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool CheckFastCompose(const sptr<IConsumerSurface>& consumer);

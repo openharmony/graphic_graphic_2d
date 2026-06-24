@@ -78,7 +78,7 @@ void RSRenderServiceListener::OnBufferAvailable()
             }
         }
     }
-    SetBufferInfoAndRequest(surfaceRenderNode_.lock(), surfaceHandler, surfaceHandler->GetConsumer(), doFastCompose);
+    SetBufferInfoAndRequest(surfaceHandler, surfaceHandler->GetConsumer(), doFastCompose);
 }
 
 bool RSRenderServiceListener::CheckFastCompose(const sptr<IConsumerSurface>& consumer)
@@ -101,9 +101,8 @@ bool RSRenderServiceListener::CheckFastCompose(const sptr<IConsumerSurface>& con
     return doFastCompose;
 }
 
-void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
-    const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer,
-    bool doFastCompose)
+void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceHandler> &surfaceHandler,
+    const sptr<IConsumerSurface> &consumer, bool doFastCompose)
 {
     if (doFastCompose) {
         return;
@@ -123,8 +122,11 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSu
     if (bufferInfo.isUrgent) {
         RSMainThread::Instance()->RequestNextVSync("UrgentSelfdrawing");
     } else {
+        int64_t desiredPresentTimestamp = 0;
+        RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+        auto node = surfaceBufferInterface_.lock();
         if (!node->GetDelegateMode()) {
-            RSMainThread::Instance()->RequestNextVSync("Selfdrawing", 0);
+            RSMainThread::Instance()->RequestNextVSync("Selfdrawing", 0, desiredPresentTimestamp);
         }
     }
 }

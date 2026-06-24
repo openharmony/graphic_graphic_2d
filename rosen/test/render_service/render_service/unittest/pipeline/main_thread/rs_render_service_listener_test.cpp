@@ -153,9 +153,9 @@ HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
     NodeId id = 0;
     std::shared_ptr<RSSurfaceHandler> handler = std::make_shared<RSSurfaceHandler>(id);
-    rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), true);
+    rsListener->SetBufferInfoAndRequest(handler, handler->GetConsumer(), true);
     ASSERT_EQ(node->GetAncoFlags(), 0);
-    rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), false);
+    rsListener->SetBufferInfoAndRequest(handler, handler->GetConsumer(), false);
     ASSERT_EQ(node->GetAncoFlags(), 0);
 }
 
