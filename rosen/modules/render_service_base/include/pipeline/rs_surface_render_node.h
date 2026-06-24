@@ -2006,7 +2006,6 @@ public:
     void SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW);
     Vector4f GetDelegateSrcRect();
     void SetDelegateMode(bool isSetDelegateMode);
-    bool GetDelegateMode();
     bool IsDelegateModeNodeWithBuffer();
     bool GetDelegateMode() override;
 
