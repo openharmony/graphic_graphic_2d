@@ -102,8 +102,8 @@ HWTEST_F(RSRenderModifierNGTest, AttachPropertyTest, TestSize.Level1)
     property->GetRef() = drawCmdList;
     auto modifier = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
     NodeId nodeId = 1;
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
-    modifier->OnAttachModifier(*node);
+    RSCanvasDrawingRenderNode node(nodeId);
+    modifier->OnAttachModifier(node);
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     EXPECT_TRUE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));
 }
@@ -125,8 +125,8 @@ HWTEST_F(RSRenderModifierNGTest, DetachPropertyTest, TestSize.Level1)
     auto property = std::make_shared<RSRenderProperty<SimpleDrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     NodeId nodeId = 1;
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
-    modifier->OnAttachModifier(*node);
+    RSCanvasDrawingRenderNode node(nodeId);
+    modifier->OnAttachModifier(node);
     modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
     modifier->DetachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE);
     EXPECT_FALSE(modifier->HasProperty(ModifierNG::RSPropertyType::CONTENT_STYLE));

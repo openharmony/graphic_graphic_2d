@@ -52,25 +52,5 @@ HWTEST_F(RSPathAnimationTest, SetRotationTest001, TestSize.Level1)
     EXPECT_NE(node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM), nullptr);
     pathAnimation->SetRotation(node, 1.0f);
 }
-
-/**
- * @tc.name: RebuildInRender001
- * @tc.desc: Verify RebuildInRender with null animation path
- * @tc.type: FUNC
- */
-HWTEST_F(RSPathAnimationTest, RebuildInRender001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSPathAnimationTest RebuildInRender001 start";
-    auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
-    auto startProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
-    auto endProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    auto pathAnimation =
-        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startProperty, endProperty);
-    pathAnimation->SetRebuildParam({0.5f, false});
-    pathAnimation->RebuildInRender();
-    GTEST_LOG_(INFO) << "RSPathAnimationTest RebuildInRender001 end";
-}
 } // namespace Rosen
 } // namespace OHOS

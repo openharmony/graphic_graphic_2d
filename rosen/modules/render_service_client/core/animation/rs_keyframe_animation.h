@@ -53,14 +53,10 @@ protected:
 
     void InitInterpolationValue() override;
 
-    void RebuildInRender() override;
-
 private:
     void StartRenderAnimation(const std::shared_ptr<RSRenderKeyframeAnimation>& animation);
 
     void StartUIAnimation(const std::shared_ptr<RSRenderKeyframeAnimation>& animation);
-
-    std::shared_ptr<RSRenderKeyframeAnimation> CreateRenderAnimation();
 
     std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes_;
 

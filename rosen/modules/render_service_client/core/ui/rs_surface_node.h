@@ -49,8 +49,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
-#include "command_modifier/rs_surface_node_command_modifier.h"
-#include "common/rs_optional_trace.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -232,7 +231,6 @@ public:
 
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
-    void SetStaticCached(bool isFreeze);
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
         bool dynamicHardwareEnable = true);
 
@@ -381,9 +379,10 @@ public:
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
     void SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType);
     void SetIsDepthResource(bool isDepthResource);
-    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
 
-    void RecreateNodeAndSurface(SurfaceId surfaceId = 0, bool unobscured = false);
+    void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer) override;
+    bool IsNodeSingleFrameComposer() const override { return isNodeSingleFrameComposer_; }
+
 #ifndef ROSEN_CROSS_PLATFORM
     using BufferReleaseCallback = std::function<void(int release_fence_fd)>;
     void SetBuffer(sptr<SurfaceBuffer> buffer, UniqueFd fence_fd, const BufferReleaseCallback& callback);
@@ -398,7 +397,6 @@ public:
 #endif
 
 protected:
-    bool SetNodeState(RSNodeState state) override;
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr);
@@ -409,20 +407,8 @@ protected:
     RSSurfaceNode& operator=(const RSSurfaceNode&) = delete;
     RSSurfaceNode& operator=(const RSSurfaceNode&&) = delete;
 
-    // recreate node
-    RSSurfaceRenderNodeConfig creationConfig_;
-    SurfaceId creationSurfaceId_;
-    RSSurfaceNodeType creationType_;
-    bool unobscured_;
-
-    void CreateRenderNode() override;
-    bool isStaticFreeze_ = false;
     // For RegisterBufferAvailableListener
     BufferAvailableCallback BufferAvailableCallbackFunc();
-
-    // For SetHidePrivacyContent
-    bool needHidePrivacyContent_ = false;
-
 private:
 #ifdef USE_SURFACE_TEXTURE
     void CreateSurfaceExt(const RSSurfaceExtConfig& config);
@@ -434,7 +420,6 @@ private:
      * @brief Called when the bounds size of the surface node changes.
      */
     void OnBoundsSizeChanged() override;
-    void CreateRenderThreadNode(RSSurfaceNodeType type, bool isWindow);
     // this function is only used in texture export
     void SetSurfaceIdToRenderNode();
     void CreateRenderNodeForTextureExportSwitch() override;

@@ -60,10 +60,7 @@ void RSRenderPipelineTest::SetUpTestCase()
 }
 void RSRenderPipelineTest::TearDownTestCase()
 {
-    auto renderEngine = RSMainThread::Instance()->GetRenderEngine();
-    if (renderEngine != nullptr) {
-        renderEngine->renderContext_ = nullptr;
-    }
+    RSMainThread::Instance()->GetRenderEngine()->renderContext_ = nullptr;
 
     RSMainThread::Instance()->handler_ = nullptr;
     RSMainThread::Instance()->receiver_ = nullptr;
@@ -71,10 +68,7 @@ void RSRenderPipelineTest::TearDownTestCase()
 
     RSUniRenderThread::Instance().handler_ = nullptr;
     RSUniRenderThread::Instance().runner_ = nullptr;
-    auto uniEngine = RSUniRenderThread::Instance().uniRenderEngine_;
-    if (uniEngine != nullptr) {
-        uniEngine->renderContext_ = nullptr;
-    }
+    RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = nullptr;
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 
     auto& renderNodeGC = RSRenderNodeGC::Instance();

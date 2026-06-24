@@ -165,8 +165,6 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     DrawContent(canvas, bounds);
 
-    DrawCustomContent(canvas);
-
     if (!captureParam.isSoloNodeUiCapture_) {
         DrawChildren(canvas, bounds);
     }
@@ -348,7 +346,6 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
             drawCmdIndex_.renderGroupBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
     }
     DrawContent(canvas, params.GetFrameRect());
-    DrawCustomContent(canvas);
     DrawChildren(canvas, params.GetBounds());
     curDrawingCacheRoot_->SetLastDrawnFilterNodeId(0);
 
@@ -1269,7 +1266,6 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     ApplyForegroundColorIfNeed(*cacheCanvas, bounds);
     if (LIKELY(!params.IsRenderGroupIncludeProperty())) {
         DrawContent(*cacheCanvas, params.GetFrameRect());
-        DrawCustomContent(*cacheCanvas);
         DrawChildren(*cacheCanvas, bounds);
     } else if (params.GetForegroundFilterCache() != nullptr) {
         DrawCacheWithForegroundFilter(*cacheCanvas, bounds);

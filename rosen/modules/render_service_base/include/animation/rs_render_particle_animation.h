@@ -36,16 +36,7 @@ public:
     ~RSRenderParticleAnimation() override = default;
     RSRenderParticleAnimation() = default;
 
-    RSRenderAnimationType GetType() const override { return RSRenderAnimationType::PARTICLE_ANIMATION; }
-
     void DumpAnimationInfo(std::string& out) const override;
-
-    // Particle animation does not need to rebuild property value
-    void RebuildPropertyValue(float fraction) override {}
-
-    bool IsInfiniteEmit() const;
-    void SoftClearKeepParams();
-    bool IsDormant() const { return isDormant_; }
 
     bool Marshalling(Parcel& parcel) const override;
 
@@ -89,7 +80,6 @@ private:
     std::shared_ptr<ParticleRippleFields> particleRippleFields_;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_;
     std::shared_ptr<ParticleFieldCollection> particleFields_;
-    bool isDormant_ { false };
 };
 } // namespace Rosen
 } // namespace OHOS

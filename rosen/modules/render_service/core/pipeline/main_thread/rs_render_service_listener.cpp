@@ -28,57 +28,59 @@ namespace Rosen {
 RSRenderServiceListener::~RSRenderServiceListener() {}
 
 RSRenderServiceListener::RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode,
-    std::weak_ptr<RSSurfaceHandler> surfaceHandler,
     std::shared_ptr<RSComposerClientManager> composerClientManager)
-    : surfaceBufferInterface_(std::move(surfaceRenderNode)),
-    surfaceHandler_(std::move(surfaceHandler)), composerClientManager_(std::move(composerClientManager))
-{
-    auto node = surfaceBufferInterface_.lock();
-    if (node != nullptr) {
-        name_ = node->GetName();
-        nodeId_ = node->GetId();
-    }
-}
+    : surfaceRenderNode_(std::move(surfaceRenderNode)), composerClientManager_(std::move(composerClientManager))
+{}
 
 void RSRenderServiceListener::OnBufferAvailable()
 {
-    auto surfaceHandler = surfaceHandler_.lock();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnBufferAvailable surfaceHandler is nullptr");
-        return;
-    }
-    auto node = surfaceBufferInterface_.lock();
+    auto node = surfaceRenderNode_.lock();
     if (node == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnBufferAvailable node is nullptr");
-        ConsumeBufferToKeepQueueRunning(surfaceHandler);
+        RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
-    RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, nodeId_);
+    RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    if (surfaceHandler == nullptr) {
+        RS_LOGD("RSRenderServiceListener::OnBufferAvailable surfaceHandler is nullptr");
+        return;
+    }
     surfaceHandler->IncreaseAvailableBuffer();
     auto consumer = surfaceHandler->GetConsumer();
-    bool forceRefreshed = node->OnBufferAvailable();
-    if (forceRefreshed) {
-        RSMainThread::Instance()->ForceRefreshForUni();
+    NotifyBufferAvailableOnce(node);
+    if (ForceRefresh(node)) {
         return;
     }
-
     bool isNewTunnelEnabled = Rosen::IsNewTunnelEnabled();
     auto doFastCompose = CheckFastCompose(consumer);
     if (isNewTunnelEnabled) {
-        auto *surfaceRenderNodeRaw = node->AsRSSurfaceRenderNode();
-        if (surfaceRenderNodeRaw != nullptr) {
-            std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode(node, surfaceRenderNodeRaw);
-            auto handleResult =
-                RSTunnelLayerHelper::HandleListenerBuffer(surfaceRenderNode, surfaceHandler, composerClientManager_);
-            if (handleResult.needRequestVsync) {
-                RSMainThread::Instance()->RequestNextVSync("tunnel-pending-param");
-            }
-            if (handleResult.committed) {
-                return;
-            }
+        auto handleResult = RSTunnelLayerHelper::HandleListenerBuffer(node, surfaceHandler, composerClientManager_);
+        if (handleResult.needRequestVsync) {
+            RSMainThread::Instance()->RequestNextVSync("tunnel-pending-param");
+        }
+        if (handleResult.committed) {
+            return;
         }
     }
-    SetBufferInfoAndRequest(surfaceHandler, surfaceHandler->GetConsumer(), doFastCompose);
+    SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer(), doFastCompose);
+}
+
+void RSRenderServiceListener::NotifyBufferAvailableOnce(const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    if (node == nullptr) {
+        return;
+    }
+    if (!node->IsNotifyUIBufferAvailable()) {
+        // Only ipc for one time.
+        RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable id = %{public}" PRIu64 " Notify"
+            " UI buffer available", node->GetId());
+        node->NotifyUIBufferAvailable();
+    }
+    if (node->GetIsTextureExportNode()) {
+        RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable id = %{public}" PRIu64 " Notify"
+            " RT buffer available", node->GetId());
+        node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
+    }
 }
 
 bool RSRenderServiceListener::CheckFastCompose(const sptr<IConsumerSurface>& consumer)
@@ -101,8 +103,9 @@ bool RSRenderServiceListener::CheckFastCompose(const sptr<IConsumerSurface>& con
     return doFastCompose;
 }
 
-void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceHandler> &surfaceHandler,
-    const sptr<IConsumerSurface> &consumer, bool doFastCompose)
+void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
+    const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer,
+    bool doFastCompose)
 {
     if (doFastCompose) {
         return;
@@ -116,84 +119,87 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSu
         queueSize = consumer->GetQueueSize();
     }
     int32_t bufferCount = surfaceHandler->GetAvailableBufferCount();
-    BufferInfo bufferInfo {id, name_, queueSize, bufferCount, lastConsumeTime,
+    std::string name = node->GetName();
+    BufferInfo bufferInfo {id, name, queueSize, bufferCount, lastConsumeTime,
         RSMainThread::Instance()->CheckAdaptiveCompose()};
     RSMainThread::Instance()->SetBufferInfo(bufferInfo);
     if (bufferInfo.isUrgent) {
         RSMainThread::Instance()->RequestNextVSync("UrgentSelfdrawing");
     } else {
-        int64_t desiredPresentTimestamp = 0;
-        RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
-        auto node = surfaceBufferInterface_.lock();
         if (!node->GetDelegateMode()) {
-            RSMainThread::Instance()->RequestNextVSync("Selfdrawing", 0, desiredPresentTimestamp);
+            RSMainThread::Instance()->RequestNextVSync("Selfdrawing", 0);
         }
     }
 }
 
 void RSRenderServiceListener::OnTunnelHandleChange()
 {
-    auto surfaceHandler = surfaceHandler_.lock();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnTunnelHandleChange surfaceHandler is nullptr");
-        return;
-    }
-    auto node = surfaceBufferInterface_.lock();
+    auto node = surfaceRenderNode_.lock();
     if (node == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnTunnelHandleChange node is nullptr");
+        RS_LOGE("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelHandleChange node is nullptr");
         return;
     }
-    node->OnTunnelHandleChange();
+    node->SetTunnelHandleChange(true);
+    if (!node->IsNotifyUIBufferAvailable()) {
+        // Only ipc for one time.
+        RS_LOGD("TUNNEL_DEBUG RsDebug RSRenderServiceListener::OnTunnelHandleChange id = %{public}" PRIu64
+            " Notify UI buffer available", node->GetId());
+        node->NotifyUIBufferAvailable();
+    }
     RSMainThread::Instance()->RequestNextVSync();
 }
 
 void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
 {
-    auto surfaceHandler = surfaceHandler_.lock();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnCleanCache surfaceHandler is nullptr");
+    auto node = surfaceRenderNode_.lock();
+    if (node == nullptr) {
+        RS_LOGD("RSRenderServiceListener::OnCleanCache node is nullptr");
         return;
     }
-
-    std::lock_guard<std::mutex> lock(pendingStateMutex_);
-    pendingCallbackBits_ |= PENDING_ON_CLEAN_CACHE_BIT;
+    RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
 
     uint64_t curBufferId = 0;
-    auto curBuffer = surfaceHandler->GetBuffer();
-    if (curBuffer && bufSeqNum) {
-        *bufSeqNum = curBuffer->GetSeqNum();
-        curBufferId = curBuffer->GetBufferId();
-        cleanCacheBufSeqNum_ = *bufSeqNum;
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    if (surfaceHandler) {
+        auto curBuffer = surfaceHandler->GetBuffer();
+        if (curBuffer && bufSeqNum) {
+            *bufSeqNum = curBuffer->GetSeqNum();
+            curBufferId = curBuffer->GetBufferId();
+        }
+        surfaceHandler->ResetBufferAvailableCount();
     }
-    surfaceHandler->ResetBufferAvailableCount();
 
-    RSMainThread::Instance()->PostTask(
-        [surfaceNode = surfaceBufferInterface_, surfaceHandler = surfaceHandler_, curBufferId, nodeId = nodeId_]() {
-            auto handler = surfaceHandler.lock();
-            if (handler == nullptr) {
-                RS_LOGE("RSRenderServiceListener::OnCleanCache handler is nullptr");
-                return;
-            }
-            RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache in mainthread node id:%{public}" PRIu64, nodeId);
-            handler->SetLastBufferId(curBufferId);
-            handler->ResetPreBuffer();
-            auto node = surfaceNode.lock();
-            if (node == nullptr) {
-                RS_LOGE("RSRenderServiceListener::OnCleanCache in mainthread node is nullptr");
-                return;
-            }
-            std::set<uint64_t> tmpSet;
-            node->OnCleanCache(tmpSet);
-            handler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
-        });
-    RS_TRACE_NAME_FMT("RSRenderServiceListener::OnCleanCache cleanCacheBufSeqNum : %d, nodeId : %" PRId64,
-                    cleanCacheBufSeqNum_, nodeId_);
+    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
+    RSMainThread::Instance()->PostTask([surfaceNode, curBufferId]() {
+        auto node = surfaceNode.lock();
+        if (node == nullptr) {
+            RS_LOGD("RSRenderServiceListener::OnCleanCache node is nullptr");
+            return;
+        }
+        auto surfaceHandler = node->GetRSSurfaceHandler();
+        if (surfaceHandler == nullptr) {
+            RS_LOGD("RSRenderServiceListener::OnCleanCache surfaceHandler is nullptr");
+            return;
+        }
+        RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache in mainthread node id:%{public}" PRIu64, node->GetId());
+        surfaceHandler->SetLastBufferId(curBufferId);
+        surfaceHandler->ResetPreBuffer();
+        std::set<uint64_t> tmpSet;
+        node->NeedClearPreBuffer(tmpSet);
+        surfaceHandler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
+    });
+
     CleanLayerBufferCache();
 }
 
 void RSRenderServiceListener::CleanLayerBufferCache()
 {
-    auto surfaceHandler = surfaceHandler_.lock();
+    auto node = surfaceRenderNode_.lock();
+    if (!node) {
+        RS_LOGD("%{public}s: get node fail", __func__);
+        return;
+    }
+    auto surfaceHandler = node->GetRSSurfaceHandler();
     if (!surfaceHandler) {
         RS_LOGD("%{public}s: get surfaceHandler fail", __func__);
         return;
@@ -203,160 +209,79 @@ void RSRenderServiceListener::CleanLayerBufferCache()
         RS_LOGD("%{public}s get consumer fail", __func__);
         return;
     }
-    composerClientManager_->CleanLayerBufferBySurfaceId(consumer->GetUniqueId(), nodeId_);
+    composerClientManager_->CleanLayerBufferBySurfaceId(consumer->GetUniqueId(), node->GetId());
 }
 
 void RSRenderServiceListener::OnGoBackground()
 {
-    RSMainThread::Instance()->PostTask(
-        [surfaceRenderNode = surfaceBufferInterface_, surfaceHandler = surfaceHandler_, nodeId = nodeId_]() {
-            auto node = surfaceRenderNode.lock();
-            auto handler = surfaceHandler.lock();
-            if (handler == nullptr) {
-                RS_LOGE("RSRenderServiceListener::OnGoBackground handler is nullptr");
-                return;
-            }
-            if (node == nullptr) {
-                RS_LOGE("RSRenderServiceListener::OnGoBackground node is nullptr");
-                handler->ResetBufferAvailableCount();
-                handler->CleanCache();
-                return;
-            }
-            std::set<uint64_t> tmpSet;
-            node->NeedClearBufferCache(tmpSet);
-            handler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
-            handler->ResetBufferAvailableCount();
-            handler->CleanCache();
-            node->OnSurfaceGoBackground();
-        });
+    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
+    RSMainThread::Instance()->PostTask([surfaceNode]() {
+        auto node = surfaceNode.lock();
+        if (node == nullptr) {
+            RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+            return;
+        }
+        auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+        RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
+        std::set<uint64_t> tmpSet;
+        node->NeedClearBufferCache(tmpSet);
+        surfaceHandler->EnqueueAndFlushGPUCacheCleanup(tmpSet);
+        surfaceHandler->ResetBufferAvailableCount();
+        surfaceHandler->CleanCache();
+        node->UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);
+        node->SetNotifyRTBufferAvailable(false);
+        node->SetContentDirty();
+        node->ResetHardwareEnabledStates();
+    });
 }
 
 void RSRenderServiceListener::OnTransformChange()
 {
-    auto surfaceHandler = surfaceHandler_.lock();
-    if (surfaceHandler == nullptr) {
-        RS_LOGE("RSRenderServiceListener::OnTransformChange surfaceHandler is nullptr");
-        return;
-    }
-
-    RSMainThread::Instance()->PostTask([surfaceRenderNode = surfaceBufferInterface_, surfaceHandler = surfaceHandler_,
-                                           nodeId = nodeId_, nodeName = name_]() {
-        auto node = surfaceRenderNode.lock();
-        auto handler = surfaceHandler.lock();
+    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
+    RSMainThread::Instance()->PostTask([surfaceNode]() {
+        auto node = surfaceNode.lock();
         if (node == nullptr) {
             RS_LOGD("RSRenderServiceListener::OnTransformChange node is nullptr");
             return;
         }
-        RS_LOGD("RsDebug RSRenderServiceListener::OnTransformChange node id:%{public}" PRIu64, nodeId);
-        node->OnTransformChange();
+        RS_LOGD("RsDebug RSRenderServiceListener::OnTransformChange node id:%{public}" PRIu64, node->GetId());
+        node->SetContentDirty();
+        node->SetDoDirectComposition(false);
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " disable directComposition by transformChange",
-            nodeName.c_str(), nodeId);
-        handler->SetBufferTransformTypeChanged(true);
+            node->GetName().c_str(), node->GetId());
+        if (node->GetRSSurfaceHandler() != nullptr) {
+            node->GetRSSurfaceHandler()->SetBufferTransformTypeChanged(true);
+        }
     });
 }
 
 void RSRenderServiceListener::OnDropBuffer()
 {
-    auto handler = surfaceHandler_.lock();
-    if (handler == nullptr) {
-        RS_LOGD("RSRenderServiceListener::OnDropBuffer handler is nullptr");
+    auto node = surfaceRenderNode_.lock();
+    if (node == nullptr) {
+        RS_LOGD("RSRenderServiceListener::OnDropBuffer node is nullptr");
         return;
     }
-
-    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderServiceListener::OnDropBuffer node id:%{public}" PRIu64, nodeId_);
-    RS_LOGD("RsDebug RSRenderServiceListener::OnDropBuffer node id:%{public}" PRIu64, nodeId_);
-    handler->SetBufferDropped(true);
-}
- 
-void RSRenderServiceListener::ConsumeBufferToKeepQueueRunning(std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
-{
-    surfaceHandler->IncreaseAvailableBuffer();
-    if (surfaceHandler->GetAvailableBufferCount() > 0) {
-        std::weak_ptr<RSSurfaceHandler> weakHandler = surfaceHandler;
-        RSMainThread::Instance()->PostTask([weakHandler, nodeId = nodeId_]() {
-            RS_TRACE_NAME_FMT("OnBufferAvailable acquire buffer begin nodeId: %" PRId64, nodeId);
-            auto handler = weakHandler.lock();
-            if (handler == nullptr) {
-                RS_LOGD("RSRenderServiceListener::ConsumeBufferToKeepQueueRunning PostTask handler is nullptr");
-                return;
-            }
-            const auto &consumer = handler->GetConsumer();
-            if (consumer == nullptr) {
-                RS_LOGD("RSRenderServiceListener::ConsumeBufferToKeepQueueRunning PostTask consumer is nullptr");
-                return;
-            }
-
-            IConsumerSurface::AcquireBufferReturnValue returnValue;
-            auto ret = consumer->AcquireBuffer(returnValue, 0, false);
-            if (ret != SURFACE_ERROR_OK) {
-                RS_LOGE("RSRenderServiceListener::ConsumeBufferToKeepQueueRunning PostTask AcquireBuffer failed, "
-                        "nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
-                return;
-            }
-            handler->SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
-            if (returnValue.buffer == nullptr) {
-                return;
-            }
-
-            auto surfaceBuffer = std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>();
-            surfaceBuffer->buffer = returnValue.buffer;
-            surfaceBuffer->acquireFence = returnValue.fence;
-            surfaceBuffer->timestamp = returnValue.timestamp;
-            surfaceBuffer->RegisterReleaseBufferListener([](uint64_t bufferId) {
-                RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
-            });
-            RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer,
-                SyncFence::InvalidFence(), surfaceBuffer->bufferOwnerCount_);
-            handler->ConsumeAndUpdateBuffer(*surfaceBuffer);
-
-            ret = consumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
-            if (ret != SURFACE_ERROR_OK) {
-                RS_LOGE("RSRenderServiceListener::ConsumeBufferToKeepQueueRunning PostTask ReleaseBuffer failed, "
-                        "nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
-                return;
-            }
-        });
-    }
-    return;
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderServiceListener::OnDropBuffer node id:%{public}" PRIu64, node->GetId());
+    RS_LOGD("RsDebug RSRenderServiceListener::OnDropBuffer node id:%{public}" PRIu64, node->GetId());
+    node->GetRSSurfaceHandler()->SetBufferDropped(true);
 }
 
-void RSRenderServiceListener::ProcessPendingCallbacks()
+bool RSRenderServiceListener::ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node)
 {
-    bool isInterfaceDirty = false;
-    uint8_t pendingCallbackBits = 0;
-    uint32_t cleanCacheBufSeqNum = 0;
-    {
-        std::lock_guard<std::mutex> lock(pendingStateMutex_);
-        if (!isInterfaceDirty_ || pendingCallbackBits_ == 0) {
-            return;
-        }
-        isInterfaceDirty = isInterfaceDirty_;
-        pendingCallbackBits = pendingCallbackBits_;
-        cleanCacheBufSeqNum = cleanCacheBufSeqNum_;
-        pendingCallbackBits_ = 0;
-        isInterfaceDirty_ = false;
+    if (node->IsLayerTop() && node->IsTopLayerForceRefresh()) {
+        // Ensure that ......
+        RSMainThread::Instance()->ForceRefreshForUni();
+        return true;
     }
-
-    auto surfaceHandler = surfaceHandler_.lock();
-    if (surfaceHandler == nullptr) {
-        return;
+    if ((node->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)) != 0) {
+        node->SetAncoFlags(node->GetAncoFlags() & (~static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)));
+        RS_TRACE_NAME_FMT("AncoForceRefresh id %lu", node->GetId());
+        RS_LOGD("AncoForceRefresh id %{public}" PRIu64 "", node->GetId());
+        RSMainThread::Instance()->ForceRefreshForUni();
+        return true;
     }
-
-    if ((pendingCallbackBits & PENDING_ON_CLEAN_CACHE_BIT) != 0) {
-        OnCleanCache(&cleanCacheBufSeqNum);
-    }
-}
-
-void RSRenderServiceListener::SetRSSurfaceBufferInterface(
-    std::weak_ptr<RSSurfaceBufferInterface> surfaceBufferInterface)
-{
-    RS_TRACE_NAME_FMT("RSRenderServiceListener::SetRSSurfaceBufferInterface nodeId : %" PRIu64, nodeId_);
-    surfaceBufferInterface_ = std::move(surfaceBufferInterface);
-    {
-        std::lock_guard<std::mutex> lock(pendingStateMutex_);
-        isInterfaceDirty_ = true;
-    }
-    ProcessPendingCallbacks();
+    return false;
 }
 
 void RSRenderServiceListener::OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo> &infos)

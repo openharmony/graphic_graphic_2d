@@ -36,35 +36,6 @@ void RSRenderParticleAnimation::DumpAnimationInfo(std::string& out) const
     out.append("Type:RSRenderParticleAnimation");
 }
 
-bool RSRenderParticleAnimation::IsInfiniteEmit() const
-{
-    constexpr int INFINITE_PARTICLE_COUNT = -1;
-    constexpr int64_t INFINITE_LIFETIME_MS = -1;
-    for (const auto& p : particlesRenderParams_) {
-        if (p == nullptr) {
-            continue;
-        }
-        if (p->GetParticleCount() == INFINITE_PARTICLE_COUNT) {
-            return true;
-        }
-        if (p->emitterConfig_.lifeTime_.start_ == INFINITE_LIFETIME_MS &&
-            p->emitterConfig_.lifeTime_.end_ == INFINITE_LIFETIME_MS) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void RSRenderParticleAnimation::SoftClearKeepParams()
-{
-    renderParticleVector_.renderParticleVector_.clear();
-    renderParticleVector_.imageVector_.clear();
-    if (particleSystem_ != nullptr) {
-        particleSystem_->ClearEmitter();
-    }
-    isDormant_ = true;
-}
-
 bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom, bool isOnTree)
 {
     RS_TRACE_NAME("RSRenderParticleAnimation::Animate");
@@ -77,12 +48,6 @@ bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime,
             target->RemoveModifierNG(modifierNG->GetId());
         }
         return true;
-    }
-
-    if (isDormant_) {
-        particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
-        animationFraction_.SetLastFrameTime(time);
-        isDormant_ = false;
     }
 
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();

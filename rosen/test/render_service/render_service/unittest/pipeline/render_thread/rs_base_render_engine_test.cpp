@@ -899,9 +899,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_WithRasterSurface, TestSize.Le
     nodeConfig.name = "surface";
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeConfig);
     auto csurf = IConsumerSurface::Create();
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     csurf->RegisterConsumerListener(listener);
     auto producer = csurf->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
@@ -951,9 +950,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, RequestFrame_TargetSurfaceValid, TestSize.L
     nodeConfig.name = "surface";
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeConfig);
     auto csurf = IConsumerSurface::Create();
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     csurf->RegisterConsumerListener(listener);
     auto producer = csurf->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
@@ -996,9 +994,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, SetUiTimeStamp_NullArgs, TestSize.Level1)
     nodeConfig.name = "surface";
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeConfig);
     auto csurf = IConsumerSurface::Create();
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     csurf->RegisterConsumerListener(listener);
     auto producer = csurf->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
@@ -1021,9 +1018,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, SetUiTimeStamp_Normal, TestSize.Level1)
     nodeConfig.name = "surface";
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeConfig);
     auto csurf = IConsumerSurface::Create();
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     csurf->RegisterConsumerListener(listener);
     auto producer = csurf->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);

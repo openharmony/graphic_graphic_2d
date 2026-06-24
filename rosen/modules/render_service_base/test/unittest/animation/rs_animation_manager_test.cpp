@@ -17,7 +17,6 @@
 
 #include "animation/rs_render_curve_animation.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -388,98 +387,5 @@ HWTEST_F(RSAnimationManagerTest, RateDeciderTest001, TestSize.Level1)
     EXPECT_TRUE(result.IsZero());
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RateDeciderTest001 end";
 }
-/**
- * @tc.name: DestroyInRender001
- * @tc.desc: Verify DestroyInRender with empty animations
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationManagerTest, DestroyInRender001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender001 start";
-    RSAnimationManager animationManager;
-    auto context = std::make_shared<RSContext>();
-    animationManager.DestroyInRender(0, context->weak_from_this());
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender001 end";
-}
-
-/**
- * @tc.name: DestroyInRender002
- * @tc.desc: Verify DestroyInRender with non-infinite-repeat animation skipped
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationManagerTest, DestroyInRender002, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender002 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    renderCurveAnimation->SetRepeatCount(1);
-    RSAnimationManager animationManager;
-    animationManager.AddAnimation(renderCurveAnimation);
-    auto context = std::make_shared<RSContext>();
-    animationManager.DestroyInRender(0, context->weak_from_this());
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender002 end";
-}
-
-/**
- * @tc.name: DestroyInRender003
- * @tc.desc: Verify DestroyInRender with null animation skipped
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationManagerTest, DestroyInRender003, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender003 start";
-    RSAnimationManager animationManager;
-    animationManager.AddAnimation(nullptr);
-    auto context = std::make_shared<RSContext>();
-    animationManager.DestroyInRender(0, context->weak_from_this());
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender003 end";
-}
-
-/**
- * @tc.name: DestroyInRender004
- * @tc.desc: Verify DestroyInRender with infinite-repeat animation and null context
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationManagerTest, DestroyInRender004, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender004 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    renderCurveAnimation->SetRepeatCount(-1);
-    RSAnimationManager animationManager;
-    animationManager.AddAnimation(renderCurveAnimation);
-    std::weak_ptr<RSContext> nullContext;
-    animationManager.DestroyInRender(0, nullContext);
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender004 end";
-}
-
-/**
- * @tc.name: DestroyInRender005
- * @tc.desc: Verify DestroyInRender with infinite-repeat PROPERTY_ANIMATION
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationManagerTest, DestroyInRender005, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender005 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    renderCurveAnimation->SetRepeatCount(-1);
-    RSAnimationManager animationManager;
-    animationManager.AddAnimation(renderCurveAnimation);
-    auto context = std::make_shared<RSContext>();
-    animationManager.DestroyInRender(0, context->weak_from_this());
-    EXPECT_TRUE(animationManager.GetAnimation(ANIMATION_ID) == nullptr);
-    GTEST_LOG_(INFO) << "RSAnimationManagerTest DestroyInRender005 end";
-}
-
 } // namespace Rosen
 } // namespace OHOS

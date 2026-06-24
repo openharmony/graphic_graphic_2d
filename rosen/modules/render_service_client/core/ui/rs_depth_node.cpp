@@ -39,9 +39,5 @@ void RSDepthNode::SetDepthImageMatrix(const Matrix3f& imageMatrix) {}
 
 RSDepthNode::RSDepthNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
     : RSNode(isRenderServiceNode, isTextureExportNode, rsUIContext) {}
-
-void RSDepthNode::CreateRenderNode()
-{
-}
 } // namespace Rosen
 } // namespace OHOS

@@ -33,9 +33,6 @@
 #include "feature/ui_capture/rs_divided_ui_capture.h"
 #include "pipeline/rs_render_thread.h"
 #include "ui/rs_proxy_node.h"
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-#include "ui/rs_ui_context.h"
-#endif
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
 
@@ -123,15 +120,6 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode
         ROSEN_LOGW("RSRenderInterface::TakeSurfaceCaptureForUIWithConfig rsnode is nullpter return");
         return false;
     }
-    if (node->GetNodeState() == RSNodeState::INACTIVE) {
-        node->RebuildTree();
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-        if (auto uiContext = node->GetRSUIContext()) {
-            uiContext->FlushCanvasDrawingNodeBuffers();
-        }
-#endif // RS_MODIFIERS_DRAW_ENABLE
-        captureConfig.isSync = true;
-    }
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
     if (node->IsTextureExportNode()) {
@@ -204,11 +192,6 @@ bool RSRenderInterface::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> b
     if (!endNode) {
         return TakeSurfaceCaptureForUI(beginNode, callback, captureConfig.scaleX,
             captureConfig.scaleY, captureConfig.isSync);
-    }
-    // need consider stability
-    if (beginNode->GetNodeState() == RSNodeState::INACTIVE) {
-        beginNode->RebuildTree();
-        captureConfig.isSync = true;
     }
     captureConfig.uiCaptureInRangeParam.endNodeId = endNode->GetId();
     captureConfig.uiCaptureInRangeParam.useBeginNodeSize = useBeginNodeSize;
@@ -457,7 +440,6 @@ bool RSRenderInterface::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
-    node->SetStaticCached(isFreeze);
     RSSurfaceCaptureBlurParam blurParam;
     if (ROSEN_GE(blurRadius, 1.f)) {
         blurParam.isNeedBlur = true;
@@ -668,18 +650,6 @@ void RSRenderInterface::SetFreeMultiWindowStatus(bool enable)
 {
     renderPipelineClient_->SetFreeMultiWindowStatus(enable);
 }
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<Surface> RSRenderInterface::GetCanvasSurface(NodeId nodeId)
-{
-    return renderPipelineClient_->GetCanvasSurface(nodeId);
-}
-
-void RSRenderInterface::RemoveCanvasSurface(NodeId nodeId)
-{
-    renderPipelineClient_->RemoveCanvasSurface(nodeId);
-}
-#endif // RS_MODIFIERS_DRAW_ENABLE
 
 void RSRenderInterface::SetOnRenderProcessDiedCallback(const std::function<void()>& callback)
 {

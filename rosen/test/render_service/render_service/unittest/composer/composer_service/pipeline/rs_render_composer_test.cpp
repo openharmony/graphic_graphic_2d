@@ -1811,10 +1811,9 @@ HWTEST_F(RsRenderComposerTest, RecordTimestamp, TestSize.Level1)
     config.id = 3;
     config.name = "surface3";
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     csurf->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     rsSurfaceRenderNode->InitRenderParams();
@@ -2122,9 +2121,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut001, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -2176,9 +2174,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut002, TestSize.Level1)
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -2252,9 +2249,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut003, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
@@ -2314,9 +2310,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut004, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
@@ -2560,9 +2555,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat001, TestSize.Level1)
     config.name = std::to_string(id);
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
@@ -6927,9 +6921,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut005, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7004,9 +6997,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut006, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7070,9 +7062,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut007, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7153,9 +7144,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut009, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7218,9 +7208,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut010, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7288,9 +7277,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut011, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7360,9 +7348,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut012, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7550,9 +7537,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_SkipTypesThenClient, Tes
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7623,9 +7609,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_MultipleSkipTypesWithCli
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7687,9 +7672,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_DeviceTypeWithBuffer, Te
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7763,9 +7747,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_MixedTypesWithNullLayers
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7826,9 +7809,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat009, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7894,9 +7876,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat010, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7962,9 +7943,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat011, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -8028,9 +8008,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat012, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -8097,9 +8076,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat013, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -8165,9 +8143,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat014, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -8226,9 +8203,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat015, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -8296,9 +8272,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat016, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), surfaceHandler, nullptr);
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 

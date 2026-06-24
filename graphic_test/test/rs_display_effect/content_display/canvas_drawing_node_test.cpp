@@ -113,6 +113,10 @@ GRAPHIC_TEST(CanvasDrawingNodeTest, CONTENT_DISPLAY_TEST, CanvasDrawingNode_Draw
     std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
     Drawing::Rect pixelMapRect(0, 0, 500, 500);
     testNode1->GetPixelmap(pixelmap, nullptr, &pixelMapRect);
+    Drawing::Bitmap bitmap;
+    testNode1->GetBitmap(bitmap, nullptr, &pixelMapRect);
+    auto modifier2 = std::make_shared<TestBitmapModifier>(bitmap);
+    testNode1->AddModifier(modifier2);
  
     auto testNode2 = RSCanvasNode::Create(true);
     setNode(testNode2, { 500, 500, 500, 500 }, Vector4<Color>(Color(0, 255, 0)));

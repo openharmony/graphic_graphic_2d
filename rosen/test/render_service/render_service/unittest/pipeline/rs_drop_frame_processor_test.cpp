@@ -109,9 +109,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest002, TestSize.Level1)
     rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
     auto clientComposer = std::make_shared<RSComposerClientManager>();
-    auto surfaceHandler(rsNode->GetRSSurfaceHandler());
-    sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(surfaceRenderNode, surfaceHandler, clientComposer);
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode, clientComposer);
     csurf->RegisterConsumerListener(listener);
     producer = csurf->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
@@ -166,9 +164,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest003, TestSize.Level1)
     csurf = IConsumerSurface::Create(config.name);
     rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
-    auto surfaceHandler(rsNode->GetRSSurfaceHandler());
-    sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(surfaceRenderNode, surfaceHandler, nullptr);
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode, nullptr);
     csurf->RegisterConsumerListener(listener);
     producer = csurf->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);
@@ -213,8 +209,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest004, TestSize.Level1)
     csurf = IConsumerSurface::Create(config.name);
     rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
-    auto surfaceHandler(rsNode->GetRSSurfaceHandler());
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode, surfaceHandler, nullptr);
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode, nullptr);
     csurf->RegisterConsumerListener(listener);
     producer = csurf->GetProducer();
     psurf = Surface::CreateSurfaceAsProducer(producer);

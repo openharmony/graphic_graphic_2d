@@ -697,8 +697,7 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable001, TestSize.Level1)
     RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
     context.surfaceHandler->SetAvailableBufferCount(0);
 
-    auto surfaceHandler(context.node->GetRSSurfaceHandler());
-    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, surfaceHandler, nullptr);
+    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, nullptr);
     rsListener->OnBufferAvailable();
 
     EXPECT_EQ(context.surfaceHandler->GetBuffer(), normalBuffer);
@@ -750,8 +749,7 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable002, TestSize.Level1)
     RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetPendingBuffer(firstTunnelBufferEntry);
     context.surfaceHandler->SetAvailableBufferCount(0);
 
-    auto surfaceHandler(context.node->GetRSSurfaceHandler());
-    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, surfaceHandler, composerManager);
+    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, composerManager);
     rsListener->OnBufferAvailable();
 
     EXPECT_TRUE(connection->commitTunnelCalled);
@@ -811,8 +809,7 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable003, TestSize.Level1)
     ASSERT_NE(composerManager, nullptr);
     context.surfaceHandler->SetAvailableBufferCount(0);
 
-    auto surfaceHandler(context.node->GetRSSurfaceHandler());
-    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, surfaceHandler, composerManager);
+    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, composerManager);
     rsListener->OnBufferAvailable();
 
     EXPECT_FALSE(connection->commitTunnelCalled);
@@ -854,8 +851,7 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable004, TestSize.Level1)
     ScopedRegisteredSurfaceNode registeredNode(node);
     ASSERT_TRUE(registeredNode.IsRegistered());
 
-    auto listener =
-        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, std::make_shared<RSComposerClientManager>());
+    auto listener = std::make_shared<RSRenderServiceListener>(node, std::make_shared<RSComposerClientManager>());
     auto pendingBufferEntry = CreateTestBufferEntry();
     ASSERT_NE(pendingBufferEntry.buffer, nullptr);
     RSTunnelRuntimeStore::GetOrCreate(node->GetId()).SetPendingBuffer(pendingBufferEntry);

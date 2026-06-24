@@ -692,6 +692,30 @@ void DrawCmdList::GetBounds(Rect& rect)
     }
 }
 
+bool DrawCmdList::IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxPixelMapHeight)
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    // canvasdrawingnode does not support switching from enable to disable
+    if (hybridRenderType_ == HybridRenderType::CANVAS) {
+        return true;
+    }
+    if (!UnmarshallingDrawOpsSimple(drawOpItems_, lastOpGenSize_)) {
+        return false;
+    }
+    // check size
+    Drawing::Rect bounds;
+    int32_t width = GetWidth();
+    int32_t height = GetHeight();
+    GetBounds(bounds);
+    width = std::max(width, DrawingFloatSaturate2Int(ceilf(bounds.GetWidth())));
+    height = std::max(height, DrawingFloatSaturate2Int(ceilf(bounds.GetHeight())));
+    if (width < 0 || height < 0 ||
+        static_cast<uint32_t>(width) > maxPixelMapWidth || static_cast<uint32_t>(height) > maxPixelMapHeight) {
+        return false;
+    }
+    return true;
+}
+
 void DrawCmdList::ProfilerTextBlob(void* handle, uint32_t count, std::shared_ptr<Drawing::DrawCmdList> refDrawCmdList)
 {
     if (!handle) {

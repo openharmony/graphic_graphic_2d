@@ -21,15 +21,6 @@
 
 namespace OHOS {
     using namespace Rosen;
-
-    class RSRenderAnimationFuzzMock : public RSRenderAnimation {
-    public:
-        RSRenderAnimationFuzzMock() : RSRenderAnimation() {}
-        explicit RSRenderAnimationFuzzMock(AnimationId id) : RSRenderAnimation(id) {}
-        ~RSRenderAnimationFuzzMock() override = default;
-        void RebuildPropertyValue(float fraction) override {}
-    };
-
     namespace {
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
@@ -89,7 +80,7 @@ namespace OHOS {
         std::shared_ptr<RSRenderAnimation> animation = nullptr;
         AnimationCommandHelper::CreateAnimation(context, targetId, animation);
 
-        animation = std::make_shared<RSRenderAnimationFuzzMock>();
+        animation = std::make_shared<RSRenderAnimation>();
         AnimationCommandHelper::CreateAnimation(context, targetId, animation);
         AnimationCommandHelper::CancelAnimation(context, targetId, propertyId);
 

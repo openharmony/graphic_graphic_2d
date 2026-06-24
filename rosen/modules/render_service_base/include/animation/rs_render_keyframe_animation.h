@@ -45,8 +45,6 @@ public:
 protected:
     void OnAnimate(float fraction) override;
 
-    void RebuildPropertyValue(float fraction) override;
-
     void InitValueEstimator() override;
 
 private:

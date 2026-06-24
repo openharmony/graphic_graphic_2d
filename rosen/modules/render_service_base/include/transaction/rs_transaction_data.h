@@ -27,13 +27,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSMainThread;
-
-// RSTransactionData scene
-enum RSTransactionDataScenes : uint8_t {
-    Default = 0,
-    Rebuild, // goForeground for node rebuild
-};
 class RSB_EXPORT RSTransactionData : public Parcelable {
 public:
     RSTransactionData() = default;
@@ -208,16 +201,6 @@ public:
         return dvsyncTime_;
     }
 
-    void SetRSTransactionDataScene(RSTransactionDataScenes scene)
-    {
-        scene_ = scene;
-    }
-
-    RSTransactionDataScenes GetRSTransactionDataScene() const
-    {
-        return scene_;
-    }
-
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
@@ -254,15 +237,11 @@ private:
     std::vector<uint32_t> commandOffsets_;
     bool dvsyncTimeUpdate_ = false;
     uint64_t dvsyncTime_ = 0;
-    bool isRebuildTransactionSequence_ { false };
-    RSTransactionDataScenes scene_ = RSTransactionDataScenes::Default;
 
     friend class RSTransactionProxy;
     friend class RSTransactionHandler;
     friend class RSMessageProcessor;
     friend class RSMainThread;
-    friend class RSUIDirector;
-    friend class RSModifiersDraw;
 };
 using TransactionDataMap = std::unordered_map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>>;
 } // namespace Rosen

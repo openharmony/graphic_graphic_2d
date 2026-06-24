@@ -145,19 +145,6 @@ void RSKeyframeAnimation::OnStart()
         ROSEN_LOGE("Failed to start keyframe animation, keyframes is null!");
         return;
     }
-    auto animation = CreateRenderAnimation();
-    if (isCustom_) {
-        SetPropertyValue(originValue_);
-        property_->UpdateCustomAnimation();
-        animation->AttachRenderProperty(property_->GetRenderProperty());
-        StartUIAnimation(animation);
-    } else {
-        StartRenderAnimation(animation);
-    }
-}
-
-std::shared_ptr<RSRenderKeyframeAnimation> RSKeyframeAnimation::CreateRenderAnimation()
-{
     auto animation = std::make_shared<RSRenderKeyframeAnimation>(GetId(), GetPropertyId(),
         originValue_->GetRenderProperty());
     animation->SetDurationKeyframe(isDurationKeyframe_);
@@ -173,25 +160,14 @@ std::shared_ptr<RSRenderKeyframeAnimation> RSKeyframeAnimation::CreateRenderAnim
             animation->AddKeyframe(fraction, value->GetRenderProperty(), curve.GetInterpolator(GetDuration()));
         }
     }
-    return animation;
-}
-
-void RSKeyframeAnimation::RebuildInRender()
-{
-    if (keyframes_.empty() && durationKeyframes_.empty()) {
-        ROSEN_LOGE("Failed to rebuild keyframe animation, keyframes is null!");
-        return;
+    if (isCustom_) {
+        SetPropertyValue(originValue_);
+        property_->UpdateCustomAnimation();
+        animation->AttachRenderProperty(property_->GetRenderProperty());
+        StartUIAnimation(animation);
+    } else {
+        StartRenderAnimation(animation);
     }
-    auto target = GetTarget().lock();
-    if (target == nullptr) {
-        ROSEN_LOGE("Failed to rebuild keyframe animation, target is null!");
-        return;
-    }
-    auto animation = CreateRenderAnimation();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationRebuildKeyframe>(
-        target->GetId(), animation, GetRebuildParam().fraction, GetRebuildParam().isReverseCycle);
-    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-    SetRebuildParam({});
 }
 } // namespace Rosen
 } // namespace OHOS

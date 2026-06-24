@@ -26,14 +26,6 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 
-class RSRenderAnimationMock : public RSRenderAnimation {
-public:
-    RSRenderAnimationMock() : RSRenderAnimation() {}
-    explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
-    ~RSRenderAnimationMock() override = default;
-    void RebuildPropertyValue(float fraction) override {}
-};
-
 class RSModifierManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -330,7 +322,7 @@ HWTEST_F(RSModifierManagerTest, HasUIRunningAnimation_AnimationExpired001, TestS
     RSModifierManager manager;
     
     // Add an animation and let it expire (weak_ptr becomes nullptr)
-    auto animation = std::make_shared<RSRenderAnimationMock>(ANIMATION_ID);
+    auto animation = std::make_shared<RSRenderAnimation>(ANIMATION_ID);
     manager.AddAnimation(animation);
     animation.reset();  // Destroy animation, weak_ptr in manager.lock() returns nullptr
 
@@ -354,7 +346,7 @@ HWTEST_F(RSModifierManagerTest, HasUIRunningAnimation_AnimationNotRunning001, Te
 
     RSModifierManager manager;
     
-    auto animation = std::make_shared<RSRenderAnimationMock>(ANIMATION_ID);
+    auto animation = std::make_shared<RSRenderAnimation>(ANIMATION_ID);
     animation->Finish();  // Animation is finished, not running
     manager.AddAnimation(animation);
 
@@ -380,7 +372,7 @@ HWTEST_F(RSModifierManagerTest, HasUIRunningAnimation_AnimationRunning001, TestS
 
     RSModifierManager manager;
     
-    auto animation = std::make_shared<RSRenderAnimationMock>(ANIMATION_ID);
+    auto animation = std::make_shared<RSRenderAnimation>(ANIMATION_ID);
     animation->Start();
     manager.AddAnimation(animation);
 
@@ -412,7 +404,7 @@ HWTEST_F(RSModifierManagerTest, HasUIRunningAnimation_OptimizationEnabled_OnTree
     node->SetIsOnTheTree(true);
     rsUIContext->GetMutableNodeMap().RegisterNode(node);
 
-    auto animation = std::make_shared<RSRenderAnimationMock>(ANIMATION_ID);
+    auto animation = std::make_shared<RSRenderAnimation>(ANIMATION_ID);
     animation->targetId_ = node->GetId();
     animation->Start();
     manager.AddAnimation(animation);
@@ -443,7 +435,7 @@ HWTEST_F(RSModifierManagerTest, HasUIRunningAnimation_OptimizationEnabled_OffTre
     node->SetIsOnTheTree(false);
     rsUIContext->GetMutableNodeMap().RegisterNode(node);
 
-    auto animation = std::make_shared<RSRenderAnimationMock>(ANIMATION_ID);
+    auto animation = std::make_shared<RSRenderAnimation>(ANIMATION_ID);
     animation->targetId_ = node->GetId();
     animation->Start();
     manager.AddAnimation(animation);

@@ -53,12 +53,6 @@ RSUnionNode::SharedPtr RSUnionNode::Create(
 #endif
 }
 
-void RSUnionNode::CreateRenderNode()
-{
-    std::unique_ptr<RSCommand> command = std::make_unique<RSUnionNodeCreate>(GetId(), isTextureExportNode_);
-    AddCommand(command, IsRenderServiceNode());
-}
-
 void RSUnionNode::SetUnionSpacing(float spacing)
 {
     SetPropertyNG<ModifierNG::RSUseUnionModifier, &ModifierNG::RSUseUnionModifier::SetUnionSpacing>(spacing);

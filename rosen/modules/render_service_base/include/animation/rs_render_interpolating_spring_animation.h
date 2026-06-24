@@ -44,9 +44,6 @@ protected:
     void OnSetFraction(float fraction) override;
     void UpdateFractionAfterContinue() override;
     void OnAnimate(float fraction) override;
-
-    void RebuildPropertyValue(float fraction) override;
-
     void InitValueEstimator() override;
     void OnInitialize(int64_t time, bool isCustom = false) override;
 

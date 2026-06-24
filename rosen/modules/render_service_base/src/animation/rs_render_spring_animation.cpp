@@ -114,20 +114,6 @@ void RSRenderSpringAnimation::OnAnimate(float fraction)
     }
 }
 
-void RSRenderSpringAnimation::RebuildPropertyValue(float fraction)
-{
-    if (property_ == nullptr || startValue_ == nullptr || endValue_ == nullptr || springValueEstimator_ == nullptr) {
-        ROSEN_LOGE("RSRenderSpringAnimation::RebuildPropertyValue failed: "
-            "property[%{public}d] startValue[%{public}d] endValue[%{public}d] estimator[%{public}d]",
-            property_ != nullptr, startValue_ != nullptr, endValue_ != nullptr, springValueEstimator_ != nullptr);
-        return;
-    }
-    auto baseValue = property_ - (endValue_ - startValue_);
-    springValueEstimator_->InitRSSpringValueEstimator(property_, baseValue, property_, baseValue);
-    prevMappedTime_ = GetDuration() * fraction * MILLISECOND_TO_SECOND;
-    springValueEstimator_->UpdateAnimationValue(prevMappedTime_, false);
-}
-
 void RSRenderSpringAnimation::OnAttach()
 {
     auto target = GetTarget();

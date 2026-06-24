@@ -340,7 +340,6 @@ template("render_service_client_source_set") {
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",
         "image_framework:image_native",
-        "init:libbegetutil",
         "qos_manager:qos",
         "qos_manager:concurrent_task_client",
       ]
@@ -410,12 +409,9 @@ template("render_service_client_source_set") {
       defines += tp_defines
     }
 
-    if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
+    if (graphic_2d_feature_enable_vulkan) {
       if (!is_arkui_x) {
-        defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
         sources += [
-          "core/modifier_render_thread/rs_canvas_modifiers_draw.cpp",
-          "core/modifier_render_thread/rs_canvas_modifiers_draw_thread.cpp",
           "core/modifier_render_thread/rs_modifiers_draw.cpp",
           "core/modifier_render_thread/rs_modifiers_draw_thread.cpp",
         ]
@@ -428,6 +424,10 @@ template("render_service_client_source_set") {
           sources -= graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources_del
         }
       }
+    }
+
+    if (graphic_2d_feature_rs_modifiers_draw_enable) {
+      defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
     }
 
     if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {

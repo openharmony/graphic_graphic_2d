@@ -282,10 +282,6 @@ ohos_source_set("rosen_ohos_sources") {
     defines += [ "RES_SCHED_ENABLE" ]
   }
 
-  if (graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
-    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
-  }
-
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

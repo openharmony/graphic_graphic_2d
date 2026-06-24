@@ -1826,7 +1826,6 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
 {
     if ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
-        (node.IsChildDestoryRebuild()) ||
         (RSUifirstManager::Instance().NodeIsInCardWhiteList(node)) ||
         (RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node))) {
         return false;

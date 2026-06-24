@@ -140,7 +140,19 @@ void RSPathAnimation::OnStart()
     }
 
     InitRotationId(target);
-    auto animation = CreateRenderAnimation(target);
+    auto interpolator = timingCurve_.GetInterpolator(GetDuration());
+    auto animation = std::make_shared<RSRenderPathAnimation>(GetId(), GetPropertyId(),
+        originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty(),
+        target->GetStagingProperties().GetRotation(), animationPath_);
+    UpdateParamToRenderAnimation(animation);
+    animation->SetInterpolator(interpolator);
+    animation->SetRotationMode(GetRotationMode());
+    animation->SetBeginFraction(GetBeginFraction());
+    animation->SetEndFraction(GetEndFraction());
+    animation->SetIsNeedPath(isNeedPath_);
+    animation->SetPathNeedAddOrigin(GetPathNeedAddOrigin());
+    animation->SetAdditive(GetAdditive());
+    animation->SetRotationId(rotationId_);
     if (isNeedPath_) {
         property_->AddPathAnimation();
     }
@@ -403,43 +415,6 @@ void RSPathAnimation::UpdateVector4fValueAddOrigin(Vector4f& startValue, Vector4
     startValue[1] += deltaValue[1];
     endValue[0] += deltaValue[0];
     endValue[1] += deltaValue[1];
-}
-
-std::shared_ptr<RSRenderPathAnimation> RSPathAnimation::CreateRenderAnimation(const std::shared_ptr<RSNode>& target)
-{
-    auto interpolator = timingCurve_.GetInterpolator(GetDuration());
-    auto animation = std::make_shared<RSRenderPathAnimation>(GetId(), GetPropertyId(),
-        originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty(),
-        target->GetStagingProperties().GetRotation(), animationPath_);
-    UpdateParamToRenderAnimation(animation);
-    animation->SetInterpolator(interpolator);
-    animation->SetRotationMode(GetRotationMode());
-    animation->SetBeginFraction(GetBeginFraction());
-    animation->SetEndFraction(GetEndFraction());
-    animation->SetIsNeedPath(isNeedPath_);
-    animation->SetPathNeedAddOrigin(GetPathNeedAddOrigin());
-    animation->SetAdditive(GetAdditive());
-    animation->SetRotationId(rotationId_);
-    return animation;
-}
-
-void RSPathAnimation::RebuildInRender()
-{
-    if (!animationPath_) {
-        ROSEN_LOGE("Failed to rebuild path animation, path is null!");
-        return;
-    }
-    auto target = GetTarget().lock();
-    if (target == nullptr) {
-        ROSEN_LOGE("Failed to rebuild path animation, target is null!");
-        return;
-    }
-    InitRotationId(target);
-    auto animation = CreateRenderAnimation(target);
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationRebuildPath>(
-        target->GetId(), animation, GetRebuildParam().fraction, GetRebuildParam().isReverseCycle);
-    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-    SetRebuildParam({});
 }
 } // namespace Rosen
 } // namespace OHOS

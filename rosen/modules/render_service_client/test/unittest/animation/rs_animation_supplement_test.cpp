@@ -71,7 +71,6 @@ class RSAnimationMock : public RSAnimation {
 public:
     explicit RSAnimationMock(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
     ~RSAnimationMock() = default;
-    void RebuildInRender() override {}
     void StartInner(const std::shared_ptr<RSNode>& target)
     {
         RSAnimation::StartInner(target);
@@ -172,7 +171,6 @@ class RSRenderAnimationMock : public RSRenderAnimation {
 public:
     RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
     ~RSRenderAnimationMock() = default;
-    void RebuildPropertyValue(float fraction) override {}
 
     void DumpAnimation(std::string& out)
     {

@@ -19,6 +19,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "rs_profiler_test_tree.h"
+
 #include "common/rs_macros.h"
 #include "transaction/rs_hrp_service.h"
 

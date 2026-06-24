@@ -173,6 +173,80 @@ GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, SetGetHybridRenderT
 }
 
 /**
+ * @tc.name: SetGetHybridRenderType_Text_002
+ * @tc.desc: Test TEXT type - Light blue background + dark blue text + cyan decoration
+ * @tc.type: FUNC
+ * @tc.require: issueICRTWV
+ */
+GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, SetGetHybridRenderType_Text_002)
+{
+    auto canvasNode = CreateColoredNode(50, 50, RECORDING_WIDTH, RECORDING_HEIGHT, COLOR_TEXT_BG);
+    auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDTH, RECORDING_HEIGHT);
+
+    DrawColoredText(recordingCanvas, "TEXT Type", COLOR_TEXT_TEXT);
+    DrawColoredRect(recordingCanvas, 50, 150, 350, 180, COLOR_CYAN);
+    DrawColoredCircle(recordingCanvas, 200, 280, 50, COLOR_CYAN);
+
+    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::TEXT);
+    EXPECT_EQ(recordingCanvas->GetDrawCmdList()->GetHybridRenderType(),
+        DrawCmdList::HybridRenderType::TEXT);
+
+    canvasNode->FinishRecording();
+    RegisterNode(canvasNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+}
+
+/**
+ * @tc.name: SetGetHybridRenderType_SVG_003
+ * @tc.desc: Test SVG type - Light green background + dark green shapes + path drawing
+ * @tc.type: FUNC
+ * @tc.require: issueICRTWV
+ */
+GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, SetGetHybridRenderType_SVG_003)
+{
+    auto canvasNode = CreateColoredNode(50, 50, RECORDING_WIDTH, RECORDING_HEIGHT, COLOR_SVG_BG);
+    auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDTH, RECORDING_HEIGHT);
+
+    DrawColoredText(recordingCanvas, "SVG Type", COLOR_SVG_SHAPE);
+    DrawColoredRect(recordingCanvas, 50, 150, 180, 250, COLOR_SVG_SHAPE);
+    DrawColoredCircle(recordingCanvas, 280, 220, 60, COLOR_SVG_SHAPE);
+    DrawColoredPath(recordingCanvas, COLOR_SVG_SHAPE);
+
+    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::SVG);
+    EXPECT_EQ(recordingCanvas->GetDrawCmdList()->GetHybridRenderType(),
+        DrawCmdList::HybridRenderType::SVG);
+
+    canvasNode->FinishRecording();
+    RegisterNode(canvasNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+}
+
+/**
+ * @tc.name: SetGetHybridRenderType_HMSymbol_004
+ * @tc.desc: Test HMSYMBOL type - Light purple background + dark purple text + magenta decoration
+ * @tc.type: FUNC
+ * @tc.require: issueICRTWV
+ */
+GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, SetGetHybridRenderType_HMSymbol_004)
+{
+    auto canvasNode = CreateColoredNode(50, 50, RECORDING_WIDTH, RECORDING_HEIGHT, COLOR_HMSYMBOL_BG);
+    auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDTH, RECORDING_HEIGHT);
+
+    DrawColoredText(recordingCanvas, "HMSYMBOL", COLOR_HMSYMBOL_TEXT);
+    DrawColoredRect(recordingCanvas, 50, 150, 350, 180, COLOR_MAGENTA);
+    DrawColoredCircle(recordingCanvas, 120, 280, 40, COLOR_MAGENTA);
+    DrawColoredCircle(recordingCanvas, 280, 280, 40, COLOR_MAGENTA);
+
+    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::HMSYMBOL);
+    EXPECT_EQ(recordingCanvas->GetDrawCmdList()->GetHybridRenderType(),
+        DrawCmdList::HybridRenderType::HMSYMBOL);
+
+    canvasNode->FinishRecording();
+    RegisterNode(canvasNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+}
+
+/**
  * @tc.name: SetGetHybridRenderType_Canvas_005
  * @tc.desc: Test CANVAS type - Light red background + dark red shapes + combined forms
  * @tc.type: FUNC
@@ -238,6 +312,9 @@ GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, SetGetHybridRenderT
 
     std::vector<TypeInfo> types = {
         {DrawCmdList::HybridRenderType::NONE, COLOR_NONE_BG, COLOR_NONE_TEXT, "NONE"},
+        {DrawCmdList::HybridRenderType::TEXT, COLOR_TEXT_BG, COLOR_TEXT_TEXT, "TEXT"},
+        {DrawCmdList::HybridRenderType::SVG, COLOR_SVG_BG, COLOR_SVG_SHAPE, "SVG"},
+        {DrawCmdList::HybridRenderType::HMSYMBOL, COLOR_HMSYMBOL_BG, COLOR_HMSYMBOL_TEXT, "HM"},
         {DrawCmdList::HybridRenderType::CANVAS, COLOR_CANVAS_BG, COLOR_CANVAS_SHAPE, "CV"}
     };
 
@@ -251,7 +328,9 @@ GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, SetGetHybridRenderT
         DrawColoredText(recordingCanvas, types[i].label, types[i].contentColor, 50, 80);
 
         // Draw different shapes to enhance contrast
-        if (types[i].type == DrawCmdList::HybridRenderType::CANVAS) {
+        if (types[i].type == DrawCmdList::HybridRenderType::SVG) {
+            DrawColoredPath(recordingCanvas, types[i].contentColor);
+        } else if (types[i].type == DrawCmdList::HybridRenderType::CANVAS) {
             DrawColoredRect(recordingCanvas, 100, 150, 300, 200, types[i].contentColor);
         } else {
             DrawColoredCircle(recordingCanvas, 200, 250, 80, types[i].contentColor);
@@ -364,6 +443,63 @@ GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, GetBounds_MultiCont
 }
 
 // ============================================================================
+// IsHybridRenderEnabled test - Enable/disable state visualization
+// ============================================================================
+
+/**
+ * @tc.name: IsHybridRenderEnabled_Enabled_001
+ * @tc.desc: Test enabled state - Green background indicates enabled
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, IsHybridRenderEnabled_Enabled_001)
+{
+    auto canvasNode = CreateColoredNode(50, 1400, RECORDING_WIDTH, RECORDING_HEIGHT, 0xFFC8E6C9);
+    auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDTH, RECORDING_HEIGHT);
+
+    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::TEXT);
+    bool isEnabled = recordingCanvas->GetDrawCmdList()->IsHybridRenderEnabled(
+        MAX_PIXELMAP_WIDTH, MAX_PIXELMAP_HEIGHT);
+
+    // Draw different content based on state
+    if (isEnabled) {
+        DrawColoredText(recordingCanvas, "ENABLED", 0xFF2E7D32, 130, 180);
+        DrawColoredCircle(recordingCanvas, 200, 250, 60, 0xFF4CAF50);
+    }
+
+    canvasNode->FinishRecording();
+    RegisterNode(canvasNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+}
+
+/**
+ * @tc.name: IsHybridRenderEnabled_SizeExceed_002
+ * @tc.desc: Test size limit exceeded disable - Red background indicates disabled
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, IsHybridRenderEnabled_SizeExceed_002)
+{
+    auto canvasNode = CreateColoredNode(500, 1400, RECORDING_WIDTH, RECORDING_HEIGHT, 0xFFFFCDD2);
+    auto recordingCanvas = canvasNode->BeginRecording(RECORDING_WIDTH, RECORDING_HEIGHT);
+
+    recordingCanvas->GetDrawCmdList()->SetHybridRenderType(DrawCmdList::HybridRenderType::CANVAS);
+    recordingCanvas->ResetHybridRenderSize(6000.0f, 6000.0f);
+
+    bool isEnabled = recordingCanvas->GetDrawCmdList()->IsHybridRenderEnabled(5000, 5000);
+
+    // Draw different content based on state
+    if (!isEnabled) {
+        DrawColoredText(recordingCanvas, "DISABLED", 0xFFC62828, 110, 180);
+        DrawColoredRect(recordingCanvas, 100, 250, 200, 50, 0xFFEF5350);
+    }
+
+    canvasNode->FinishRecording();
+    RegisterNode(canvasNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+}
+
+// ============================================================================
 // ResetHybridRenderSize test - Size change visualization
 // ============================================================================
 
@@ -465,6 +601,9 @@ GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, Combined_FullDispla
 
     std::vector<DisplayInfo> displays = {
         {DrawCmdList::HybridRenderType::NONE, COLOR_NONE_BG, COLOR_NONE_TEXT, "NONE", 100.0f},
+        {DrawCmdList::HybridRenderType::TEXT, COLOR_TEXT_BG, COLOR_TEXT_TEXT, "TEXT", 150.0f},
+        {DrawCmdList::HybridRenderType::SVG, COLOR_SVG_BG, COLOR_SVG_SHAPE, "SVG", 200.0f},
+        {DrawCmdList::HybridRenderType::HMSYMBOL, COLOR_HMSYMBOL_BG, COLOR_HMSYMBOL_TEXT, "HM", 250.0f},
         {DrawCmdList::HybridRenderType::CANVAS, COLOR_CANVAS_BG, COLOR_CANVAS_SHAPE, "CV", 300.0f}
     };
 
@@ -482,9 +621,7 @@ GRAPHIC_TEST(HybridRenderInterfacesTest, HYBRID_RENDER_TEST, Combined_FullDispla
 
         // Draw state indicator
         recordingCanvas->GetDrawCmdList()->SetHybridRenderType(displays[i].type);
-        const auto& hybridRenderType = recordingCanvas->GetDrawCmdList()->GetHybridRenderType();
-        bool isEnabled = hybridRenderType > DrawCmdList::HybridRenderType::NONE &&
-            hybridRenderType < DrawCmdList::HybridRenderType::TYPE_MAX;
+        bool isEnabled = recordingCanvas->GetDrawCmdList()->IsHybridRenderEnabled(5000, 5000);
 
         if (isEnabled) {
             DrawColoredRect(recordingCanvas, 50, 250, 200, 10, 0xFF4CAF50);

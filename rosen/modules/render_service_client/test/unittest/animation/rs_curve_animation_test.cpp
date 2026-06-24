@@ -206,49 +206,5 @@ HWTEST_F(RSCurveAnimationTest, InvertStagingValue005, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSCurveAnimationTest InvertStagingValue005 end";
 }
-
-/**
- * @tc.name: RebuildInRender001
- * @tc.desc: Verify RebuildInRender with null target
- * @tc.type: FUNC
- */
-HWTEST_F(RSCurveAnimationTest, RebuildInRender001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSCurveAnimationTest RebuildInRender001 start";
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
-    curveAnimation->SetDuration(300);
-    curveAnimation->SetTimingCurve(RSAnimationTimingCurve::DEFAULT);
-    curveAnimation->SetRebuildParam({0.5f, false});
-    curveAnimation->RebuildInRender();
-    GTEST_LOG_(INFO) << "RSCurveAnimationTest RebuildInRender001 end";
-}
-
-/**
- * @tc.name: SetRebuildParam001
- * @tc.desc: Verify SetRebuildParam and GetRebuildParam
- * @tc.type: FUNC
- */
-HWTEST_F(RSCurveAnimationTest, SetRebuildParam001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSCurveAnimationTest SetRebuildParam001 start";
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
-    RebuildParam param{0.5f, true};
-    curveAnimation->SetRebuildParam(param);
-    auto result = curveAnimation->GetRebuildParam();
-    EXPECT_FLOAT_EQ(result.fraction, 0.5f);
-    EXPECT_TRUE(result.isReverseCycle);
-    GTEST_LOG_(INFO) << "RSCurveAnimationTest SetRebuildParam001 end";
-}
-
 } // namespace Rosen
 } // namespace OHOS

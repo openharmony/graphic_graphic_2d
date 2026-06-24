@@ -16,7 +16,6 @@
 #define RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_LISTENER_H
 
 #include <ibuffer_consumer_listener.h>
-#include <mutex>
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -27,7 +26,6 @@ namespace Rosen {
 class RSRenderServiceListener : public IBufferConsumerListener {
 public:
     RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode,
-        std::weak_ptr<RSSurfaceHandler> surfaceHandler,
         std::shared_ptr<RSComposerClientManager> composerClientManager);
     ~RSRenderServiceListener() override;
     void OnBufferAvailable() override;
@@ -36,37 +34,19 @@ public:
     void OnGoBackground() override;
     void OnTransformChange() override;
     void OnDropBuffer() override;
-    void SetRSSurfaceBufferInterface(std::weak_ptr<RSSurfaceBufferInterface> surfaceBufferInterface);
     void OnCleanCacheForBufferInfoMap(std::vector<CleanCacheBufferInfo> &infos) override;
     bool IsNeedBufferInfo() override;
 
 private:
-    void SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceHandler> &surfaceHandler,
-        const sptr<IConsumerSurface> &consumer, bool doFastCompose = false);
+    void SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
+        const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer,
+        bool doFastCompose = false);
     void NotifyBufferAvailableOnce(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool CheckFastCompose(const sptr<IConsumerSurface>& consumer);
-    std::weak_ptr<RSSurfaceBufferInterface> surfaceBufferInterface_;
-    std::weak_ptr<RSSurfaceHandler> surfaceHandler_;
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
     void CleanLayerBufferCache();
     bool ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node);
     std::shared_ptr<RSComposerClientManager> composerClientManager_;
-    uint64_t nodeId_ = 0;
-
-    void ConsumeBufferToKeepQueueRunning(std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
-    void ProcessPendingCallbacks();
-    std::string name_;
-    std::mutex pendingStateMutex_;
-    uint8_t pendingCallbackBits_ = 0;
-    uint32_t cleanCacheBufSeqNum_ = 0;
-    bool isInterfaceDirty_ = false;
-    enum PendingStateBit : uint8_t {
-        PENDING_ON_BUFFER_AVAILABLE_BIT = 0x01,
-        PENDING_ON_TUNNEL_HANDLE_CHANGE_BIT = 0x02,
-        PENDING_ON_CLEAN_CACHE_BIT = 0x04,
-        PENDING_ON_GO_BACKGROUND_BIT = 0x08,
-        PENDING_ON_TRANSFORM_CHANGE_BIT = 0x10,
-    };
 };
 } // namespace Rosen
 } // namespace OHOS

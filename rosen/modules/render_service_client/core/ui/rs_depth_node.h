@@ -37,7 +37,6 @@ public:
 
     static SharedPtr Create(bool isRenderServiceNode, bool isTextureExportNode,
         std::shared_ptr<RSUIContext> rsUIContext);
-    void CreateRenderNode() override;
 
     void SetDepthSpaceType(DepthSpaceType spaceType);
     void SetDepthImage(const std::shared_ptr<RSImage>& depthImage);

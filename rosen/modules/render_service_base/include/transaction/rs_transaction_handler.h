@@ -37,7 +37,8 @@ class RSTransactionHandler;
 class RSSyncTask;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
 using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
+    std::function<void(std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::shared_ptr<RSTransactionHandler>)>;
 class RSB_EXPORT RSTransactionHandler : public std::enable_shared_from_this<RSTransactionHandler> {
 public:
     RSTransactionHandler() = default;
@@ -75,7 +76,7 @@ public:
         flushEmptyCallback_ = flushEmptyCallback;
     }
 
-    void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
+    static void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
 
     void SetSyncId(const uint64_t syncId)
     {
@@ -113,7 +114,6 @@ private:
         std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
     void ProcessSyncTransactionStack(std::stack<std::unique_ptr<RSTransactionData>>& stack,
         RSIRenderClient& client, uint64_t syncId, uint64_t timestamp, pid_t tid, const std::string& abilityName);
-    void SetRSTransactionDataScene(RSTransactionDataScenes scene);
     // Command Transaction Triggered by UI Thread.
     mutable std::mutex mutex_;
     std::unique_ptr<RSTransactionData> implicitCommonTransactionData_ { std::make_unique<RSTransactionData>() };
@@ -134,11 +134,9 @@ private:
     bool needSync_ { false };
     uint64_t syncId_ { 0 };
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
-    CommitTransactionCallback commitTransactionCallback_ = nullptr;
+    static CommitTransactionCallback commitTransactionCallback_;
     uint32_t transactionDataIndex_ = 0;
     TaskRunner taskRunner_ = TaskRunner();
-
-    friend class RSUIDirector;
 };
 
 } // namespace Rosen

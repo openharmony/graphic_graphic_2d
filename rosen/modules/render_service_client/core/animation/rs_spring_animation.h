@@ -49,14 +49,10 @@ public:
 protected:
     void OnStart() override;
 
-    void RebuildInRender() override;
-
 private:
     void StartRenderAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation);
 
     void StartUIAnimation(const std::shared_ptr<RSRenderSpringAnimation>& animation);
-
-    std::shared_ptr<RSRenderSpringAnimation> CreateRenderAnimation();
 
     bool GetIsLogicallyFinishCallback() const;
 

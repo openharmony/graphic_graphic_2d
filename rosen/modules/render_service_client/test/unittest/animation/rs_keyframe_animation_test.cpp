@@ -17,7 +17,6 @@
 #include "rs_animation_test_utils.h"
 
 #include "animation/rs_keyframe_animation.h"
-#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -27,23 +26,5 @@ namespace Rosen {
 using namespace ANIMATIONTEST;
 class RSKeyframeAnimationTest : public RSAnimationBaseTest {
 };
-
-/**
- * @tc.name: RebuildInRender001
- * @tc.desc: Verify RebuildInRender with empty keyframes
- * @tc.type: FUNC
- */
-HWTEST_F(RSKeyframeAnimationTest, RebuildInRender001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest RebuildInRender001 start";
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
-    keyframeAnimation->SetRebuildParam({0.5f, false});
-    keyframeAnimation->RebuildInRender();
-    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest RebuildInRender001 end";
-}
-
 } // namespace Rosen
 } // namespace OHOS

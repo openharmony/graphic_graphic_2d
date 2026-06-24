@@ -14,7 +14,6 @@
  */
 
 #include "gtest/gtest.h"
-#include "animation/rs_render_animation.h"
 #include "animation/rs_render_curve_animation.h"
 #include "command/rs_node_showing_command.h"
 #include "pipeline/rs_base_render_node.h"
@@ -24,14 +23,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class RSRenderAnimationMock : public RSRenderAnimation {
-public:
-    RSRenderAnimationMock() : RSRenderAnimation() {}
-    explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
-    ~RSRenderAnimationMock() = default;
-    void RebuildPropertyValue(float fraction) override {}
-};
-
 class RSNodeGetShowingPropertyAndCancelAnimationTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -282,7 +273,7 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process003, TestSize.
     auto animationManager = renderNode->GetAnimationManager();
     ASSERT_NE(animationManager, nullptr);
     animationManager->animations_.clear();
-    std::shared_ptr<RSRenderAnimation> animationTest = std::make_shared<RSRenderAnimationMock>(0);
+    std::shared_ptr<RSRenderAnimation> animationTest = std::make_shared<RSRenderAnimation>(0);
     EXPECT_NE(animationTest, nullptr);
     animationManager->animations_.emplace(0, animationTest);
     context.nodeMap.renderNodeMap_[0][0] = renderNode;
