@@ -748,7 +748,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRect001, TestSize.Level1)
     bool accumGeoDirty = true;
     auto parent = node.GetCurCloneNodeParent().lock();
     if (parent == nullptr) {
-        parent = node.Parent().lock();
+        parent = node.GetParent().lock();
     }
     node.UpdateDrawRect(accumGeoDirty, clipRect, matrix, parent);
     ASSERT_TRUE(true);
@@ -770,7 +770,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRect002, TestSize.Level1)
     bool accumGeoDirty = true;
     auto parent = node.GetCurCloneNodeParent().lock();
     if (parent == nullptr) {
-        parent = node.Parent().lock();
+        parent = node.GetParent().lock();
     }
     node.UpdateDrawRect(accumGeoDirty, clipRect, matrix, parent);
     ASSERT_TRUE(true);

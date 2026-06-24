@@ -1145,10 +1145,10 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding004, TestSize.Level1)
     matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
     matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
     RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
-    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
-    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
-    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
-    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+    EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
+    EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
+    EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
+    EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
 }
 
 /**
@@ -1178,10 +1178,10 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding005, TestSize.Level1)
     matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
     matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
     RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
-    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
-    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
-    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
-    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+    EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
+    EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
+    EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
+    EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
 }
 
 /**
@@ -1211,10 +1211,10 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding006, TestSize.Level1)
     matrix.Set(Drawing::Matrix::SKEW_Y, 1.f);
     matrix.Set(Drawing::Matrix::SCALE_Y, 1.f);
     RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
-    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
-    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
-    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
-    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+    EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
+    EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
+    EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
+    EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
 }
 
 /**
@@ -1244,10 +1244,10 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding007, TestSize.Level1)
     matrix.Set(Drawing::Matrix::SKEW_Y, 0.f);
     matrix.Set(Drawing::Matrix::SCALE_Y, -1.f);
     RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
-    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
-    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
-    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
-    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+    EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
+    EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
+    EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
+    EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
 }
 
 /**
@@ -1279,10 +1279,10 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding008, TestSize.Level1)
     matrix.Set(Drawing::Matrix::TRANS_X, 5.f);
     matrix.Set(Drawing::Matrix::TRANS_Y, 6.f);
     RectF dstRect = RSObjAbsGeometry::MapRectWithoutRounding(srcRect, matrix);
-    EXPECT_TRUE(dstRect.GetLeft() == expectDstRectLeft);
-    EXPECT_TRUE(dstRect.GetTop() == expectDstRectTop);
-    EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
-    EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
+    EXPECT_FLOAT_EQ(dstRect.GetLeft(), expectDstRectLeft);
+    EXPECT_FLOAT_EQ(dstRect.GetTop(), expectDstRectTop);
+    EXPECT_FLOAT_EQ(dstRect.GetRight(), expectDstRectRight);
+    EXPECT_FLOAT_EQ(dstRect.GetBottom(), expectDstRectBottom);
 }
 
 /**

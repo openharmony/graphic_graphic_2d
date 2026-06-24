@@ -8929,7 +8929,7 @@ HWTEST_F(RSNodeTest, SetMaterialShaderDetachPropertyTest, TestSize.Level1)
 
 /**
  * @tc.name: CheckMultiThreadAccess001
- * @tc.desc: test result of CheckMultiThreadAccess
+ * @tc.desc: test results of CheckMultiThreadAccess
  * @tc.type:FUNC
  */
 HWTEST_F(RSNodeTest, CheckMultiThreadAccess001, TestSize.Level1)
@@ -8943,7 +8943,7 @@ HWTEST_F(RSNodeTest, CheckMultiThreadAccess001, TestSize.Level1)
 
 /**
  * @tc.name: CheckMultiThreadAccess002
- * @tc.desc: test result of CheckMultiThreadAccess
+ * @tc.desc: test results of CheckMultiThreadAccess
  * @tc.type:FUNC
  */
 HWTEST_F(RSNodeTest, CheckMultiThreadAccess002, TestSize.Level1)
