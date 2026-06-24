@@ -171,7 +171,7 @@ public:
 #endif
     void SetBehindWindowFilterEnabled(bool enabled);
     bool GetBehindWindowFilterEnabled();
-    bool SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false);
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface);
