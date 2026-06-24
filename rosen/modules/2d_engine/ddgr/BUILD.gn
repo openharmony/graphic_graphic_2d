@@ -35,6 +35,15 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
     ldflags = ddgr_link_config_set.ldflags
     deps = [ ":ddgr_compiler_src_set" ]
     external_deps = ddgr_compiler_src_set.public_external_deps
+    external_deps += [
+      "skia:sksl_ext_static",
+    ]
+    if (!ddgr_feature_cross_compile) {
+      external_deps += [
+        "hilog:libhilog",
+        "init:libbegetutil",
+      ]
+    }
     if (current_os == "ohos") {
       version_script = ddgr_compiler_src_set.version_script
     }
@@ -54,6 +63,15 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
     configs = [ ":ddgr_compiler_config" ]
     sources = ddgr_compiler_src_set.sources
     external_deps = ddgr_compiler_src_set.public_external_deps
+    external_deps += [
+      "skia:sksl_ext_static",
+    ]
+    if (!ddgr_feature_cross_compile) {
+      external_deps += [
+        "hilog:libhilog",
+        "init:libbegetutil",
+      ]
+    }
     configs += ddgr_compiler_src_set.configs
 
     deps = [ ":generate_shader_register_code" ]
