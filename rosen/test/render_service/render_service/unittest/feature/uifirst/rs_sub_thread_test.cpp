@@ -694,9 +694,9 @@ HWTEST_F(RsSubThreadTest, GetHdrParamsEarlyReturnBranches, TestSize.Level1)
 
 /**
  * @tc.name: GetHdrParamsSuccessWithBrightnessRatio
- * @tc.desc: 
+ * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RsSubThreadTest, GetHdrParamsSuccessWithBrightnessRatio, TestSize.Level1)
 {

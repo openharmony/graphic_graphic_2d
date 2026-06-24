@@ -807,7 +807,24 @@ HWTEST_F(RSCanvasRenderNodeTest, QuickPrepare002, TestSize.Level1)
         node->QuickPrepare(visitor);
         ASSERT_TRUE(true);
     }
+}
 
+/**
+ * @tc.name: QuickPrepare003
+ * @tc.desc: test QuickPrepare covering all blendMode branch combinations
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
+ */
+HWTEST_F(RSCanvasRenderNodeTest, QuickPrepare003, TestSize.Level1)
+{
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+
+    std::shared_ptr<RSNodeVisitor> visitor = std::make_shared<RSRenderThreadVisitor>();
     {
         NodeId nodeId = 4;
         auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context);

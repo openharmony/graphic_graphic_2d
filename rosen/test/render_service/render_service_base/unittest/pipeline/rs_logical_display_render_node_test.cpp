@@ -607,9 +607,12 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IsInBlendModeGroupMultipleGroupsTest, T
     auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     ASSERT_NE(displayNode, nullptr);
 
-    EXPECT_TRUE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::SRC_OVER), RSLogicalDisplayRenderNode::ChildBlendModes));
-    EXPECT_FALSE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::NONE), RSLogicalDisplayRenderNode::EmptyBlendModes));
-    EXPECT_TRUE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::SRC_IN), RSLogicalDisplayRenderNode::ParentBlendModes));
+    EXPECT_TRUE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::SRC_OVER),
+        RSLogicalDisplayRenderNode::ChildBlendModes));
+    EXPECT_FALSE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::NONE), 
+        RSLogicalDisplayRenderNode::EmptyBlendModes));
+    EXPECT_TRUE(displayNode->IsInBlendModeGroup(static_cast<int>(RSColorBlendMode::SRC_IN),
+        RSLogicalDisplayRenderNode::ParentBlendModes));
 }
 
 /**
