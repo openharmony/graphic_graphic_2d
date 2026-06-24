@@ -20,7 +20,6 @@
 
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_render_curve_animation.h"
-#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,12 +32,21 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSUIContext> CreateRSUIContext();
 };
 
 void RSTimingCurveAnimationTest::SetUpTestCase() {}
 void RSTimingCurveAnimationTest::TearDownTestCase() {}
 void RSTimingCurveAnimationTest::SetUp() {}
 void RSTimingCurveAnimationTest::TearDown() {}
+
+std::shared_ptr<RSUIContext> RSTimingCurveAnimationTest::CreateRSUIContext()
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    return rsUIContext;
+}
 
 /**
  * @tc.name: StartAnimationTest
@@ -47,8 +55,7 @@ void RSTimingCurveAnimationTest::TearDown() {}
  */
 HWTEST_F(RSTimingCurveAnimationTest, StartAnimationTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto property = std::make_shared<RSProperty<float>>();
     auto value = std::make_shared<RSProperty<float>>();
     RSCurveAnimation curveAnimation(rsUIContext, property, value);

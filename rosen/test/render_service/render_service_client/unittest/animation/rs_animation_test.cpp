@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 #include "animation/rs_animation.h"
 #include "ui/rs_node.h"
-#include "ui/rs_ui_context_manager.h"
 #include <unistd.h>
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"
@@ -46,12 +45,21 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSUIContext> CreateRSUIContext();
 };
 
 void RSAnimationTest::SetUpTestCase() {}
 void RSAnimationTest::TearDownTestCase() {}
 void RSAnimationTest::SetUp() {}
 void RSAnimationTest::TearDown() {}
+
+std::shared_ptr<RSUIContext> RSAnimationTest::CreateRSUIContext()
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    return rsUIContext;
+}
 
 /**
  * @tc.name: SetFinishCallbackTest
@@ -60,8 +68,7 @@ void RSAnimationTest::TearDown() {}
  */
 HWTEST_F(RSAnimationTest, SetFinishCallbackTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto finishCallback = std::function<void()>();
     rsAnimation.SetFinishCallback(finishCallback);
@@ -75,8 +82,7 @@ HWTEST_F(RSAnimationTest, SetFinishCallbackTest, Level1)
  */
 HWTEST_F(RSAnimationTest, StartTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.Start(target);
@@ -90,8 +96,7 @@ HWTEST_F(RSAnimationTest, StartTest, Level1)
  */
 HWTEST_F(RSAnimationTest, StartInnerTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.StartInner(target);
@@ -105,8 +110,7 @@ HWTEST_F(RSAnimationTest, StartInnerTest, Level1)
  */
 HWTEST_F(RSAnimationTest, OnPauseTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.OnPause();
@@ -120,8 +124,7 @@ HWTEST_F(RSAnimationTest, OnPauseTest, Level1)
  */
 HWTEST_F(RSAnimationTest, ResumeTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.Resume();
@@ -135,8 +138,7 @@ HWTEST_F(RSAnimationTest, ResumeTest, Level1)
  */
 HWTEST_F(RSAnimationTest, OnResumeTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.OnResume();
@@ -150,8 +152,7 @@ HWTEST_F(RSAnimationTest, OnResumeTest, Level1)
  */
 HWTEST_F(RSAnimationTest, FinishTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.Finish();
@@ -165,8 +166,7 @@ HWTEST_F(RSAnimationTest, FinishTest, Level1)
  */
 HWTEST_F(RSAnimationTest, OnFinishTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.OnFinish();
@@ -180,8 +180,7 @@ HWTEST_F(RSAnimationTest, OnFinishTest, Level1)
  */
 HWTEST_F(RSAnimationTest, ReverseTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.Reverse();
@@ -195,8 +194,7 @@ HWTEST_F(RSAnimationTest, ReverseTest, Level1)
  */
 HWTEST_F(RSAnimationTest, OnReverseTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     rsAnimation.OnReverse();
@@ -210,8 +208,7 @@ HWTEST_F(RSAnimationTest, OnReverseTest, Level1)
  */
 HWTEST_F(RSAnimationTest, SetFractionTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto target = std::shared_ptr<RSNode>();
     float fraction = 0.f;
@@ -226,8 +223,7 @@ HWTEST_F(RSAnimationTest, SetFractionTest, Level1)
  */
 HWTEST_F(RSAnimationTest, UpdateParamToRenderAnimationTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto animation = std::make_shared<RSRenderAnimationMock>();
     rsAnimation.UpdateParamToRenderAnimation(animation);
@@ -241,8 +237,7 @@ HWTEST_F(RSAnimationTest, UpdateParamToRenderAnimationTest, Level1)
  */
 HWTEST_F(RSAnimationTest, StartCustomAnimationTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationMock rsAnimation(rsUIContext);
     auto animation = std::make_shared<RSRenderAnimationMock>();
     rsAnimation.StartCustomAnimation(animation);
@@ -256,8 +251,7 @@ HWTEST_F(RSAnimationTest, StartCustomAnimationTest, Level1)
  */
 HWTEST_F(RSAnimationTest, GetPropertyType, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto animation = std::make_shared<RSAnimationMock>(rsUIContext);
     EXPECT_EQ(animation->GetPropertyType(), ModifierNG::RSPropertyType::INVALID);
 }
@@ -269,10 +263,10 @@ HWTEST_F(RSAnimationTest, GetPropertyType, Level1)
  */
 HWTEST_F(RSAnimationTest, CreateDummyAnimation, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto dummyAnimation = std::make_shared<RSDummyAnimation>(rsUIContext);
     EXPECT_NE(dummyAnimation, nullptr);
+    dummyAnimation->RebuildInRender();
     auto nextDummyAnimation = std::make_shared<RSDummyAnimation>(rsUIContext);
     EXPECT_NE(nextDummyAnimation, nullptr);
     auto idStep = nextDummyAnimation->GetId() - dummyAnimation->GetId();
