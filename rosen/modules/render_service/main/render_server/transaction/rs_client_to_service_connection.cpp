@@ -448,7 +448,8 @@ ErrCode RSClientToServiceConnection::SetWatermark(
     }
     auto callingPid = GetCallingPid();
     if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
-        auto data = std::make_shared<SetWatermarkPersistenceData>(callingPid, name, watermark, success);
+        auto data =
+            std::make_shared<SetWatermarkPersistenceData>(callingPid, name, watermark, rowCount, colCount, success);
         ipcPersistenceManager->RegisterWithCallingPid(data);
     }
     for (auto conn : serviceToRenderConns) {
