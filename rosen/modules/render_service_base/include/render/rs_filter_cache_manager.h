@@ -148,6 +148,8 @@ public:
     void ClearEffectCacheWithDrawnRegion(const RSPaintFilterCanvas& canvas, const Drawing::RectI& filterBound);
 
     void MarkDebugEnabled();
+    RSB_EXPORT static void SetScrHdr(float value);
+    RSB_EXPORT static float GetScrHdr();
     bool IsFilterCacheMemExceedThreshold() const;
 
 private:
@@ -166,6 +168,9 @@ private:
     // Check if the cache is valid in current GrContext, since FilterCache will never be used in multi-thread
     // environment, we don't need to attempt to reattach SkImages.
     void CheckCachedImages(RSPaintFilterCanvas& canvas);
+
+    std::shared_ptr<Drawing::Surface> CreateOffscreenSurface(Drawing::Surface* surface,
+        const Drawing::RectI& offscreenRect) const;
 
     std::string GetCacheState() const;
 
@@ -247,6 +252,9 @@ private:
     bool snapshotNeedUpdate_ = false;
 
     bool debugEnabled_ = false;
+
+    float cachedHdrBrightness_ = 1.0f;
+
 public:
     static bool isCCMFilterCacheEnable_;
     static bool isCCMEffectMergeEnable_;

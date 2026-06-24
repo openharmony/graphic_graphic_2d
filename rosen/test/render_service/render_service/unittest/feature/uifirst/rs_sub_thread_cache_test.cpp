@@ -2412,7 +2412,7 @@ HWTEST_F(RSSubThreadCacheTest, UpdateCompletedCacheSurfaceColorSpaceTest, TestSi
     
     // Create a valid cache surface to make UpdateCompletedCacheSurface work
     auto grContext = std::make_shared<Drawing::GPUContext>();
-    subCache.InitCacheSurface(grContext.get(), nullptr, nullptr, 0, false);
+    subCache.InitCacheSurface(grContext.get(), nullptr, nullptr, 0, {false, 1.0});
     
     // Verify current cache color space
     EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
@@ -2504,7 +2504,7 @@ HWTEST_F(RSSubThreadCacheTest, ColorSpaceConsistencyBetweenCacheAndCompletedTest
     
     // Create a valid cache surface to make UpdateCompletedCacheSurface work
     auto grContext = std::make_shared<Drawing::GPUContext>();
-    subCache.InitCacheSurface(grContext.get(), nullptr, nullptr, 0, false);
+    subCache.InitCacheSurface(grContext.get(), nullptr, nullptr, 0, {false, 1.0});
     
     // Before UpdateCompletedCacheSurface, they should be different
     // cacheSurfaceInfo_ has SRGB, cacheCompletedSurfaceInfo_ has default NATIVE

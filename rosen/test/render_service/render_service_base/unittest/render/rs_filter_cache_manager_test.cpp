@@ -2459,6 +2459,71 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterDstIsEmptyTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateOffscreenSurfaceTest
+ * @tc.desc: test CreateOffscreenSurface branch coverage
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFilterCacheManagerTest, CreateOffscreenSurfaceTest, TestSize.Level1)
+{
+    const uint32_t SURFACE_W = 200;
+    const uint32_t SURFACE_H = 200;
+    auto manager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(manager, nullptr);
+    Drawing::RectI offscreenRect(0, 0, 100, 80);
+    // Ensure HDR is disabled: g_hdrBrightnessRatio = 1.0f, condition short-circuits
+    RSFilterCacheManager::SetScrHdr(1.0f);
+    EXPECT_FLOAT_EQ(manager->GetScrHdr(), 1.0f);
+
+    {
+        Drawing::ImageInfo info(SURFACE_W, SURFACE_H,
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE);
+        auto surface = Drawing::Surface::MakeRaster(info);
+        ASSERT_NE(surface, nullptr);
+        
+        auto offscreenSurface = manager->CreateOffscreenSurface(surface.get(), offscreenRect);
+        EXPECT_NE(offscreenSurface, nullptr);
+    }
+
+    {
+        Drawing::ImageInfo info(SURFACE_W, SURFACE_H,
+            Drawing::COLORTYPE_RGBA_1010102, Drawing::ALPHATYPE_PREMUL);
+        auto surface = Drawing::Surface::MakeRaster(info);
+        ASSERT_NE(surface, nullptr);
+
+        auto offscreenSurface = manager->CreateOffscreenSurface(surface.get(), offscreenRect);
+        EXPECT_NE(offscreenSurface, nullptr);
+    }
+
+    RSFilterCacheManager::SetScrHdr(0.5f);
+    EXPECT_NE(manager->GetScrHdr(), 1.0f);
+
+    {
+        Drawing::ImageInfo info(SURFACE_W, SURFACE_H,
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE);
+        auto surface = Drawing::Surface::MakeRaster(info);
+        ASSERT_NE(surface, nullptr);
+
+        auto offscreenSurface = manager->CreateOffscreenSurface(surface.get(), offscreenRect);
+        EXPECT_NE(offscreenSurface, nullptr);
+    }
+
+    {
+        Drawing::ImageInfo info(SURFACE_W, SURFACE_H,
+            Drawing::COLORTYPE_RGBA_1010102, Drawing::ALPHATYPE_PREMUL);
+        auto surface = Drawing::Surface::MakeRaster(info);
+        ASSERT_NE(surface, nullptr);
+
+        auto offscreenSurface = manager->CreateOffscreenSurface(surface.get(), offscreenRect);
+        EXPECT_NE(offscreenSurface, nullptr);
+
+        EXPECT_EQ(offscreenSurface->GetImageInfo().GetColorType(), Drawing::COLORTYPE_RGBA_F16);
+    }
+
+    RSFilterCacheManager::SetScrHdr(1.0f);
+}
+
+/**
  * @tc.name: GeneratedCachedEffectDataDstIsEmptyTest
  * @tc.desc: test GeneratedCachedEffectData when dst is empty, should return early
  * @tc.type: FUNC

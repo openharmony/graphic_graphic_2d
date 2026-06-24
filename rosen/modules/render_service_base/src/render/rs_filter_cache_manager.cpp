@@ -17,6 +17,7 @@
 #include "rs_trace.h"
 #include "common/rs_occlusion_region.h"
 #include "render/rs_filter.h"
+#include "rs_profiler.h"
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "hpae_base/rs_hpae_base_data.h"
@@ -26,6 +27,7 @@
 #include "common/rs_optional_trace.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
+#include "drawable/rs_property_drawable_utils.h"
 #include "memory/rs_tag_tracker.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -48,9 +50,12 @@ constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 bool RSFilterCacheManager::isCCMFilterCacheEnable_ = true;
 bool RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
 
+float g_hdrBrightnessRatio = 1.0f;
+
 RSFilterCacheManager::RSFilterCacheManager()
 {
     hpaeCacheManager_ = std::make_shared<RSHpaeFilterCacheManager>();
+    cachedHdrBrightness_ = RSFilterCacheManager::GetScrHdr();
 }
 
 RSFilterCacheManager::~RSFilterCacheManager()
@@ -179,6 +184,7 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
     filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect, { discardCanvas, false });
     filter->PostProcess(canvas);
     cachedFilterHash_ = filter->Hash();
+    cachedHdrBrightness_ = RSFilterCacheManager::GetScrHdr();
     return true;
 }
 
@@ -280,6 +286,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
         if (canvas.GetSurface()) {
             RS_TRACE_NAME_FMT("ForceTakeSnapshot: %s", src.ToString().c_str());
             auto snapshot = canvas.GetSurface()->GetImageSnapshot(src, false);
+            cachedHdrBrightness_ = RSFilterCacheManager::GetScrHdr();
             filter->PreProcess(snapshot);
             ReplaceCachedEffectData(std::move(snapshot), src, cachedSnapshot_);
             InvalidateFilterCache(FilterCacheType::FILTERED_SNAPSHOT);
@@ -332,6 +339,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
     snapshotRegion_ = RectI(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
     ReplaceCachedEffectData(std::move(snapshot), snapshotIBounds, cachedSnapshot_);
     cachedFilterHash_ = 0;
+    cachedHdrBrightness_ = RSFilterCacheManager::GetScrHdr();
 }
 
 void RSFilterCacheManager::GenerateFilteredSnapshot(
@@ -349,7 +357,7 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
 
     // Create an offscreen canvas with the same size as the filter region.
     auto offscreenRect = dstRect;
-    auto offscreenSurface = surface->MakeSurface(offscreenRect.GetWidth(), offscreenRect.GetHeight());
+    std::shared_ptr<Drawing::Surface> offscreenSurface = CreateOffscreenSurface(surface, offscreenRect);
     if (offscreenSurface == nullptr) {
         RS_LOGD("RSFilterCacheManager::GenerateFilteredSnapshot offscreenSurface is nullptr");
         return;
@@ -1019,6 +1027,30 @@ void RSFilterCacheManager::PrintDebugInfo(NodeId nodeID)
         " pendingPurge_:%{public}d,",
         nodeID, stagingForceUseCache_, stagingForceClearCache_, stagingFilterInteractWithDirty_,
         cacheUpdateInterval_, pendingPurge_);
+}
+
+void RSFilterCacheManager::SetScrHdr(float value)
+{
+    g_hdrBrightnessRatio = value;
+}
+
+float RSFilterCacheManager::GetScrHdr()
+{
+    return g_hdrBrightnessRatio;
+}
+
+std::shared_ptr<Drawing::Surface> RSFilterCacheManager::CreateOffscreenSurface(
+    Drawing::Surface* surface, const Drawing::RectI& offscreenRect) const
+{
+    // HDR FIX FORMAT
+    if (ROSEN_NE(g_hdrBrightnessRatio, 1.0f) &&
+        surface->GetImageInfo().GetColorType() == Drawing::ColorType::COLORTYPE_RGBA_1010102) {
+        auto info = Drawing::ImageInfo(offscreenRect.GetWidth(), offscreenRect.GetHeight(),
+            Drawing::ColorType::COLORTYPE_RGBA_F16, surface->GetImageInfo().GetAlphaType(),
+            surface->GetImageInfo().GetColorSpace());
+        return surface->MakeSurface(info);
+    }
+    return surface->MakeSurface(offscreenRect.GetWidth(), offscreenRect.GetHeight());
 }
 } // namespace Rosen
 } // namespace OHOS

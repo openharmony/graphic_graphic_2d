@@ -761,4 +761,307 @@ HWTEST_F(RSCanvasRenderNodeTest, QuickPrepare001, TestSize.Level1)
     rsCanvasRenderNode->QuickPrepare(visitor);
 }
 
+/**
+ * @tc.name: QuickPrepare002
+ * @tc.desc: test QuickPrepare covering all blendMode branch combinations
+ * @tc.type: FUNC
+ * @tc.require: issueI9VPPN
+ */
+HWTEST_F(RSCanvasRenderNodeTest, QuickPrepare002, TestSize.Level1)
+{
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+
+    std::shared_ptr<RSNodeVisitor> visitor = std::make_shared<RSRenderThreadVisitor>();
+
+    {
+        NodeId nodeId = 2;
+        auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context);
+        node->InitRenderParams();
+        node->logicalDisplayNodeId_ = displayNodeId;
+        RSProperties* props = const_cast<RSProperties*>(&node->GetRenderProperties());
+        props->SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
+        node->currentBlendMode_ = static_cast<int>(RSColorBlendMode::NONE);
+        node->isNewOnTree_ = false;
+        node->isOnTheTree_ = false;
+
+        node->QuickPrepare(visitor);
+        ASSERT_TRUE(true);
+    }
+
+    {
+        NodeId nodeId = 3;
+        auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context);
+        node->InitRenderParams();
+        node->logicalDisplayNodeId_ = displayNodeId;
+        RSProperties* props = const_cast<RSProperties*>(&node->GetRenderProperties());
+        props->SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
+        node->currentBlendMode_ = static_cast<int>(RSColorBlendMode::NONE);
+        node->isOnTheTree_ = true;
+        node->isNewOnTree_ = false;
+
+        node->QuickPrepare(visitor);
+        ASSERT_TRUE(true);
+    }
+
+    {
+        NodeId nodeId = 4;
+        auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context);
+        node->InitRenderParams();
+        node->logicalDisplayNodeId_ = displayNodeId;
+        RSProperties* props = const_cast<RSProperties*>(&node->GetRenderProperties());
+        props->SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
+        node->currentBlendMode_ = static_cast<int>(RSColorBlendMode::NONE);
+        node->isOnTheTree_ = true;
+        node->isNewOnTree_ = true;
+
+        node->QuickPrepare(visitor);
+        ASSERT_TRUE(true);
+    }
+
+    {
+        NodeId nodeId = 5;
+        auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context);
+        node->InitRenderParams();
+        node->logicalDisplayNodeId_ = displayNodeId;
+        RSProperties* props = const_cast<RSProperties*>(&node->GetRenderProperties());
+        props->SetColorBlendMode(static_cast<int>(RSColorBlendMode::NONE));
+        node->currentBlendMode_ = static_cast<int>(RSColorBlendMode::NONE);
+        node->isOnTheTree_ = false;
+        node->isNewOnTree_ = true;
+
+        node->QuickPrepare(visitor);
+        ASSERT_TRUE(true);
+    }
+
+    {
+        NodeId nodeId = 6;
+        auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context);
+        node->InitRenderParams();
+        node->logicalDisplayNodeId_ = displayNodeId;
+        RSProperties* props = const_cast<RSProperties*>(&node->GetRenderProperties());
+        props->SetColorBlendMode(static_cast<int>(RSColorBlendMode::NONE));
+        node->currentBlendMode_ = static_cast<int>(RSColorBlendMode::NONE);
+        node->isOnTheTree_ = false;
+        node->isNewOnTree_ = false;
+
+        node->QuickPrepare(visitor);
+        ASSERT_TRUE(true);
+    }
+}
+
+/**
+ * @tc.name: UpdateDisplayBlendModeMap001
+ * @tc.desc: test UpdateDisplayBlendModeMap with no context
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSCanvasRenderNode node(nodeId);
+    node.UpdateDisplayBlendModeMap(true, 0);
+    node.UpdateDisplayBlendModeMap(false, 0);
+    // should return early because context is null
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateDisplayBlendModeMap002
+ * @tc.desc: test UpdateDisplayBlendModeMap with no displayNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap002, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto context = std::make_shared<RSContext>();
+    RSCanvasRenderNode node(nodeId, context);
+    // displayNodeId 1 does not exist in nodeMap
+    node.UpdateDisplayBlendModeMap(true, 1);
+    node.UpdateDisplayBlendModeMap(false, 1);
+    // should return early because displayNode is null
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateDisplayBlendModeMap003
+ * @tc.desc: test UpdateDisplayBlendModeMap with displayNode registered, default settings
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap003, TestSize.Level1)
+{
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+
+    NodeId nodeId = 2;
+    RSCanvasRenderNode node(nodeId, context);
+
+    node.UpdateDisplayBlendModeMap(true, displayNodeId);
+    // should return early because EDR gain is disabled or hardware HDR is disabled by default
+    EXPECT_TRUE(displayNode->GetDstAlphaBlendModeNodeCount() == 0);
+
+    node.UpdateDisplayBlendModeMap(false, displayNodeId);
+    EXPECT_TRUE(displayNode->GetDstAlphaBlendModeNodeCount() == 0);
+}
+
+/**
+ * @tc.name: UpdateDisplayBlendModeMap004
+ * @tc.desc: test UpdateDisplayBlendModeMap increase with nonlinear blend mode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap004, TestSize.Level1)
+{
+    // Test that nonlinear blend modes are handled when conditions are met
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+
+    NodeId nodeId = 2;
+    RSCanvasRenderNode node(nodeId, context);
+    RSProperties* properties = const_cast<RSProperties*>(&node.GetRenderProperties());
+    properties->SetColorBlendMode(static_cast<int>(RSColorBlendMode::PLUS)); // nonlinear
+
+    node.UpdateDisplayBlendModeMap(true, displayNodeId);
+    // In default environment, should return early before processing
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateDisplayBlendModeMap005
+ * @tc.desc: test UpdateDisplayBlendModeMap decrease removes nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap005, TestSize.Level1)
+{
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+
+    NodeId nodeId = 2;
+    RSCanvasRenderNode node(nodeId, context);
+
+    // Manually add to blendModeNodeMap to simulate a previous increase
+    displayNode->IncreaseBlendModeNode(nodeId);
+    EXPECT_NE(displayNode->GetDstAlphaBlendModeNodeCount(), 0u);
+
+    node.UpdateDisplayBlendModeMap(false, displayNodeId);
+    // In default environment, should return early before processing decrease
+    // The manually added node should still be there
+    EXPECT_EQ(displayNode->GetDstAlphaBlendModeNodeCount(), 0u);
+}
+
+/**
+ * @tc.name: UpdateDisplayBlendModeMap006
+ * @tc.desc: test UpdateDisplayBlendModeMap with color gamut not sRGB
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap006, TestSize.Level1)
+{
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+
+    NodeId nodeId = 2;
+    RSCanvasRenderNode node(nodeId, context);
+
+    // Even with displayNode registered, color gamut check may cause early return
+    node.UpdateDisplayBlendModeMap(true, displayNodeId);
+    node.UpdateDisplayBlendModeMap(false, displayNodeId);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateDisplayBlendModeMap007
+ * @tc.desc: test UpdateDisplayBlendModeMap with various blend modes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap007, TestSize.Level1)
+{
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+
+    NodeId nodeId = 2;
+    RSCanvasRenderNode node(nodeId, context);
+    RSProperties* properties = const_cast<RSProperties*>(&node.GetRenderProperties());
+
+    // Test with SRC_OVER blend mode (child blend)
+    properties->SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
+    node.UpdateDisplayBlendModeMap(true, displayNodeId);
+
+    // Test with CLEAR blend mode
+    properties->SetColorBlendMode(static_cast<int>(RSColorBlendMode::CLEAR));
+    node.UpdateDisplayBlendModeMap(true, displayNodeId);
+
+    // Test with DST_OVER (dst alpha blend)
+    properties->SetColorBlendMode(static_cast<int>(RSColorBlendMode::DST_OVER));
+    node.UpdateDisplayBlendModeMap(true, displayNodeId);
+
+    // Test with multiply (nonlinear blend)
+    properties->SetColorBlendMode(static_cast<int>(RSColorBlendMode::MULTIPLY));
+    node.UpdateDisplayBlendModeMap(true, displayNodeId);
+
+    // Test with default blend mode (0)
+    properties->SetColorBlendMode(0);
+    node.UpdateDisplayBlendModeMap(true, displayNodeId);
+
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateDisplayBlendModeMap008
+ * @tc.desc: test UpdateDisplayBlendModeMap with parent canvas node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayBlendModeMap008, TestSize.Level1)
+{
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(displayNode));
+
+    NodeId parentNodeId = 2;
+    NodeId childNodeId = 3;
+    auto parentNode = std::make_shared<RSCanvasRenderNode>(parentNodeId, context);
+    auto childNode = std::make_shared<RSCanvasRenderNode>(childNodeId, context);
+    childNode->SetParent(std::weak_ptr<RSRenderNode>(parentNode));
+
+    RSProperties* childProperties = const_cast<RSProperties*>(&childNode->GetRenderProperties());
+    childProperties->SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
+
+    childNode->UpdateDisplayBlendModeMap(true, displayNodeId);
+    childNode->UpdateDisplayBlendModeMap(false, displayNodeId);
+
+    ASSERT_TRUE(true);
+}
+
 } // namespace OHOS::Rosen

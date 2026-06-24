@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,14 @@
 
 #include "gtest/gtest.h"
 
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "engine/rs_base_render_engine.h"
 #include "engine/rs_uni_render_engine.h"
+#include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_test_util.h"
 
 using namespace testing;
@@ -639,5 +642,135 @@ HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageMultipleColorSpaceChangesTest,
     subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     subCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
     EXPECT_EQ(subCache.GetCacheSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: GetHdrParamsEarlyReturnBranches
+ * @tc.desc: 
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsSubThreadTest, GetHdrParamsEarlyReturnBranches, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    {
+        auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
+        auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
+        EXPECT_TRUE(result.first);
+        EXPECT_FLOAT_EQ(result.second, 1.0f);
+    }
+
+    {
+        auto ancestorSurfaceNode = RSTestUtil::CreateSurfaceNode();
+        auto ancestorDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(ancestorSurfaceNode));
+        ASSERT_NE(ancestorDrawable, nullptr);
+
+        auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
+        surfaceParams->ancestorScreenDrawable_ = ancestorDrawable;
+
+        auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
+        EXPECT_TRUE(result.first);
+        EXPECT_FLOAT_EQ(result.second, 1.0f);
+    }
+
+    {
+        auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1);
+        auto screenDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(std::move(screenNode));
+        ASSERT_NE(screenDrawable, nullptr);
+        screenDrawable->renderParams_ = nullptr;
+
+        auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(0);
+        surfaceParams->ancestorScreenDrawable_ = screenDrawable;
+
+        auto result = curThread->GetHdrParams(surfaceParams.get(), true, 0);
+        EXPECT_TRUE(result.first);
+        EXPECT_FLOAT_EQ(result.second, 1.0f);
+    }
+}
+
+/**
+ * @tc.name: GetHdrParamsSuccessWithBrightnessRatio
+ * @tc.desc: 
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RsSubThreadTest, GetHdrParamsSuccessWithBrightnessRatio, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1);
+    auto screenDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(std::move(screenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(1);
+    ASSERT_NE(screenDrawable->GetRenderParams(), nullptr);
+
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->renderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->SetHasForceHwcHdrSurface(true);
+    constexpr float customRatio = 2.5f;
+    screenParams->SetHdrBrightnessRatio(customRatio);
+    EXPECT_FLOAT_EQ(screenParams->GetHdrBrightnessRatio(), customRatio);
+
+    auto surfaceParams = std::make_shared<RSSurfaceRenderParams>(2);
+    surfaceParams->ancestorScreenDrawable_ = screenDrawable;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(2);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+
+    auto result = curThread->GetHdrParams(surfaceParams.get(), true, 2);
+    if (result.first) {
+        EXPECT_FLOAT_EQ(result.second, 1.0f);
+    } else {
+        EXPECT_FLOAT_EQ(result.second, customRatio);
+    }
+}
+
+/**
+ * @tc.name: DrawableCacheWithSkImageHDRParams
+ * @tc.desc: 
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsSubThreadTest, DrawableCacheWithSkImageHDRParams, TestSize.Level1)
+{
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    ASSERT_NE(curThread, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(nodeDrawable, nullptr);
+
+    auto& subCache = nodeDrawable->GetRsSubThreadCache();
+    subCache.SetHDRPresent(true);
+    subCache.SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeDrawable->GetId());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetHDRPresent(true);
+
+    // Set up ancestor screen drawable for GetHdrParams full path
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1);
+    auto screenDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(std::move(screenNode));
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(1);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->renderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->SetHdrBrightnessRatio(1.5f);
+    surfaceParams->ancestorScreenDrawable_ = screenDrawable;
+
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+
+    curThread->DrawableCacheWithSkImage(nodeDrawable);
+    EXPECT_EQ(curThread->grContext_, nullptr);
+    EXPECT_TRUE(subCache.GetHDRPresent());
 }
 } // namespace OHOS::Rosen

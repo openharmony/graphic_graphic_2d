@@ -605,6 +605,7 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(Drawing::GPUContext
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
     auto image = std::make_shared<Drawing::Image>();
     bool ret = image->BuildFromTexture(*grContext, backendTexture_.GetTextureInfo(), origin, info, nullptr);
+    if (image) image->SetHdrScale(image_->GetHdrScale());
     if (!ret) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetBitmap image BuildFromTexture failed");
         return bitmap;
@@ -756,6 +757,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage BuildFromTexture failed");
         return;
     }
+    captureImage_->SetHdrScale(image_->GetHdrScale());
     canvas.DrawImage(*captureImage_, 0, 0, Drawing::SamplingOptions());
 #endif
 }
@@ -1218,6 +1220,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage(std::shared_pt
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage BuildFromTexture failed");
             return false;
         }
+        image->SetHdrScale(image_->GetHdrScale());
     }
     return true;
 }
@@ -1257,6 +1260,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
         ClearPreSurface(preSurface);
         return false;
     }
+    preImageInNewContext->SetHdrScale(image_->GetHdrScale());
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (preImageInNewContext->IsTextureBacked()) {
             RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture preImageInNewContext "

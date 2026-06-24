@@ -1004,6 +1004,9 @@ void RSRenderNodeDrawable::DrawCachedImage(
     RSPaintFilterCanvas& canvas, const RSRenderParams& params, const std::shared_ptr<RSFilter>& rsFilter)
 {
     auto cacheImage = GetCachedImage(canvas);
+    if (cacheImage) {
+        cacheImage->SetHdrScale(GetRenderGroupCachedSurface()->GetHdrScale());
+    }
     std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
     if (cachedImageByCapture_) {
         // node has freezed, and to draw surfaceCapture image
@@ -1167,6 +1170,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetImageAlias(
     auto surfaceHolder = new std::shared_ptr<Drawing::Surface>(surface);
     bool ret = image->BuildFromTexture(*canvas->GetGPUContext(), backendTexture.GetTextureInfo(), textureOrigin,
         bitmapFormat, imageInfo.GetColorSpace(), ReleaseSurface, surfaceHolder);
+    image->SetHdrScale(surface->GetHdrScale());
     return ret ? image : nullptr;
 }
 

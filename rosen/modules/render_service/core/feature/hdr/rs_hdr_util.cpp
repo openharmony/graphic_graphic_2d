@@ -570,6 +570,25 @@ bool RSHdrUtil::IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfi
     return false;
 }
 
+bool RSHdrUtil::NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams)
+{
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto displayNode = nodeMap.GetRenderNode<const RSLogicalDisplayRenderNode>(id);
+    auto scrColorSpace = screenParams->GetNewColorSpace();
+    if (!displayNode) {
+        RS_LOGE("RSHdrUtil::NeedBackToFP16 displayNode is nullptr");
+        return true;
+    }
+    bool hasHwcHdr = screenParams->GetHasForceHwcHdrSurface() || screenParams->GetExistHWCNode();
+    auto colorSpace = screenParams->GetNewColorSpace();
+    if (!RSSystemProperties::GetEdrGainEnabled() || RSLuminanceControl::Get().IsHardwareHdrDisabled() ||
+        hasHwcHdr || colorSpace != GRAPHIC_COLOR_GAMUT_SRGB) {
+        return true;
+    }
+    int dstAlphaCount = displayNode->GetDstAlphaBlendModeNodeCount();
+    return dstAlphaCount > 0;
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 bool RSHdrUtil::HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
     const Drawing::SamplingOptions& sampling, std::shared_ptr<Drawing::Surface>& surface,

@@ -80,6 +80,8 @@ public:
     int Width() const override;
     int Height() const override;
     TileGranularity GetRenderAreaGranularity() override;
+    void SetHdrScale(float hdrColorScale) override {};
+    float GetHdrScale() const override { return 1.0f; };
 private:
     void PostSkSurfaceToTargetThread();
     sk_sp<SkSurface> skSurface_ = nullptr;

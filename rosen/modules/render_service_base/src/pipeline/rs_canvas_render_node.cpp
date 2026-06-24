@@ -90,6 +90,17 @@ void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
     }
     ApplyModifiers();
 #if defined(ROSEN_OHOS)
+    auto blendMode = GetRenderProperties().GetColorBlendMode();
+    if (currentBlendMode_ != blendMode) {
+        if (!isNewOnTree_) {
+            UpdateDisplayBlendModeMap(false, GetLogicalDisplayNodeId());
+        }
+        if (IsOnTheTree()) {
+            UpdateDisplayBlendModeMap(true, GetLogicalDisplayNodeId());
+        }
+    } else if (isNewOnTree_ && blendMode == static_cast<int>(RSColorBlendMode::NONE)) {
+        UpdateDisplayBlendModeMap(true, GetLogicalDisplayNodeId());
+    }
     visitor->RegisterHpaeCallback(*this);
 #endif
     visitor->QuickPrepareCanvasRenderNode(*this);
@@ -131,7 +142,9 @@ void RSCanvasRenderNode::UpdateHDRNodeOnTreeState(NodeId displayNodeId)
     bool isOnTheTree = IsOnTheTree();
     NodeId instanceRootNodeId = GetInstanceRootNodeId();
     NodeId screenNodeId = GetScreenNodeId();
-
+#ifdef ROSEN_OHOS
+    UpdateDisplayBlendModeMap(isOnTheTree, displayNodeId);
+#endif
     if (!isOnTheTree) {
         screenNodeId = preScreenNodeId_;
     }
@@ -148,6 +161,43 @@ void RSCanvasRenderNode::UpdateHDRNodeOnTreeState(NodeId displayNodeId)
         UpdateDisplayHDRNodeMap(isOnTheTree, displayNodeId);
     }
     preScreenNodeId_ = GetScreenNodeId();
+}
+
+void RSCanvasRenderNode::UpdateDisplayBlendModeMap(bool isIncrease, NodeId displayNodeId)
+{
+    if (!RSSystemProperties::GetEdrGainEnabled() || RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
+        return;
+    }
+
+    auto context = GetContext().lock();
+    if (!context) {
+        return;
+    }
+    auto displayNode = context->GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId);
+    if (!displayNode) {
+        return;
+    }
+
+    auto blendMode = GetRenderProperties().GetColorBlendMode();
+    if (isIncrease) {
+        currentBlendMode_ = blendMode;
+        isNonlinearBlendMode_ = displayNode->HasNonlinearBlendMode(blendMode);
+        if (isNonlinearBlendMode_) {
+            displayNode->IncreaseBlendModeNode(GetId());
+            return;
+        }
+        auto parentNode = RSRenderNode::ReinterpretCast<RSCanvasRenderNode>(GetParent().lock());
+        if (parentNode) {
+            bool needIncrease = displayNode->CheckAncestorChildBlendMode(
+                blendMode, parentNode->currentBlendMode_, parentNode->isEmptyBlendMode_,
+                parentNode->isParentBlendMode_);
+            if (needIncrease) {
+                displayNode->IncreaseBlendModeNode(GetId());
+            }
+        }
+    } else {
+        displayNode->RemoveBlendModeNode(GetId());
+    }
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)

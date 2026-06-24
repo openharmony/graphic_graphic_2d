@@ -127,6 +127,8 @@ public:
 
     void SetHeadroom(float headroom) override;
     float GetHeadroom() const override;
+    void SetHdrScale(float hdrScale) override {};
+    float GetHdrScale() const override { return 1.0f; };
 private:
 #ifdef RS_ENABLE_GPU
     sk_sp<GrDirectContext> grContext_ = nullptr;

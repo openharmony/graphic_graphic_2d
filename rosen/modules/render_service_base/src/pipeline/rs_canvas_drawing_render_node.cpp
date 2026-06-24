@@ -114,6 +114,7 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
             }
         }
     }
+    sharedTexture->SetHdrScale(image->GetHdrScale());
     canvas_->DrawImage(*sharedTexture, 0.f, 0.f, Drawing::SamplingOptions());
     canvas_->SetMatrix(preMatrix);
     canvas_->Flush();

@@ -34,6 +34,7 @@
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -55,7 +56,6 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
-
 #undef LOG_TAG
 #define LOG_TAG "RsSubThreadCache"
 
@@ -157,9 +157,14 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
         // When the colorType is FP16, the colorspace of the uifirst buffer must be sRGB
         // In other cases, ensure the image's color space matches the target surface's color profile.
         auto colorSpace = Drawing::ColorSpace::CreateSRGB();
-        if (vkTexture != nullptr && vkTexture->format == VK_FORMAT_R16G16B16A16_SFLOAT) {
-            colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
-        } else if (cacheCompletedSurface_) {
+        if (vkTexture != nullptr) {
+            if (vkTexture->format == VK_FORMAT_R16G16B16A16_SFLOAT) {
+                colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+            } else if (vkTexture->format == VK_FORMAT_A2B10G10R10_UNORM_PACK32) {
+                colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
+            }
+        }
+        if (cacheCompletedSurface_ && colorType != Drawing::ColorType::COLORTYPE_RGBA_F16) {
             colorSpace = cacheCompletedSurface_->GetImageInfo().GetColorSpace();
         }
 #endif
@@ -182,6 +187,7 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
                 origin, info, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCompletedCleanupHelper_->Ref());
         }
 #endif
+        image->SetHdrScale(cacheCompletedSurface_->GetHdrScale());
         return image;
 #endif
     }
@@ -211,6 +217,7 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
         Drawing::BitmapFormat{ completeImage->GetColorType(), completeImage->GetAlphaType() };
     bool ret = cacheImage->BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(),
         origin, info, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext);
+    cacheImage->SetHdrScale(completeImage->GetHdrScale());
     if (!ret) {
         RS_LOGE("GetCompletedImage image BuildFromTexture failed");
         return nullptr;
@@ -306,8 +313,9 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
 
 void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable,
-    ClearCacheSurfaceFunc func, uint32_t threadIndex, bool isNeedFP16)
+    ClearCacheSurfaceFunc func, uint32_t threadIndex, std::pair<bool, float> hdrParam)
 {
+    bool isNeedFP16 = hdrParam.first;
     RS_TRACE_NAME_FMT("InitCacheSurface id:%" PRIu64" targetColorGamut:%d isNeedFP16:%d",
         nodeId_, targetColorGamut_, isNeedFP16);
     if (!nodeDrawable) {
@@ -412,6 +420,9 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
 #else
     cacheSurface_ = Drawing::Surface::MakeRasterN32Premul(width, height);
 #endif
+    if (cacheSurface_) {
+        cacheSurface_->SetHdrScale(hdrParam.second);
+    }
 }
 
 void RsSubThreadCache::ResetUifirst(bool isOnlyClearCache)

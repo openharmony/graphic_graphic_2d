@@ -418,6 +418,33 @@ HWTEST_F(SurfaceTest, GetRenderAreaGranularity001, TestSize.Level1)
     EXPECT_EQ(granularity.width, 0u);
     EXPECT_EQ(granularity.height, 0u);
 }
+
+/**
+ * @tc.name: GetHdrScale001
+ * @tc.desc: Test for getting HdrScale from surface.
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(SurfaceTest, GetHdrScale001, TestSize.Level1)
+{
+    auto surface = std::make_unique<Surface>();
+    ASSERT_TRUE(surface != nullptr);
+    ASSERT_EQ(surface->GetHdrScale(), 1.0f);
+}
+ 
+/**
+ * @tc.name: SetHdrScale001
+ * @tc.desc: Test for setting HdrScale to surface.
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(SurfaceTest, SetHdrScale001, TestSize.Level1)
+{
+    auto surface = std::make_unique<Surface>();
+    ASSERT_TRUE(surface != nullptr);
+    surface->SetHdrScale(0.5f);
+    ASSERT_EQ(surface->GetHdrScale(), 1.0f);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
