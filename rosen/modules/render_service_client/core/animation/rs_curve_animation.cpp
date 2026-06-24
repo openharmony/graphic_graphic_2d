@@ -76,7 +76,12 @@ void RSCurveAnimation::StartUIAnimation(const std::shared_ptr<RSRenderCurveAnima
 void RSCurveAnimation::OnStart()
 {
     RSPropertyAnimation::OnStart();
-    auto animation = CreateRenderAnimation();
+    auto interpolator = timingCurve_.GetInterpolator(GetDuration());
+    auto animation = std::make_shared<RSRenderCurveAnimation>(GetId(), GetPropertyId(),
+        originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty());
+    animation->SetInterpolator(interpolator);
+    animation->SetAdditive(GetAdditive());
+    UpdateParamToRenderAnimation(animation);
     if (isCustom_) {
         animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
@@ -97,31 +102,6 @@ bool RSCurveAnimation::IsSupportInteractiveAnimator()
         return false;
     }
     return true;
-}
-
-std::shared_ptr<RSRenderCurveAnimation> RSCurveAnimation::CreateRenderAnimation()
-{
-    auto interpolator = timingCurve_.GetInterpolator(GetDuration());
-    auto animation = std::make_shared<RSRenderCurveAnimation>(GetId(), GetPropertyId(),
-        originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty());
-    animation->SetInterpolator(interpolator);
-    animation->SetAdditive(GetAdditive());
-    UpdateParamToRenderAnimation(animation);
-    return animation;
-}
-
-void RSCurveAnimation::RebuildInRender()
-{
-    auto target = GetTarget().lock();
-    if (target == nullptr) {
-        ROSEN_LOGE("Failed to rebuild curve animation, target is null!");
-        return;
-    }
-    auto animation = CreateRenderAnimation();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationRebuildCurve>(
-        target->GetId(), animation, GetRebuildParam().fraction, GetRebuildParam().isReverseCycle);
-    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
-    SetRebuildParam({});
 }
 } // namespace Rosen
 } // namespace OHOS

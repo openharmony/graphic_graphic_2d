@@ -17,9 +17,6 @@
 
 #include "animation/rs_interactive_implict_animator.h"
 #include "command/rs_animation_command.h"
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-#include "command/rs_delegate_composite_command.h"
-#endif
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "platform/common/rs_log.h"
@@ -35,25 +32,11 @@ RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRem
         std::make_shared<RSTransactionHandler>(token, rsRenderInterface_->GetRSRenderPipelineClient());
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
     rsSyncTransactionHandler_->SetTransactionHandler(rsTransactionHandler_);
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        modifiersDrawThread_ = std::make_shared<RSModifiersDrawThread>();
-        canvasModifiersDrawThread_ = std::make_shared<RSCanvasModifiersDrawThread>();
-    }
-#endif
 }
 
 RSUIContext::~RSUIContext()
 {
     RS_LOGI("~RSUIContext: Token:%{public}" PRIu64, token_);
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (canvasModifiersDrawThread_ != nullptr) {
-        canvasModifiersDrawThread_->Destroy();
-    }
-    if (modifiersDrawThread_ != nullptr) {
-        modifiersDrawThread_->Destroy();
-    }
-#endif
 }
 
 const std::shared_ptr<RSImplicitAnimator> RSUIContext::GetRSImplicitAnimator()
@@ -293,83 +276,5 @@ void RSUIContext::RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId 
     std::lock_guard<std::mutex> lock(interactiveImplictAnimatorMutex_);
     interactiveImplictAnimators_.erase(id);
 }
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-void RSUIContext::FlushCanvasDrawingNodeBuffers()
-{
-    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        return;
-    }
-    auto transaction = GetRSTransaction();
-    if (transaction == nullptr) {
-        return;
-    }
-    std::unique_ptr<RSCommand> command = std::make_unique<TransactionBufferCommand>(rootNodeId_);
-    transaction->AddCommand(command, true);
-    std::weak_ptr<RSUIContext> weakSelf = shared_from_this();
-    modifiersDrawThread_->Block();
-    canvasModifiersDrawThread_->PostTask([weakSelf]() {
-        auto uiContext = weakSelf.lock();
-        if (uiContext == nullptr) {
-            return;
-        }
-        if (auto canvasModifiersDraw = uiContext->GetCanvasModifiersDraw()) {
-            canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
-        }
-        if (auto modifiersDrawThread = uiContext->GetModifiersDrawThread()) {
-            modifiersDrawThread->Unblock();
-        }
-    });
-}
-
-void RSUIContext::UnblockUIThread()
-{
-    std::unique_lock<std::mutex> uiLock(uiMutex_);
-    if (canBlockUIThread_) {
-        canBlockUIThread_ = false;
-        uiCV_.notify_all();
-    }
-}
-
-CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
-{
-    std::weak_ptr<RSUIContext> weakContext = shared_from_this();
-    return [weakContext](std::shared_ptr<RSRenderPipelineClient>& renderPipelineClient,
-               std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
-        if (renderPipelineClient == nullptr) {
-            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null renderPipelineClient.");
-            return;
-        }
-        if (rsTransactionData == nullptr) {
-            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null rsTransactionData.");
-            return;
-        }
-        auto uiContext = weakContext.lock();
-        if (uiContext == nullptr) {
-            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null uiContext.");
-            return;
-        }
-        static uint32_t commitIndex = 0;
-        std::unique_lock<std::mutex> uiLock(uiContext->uiMutex_);
-        uiContext->canBlockUIThread_ = true;
-        commitIndex++;
-        RS_TRACE_NAME_FMT("Post CommitTransaction, index=%u", commitIndex);
-        uiContext->GetModifiersDrawThread()->ScheduleTask(
-            [weakContext, renderPipelineClient, transactionData = std::move(rsTransactionData), &transactionDataIndex,
-                index = commitIndex]() mutable {
-                auto uiContext = weakContext.lock();
-                if (uiContext == nullptr) {
-                    return;
-                }
-                if (auto canvasModifiersDraw = uiContext->GetCanvasModifiersDraw()) {
-                    RS_TRACE_NAME_FMT("Do CommitTransaction, index=%u", index);
-                    uiContext->GetModifiersDrawThread()->CommitTransaction(
-                        canvasModifiersDraw, renderPipelineClient, std::move(transactionData), transactionDataIndex);
-                }
-                uiContext->UnblockUIThread();
-            });
-    };
-}
-#endif
 } // namespace Rosen
 } // namespace OHOS

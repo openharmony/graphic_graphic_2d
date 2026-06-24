@@ -19,7 +19,6 @@
 
 #include "rs_trace.h"
 
-#include "command/rs_ui_director_command.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
 
@@ -40,6 +39,7 @@
 
 namespace OHOS {
 namespace Rosen {
+CommitTransactionCallback RSTransactionHandler::commitTransactionCallback_ = nullptr;
 void RSTransactionHandler::SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient)
 {
     if (renderThreadClient != nullptr) {
@@ -148,7 +148,7 @@ void RSTransactionHandler::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTa
 
 void RSTransactionHandler::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
 {
-    commitTransactionCallback_ = commitTransactionCallback;
+    RSTransactionHandler::commitTransactionCallback_ = commitTransactionCallback;
 }
 
 void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const std::string& abilityName,
@@ -183,8 +183,9 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     transactionData->timestamp_ = timestamp_;
     transactionData->token_ = token_;
     transactionData->tid_ = tid;
-    if (commitTransactionCallback_ != nullptr) {
-        commitTransactionCallback_(renderPipelineClient_, std::move(transactionData), transactionDataIndex_);
+    if (RSSystemProperties::GetHybridRenderEnabled() && RSTransactionHandler::commitTransactionCallback_ != nullptr) {
+        RSTransactionHandler::commitTransactionCallback_(renderPipelineClient_,
+            std::move(transactionData), transactionDataIndex_, shared_from_this());
         return;
     }
     renderPipelineClient_->CommitTransaction(transactionData);
@@ -194,14 +195,6 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
 uint32_t RSTransactionHandler::GetTransactionDataIndex() const
 {
     return transactionDataIndex_;
-}
-
-void RSTransactionHandler::SetRSTransactionDataScene(RSTransactionDataScenes scene)
-{
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (implicitRemoteTransactionData_) {
-        implicitRemoteTransactionData_->SetRSTransactionDataScene(scene);
-    }
 }
 
 void RSTransactionHandler::PostTask(const std::function<void()>& task)

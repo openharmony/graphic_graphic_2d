@@ -80,12 +80,6 @@ public:
         return RSRenderNodeDrawableType::CANVAS_DRAWING_NODE_DRAWABLE;
     }
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    sptr<IConsumerSurface> GetConsumerSurface() const;
-
-    void DrawCustomContent(Drawing::Canvas& canvas) override;
-#endif
-
 protected:
     void DumpSubDrawableTree(std::string& out) const override;
 
@@ -105,9 +99,6 @@ private:
     void DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds);
     void ResetResource();
     bool CreateCpuSurface(const Drawing::ImageInfo& imageInfo);
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas);
-#endif
 #ifdef RS_ENABLE_VK
     bool ReleaseSurfaceVK(int width, int height, bool& isDmaBackendTexture);
 
@@ -115,6 +106,7 @@ private:
         bool& newVulkanCleanupHelper, bool needReleaseSurface);
 
     bool CheckBackendTexture(bool needCreateFromGpu, int width, int height, pid_t pid);
+
 #ifdef ROSEN_OHOS
     bool CreateDmaBackendTexture(pid_t pid, int width, int height);
 
@@ -126,7 +118,6 @@ private:
     std::atomic<uint32_t> dmaFallbackCount_ = 0;
 #endif // ROSEN_OHOS
 #endif // RS_ENABLE_VK
-
     bool ResetSurfaceforPlayback(int width, int height);
     bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
     std::shared_ptr<Drawing::GPUContext> GetGpuContext();

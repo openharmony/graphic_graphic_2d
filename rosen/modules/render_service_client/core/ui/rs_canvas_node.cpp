@@ -30,6 +30,11 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_ui_context.h"
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
+#include "modifier_render_thread/rs_modifiers_draw.h"
+#include "modifier_render_thread/rs_modifiers_draw_thread.h"
+#include "media_errors.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -46,7 +51,6 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(node->GetId(), isTextureExportNode);
     if (RSSystemProperties::GetRenderNodeLazyLoadEnabled()) {
         node->lazyLoad_ = true;
-        node->nodeState_ = RSNodeState::LAZY_LOAD;
         node->AddLazyLoadCommand(std::move(command), node->IsRenderServiceNode());
         if (node->GetRSUIContext()) {
             node->AddLazyLoadCommand(
@@ -61,8 +65,7 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(
 }
 
 RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(isRenderServiceNode, isTextureExportNode, rsUIContext)
-{}
+    : RSNode(isRenderServiceNode, isTextureExportNode, rsUIContext) {}
 
 RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode,
     std::shared_ptr<RSUIContext> rsUIContext)
@@ -72,12 +75,12 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureEx
 }
 
 RSCanvasNode::~RSCanvasNode()
-{}
-
-void RSCanvasNode::CreateRenderNode()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), IsTextureExportNode());
-    AddCommand(command, IsRenderServiceNode());
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
+    if (IsHybridRenderCanvas()) {
+        RSModifiersDraw::RemoveSurfaceByNodeId(GetId(), true);
+    }
+#endif
 }
 
 void RSCanvasNode::SetHDRPresent(bool hdrPresent)
@@ -243,6 +246,63 @@ void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
     boundsChangedCallback_ = callback;
 }
 
+bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+{
+    if (!IsHybridRenderCanvas()) {
+        return false;
+    }
+    bool ret = false;
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
+    RSModifiersDrawThread::Instance().PostSyncTask([this, &bitmap, &ret]() {
+        auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
+        if (pixelMap == nullptr) {
+            RS_LOGE("RSCanvasNode::GetBitmap pixelMap is nullptr");
+            return;
+        }
+        Drawing::ImageInfo info(
+            pixelMap->GetWidth(), pixelMap->GetHeight(), Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
+        if (!bitmap.InstallPixels(info, pixelMap->GetWritablePixels(), pixelMap->GetRowBytes())) {
+            RS_LOGE("RSCanvasNode::GetBitmap get bitmap fail");
+            return;
+        }
+        ret = true;
+    });
+#endif
+    return ret;
+}
+
+bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
+{
+    if (!IsHybridRenderCanvas()) {
+        return false;
+    }
+    if (pixelMap == nullptr || rect == nullptr) {
+        RS_LOGE("RSCanvasNode::GetPixelmap pixelMap or rect is nullptr");
+        return false;
+    }
+    bool ret = false;
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
+    RSModifiersDrawThread::Instance().PostSyncTask([this, pixelMap, rect, &ret]() {
+        auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
+        if (srcPixelMap == nullptr) {
+            RS_LOGE("RSCanvasNode::GetPixelmap get source pixelMap fail");
+            return;
+        }
+        Media::Rect srcRect = { rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight() };
+        auto ret =
+            srcPixelMap->ReadPixels(Media::RWPixelsOptions { static_cast<uint8_t*>(pixelMap->GetWritablePixels()),
+                pixelMap->GetByteCount(), 0, pixelMap->GetRowStride(), srcRect, Media::PixelFormat::RGBA_8888 });
+        if (ret != Media::SUCCESS) {
+            RS_LOGE("RSCanvasNode::GetPixelmap get pixelMap fail");
+            return;
+        }
+        ret = true;
+    });
+#endif
+    return ret;
+}
+
 void RSCanvasNode::SetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap)
 {
     if (!pixelMap) {
@@ -252,5 +312,17 @@ void RSCanvasNode::SetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap)
         std::make_unique<RSCanvasNodeSetPixelmap>(GetId(), pixelMap);
     AddCommand(command, true);
 }
+
+bool RSCanvasNode::ResetSurface(int width, int height)
+{
+    if (!IsHybridRenderCanvas()) {
+        return false;
+    }
+#if defined(RS_MODIFIERS_DRAW_ENABLE)
+    return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true, true);
+#endif
+    return false;
+}
+
 } // namespace Rosen
 } // namespace OHOS

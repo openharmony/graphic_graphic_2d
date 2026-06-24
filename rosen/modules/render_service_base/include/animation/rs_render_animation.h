@@ -36,13 +36,6 @@ enum class AnimationState {
     GROUP_WAITING, // Child animation finished, waiting for next cycle in group animation
 };
 
-enum class RSRenderAnimationType {
-    UNKNOWN,
-    PROPERTY_ANIMATION,
-    TRANSITION,
-    PARTICLE_ANIMATION,
-};
-
 class RSB_EXPORT RSRenderAnimation : public Parcelable {
 public:
     RSRenderAnimation(const RSRenderAnimation&) = delete;
@@ -78,10 +71,6 @@ public:
     void SetDuration(int value) { animationFraction_.SetDuration(value); }
     int GetDuration() const { return animationFraction_.GetDuration(); }
 
-    virtual RSRenderAnimationType GetType() const { return RSRenderAnimationType::UNKNOWN; }
-
-    void Rebuild(float fraction, int64_t time, bool isReverseCycle);
-
     void SetStartDelay(int value) { animationFraction_.SetStartDelay(value); }
     int GetStartDelay() const { return animationFraction_.GetStartDelay(); }
 
@@ -100,8 +89,6 @@ public:
     void SetDirection(bool isForward) { animationFraction_.SetDirection(isForward); }
 
     bool GetDirection() const { return animationFraction_.GetDirection(); }
-
-    bool GetCurrentIsReverseCycle() const { return animationFraction_.GetCurrentIsReverseCycle(); }
 
     bool IsGroupAnimationChild() const { return isGroupAnimationChild_; }
 
@@ -126,9 +113,6 @@ public:
     float GetValueFraction() const { return lastValueFraction_; }
 
     uint64_t GetToken() const { return token_; }
-
-    float GetCurrentFraction() const { return currentFraction_; }
-
     void Attach(RSRenderNode* renderNode);
     void Detach(bool forceDetach = false);
     RSRenderNode* GetTarget() const;
@@ -139,8 +123,6 @@ public:
     virtual PropertyId GetPropertyId() const;
 
     virtual void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) {};
-
-    virtual void RebuildPropertyValue(float fraction) = 0;
 
     void SetStartTime(int64_t);
 
@@ -162,7 +144,10 @@ protected:
 
     virtual void OnDetach() {}
 
-    virtual void OnInitialize(int64_t time, bool isCustom = false) { needInitialize_ = false; }
+    virtual void OnInitialize(int64_t time, bool isCustom = false)
+    {
+        needInitialize_ = false;
+    }
 
     virtual void OnAnimate(float fraction) {}
 
@@ -212,7 +197,6 @@ private:
     uint64_t token_ = 0;
     bool isGroupAnimationChild_ { false };
     std::weak_ptr<RSRenderTimeDrivenGroupAnimator> groupAnimator_;
-    float currentFraction_ { 0.f };
 
     friend class RSAnimation;
     friend class RSRenderCurveAnimation;

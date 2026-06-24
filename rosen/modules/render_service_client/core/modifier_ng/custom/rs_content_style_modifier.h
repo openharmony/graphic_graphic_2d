@@ -55,8 +55,6 @@ public:
         return;
     }
 
-    void FlushContentModifierImmediately();
-
 protected:
     // LCOV_EXCL_START
     RSPropertyType GetInnerPropertyType() const override

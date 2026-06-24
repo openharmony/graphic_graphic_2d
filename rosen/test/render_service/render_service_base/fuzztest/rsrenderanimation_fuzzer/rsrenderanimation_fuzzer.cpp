@@ -45,15 +45,6 @@
 
 namespace OHOS {
 using namespace Rosen;
-
-class RSRenderAnimationMock : public RSRenderAnimation {
-public:
-    RSRenderAnimationMock() : RSRenderAnimation() {}
-    explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
-    ~RSRenderAnimationMock() override = default;
-    void RebuildPropertyValue(float fraction) override {}
-};
-
 namespace {
 constexpr size_t STR_LEN = 10;
 const uint8_t* data_ = nullptr;
@@ -104,7 +95,7 @@ void RSRenderAnimation1FuzzerTest()
     float fraction = GetData<float>();
     auto fillMode = GetData<FillMode>();
     auto time = GetData<int64_t>();
-    auto animation = std::make_shared<RSRenderAnimationMock>(animationId);
+    auto animation = std::make_shared<RSRenderAnimation>(animationId);
     auto renderNode = std::make_shared<RSRenderNode>(nodeId);
     std::string nodeName = GetStringFromData(STR_LEN);
     renderNode->SetNodeName(nodeName);
@@ -143,7 +134,7 @@ void RSRenderAnimation2FuzzerTest()
     bool isReversed = GetData<bool>();
     auto time = GetData<int64_t>();
     auto delayTime = GetData<int64_t>();
-    auto animation1 = std::make_shared<RSRenderAnimationMock>(animationId);
+    auto animation1 = std::make_shared<RSRenderAnimation>(animationId);
 
     // status error
     animation1->Finish();
@@ -170,11 +161,11 @@ void RSRenderAnimation2FuzzerTest()
     animation1->FinishOnPosition(pos);
     animation1->Start();
 
-    auto animation2 = std::make_shared<RSRenderAnimationMock>(animationId);
+    auto animation2 = std::make_shared<RSRenderAnimation>(animationId);
     animation2->Start();
     animation2->Finish();
 
-    auto animation3 = std::make_shared<RSRenderAnimationMock>(animationId);
+    auto animation3 = std::make_shared<RSRenderAnimation>(animationId);
     animation3->Start();
     animation3->FinishOnCurrentPosition();
     RSMessageProcessor::Instance().GetAllTransactions();
@@ -184,7 +175,7 @@ void RSRenderAnimation3FuzzerTest()
 {
     // test new group animation methods
     AnimationId animationId = GetData<AnimationId>();
-    auto animation4 = std::make_shared<RSRenderAnimationMock>(animationId);
+    auto animation4 = std::make_shared<RSRenderAnimation>(animationId);
     animation4->FlipDirection();
     animation4->Restart();
     animation4->ResumeGroupWaiting();

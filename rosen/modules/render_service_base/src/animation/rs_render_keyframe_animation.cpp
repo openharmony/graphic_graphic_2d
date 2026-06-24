@@ -100,19 +100,6 @@ void RSRenderKeyframeAnimation::OnAnimate(float fraction)
     valueEstimator_->UpdateAnimationValue(fraction, GetAdditive());
 }
 
-void RSRenderKeyframeAnimation::RebuildPropertyValue(float fraction)
-{
-    if (keyframes_.empty() && durationKeyframes_.empty()) {
-        ROSEN_LOGE("RSRenderKeyframeAnimation::RebuildPropertyValue failed: keyframes and durationKeyframes are empty");
-        return;
-    }
-    if (valueEstimator_ == nullptr) {
-        ROSEN_LOGE("RSRenderKeyframeAnimation::RebuildPropertyValue failed: valueEstimator is nullptr");
-        return;
-    }
-    valueEstimator_->UpdateAnimationValue(fraction, true);
-}
-
 void RSRenderKeyframeAnimation::InitValueEstimator()
 {
     if (valueEstimator_ == nullptr) {

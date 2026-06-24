@@ -31,7 +31,6 @@
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_interpolator.h"
 #include "animation/rs_frame_rate_range.h"
-#include "animation/rs_render_property_animation.h"
 #include "animation/rs_render_animation.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
@@ -46,25 +45,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
-class RSRenderAnimationMock : public RSRenderAnimation {
-public:
-    RSRenderAnimationMock() : RSRenderAnimation() {}
-    explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
-    ~RSRenderAnimationMock() override = default;
-    void RebuildPropertyValue(float fraction) override {}
-};
-
-class RSRenderPropertyAnimationMock : public RSRenderPropertyAnimation {
-public:
-    RSRenderPropertyAnimationMock(
-        AnimationId id, const PropertyId& propertyId,
-        const std::shared_ptr<RSRenderPropertyBase>& originValue)
-        : RSRenderPropertyAnimation(id, propertyId, originValue)
-    {}
-    void RebuildPropertyValue(float fraction) override {}
-};
-
 namespace {
 enum class FuzzMethod {
     CUBIC_BEZIER_INTERPOLATOR = 0,
@@ -207,7 +187,7 @@ void RSStepsInterpolatorMarshalling(FuzzedDataProvider& FD)
 void RSRenderAnimationMarshalling(FuzzedDataProvider& FD)
 {
     auto animationId = FD.ConsumeIntegral<AnimationId>();
-    auto renderAnimation = std::make_shared<RSRenderAnimationMock>(animationId);
+    auto renderAnimation = std::make_shared<RSRenderAnimation>(animationId);
     renderAnimation->SetDuration(FD.ConsumeIntegral<int>());
     renderAnimation->SetStartDelay(FD.ConsumeIntegral<int>());
     renderAnimation->SetSpeed(FD.ConsumeFloatingPoint<float>());
@@ -346,7 +326,7 @@ void RSRenderPropertyAnimationMarshalling(FuzzedDataProvider& FD)
     auto propertyId = FD.ConsumeIntegral<PropertyId>();
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(
         FD.ConsumeFloatingPoint<float>(), propertyId);
-    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
+    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(
         animationId, propertyId, property);
     renderPropertyAnimation->SetAdditive(FD.ConsumeBool());
     Parcel parcel;

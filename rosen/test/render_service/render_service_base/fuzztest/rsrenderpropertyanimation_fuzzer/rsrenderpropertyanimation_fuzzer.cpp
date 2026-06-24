@@ -44,17 +44,6 @@
 
 namespace OHOS {
 using namespace Rosen;
-
-class RSRenderPropertyAnimationMock : public RSRenderPropertyAnimation {
-public:
-    RSRenderPropertyAnimationMock(
-        AnimationId id, const PropertyId& propertyId,
-        const std::shared_ptr<RSRenderPropertyBase>& originValue)
-        : RSRenderPropertyAnimation(id, propertyId, originValue)
-    {}
-    void RebuildPropertyValue(float fraction) override {}
-};
-
 namespace {
 const uint8_t* data_ = nullptr;
 size_t size_ = 0;
@@ -93,7 +82,7 @@ void RSRenderPropertyAnimationFuzzerTest1()
     auto time = GetData<float>();
     std::string out;
 
-    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(animationId, propertyId, property);
+    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(animationId, propertyId, property);
     renderPropertyAnimation->DumpAnimationInfo(out);
     renderPropertyAnimation->SetAdditive(isAdditive);
     renderPropertyAnimation->GetAdditive();
@@ -127,7 +116,7 @@ void RSRenderPropertyAnimationFuzzerTest2()
     NodeId nodeId = GetData<NodeId>();
     auto renderNode = std::make_shared<RSRenderNode>(nodeId);
 
-    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(animationId, propertyId, property);
+    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(animationId, propertyId, property);
 
     renderPropertyAnimation->Attach(renderNode.get());
     renderPropertyAnimation->Start();

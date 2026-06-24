@@ -15,7 +15,6 @@
 
 #include "gtest/gtest.h"
 
-#include "animation/rs_interpolator.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "animation/rs_steps_interpolator.h"
 #include "modifier/rs_render_property.h"
@@ -499,63 +498,5 @@ HWTEST_F(RSRenderKeyframeAnimationTest, ParseParam003, TestSize.Level1)
     result = renderKeyframeAnimation1->ParseParam(parcel);
     EXPECT_TRUE(result);
 }
-
-/**
- * @tc.name: RebuildPropertyValue001
- * @tc.desc: Verify RebuildPropertyValue with empty keyframes and durationKeyframes
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderKeyframeAnimationTest, RebuildPropertyValue001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest RebuildPropertyValue001 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property);
-    renderKeyframeAnimation->keyframes_.clear();
-    renderKeyframeAnimation->durationKeyframes_.clear();
-    renderKeyframeAnimation->RebuildPropertyValue(0.5f);
-    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest RebuildPropertyValue001 end";
-}
-
-/**
- * @tc.name: RebuildPropertyValue002
- * @tc.desc: Verify RebuildPropertyValue with null valueEstimator
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderKeyframeAnimationTest, RebuildPropertyValue002, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest RebuildPropertyValue002 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property);
-    renderKeyframeAnimation->valueEstimator_ = nullptr;
-    renderKeyframeAnimation->RebuildPropertyValue(0.5f);
-    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest RebuildPropertyValue002 end";
-}
-
-/**
- * @tc.name: RebuildPropertyValue003
- * @tc.desc: Verify RebuildPropertyValue with valid keyframes and estimator
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderKeyframeAnimationTest, RebuildPropertyValue003, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest RebuildPropertyValue003 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property);
-    auto linearInterpolator = std::make_shared<LinearInterpolator>();
-    renderKeyframeAnimation->AddKeyframe(0.0f, startValue, linearInterpolator);
-    renderKeyframeAnimation->AddKeyframe(1.0f, endValue, linearInterpolator);
-    renderKeyframeAnimation->SetDuration(300);
-    renderKeyframeAnimation->property_ = property;
-    renderKeyframeAnimation->InitValueEstimator();
-    renderKeyframeAnimation->RebuildPropertyValue(0.5f);
-    EXPECT_NE(renderKeyframeAnimation->valueEstimator_, nullptr);
-    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest RebuildPropertyValue003 end";
-}
-
 } // namespace Rosen
 } // namespace OHOS

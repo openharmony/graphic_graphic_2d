@@ -37,11 +37,9 @@ public:
      */
     enum class HybridRenderType : uint32_t {
         NONE,
-        // HybridDraw other components start
         TEXT,
         SVG,
         HMSYMBOL,
-        // HybridDraw other components end
         CANVAS,
         TYPE_MAX
     };
@@ -250,6 +248,11 @@ public:
     {
         isReplayMode = mode;
     }
+
+    /**
+     * @brief Check whether enable hybrid render.
+     */
+    bool IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxPixelMapHeight);
 
     const std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItems() const;
 

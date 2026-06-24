@@ -76,8 +76,6 @@ void RootNodeCommandHelper::AttachToUniSurfaceNode(RSContext& context, NodeId id
         context.GetMutableNodeMap().RegisterUnTreeNode(id);
         return;
     }
-    RS_TRACE_NAME_FMT("RootNodeCommandHelper::AttachToUniSurfaceNode id:%" PRIu64, parent->GetId());
-    parent->SetHasDestoryRebuild(false);
     parent->AddChild(node);
     parent->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
 }

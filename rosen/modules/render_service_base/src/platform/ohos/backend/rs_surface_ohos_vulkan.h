@@ -92,10 +92,6 @@ public:
     void MarkAsHpaeSurface();
     void PreAllocateHpaeBuffer(int32_t width, int32_t height, int32_t bufferCount, bool useAFBC);
 
-    void OnFlushBuffer();
-    void CopyContentBuffer(sptr<SurfaceBuffer> surfaceBuffer);
-    void CleanReleasedBuffers();
-
 private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;

@@ -24,13 +24,10 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderPropertyBase;
 class RSAnimationLog;
-class RSAnimationManager;
 
 class RSB_EXPORT RSRenderPropertyAnimation : public RSRenderAnimation {
 public:
     virtual ~RSRenderPropertyAnimation() = default;
-
-    RSRenderAnimationType GetType() const override { return RSRenderAnimationType::PROPERTY_ANIMATION; }
 
     void DumpAnimationInfo(std::string& out) const override;
     void DumpProperty(std::string& out) const;
@@ -43,7 +40,6 @@ public:
 
     void AttachRenderProperty(const std::shared_ptr<RSRenderPropertyBase>& property) override;
     bool Marshalling(Parcel& parcel) const override;
-
 protected:
     RSRenderPropertyAnimation(AnimationId id, const PropertyId& propertyId,
         const std::shared_ptr<RSRenderPropertyBase>& originValue);
@@ -87,8 +83,6 @@ protected:
 
 private:
     bool isAdditive_ { true };
-
-    friend class RSAnimationManager;
 };
 } // namespace Rosen
 } // namespace OHOS

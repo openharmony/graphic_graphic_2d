@@ -22,5 +22,10 @@ bool RSSystemProperties::GetUniRenderEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetHybridRenderEnabled()
+{
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -19,7 +19,6 @@
 #include "gtest/gtest.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_ui_render_director.h"
 #include "platform/common/rs_log.h"
 
 using namespace testing;
@@ -299,57 +298,5 @@ HWTEST_F(RSContextTest, NotifyBrightnessInfoChangeCallbackTest, TestSize.Level1)
     rsContext.SetBrightnessInfoChangeCallback(0, nullptr);
     rsContext.SetBrightnessInfoChangeCallback(1, nullptr);
     ASSERT_TRUE(rsContext.IsBrightnessInfoChangeCallbackMapEmpty());
-}
-
-/**
- * @tc.name: UIRenderDirectorTest
- * @tc.desc: Test Get/Create/DestroyUIRenderDirector covering all if branches.
- * @tc.type: FUNC
- */
-HWTEST_F(RSContextTest, UIRenderDirectorTest, TestSize.Level1)
-{
-    RSContext rsContext;
-    constexpr pid_t pid = 1;
-    constexpr uint64_t token1 = 10;
-    constexpr uint64_t token2 = 20;
-
-    // Branch: pid not found.
-    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token1), nullptr);
-
-    // Branch: create new pid map and new director.
-    rsContext.CreateUIRenderDirector(pid, token1);
-    auto director1 = rsContext.GetUIRenderDirector(pid, token1);
-    ASSERT_NE(director1, nullptr);
-    EXPECT_EQ(director1->GetToken(), token1);
-
-    // Branch: duplicate create should not replace the existing director.
-    rsContext.CreateUIRenderDirector(pid, token1);
-    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token1), director1);
-
-    // Branch: pid exists but token does not exist.
-    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, 999), nullptr);
-
-    // Branch: add a second token under an existing pid.
-    rsContext.CreateUIRenderDirector(pid, token2);
-    auto director2 = rsContext.GetUIRenderDirector(pid, token2);
-    ASSERT_NE(director2, nullptr);
-    EXPECT_EQ(director2->GetToken(), token2);
-
-    // Branch: destroy with non-existing pid.
-    rsContext.DestroyUIRenderDirector(999, token1);
-    EXPECT_NE(rsContext.GetUIRenderDirector(pid, token1), nullptr);
-
-    // Branch: destroy with non-existing token.
-    rsContext.DestroyUIRenderDirector(pid, 999);
-    EXPECT_NE(rsContext.GetUIRenderDirector(pid, token1), nullptr);
-
-    // Branch: destroy one token, the pid map should remain because token2 exists.
-    rsContext.DestroyUIRenderDirector(pid, token2);
-    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token2), nullptr);
-    EXPECT_NE(rsContext.GetUIRenderDirector(pid, token1), nullptr);
-
-    // Branch: destroy the last token, the pid map should be removed.
-    rsContext.DestroyUIRenderDirector(pid, token1);
-    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token1), nullptr);
 }
 } // namespace OHOS::Rosen

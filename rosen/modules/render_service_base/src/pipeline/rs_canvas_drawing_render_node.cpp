@@ -27,11 +27,6 @@
 #include "include/gpu/GrDirectContext.h"
 #endif
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-#include <ibuffer_consumer_listener.h>
-#include "render_context/render_context.h"
-#endif
-
 #include "rs_trace.h"
 
 #include "common/rs_background_thread.h"
@@ -59,20 +54,12 @@ constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300; // limit of the drawcmdlists.
 constexpr uint32_t DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_PER_FRAME = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_FOR_CACHE = 200000;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-const bool HYBRID_ENABLED = RSSystemProperties::GetHybridRenderCanvasEnabled();
-#endif
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSCanvasRenderNode(id, context, isTextureExportNode)
 {
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(id), sizeof(*this) - sizeof(RSCanvasRenderNode));
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (HYBRID_ENABLED) {
-        InitSurfaceHandler();
-    }
-#endif
 }
 
 RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
@@ -501,11 +488,7 @@ bool RSCanvasDrawingRenderNode::IsNeedResetSurface() const
 void RSCanvasDrawingRenderNode::InitRenderParams()
 {
 #ifdef RS_ENABLE_GPU
-    auto renderParams = std::make_unique<RSCanvasDrawingRenderParams>(GetId());
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    renderParams->SetBufferDraw(IsBufferDraw());
-#endif
-    stagingRenderParams_ = std::move(renderParams);
+    stagingRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
         HILOG_COMM_ERROR("RSCanvasDrawingRenderNode::InitRenderParams failed");
@@ -714,24 +697,7 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
         colorSpace = appSurfaceNode->GetColorSpace();
     }
 #endif
-
     auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (surfaceHandler_ != nullptr) {
-        static uint32_t maxGpuSupportedWidth = 0;
-        static uint32_t maxGpuSupportedHeight = 0;
-        static std::once_flag flag;
-        std::call_once(flag,
-            []() { RenderContext::Create()->QueryMaxGpuBufferSize(maxGpuSupportedWidth, maxGpuSupportedHeight); });
-        sizeOutOfGpuLimit_ = width > static_cast<int>(maxGpuSupportedWidth) ||
-            height > static_cast<int>(maxGpuSupportedHeight) || width <= 0 || height <= 0;
-        stagingRenderParams->SetBufferDraw(IsBufferDraw());
-        if (sizeOutOfGpuLimit_) {
-            firstBufferAcquired_ = false;
-            UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);
-        }
-    }
-#endif
 #ifdef RS_ENABLE_GPU
     stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
     stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
@@ -827,85 +793,5 @@ bool RSCanvasDrawingRenderNode::HasCachedOp() const
 {
     return cachedOpCount_ > 0;
 }
-
-bool RSCanvasDrawingRenderNode::IsNodeMemClearEnable()
-{
-    return false;
-}
- 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
-    const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount)
-{
-    if (stagingRenderParams_ == nullptr) {
-        return;
-    }
-    auto canvasParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
-    if (buffer == nullptr && canvasParams->GetBuffer() == nullptr) {
-        return;
-    }
- 
-    if (!firstBufferAcquired_ && buffer != nullptr) {
-        firstBufferAcquired_ = true;
-        ClearOp();
-    }
-    if (canvasParams->IsBufferSynced()) {
-        canvasParams->SetPreBuffer(preBuffer, preBufferOwnerCount);
-    } else if (auto bufferOwnerCount = canvasParams->GetBufferOwnerCount()) {
-        bufferOwnerCount->DecRef();
-    }
-    canvasParams->SetBuffer(buffer, bufferOwnerCount, damageRect);
-    canvasParams->SetAcquireFence(acquireFence);
-    canvasParams->SetBufferSynced(false);
-    canvasParams->SetShouldPaint(true);
-    canvasParams->SetContentEmpty(false);
-    canvasParams->SetBufferDraw(IsBufferDraw());
-    AddToPendingSyncList();
-}
- 
-void RSCanvasDrawingRenderNode::OnDestoryTokenNode()
-{
-    if (surfaceHandler_ == nullptr) {
-        return;
-    }
- 
-    if (auto context = GetContext().lock()) {
-        context->GetMutableNodeMap().RegisterSurfaceHandler(GetId(), surfaceHandler_);
-    }
-    surfaceHandler_ = nullptr;
-}
- 
-void RSCanvasDrawingRenderNode::InitSurfaceHandler()
-{
-    auto nodeId = GetId();
-    auto context = GetContext().lock();
-    if (context == nullptr) {
-        RS_LOGE("RSCanvasDrawingRenderNode::InitSurfaceHandler: context is nullptr, nodeId=%{public}" PRIu64, nodeId);
-        return;
-    }
- 
-    surfaceHandler_ = context->GetMutableNodeMap().GetSurfaceHandler(nodeId, true);
-}
- 
-void RSCanvasDrawingRenderNode::SetSurfaceHandler(std::shared_ptr<RSSurfaceHandler> surfaceHandler)
-{
-    surfaceHandler_ = surfaceHandler;
-    if (stagingRenderParams_ != nullptr) {
-        static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get())->SetBufferDraw(IsBufferDraw());
-    }
-}
- 
-bool RSCanvasDrawingRenderNode::IsBufferDraw()
-{
-    return surfaceHandler_ != nullptr && !sizeOutOfGpuLimit_ && firstBufferAcquired_;
-}
- 
-bool RSCanvasDrawingRenderNode::IsHybridEnabled()
-{
-    return HYBRID_ENABLED;
-}
-#endif // RS_MODIFIERS_DRAW_ENABLE
 } // namespace Rosen
 } // namespace OHOS

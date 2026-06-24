@@ -38,5 +38,4 @@
         _ZTCNSt3__h19basic_ostringstreamIcNS_11char_traitsIcEENS*;
         _ZTTNSt3__h19basic_ostringstreamIcNS_11char_traitsIcEENS*;
         _ZTVN4OHOS5Rosen7Drawing24DrawHybridPixelMapOpItem17ConstructorHandleE;
-        _ZTVN4OHOS5Rosen19RSBufferTransactionE;
 };

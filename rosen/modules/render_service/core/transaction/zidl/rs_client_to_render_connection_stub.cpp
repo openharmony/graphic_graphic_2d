@@ -114,9 +114,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE),
-#endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION),
@@ -347,7 +344,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
             std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
             int32_t readData{0};
-            bool waitUnmarshalling = true;
             if (!data.ReadInt32(readData)) {
                 RS_LOGE("RSClientToRenderConnectionStub::COMMIT_TRANSACTION read parcel failed");
                 return ERR_INVALID_DATA;
@@ -364,12 +360,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                     // execute Unmarshalling immediately
 
                     RSMarshallingHelper::UnmarshallingTransactionVer(data);
-
-                    if (!RSMarshallingHelper::CompatibleUnmarshalling(
-                        data, waitUnmarshalling, false, RSPARCELVER_ADD_NONEED)) {
-                        RS_LOGE("RSClientToRenderConnectionStub::COMMIT_TRANSACTION read parcel failed");
-                        return ERR_INVALID_DATA;
-                    }
 
                     auto transactionData = RSBaseRenderUtil::ParseTransactionData(data, parcelNumber);
                     if (transactionData && isNonSystemAppCalling) {
@@ -396,15 +386,10 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 return ERR_INVALID_DATA;
             }
             RSMarshallingHelper::UnmarshallingTransactionVer(*parsedParcel);
-            if (!RSMarshallingHelper::CompatibleUnmarshalling(
-                *parsedParcel, waitUnmarshalling, false, RSPARCELVER_ADD_NONEED)) {
-                RS_LOGE("RSClientToRenderConnectionStub::COMMIT_TRANSACTION read parcel failed");
-                return ERR_INVALID_DATA;
-            }
             if (isUniRender) {
                 // post Unmarshalling task to RSUnmarshalThread
                 RSUnmarshalThread::Instance().RecvParcel(parsedParcel, isNonSystemAppCalling, callingPid,
-                    std::move(ashmemFdWorker), ashmemFlowControlUnit, parcelNumber, waitUnmarshalling);
+                    std::move(ashmemFdWorker), ashmemFlowControlUnit, parcelNumber);
             } else {
                 // execute Unmarshalling immediately
                 auto transactionData = RSBaseRenderUtil::ParseTransactionData(*parsedParcel, parcelNumber);
@@ -537,7 +522,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             bool isSync { false };
             uint8_t surfaceWindowType { 0 };
             bool unobscured { false };
-            bool readBuffer = false;
             if (!data.ReadString(surfaceName) || !data.ReadUint8(type) || !data.ReadBool(isTextureExportNode) ||
                 !data.ReadBool(isSync) || !data.ReadUint8(surfaceWindowType) || !data.ReadBool(unobscured)) {
                 RS_LOGE("RSClientToRenderConnectionStub::CREATE_NODE_AND_SURFACE read surfaceRenderNodeConfig failed!");
@@ -1584,38 +1568,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE): {
-            NodeId nodeId = INVALID_NODEID;
-            if (!data.ReadUint64(nodeId)) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE Read nodeId failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            sptr<Surface> surface = GetCanvasSurface(nodeId);
-            if (surface == nullptr) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE GetCanvasSurface failed!");
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            auto producer = surface->GetProducer();
-            if (!reply.WriteRemoteObject(producer->AsObject())) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_CANVAS_SURFACE read RemoteObject failed!");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE): {
-            NodeId nodeId = INVALID_NODEID;
-            if (!data.ReadUint64(nodeId)) {
-                RS_LOGE("RSClientToRenderConnectionStub::REMOVE_CANVAS_SURFACE Read nodeId failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            RemoveCanvasSurface(nodeId);
-            break;
-        }
-#endif
         case static_cast<uint32_t>(
             RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION): {
             FrameStabilityTarget target;

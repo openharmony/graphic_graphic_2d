@@ -963,5 +963,6 @@ RSRenderPropertyBase::RSPropertyUnmarshallingFuncRegister RSRenderAnimatableProp
 
 template class RSRenderProperty<RSRenderParticleVector>;
 template class PROPERTY_EXPORT RSRenderProperty<SimpleDrawCmdListPtr>;
+template class RSRenderAnimatableProperty<std::shared_ptr<RSSimpleDrawCmdList>>;
 } // namespace Rosen
 } // namespace OHOS

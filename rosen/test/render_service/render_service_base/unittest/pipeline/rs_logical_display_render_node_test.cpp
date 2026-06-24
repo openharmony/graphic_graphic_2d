@@ -30,16 +30,6 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-class RSRenderPropertyAnimationMock : public RSRenderPropertyAnimation {
-public:
-    RSRenderPropertyAnimationMock(
-        AnimationId id, const PropertyId& propertyId,
-        const std::shared_ptr<RSRenderPropertyBase>& originValue)
-        : RSRenderPropertyAnimation(id, propertyId, originValue)
-    {}
-    void RebuildPropertyValue(float fraction) override {}
-};
-
 class RSLogicalDisplayRenderNodeTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -192,7 +182,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationTest, TestSize.Level1
     modifiers.emplace_back(modifier2);
     displayNode->modifiersNG_.emplace(ModifierNG::RSModifierType::HDR_BRIGHTNESS, modifiers);
     auto animationProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(0, 1, animationProperty);
+    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(0, 1, animationProperty);
     displayNode->animationManager_ = std::make_shared<RSAnimationManager>();
     displayNode->animationManager_->animations_[0] = renderPropertyAnimation;
     displayNode->IsOnlyHDRAnimation();

@@ -18,7 +18,6 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
-#include "pipeline/rs_ui_render_director.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -229,9 +228,6 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
         return false;
     });
     needAttachedNode_.erase(removeIter, needAttachedNode_.end());
-#ifndef ROSEN_CROSS_PLATFORM
-    RemoveSurfaceHandlerInfo(id);
-#endif
 }
 
 void RSRenderNodeMap::MoveRenderNodeMap(
@@ -312,14 +308,6 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
     });
     RS_TRACE_END();
 
-#ifndef ROSEN_CROSS_PLATFORM
-    RS_TRACE_BEGIN("process surfaceHandlerInfoMap_");
-    EraseIf(surfaceHandlerInfoMap_, [pid, this](const auto& pair) -> bool {
-        return (ExtractPid(pair.first) == pid);
-    });
-    RS_TRACE_END();
-#endif
-
     RS_TRACE_BEGIN("process residentSurfaceNodeMap");
     EraseIf(residentSurfaceNodeMap_, [pid](const auto& pair) -> bool {
         return ExtractPid(pair.first) == pid;
@@ -368,113 +356,6 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         }
     }
     RSRenderNodeGC::Instance().ReleaseNodeNotOnTree(pid);
-}
-
-void RSRenderNodeMap::DestroyTokenNode(pid_t pid, uint64_t token)
-{
-    // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    RS_TRACE_NAME_FMT("RSRenderNodeMap::DestroyTokenNode pid is %d token is %lu", pid, token);
-    auto iter = renderNodeMap_.find(pid);
-    if (iter != renderNodeMap_.end()) {
-        auto& subMap = iter->second;
-        EraseIf(subMap, [token](const auto& pair) -> bool {
-            if (!pair.second || pair.second->GetUIContextToken() != token) {
-                return false;
-            }
-            if (pair.second->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-                if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
-                    return false;
-                }
-                if (!std::static_pointer_cast<RSCanvasDrawingRenderNode>(pair.second)->IsBufferDraw()) {
-                    return false;
-                }
-#else
-                return false;
-#endif
-            }
-            pair.second->DestroyAnimationInRender();
-
-            auto surfaceNode = pair.second->template ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode && surfaceNode->IsAppWindow()) {
-                surfaceNode->SetHasDestoryRebuild(true);
-            }
-            if (surfaceNode && !surfaceNode->IsSelfDrawingType()) {
-                return false;
-            }
-            if (surfaceNode && !surfaceNode->GetIsTextureExportNode()) {
-                return false;
-            }
-            if (pair.second->GetType() == RSRenderNodeType::ROOT_NODE) {
-                auto parent = pair.second->GetParent().lock();
-                if (parent) {
-                    parent->RemoveChildFromFulllist(pair.first);
-                }
-            }
-            return true;
-        });
-    }
-
-    RS_TRACE_BEGIN("DestroyTokenNode process surfaceNodeMap");
-    EraseIf(surfaceNodeMap_, [pid, token, this](const auto& pair) -> bool {
-        bool shouldErase = (ExtractPid(pair.first) == pid) && pair.second &&
-                           (pair.second->GetUIContextToken() == token) && pair.second->IsSelfDrawingType();
-        if (shouldErase) {
-            if (auto parent = pair.second->GetParent().lock()) {
-                parent->RemoveChildFromFulllist(pair.second->GetId());
-            }
-            // delete attachedInfo when clearing surfaceNodeMap to avoid incorrect attached nodes
-            pair.second->GetAttachedInfo() = std::nullopt;
-            pair.second->RemoveFromTree(false);
-        }
-        return shouldErase;
-    });
-    RS_TRACE_END();
-
-    RS_TRACE_BEGIN("DestroyTokenNode process residentSurfaceNodeMap");
-    EraseIf(residentSurfaceNodeMap_, [pid, token](const auto& pair) -> bool {
-        return (ExtractPid(pair.first) == pid) && pair.second && (pair.second->GetUIContextToken() == token);
-    });
-    RS_TRACE_END();
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (RSCanvasDrawingRenderNode::IsHybridEnabled()) {
-        RS_TRACE_BEGIN("DestroyTokenNode process canvasDrawingNodeMap");
-        EraseIf(canvasDrawingNodeMap_, [pid, token](const auto& pair) -> bool {
-            bool needErase = ExtractPid(pair.first) == pid && pair.second &&
-                             pair.second->GetUIContextToken() == token && pair.second->IsBufferDraw();
-            if (needErase) {
-                pair.second->OnDestoryTokenNode();
-            }
-            return needErase;
-        });
-        RS_TRACE_END();
-    }
-#endif
-
-    RS_TRACE_BEGIN("DestroyTokenNode process selfDrawingNodeInProcess");
-    auto selfDrawingIter = selfDrawingNodeInProcess_.find(pid);
-    if (selfDrawingIter != selfDrawingNodeInProcess_.end()) {
-        auto& selfDrawingSubMap = selfDrawingIter->second;
-        EraseIf(selfDrawingSubMap, [token](const auto &pair) -> bool {
-            if (pair.second && pair.second->GetUIContextToken() == token) {
-                auto parent = pair.second->GetParent().lock();
-                if (parent) {
-                    parent->RemoveChildFromFulllist(pair.first);
-                }
-                RS_TRACE_NAME_FMT("DestroyTokenNode selfDrawingNodeInProcess_ id is %lu", pair.first);
-                return true;
-            }
-            return false;
-        });
-    }
-    RS_TRACE_END();
-
-    RS_TRACE_BEGIN("DestroyTokenNode process unInTreeNodeSet");
-    EraseIf(unInTreeNodeSet_, [pid, token](const auto& nodeId) -> bool {
-        return ExtractPid(nodeId) == pid;
-    });
-    RS_TRACE_END();
 }
 
 void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const
@@ -685,65 +566,5 @@ void RSRenderNodeMap::RegisterNeedAttachedNode(std::shared_ptr<RSSurfaceRenderNo
 {
     needAttachedNode_.emplace_back(surfaceRenderNode);
 }
-
-void RSRenderNodeMap::RegisterSurfaceHandler(NodeId nodeId, std::shared_ptr<RSSurfaceHandler> surfaceHandler)
-{
-    std::lock_guard<std::mutex> lock(surfaceHandlerMutex_);
-    surfaceHandlerMap_.emplace(nodeId, surfaceHandler);
-}
-
-std::shared_ptr<RSSurfaceHandler> RSRenderNodeMap::GetSurfaceHandler(NodeId nodeId, bool unregister)
-{
-    std::lock_guard<std::mutex> lock(surfaceHandlerMutex_);
-    auto it = surfaceHandlerMap_.find(nodeId);
-    if (it == surfaceHandlerMap_.end()) {
-        return nullptr;
-    }
-
-    auto surfaceHandler = it->second;
-    if (unregister) {
-        surfaceHandlerMap_.erase(it);
-    }
-    return surfaceHandler;
-}
-
-void RSRenderNodeMap::UnregisterSurfaceHandlerByPid(pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(surfaceHandlerMutex_);
-    auto it = surfaceHandlerMap_.begin();
-    while (it != surfaceHandlerMap_.end()) {
-        if (ExtractPid(it->first) == pid) {
-            it = surfaceHandlerMap_.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
-#ifndef ROSEN_CROSS_PLATFORM
-void RSRenderNodeMap::SaveSurfaceHandlerInfo(
-    NodeId nodeId, const std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> &info)
-{
-    std::lock_guard<std::mutex> lock(surfaceHandlerInfoMutex_);
-    surfaceHandlerInfoMap_[nodeId] = info;
-}
-
-std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> RSRenderNodeMap::GetSurfaceHandlerInfo(
-    NodeId nodeId) const
-{
-    std::lock_guard<std::mutex> lock(surfaceHandlerInfoMutex_);
-    auto it = surfaceHandlerInfoMap_.find(nodeId);
-    if (it != surfaceHandlerInfoMap_.end()) {
-        return it->second;
-    }
-    return std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>>();
-}
-
-void RSRenderNodeMap::RemoveSurfaceHandlerInfo(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(surfaceHandlerInfoMutex_);
-    surfaceHandlerInfoMap_.erase(nodeId);
-}
-#endif // ROSEN_CROSS_PLATFORM
 } // namespace Rosen
 } // namespace OHOS

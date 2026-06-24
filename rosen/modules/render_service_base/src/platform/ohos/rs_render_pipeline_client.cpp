@@ -259,6 +259,7 @@ bool RSRenderPipelineClient::RegisterBufferClearListener(NodeId id, const Buffer
     return true;
 }
 
+
 bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
@@ -1033,41 +1034,6 @@ int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t
     }
     return clientToRenderConnection->GetMaxGpuBufferSize(maxWidth, maxHeight);
 }
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<Surface> RSRenderPipelineClient::GetCanvasSurface(NodeId nodeId)
-{
-    if (!RSSystemProperties::IsUseVulkan()) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetCanvasSurface Vulkan not enabled");
-        return nullptr;
-    }
-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
-    if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetCanvasSurface renderPipeline is nullptr");
-        return nullptr;
-    }
-    sptr<Surface> surface = renderPipeline->GetCanvasSurface(nodeId);
-    if (surface == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::GetCanvasSurface remote surface is nullptr");
-        return nullptr;
-    }
-    return surface;
-}
-
-void RSRenderPipelineClient::RemoveCanvasSurface(NodeId nodeId)
-{
-    if (!RSSystemProperties::IsUseVulkan()) {
-        ROSEN_LOGE("RSRenderPipelineClient::RemoveCanvasSurface Vulkan not enabled");
-        return;
-    }
-    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
-    if (renderPipeline == nullptr) {
-        ROSEN_LOGE("RSRenderPipelineClient::RemoveCanvasSurface renderPipeline is nullptr");
-        return;
-    }
-    renderPipeline->RemoveCanvasSurface(nodeId);
-}
-#endif // RS_MODIFIERS_DRAW_ENABLE
 
 void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
 {

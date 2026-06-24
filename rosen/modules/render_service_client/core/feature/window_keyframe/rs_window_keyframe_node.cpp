@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +19,6 @@
 #include <string>
 
 #include "command/rs_node_command.h"
-#include "command_modifier/rs_window_keyframe_node_command_modifier.h"
 #include "common/rs_optional_trace.h"
 #include "feature/window_keyframe/rs_window_keyframe_node_command.h"
 #include "platform/common/rs_log.h"
@@ -89,17 +87,18 @@ void RSWindowKeyFrameNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     ROSEN_LOGI("RSWindowKeyFrameNode::SetFreeze NodeId=%{public}" PRIu64 " freeze=%{public}d", GetId(), isFreeze);
     RS_OPTIONAL_TRACE_NAME_FMT("RSWindowKeyFrameNode::SetFreeze id:%llu freeze:%d", GetId(), isFreeze);
-    SetRSCmdProperty<WkfIsFreezeCmdModifier>(WkfIsFreezeCmdParam {
-        isFreeze, isMarkedByUI
-    });
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze, isMarkedByUI);
+    AddCommand(command, true);
 }
 
 void RSWindowKeyFrameNode::SetLinkedNodeId(NodeId nodeId)
 {
+    ROSEN_LOGI("RSWindowKeyFrameNode::SetLinkedNodeId nodeId: %{public}" PRIu64
+        ", linkedNode: %{public}" PRIu64 "", GetId(), nodeId);
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSWindowKeyFrameNodeLinkNode>(GetId(), nodeId);
+    AddCommand(command, true);
     linkedNodeId_ = nodeId;
-    SetRSCmdProperty<WkfLinkedNodeIdCmdModifier>(WkfLinkedNodeIdCmdParam {
-        nodeId
-    });
 }
 
 NodeId RSWindowKeyFrameNode::GetLinkedNodeId() const
@@ -146,10 +145,5 @@ RSWindowKeyFrameNode::SharedPtr RSWindowKeyFrameNode::ReadFromParcel(Parcel& par
     return keyFrameNode;
 }
 
-void RSWindowKeyFrameNode::CreateRenderNode()
-{
-    std::unique_ptr<RSCommand> command = std::make_unique<RSWindowKeyFrameNodeCreate>(GetId(), IsTextureExportNode());
-    AddCommand(command, IsRenderServiceNode());
-}
 } // namespace Rosen
 } // namespace OHOS

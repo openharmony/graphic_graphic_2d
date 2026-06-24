@@ -48,12 +48,6 @@ RSEffectNode::SharedPtr RSEffectNode::Create(
     return node;
 }
 
-void RSEffectNode::CreateRenderNode()
-{
-    std::unique_ptr<RSCommand> command = std::make_unique<RSEffectNodeCreate>(GetId(), isTextureExportNode_);
-    AddCommand(command, IsRenderServiceNode());
-}
-
 void RSEffectNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     if (!IsUniRenderEnabled()) {

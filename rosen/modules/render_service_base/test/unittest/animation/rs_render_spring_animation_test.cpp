@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 
 #include "animation/rs_render_spring_animation.h"
-#include "animation/rs_render_property_animation.h"
 #include "command/rs_message_processor.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -26,16 +25,6 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class RSRenderPropertyAnimationMock : public RSRenderPropertyAnimation {
-public:
-    RSRenderPropertyAnimationMock(
-        AnimationId id, const PropertyId& propertyId,
-        const std::shared_ptr<RSRenderPropertyBase>& originValue)
-        : RSRenderPropertyAnimation(id, propertyId, originValue)
-    {}
-    void RebuildPropertyValue(float fraction) override {}
-};
-
 class RSRenderSpringAnimationTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -158,7 +147,7 @@ HWTEST_F(RSRenderSpringAnimationTest, Unmarshalling002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID);
-    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimationMock>(
+    auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(
         ANIMATION_ID, PROPERTY_ID, property);
     EXPECT_TRUE(renderPropertyAnimation != nullptr);
 
@@ -1082,99 +1071,5 @@ HWTEST_F(RSRenderSpringAnimationTest, OnDetach002, TestSize.Level1)
     renderSpringAnimation->OnDetach();
     EXPECT_TRUE(animationManager->QuerySpringAnimation(PROPERTY_ID) == nullptr);
 }
-
-/**
- * @tc.name: RebuildPropertyValue001
- * @tc.desc: Verify RebuildPropertyValue with null property
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderSpringAnimationTest, RebuildPropertyValue001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue001 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    renderSpringAnimation->property_ = nullptr;
-    renderSpringAnimation->RebuildPropertyValue(0.5f);
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue001 end";
-}
-
-/**
- * @tc.name: RebuildPropertyValue002
- * @tc.desc: Verify RebuildPropertyValue with null startValue
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderSpringAnimationTest, RebuildPropertyValue002, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue002 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    renderSpringAnimation->startValue_ = nullptr;
-    renderSpringAnimation->RebuildPropertyValue(0.5f);
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue002 end";
-}
-
-/**
- * @tc.name: RebuildPropertyValue003
- * @tc.desc: Verify RebuildPropertyValue with null endValue
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderSpringAnimationTest, RebuildPropertyValue003, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue003 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    renderSpringAnimation->endValue_ = nullptr;
-    renderSpringAnimation->RebuildPropertyValue(0.5f);
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue003 end";
-}
-
-/**
- * @tc.name: RebuildPropertyValue004
- * @tc.desc: Verify RebuildPropertyValue with null springValueEstimator
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderSpringAnimationTest, RebuildPropertyValue004, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue004 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    renderSpringAnimation->springValueEstimator_ = nullptr;
-    renderSpringAnimation->RebuildPropertyValue(0.5f);
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue004 end";
-}
-
-/**
- * @tc.name: RebuildPropertyValue005
- * @tc.desc: Verify RebuildPropertyValue with all valid parameters
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderSpringAnimationTest, RebuildPropertyValue005, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue005 start";
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto renderSpringAnimation = std::make_shared<RSRenderSpringAnimation>(
-        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
-    renderSpringAnimation->SetDuration(300);
-    renderSpringAnimation->property_ = property;
-    renderSpringAnimation->InitValueEstimator();
-    renderSpringAnimation->RebuildPropertyValue(0.5f);
-    EXPECT_NE(renderSpringAnimation->springValueEstimator_, nullptr);
-    GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest RebuildPropertyValue005 end";
-}
-
 } // namespace Rosen
 } // namespace OHOS

@@ -523,7 +523,6 @@ public:
     std::shared_ptr<RSAnimationManager> GetAnimationManager() const;
     std::shared_ptr<RSAnimationManager> GetOrCreateAnimationManager();
     void AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation);
-    void DestroyAnimationInRender();
 
     void ApplyAlphaAndBoundsGeometry(RSPaintFilterCanvas& canvas);
     virtual void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas);
@@ -1093,7 +1092,7 @@ public:
     void SetNeedUseCmdlistDrawRegion(bool needUseCmdlistDrawRegion);
     bool GetNeedUseCmdlistDrawRegion();
     void ReleaseNodeMem();
-    virtual bool IsNodeMemClearEnable();
+    bool IsNodeMemClearEnable();
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;

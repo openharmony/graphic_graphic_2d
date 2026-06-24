@@ -205,11 +205,6 @@ public:
 
     void SetFreeMultiWindowStatus(bool enable);
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    sptr<Surface> GetCanvasSurface(NodeId nodeId);
-    void RemoveCanvasSurface(NodeId nodeId);
-#endif
-
     int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,
         const FrameStabilityConfig& config,

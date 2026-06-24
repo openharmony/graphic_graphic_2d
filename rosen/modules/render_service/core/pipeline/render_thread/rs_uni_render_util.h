@@ -26,9 +26,6 @@
 #include "sync_fence.h"
 
 #include "common/rs_obj_abs_geometry.h"
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-#include "drawable/rs_canvas_drawing_render_node_drawable.h"
-#endif
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "engine/rs_base_render_engine.h"
 #include "engine/rs_base_render_util.h"
@@ -100,10 +97,6 @@ public:
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
     static std::tuple<float, float> GetScaleFromMatrix(Drawing::Matrix matrix);
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    static BufferDrawParam CreateBufferDrawParam(
-        const DrawableV2::RSCanvasDrawingRenderNodeDrawable& drawable, bool forceCPU, uint32_t threadIndex);
-#endif
 
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,

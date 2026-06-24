@@ -4352,13 +4352,6 @@ std::shared_ptr<RSAnimationManager> RSRenderNode::GetOrCreateAnimationManager()
     return animationManager_;
 }
 
-void RSRenderNode::DestroyAnimationInRender()
-{
-    if (animationManager_) {
-        animationManager_->DestroyInRender(GetId(), context_);
-    }
-}
-
 void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     if (!animationManager_) {

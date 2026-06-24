@@ -250,7 +250,6 @@ public:
     virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
         DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params,
         PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) {}
-    virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) {}
 
     void DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, RSScreenRenderNode& node,
         BufferDrawParam& params);

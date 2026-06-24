@@ -32,8 +32,6 @@
 #include "modifier/rs_cmd_list_image_collector.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "ui/rs_node.h"
-#include "command/rs_canvas_node_command.h"
-#include "command_modifier/rs_canvas_node_command_modifier.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -152,28 +150,35 @@ public:
      */
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
-    // HybridDraw Start
-    bool IsHybridRenderCanvas() const
+    /**
+     * @brief Sets the hybrid render canvas state.
+     *
+     * @param hybridRenderCanvas True to enable hybrid render canvas; false to disable it.
+     */
+    void SetHybridRenderCanvas(bool hybridRenderCanvas) override
     {
-        return false;
+        hybridRenderCanvas_ = hybridRenderCanvas;
     }
 
-    bool GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr)
-    {
-        return false;
-    }
+    /**
+     * @brief Gets a bitmap.
+     *
+     * @param bitmap The bitmap object to store the retrieved drawing content.
+     * @param drawCmdList Optional parameter specifying a list of drawing commands to apply. Defaults to nullptr.
+     * @return true if the bitmap is successfully retrieved; false otherwise.
+     */
+    bool GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
 
+    /**
+     * @brief Gets a pixel map.
+     *
+     * @param pixelMap A shared pointer to a Media::PixelMap object where the pixel map data will be stored.
+     * @param drawCmdList An optional shared pointer containing drawing commands to be applied. Defaults to nullptr.
+     * @param rect An optional pointer specifying the region of interest.
+     * @return true if the pixel map was successfully retrieved; false otherwise.
+     */
     bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
-        std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr)
-    {
-        return false;
-    }
-
-    bool ResetSurface(int width, int height)
-    {
-        return false;
-    }
-    // HybridDraw End
+        std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
     
     /**
      * @brief Set a pixel map.
@@ -182,9 +187,18 @@ public:
      */
     void SetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap);
 
+    /**
+     * @brief Resets the surface with the specified width and height.
+     *
+     * @param width The new width of the surface.
+     * @param height The new height of the surface.
+     * @return true if the surface was successfully reset; false otherwise.
+     */
+    bool ResetSurface(int width, int height);
+
 protected:
-    RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode = false,
-        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+    RSCanvasNode(
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr);
     RSCanvasNode(const RSCanvasNode&) = delete;
@@ -192,10 +206,8 @@ protected:
     RSCanvasNode& operator=(const RSCanvasNode&) = delete;
     RSCanvasNode& operator=(const RSCanvasNode&&) = delete;
 
-    void CreateRenderNode() override;
-
     BoundsChangedCallback boundsChangedCallback_;
- 
+
     virtual void OnFinishRecording(Drawing::DrawCmdListPtr& drawCmdList, ModifierNG::RSModifierType modifierType);
 private:
     ExtendRecordingCanvas* recordingCanvas_ = nullptr;

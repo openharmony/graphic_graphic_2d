@@ -37,7 +37,6 @@
 
 #include "ui/rs_canvas_node.h"
 
-#include "command/rs_canvas_drawing_node_command.h"
 class SkCanvas;
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -88,7 +87,7 @@ public:
      */
     static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr);
-
+    
     /**
      * @brief Gets a bitmap representation of the drawing content.
      *
@@ -138,10 +137,6 @@ public:
     void OnSurfaceBufferChanged(sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    bool HybridDraw(Drawing::DrawCmdListPtr drawCmdList, ModifierNG::RSPropertyType propertyType);
-#endif
-
 protected:
     RSCanvasDrawingNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
@@ -157,36 +152,11 @@ protected:
 
     void SetIsOnTheTree(bool onTheTree) override;
 
-    void CreateRenderNode() override;
- 
-    bool SetNodeState(RSNodeState state) override;
- 
-    bool IsSkipContentModifierDraw() override;
- 
-    void SetSkipContentModifierDraw(bool skip) override;
- 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    void OnFinishRecording(Drawing::DrawCmdListPtr& drawCmdList, ModifierNG::RSModifierType modifierType) override;
-#endif
-
 private:
     /**
      * @brief Registers the node in the node map.
      */
     void RegisterNodeMap() override;
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    void CreateProducerSurface();
- 
-    void ResetSurfaceForHybrid(int width, int height);
- 
-    bool GetBitmapForHybrid(Drawing::Bitmap& bitmap);
- 
-    bool GetPixelmapForHybrid(
-        std::shared_ptr<Media::PixelMap> pixelMap, Drawing::DrawCmdListPtr drawCmdList, const Drawing::Rect* rect);
- 
-    void UpdateCanvasContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer);
-#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     static uint32_t GenerateResetSurfaceIndex();
@@ -227,12 +197,6 @@ private:
     uint32_t resetSurfaceIndex_ = 0;
 
     static bool preAllocateDmaCcm_;
-#endif
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    bool skipContentModifierDraw_ = false;
- 
-    bool sizeOutOfGpuLimit_ = false;
 #endif
 };
 } // namespace Rosen

@@ -182,7 +182,6 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_proxy_node_command.cpp",
     "src/command/rs_root_node_command.cpp",
     "src/command/rs_surface_node_command.cpp",
-    "src/command/rs_ui_director_command.cpp",
     "src/command/rs_union_node_command.cpp",
     "src/command/rs_delegate_composite_command.cpp",
 
@@ -295,7 +294,6 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_surface_handler.cpp",
     "src/pipeline/rs_surface_render_node_utils.cpp",
     "src/pipeline/rs_surface_render_node.cpp",
-    "src/pipeline/rs_ui_render_director.cpp",
     "src/pipeline/rs_task_dispatcher.cpp",
     "src/pipeline/rs_uni_render_judgement.cpp",
     "src/pipeline/rs_union_render_node.cpp",
@@ -488,8 +486,6 @@ ohos_source_set("render_service_base_src") {
 
       #luminance
       "src/display_engine/rs_luminance_control.cpp",
-
-      "src/transaction/rs_buffer_transaction.cpp",
     ]
   } else {
     sources += [
@@ -870,10 +866,6 @@ ohos_source_set("render_service_base_src") {
 
   if (graphic_2d_feature_enable_image_detail_enhancer) {
     defines += [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
-  }
-
-  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
-    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
   }
 
   part_name = "graphic_2d"

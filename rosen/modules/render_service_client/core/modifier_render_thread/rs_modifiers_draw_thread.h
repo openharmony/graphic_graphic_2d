@@ -13,22 +13,32 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_RENDER_THREAD_RS_MODIFIERS_DRAW_THREAD_H
-#define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RENDER_THREAD_RS_MODIFIERS_DRAW_THREAD_H
+#ifndef RS_MODIFIERS_DRAW_THREAD_H
+#define RS_MODIFIERS_DRAW_THREAD_H
 
+#include <algorithm>
 #include <future>
 #include <mutex>
+#include <shared_mutex>
+#include <vector>
 
+#include "common/rs_common_def.h"
 #include "event_handler.h"
-#include "modifier_render_thread/rs_canvas_modifiers_draw.h"
-#include "modifier_render_thread/rs_modifiers_draw.h"
 #include "refbase.h"
+#include "transaction/rs_irender_client.h"
+#include "transaction/rs_transaction_data.h"
 
-#include "common/rs_macros.h"
-#include "transaction/rs_render_pipeline_client.h"
+#ifdef ACCESSIBILITY_ENABLE
+#include "accessibility_config.h"
+#ifdef ENABLE_IPC_SECURITY
+#include "ipc_skeleton.h"
+#include "accesstoken_kit.h"
+#endif
+#endif
 
 namespace OHOS {
 namespace Rosen {
+
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -51,24 +61,67 @@ private:
     using Return = std::invoke_result_t<Task>;
     std::packaged_task<Return()> task_;
 };
+
+#ifdef ACCESSIBILITY_ENABLE
+class HighContrastObserver : public AccessibilityConfig::AccessibilityConfigObserver {
+public:
+    HighContrastObserver(bool& highContrast) : highContrastEnabled_(highContrast) {}
+
+    void OnConfigChanged(const AccessibilityConfig::CONFIG_ID id, const AccessibilityConfig::ConfigValue& value)
+    {
+        // Non-system app, the first value is incorrect.
+        if (!first_ || IsSystemApp()) {
+            highContrastEnabled_ = value.highContrastText;
+        }
+        first_ = false;
+    }
+
+    bool IsSystemApp()
+    {
+        if (!isSystemApp_.has_value()) {
+#ifdef ENABLE_IPC_SECURITY
+            uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
+            isSystemApp_ = Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(tokenId);
+#else
+            isSystemApp_ = false;
+#endif
+        }
+        return isSystemApp_.value();
+    }
+
+private:
+    bool& highContrastEnabled_;
+    bool first_ = true;
+    std::optional<bool> isSystemApp_;
+};
+#endif
 } // namespace Detail
+
+class TransactionDataHolder {
+public:
+    TransactionDataHolder(const TransactionDataHolder&) = delete;
+    TransactionDataHolder& operator=(const TransactionDataHolder&) = delete;
+    explicit TransactionDataHolder(std::unique_ptr<RSTransactionData>&& transactionData)
+        : data_(std::move(transactionData)) {}
+private:
+    std::unique_ptr<RSTransactionData> data_;
+};
 
 class RSB_EXPORT RSModifiersDrawThread final {
 public:
-    RSModifiersDrawThread();
-    ~RSModifiersDrawThread();
-    RSModifiersDrawThread(const RSModifiersDrawThread&) = delete;
-    RSModifiersDrawThread(const RSModifiersDrawThread&&) = delete;
-    RSModifiersDrawThread& operator=(const RSModifiersDrawThread&) = delete;
-    RSModifiersDrawThread& operator=(const RSModifiersDrawThread&&) = delete;
-
-    bool IsStarted();
-    void Destroy();
+    static RSModifiersDrawThread& Instance();
+    static void SetCacheDir(const std::string& path);
+    static std::string GetCacheDir();
+#ifdef ACCESSIBILITY_ENABLE
+    bool GetHighContrast() const;
+#endif
 
     void PostTask(const std::function<void()>&& task, const std::string& name = std::string(), int64_t delayTime = 0);
     void PostSyncTask(const std::function<void()>&& task);
     void RemoveTask(const std::string& name);
-
+    bool GetIsStarted() const;
+    static bool GetIsFirstFrame();
+    static void SetIsFirstFrame(bool isFirstFrame);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
     {
@@ -77,36 +130,40 @@ public:
         return std::move(taskFuture);
     }
 
-    template<typename Task, typename Return = std::invoke_result_t<Task>>
-    std::future<Return> ScheduleSyncTask(Task&& task)
-    {
-        auto [scheduledTask, taskFuture] = Detail::ScheduledTask<Task>::Create(std::forward<Task&&>(task));
-        PostSyncTask([scheduledTask_(std::move(scheduledTask))]() { scheduledTask_->Run(); });
-        return std::move(taskFuture);
-    }
+    static std::unique_ptr<RSTransactionData>& ConvertTransaction(std::unique_ptr<RSTransactionData>& transactionData,
+        std::shared_ptr<RSIRenderClient> renderServiceClient, bool& isNeedCommit);
 
-    void CommitTransaction(std::shared_ptr<RSCanvasModifiersDraw> canvasModifiersDraw,
-        std::shared_ptr<RSRenderPipelineClient> renderPiplineClient, std::unique_ptr<RSTransactionData> transactionData,
-        uint32_t& transactionDataIndex);
-
-    void Block();
-    void Unblock();
-
+    static std::recursive_mutex transactionDataMutex_;
 private:
-    void Start();
-    void ClearResource();
+    RSModifiersDrawThread();
+    ~RSModifiersDrawThread();
+    static void Destroy();
+    RSModifiersDrawThread(const RSModifiersDrawThread&) = delete;
+    RSModifiersDrawThread(const RSModifiersDrawThread&&) = delete;
+    RSModifiersDrawThread& operator=(const RSModifiersDrawThread&) = delete;
+    RSModifiersDrawThread& operator=(const RSModifiersDrawThread&&) = delete;
+
+    void ClearEventResource();
+#ifdef ACCESSIBILITY_ENABLE
+    void SubscribeHighContrastChange();
+    void UnsubscribeHighContrastChange();
+#endif
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-    std::shared_ptr<RSModifiersDraw> modifiersDraw_ = nullptr;
+    std::mutex mutex_;
+    static std::atomic<bool> isStarted_;
+    static bool isFirstFrame_;
+    static std::string cacheDir_;
+    static std::shared_mutex cacheDirMtx_;
 
-    bool started_ = false;
-    std::mutex startMutex_;
+#ifdef ACCESSIBILITY_ENABLE
+    bool highContrast_ = false;
+    std::shared_ptr<Detail::HighContrastObserver> highContrastObserver_ = nullptr;
+#endif
 
-    std::mutex mdtMutex_;
-    std::condition_variable mdtCV_;
-    bool canBlockMdt_ = false;
+    void Start();
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RENDER_THREAD_RS_MODIFIERS_DRAW_THREAD_H
+#endif // RS_MODIFIERS_DRAW_THREAD_H

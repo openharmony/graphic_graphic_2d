@@ -707,15 +707,5 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<Surface>& surface)
 {
     return false;
 }
-
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSSurfaceRenderNodeConfig& val)
-{
-    return false;
-}
-
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSSurfaceRenderNodeConfig& val)
-{
-    return false;
-}
 } // namespace Rosen
 } // namespace OHOS

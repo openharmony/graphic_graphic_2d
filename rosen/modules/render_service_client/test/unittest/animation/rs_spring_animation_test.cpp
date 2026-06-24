@@ -17,7 +17,6 @@
 #include "rs_animation_test_utils.h"
 
 #include "animation/rs_interpolating_spring_animation.h"
-#include "ui/rs_ui_context_manager.h"
 #include "animation/rs_spring_animation.h"
 #include "animation/rs_spring_interpolator.h"
 
@@ -180,29 +179,6 @@ HWTEST_F(RSSpringAnimationTest, RSInterpolatingSpringSetZeroThresholdTest_003, T
     animation->SetZeroThreshold(zeroThreshold);
     EXPECT_EQ(animation->zeroThreshold_, zeroThreshold);
     GTEST_LOG_(INFO) << "RSSpringAnimationTest RSInterpolatingSpringSetZeroThresholdTest_003 end";
-}
-
-/**
- * @tc.name: RebuildInRender001
- * @tc.desc: Verify RebuildInRender with null target
- * @tc.type: FUNC
- */
-HWTEST_F(RSSpringAnimationTest, RebuildInRender001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSSpringAnimationTest RebuildInRender001 start";
-    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
-    auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
-    auto springAnimation = std::make_shared<RSSpringAnimation>(rsUIContext, property, startProperty, endProperty);
-    springAnimation->SetDuration(300);
-    springAnimation->SetRebuildParam({0.5f, false});
-    ASSERT_TRUE(springAnimation->GetTarget().lock() == nullptr);
-    springAnimation->RebuildInRender();
-    ASSERT_EQ(springAnimation->GetRebuildParam().fraction, 0.5f);
-    ASSERT_EQ(springAnimation->GetRebuildParam().isReverseCycle, false);
-    GTEST_LOG_(INFO) << "RSSpringAnimationTest RebuildInRender001 end";
 }
 } // namespace Rosen
 } // namespace OHOS

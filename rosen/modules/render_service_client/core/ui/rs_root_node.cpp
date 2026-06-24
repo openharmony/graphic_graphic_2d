@@ -58,12 +58,6 @@ std::shared_ptr<RSNode> RSRootNode::Create(
     return node;
 }
 
-void RSRootNode::CreateRenderNode()
-{
-    std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(GetId(), isTextureExportNode_);
-    AddCommand(command, IsRenderServiceNode());
-}
-
 void RSRootNode::RegisterNodeMap()
 {
     auto rsContext = GetRSUIContext();
@@ -85,14 +79,14 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
         AddCommand(command, false);
         SetIsOnTheTree(surfaceNode->GetIsOnTheTree());
     } else {
-        RS_TRACE_NAME_FMT(
-            "RSRootNode::AttachRSSurfaceNode, SurfaceNode:%" PRIu64 ", Node:%" PRIu64, surfaceNode->GetId(), GetId());
         SetRSCmdProperty<AttachRootNodeCmdModifier>(AttachRootNodeCmdParam {
             surfaceNode->GetId(), 0, surfaceNode->GetIsOnTheTree(),
         });
     }
     RS_LOGI("RSRootNode::AttachRSSurfaceNode, SurfaceNode:%{public}" PRIu64 ", Node:%{public}" PRIu64,
         surfaceNode->GetId(), GetId());
+    RS_TRACE_NAME_FMT(
+        "RSRootNode::AttachRSSurfaceNode, SurfaceNode:%" PRIu64 ", Node:%" PRIu64, surfaceNode->GetId(), GetId());
 }
 
 void RSRootNode::SetEnableRender(bool flag) const

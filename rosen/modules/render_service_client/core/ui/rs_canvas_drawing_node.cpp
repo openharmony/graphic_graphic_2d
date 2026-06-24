@@ -35,13 +35,6 @@
 #include "ui/rs_canvas_callback_router.h"
 #endif
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-#include "media_errors.h"
-#include "modifier_render_thread/rs_canvas_modifiers_draw.h"
-#include "modifier_render_thread/rs_canvas_modifiers_draw_thread.h"
-#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -49,9 +42,6 @@ bool RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
 #endif
 namespace {
 constexpr int EDGE_WIDTH_LIMIT = 1000;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-const bool HYBRID_ENABLED = RSSystemProperties::GetHybridRenderCanvasEnabled();
-#endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 const bool PRE_ALLOCATE_DMA_ENABLED =
     RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled();
@@ -80,25 +70,14 @@ public:
 RSCanvasDrawingNode::RSCanvasDrawingNode(
     bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
     : RSCanvasNode(isRenderServiceNode, isTextureExportNode, rsUIContext)
-{}
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+#endif
+}
 
 RSCanvasDrawingNode::~RSCanvasDrawingNode()
 {
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (HYBRID_ENABLED) {
-        if (auto uiContext = GetRSUIContext()) {
-            std::weak_ptr<RSRenderInterface> weakInterface = uiContext->GetRSRenderInterface();
-            std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = uiContext->GetCanvasModifiersDraw();
-            uiContext->GetCanvasModifiersDrawThread()->PostTask(
-                [id = GetId(), weakCanvasModifiersDraw, weakInterface]() {
-                    if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-                        canvasModifiersDraw->CleanCanvasDrawingNodeCache(id, weakInterface);
-                    }
-                });
-        }
-        return;
-    }
-#endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (preAllocateDmaCcm_ && (PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED)) {
         auto id = GetId();
@@ -134,18 +113,8 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
         RSNodeMap::MutableInstance().RegisterNode(node);
     }
 
-    bool hybridEnabled = false;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    hybridEnabled = HYBRID_ENABLED;
-#endif
-    if (hybridEnabled) {
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-        node->CreateProducerSurface();
-#endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-        preAllocateDmaCcm_ = false;
-    } else if (preAllocateDmaCcm_ && (PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED)) {
-        node->surfaceBufferMutex_ = std::make_shared<ffrt::mutex>();
+    if (preAllocateDmaCcm_ && (PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED)) {
         // Register node in Canvas Callback Router for SurfaceBuffer callback routing
         RSCanvasCallbackRouter::GetInstance().RegisterNode(node->GetId(), std::weak_ptr<RSCanvasDrawingNode>(node));
         // Register global callback once per process (thread-safe with std::call_once)
@@ -154,8 +123,8 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
             sptr<RSICanvasSurfaceBufferCallback> globalCallback = new GlobalCanvasSurfaceBufferCallback();
             RSInterfaces::GetInstance().RegisterCanvasCallback(globalCallback);
         });
-#endif
     }
+#endif
 
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasDrawingNodeCreate>(node->GetId(), isTextureExportNode);
@@ -164,50 +133,32 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
     return node;
 }
 
-void RSCanvasDrawingNode::CreateRenderNode()
-{
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<RSCanvasDrawingNodeCreate>(GetId(), isTextureExportNode_);
-    AddCommand(command, IsRenderServiceNode());
-}
-
 bool RSCanvasDrawingNode::ResetSurface(int width, int height)
 {
     if (width > EDGE_WIDTH_LIMIT) {
         ROSEN_LOGI("RSCanvasDrawingNode::ResetSurface id:%{public}" PRIu64 "width:%{public}d height:%{public}d",
             GetId(), width, height);
     }
-
     uint32_t resetSurfaceIndex = 0;
-    bool hybridEnabled = false;
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    hybridEnabled = HYBRID_ENABLED;
-#endif
-    if (hybridEnabled) {
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-        ResetSurfaceForHybrid(width, height);
-#endif
-    } else {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-        if (preAllocateDmaCcm_ && (PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED)) {
-            std::lock_guard<ffrt::mutex> lock(*surfaceBufferMutex_);
-            resetSurfaceIndex_ = GenerateResetSurfaceIndex();
-            resetSurfaceIndex = resetSurfaceIndex_;
-            canvasSurfaceBuffer_ = nullptr;
-        }
-        if (preAllocateDmaCcm_ && PRE_ALLOCATE_DMA_ENABLED) {
-            if (isNeverOnTree_) {
-                resetSurfaceParams_ = std::make_unique<ResetSurfaceParams>(width, height, resetSurfaceIndex);
-            } else {
-                std::weak_ptr<RSCanvasDrawingNode> weakNode =
-                    std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
-                ffrt::submit([weakNode, nodeId = GetId(), width, height, resetSurfaceIndex]() {
-                    PreAllocateDMABuffer(weakNode, nodeId, width, height, resetSurfaceIndex);
-                });
-            }
-        }
-#endif
+    if (preAllocateDmaCcm_ && (PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED)) {
+        std::lock_guard<ffrt::mutex> lock(*surfaceBufferMutex_);
+        resetSurfaceIndex_ = GenerateResetSurfaceIndex();
+        resetSurfaceIndex = resetSurfaceIndex_;
+        canvasSurfaceBuffer_ = nullptr;
     }
+    if (preAllocateDmaCcm_ && PRE_ALLOCATE_DMA_ENABLED) {
+        if (isNeverOnTree_) {
+            resetSurfaceParams_ = std::make_unique<ResetSurfaceParams>(width, height, resetSurfaceIndex);
+        } else {
+            std::weak_ptr<RSCanvasDrawingNode> weakNode =
+                std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
+            ffrt::submit([weakNode, nodeId = GetId(), width, height, resetSurfaceIndex]() {
+                PreAllocateDMABuffer(weakNode, nodeId, width, height, resetSurfaceIndex);
+            });
+        }
+    }
+#endif
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasDrawingNodeResetSurface>(GetId(), width, height, resetSurfaceIndex);
     if (AddCommand(command, IsRenderServiceNode())) {
@@ -215,33 +166,6 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
     }
     return false;
 }
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-void RSCanvasDrawingNode::ResetSurfaceForHybrid(int width, int height)
-{
-    static uint32_t maxGpuSupportedWidth = 0;
-    static uint32_t maxGpuSupportedHeight = 0;
-    static std::once_flag flag;
-    std::call_once(flag, []() {
-        RenderContext::Create()->QueryMaxGpuBufferSize(maxGpuSupportedWidth, maxGpuSupportedHeight);
-    });
-    sizeOutOfGpuLimit_ = width > static_cast<int>(maxGpuSupportedWidth) ||
-        height > static_cast<int>(maxGpuSupportedHeight) || width <= 0 || height <= 0;
-    if (auto uiContext = GetRSUIContext()) {
-        std::weak_ptr<RSCanvasDrawingNode> weakNode = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
-        std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = uiContext->GetCanvasModifiersDraw();
-        uiContext->GetCanvasModifiersDrawThread()->PostTask(
-            [width, height, outOfLimit = sizeOutOfGpuLimit_, nodeId = GetId(), weakNode, weakCanvasModifiersDraw]() {
-                if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-                    canvasModifiersDraw->ResetSurface(width, height, nodeId, outOfLimit, weakNode);
-                }
-            });
-        if (sizeOutOfGpuLimit_) {
-            uiContext->GetCanvasModifiersDrawThread()->PostCleanFreeBuffersTaskImmediately();
-        }
-    }
-}
-#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 uint32_t RSCanvasDrawingNode::GenerateResetSurfaceIndex()
@@ -347,12 +271,6 @@ void RSCanvasDrawingNode::CreateRenderNodeForTextureExportSwitch()
 bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (HYBRID_ENABLED && !sizeOutOfGpuLimit_) {
-        return GetBitmapForHybrid(bitmap);
-    }
-#endif
-
     if (IsRenderServiceNode()) {
         auto rsUIContext = GetRSUIContext();
         if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
@@ -394,12 +312,6 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
 bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (HYBRID_ENABLED && !sizeOutOfGpuLimit_) {
-        return GetPixelmapForHybrid(pixelmap, drawCmdList, rect);
-    }
-#endif
-
     if (!pixelmap) {
         RS_LOGE("RSCanvasDrawingNode::GetPixelmap: pixelmap is nullptr");
         return false;
@@ -441,156 +353,6 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
     return true;
 }
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-bool RSCanvasDrawingNode::GetBitmapForHybrid(Drawing::Bitmap& bitmap)
-{
-    auto uiContext = GetRSUIContext();
-    if (uiContext == nullptr) {
-        return false;
-    }
-    bool ret = false;
-    std::shared_ptr<RSCanvasDrawingNode> self = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
-    uiContext->GetCanvasModifiersDrawThread()->PostSyncTask([&bitmap, self, uiContext, &ret]() {
-        auto canvasModifiersDraw = uiContext->GetCanvasModifiersDraw();
-        if (canvasModifiersDraw == nullptr) {
-            return;
-        }
-        auto ret = canvasModifiersDraw->GetBitmap(bitmap, self);
-        if (!ret) {
-            RS_LOGE("RSCanvasDrawingNode::GetBitmapForHybrid: GetBitmap fail, nodeId=%{public}" PRIu64, self->GetId());
-        }
-    });
-    return ret;
-}
- 
-bool RSCanvasDrawingNode::GetPixelmapForHybrid(
-    std::shared_ptr<Media::PixelMap> pixelMap, Drawing::DrawCmdListPtr drawCmdList, const Drawing::Rect* rect)
-{
-    auto uiContext = GetRSUIContext();
-    if (uiContext == nullptr) {
-        return false;
-    }
-    if (pixelMap == nullptr || rect == nullptr) {
-        RS_LOGE(
-            "RSCanvasDrawingNode::GetPixelmapForHybrid: pixelMap or rect is nullptr, nodeId=%{public}" PRIu64, GetId());
-        return false;
-    }
- 
-    bool ret = false;
-    std::shared_ptr<RSCanvasDrawingNode> self = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
-    uiContext->GetCanvasModifiersDrawThread()->PostSyncTask([pixelMap, drawCmdList, rect, self, uiContext, &ret]() {
-        auto canvasModifiersDraw = uiContext->GetCanvasModifiersDraw();
-        if (canvasModifiersDraw == nullptr) {
-            return;
-        }
-        ret = canvasModifiersDraw->GetPixelMap(pixelMap, rect, self, drawCmdList);
-        if (!ret) {
-            RS_LOGE(
-                "RSCanvasDrawingNode::GetPixelmapForHybrid: GetPixelMap fail, nodeId=%{public}" PRIu64, self->GetId());
-        }
-    });
-    return ret;
-}
- 
-void RSCanvasDrawingNode::OnFinishRecording(
-    Drawing::DrawCmdListPtr& drawCmdList, ModifierNG::RSModifierType modifierType)
-{
-    if (modifierType != ModifierNG::RSModifierType::CONTENT_STYLE) {
-        RSCanvasNode::OnFinishRecording(drawCmdList, modifierType);
-        return;
-    }
- 
-    if (HybridDraw(drawCmdList, ModifierNG::RSPropertyType::CONTENT_STYLE)) {
-        drawCmdList = nullptr;
-    } else {
-        RSCanvasNode::OnFinishRecording(drawCmdList, modifierType);
-    }
-}
- 
-bool RSCanvasDrawingNode::HybridDraw(Drawing::DrawCmdListPtr drawCmdList, ModifierNG::RSPropertyType propertyType)
-{
-    if (!HYBRID_ENABLED || sizeOutOfGpuLimit_) {
-        return false;
-    }
-    if (propertyType != ModifierNG::RSPropertyType::CONTENT_STYLE) {
-        return false;
-    }
-    if (drawCmdList == nullptr || drawCmdList->IsEmpty()) {
-        return true;
-    }
-    UpdateCanvasContent(drawCmdList, false);
-    return true;
-}
- 
-void RSCanvasDrawingNode::CreateProducerSurface()
-{
-    auto uiContext = GetRSUIContext();
-    if (uiContext == nullptr) {
-        return;
-    }
- 
-    std::weak_ptr<RSCanvasDrawingNode> weakNode = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
-    uiContext->GetCanvasModifiersDrawThread()->PostTask([nodeId = GetId(), weakNode]() {
-        auto node = weakNode.lock();
-        if (node == nullptr) {
-            RS_LOGE("RSCanvasDrawingNode::CreateProducerSurface, node released, nodeId=%{public}" PRIu64, nodeId);
-            return;
-        }
-        auto uiContext = node->GetRSUIContext();
-        auto renderInterface = uiContext != nullptr ? uiContext->GetRSRenderInterface() : nullptr;
-        if (renderInterface == nullptr) {
-            RS_LOGE(
-                "RSCanvasDrawingNode::CreateProducerSurface, null renderInterface, nodeId=%{public}" PRIu64, nodeId);
-            return;
-        }
-        auto canvasModifiersDraw = uiContext->GetCanvasModifiersDraw();
-        if (canvasModifiersDraw == nullptr) {
-            RS_LOGE("RSCanvasDrawingNode::CreateProducerSurface, null canvasModifiersDraw, nodeId=%{public}" PRIu64,
-                nodeId);
-            return;
-        }
- 
-        auto gpuContext =
-            RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(canvasModifiersDraw->GetCacheDir());
-        if (gpuContext == nullptr) {
-            RS_LOGE("RSCanvasDrawingNode::CreateProducerSurface, null gpuContext, nodeId=%{public}" PRIu64, nodeId);
-            return;
-        }
- 
-        auto surface = renderInterface->GetCanvasSurface(nodeId);
-        if (surface == nullptr) {
-            RS_LOGE("RSCanvasDrawingNode::CreateProducerSurface, null surface, nodeId=%{public}" PRIu64, nodeId);
-            return;
-        }
-        auto rsSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
-        rsSurface->SetSkContext(gpuContext);
-        rsSurface->SetTimeOut(2); // Timeout 2ms
-        canvasModifiersDraw->OnProducerSurfaceCreated(nodeId, rsSurface);
-    });
-}
- 
-void RSCanvasDrawingNode::UpdateCanvasContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer)
-{
-    auto uiContext = GetRSUIContext();
-    if (uiContext == nullptr) {
-        return;
-    }
-    std::weak_ptr<RSCanvasDrawingNode> weakNode = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = uiContext->GetCanvasModifiersDraw();
-    std::unique_lock<std::mutex> uiLock(uiContext->uiMutex_);
-    uiContext->uiCV_.wait(uiLock, [uiContext] { return !uiContext->canBlockUIThread_; });
-    uiContext->GetCanvasModifiersDrawThread()->PostTask(
-        [nodeId = GetId(), weakNode, weakCanvasModifiersDraw, drawCmdList, forceFlushBuffer]() {
-            if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-                if (drawCmdList != nullptr) {
-                    canvasModifiersDraw->CacheDrawCmdList(nodeId, drawCmdList);
-                }
-                canvasModifiersDraw->UpdateCanvasContent(nodeId, weakNode, forceFlushBuffer);
-            }
-        });
-}
-#endif // RS_MODIFIERS_DRAW_ENABLE
-
 void RSCanvasDrawingNode::RegisterNodeMap()
 {
     auto rsContext = GetRSUIContext();
@@ -619,41 +381,6 @@ void RSCanvasDrawingNode::SetIsOnTheTree(bool onTheTree)
     }
 #endif
     RSNode::SetIsOnTheTree(onTheTree);
-}
-
-bool RSCanvasDrawingNode::SetNodeState(RSNodeState state)
-{
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    if (!HYBRID_ENABLED || sizeOutOfGpuLimit_) {
-        return false;
-    }
-    if (GetNodeState() == state) {
-        return true;
-    }
-    bool ret = RSNode::SetNodeState(state);
-    if (state == RSNodeState::ACTIVE) {
-        UpdateCanvasContent(nullptr, true);
-    } else if (auto uiContext = GetRSUIContext()) {
-        uiContext->GetCanvasModifiersDrawThread()->PostCleanFreeBuffersTaskImmediately();
-    }
-    return ret;
-#endif
-    return false;
-}
- 
-bool RSCanvasDrawingNode::IsSkipContentModifierDraw()
-{
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    return skipContentModifierDraw_;
-#endif
-    return false;
-}
- 
-void RSCanvasDrawingNode::SetSkipContentModifierDraw(bool skip)
-{
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    skipContentModifierDraw_ = skip;
-#endif
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -39,16 +39,14 @@ public:
     void PostParallelTask(const std::function<void()>& task, const std::string& name = "");
     void WaitUntilParallelTasksFinished();
     void RemoveTask(const std::string& name = "");
-    void RecvParcel(std::shared_ptr<MessageParcel> &parcel, bool isNonSystemAppCalling = false, pid_t callingPid = 0,
+    void RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling = false, pid_t callingPid = 0,
         std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr,
-        std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr, uint32_t parcelNumber = 0,
-        bool waitUnmarshalling = false);
+        std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr, uint32_t parcelNumber = 0);
     TransactionDataMap GetCachedTransactionData();
     bool CachedTransactionDataEmpty();
     bool ReportTransactionDataStatistics(pid_t pid, RSTransactionData* transactionData,
         bool isNonSystemAppCalling = false);
     void ClearTransactionDataStatistics();
-    bool IsNoNeedWaitUnmarshalling();
 
 private:
     RSUnmarshalThread() = default;
@@ -68,7 +66,6 @@ private:
     TransactionDataMap cachedTransactionDataMap_;
     bool willHaveCachedData_ = false;
     int unmarshalLoad_ = 0;
-    std::atomic<int> noNeedWaitTaskNum_ = 0;
 
     std::mutex statisticsMutex_;
     std::unordered_map<pid_t, size_t> transactionDataStatistics_;

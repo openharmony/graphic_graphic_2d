@@ -59,15 +59,9 @@ enum RSAnimationCommandType : uint16_t {
     ANIMATION_REVERSE = 0x0204,
     ANIMATION_SET_FRACTION = 0x0205,
     ANIMATION_CANCEL = 0x0206,
-    ANIMATION_REBUILD_CURVE = 0x0207,
-    ANIMATION_REBUILD_SPRING = 0x0208,
-    ANIMATION_REBUILD_KEYFRAME = 0x0209,
-    ANIMATION_REBUILD_PATH = 0x020a,
-    ANIMATION_REBUILD_INTERPOLATING_SPRING = 0x020b,
 
     // UI operation
     ANIMATION_CALLBACK = 0x0300,
-    ANIMATION_SEND_FRACTION = 0x0301,
 
     // interactive animator operation
     INTERACTIVE_ANIMATOR_CREATE = 0x0400,
@@ -113,8 +107,6 @@ public:
     }
     static void CreateAnimation(
         RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation);
-    static void RebuildAnimation(RSContext& context, NodeId targetId,
-        const std::shared_ptr<RSRenderAnimation>& animation, float fraction, bool isReverseCycle);
     static void CreateParticleAnimationNG(RSContext& context, NodeId targetId, ModifierId modifierId,
         const std::shared_ptr<RSRenderParticleAnimation>& animation);
 
@@ -123,12 +115,6 @@ public:
                                   NodeId targetId, AnimationId animId, uint64_t token,
                                   AnimationCallbackEvent event);
     static RSB_EXPORT void SetAnimationCallbackProcessor(AnimationCallbackProcessor processor);
-
-    using AnimationDestroyInRenderProcessor = void (*)(NodeId, AnimationId, uint64_t, float, bool);
-    static void AnimationDestroyInRender(
-        RSContext& context, NodeId targetId, AnimationId animId, uint64_t token, float fraction, bool isReverseCycle);
-    static RSB_EXPORT void SetAnimationDestroyInRenderProcessor(AnimationDestroyInRenderProcessor processor);
-
     static void CancelAnimation(RSContext& context, NodeId targetId, PropertyId propertyId);
 
     static void CreateInteractiveAnimator(RSContext& context,
@@ -181,10 +167,6 @@ ADD_COMMAND(RSAnimationCallback,
     ARG(PERMISSION_APP, ANIMATION, ANIMATION_CALLBACK,
         AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, uint64_t, AnimationCallbackEvent))
 
-ADD_COMMAND(RSAnimationDestroyInRender,
-    ARG(PERMISSION_APP, ANIMATION, ANIMATION_SEND_FRACTION,
-        AnimationCommandHelper::AnimationDestroyInRender, NodeId, AnimationId, uint64_t, float, bool))
-
 // create curve animation
 ADD_COMMAND(RSAnimationCreateCurve,
     ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_CURVE, AnimationCommandHelper::CreateAnimation,
@@ -219,31 +201,6 @@ ADD_COMMAND(RSAnimationCreateSpring,
 ADD_COMMAND(RSAnimationCreateInterpolatingSpring,
     ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_INTERPOLATING_SPRING, AnimationCommandHelper::CreateAnimation,
         NodeId, std::shared_ptr<RSRenderInterpolatingSpringAnimation>))
-
-// rebuild curve animation
-ADD_COMMAND(RSAnimationRebuildCurve,
-    ARG(PERMISSION_APP, ANIMATION, ANIMATION_REBUILD_CURVE, AnimationCommandHelper::RebuildAnimation,
-        NodeId, std::shared_ptr<RSRenderCurveAnimation>, float, bool))
-
-// rebuild spring animation
-ADD_COMMAND(RSAnimationRebuildSpring,
-    ARG(PERMISSION_APP, ANIMATION, ANIMATION_REBUILD_SPRING, AnimationCommandHelper::RebuildAnimation,
-        NodeId, std::shared_ptr<RSRenderSpringAnimation>, float, bool))
-
-// rebuild keyframe animation
-ADD_COMMAND(RSAnimationRebuildKeyframe,
-    ARG(PERMISSION_APP, ANIMATION, ANIMATION_REBUILD_KEYFRAME, AnimationCommandHelper::RebuildAnimation,
-        NodeId, std::shared_ptr<RSRenderKeyframeAnimation>, float, bool))
-
-// rebuild path animation
-ADD_COMMAND(RSAnimationRebuildPath,
-    ARG(PERMISSION_APP, ANIMATION, ANIMATION_REBUILD_PATH, AnimationCommandHelper::RebuildAnimation,
-        NodeId, std::shared_ptr<RSRenderPathAnimation>, float, bool))
-
-// rebuild interpolating spring animation
-ADD_COMMAND(RSAnimationRebuildInterpolatingSpring,
-    ARG(PERMISSION_APP, ANIMATION, ANIMATION_REBUILD_INTERPOLATING_SPRING, AnimationCommandHelper::RebuildAnimation,
-        NodeId, std::shared_ptr<RSRenderInterpolatingSpringAnimation>, float, bool))
 
 // interactive implict animator operation
 ADD_COMMAND(RSInteractiveAnimatorCreate,

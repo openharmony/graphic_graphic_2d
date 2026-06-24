@@ -337,7 +337,10 @@ void DrawCmdListFuzzTest007(const uint8_t* data, size_t size)
     drawCmdList->GetHybridRenderType();
 
     drawCmdList->SetHybridRenderType(DrawCmdList::HybridRenderType::CANVAS);
+    drawCmdList->IsHybridRenderEnabled(GetObject<uint32_t>(), GetObject<uint32_t>());
+
     drawCmdList->SetHybridRenderType(DrawCmdList::HybridRenderType::NONE);
+    drawCmdList->IsHybridRenderEnabled(GetObject<uint32_t>(), GetObject<uint32_t>());
 
     OpDataHandle textBlobHandle = { 0, 0 };
     PaintHandle paintHandle;

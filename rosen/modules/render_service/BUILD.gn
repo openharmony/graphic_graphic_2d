@@ -703,14 +703,6 @@ ohos_shared_library("librender_service") {
   if (tp_feature_enable) {
     defines += tp_defines
   }
-
-  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
-    sources += [
-      "core/pipeline/main_thread/rs_canvas_drawing_node_buffer_consumer_listener.cpp",
-    ]
-    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
-  }
-
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

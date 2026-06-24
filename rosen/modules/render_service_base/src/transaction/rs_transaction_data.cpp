@@ -18,7 +18,6 @@
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
 #include "command/rs_node_command.h"
-#include "command/rs_ui_director_command.h"
 #include "common/rs_optional_trace.h"
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/common/rs_log.h"
@@ -191,8 +190,6 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
     success = success && parcel.WriteInt32(parentPid_);
     success = success && parcel.WriteBool(dvsyncTimeUpdate_);
     success = success && parcel.WriteUint64(dvsyncTime_);
-    // marshal scene type
-    success = success && parcel.WriteUint8(static_cast<uint8_t>(scene_));
     if (!success) {
         ROSEN_LOGE("RSTransactionData::Marshalling failed");
     }
@@ -426,16 +423,13 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         }
     }
     int32_t pid;
-    uint8_t scene = 0;
     int32_t tid = -1;
     bool flag = parcel.ReadBool(needSync_) && parcel.ReadBool(needCloseSync_) &&
         parcel.ReadInt32(syncTransactionCount_) && parcel.ReadUint64(token_) &&
         parcel.ReadUint64(timestamp_) && ({RS_PROFILER_PATCH_TRANSACTION_TIME(parcel, timestamp_); true;}) &&
         parcel.ReadInt32(pid) && ({RS_PROFILER_PATCH_PID(parcel, pid); pid_ = pid; true;}) && parcel.ReadInt32(tid) &&
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_) &&
-        parcel.ReadBool(dvsyncTimeUpdate_) && parcel.ReadUint64(dvsyncTime_) &&
-        parcel.ReadUint8(scene);
-    scene_ = static_cast<RSTransactionDataScenes>(scene);
+        parcel.ReadBool(dvsyncTimeUpdate_) && parcel.ReadUint64(dvsyncTime_);
     if (!flag) {
         RS_LOGE("RSTransactionData::UnmarshallingCommand failed");
     }

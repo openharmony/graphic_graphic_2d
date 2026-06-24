@@ -4283,17 +4283,7 @@ void RSUniRenderVisitor::SetHdrWhenMultiDisplayChange()
 
 void RSUniRenderVisitor::TryNotifyUIBufferAvailable()
 {
-    bool hasRebuildTransaction = RSMainThread::Instance()->IsRebuildTransactionInProgress();
-    pid_t pendingPid = -1;
-    if (hasRebuildTransaction) {
-        pendingPid = RSMainThread::Instance()->GetPendingSplitPid();
-    }
-    
     for (auto& id : uiBufferAvailableId_) {
-        if (hasRebuildTransaction && ExtractPid(id) == pendingPid) {
-            RS_LOGI("TryNotifyUIBufferAvailable: rebuild transaction in progress, delay NotifyUIBufferAvailable");
-            continue;
-        }
         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
         auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
         if (surfaceNode) {

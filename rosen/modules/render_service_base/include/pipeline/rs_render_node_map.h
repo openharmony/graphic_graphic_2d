@@ -18,23 +18,18 @@
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
-#include <memory>
+
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "pipeline/rs_base_render_node.h"
-#include "refbase.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
 class RSSurfaceRenderNode;
 class RSScreenRenderNode;
-class RSCanvasRenderNode;
 class RSCanvasDrawingRenderNode;
 class RSLogicalDisplayRenderNode;
-class RSSurfaceHandler;
-class RSUIRenderDirector;
-
 class RSB_EXPORT RSRenderNodeMap final {
 public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
@@ -76,7 +71,6 @@ public:
     const std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetResidentSurfaceNodeMap() const;
     bool IsResidentProcessNode(NodeId id) const;
     bool IsUIExtensionSurfaceNode(NodeId id) const;
-    void DestroyTokenNode(pid_t pid, uint64_t token);
 
     NodeId GetEntryViewNodeId() const;
     NodeId GetWallPaperViewNodeId() const;
@@ -105,19 +99,6 @@ public:
         needAttachedNode_.clear();
     }
 
-    void RegisterSurfaceHandler(NodeId nodeId, std::shared_ptr<RSSurfaceHandler> surfaceHandler);
- 
-    std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler(NodeId nodeId, bool unregister);
- 
-    void UnregisterSurfaceHandlerByPid(pid_t pid);
-#ifndef ROSEN_CROSS_PLATFORM
-    void SaveSurfaceHandlerInfo(
-        NodeId nodeId, const std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> &info);
-    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> GetSurfaceHandlerInfo(
-        NodeId nodeId) const;
-    void RemoveSurfaceHandlerInfo(NodeId nodeId);
-#endif
-
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
@@ -126,16 +107,14 @@ private:
     RSRenderNodeMap& operator=(const RSRenderNodeMap&) = delete;
     RSRenderNodeMap& operator=(const RSRenderNodeMap&&) = delete;
 
+private:
     std::weak_ptr<RSContext> context_;
     NodeId entryViewNodeId_ = 0;
     NodeId negativeScreenNodeId_ = 0;
     NodeId wallpaperViewNodeId_ = 0;
     NodeId screenLockWindowNodeId_ = 0;
 
-    std::mutex pSurfaceSizeBackUpSetMutex_;
-
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> renderNodeMap_;
-    std::unordered_map<pid_t, std::vector<std::shared_ptr<RSUIRenderDirector>>> rsUIRenderDirectorMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> surfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> residentSurfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSScreenRenderNode>> screenNodeMap_;
@@ -146,9 +125,6 @@ private:
         selfDrawingNodeInProcess_;
     std::unordered_set<NodeId> unInTreeNodeSet_;
 
-    std::mutex surfaceHandlerMutex_;
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceHandler>> surfaceHandlerMap_;
-
     void Initialize(const std::weak_ptr<RSContext>& context);
 
     void AddUIExtensionSurfaceNode(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
@@ -157,12 +133,6 @@ private:
     std::unordered_set<NodeId> uiExtensionSurfaceNodes_;
     mutable std::mutex uiExtensionSurfaceNodesMutex_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> needAttachedNode_;
-
-#ifndef ROSEN_CROSS_PLATFORM
-    std::unordered_map<NodeId, std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>>>
-        surfaceHandlerInfoMap_;
-    mutable std::mutex surfaceHandlerInfoMutex_;
-#endif
 
     friend class RSContext;
     friend class RSMainThread;

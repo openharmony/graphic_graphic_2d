@@ -4677,6 +4677,37 @@ HWTEST_F(RSRenderNodeTest, GetNodeColorSpaceForceSRGBTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HasAnimation001
+ * @tc.desc: Verify HasAnimation returns false when animationManager is null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasAnimation001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    // Fresh node, animationManager_ is nullptr
+    EXPECT_FALSE(node->HasAnimation());
+}
+
+/**
+ * @tc.name: HasAnimation002
+ * @tc.desc: Verify HasAnimation returns true when animationManager has animations
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, HasAnimation002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    // Add animation to make animationManager_ non-null and non-empty
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    node->AddAnimation(animation);
+    EXPECT_TRUE(node->HasAnimation());
+}
+
+/**
  * @tc.name: DumpTreeWithAnimationManager001
  * @tc.desc: Verify DumpTree with non-null animationManager
  * @tc.type: FUNC

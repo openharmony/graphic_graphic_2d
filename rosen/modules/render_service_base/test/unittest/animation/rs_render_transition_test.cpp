@@ -75,7 +75,6 @@ public:
     RSRenderAnimationMock() : RSRenderAnimation() {}
     explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
     ~RSRenderAnimationMock() = default;
-    void RebuildPropertyValue(float fraction) override {}
 };
 /**
  * @tc.name: OnAttach001
@@ -232,35 +231,5 @@ HWTEST_F(RSRenderTransitionTest, ParseParam002, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSRenderTransitionTest ParseParam002 end";
 }
-
-/**
- * @tc.name: GetType001
- * @tc.desc: Verify GetType returns TRANSITION for RSRenderTransition
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderTransitionTest, GetType001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderTransitionTest GetType001 start";
-    std::vector<std::shared_ptr<RSRenderTransitionEffect>> effects;
-    auto transition = std::make_shared<RSRenderTransition>(ANIMATION_ID, effects, true);
-    EXPECT_EQ(transition->GetType(), RSRenderAnimationType::TRANSITION);
-    GTEST_LOG_(INFO) << "RSRenderTransitionTest GetType001 end";
-}
-
-/**
- * @tc.name: RebuildPropertyValue001
- * @tc.desc: Verify RebuildPropertyValue does nothing for transition animation
- * @tc.type:FUNC
- */
-HWTEST_F(RSRenderTransitionTest, RebuildPropertyValue001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSRenderTransitionTest RebuildPropertyValue001 start";
-    std::vector<std::shared_ptr<RSRenderTransitionEffect>> effects;
-    auto transition = std::make_shared<RSRenderTransition>(ANIMATION_ID, effects, true);
-    transition->RebuildPropertyValue(0.5f);
-    EXPECT_TRUE(transition != nullptr);
-    GTEST_LOG_(INFO) << "RSRenderTransitionTest RebuildPropertyValue001 end";
-}
-
 } // namespace Rosen
 } // namespace OHOS

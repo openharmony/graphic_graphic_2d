@@ -146,20 +146,6 @@ void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
     }
 }
 
-void RSRenderInterpolatingSpringAnimation::RebuildPropertyValue(float fraction)
-{
-    if (valueEstimator_ == nullptr) {
-        ROSEN_LOGE("RSRenderInterpolatingSpringAnimation::RebuildPropertyValue failed: valueEstimator is nullptr");
-        return;
-    }
-    float displacement = 1.f;
-    if (!ROSEN_EQ(fraction, 1.f)) {
-        auto mappedTime = fraction * GetDuration() * MILLISECOND_TO_SECOND;
-        displacement = 1.f + CalculateDisplacement(mappedTime);
-    }
-    valueEstimator_->RebuildValue(displacement);
-}
-
 void RSRenderInterpolatingSpringAnimation::OnInitialize(int64_t time, bool isCustom)
 {
     // set the initial status of spring model

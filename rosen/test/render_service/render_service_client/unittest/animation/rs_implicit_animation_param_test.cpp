@@ -35,13 +35,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-
-class RSAnimationMock : public RSAnimation {
-public:
-    explicit RSAnimationMock(const std::shared_ptr<RSUIContext>& uiContext) : RSAnimation(uiContext) {}
-    void RebuildInRender() override {}
-};
-
 namespace {
 class MockCmdListProperty : public RSAnimatableProperty<float> {
 public:
@@ -88,7 +81,7 @@ HWTEST_F(RSImplicitAnimationParamTest, ApplyTimingProtocolTest, Level1)
     auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSImplicitAnimationParam rsImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::CURVE);
-    auto animation = std::make_shared<RSAnimationMock>(rsUIContext);
+    auto animation = std::make_shared<RSAnimation>(rsUIContext);
     rsImplicitAnimationParam.ApplyTimingProtocol(animation);
     ASSERT_NE(animation, nullptr);
 }
