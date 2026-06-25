@@ -75,6 +75,9 @@ void RSCustomModifier::UpdateDrawCmdList()
     auto drawCmdList = RSCustomModifierHelper::FinishDrawing(ctx);
     auto propertyType = GetInnerPropertyType();
     bool hybridDraw = RenderInClient(drawCmdList, node);
+    if (hybridDraw) {
+        drawCmdList = nullptr;
+    }
     auto it = properties_.find(propertyType);
     if (it != properties_.end()) {
         auto property = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(it->second);
@@ -138,6 +141,9 @@ void RSCustomModifier::UpdateToRender()
     }
 
     bool hybridDraw = RenderInClient(drawCmdList, node);
+    if (hybridDraw) {
+        drawCmdList = nullptr;
+    }
     auto property = std::static_pointer_cast<RSAnimatableProperty<Drawing::DrawCmdListPtr>>(it->second);
     if (property->isCustom_) {
         property->showingValue_ = drawCmdList;

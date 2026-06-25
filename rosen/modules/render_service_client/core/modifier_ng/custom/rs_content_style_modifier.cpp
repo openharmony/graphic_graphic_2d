@@ -36,11 +36,7 @@ void RSContentStyleModifier::FlushContentModifierImmediately()
 bool RSContentStyleModifier::RenderInClient(Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<RSNode> node)
 {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    bool renderInClient = node != nullptr && node->RenderInClient(drawCmdList);
-    if (renderInClient && drawCmdList != nullptr) {
-        drawCmdList = nullptr;
-    }
-    return renderInClient;
+    return node != nullptr && node->RenderInClient(drawCmdList);
 #endif
     return false;
 }
