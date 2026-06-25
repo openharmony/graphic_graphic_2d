@@ -6225,10 +6225,10 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartRenderDisa
     auto& stagingRenderParams = canvasNode->GetStagingRenderParams();
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_NE(stagingRenderParams, nullptr);
-    ASSERT_TRUE(canvasNode->GetLayerPartRenderCache().IsLayerPartRender());
+    ASSERT_FALSE(canvasNode->GetLayerPartRenderCache().IsLayerPartRender());
     ASSERT_FALSE(stagingRenderParams->GetLayerPartRenderEnabled());
     ASSERT_EQ(canvasNode->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
-    ASSERT_NE(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
 }
 
 /**

@@ -20,9 +20,11 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "common/rs_anco_type.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "iconsumer_surface.h"
 #include "pipeline/rs_surface_handler.h"
+#include "ibuffer_consumer_listener.h"
 #endif
 
 using namespace testing;
@@ -975,7 +977,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, RSSurfaceBufferInterfaceTest001, TestSize.Lev
     RSSurfaceRenderNode* castedNode = bufferInterface->AsRSSurfaceRenderNode();
     ASSERT_NE(castedNode, nullptr);
     EXPECT_EQ(castedNode->GetId(), nodeId);
-
+    surfaceNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::FORCE_REFRESH));
     bool forceRefreshed = bufferInterface->OnBufferAvailable();
     ASSERT_EQ(forceRefreshed, true);
 
@@ -1068,6 +1070,14 @@ HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigInRSTest001, TestSize.Level1)
     EXPECT_EQ(node->GetName(), "TestSurfaceNode");
 }
 
+#ifndef ROSEN_CROSS_PLATFORM
+class MockBufferConsumerListener : public IBufferConsumerListener {
+public:
+    MockBufferConsumerListener() = default;
+    ~MockBufferConsumerListener() override = default;
+    void OnBufferAvailable() override {}
+};
+
 /**
  * @tc.name: RecreateNodeAndSurfaceTest001
  * @tc.desc: Test RecreateNodeAndSurface with invalid node id
@@ -1082,7 +1092,13 @@ HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceTest001, TestSize.Level
     bool unobscured = false;
 
     auto surfaceHandler = std::make_shared<RSSurfaceHandler>(config.id);
-    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> info = { surfaceHandler, nullptr };
+    auto consumer = IConsumerSurface::Create();
+    surfaceHandler->SetConsumer(consumer);
+    sptr<IBufferConsumerListener> listener = new MockBufferConsumerListener();
+    consumer->RegisterConsumerListener(listener);
+    surfaceHandler->SetConsumer(consumer);
+
+    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> info = { surfaceHandler, listener };
     context.GetMutableNodeMap().SaveSurfaceHandlerInfo(config.id, info);
 
     SurfaceNodeCommandHelper::RecreateNodeAndSurface(context, config, surfaceId, unobscured);
@@ -1091,5 +1107,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceTest001, TestSize.Level
     ASSERT_NE(node, nullptr);
     EXPECT_EQ(node->GetId(), config.id);
 }
+#endif
 #endif
 } // namespace OHOS::Rosen
