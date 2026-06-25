@@ -98,6 +98,12 @@ public:
     void OnSync() override;
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
+    // Generate SDF clip GE container and draw rects from node's resolved SDF shape.
+    // Returns true if SDF shape is resolved, false otherwise.
+    static bool GenerateSdfClipData(const RSRenderNode& node,
+        std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
+        Drawing::Rect& sdfDrawRect, Drawing::Rect& boundsRect);
+
 private:
     Drawing::Path stagingDrawingPath_;
     Drawing::Path drawingPath_;
@@ -128,6 +134,30 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
+};
+
+// Restore drawable for CLIP_SDF: draws SDF clip shader on offscreen canvas,
+// snapshots the clipped content, restores to original canvas, then RestoreToCount.
+class RSSdfClipRestoreDrawable : public RSDrawable {
+public:
+    explicit RSSdfClipRestoreDrawable(std::shared_ptr<uint32_t> content) : content_(std::move(content)) {}
+    ~RSSdfClipRestoreDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node, std::shared_ptr<uint32_t> content);
+    bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
+
+private:
+    std::shared_ptr<uint32_t> content_; // shared save count for RestoreToCount (balances BG_SAVE_BOUNDS)
+
+    bool needSync_ = false;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> stagingGeContainer_ = nullptr;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
+    Drawing::Rect stagingSdfDrawRect_;
+    Drawing::Rect sdfDrawRect_;
+    Drawing::Rect stagingBoundsRect_;
+    Drawing::Rect boundsRect_;
 };
 
 class RSFilterDrawable : public RSDrawable {
