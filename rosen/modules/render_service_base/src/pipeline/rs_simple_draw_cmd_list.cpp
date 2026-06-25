@@ -43,16 +43,18 @@ Drawing::DrawCmdListPtr RSSimpleDrawCmdList::ConvertToDrawCmdList() const
 {
     auto recordingCanvas_ = ExtendRecordingCanvas::Obtain(10, 10, true);
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (drawOpItems_.empty()) {
-        return recordingCanvas_->GetDrawCmdList();
-    }
-    Drawing::Rect tmpRect;
-    for (auto op : drawOpItems_) {
-        if (op) {
-            op->Playback(recordingCanvas_.get(), &tmpRect);
+    if (!drawOpItems_.empty()) {
+        Drawing::Rect tmpRect;
+        for (auto op : drawOpItems_) {
+            if (op) {
+                op->Playback(recordingCanvas_.get(), &tmpRect);
+            }
         }
     }
-    return recordingCanvas_->GetDrawCmdList();
+
+    auto drawCmdList = recordingCanvas_->GetDrawCmdList();
+    drawCmdList->SetNoNeedUICaptured(noNeedUICaptured_);
+    return drawCmdList;
 }
 
 RSSimpleDrawCmdList::RSSimpleDrawCmdList(
