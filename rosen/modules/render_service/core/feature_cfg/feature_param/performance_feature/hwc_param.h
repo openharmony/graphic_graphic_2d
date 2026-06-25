@@ -41,6 +41,7 @@ protected:
     static void SetDisableHwcOnExpandScreen(bool isEnable);
     static void SetSolidLayerInMultiWindowEnable(bool isEnable);
     static void SetDisableHwcInScaleScene(bool isEnable);
+    static void SetSplitScreenSourceTuning(bool isEnable);
 
 private:
     inline static bool isSolidLayerEnable_ = false;
