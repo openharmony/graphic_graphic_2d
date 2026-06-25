@@ -447,6 +447,9 @@ void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
     SetRSCmdProperty<ColorSpaceCmdModifier>(ColorSpaceCmdParam{
         colorSpace
     });
+    if (auto rsUIContext = GetRSUIContext()) {
+        rsUIContext->SetColorSpace(colorSpace);
+    }
 }
 
 void RSSurfaceNode::CreateRenderNodeForTextureExportSwitch()
