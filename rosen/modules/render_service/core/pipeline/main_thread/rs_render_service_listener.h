@@ -53,7 +53,7 @@ private:
     std::shared_ptr<RSComposerClientManager> composerClientManager_;
     uint64_t nodeId_ = 0;
 
-    void ConsumeBufferToKeepQueueRunning(std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
+    void ConsumeBufferToKeepQueueRunning(std::weak_ptr<RSSurfaceHandler> surfaceHandler);
     void ProcessPendingCallbacks();
     std::string name_;
     std::mutex pendingStateMutex_;

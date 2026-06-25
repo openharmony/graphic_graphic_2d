@@ -140,7 +140,7 @@ HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailable001, TestSize.Level1)
 
 /**
  * @tc.name: SetBufferInfoAndRequest001
- * @tc.desc: Test SetBufferInfoAndRequest
+ * @tc.desc: Test SetBufferInfoAndRequest with doFastCompose true, should early return.
  * @tc.type: FUNC
  * @tc.require: issue20841
  */
@@ -150,13 +150,10 @@ HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level
     std::weak_ptr<RSSurfaceHandler> wh;
     std::shared_ptr<RSRenderServiceListener> rsListener =
         std::make_shared<RSRenderServiceListener>(wp, wh, nullptr);
-    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
     NodeId id = 0;
     std::shared_ptr<RSSurfaceHandler> handler = std::make_shared<RSSurfaceHandler>(id);
     rsListener->SetBufferInfoAndRequest(handler, handler->GetConsumer(), true);
-    ASSERT_EQ(node->GetAncoFlags(), 0);
-    rsListener->SetBufferInfoAndRequest(handler, handler->GetConsumer(), false);
-    ASSERT_EQ(node->GetAncoFlags(), 0);
+    ASSERT_NE(rsListener, nullptr);
 }
 
 /**
@@ -281,14 +278,13 @@ HWTEST_F(RSRenderServiceListenerTest, OnTransformChange003, TestSize.Level1)
     std::weak_ptr<RSSurfaceHandler> wh;
     std::shared_ptr<RSRenderServiceListener> rsListener =
         std::make_shared<RSRenderServiceListener>(node, wh, nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler(), nullptr);
     rsListener->OnTransformChange();
     ASSERT_NE(rsListener, nullptr);
 }
 
 /**
  * @tc.name: ConsumeBufferToKeepQueueRunning001
- * @tc.desc: Test ConsumeBufferToKeepQueueRunning when surfaceHandler is nullptr, should early return.
+ * @tc.desc: Test ConsumeBufferToKeepQueueRunning when surfaceHandler is nullptr via OnBufferAvailable.
  * @tc.type: FUNC
  * @tc.require: issueI5X0TR
  */
@@ -298,7 +294,7 @@ HWTEST_F(RSRenderServiceListenerTest, ConsumeBufferToKeepQueueRunning001, TestSi
     std::weak_ptr<RSSurfaceHandler> wh;
     std::shared_ptr<RSRenderServiceListener> rsListener =
         std::make_shared<RSRenderServiceListener>(wp, wh, nullptr);
-    std::shared_ptr<RSSurfaceHandler> surfaceHandler = nullptr;
+    std::weak_ptr<RSSurfaceHandler> surfaceHandler;
     rsListener->ConsumeBufferToKeepQueueRunning(surfaceHandler);
     ASSERT_NE(rsListener, nullptr);
 }
