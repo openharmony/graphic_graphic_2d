@@ -304,16 +304,16 @@ private:
     std::mutex implicitAnimatorMutex_;
     std::mutex uiPipelineNumMutex_;
     int32_t uiPipelineNum_ = UI_PiPLINE_NUM_UNDEFINED;
-    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-
-    bool canvasDrawingNodeUpdated_ = false;
-    bool canvasDrawingNodeBufferFlushed_ = false;
-
     std::recursive_mutex uiTaskRunnersVisitorMutex_;
+
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     std::shared_ptr<RSModifiersDrawThread> modifiersDrawThread_ = nullptr;
-    std::shared_ptr<RSCanvasModifiersDrawThread> canvasModifiersDrawThread_ = nullptr;
+    std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent_ = nullptr;
+
+    bool canvasDrawingNodeUpdated_ = false;
+    bool canvasDrawingNodeBufferFlushed_ = false;
 
     std::mutex uiMutex_;
     std::condition_variable uiCV_;
