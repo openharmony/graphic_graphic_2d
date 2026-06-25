@@ -1895,7 +1895,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyPackageEvent_SendRequestFai
  * @tc.desc: Test NotifyWindowModeTypeEvent with valid windowModeType
  * @tc.type: FUNC
  *
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyWindowModeTypeEvent_ValidValue, TestSize.Level1)
 {
@@ -1949,7 +1949,7 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyWindowModeTypeEvent_SendReq
  * @tc.desc: Test NotifyWindowModeTypeEvent with multiple successive calls
  * @tc.type: FUNC
  *
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSServiceToRenderConnectionProxyTest, NotifyWindowModeTypeEvent_MultipleCalls, TestSize.Level1)
 {
