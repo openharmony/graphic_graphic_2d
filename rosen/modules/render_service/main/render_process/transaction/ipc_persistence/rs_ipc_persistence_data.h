@@ -29,7 +29,7 @@ namespace Rosen {
 class SetWatermarkPersistenceData : public RSIpcPersistenceDataBase {
 public:
     SetWatermarkPersistenceData() = default;
-    SetWatermarkPersistenceData(pid_t pid, const std::string &name, std::shared_ptr<Media::PixelMap> watermark,
+    SetWatermarkPersistenceData(pid_t pid, const std::string& name,, std::shared_ptr<Media::PixelMap> watermark,
         bool success, uint32_t rowCount = 0, uint32_t colCount = 0)
         : pid_(pid), name_(name), watermark_(watermark), success_(success), rowCount_(rowCount), colCount_(colCount)
     {}
