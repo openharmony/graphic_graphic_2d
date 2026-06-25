@@ -29,13 +29,13 @@ namespace Rosen {
 namespace AdapterTxt {
 class TextLineBaseImpl : public ::OHOS::Rosen::TextLineBase {
 public:
-    explicit TextLineBaseImpl(std::unique_ptr<SPText::TextLineBase> textlinebase);
+    explicit TextLineBaseImpl(std::shared_ptr<SPText::TextLineBase> textlinebase);
     size_t GetGlyphCount() const override;
     std::vector<std::unique_ptr<Run>> GetGlyphRuns() const override;
     Boundary GetTextRange() const override;
     void Paint(Drawing::Canvas *canvas, double x, double y) override;
 
-    std::unique_ptr<TextLineBase> CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
+    std::shared_ptr<TextLineBase> CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
         const std::string& ellipsisStr) const override;
     double GetTypographicBounds(double* ascent, double* descent, double* leading) const override;
     Drawing::Rect GetImageBounds() const override;
@@ -47,7 +47,7 @@ public:
     void* GetSpTextLineBase() { return reinterpret_cast<void*>(textlinebase_.get()); }
 
 private:
-    std::unique_ptr<SPText::TextLineBase> textlinebase_ = nullptr;
+    std::shared_ptr<SPText::TextLineBase> textlinebase_ = nullptr;
 };
 } // namespace AdapterTxt
 } // namespace Rosen

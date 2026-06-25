@@ -36,7 +36,7 @@ void OHTextLineBaseFuzz1(const uint8_t* data, size_t size)
     typographyCreate->AppendText(u"Hello World!");
     std::unique_ptr<Typography> typography_ = typographyCreate->CreateTypography();
     typography_->Layout(std::abs(fdp.ConsumeIntegral<int>()) + 1);
-    std::vector<std::unique_ptr<TextLineBase>> textLine_ = typography_->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine_ = typography_->GetTextLines();
 
     if (textLine_.size() != 0) {
         textLine_.at(0)->GetGlyphCount();

@@ -21,7 +21,7 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 namespace skt = skia::textlayout;
-TextLineImpl::TextLineImpl(std::unique_ptr<skt::TextLineBase> textLineBase, const std::vector<PaintRecord>& paints)
+TextLineImpl::TextLineImpl(std::shared_ptr<skt::TextLineBase> textLineBase, const std::vector<PaintRecord>& paints)
     : textLineBase_(std::move(textLineBase)), paints_(paints)
 {}
 
@@ -67,20 +67,20 @@ void TextLineImpl::Paint(Drawing::Canvas* canvas, double x, double y)
     textLineBase_->paint(&painter, x, y);
 }
 
-std::unique_ptr<TextLineBase> TextLineImpl::CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
+std::shared_ptr<TextLineBase> TextLineImpl::CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
     const std::string& ellipsisStr) const
 {
     if (!textLineBase_) {
         return nullptr;
     }
 
-    std::unique_ptr<skt::TextLineBase> textLine = textLineBase_->createTruncatedLine(width,
+    std::shared_ptr<skt::TextLineBase> textLine = textLineBase_->createTruncatedLine(width,
         static_cast<skt::EllipsisModal>(ellipsisMode), ellipsisStr);
     if (textLine == nullptr) {
         return nullptr;
     }
 
-    return std::make_unique<SPText::TextLineImpl>(std::move(textLine), paints_);
+    return std::make_shared<SPText::TextLineImpl>(std::move(textLine), paints_);
 }
 
 double TextLineImpl::GetTypographicBounds(double* ascent, double* descent, double* leading) const

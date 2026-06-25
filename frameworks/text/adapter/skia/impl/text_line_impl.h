@@ -29,7 +29,7 @@ namespace Rosen {
 namespace SPText {
 class TextLineImpl : public TextLineBase {
 public:
-    TextLineImpl(std::unique_ptr<skia::textlayout::TextLineBase> textLineBase, const std::vector<PaintRecord>& paints);
+    TextLineImpl(std::shared_ptr<skia::textlayout::TextLineBase> textLineBase, const std::vector<PaintRecord>& paints);
 
     virtual ~TextLineImpl() = default;
 
@@ -41,7 +41,7 @@ public:
 
     void Paint(Drawing::Canvas *canvas, double x, double y) override;
 
-    std::unique_ptr<TextLineBase> CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
+    std::shared_ptr<TextLineBase> CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
         const std::string& ellipsisStr) const override;
 
     double GetTypographicBounds(double* ascent, double* descent, double* leading) const override;
@@ -59,7 +59,7 @@ public:
     double GetAlignmentOffset(double alignmentFactor, double alignmentWidth) const override;
 
 private:
-    std::unique_ptr<skia::textlayout::TextLineBase> textLineBase_;
+    std::shared_ptr<skia::textlayout::TextLineBase> textLineBase_;
     const std::vector<PaintRecord>& paints_;
 };
 } // namepsace SPText
