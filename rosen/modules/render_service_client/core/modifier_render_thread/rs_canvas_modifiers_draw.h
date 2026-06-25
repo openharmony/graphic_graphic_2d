@@ -71,7 +71,7 @@ private:
     void ReleaseProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface);
     DestroySemaphoreInfo* ResetSurface(int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
     DestroySemaphoreInfo* UpdateContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer);
-    DestroySemaphoreInfo* ConvertCmdList();
+    DestroySemaphoreInfo* Draw();
     std::unique_ptr<RSSurfaceFrame> RequestBufferAndDrawHistory();
     void Playback(const Drawing::DrawCmdListPtr& cmdList);
     DestroySemaphoreInfo* FlushSurfaceWithSemaphore();

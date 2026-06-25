@@ -66,7 +66,7 @@ void RSCanvasModifiersDrawable::CreateProducerSurface(
         return;
     }
 
-    auto surface = renderInterface->GetCanvasSurface(nodeId_);
+    auto surface = renderInterface->CreateCanvasDrawingNodeSurface(nodeId_);
     if (surface == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::CreateProducerSurface, null surface, nodeId=%{public}" PRIu64, nodeId_);
         return;
@@ -86,7 +86,7 @@ void RSCanvasModifiersDrawable::ReleaseProducerSurface(std::weak_ptr<RSRenderInt
             nodeId_);
         return;
     }
-    renderInterface->RemoveCanvasSurface(nodeId_);
+    renderInterface->ReleaseCanvasDrawingNodeSurface(nodeId_);
 }
 
 DestroySemaphoreInfo* RSCanvasModifiersDrawable::ResetSurface(
@@ -125,7 +125,7 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::ResetSurface(
             RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: SetColorSpace fail, nodeId=%{public}" PRIu64, nodeId_);
         }
     }
-    return ConvertCmdList();
+    return Draw();
 }
 
 DestroySemaphoreInfo* RSCanvasModifiersDrawable::UpdateContent(
@@ -141,13 +141,13 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::UpdateContent(
         drawCmdListCache_->emplace_back(drawCmdList);
     }
     forceFlushBuffer_ = forceFlushBuffer;
-    return ConvertCmdList();
+    return Draw();
 }
 
-DestroySemaphoreInfo* RSCanvasModifiersDrawable::ConvertCmdList()
+DestroySemaphoreInfo* RSCanvasModifiersDrawable::Draw()
 {
     if (producerSurface_ == nullptr) {
-        RS_LOGE("RSCanvasModifiersDrawable::ConvertCmdList: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
+        RS_LOGE("RSCanvasModifiersDrawable::Draw: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
         return nullptr;
     }
     if (drawCmdListCache_->empty() && !forceFlushBuffer_) {
@@ -158,7 +158,7 @@ DestroySemaphoreInfo* RSCanvasModifiersDrawable::ConvertCmdList()
         surfaceFrame_ = RequestBufferAndDrawHistory();
     }
     if (surfaceFrame_ == nullptr) {
-        RS_LOGE("RSCanvasModifiersDrawable::ConvertCmdList: Null surfaceFrame, nodeId=%{public}" PRIu64, nodeId_);
+        RS_LOGE("RSCanvasModifiersDrawable::Draw: Null surfaceFrame, nodeId=%{public}" PRIu64, nodeId_);
         return nullptr;
     }
     auto drawingSurface = drawingSurface_;

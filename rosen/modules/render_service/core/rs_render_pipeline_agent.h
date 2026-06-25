@@ -236,8 +236,8 @@ public:
     );
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    sptr<Surface> GetCanvasSurface(NodeId nodeId, pid_t remotePid);
-    void RemoveCanvasSurface(NodeId nodeId, pid_t remotePid);
+    sptr<Surface> CreateCanvasDrawingNodeSurface(NodeId nodeId, pid_t remotePid);
+    void ReleaseCanvasDrawingNodeSurface(NodeId nodeId, pid_t remotePid);
 #endif
     bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid);
     bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,

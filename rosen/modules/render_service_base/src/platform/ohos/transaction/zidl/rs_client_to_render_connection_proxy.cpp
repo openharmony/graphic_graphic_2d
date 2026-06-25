@@ -1955,7 +1955,7 @@ void RSClientToRenderConnectionProxy::SetFreeMultiWindowStatus(bool enable)
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<Surface> RSClientToRenderConnectionProxy::GetCanvasSurface(NodeId nodeId)
+sptr<Surface> RSClientToRenderConnectionProxy::CreateCanvasDrawingNodeSurface(NodeId nodeId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1963,32 +1963,32 @@ sptr<Surface> RSClientToRenderConnectionProxy::GetCanvasSurface(NodeId nodeId)
  
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("GetCanvasSurface: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("CreateCanvasDrawingNodeSurface: WriteInterfaceToken GetDescriptor err.");
         return nullptr;
     }
  
     if (!data.WriteUint64(nodeId)) {
-        ROSEN_LOGE("GetCanvasSurface: WriteUint64 nodeId err.");
+        ROSEN_LOGE("CreateCanvasDrawingNodeSurface: WriteUint64 nodeId err.");
         return nullptr;
     }
  
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("GetCanvasSurface: Send Request err.");
+        ROSEN_LOGE("CreateCanvasDrawingNodeSurface: Send Request err.");
         return nullptr;
     }
  
     sptr<IRemoteObject> surfaceObject = reply.ReadRemoteObject();
     sptr<IBufferProducer> bp = iface_cast<IBufferProducer>(surfaceObject);
     if (bp == nullptr) {
-        ROSEN_LOGE("GetCanvasSurface: Get remote object fail.");
+        ROSEN_LOGE("CreateCanvasDrawingNodeSurface: Get remote object fail.");
         return nullptr;
     }
     return Surface::CreateSurfaceAsProducer(bp);
 }
  
-void RSClientToRenderConnectionProxy::RemoveCanvasSurface(NodeId nodeId)
+void RSClientToRenderConnectionProxy::ReleaseCanvasDrawingNodeSurface(NodeId nodeId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1996,19 +1996,19 @@ void RSClientToRenderConnectionProxy::RemoveCanvasSurface(NodeId nodeId)
  
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("RemoveCanvasSurface: WriteInterfaceToken GetDescriptor err.");
+        ROSEN_LOGE("ReleaseCanvasDrawingNodeSurface: WriteInterfaceToken GetDescriptor err.");
         return nullptr;
     }
  
     if (!data.WriteUint64(nodeId)) {
-        ROSEN_LOGE("RemoveCanvasSurface: WriteUint64 nodeId err.");
+        ROSEN_LOGE("ReleaseCanvasDrawingNodeSurface: WriteUint64 nodeId err.");
         return nullptr;
     }
  
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RemoveCanvasSurface: Send Request err.");
+        ROSEN_LOGE("ReleaseCanvasDrawingNodeSurface: Send Request err.");
     }
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE

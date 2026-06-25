@@ -670,14 +670,14 @@ void RSRenderInterface::SetFreeMultiWindowStatus(bool enable)
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-sptr<Surface> RSRenderInterface::GetCanvasSurface(NodeId nodeId)
+sptr<Surface> RSRenderInterface::CreateCanvasDrawingNodeSurface(NodeId nodeId)
 {
-    return renderPipelineClient_->GetCanvasSurface(nodeId);
+    return renderPipelineClient_->CreateCanvasDrawingNodeSurface(nodeId);
 }
 
-void RSRenderInterface::RemoveCanvasSurface(NodeId nodeId)
+void RSRenderInterface::ReleaseCanvasDrawingNodeSurface(NodeId nodeId)
 {
-    renderPipelineClient_->RemoveCanvasSurface(nodeId);
+    renderPipelineClient_->ReleaseCanvasDrawingNodeSurface(nodeId);
 }
 #endif // RS_MODIFIERS_DRAW_ENABLE
 

@@ -153,8 +153,8 @@ public:
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    sptr<Surface> GetCanvasSurface(NodeId nodeId) override;
-    void RemoveCanvasSurface(NodeId nodeId) override;
+    sptr<Surface> CreateCanvasDrawingNodeSurface(NodeId nodeId) override;
+    void ReleaseCanvasDrawingNodeSurface(NodeId nodeId) override;
 #endif // RS_MODIFIERS_DRAW_ENABLE
 
     int32_t RegisterFrameStabilityDetection(
