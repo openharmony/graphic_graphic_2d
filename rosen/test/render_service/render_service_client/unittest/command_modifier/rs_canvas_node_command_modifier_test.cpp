@@ -266,7 +266,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, FinishRecordTest004, TestSize.Level1)
     ret = mod->SetParam(param2);
     EXPECT_TRUE(ret);
     EXPECT_EQ(mod->GetParam().modifierType_, 2);
-    EXPECT_FALSE(mod->GetParam().drawCmdList_);
+    EXPECT_FALSE(mod->GetParam().drawingCmdList_);
 }
 
 /**
@@ -280,7 +280,7 @@ HWTEST_F(RSCanvasNodeCommandModifierTest, DrawOnNodeTest001, TestSize.Level1)
     DrawOnNodeCmdParam param{0, std::make_shared<Drawing::DrawCmdList>()};
     auto mod = std::make_shared<DrawOnNodeCmdModifier>(node, param);
     EXPECT_EQ(mod->GetType(), RSCmdModifierType::DRAW_ON_NODE);
-    ASSERT_TRUE(mod->GetParam().drawCmdList_);
+    ASSERT_TRUE(mod->GetParam().drawingCmdList_);
 
     std::string out;
     mod->DumpParam(out);

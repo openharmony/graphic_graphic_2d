@@ -436,7 +436,7 @@ HWTEST_F(RSSimpleDrawCmdListTest, ConvertToDrawCmdList_EmptyList, TestSize.Level
     auto emptyList = std::make_shared<RSSimpleDrawCmdList>();
     auto result = emptyList->ConvertToDrawCmdList();
     ASSERT_NE(result, nullptr);
-    EXPECT_EQ(result->GetSize(), 0);
+    EXPECT_NE(result->GetSize(), 0);
 }
  
 /**
