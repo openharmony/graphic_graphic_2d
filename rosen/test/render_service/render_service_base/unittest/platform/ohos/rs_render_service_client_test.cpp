@@ -1462,10 +1462,10 @@ HWTEST_F(RSServiceClientTest, RemoveVirtualScreenSurface002, TestSize.Level1)
  */
 HWTEST_F(RSServiceClientTest, NotifyWindowModeTypeEvent001, TestSize.Level1)
 {
-    ASSERT_NE(rsRenderServiceClient, nullptr);
-    rsRenderServiceClient->NotifyWindowModeTypeEvent(1);
-    rsRenderServiceClient->NotifyWindowModeTypeEvent(2);
-    rsRenderServiceClient->NotifyWindowModeTypeEvent(3);
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->NotifyWindowModeTypeEvent(1);
+    rsClient->NotifyWindowModeTypeEvent(2);
+    rsClient->NotifyWindowModeTypeEvent(3);
 }
 
 /**
