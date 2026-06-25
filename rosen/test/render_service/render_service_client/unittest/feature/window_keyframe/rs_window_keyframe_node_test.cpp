@@ -176,7 +176,7 @@ HWTEST_F(RSWindowKeyFrameNodeTest, ReadFromParcel, TestSize.Level1)
     parcel.WriteUint64(linkedNodeId);
     keyframeNode = RSWindowKeyFrameNode::ReadFromParcel(parcel);
     ASSERT_NE(keyframeNode, nullptr);
-    EXPECT_EQ(keyframeNode->IsRenderServiceNode(), false);
+    EXPECT_EQ(keyframeNode->isRenderServiceNode_, false);
     EXPECT_EQ(keyframeNode->GetId(), nodeId);
     EXPECT_EQ(keyframeNode->GetLinkedNodeId(), linkedNodeId);
 
