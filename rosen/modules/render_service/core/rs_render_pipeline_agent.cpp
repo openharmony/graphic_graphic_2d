@@ -74,7 +74,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "app_mgr_client.h"
 #undef LOG_TAG
-#define LOG_TAG "RSRenderPipelineAgent" 
+#define LOG_TAG "RSRenderPipelineAgent"
 
 namespace OHOS {
 namespace Rosen {
@@ -1314,7 +1314,6 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     RS_LOGI("RsDebug RSRenderPipeline::CreateNodeAndSurface node"
             "id:%{public}" PRIu64 " name:%{public}s surface id:%{public}" PRIu64 " name:%{public}s",
         node->GetId(), node->GetName().c_str(), surface->GetUniqueId(), surfaceName.c_str());
-    ConfigureForceTunnelLayer(config, surface);
     auto defaultUsage = surface->GetDefaultUsage();
     auto nodeId = node->GetId();
     bool isUseSelfDrawBufferUsage = RSSystemProperties::GetSelfDrawingDirtyRegionEnabled() &&
@@ -1356,6 +1355,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
         return ERR_INVALID_VALUE;
     }
+    ConfigureForceTunnelLayer(config, surface);
     sptr<IBufferProducer> producer = surface->GetProducer();
     sfc = Surface::CreateSurfaceAsProducer(producer);
     return ERR_OK;
