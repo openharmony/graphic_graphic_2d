@@ -299,6 +299,10 @@ bool RSCanvasModifiersDrawable::IsFree(int64_t now, int64_t maxDuration)
 
 void RSCanvasModifiersDrawable::CleanBuffer()
 {
+    if (producerSurface_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::CleanBuffer: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
+        return;
+    }
     std::static_pointer_cast<RSSurfaceOhosVulkan>(producerSurface_)->CleanReleasedBuffers();
     lastFlushBufferTime_ = 0;
     RS_LOGI("RSCanvasModifiersDrawable::CleanBuffer, nodeId=%{public}" PRIu64, nodeId_);

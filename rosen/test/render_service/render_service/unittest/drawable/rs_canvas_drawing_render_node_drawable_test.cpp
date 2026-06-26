@@ -1098,4 +1098,105 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestS
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 #endif // RS_ENABLE_VK
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: GetConsumerSurfaceTest
+ * @tc.desc: Test GetConsumerSurface with different conditions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetConsumerSurfaceTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto consumerSurface = drawable->GetConsumerSurface();
+    ASSERT_EQ(consumerSurface, nullptr);
+}
+ 
+/**
+ * @tc.name: DrawCustomContentTest
+ * @tc.desc: Test DrawCustomContent with different conditions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCustomContentTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas canvas;
+    drawable->renderParams_ = nullptr;
+    drawable->DrawCustomContent(canvas);
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->DrawCustomContent(canvas);
+    auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    params->SetBufferDraw(true);
+    drawable->DrawCustomContent(canvas);
+}
+ 
+/**
+ * @tc.name: CreateImageFromBufferTest
+ * @tc.desc: Test CreateImageFromBuffer with different conditions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateImageFromBufferTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto image = drawable->CreateImageFromBuffer(nullptr);
+    ASSERT_EQ(image, nullptr);
+    RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.tid_ = gettid();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    uniRenderThread.uniRenderEngine_->renderContext_ = RenderContext::Create();
+    uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    image = drawable->CreateImageFromBuffer(buffer);
+    ASSERT_EQ(image, nullptr);
+}
+ 
+/**
+ * @tc.name: DrawCaptureImageBufferDrawTest
+ * @tc.desc: Test DrawCaptureImage with buffer draw mode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawCaptureImageBufferDrawTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    auto params = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    params->SetBufferDraw(true);
+    drawable->DrawCaptureImage(canvas);
+    drawable->image_ = std::make_shared<Drawing::Image>();
+    drawable->DrawCaptureImage(canvas);
+}
+ 
+/**
+ * @tc.name: SnapshotBufferDrawTest
+ * @tc.desc: Test Snapshot with buffer draw mode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, SnapshotBufferDrawTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    drawable->renderParams_ = nullptr;
+    auto image = drawable->Snapshot();
+    ASSERT_EQ(image, nullptr);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    image = drawable->Snapshot();
+    ASSERT_EQ(image, nullptr);
+}
+#endif
 }

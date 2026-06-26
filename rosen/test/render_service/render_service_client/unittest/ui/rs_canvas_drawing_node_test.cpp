@@ -308,5 +308,68 @@ HWTEST_F(RSCanvasDrawingNodeTest, DestructorWithDmaBufferTest, TestSize.Level1)
         ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
     }
 }
+
+/**
+ * @tc.name: GetPixelmapForHybridTest
+ * @tc.desc: Test GetPixelmapForClientRender with canvasModifiersDrawAgent
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapForHybridTest, TestSize.Level1)
+{
+    auto drawingNode = RSCanvasDrawingNode::Create(true);
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
+    Drawing::Rect rect;
+    bool res = drawingNode->GetPixelmap(pixelmap, drawCmdList, &rect);
+    EXPECT_EQ(res, false);
+}
+ 
+/**
+ * @tc.name: RenderInClientTest001
+ * @tc.desc: Test RenderInClient with null drawCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest001, TestSize.Level1)
+{
+    auto drawingNode = RSCanvasDrawingNode::Create(true);
+    drawingNode->RenderInClient(nullptr);
+}
+ 
+/**
+ * @tc.name: RenderInClientTest002
+ * @tc.desc: Test RenderInClient with empty drawCmdList
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest002, TestSize.Level1)
+{
+    auto drawingNode = RSCanvasDrawingNode::Create(true);
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    drawingNode->RenderInClient(drawCmdList);
+}
+ 
+/**
+ * @tc.name: SetNodeStateTest001
+ * @tc.desc: Test SetNodeState when not hybrid enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, SetNodeStateTest001, TestSize.Level1)
+{
+    auto drawingNode = RSCanvasDrawingNode::Create(true);
+    bool res = drawingNode->SetNodeState(RSNodeState::ACTIVE);
+    EXPECT_EQ(res, false);
+}
+ 
+/**
+ * @tc.name: ResetSurfaceForClientRenderTest
+ * @tc.desc: Test ResetSurfaceForClientRender
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceForClientRenderTest, TestSize.Level1)
+{
+    RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(true);
+    int width = 100;
+    int height = 100;
+    canvasNode->ResetSurface(width, height);
+}
 #endif
 } // namespace OHOS::Rosen

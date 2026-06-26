@@ -20,7 +20,7 @@
 #include "transaction/rs_buffer_transaction.h"
 
 namespace OHOS::Rosen {
-class RSModifiersDraw {
+class RSC_EXPORT RSModifiersDraw {
 public:
     RSModifiersDraw() = default;
     ~RSModifiersDraw() = default;

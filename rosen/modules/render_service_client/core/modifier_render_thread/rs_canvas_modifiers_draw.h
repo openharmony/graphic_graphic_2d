@@ -60,7 +60,7 @@ private:
 
 struct DestroySemaphoreInfo;
 
-class RSCanvasModifiersDrawable {
+class RSC_EXPORT RSCanvasModifiersDrawable {
 public:
     RSCanvasModifiersDrawable() = default;
     ~RSCanvasModifiersDrawable() = default;
@@ -107,7 +107,7 @@ private:
     friend class RSCanvasModifiersDraw;
 };
 
-class RSCanvasModifiersDraw : public std::enable_shared_from_this<RSCanvasModifiersDraw> {
+class RSC_EXPORT RSCanvasModifiersDraw : public std::enable_shared_from_this<RSCanvasModifiersDraw> {
 public:
     RSCanvasModifiersDraw() = default;
     ~RSCanvasModifiersDraw() = default;
