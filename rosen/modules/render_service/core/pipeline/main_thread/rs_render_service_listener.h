@@ -19,7 +19,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
-#include "render_server/rs_render_service.h" 
+#include "render_server/rs_render_service.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,6 +30,7 @@ public:
     ~RSRenderServiceListener() override;
     void OnBufferAvailable() override;
     void OnTunnelHandleChange() override;
+    void OnTunnelLayerInfoChanged(const TunnelLayerState& state) override;
     void OnCleanCache(uint32_t *bufSeqNum) override;
     void OnGoBackground() override;
     void OnTransformChange() override;
