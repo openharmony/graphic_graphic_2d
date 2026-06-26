@@ -71,19 +71,7 @@ void RSInterpolatingSpringAnimation::SetZeroThreshold(const float zeroThreshold)
 void RSInterpolatingSpringAnimation::OnStart()
 {
     RSPropertyAnimation::OnStart();
-    auto animation = std::make_shared<RSRenderInterpolatingSpringAnimation>(GetId(), GetPropertyId(),
-        originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty());
-    // 300: placeholder for estimated duration, will be replaced by real duration on animation start.
-    SetDuration(300);
-    UpdateParamToRenderAnimation(animation);
-    if (const auto& springParams = timingCurve_.springParams_) {
-        animation->SetSpringParameters(springParams->response_, springParams->dampingRatio_,
-            springParams->initialVelocity_, springParams->minimumAmplitudeRatio_);
-    }
-    animation->SetAdditive(GetAdditive());
-    if (GetIsLogicallyFinishCallback()) {
-        animation->SetZeroThreshold(zeroThreshold_);
-    }
+    auto animation = CreateRenderAnimation();
     if (isCustom_) {
         animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
@@ -119,6 +107,39 @@ void RSInterpolatingSpringAnimation::StartUIAnimation(
 bool RSInterpolatingSpringAnimation::GetIsLogicallyFinishCallback() const
 {
     return isLogicallyFinishCallback_;
+}
+
+std::shared_ptr<RSRenderInterpolatingSpringAnimation> RSInterpolatingSpringAnimation::CreateRenderAnimation()
+{
+    // placeholder for estimated duration
+    constexpr int SPRING_DURATION_PLACEHOLDER = 300;
+    auto animation = std::make_shared<RSRenderInterpolatingSpringAnimation>(GetId(), GetPropertyId(),
+        originValue_->GetRenderProperty(), startValue_->GetRenderProperty(), endValue_->GetRenderProperty());
+    SetDuration(SPRING_DURATION_PLACEHOLDER);
+    UpdateParamToRenderAnimation(animation);
+    if (const auto& springParams = timingCurve_.springParams_) {
+        animation->SetSpringParameters(springParams->response_, springParams->dampingRatio_,
+            springParams->initialVelocity_, springParams->minimumAmplitudeRatio_);
+    }
+    animation->SetAdditive(GetAdditive());
+    if (GetIsLogicallyFinishCallback()) {
+        animation->SetZeroThreshold(zeroThreshold_);
+    }
+    return animation;
+}
+
+void RSInterpolatingSpringAnimation::RebuildInRender()
+{
+    auto target = GetTarget().lock();
+    if (target == nullptr) {
+        ROSEN_LOGE("Failed to rebuild interpolating spring animation, target is null!");
+        return;
+    }
+    auto animation = CreateRenderAnimation();
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationRebuildInterpolatingSpring>(
+        target->GetId(), animation, GetRebuildParam().fraction, GetRebuildParam().isReverseCycle);
+    target->AddCommand(command, target->IsRenderServiceNode(), target->GetFollowType(), target->GetId());
+    SetRebuildParam({});
 }
 } // namespace Rosen
 } // namespace OHOS

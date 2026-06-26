@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 
 #include "display_engine/rs_luminance_control.h"
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -50,6 +51,8 @@ public:
     MOCK_METHOD(bool, IsForceCloseHdr, (), (override, const));
     MOCK_METHOD(void, ForceCloseHdr, (uint32_t closeHdrSceneId, bool forceCloseHdr), (override));
     MOCK_METHOD(bool, IsScreenNoHeadroom, (ScreenId screenId), (override, const));
+    MOCK_METHOD(float, GetSurfaceNodeMaxScaler, (RSSurfaceRenderNode& surfaceNode, ScreenId screenId,
+        HdrStatus hdrstatus), (override));
     MOCK_METHOD(double, GetMaxScaler, (ScreenId screenId), (override, const));
     MOCK_METHOD(BrightnessInfo, GetBrightnessInfo, (ScreenId screenId), (override));
     MOCK_METHOD(bool, IsBrightnessInfoChanged, (ScreenId screenId), (override));
@@ -62,7 +65,7 @@ public:
     MOCK_METHOD(bool, IsHardwareHdrDisabled, (bool checkBrightnessRatio, ScreenId screenId), (override));
     MOCK_METHOD(double, GetConfigScaler, (ScreenId screenId, HdrStatus type), (override, const));
     MOCK_METHOD(void, SetDualScreenStatus, (ScreenId screenId, DualScreenStatus dualScreenStatus), (override));
-    MOCK_METHOD(float, HdrDimmingProcess, (ScreenId screenId, uint64_t nodeId), (override));
+    MOCK_METHOD(float, HdrDimmingProcess, (ScreenId screenId, RSSurfaceRenderNode& surfaceNode), (override));
     MOCK_METHOD(void, HdrDimmingPostProcess, (ScreenId screenId), (override));
     MOCK_METHOD(int32_t, UpdateMetadataBasedOnScaler, (const sptr<SurfaceBuffer>& input, float scaler,
         HdrStatus hdrStatus), (override));
@@ -106,6 +109,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     ScreenId screenId{};
     uint64_t nodeId{};
     uint32_t level{};
+    RSSurfaceRenderNode surfaceNode{nodeId};
     std::vector<ScreenColorGamut> mode{};
     std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>> displayHdrBrightnessScaler;
     DualScreenStatus dualScreenStatus{};
@@ -123,7 +127,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.HandleGamutSpecialRender(mode);
     luminCtrl.SetCurDisplayHdrBrightnessScaler(screenId, displayHdrBrightnessScaler);
     luminCtrl.SetDualScreenStatus(screenId, dualScreenStatus);
-    luminCtrl.HdrDimmingProcess(screenId, nodeId);
+    luminCtrl.HdrDimmingProcess(screenId, surfaceNode);
     luminCtrl.HdrDimmingPostProcess(screenId);
     luminCtrl.UpdateMetadataBasedOnScaler(input, scaler, hdrStatus);
 
@@ -143,7 +147,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.HandleGamutSpecialRender(mode);
     luminCtrl.SetCurDisplayHdrBrightnessScaler(screenId, displayHdrBrightnessScaler);
     luminCtrl.SetDualScreenStatus(screenId, dualScreenStatus);
-    luminCtrl.HdrDimmingProcess(screenId, nodeId);
+    luminCtrl.HdrDimmingProcess(screenId, surfaceNode);
     luminCtrl.HdrDimmingPostProcess(screenId);
     luminCtrl.UpdateMetadataBasedOnScaler(input, scaler, hdrStatus);
 
@@ -252,6 +256,22 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl008, TestSize.Level1)
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
     ASSERT_EQ(luminCtrl.GetMaxScaler(0), 0.0);
+}
+
+/**
+ * @tc.name: LuminanceControlGetSurfaceNodeMaxScaler
+ * @tc.desc: Test LuminanceControl class members
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControlGetSurfaceNodeMaxScaler, TestSize.Level1)
+{
+    RSSurfaceRenderNode surfaceNode{0};
+    auto& luminCtrl = RSLuminanceControl::Get();
+    auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
+    luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
+    ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
+    ASSERT_EQ(luminCtrl.GetSurfaceNodeMaxScaler(surfaceNode, 0, HdrStatus::NO_HDR), 0.0);
 }
 
 /**

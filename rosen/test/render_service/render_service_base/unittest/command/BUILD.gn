@@ -17,12 +17,51 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/render_service_base/command"
 
+##############################  RSAnimationCommandBaseTest  ##################################
+ohos_unittest("RSAnimationCommandBaseTest") {
+  module_out_path = module_output_path
+ 
+  sources = [
+    "rs_animation_command_test.cpp",
+  ]
+ 
+  configs = [
+    ":render_test",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
+  ]
+ 
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+ 
+  include_dirs = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+    "//foundation/graphic/graphic_2d/rosen/include",
+    "//foundation/graphic/graphic_2d/rosen/test/include",
+  ]
+ 
+  deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base" ]
+ 
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  }
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+ 
+  subsystem_name = "graphic"
+}
+
 ##############################  RSNodeCommandTest1  ##################################
 ohos_unittest("RSNodeCommandTest1") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_animation_command_test.cpp",
     "rs_base_node_command_test.cpp",
     "rs_canvas_drawing_node_command_test.cpp",
     "rs_canvas_node_command_test.cpp",
@@ -82,5 +121,8 @@ config("render_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":RSNodeCommandTest1" ]
+  deps = [
+    ":RSAnimationCommandBaseTest",
+    ":RSNodeCommandTest1",
+  ]
 }

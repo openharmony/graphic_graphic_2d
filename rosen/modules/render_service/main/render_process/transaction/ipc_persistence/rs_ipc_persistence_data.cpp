@@ -28,15 +28,22 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
+constexpr uint32_t MAX_WATERMARK_GRID_COUNT = 255;
 } // namespace
 
 // SetWaterMark
 bool SetWatermarkPersistenceData::Marshalling(Parcel& parcel) const
 {
+    if (rowCount_ > MAX_WATERMARK_GRID_COUNT || colCount_ > MAX_WATERMARK_GRID_COUNT) {
+        RS_LOGE("SetWatermarkPersistenceData::Marshalling: rowCount or colCount out of range");
+        return false;
+    }
     return RSMarshallingHelper::Marshalling(parcel, pid_) &&
            RSMarshallingHelper::Marshalling(parcel, name_) &&
            parcel.WriteParcelable(watermark_.get()) &&
-           RSMarshallingHelper::Marshalling(parcel, success_);
+           RSMarshallingHelper::Marshalling(parcel, success_) &&
+           RSMarshallingHelper::Marshalling(parcel, rowCount_) &&
+           RSMarshallingHelper::Marshalling(parcel, colCount_);
 }
 
 SetWatermarkPersistenceData* SetWatermarkPersistenceData::Unmarshalling(Parcel& parcel)
@@ -59,6 +66,18 @@ SetWatermarkPersistenceData* SetWatermarkPersistenceData::Unmarshalling(Parcel& 
         RS_LOGE("SetWatermarkPersistenceData::Unmarshalling: failed to read success");
         return nullptr;
     }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, result->rowCount_)) {
+        RS_LOGE("SetWatermarkPersistenceData::Unmarshalling: failed to read rowCount");
+        return nullptr;
+    }
+    if (!RSMarshallingHelper::Unmarshalling(parcel, result->colCount_)) {
+        RS_LOGE("SetWatermarkPersistenceData::Unmarshalling: failed to read colCount");
+        return nullptr;
+    }
+    if (result->rowCount_ > MAX_WATERMARK_GRID_COUNT || result->colCount_ > MAX_WATERMARK_GRID_COUNT) {
+        RS_LOGE("SetWatermarkPersistenceData::Unmarshalling: rowCount or colCount out of range");
+        return nullptr;
+    }
     return result.release();
 }
 
@@ -66,7 +85,7 @@ void SetWatermarkPersistenceData::Apply(const sptr<RSRenderPipelineAgent>& rende
 {
     if (renderPipelineAgent) {
         bool success = false;
-        renderPipelineAgent->SetWatermark(pid_, name_, watermark_, success);
+        renderPipelineAgent->SetWatermark(pid_, name_, watermark_, success, rowCount_, colCount_);
     }
 }
 

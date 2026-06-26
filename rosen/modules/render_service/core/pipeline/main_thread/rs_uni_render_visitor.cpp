@@ -460,6 +460,7 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     if (!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
         isHdrOn = false;
     }
+    node.SetLastDisplayHdrStatus(node.GetDisplayHdrStatus());
     node.SetHDRPresent(isHdrOn);
     hasDisplayHdrOn_ |= isHdrOn;
     const auto& screenProperty = node.GetScreenProperty();
@@ -824,6 +825,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
         ProcessUnpairedSharedTransitionNode();
     }
     PrepareColorPickers();
+    node.HandleHdrForceHwcNodes();
     node.HandleCurMainAndLeashSurfaceNodes();
     layerNum_ += node.GetSurfaceCountForMultiLayersPerf();
     node.RenderTraceDebug();
@@ -2507,26 +2509,31 @@ void RSUniRenderVisitor::UpdateAncoNodeHWCDisabledState(
     }
 }
 
-void RSUniRenderVisitor::UpdateScreenHdrForceHwcState(const std::unordered_set<pid_t>& hdrForceHwcNodes)
+void RSUniRenderVisitor::UpdateScreenHdrForceHwcState(
+    const std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes)
 {
     if (curScreenNode_ == nullptr) {
         RS_LOGE("UpdateScreenHdrForceHwcState curScreenNode_ is nullptr");
         return;
     }
+    curScreenNode_->ClearHdrForceHwcNodes();
     if (!RSSystemProperties::GetXcomponentEdrEnabled() || RSBaseHdrUtil::GetRGBA1010108Enabled() ||
         hdrForceHwcNodes.empty()) {
-        curScreenNode_->SetHasForceHwcHdrSurface(false);
         return;
     }
     const auto& hdrStatusMap = curScreenNode_->GetDisplayHdrStatusMap();
     if (std::find_if(hdrStatusMap.begin(), hdrStatusMap.end(), [hdrForceHwcNodes](const auto& iter) {
+            auto pid = ExtractPid(iter.first);
             return iter.second != HdrStatus::NO_HDR &&
-                   hdrForceHwcNodes.find(ExtractPid(iter.first)) == hdrForceHwcNodes.end();
+                   std::find_if(hdrForceHwcNodes.begin(), hdrForceHwcNodes.end(), [pid](const auto& item) {
+                       return ExtractPid(item.first) == pid;
+                   }) == hdrForceHwcNodes.end();
         }) != hdrStatusMap.end()) {
-        curScreenNode_->SetHasForceHwcHdrSurface(false);
-    } else {
-        curScreenNode_->SetHasForceHwcHdrSurface(true);
+        // other hdr node which isHdrForceHwcEnabled = false should abort SetHdrForceHwcNodes to screen
+        return;
     }
+    // only hdr node with isHdrForceHwcEnabled = true can SetHdrForceHwcNodes to screen
+    curScreenNode_->SetHdrForceHwcNodes(hdrForceHwcNodes);
 }
 
 void RSUniRenderVisitor::PrevalidateHwcNode()
@@ -2678,9 +2685,9 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
         bool isHardwareHdrDisabled = RSLuminanceControl::Get().IsHardwareHdrDisabled() &&
             (isHdrSurface || RSLuminanceControl::Get().IsHdrOn(curScreenNode_->GetScreenId()));
         bool hasUniRenderHdrSurface = curScreenNode_->GetHasUniRenderHdrSurface();
-        bool hasForceHwcHdrSurface = curScreenNode_->GetHasForceHwcHdrSurface() && hwcNodePtr->IsHdrForceHwcEnabled();
-        bool isDisableHwcForHdrSurface =
-            hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled() && !hasForceHwcHdrSurface;
+        auto hdrForceHwcNodes = curScreenNode_->GetHdrForceHwcNodes();
+        bool isDisableHwcForHdrSurface = hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled() &&
+            hdrForceHwcNodes.find(hwcNodePtr->GetId()) == hdrForceHwcNodes.end();
         bool hasProtectedLayer = hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
         if ((isHardwareHdrDisabled || isDisableHwcForHdrSurface || !drmNodes_.empty() || hasFingerprint_) &&
             !hasProtectedLayer) {
@@ -4277,7 +4284,17 @@ void RSUniRenderVisitor::SetHdrWhenMultiDisplayChange()
 
 void RSUniRenderVisitor::TryNotifyUIBufferAvailable()
 {
+    bool hasRebuildTransaction = RSMainThread::Instance()->IsRebuildTransactionInProgress();
+    pid_t pendingPid = -1;
+    if (hasRebuildTransaction) {
+        pendingPid = RSMainThread::Instance()->GetPendingSplitPid();
+    }
+    
     for (auto& id : uiBufferAvailableId_) {
+        if (hasRebuildTransaction && ExtractPid(id) == pendingPid) {
+            RS_LOGI("TryNotifyUIBufferAvailable: rebuild transaction in progress, delay NotifyUIBufferAvailable");
+            continue;
+        }
         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
         auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
         if (surfaceNode) {

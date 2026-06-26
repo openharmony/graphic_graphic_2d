@@ -407,13 +407,14 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node == nullptr) {
+        RS_TRACE_NAME_FMT("MarkLayer fail node not found isLayer:%d id:%llu", isLayer, node->GetId());
         return;
     }
     // only support canvas node mark
     bool isCanvasNode = node->GetType() == RSRenderNodeType::CANVAS_NODE;
     bool isSupportLayer = isLayer && isCanvasNode && !RSLayerCacheManagerBase::IsNodeUnSupportLayer(node);
     if (isSupportLayer) {
-        RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isLayer:%d id:%llu", isLayer, node->GetId());
+        RS_TRACE_NAME_FMT("MarkLayer isLayer:%d, isSupportLayer:%d, id:%llu", isLayer, isSupportLayer, node->GetId());
         RS_LOGI_IF(
             DEBUG_NODE, "RSRenderNode::MarkLayer isLayer:%{public}d id:%{public}" PRIu64 "", isLayer, node->GetId());
 

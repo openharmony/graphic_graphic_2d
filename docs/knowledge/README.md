@@ -66,7 +66,7 @@
 | UIFirst/OPINC/组渲染 | `uifirst-opinc.md` | `uifirst/`, `opinc/`, `render_group/` | 性能/图测 |
 | layer/special/tunnel | `layer-special-tunnel.md` | `layer/`, `special_layer/`, `tunnel_layer/` | layer |
 | overlay/多屏 | `overlay-multi-screen.md` | `overlay_display/`, `multi_screen/`, `Overlay` | 多屏/设备 |
-| HDR/TV/图像增强 | `hdr-tv-enhance.md` | `hdr/`, `tv_metadata/`, `image_enhance/` | HDR/XTS |
+| HDR | `hdr.md` | `hdr/`, `RSHdrUtil` | HDR/XTS |
 | HGM/LTPO/DVSync | `hyper-graphic-manager.md` | `hyper_graphic_manager/`, `vrate/`, `Hgm*` | HGM |
 | soft VSync/投票 | `hyper-graphic-manager.md` | `frame_rate_vote/`, `soft_vsync_manager/` | HGM/fuzz |
 | chipset_vsync/帧稳定 | `chipset-vsync.md` | `chipset_vsync/`, `frame_stability/` | 性能 |
@@ -96,7 +96,7 @@
 | Text Framework | `text-framework.md` | `frameworks/text/service/`, `interface/mlb/`, `Texgine` | `text_test` |
 | BootAnimation | `boot-animation.md` | `frameworks/bootanimation/`, `BootAnimation` | boot 测试 |
 | effect_common/NDK | `effect-common-ndk.md` | `rosen/modules/effect/`, `Effect`, `ColorPicker` | effect |
-| Color/HDR capability | `color-hdr-capability.md` | `utils/color_manager/`, `*color_manager/`, `ColorSpace` | color |
+| ColorSpace | `colorspace.md` | `utils/color_manager/`, `*color_manager/`, `ColorSpace` | color |
 | DDGR/2D engine | `ddgr-2d-engine.md` | `2d_engine/ddgr/`, `DDGR` | DDGR |
 | GLFW 跨平台上下文 | `glfw-render-context.md` | `glfw_render_context/`, `GLFW` | 跨平台 |
 
@@ -127,7 +127,7 @@
 | --- | --- |
 | HGM 与 VSync/DVSync 交互 | `vsync-native-vsync.md` |
 | HPAE、LPP、RDO、HWC 预校验 | `hwc-prevalidate.md`、`hpae-lpp-rdo.md` |
-| HDR、颜色空间、图像增强 | `hdr-tv-enhance.md`、`color-hdr-capability.md` |
+| HDR、颜色空间 | `hdr.md`、`colorspace.md` |
 | Filter、Effect、HPAE 滤镜缓存 | `rs-ui-effect.md`、`2d-effect-filter.md` |
 
 ## 知识文档沉淀规则

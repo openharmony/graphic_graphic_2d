@@ -14,6 +14,7 @@
  */
 
 #include "ui/rs_node.h"
+#include "command_modifier/rs_node_command_modifier.h"
 
 #include <algorithm>
 #include <array>
@@ -23,6 +24,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <queue>
 
 #include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
@@ -48,6 +50,7 @@
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_implicit_animator.h"
+#include "animation/rs_property_animation.h"
 #include "animation/rs_render_particle_animation.h"
 #include "command/rs_base_node_command.h"
 #include "command/rs_canvas_node_command.h"
@@ -112,10 +115,6 @@
 #include "ui/rs_ui_director.h"
 #include "ui/rs_ui_patten_vec.h"
 #include "ui/rs_union_node.h"
-
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-#include "modifier_render_thread/rs_modifiers_draw.h"
-#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -185,9 +184,9 @@ const std::array<std::pair<uint16_t, uint16_t>, 4> RSNode::childOpCommandTypes_{
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext,
     bool isOnTheTree)
-    : isRenderServiceNode_(isRenderServiceNode), isTextureExportNode_(isTextureExportNode), id_(id),
-      rsUIContext_(rsUIContext), stagingPropertiesExtractor_(id, rsUIContext),
-      showingPropertiesFreezer_(id, rsUIContext), isOnTheTree_(isOnTheTree)
+    : isRenderServiceNode_(isRenderServiceNode), isTextureExportNode_(isTextureExportNode), isOnTheTree_(isOnTheTree),
+      id_(id), rsUIContext_(rsUIContext), stagingPropertiesExtractor_(id, rsUIContext),
+      showingPropertiesFreezer_(id, rsUIContext)
 {
     InitUniRenderEnabled();
     if (rsUIContext_) {
@@ -224,12 +223,7 @@ RSNode::~RSNode()
     FallbackAnimationsToContext();
 
     ClearAllModifiers();
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-    RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
-    if (RSSystemProperties::GetHybridRenderEnabled()) {
-        RSModifiersDraw::EraseDrawRegions(id_);
-    }
-#endif
+    ClearAllRSCmdModifiers();
 
     // break current (ui) parent-child relationship.
     // render nodes will check if its child is expired and remove it, no need to manually remove it here.
@@ -849,7 +843,43 @@ void RSNode::MarkLayer(bool isLayer)
     AddCommand(command, IsRenderServiceNode());
 }
 
+void RSNode::SetBoundsAndFrame(const Vector4f& bounds, const Vector4f& frame)
+{
+    if (auto surfaceNode = ReinterpretCastTo<RSSurfaceNode>()) {
+        auto compositeLayerUtils = surfaceNode->GetCompositeLayerUtils();
+        if (compositeLayerUtils) {
+            compositeLayerUtils->UpdateVirtualNodeBounds(bounds);
+        }
+    }
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        SetBoundsInner(bounds);
+        SetFrameInner(frame);
+    }
+
+    OnBoundsSizeChanged();
+    if (bounds.x_ != 0 || bounds.y_ != 0 || frame.x_ != 0 || frame.y_ != 0) {
+        SetDrawNode();
+        SetDrawNodeType(DrawNodeType::MergeableType);
+    }
+}
+
 // Bounds
+void RSNode::SetBoundsInner(const Vector4f& bounds)
+{
+    auto modifier = GetModifierCreatedBySetter(ModifierNG::RSBoundsModifier::Type);
+    // Create corresponding modifier if not exist
+    if (modifier == nullptr) {
+        modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+        std::static_pointer_cast<ModifierNG::RSBoundsModifier>(modifier)->SetBounds(bounds);
+        modifiersNGCreatedBySetter_.emplace(ModifierNG::RSBoundsModifier::Type, modifier);
+        AddModifier(modifier);
+    } else {
+        std::static_pointer_cast<ModifierNG::RSBoundsModifier>(modifier)->SetBounds(bounds);
+        NotifyPageNodeChanged();
+    }
+}
+
 void RSNode::SetBounds(const Vector4f& bounds)
 {
     if (auto surfaceNode = ReinterpretCastTo<RSSurfaceNode>()) {
@@ -920,6 +950,21 @@ void RSNode::SetBoundsHeight(float height)
 }
 
 // Frame
+void RSNode::SetFrameInner(const Vector4f& frame)
+{
+    auto modifier = GetModifierCreatedBySetter(ModifierNG::RSFrameModifier::Type);
+    // Create corresponding modifier if not exist
+    if (modifier == nullptr) {
+        modifier = std::make_shared<ModifierNG::RSFrameModifier>();
+        std::static_pointer_cast<ModifierNG::RSFrameModifier>(modifier)->SetFrame(frame);
+        modifiersNGCreatedBySetter_.emplace(ModifierNG::RSFrameModifier::Type, modifier);
+        AddModifier(modifier);
+    } else {
+        std::static_pointer_cast<ModifierNG::RSFrameModifier>(modifier)->SetFrame(frame);
+        NotifyPageNodeChanged();
+    }
+}
+
 void RSNode::SetFrame(const Vector4f& bounds)
 {
     SetPropertyNG<ModifierNG::RSFrameModifier, &ModifierNG::RSFrameModifier::SetFrame>(bounds);
@@ -2845,6 +2890,10 @@ void RSNode::SetHDRColorHeadroom(const float& headroom)
         ROSEN_LOGE("SetHDRColorHeadroom only can be greater than or equal to one");
         return;
     }
+    if (std::fabs(lastHDRColorHeadroom_ - headroom) < FLT_EPSILON) {
+        return;
+    }
+    lastHDRColorHeadroom_ = headroom;
     SetPropertyNG<ModifierNG::RSHDRBrightnessModifier, &ModifierNG::RSHDRBrightnessModifier::SetHDRColorHeadroom>(
         headroom);
 }
@@ -3200,6 +3249,17 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
     return false;
 }
 
+void RSNode::AnimationDestroyInRenderCallback(AnimationId animationId, float fraction, bool isReverseCycle)
+{
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+    auto animationItr = animations_.find(animationId);
+    if (animationItr == animations_.end()) {
+        ROSEN_LOGE("AnimationDestroyInRenderCallback: animation[%{public}" PRIu64 "] not found", animationId);
+        return;
+    }
+    animationItr->second->SetRebuildParam({fraction, isReverseCycle});
+}
+
 bool RSNode::FireColorPickerCallback(uint32_t color)
 {
     if (!colorPickerCallback_) {
@@ -3240,13 +3300,21 @@ void RSNode::LoadRenderNodeIfNeed() const
     }
     lazyLoadCommands_.clear();
     lazyLoad_ = false;
-
+    if (nodeState_ == RSNodeState::LAZY_LOAD) {
+        nodeState_ = RSNodeState::ACTIVE;
+    } else {
+        RS_LOGE("LoadRenderNodeIfNeed: nodeState_ is not LAZY_LOAD, nodeId: %{public}" PRIu64
+            ", current state: %{public}d", id_, static_cast<int>(nodeState_));
+    }
     int index{0};
     for (auto weakChild : children_) {
         auto child = weakChild.lock();
         if (child == nullptr) {
             continue;
         }
+        // since LoadRenderNodeIfNeed may called before addchild,
+        // we must rebuildtree here incase child node can not be found in map
+        child->RebuildTree();
         // construct command using child's GetHierarchyCommandNodeId(), not GetId()
         auto childId = child->GetHierarchyCommandNodeId();
         std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
@@ -3258,6 +3326,11 @@ void RSNode::LoadRenderNodeIfNeed() const
         ++index;
     }
     NotifyPageNodeChanged();
+}
+
+void RSNode::ReleaseInRender()
+{
+    SetNodeState(RSNodeState::INACTIVE);
 }
 
 void RSNode::DoFlushModifier()
@@ -3876,13 +3949,6 @@ void RSNode::SetIsOnTheTree(bool flag)
     }
     isOnTheTreeInit_ = true;
     isOnTheTree_ = flag;
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-    if (!flag) {
-        RSModifiersDraw::InsertOffTreeNode(instanceId_, id_);
-    } else {
-        RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
-    }
-#endif
     for (auto child : children_) {
         auto childPtr = child.lock();
         if (childPtr == nullptr) {
@@ -3918,6 +3984,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         ROSEN_LOGE("RSNode::AddChild, child is nullptr");
         return;
     }
+    child->RebuildTree();
     if (!IsTextureExportNode() && child->IsTextureExportNode() && AddCompositeNodeChild(child, index)) {
         return;
     }
@@ -4230,6 +4297,98 @@ void RSNode::ClearChildren()
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), nodeId);
 }
 
+bool RSNode::ReCreateNodeInRender()
+{
+    if (GetNodeState() == RSNodeState::LAZY_LOAD) {
+        // Skip rebuilding the LAZY_LOAD node itself, but keep rebuilding its subtree.
+        return true;
+    }
+    if (GetNodeState() == RSNodeState::ACTIVE) {
+        // ACTIVE node don't need rebuild
+        return false;
+    }
+    SetNodeState(RSNodeState::ACTIVE);
+    // 恢复node
+    CreateRenderNode();
+ 
+    SetUIContextToken();
+ 
+    SetSkipContentModifierDraw(true);
+    // 恢复modifier
+    DoFlushModifier();
+    SetSkipContentModifierDraw(false);
+ 
+    // 恢复其他特性变量（使用 RSCmdModifier）
+    UpdateAllRSCmdModifiersToRender();
+ 
+    RebuildAnimationInRender();
+ 
+    return true;
+}
+
+void RSNode::RebuildAnimationInRender()
+{
+    static constexpr int REPEAT_COUNT_INFINITE = -1;
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+    for (const auto& [animationId, animation] : animations_) {
+        if (animation->IsUiAnimation() || animation->GetRepeatCount() != REPEAT_COUNT_INFINITE) {
+            continue;
+        }
+        animation->RebuildInRender();
+    }
+}
+
+void RSNode::RebuildTree()
+{
+    if (GetNodeState() != RSNodeState::INACTIVE) {
+        return;
+    }
+    _RebuildTreeInternal();
+}
+
+void RSNode::_RebuildTreeInternal()
+{
+    ReCreateNodeInRender();
+ 
+    // BFS in level order
+    std::vector<std::tuple<RSNode*, RSNode*, size_t>> currentLevel;
+    for (size_t index = 0; index < children_.size(); index++) {
+        auto childPtr = children_[index].lock();
+        if (childPtr != nullptr) {
+            currentLevel.push_back({ childPtr.get(), this, index });
+        }
+    }
+    _RebuildTreeLevel(currentLevel);
+}
+
+void RSNode::_RebuildTreeLevel(const std::vector<std::tuple<RSNode*, RSNode*, size_t>>& level)
+{
+    if (level.empty()) {
+        return;
+    }
+ 
+    std::vector<std::tuple<RSNode*, RSNode*, size_t>> nextLevel;
+    for (const auto& [node, parent, childIndex] : level) {
+        if (node->ReCreateNodeInRender()) {
+            for (size_t index = 0; index < node->children_.size(); index++) {
+                auto childPtr = node->children_[index].lock();
+                if (childPtr != nullptr) {
+                    nextLevel.push_back({ childPtr.get(), node, index });
+                }
+            }
+        }
+ 
+        if (GetNodeState() != RSNodeState::LAZY_LOAD) {
+            // LAZY_LOAD will rebuild its child relationship in LoadRenderNodeIfNeed
+            auto childId = node->GetHierarchyCommandNodeId();
+            auto parentId = parent->GetHierarchyCommandNodeId();
+            std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(parentId, childId, childIndex);
+            AddCommand(command, IsRenderServiceNode(), GetFollowType(), parentId);
+        }
+    }
+    _RebuildTreeLevel(nextLevel);
+}
+
 void RSNode::SetExportTypeChangedCallback(ExportTypeChangedCallback callback)
 {
     exportTypeChangedCallback_ = callback;
@@ -4498,7 +4657,6 @@ void RSNode::Dump(std::string& out) const
         out += "null";
     }
     out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
-    out += "], hybridRenderCanvas[" + std::string(hybridRenderCanvas_ ? "true" : "false");
     DumpSubClass(out);
     out += "], animations[";
     for (const auto& [id, anim] : animations_) {

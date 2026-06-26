@@ -129,7 +129,7 @@ void SkiaCanvas::RecordState(Canvas* canvas)
     LOGD("skia does not support RecordState.");
 }
 
-bool SkiaCanvas::InheritStateAndContentFrom(Canvas* canvas)
+bool SkiaCanvas::InheritStateAndContentFrom(Canvas* canvas, bool willReleaseSrcCanvas)
 {
     LOGD("skia does not support InheritStateAndContentFrom.");
     return false;

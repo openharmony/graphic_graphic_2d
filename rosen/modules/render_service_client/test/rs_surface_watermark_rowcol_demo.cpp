@@ -84,6 +84,14 @@ shared_ptr<Media::PixelMap> CreateDefaultPixelMap()
     return std::shared_ptr<Media::PixelMap>(Media::PixelMap::Create(color, colorLength, offset, stride, opts));
 }
 
+std::shared_ptr<RSUIDirector> CreateRSUIDirector()
+{
+    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+    sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    std::shared_ptr<RSUIDirector> rsUiDirector = OHOS::Rosen::RSUIDirector::Create(connectToRender);
+    return rsUiDirector;
+}
+
 constexpr float MAX_ZORDER = 1e5f;
 constexpr size_t VIEWPORT_WIDTH = 3000;
 constexpr size_t VIEWPORT_HEIGHT = 2000;
@@ -96,7 +104,7 @@ std::pair<vector<NodeId>, vector<std::shared_ptr<RSSurfaceNode>>> CreateRSSurfac
 {
     std::pair<vector<NodeId>, vector<std::shared_ptr<RSSurfaceNode>>> nodeList;
     for (int i = 0; i < num; i++) {
-        auto rsUiDirector = RSUIDirector::Create();
+        auto rsUiDirector = CreateRSUIDirector();
         if (rsUiDirector == nullptr) {
             MY_LOGE("rsUiDirector is nullptr");
             return {};
@@ -189,7 +197,9 @@ int main()
     std::cout << std::endl;
     // SET SurfaceWatermark with user-defined row and col
     string surfaceWatermarkName = "SurfaceWatermarkRowColTest";
-    auto res = rsInterfaces.SetSurfaceWatermark(getpid(),
+    auto rsUiDirector = CreateRSUIDirector();
+    auto rsRenderInterface = rsUiDirector->GetRSUIContext()->GetRSRenderInterface();
+    auto res = rsRenderInterface->SetSurfaceWatermark(getpid(),
         surfaceWatermarkName,
         pixelmap,
         nodeList.first,
@@ -202,7 +212,7 @@ int main()
 
     // Test clear surface watermark
     std::cout << "Clearing surface watermark..." << std::endl;
-    rsInterfaces.ClearSurfaceWatermarkForNodes(getpid(), surfaceWatermarkName, nodeList.first);
+    rsRenderInterface->ClearSurfaceWatermarkForNodes(getpid(), surfaceWatermarkName, nodeList.first);
     sleep(SLEEP_TWO_SECOND);
 
     return EXIT_SUCCESS;

@@ -366,6 +366,21 @@ HWTEST_F(SkiaGPUContextTest, InitGpuMemoryInfoStatProc001, TestSize.Level1)
     gpuContext->InitGpuMemoryInfoStatProc(callback);
 }
 
+/**
+ * @tc.name: RegisterCreatePipelineTimeCallback001
+ * @tc.desc: Test RegisterCreatePipelineTimeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaGPUContextTest, RegisterCreatePipelineTimeCallback001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+
+    auto callback = [](int64_t, int64_t, bool) {};
+    gpuContext->RegisterCreatePipelineTimeCallback(callback);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

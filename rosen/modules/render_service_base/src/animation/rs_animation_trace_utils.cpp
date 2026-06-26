@@ -167,13 +167,13 @@ void RSAnimationTraceUtils::AddChangeAnimationValueTrace(
 }
 
 void RSAnimationTraceUtils::AddAnimationFinishTrace(
-    const std::string info, const uint64_t nodeId, const uint64_t animationId, bool isAddLogInfo) const
+    const char* info, const uint64_t nodeId, const uint64_t animationId, bool isAddLogInfo) const
 {
     if (isDebugEnabled_) {
-        RS_TRACE_NAME_FMT("%s node[%llu] animate[%llu]", info.c_str(), nodeId, animationId);
+        RS_TRACE_NAME_FMT("%s node[%llu] animate[%llu]", info, nodeId, animationId);
         if (isAddLogInfo) {
             ROSEN_LOGI("%{public}s node[%{public}" PRIu64 "] animate[%{public}" PRIu64 "]",
-                info.c_str(), nodeId, animationId);
+                info, nodeId, animationId);
         }
     }
 }

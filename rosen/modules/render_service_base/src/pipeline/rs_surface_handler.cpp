@@ -84,6 +84,7 @@ void RSSurfaceHandler::BufferOwnerCount::SetUniBufferOwner(uint64_t bufferId, ui
         bufferId_, bufferId, screenId);
     std::lock_guard<std::mutex> lock(mapMutex_);
     uniBufferOwnerSeqNumMap_[screenId] = bufferId;
+    inTransition_.store(false, std::memory_order_release);
 }
 
 bool RSSurfaceHandler::BufferOwnerCount::CheckLastUniBufferOwner(uint64_t bufferId, uint64_t screenId)
@@ -91,7 +92,8 @@ bool RSSurfaceHandler::BufferOwnerCount::CheckLastUniBufferOwner(uint64_t buffer
     std::lock_guard<std::mutex> lock(mapMutex_);
     auto iter = uniBufferOwnerSeqNumMap_.find(screenId);
     // If not find screenId, true is returned to release the buffer
-    return iter == uniBufferOwnerSeqNumMap_.end() || iter->second == bufferId;
+    return !inTransition_.load(std::memory_order_acquire)
+        && (iter == uniBufferOwnerSeqNumMap_.end() || iter->second == bufferId);
 }
 
 GPUCacheCleanupCallback RSSurfaceHandler::s_gpuCacheCleanupCallback = nullptr;

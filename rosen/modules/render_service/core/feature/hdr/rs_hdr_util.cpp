@@ -139,7 +139,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
     }
     float targetScaler = 1.0f;
     auto hdrStatus = HdrStatus::NO_HDR;
-    float hdrDimmingFactor = rsLuminance.HdrDimmingProcess(screenId, surfaceNode.GetId());
+    float hdrDimmingFactor = rsLuminance.HdrDimmingProcess(screenId, surfaceNode);
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
         hdrStatus = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(surfaceBuffer);
@@ -166,6 +166,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
+    scaler = std::min(scaler, rsLuminance.GetSurfaceNodeMaxScaler(surfaceNode, screenId, hdrStatus));
 #ifndef ROSEN_CROSS_PLATFORM
     if (ROSEN_GNE(sdrNits, 0.0f)) {
         scaler = std::clamp(scaler, 1.0f, displayNits / sdrNits);

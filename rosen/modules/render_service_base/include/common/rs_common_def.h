@@ -664,6 +664,17 @@ enum class RSSurfaceNodeAbilityState : uint8_t {
     FOREGROUND,
 };
 
+// lifecycle state of UI director (client-server sync)
+enum class RSUIDirectorLifecycleState : uint8_t {
+    CREATE,
+    RESUME,
+    FOREGROUND,
+    BACKGROUND,
+    STOP,
+    DESTROYED,
+    STATE_COUNT
+};
+
 struct SubSurfaceCntUpdateInfo {
     int updateCnt_ = 0;
     NodeId preParentId_ = INVALID_NODEID;
@@ -745,6 +756,7 @@ enum DrawNodeType : uint32_t {
     GeometryPropertyType
 };
 
+// HybridDraw Start
 enum class ComponentEnableSwitch : uint8_t {
     TEXTBLOB = 0,
     SVG,
@@ -752,6 +764,8 @@ enum class ComponentEnableSwitch : uint8_t {
     CANVAS,
     MAX_VALUE,
 };
+// HybridDraw End
+
 typedef enum : uint32_t {
     SA_WATER_MARK_DEFAULT_SIZE = 0, // 512KB
     SA_WATER_MARK_MIDDLE_SIZE = 1, // 6M

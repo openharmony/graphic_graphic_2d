@@ -466,7 +466,7 @@ void RenderContextGL::DestroyShareContext()
 
 bool RenderContextGL::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
-    LOGI("RenderContextGL::QueryMaxGpuBufferSize: using OpenGL backend");
+    LOGD("RenderContextGL::QueryMaxGpuBufferSize: using OpenGL backend");
     GLint maxTextureSize = 0;
     GLint maxRenderBufferSize = 0;
 
@@ -481,7 +481,7 @@ bool RenderContextGL::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHei
     maxWidth = static_cast<uint32_t>(std::min(maxTextureSize, maxRenderBufferSize));
     maxHeight = static_cast<uint32_t>(std::min(maxTextureSize, maxRenderBufferSize));
 
-    LOGI("RenderContextGL::QueryMaxGpuBufferSize: GL_MAX_TEXTURE_SIZE = %d, GL_MAX_RENDERBUFFER_SIZE = %d, result = %u",
+    LOGD("RenderContextGL::QueryMaxGpuBufferSize: GL_MAX_TEXTURE_SIZE = %d, GL_MAX_RENDERBUFFER_SIZE = %d, result = %u",
         maxTextureSize, maxRenderBufferSize, maxWidth);
     return true;
 }

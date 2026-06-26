@@ -71,6 +71,7 @@ taihe_shared_library("uieffect_taihe_native") {
   ]
 
   cflags = [ "-DIMAGE_DEBUG_FLAG" ]
+  shlib_type = "ani"
 
   deps = [
     ":run_uiEffect_taihe",

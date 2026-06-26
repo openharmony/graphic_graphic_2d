@@ -45,6 +45,8 @@ public:
 protected:
     void OnAnimate(float fraction) override;
 
+    void RebuildPropertyValue(float fraction) override;
+
     void OnAttach() override;
     void OnDetach() override;
     void OnInitialize(int64_t time, bool isCustom = false) override;

@@ -350,6 +350,14 @@ void SkiaGPUContext::RegisterVulkanErrorCallback(
     (void)vulkanErrorCallback;
 }
 
+void SkiaGPUContext::RegisterCreatePipelineTimeCallback(
+    const std::function<void(int64_t, int64_t, bool)>& createPipelineTimeCallback)
+{
+    // createPipelineTimeCallback will not be used in Skia
+    LOGD("SkiaGPUContext::RegisterCreatePipelineTimeCallback, not implement");
+    (void)createPipelineTimeCallback;
+}
+
 void SkiaGPUContext::RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback)
 {
 #ifdef TODO_M133_SKIA

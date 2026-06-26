@@ -62,6 +62,7 @@ DECLARE_ANIMATABLE_PROPERTY(RRect, RRECT);
 DECLARE_ANIMATABLE_PROPERTY(Color, RS_COLOR);
 DECLARE_ANIMATABLE_PROPERTY(Vector4<Color>, VECTOR4_COLOR);
 DECLARE_ANIMATABLE_PROPERTY(Drawing::DrawCmdListPtr, DRAW_CMD_LIST);
+DECLARE_ANIMATABLE_PROPERTY(SimpleDrawCmdListPtr, DRAW_CMD_LIST);
 
 // =============================================================================
 // Planning: Remove the following properties after deprecating complex shader

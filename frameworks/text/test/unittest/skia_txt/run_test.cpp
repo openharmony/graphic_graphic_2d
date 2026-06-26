@@ -35,6 +35,8 @@ public:
     void SetUp() override;
     void TearDown() override;
     void PrepareCreateRunForGlyphDrawing();
+    // Builds a paragraph from text_ with compressHeadPunctuation toggled and fills runs_.
+    void PrepareRunForHeadPunctuationCompression(bool compress);
 
 private:
     // 50 is the width of the layout, just for test
@@ -87,6 +89,26 @@ void RunTest::PrepareCreateRunForGlyphDrawing()
     paragraph_->Layout(layoutWidthForGlyph_);
     auto textLineBases = paragraph_->GetTextLines();
     runs_ = textLineBases[0]->GetGlyphRuns();
+}
+
+void RunTest::PrepareRunForHeadPunctuationCompression(bool compress)
+{
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.fontSize = fontSize_;
+    paragraphStyle.compressHeadPunctuation = compress;
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    paragraphBuilder->AddText(text_);
+    paragraph_ = paragraphBuilder->Build();
+    ASSERT_NE(paragraph_, nullptr);
+    paragraph_->Layout(layoutWidthForGlyph_);
+    auto textLineBases = paragraph_->GetTextLines();
+    ASSERT_NE(textLineBases.size(), 0);
+    runs_ = textLineBases[0]->GetGlyphRuns();
+    ASSERT_NE(runs_.size(), 0);
 }
 
 /*
@@ -235,7 +257,7 @@ HWTEST_F(RunTest, RunGlyphDrawingTest001, TestSize.Level0)
     pointResult = runs_[0]->GetAdvances(0, 1);
     EXPECT_EQ(pointResult.size(), 1);
 }
- 
+
 /*
  * @tc.name: RunGlyphDrawingTest002
  * @tc.desc: Test for the glyph drawing of the RTL text.
@@ -276,5 +298,130 @@ HWTEST_F(RunTest, RunGetTextStyleTest001, TestSize.Level0)
     std::vector<PaintRecord> testVec;
     std::unique_ptr<SPText::Run> runNull = std::make_unique<SPText::RunImpl>(nullptr, testVec);
     EXPECT_DOUBLE_EQ(runNull->GetTextStyle().fontSize, 14.0); // 14.0: the default fontsize
+}
+
+/*
+ * @tc.name: RunCompressHeadPunctuation001
+ * @tc.desc: head punctuation advance shrinks under compression (fGlyphAdvances)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunCompressHeadPunctuation001, TestSize.Level0)
+{
+    // Four common-script brackets keep them in one run; only the line head is compressed.
+    text_ = u"（《「『";
+    PrepareRunForHeadPunctuationCompression(false);
+    ASSERT_NE(runs_.size(), 0);
+    auto baselineAdv = runs_[0]->GetAdvances(0, 1);
+    ASSERT_EQ(baselineAdv.size(), 1);
+
+    PrepareRunForHeadPunctuationCompression(true);
+    ASSERT_NE(runs_.size(), 0);
+    auto compressedAdv = runs_[0]->GetAdvances(0, 1);
+    ASSERT_EQ(compressedAdv.size(), 1);
+
+    // ss08 substitutes a half-width variant, so the head bracket advance must strictly shrink.
+    EXPECT_LT(compressedAdv[0].GetX(), baselineAdv[0].GetX());
+}
+
+/*
+ * @tc.name: RunCompressHeadPunctuation002
+ * @tc.desc: glyph count and string indices are preserved (1:1 replacement, fGlyphs/fClusterIndexes)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunCompressHeadPunctuation002, TestSize.Level0)
+{
+    text_ = u"（《「『";
+    PrepareRunForHeadPunctuationCompression(false);
+    ASSERT_NE(runs_.size(), 0);
+    auto baselineGlyphs = runs_[0]->GetGlyphs();
+    auto baselineIndices = runs_[0]->GetStringIndices(0, baselineGlyphs.size());
+    size_t baselineRunCount = runs_.size();
+
+    PrepareRunForHeadPunctuationCompression(true);
+    ASSERT_EQ(runs_.size(), baselineRunCount);
+    auto compressedGlyphs = runs_[0]->GetGlyphs();
+    // No split: the run keeps the same glyph count.
+    EXPECT_EQ(compressedGlyphs.size(), baselineGlyphs.size());
+    // replaceCompressedGlyphs refills new glyphs with the original cluster index.
+    EXPECT_EQ(runs_[0]->GetStringIndices(0, compressedGlyphs.size()), baselineIndices);
+}
+
+/*
+ * @tc.name: RunCompressHeadPunctuation003
+ * @tc.desc: positions after the head glyph cascade left by a constant delta (fPositions)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunCompressHeadPunctuation003, TestSize.Level0)
+{
+    text_ = u"（《「『";
+    PrepareRunForHeadPunctuationCompression(false);
+    ASSERT_NE(runs_.size(), 0);
+    auto baselinePos = runs_[0]->GetPositions();
+    float baselineHeadAdv = runs_[0]->GetAdvances(0, 1)[0].GetX();
+    ASSERT_GE(baselinePos.size(), 2);
+
+    PrepareRunForHeadPunctuationCompression(true);
+    ASSERT_NE(runs_.size(), 0);
+    auto compressedPos = runs_[0]->GetPositions();
+    float compressedHeadAdv = runs_[0]->GetAdvances(0, 1)[0].GetX();
+
+    EXPECT_EQ(compressedPos.size(), baselinePos.size());
+    // Run start position is untouched.
+    EXPECT_EQ(compressedPos[0].GetX(), baselinePos[0].GetX());
+    float delta = baselineHeadAdv - compressedHeadAdv;
+    EXPECT_GT(delta, 0.0f);
+    // Every subsequent position shifts left by exactly the head advance reduction.
+    for (size_t i = 1; i < baselinePos.size(); ++i) {
+        EXPECT_NEAR(compressedPos[i].GetX(), baselinePos[i].GetX() - delta, FLOAT_DATA_EPSILON)
+            << "position cascade mismatch at index " << i;
+    }
+}
+
+/*
+ * @tc.name: RunCompressHeadPunctuation004
+ * @tc.desc: offsets of the untouched tail glyphs stay unchanged (fOffsets)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunCompressHeadPunctuation004, TestSize.Level0)
+{
+    text_ = u"（《「『";
+    PrepareRunForHeadPunctuationCompression(false);
+    ASSERT_NE(runs_.size(), 0);
+    auto baselineOffsets = runs_[0]->GetOffsets();
+    ASSERT_GE(baselineOffsets.size(), 2);
+
+    PrepareRunForHeadPunctuationCompression(true);
+    ASSERT_NE(runs_.size(), 0);
+    auto compressedOffsets = runs_[0]->GetOffsets();
+
+    EXPECT_EQ(compressedOffsets.size(), baselineOffsets.size());
+    // Only the replaced head glyph's offset is rewritten; the tail is structurally shifted, not modified.
+    for (size_t i = 1; i < baselineOffsets.size(); ++i) {
+        EXPECT_NEAR(compressedOffsets[i].GetX(), baselineOffsets[i].GetX(), FLOAT_DATA_EPSILON)
+            << "offset changed at untouched index " << i;
+        EXPECT_NEAR(compressedOffsets[i].GetY(), baselineOffsets[i].GetY(), FLOAT_DATA_EPSILON)
+            << "offset changed at untouched index " << i;
+    }
+}
+
+/*
+ * @tc.name: RunCompressHeadPunctuation005
+ * @tc.desc: non-compressible line head is unchanged between the two modes (negative path)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunCompressHeadPunctuation005, TestSize.Level0)
+{
+    // '你' is not in the compressible set, so replaceCompressedGlyphs must not run at all.
+    text_ = u"你好（《";
+    PrepareRunForHeadPunctuationCompression(false);
+    ASSERT_NE(runs_.size(), 0);
+    auto baselineGlyphs = runs_[0]->GetGlyphs();
+    float baselineHeadAdv = runs_[0]->GetAdvances(0, 1)[0].GetX();
+    size_t baselineRunCount = runs_.size();
+
+    PrepareRunForHeadPunctuationCompression(true);
+    ASSERT_EQ(runs_.size(), baselineRunCount);
+    EXPECT_EQ(runs_[0]->GetGlyphs(), baselineGlyphs);
+    EXPECT_NEAR(runs_[0]->GetAdvances(0, 1)[0].GetX(), baselineHeadAdv, FLOAT_DATA_EPSILON);
 }
 } // namespace txt

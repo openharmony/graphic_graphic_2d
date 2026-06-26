@@ -73,6 +73,14 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     canvas.Restore();
 }
 
+void RSUniRenderEngine::DrawCanvasDrawingNodeWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
+{
+    canvas.Save();
+    canvas.ConcatMatrix(params.matrix);
+    DrawImage(canvas, params);
+    canvas.Restore();
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
     const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut)

@@ -500,11 +500,13 @@ bool RSImageDetailEnhancerThread::GetProcessStatus(uint64_t imageId) const
 
 void RSImageDetailEnhancerThread::SetProcessReady(uint64_t imageId, bool flag)
 {
+    std::lock_guard<std::mutex> mapMutex(mapMutex_);
     processReadyMap_[imageId] = flag;
 }
 
 bool RSImageDetailEnhancerThread::GetProcessReady(uint64_t imageId) const
 {
+    std::lock_guard<std::mutex> mapMutex(mapMutex_);
     auto it = processReadyMap_.find(imageId);
     return it != processReadyMap_.end() ? it->second : false;
 }

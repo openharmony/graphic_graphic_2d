@@ -39,6 +39,11 @@ public:
         return property_ ? property_->GetPropertyTypeNG() : ModifierNG::RSPropertyType::INVALID;
     }
 
+    std::shared_ptr<RSPropertyBase> GetStartValue() const
+    {
+        return startValue_;
+    }
+
 protected:
     RSPropertyAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property);
 

@@ -41,8 +41,7 @@ public:
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
 
-    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-        sptr<Surface>& sfc, bool unobscured) override;
+    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured) override;
 
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
@@ -152,6 +151,11 @@ public:
         NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
 
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    sptr<Surface> CreateCanvasDrawingNodeSurface(NodeId nodeId) override;
+    void ReleaseCanvasDrawingNodeSurface(NodeId nodeId) override;
+#endif // RS_MODIFIERS_DRAW_ENABLE
 
     int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,

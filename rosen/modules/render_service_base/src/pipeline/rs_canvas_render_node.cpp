@@ -421,6 +421,5 @@ void RSCanvasRenderNode::MarkNodeColorSpace(int8_t colorSpace)
         SetColorGamut(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3);
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS

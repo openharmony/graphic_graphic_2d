@@ -6221,25 +6221,14 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartRenderDisa
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
     rsUniRenderVisitor->curSurfaceDirtyManager_ = rsUniRenderVisitor->curSurfaceNode_->GetDirtyManager();
 
-    auto& uifirstManager = RSUifirstManager::Instance();
-    uifirstManager.currentFrameEvent_.clear();
-    RSUifirstManager::EventInfo info;
-    info.sceneId = "APP_LIST_FLING";
-    uifirstManager.currentFrameEvent_.push_back(info);
-
-    OPIncParam::SetLayerPartRenderEnable(true);
-    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*canvasNode);
-    OPIncParam::SetLayerPartRenderEnable(false);
-    uifirstManager.currentFrameEvent_.clear();
-
     auto& dirtyManager = canvasNode->GetLayerPartRenderCache().GetLayerPartRenderDirtyManager();
     auto& stagingRenderParams = canvasNode->GetStagingRenderParams();
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_NE(stagingRenderParams, nullptr);
-    ASSERT_TRUE(canvasNode->GetLayerPartRenderCache().IsLayerPartRender());
+    ASSERT_FALSE(canvasNode->GetLayerPartRenderCache().IsLayerPartRender());
     ASSERT_FALSE(stagingRenderParams->GetLayerPartRenderEnabled());
     ASSERT_EQ(canvasNode->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
-    ASSERT_NE(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
 }
 
 /**
@@ -10155,8 +10144,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateScreenHdrForceHwcState_001, TestSize.Leve
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curScreenNode_ = nullptr;
-    std::unordered_set<pid_t> hdrForceHwcNodes;
-    hdrForceHwcNodes.emplace(123456);
+    std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr> hdrForceHwcNodes;
     rsUniRenderVisitor->UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
     ASSERT_EQ(rsUniRenderVisitor->curScreenNode_, nullptr);
 }

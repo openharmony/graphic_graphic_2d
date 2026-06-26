@@ -654,7 +654,7 @@ void RSRenderThread::PostPreTask()
 
 bool RSRenderThread::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
-    ROSEN_LOGI("RSRenderThread::QueryMaxGpuBufferSize: start query GPU buffer size limits");
+    ROSEN_LOGD("RSRenderThread::QueryMaxGpuBufferSize: start query GPU buffer size limits");
 
 #ifdef RS_ENABLE_GPU
     if (renderContext_) {

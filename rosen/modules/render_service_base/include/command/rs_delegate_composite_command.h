@@ -32,6 +32,7 @@ enum RSDelegateCompositeCommandType : uint16_t {
 class RSB_EXPORT TransactionBufferCommand : public RSCommand {
 public:
     TransactionBufferCommand();
+    TransactionBufferCommand(NodeId nodeId);
     TransactionBufferCommand(std::vector<RSTransactionConfig>& configs, NodeId nodeId);
     TransactionBufferCommand(RectF rect, bool isSrcRect, NodeId nodeId);
 
@@ -39,6 +40,9 @@ public:
     [[nodiscard]] static RSCommand* Unmarshalling(Parcel& parcel);
     bool Marshalling(Parcel& parcel) const override;
 
+    void SetRSTransactionConfigs(std::vector<RSTransactionConfig>& configs);
+
+    void SetNodeId(NodeId nodeId);
     NodeId GetNodeId() const override
     {
         return nodeId_;
@@ -60,6 +64,8 @@ public:
     }
 
 private:
+    sptr<IConsumerSurface> GetConsumerSurface(RSContext& context, NodeId nodeId);
+
     enum class CmdType : int32_t {
         INVALID = -1,
         SET_BUFFER = 0,

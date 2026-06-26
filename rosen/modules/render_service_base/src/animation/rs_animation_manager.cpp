@@ -20,9 +20,12 @@
 
 #include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
+#include "animation/rs_render_particle_animation.h"
+#include "animation/rs_render_property_animation.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
 #include "common/rs_optional_trace.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -193,12 +196,6 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
     return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
 }
 
-void RSAnimationManager::SetRateDeciderEnable(bool enabled, const FrameRateGetFunc& func)
-{
-    rateDecider_.SetEnable(enabled);
-    frameRateGetFunc_ = func;
-}
-
 void RSAnimationManager::SetRateDeciderSize(float width, float height)
 {
     rateDecider_.SetNodeSize(width, height);
@@ -249,6 +246,41 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
         std::make_unique<RSAnimationCallback>(targetId, animationId, token, AnimationCallbackEvent::FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
     animation->Detach();
+}
+
+void RSAnimationManager::DestroyInRender(NodeId nodeId, const std::weak_ptr<RSContext>& context)
+{
+    constexpr int infiniteRepeatCount = -1;
+    std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> dormantParticles;
+    for (auto& [id, animation] : animations_) {
+        if (!animation) {
+            continue;
+        }
+        if (animation->GetType() == RSRenderAnimationType::PARTICLE_ANIMATION) {
+            auto pa = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+            if (pa->IsInfiniteEmit()) {
+                pa->SoftClearKeepParams();
+                dormantParticles[id] = std::move(animation);
+            }
+            continue;
+        }
+        // Only infinite loop animations need to be rebuilt, normal animations will finish when going to background
+        if (animation->GetRepeatCount() != infiniteRepeatCount) {
+            continue;
+        }
+        float currentFraction = animation->GetCurrentFraction();
+        bool isReverseCycle = animation->GetCurrentIsReverseCycle();
+        RS_TRACE_NAME_FMT("DestroyInRender animate[%llu] fraction[%f] isReverseCycle[%d]", animation->GetAnimationId(),
+            currentFraction, static_cast<int>(isReverseCycle));
+        std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationDestroyInRender>(animation->GetTargetId(),
+            animation->GetAnimationId(), animation->GetToken(), currentFraction, isReverseCycle);
+        RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animation->GetAnimationId()), command);
+    }
+    animations_ = std::move(dormantParticles);
+    particleAnimations_.clear();
+    if (auto ctx = context.lock()) {
+        ctx->UnregisterAnimatingRenderNode(nodeId);
+    }
 }
 
 void RSAnimationManager::RegisterSpringAnimation(PropertyId propertyId, AnimationId animId)

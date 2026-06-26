@@ -144,40 +144,50 @@ bool PixelMapStorage::Push(uint64_t id, const ImageInfo& info, const PixelMemInf
     return true;
 }
 
-bool PixelMapStorage::Push(uint64_t id, SurfaceBuffer& buffer)
+bool PixelMapStorage::Push(uint64_t id, const SurfaceBuffer& buffer)
 {
     if (buffer.GetFormat() != GRAPHIC_PIXEL_FMT_RGBA_8888) {
+        HRPE("PixelMapStorage: Invalid surface buffer. Unsupported format");
         return false;
     }
-    ImageInfo info { .size = { buffer.GetWidth(), buffer.GetHeight() },
+
+    if (!Fits(buffer.GetSize())) {
+        return false;
+    }
+
+    const ImageInfo info {
+        .size = { buffer.GetWidth(), buffer.GetHeight() },
         .pixelFormat = Media::PixelFormat::RGBA_8888,
-        .colorSpace = Media::ColorSpace::SRGB };
+        .colorSpace = Media::ColorSpace::SRGB,
+    };
     const auto pixels =
-        GenerateImageData(id, reinterpret_cast<const uint8_t*>(buffer.GetVirAddr()), buffer.GetSize(), false, 4);
-    ImageProperties properties(info, AllocatorType::DMA_ALLOC);
+        GenerateImageData(id, reinterpret_cast<const uint8_t*>(const_cast<SurfaceBuffer&>(buffer).GetVirAddr()),
+            buffer.GetSize(), false, GetBytesPerPixel(info));
+    const ImageProperties properties(info, AllocatorType::DMA_ALLOC);
     return PushImage(id, pixels, 0, buffer.GetBufferHandle(), &properties);
 }
 
 bool PixelMapStorage::Pull(uint64_t id, SurfaceBuffer& buffer)
 {
-    auto image = ImageCache::Get(id);
+    const auto image = ImageCache::Get(id);
     if (!image) {
         return false;
     }
 
-    const BufferRequestConfig config = { .width = image->dmaWidth,
+    const BufferRequestConfig config {
+        .width = image->dmaWidth,
         .height = image->dmaHeight,
         .strideAlignment = image->dmaStride,
         .format = image->dmaFormat,
-        .usage = image->dmaUsage };
+        .usage = image->dmaUsage,
+    };
     buffer.Alloc(config);
 
-    if (!CopyImageData(image, static_cast<uint8_t*>(buffer.GetVirAddr()), image->dmaSize)) {
-        return false;
+    if (CopyImageData(image, static_cast<uint8_t*>(buffer.GetVirAddr()), image->dmaSize)) {
+        buffer.FlushCache();
+        return true;
     }
-    buffer.FlushCache();
-
-    return true;
+    return false;
 }
 
 bool PixelMapStorage::PullSharedMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)

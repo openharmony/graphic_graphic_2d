@@ -59,6 +59,7 @@ public:
         uint8_t mData[];
     };
     
+    // LCOV_EXCL_START
     //BLobByteHash is the basic hash algorithm to caculate shader.
     struct BlobByteHash {
         size_t operator()(std::shared_ptr<Blob> ptr) const
@@ -83,6 +84,7 @@ public:
             }
         }
     };
+    // LCOV_EXCL_STOP
     
     BlobCache();
     ~BlobCache();

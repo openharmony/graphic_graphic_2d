@@ -55,6 +55,7 @@ public:
 private:
     void CleanAll(bool toDelete = false) noexcept;
     void CleanForRefresh() noexcept;
+    void CleanPreBufferCache() noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
@@ -65,8 +66,7 @@ private:
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
 
-    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-        sptr<Surface>& sfc, bool unobscured) override;
+    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured) override;
 
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
@@ -192,6 +192,10 @@ private:
 
     void SetFreeMultiWindowStatus(bool enable) override;
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    sptr<Surface> CreateCanvasDrawingNodeSurface(NodeId nodeId) override;
+    void ReleaseCanvasDrawingNodeSurface(NodeId nodeId) override;
+#endif
     bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid) override;
     bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener, uint64_t listenerId) override;
     bool UnRegisterSurfaceTransactionListener(uint64_t listenerId) override;

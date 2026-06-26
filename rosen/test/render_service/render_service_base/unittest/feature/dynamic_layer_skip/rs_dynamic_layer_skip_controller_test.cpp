@@ -77,6 +77,7 @@ void RSDynamicLayerSkipControllerTest::AddRenderNodeChild(
     renderNode->layerContentBits_[LayerDrawContent::SUBTREE] = subTreeContent;
     renderNode->selfDrawRect_ = drawRect.ConvertTo<float>();
     renderNode->absDrawRect_ = drawRect;
+    renderNode->instanceRootNodeId_ = rootNode->GetId();
     rootNode->AddChild(renderNode);
     rootNode->GenerateFullChildrenList();
 }
@@ -147,41 +148,6 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, CheckNodeDrawProperty002, TestSize.Le
 }
 
 /**
- * @tc.name: MarkParentSubTreeHasDrawContent001
- * @tc.desc: test MarkParentSubTreeHasDrawContent func
- * @tc.type:FUNC
- * @tc.require: issueI5QZ7E
- */
-HWTEST_F(RSDynamicLayerSkipControllerTest, MarkParentSubTreeHasDrawContent001, TestSize.Level1)
-{
-    RSDynamicLayerSkipController controller;
-    // case 1 : node has no parent.
-    {
-        auto node = GetRenderNode();
-        controller.MarkParentSubTreeHasDrawContent(*node);
-    }
-    // case 2 : parent already marked as has subtree content.
-    {
-        auto node = GetRenderNode();
-        auto parentNode = GetRenderNode();
-        parentNode->layerContentBits_[LayerDrawContent::SUBTREE] = true;
-        parentNode->AddChild(node);
-        controller.MarkParentSubTreeHasDrawContent(*node);
-        EXPECT_TRUE(parentNode->layerContentBits_[LayerDrawContent::SUBTREE]);
-    }
-    // case 3 : normal case, parent not marked as has subtree content.
-    {
-        auto node = GetRenderNode();
-        auto parentNode = GetRenderNode();
-        node->layerContentBits_[LayerDrawContent::SELF] = true;
-        parentNode->layerContentBits_[LayerDrawContent::SUBTREE] = false;
-        parentNode->AddChild(node);
-        controller.MarkParentSubTreeHasDrawContent(*node);
-        EXPECT_TRUE(parentNode->layerContentBits_[LayerDrawContent::SUBTREE]);
-    }
-}
-
-/**
  * @tc.name: HasFullScreenSelfDrawingSurface001
  * @tc.desc: test HasFullScreenSelfDrawingSurface func
  * @tc.type:FUNC
@@ -222,6 +188,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity001, TestSiz
     RectI fullscreenRect { 0, 0, 1080, 1920 };
     RSDynamicLayerSkipController controller;
     controller.Init(fullscreenRect, false);
+    controller.lastFrameHasFullScreenSurface_ = true;
     // root node has no valid self-drawing surface.
     {
         auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
@@ -242,6 +209,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity002, TestSiz
     RectI fullscreenRect { 0, 0, 1080, 1920 };
     RSDynamicLayerSkipController controller;
     controller.Init(fullscreenRect, false);
+    controller.lastFrameHasFullScreenSurface_ = true;
     // root node has valid self-drawing surface, and no occluder exists.
     {
         auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
@@ -264,6 +232,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity003, TestSiz
     RectI fullscreenRect { 0, 0, 1080, 1920 };
     RSDynamicLayerSkipController controller;
     controller.Init(fullscreenRect, false);
+    controller.lastFrameHasFullScreenSurface_ = true;
     // root node has valid self-drawing surface, but occluder exists.
     {
         auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
@@ -287,6 +256,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity004, TestSiz
     RectI fullscreenRect { 0, 0, 1080, 1920 };
     RSDynamicLayerSkipController controller;
     controller.Init(fullscreenRect, false);
+    controller.lastFrameHasFullScreenSurface_ = true;
     // root node has valid self-drawing surface, but occluder exists with out-of-screen draw rect.
     {
         auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
@@ -311,6 +281,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity005, TestSiz
     RectI fullscreenRect { 0, 0, 1080, 1920 };
     RSDynamicLayerSkipController controller;
     controller.Init(fullscreenRect, false);
+    controller.lastFrameHasFullScreenSurface_ = true;
     // root node has valid self-drawing surface, but occluder exists with transparent property.
     {
         auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
@@ -334,6 +305,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity006, TestSiz
     RectI fullscreenRect { 0, 0, 1080, 1920 };
     RSDynamicLayerSkipController controller;
     controller.Init(fullscreenRect, false);
+    controller.lastFrameHasFullScreenSurface_ = true;
     // non-full-screen surface/occluder/full screen surface/invalid occluder.
     {
         auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
@@ -359,6 +331,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity007, TestSiz
     RectI partialRect { 0, 0, 500, 500 };
     RSDynamicLayerSkipController controller;
     controller.Init(fullscreenRect, false);
+    controller.lastFrameHasFullScreenSurface_ = true;
     // full-screen surface/occluder/non-full-screen surface.
     // in this case, occluder and non-full-screen surface with equal region.
     {
@@ -381,6 +354,7 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, DetectScreenLayerValidity007, TestSiz
 HWTEST_F(RSDynamicLayerSkipControllerTest, VisitRenderNode001, TestSize.Level1)
 {
     RSDynamicLayerSkipController controller;
+    controller.lastFrameHasFullScreenSurface_ = true;
     // case1: rootnode is null.
     {
         auto node = GetRenderNode();
@@ -393,19 +367,18 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, VisitRenderNode001, TestSize.Level1)
     {
         auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
         surfaceNode->SetSkipDraw(true);
-        auto node = GetRenderNode();
-        node->layerContentBits_[LayerDrawContent::SELF] = true;
+        AddRenderNodeChild(surfaceNode, true, false, { 0, 0, 100, 100 });
         controller.globalOccluderDetected_ = false;
-        controller.VisitRenderNode(surfaceNode, *node);
+        controller.VisitRenderNode(surfaceNode, *surfaceNode);
         EXPECT_FALSE(controller.globalOccluderDetected_);
     }
     // case3: rootnode is not null, not skip draw.
     {
         auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
-        auto node = GetRenderNode();
-        node->layerContentBits_[LayerDrawContent::SELF] = true;
+        surfaceNode->layerContentBits_[LayerDrawContent::SUBTREE_UPDATE] = true;
+        AddRenderNodeChild(surfaceNode, true, false, { 0, 0, 100, 100 });
         controller.globalOccluderDetected_ = false;
-        controller.VisitRenderNode(surfaceNode, *node);
+        controller.VisitRenderNode(surfaceNode, *surfaceNode);
         EXPECT_TRUE(controller.globalOccluderDetected_);
         EXPECT_EQ(surfaceNode->GetId(), controller.occluderInstanceRootNodeId_);
     }
@@ -413,10 +386,28 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, VisitRenderNode001, TestSize.Level1)
     {
         auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::SELF_DRAWING_NODE);
         surfaceNode->layerContentBits_[LayerDrawContent::SELF] = false;
+        surfaceNode->layerContentBits_[LayerDrawContent::UPDATE] = true;
         controller.globalOccluderDetected_ = false;
         controller.VisitRenderNode(nullptr, *surfaceNode);
         EXPECT_TRUE(controller.globalOccluderDetected_);
     }
+}
+
+/**
+ * @tc.name: VisitRenderNode002
+ * @tc.desc: test VisitRenderNode func
+ * @tc.type: FUNC
+ * @tc.require: issueI5QZ7E
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VisitRenderNode002, TestSize.Level1)
+{
+    RSDynamicLayerSkipController controller;
+    controller.lastFrameHasFullScreenSurface_ = true;
+    auto surfaceNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto canvasNode = GetRenderNode();
+    canvasNode->layerContentBits_[LayerDrawContent::SELF] = true;
+    controller.VisitRenderNode(surfaceNode, *canvasNode);
+    ASSERT_FALSE(controller.globalOccluderDetected_);
 }
 
 /**
@@ -493,6 +484,37 @@ HWTEST_F(RSDynamicLayerSkipControllerTest, VerifyScreenLayerValidity003, TestSiz
         controller.targetSelfDrawingSurface_.emplace_back(surfaceNode);
         controller.VerifyScreenLayerValidity(SCREEN_LAYER_Z_ORDER);
         EXPECT_FALSE(controller.IsScreenLayerInvalid());
+    }
+}
+
+/**
+ * @tc.name: VisitRenderNodeInner_001
+ * @tc.desc: test VisitRenderNodeInner_001 with invalid/valid children list.
+ * @tc.type:FUNC
+ * @tc.require: issueI5QZ7E
+ */
+HWTEST_F(RSDynamicLayerSkipControllerTest, VisitRenderNodeInner_001, TestSize.Level1)
+{
+    RectI fullscreenRect { 0, 0, 1080, 1920 };
+    RSDynamicLayerSkipController controller;
+    {
+        // case1: node with invalid children list, should not crash.
+        controller.Init(fullscreenRect, false);
+        auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+        rootNode->layerContentBits_[LayerDrawContent::SUBTREE_UPDATE] = true;
+        rootNode->fullChildrenList_ = nullptr;
+        controller.VisitRenderNodeInner(rootNode, true);
+        EXPECT_FALSE(controller.globalOccluderDetected_);
+    }
+    {
+        // case2: node with valid children list, should work as normal.
+        controller.Init(fullscreenRect, false);
+        auto rootNode = GetSurfaceRenderNode(RSSurfaceNodeType::APP_WINDOW_NODE);
+        rootNode->layerContentBits_[LayerDrawContent::SUBTREE_UPDATE] = true;
+        AddRenderNodeChild(rootNode, true, false, { 0, 0, 100, 100 });
+        AddRenderNodeChild(rootNode, true, false, { 0, 0, 100, 100 });
+        controller.VisitRenderNodeInner(rootNode, true);
+        ASSERT_TRUE(controller.globalOccluderDetected_);
     }
 }
 } // namespace OHOS::Rosen

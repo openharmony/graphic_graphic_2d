@@ -65,7 +65,7 @@ void FontVariations::SetAxisValue(const std::string& tag, float value, bool isNo
     constexpr float FONT_WEIGHT_NORMAL = 400.0f;
     static std::once_flag flag;
     if (tag != "wght" || std::abs(value - FONT_WEIGHT_NORMAL) >= std::numeric_limits<float>::epsilon()) {
-        std::call_once(flag, [] { TEXT_HISTOGRAM_BOOLEAN_NAME("FontVariationAxis", true); });
+        std::call_once(flag, [] { TEXT_HISTOGRAM_BOOLEAN_NAME("OH_Drawing_TextStyleAddFontVariation", true); });
     }
 }
 

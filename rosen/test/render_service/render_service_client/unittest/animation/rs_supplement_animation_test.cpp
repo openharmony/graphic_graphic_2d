@@ -28,6 +28,7 @@
 #include "animation/rs_render_animation.h"
 #include "animation/rs_spring_animation.h"
 #include "animation/rs_transition.h"
+#include "ui/rs_ui_context.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -178,6 +179,7 @@ class MockRSRenderAnimation : public RSRenderAnimation {
 public:
     MockRSRenderAnimation(AnimationId id) : RSRenderAnimation(id) {}
     ~MockRSRenderAnimation() = default;
+    void RebuildPropertyValue(float fraction) override {}
 
     void DumpAnimation(std::string& out)
     {
@@ -203,6 +205,7 @@ class MockRSAnimation : public RSAnimation {
 public:
     MockRSAnimation(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
     ~MockRSAnimation() = default;
+    void RebuildInRender() override {}
 
     void OnReverse() override
     {
@@ -1015,7 +1018,10 @@ HWTEST_F(RSSupplementAnimationTest, AnimationSupplementTest023, TestSize.Level1)
     node->RemoveChild(child);
     node->ClearChildren();
 
-    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    auto rsUiDirector = RSUIDirector::Create(connectToRenderRemote, rsUIContext);
     rsUiDirector->FlushAnimationStartTime(1);
     rsUiDirector->HasUIRunningAnimation();
 

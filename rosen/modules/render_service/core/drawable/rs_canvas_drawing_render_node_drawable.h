@@ -70,15 +70,16 @@ public:
         needDraw_ = flag;
     }
 
-    std::shared_ptr<Drawing::Image> Snapshot() const override
-    {
-        return image_;
-    }
+    std::shared_ptr<Drawing::Image> Snapshot() const override;
 
     RSRenderNodeDrawableType GetDrawableType() const override
     {
         return RSRenderNodeDrawableType::CANVAS_DRAWING_NODE_DRAWABLE;
     }
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    sptr<IConsumerSurface> GetConsumerSurface() const;
+#endif
 
 protected:
     void DumpSubDrawableTree(std::string& out) const override;
@@ -95,10 +96,15 @@ private:
     bool ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
     bool GpuContextResetGL(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
     bool GpuContextResetVK(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
-    Drawing::TextureOrigin GetTextureOrigin();
+    Drawing::TextureOrigin GetTextureOrigin() const;
     void DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds);
     void ResetResource();
     bool CreateCpuSurface(const Drawing::ImageInfo& imageInfo);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    void DrawCustomContent(Drawing::Canvas& canvas);
+    void DrawCustomContentForCapture(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    std::shared_ptr<Drawing::Image> CreateImageFromBuffer(sptr<SurfaceBuffer> buffer) const;
+#endif
 #ifdef RS_ENABLE_VK
     bool ReleaseSurfaceVK(int width, int height, bool& isDmaBackendTexture);
 
@@ -106,7 +112,6 @@ private:
         bool& newVulkanCleanupHelper, bool needReleaseSurface);
 
     bool CheckBackendTexture(bool needCreateFromGpu, int width, int height, pid_t pid);
-
 #ifdef ROSEN_OHOS
     bool CreateDmaBackendTexture(pid_t pid, int width, int height);
 
@@ -118,9 +123,10 @@ private:
     std::atomic<uint32_t> dmaFallbackCount_ = 0;
 #endif // ROSEN_OHOS
 #endif // RS_ENABLE_VK
+
     bool ResetSurfaceforPlayback(int width, int height);
-    bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
-    std::shared_ptr<Drawing::GPUContext> GetGpuContext();
+    bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext) const;
+    std::shared_ptr<Drawing::GPUContext> GetGpuContext() const;
     NodeId GetNodeIdForMemTag();
     bool IsNeedResetSurface() const;
     void FlushForGL(float width, float height, std::shared_ptr<RSContext> context,

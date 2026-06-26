@@ -42,12 +42,23 @@
 #include "transaction/rs_sync_transaction_handler.h"
 #include "transaction/rs_transaction_handler.h"
 #include "transaction/rs_render_interface.h"
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#include "modifier_render_thread/rs_canvas_modifiers_draw_agent.h"
+#include "modifier_render_thread/rs_modifiers_draw_thread.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
 class RSInteractiveImplictAnimator;
+class RSTransactionData;
+class RSRenderPipelineClient;
 
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
+
+enum class RebuildState : uint8_t {
+    Normal = 0,
+    Rebuilding,
+};
 
 /**
  * @class RSUIContext
@@ -220,6 +231,26 @@ public:
      */
     void RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId id);
 
+    void SetColorSpace(GraphicColorGamut colorSpace)
+    {
+        colorSpace_ = colorSpace;
+    }
+
+    GraphicColorGamut GetColorSpace()
+    {
+        return colorSpace_;
+    }
+
+    void SetRebuildState(RebuildState state)
+    {
+        rebuildState_ = state;
+    }
+
+    RebuildState GetRebuildState() const
+    {
+        return rebuildState_;
+    }
+
 private:
     RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRemote);
     RSUIContext(uint64_t token);
@@ -230,7 +261,25 @@ private:
 
     void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, std::string& out);
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    CommitTransactionCallback CreateCommitTransactionCallback();
+    void UnblockUIThread();
+
+    std::shared_ptr<RSCanvasModifiersDrawAgent> GetCanvasModifiersDrawAgent()
+    {
+        return canvasModifiersDrawAgent_;
+    }
+
+    void OnCanvasDrawingNodeUpdate()
+    {
+        canvasDrawingNodeUpdated_ = true;
+    }
+
+    void FlushCanvasDrawingNodeBuffers();
+#endif
+
     uint64_t token_;
+    NodeId rootNodeId_ = 0;
 
     RSNodeMapV2 nodeMap_;
     std::shared_ptr<RSTransactionHandler> rsTransactionHandler_;
@@ -257,8 +306,26 @@ private:
     int32_t uiPipelineNum_ = UI_PiPLINE_NUM_UNDEFINED;
     std::recursive_mutex uiTaskRunnersVisitorMutex_;
 
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    std::shared_ptr<RSModifiersDrawThread> modifiersDrawThread_ = nullptr;
+    std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent_ = nullptr;
+
+    bool canvasDrawingNodeUpdated_ = false;
+    bool canvasDrawingNodeBufferFlushed_ = false;
+
+    std::mutex uiMutex_;
+    std::condition_variable uiCV_;
+    bool canBlockUIThread_ = false;
+#endif
+    RebuildState rebuildState_ = RebuildState::Normal;
+
     friend class RSUIContextManager;
     friend class RSUIDirector;
+    friend class RSCanvasDrawingNode;
+    friend class RSRenderInterface;
+    friend class ModifierNG::RSContentStyleModifier;
 };
 
 } // namespace Rosen

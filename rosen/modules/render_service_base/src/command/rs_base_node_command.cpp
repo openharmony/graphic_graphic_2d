@@ -27,6 +27,10 @@ void BaseNodeCommandHelper::Destroy(RSContext& context, NodeId nodeId)
 {
     auto& nodeMap = context.GetMutableNodeMap();
     auto node = nodeMap.GetRenderNode(nodeId);
+    nodeMap.GetSurfaceHandler(nodeId, true);
+#ifndef ROSEN_CROSS_PLATFORM
+    nodeMap.RemoveSurfaceHandlerInfo(nodeId);
+#endif
     if (node == nullptr) {
         return;
     }

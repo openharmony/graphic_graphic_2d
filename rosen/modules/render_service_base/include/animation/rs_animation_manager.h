@@ -28,6 +28,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSContext;
 class RSDirtyRegionManager;
 class RSPaintFilterCanvas;
 class RSProperties;
@@ -73,8 +74,13 @@ public:
 
     const FrameRateRange& GetFrameRateRange() const;
     const FrameRateRange& GetDecideFrameRateRange() const;
+    void DestroyInRender(NodeId nodeId, const std::weak_ptr<RSContext>& context);
 
-    void SetRateDeciderEnable(bool enabled, const FrameRateGetFunc& func);
+    void SetRateDeciderEnable(bool enabled, const FrameRateGetFunc& func)
+    {
+        rateDecider_.SetEnable(enabled);
+        frameRateGetFunc_ = func;
+    }
     void SetRateDeciderSize(float width, float height);
     void SetRateDeciderScale(float scaleX, float scaleY);
     void SetRateDeciderAbsRect(int32_t width, int32_t height);
@@ -88,6 +94,7 @@ private:
     std::unordered_map<PropertyId, AnimationId> particleAnimations_;
     std::vector<AnimationId> pendingCancelAnimation_;
     AnimationId preDrawCmdListAnimationId_;
+    friend class RSRenderNodeMap;
     friend class RSRenderNode;
     friend class RSRenderCurveAnimation;
     friend class RSRenderTimeDrivenGroupAnimator;

@@ -524,7 +524,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurface
 }
 
 void RSUniHwcVisitor::CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-    std::unordered_set<pid_t>& hdrForceHwcNodes)
+    std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes)
 {
     if (!RSSystemProperties::GetXcomponentEdrEnabled() || RSBaseHdrUtil::GetRGBA1010108Enabled()) {
         return;
@@ -532,14 +532,14 @@ void RSUniHwcVisitor::CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRen
     // Collect HDR_VIDEO status first
     uniRenderVisitor_.curScreenNode_->CollectHdrStatus(hwcNode->GetId(), hwcNode->GetVideoHdrStatus());
     if (hwcNode->IsHdrForceHwcEnabled()) {
-        hdrForceHwcNodes.emplace(ExtractPid(hwcNode->GetId()));
+        hdrForceHwcNodes.emplace(hwcNode->GetId(), hwcNode);
     }
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeEnable()
 {
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
-    std::unordered_set<pid_t> hdrForceHwcNodes;
+    std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr> hdrForceHwcNodes;
     int inputHwclayers = 3;
     auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),

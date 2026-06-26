@@ -344,7 +344,7 @@ napi_value JsTextLine::OnCreateTruncatedLine(napi_env env, napi_callback_info in
         return NapiGetUndefined(env);
     }
 
-    std::unique_ptr<TextLineBase> textLine = textLine_->CreateTruncatedLine(width, EllipsisModal(ellipsisMode),
+    std::shared_ptr<TextLineBase> textLine = textLine_->CreateTruncatedLine(width, EllipsisModal(ellipsisMode),
         ellipsisStr);
     if (textLine == nullptr) {
         TEXT_LOGE("Failed to create truncated textLine");

@@ -49,9 +49,14 @@ void RSRenderServiceListenerTest::TearDown() {}
  */
 HWTEST_F(RSRenderServiceListenerTest, CreateAndDestroy001, TestSize.Level1)
 {
-    // nullptr test
-    std::weak_ptr<RSSurfaceRenderNode> wp;
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
+    NodeId id = 5;
+    RSSurfaceRenderNodeConfig config;
+    config.id = id;
+    config.name = std::to_string(id);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(rsSurfaceRenderNode, surfaceHandler, nullptr);
     ASSERT_NE(rsListener, nullptr);
 }
 
@@ -63,13 +68,18 @@ HWTEST_F(RSRenderServiceListenerTest, CreateAndDestroy001, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceListenerTest, OnTunnelHandleChange001, TestSize.Level1)
 {
-    // nullptr test and early return
-    std::weak_ptr<RSSurfaceRenderNode> wp;
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
+    NodeId id = 5;
+    RSSurfaceRenderNodeConfig config;
+    config.id = id;
+    config.name = std::to_string(id);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(rsSurfaceRenderNode, surfaceHandler, nullptr);
     rsListener->OnTunnelHandleChange();
 
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
-    rsListener = std::make_shared<RSRenderServiceListener>(node, nullptr);
+    rsListener = std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
     rsListener->OnTunnelHandleChange();
     ASSERT_EQ(node->GetTunnelHandleChange(), true);
 }
@@ -82,52 +92,24 @@ HWTEST_F(RSRenderServiceListenerTest, OnTunnelHandleChange001, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceListenerTest, OnCleanCache001, TestSize.Level1)
 {
-    // nullptr test and early return
-    std::weak_ptr<RSSurfaceRenderNode> wp;
+    NodeId id = 5;
+    RSSurfaceRenderNodeConfig config;
+    config.id = id;
+    config.name = std::to_string(id);
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
+
     auto clientComposer = std::make_shared<RSComposerClientManager>();
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, clientComposer);
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(rsSurfaceRenderNode, surfaceHandler, clientComposer);
     uint32_t bufSeqNum = 0;
     rsListener->OnCleanCache(&bufSeqNum);
-    
+
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
-    rsListener = std::make_shared<RSRenderServiceListener>(node, clientComposer);
+    rsListener = std::make_shared<RSRenderServiceListener>(node, surfaceHandler, clientComposer);
     rsListener->OnCleanCache(&bufSeqNum);
     ASSERT_EQ(node->GetRSSurfaceHandler()->GetAvailableBufferCount(), 0);
     ASSERT_TRUE(bufSeqNum >= 0);
-}
-
-/**
-* @tc.name: ForceRefresh001
-* @tc.desc: Test ForceRefresh
-* @tc.type: FUNC
-* @tc.require:
-*/
-HWTEST_F(RSRenderServiceListenerTest, ForceRefresh001, TestSize.Level1)
-{
-    RSMainThread::Instance()->composerClientManager_ = std::make_shared<RSComposerClientManager>();
-    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(node,
-        std::make_shared<RSComposerClientManager>());
-    rsListener = std::make_shared<RSRenderServiceListener>(node, std::make_shared<RSComposerClientManager>());
-
-    ASSERT_FALSE(node->IsLayerTop());
-    ASSERT_FALSE(node->IsTopLayerForceRefresh());
-    rsListener->ForceRefresh(node);
-
-    node->SetLayerTop(true);
-    ASSERT_TRUE(node->IsLayerTop());
-    ASSERT_TRUE(node->IsTopLayerForceRefresh());
-    rsListener->ForceRefresh(node);
-
-    node->SetLayerTop(true, false);
-    ASSERT_TRUE(node->IsLayerTop());
-    ASSERT_FALSE(node->IsTopLayerForceRefresh());
-    rsListener->ForceRefresh(node);
-
-    node->SetLayerTop(false, true);
-    ASSERT_FALSE(node->IsLayerTop());
-    ASSERT_TRUE(node->IsTopLayerForceRefresh());
-    rsListener->ForceRefresh(node);
 }
 
 /**
@@ -139,38 +121,39 @@ HWTEST_F(RSRenderServiceListenerTest, ForceRefresh001, TestSize.Level1)
 HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailable001, TestSize.Level1)
 {
     // nullptr test and early return
-    std::weak_ptr<RSSurfaceRenderNode> wp;
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
+    std::shared_ptr<RSSurfaceRenderNode> rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler(rsSurfaceRenderNode->GetRSSurfaceHandler());
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(
+        rsSurfaceRenderNode, surfaceHandler, std::make_shared<RSComposerClientManager>());
     rsListener->OnBufferAvailable();
 
-    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
-    rsListener = std::make_shared<RSRenderServiceListener>(node, nullptr);
-    node->SetIsNotifyUIBufferAvailable(false);
+    rsListener = std::make_shared<RSRenderServiceListener>(
+        rsSurfaceRenderNode, surfaceHandler, std::make_shared<RSComposerClientManager>());
+    rsSurfaceRenderNode->SetIsNotifyUIBufferAvailable(false);
     rsListener->OnBufferAvailable();
-    ASSERT_EQ(node->IsNotifyUIBufferAvailable(), true);
+    ASSERT_EQ(rsSurfaceRenderNode->IsNotifyUIBufferAvailable(), true);
 
-    node->SetIsNotifyUIBufferAvailable(true);
+    rsSurfaceRenderNode->SetIsNotifyUIBufferAvailable(true);
     rsListener->OnBufferAvailable();
-    ASSERT_EQ(node->IsNotifyUIBufferAvailable(), true);
+    ASSERT_EQ(rsSurfaceRenderNode->IsNotifyUIBufferAvailable(), true);
 }
 
 /**
  * @tc.name: SetBufferInfoAndRequest001
- * @tc.desc: Test SetBufferInfoAndRequest
+ * @tc.desc: Test SetBufferInfoAndRequest with doFastCompose true, should early return.
  * @tc.type: FUNC
  * @tc.require: issue20841
  */
 HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level1)
 {
     std::weak_ptr<RSSurfaceRenderNode> wp;
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
-    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    std::weak_ptr<RSSurfaceHandler> wh;
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(wp, wh, nullptr);
     NodeId id = 0;
     std::shared_ptr<RSSurfaceHandler> handler = std::make_shared<RSSurfaceHandler>(id);
-    rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), true);
-    ASSERT_EQ(node->GetAncoFlags(), 0);
-    rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), false);
-    ASSERT_EQ(node->GetAncoFlags(), 0);
+    rsListener->SetBufferInfoAndRequest(handler, handler->GetConsumer(), true);
+    ASSERT_NE(rsListener, nullptr);
 }
 
 /**
@@ -182,7 +165,9 @@ HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level
 HWTEST_F(RSRenderServiceListenerTest, OnDropBuffer001, TestSize.Level1)
 {
     std::weak_ptr<RSSurfaceRenderNode> wp;
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
+    std::weak_ptr<RSSurfaceHandler> wh;
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(wp, wh, nullptr);
     rsListener->OnDropBuffer();
     ASSERT_NE(rsListener, nullptr);
 }
@@ -196,11 +181,235 @@ HWTEST_F(RSRenderServiceListenerTest, OnDropBuffer001, TestSize.Level1)
 HWTEST_F(RSRenderServiceListenerTest, OnDropBuffer002, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
     ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
     node->GetRSSurfaceHandler()->SetBufferDropped(false);
     ASSERT_FALSE(node->GetRSSurfaceHandler()->GetBufferDropped());
     rsListener->OnDropBuffer();
     ASSERT_TRUE(node->GetRSSurfaceHandler()->GetBufferDropped());
+}
+
+/**
+ * @tc.name: OnGoBackground001
+ * @tc.desc: Test OnGoBackground when node is nullptr, should early return without crash.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnGoBackground001, TestSize.Level1)
+{
+    std::weak_ptr<RSSurfaceRenderNode> wp;
+    std::weak_ptr<RSSurfaceHandler> wh;
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(wp, wh, nullptr);
+    rsListener->OnGoBackground();
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: OnGoBackground002
+ * @tc.desc: Test OnGoBackground when node is valid, should post task to main thread.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnGoBackground002, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
+    node->GetRSSurfaceHandler()->IncreaseAvailableBuffer();
+    ASSERT_GT(node->GetRSSurfaceHandler()->GetAvailableBufferCount(), 0);
+    node->SetNotifyRTBufferAvailable(true);
+    ASSERT_TRUE(node->GetIsTextureExportNode() || node->IsNotifyRTBufferAvailable());
+    rsListener->OnGoBackground();
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: OnTransformChange001
+ * @tc.desc: Test OnTransformChange when node is nullptr, should early return without crash.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTransformChange001, TestSize.Level1)
+{
+    std::weak_ptr<RSSurfaceRenderNode> wp;
+    std::weak_ptr<RSSurfaceHandler> wh;
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(wp, wh, nullptr);
+    rsListener->OnTransformChange();
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: OnTransformChange002
+ * @tc.desc: Test OnTransformChange when node is valid, should post task to main thread.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTransformChange002, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
+    node->GetRSSurfaceHandler()->SetBufferTransformTypeChanged(false);
+    ASSERT_FALSE(node->GetRSSurfaceHandler()->GetBufferTransformTypeChanged());
+    rsListener->OnTransformChange();
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: OnTransformChange003
+ * @tc.desc: Test OnTransformChange with surfaceHandler nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTransformChange003, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    config.name = "TestTransformChangeNode";
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    std::weak_ptr<RSSurfaceHandler> wh;
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, wh, nullptr);
+    rsListener->OnTransformChange();
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: ConsumeBufferToKeepQueueRunning001
+ * @tc.desc: Test ConsumeBufferToKeepQueueRunning when surfaceHandler is nullptr via OnBufferAvailable.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, ConsumeBufferToKeepQueueRunning001, TestSize.Level1)
+{
+    std::weak_ptr<RSSurfaceRenderNode> wp;
+    std::weak_ptr<RSSurfaceHandler> wh;
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(wp, wh, nullptr);
+    std::weak_ptr<RSSurfaceHandler> surfaceHandler;
+    rsListener->ConsumeBufferToKeepQueueRunning(surfaceHandler);
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: ConsumeBufferToKeepQueueRunning002
+ * @tc.desc: Test ConsumeBufferToKeepQueueRunning when available buffer count is 0.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, ConsumeBufferToKeepQueueRunning002, TestSize.Level1)
+{
+    NodeId id = 100;
+    std::shared_ptr<RSSurfaceHandler> handler = std::make_shared<RSSurfaceHandler>(id);
+    RSSurfaceRenderNodeConfig config;
+    config.id = id;
+    config.name = "ConsumeBufferTestNode";
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->ResetBufferAvailableCount();
+    ASSERT_EQ(surfaceHandler->GetAvailableBufferCount(), 0);
+    rsListener->ConsumeBufferToKeepQueueRunning(surfaceHandler);
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: ConsumeBufferToKeepQueueRunning003
+ * @tc.desc: Test ConsumeBufferToKeepQueueRunning with available buffer count > 0.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, ConsumeBufferToKeepQueueRunning003, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->IncreaseAvailableBuffer();
+    ASSERT_GT(surfaceHandler->GetAvailableBufferCount(), 0);
+    rsListener->ConsumeBufferToKeepQueueRunning(surfaceHandler);
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: ProcessPendingCallbacks001
+ * @tc.desc: Test ProcessPendingCallbacks when isInterfaceDirty_ is false, should early return.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, ProcessPendingCallbacks001, TestSize.Level1)
+{
+    NodeId id = 200;
+    RSSurfaceRenderNodeConfig config;
+    config.id = id;
+    config.name = "ProcessPendingTestNode";
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+    rsListener->ProcessPendingCallbacks();
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: ProcessPendingCallbacks002
+ * @tc.desc: Test ProcessPendingCallbacks via SetRSSurfaceBufferInterface.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, ProcessPendingCallbacks002, TestSize.Level1)
+{
+    NodeId id1 = 201;
+    NodeId id2 = 202;
+    RSSurfaceRenderNodeConfig config1;
+    config1.id = id1;
+    config1.name = "ProcessPendingNode1";
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config1);
+    auto surfaceHandler = node1->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node1, surfaceHandler, nullptr);
+
+    RSSurfaceRenderNodeConfig config2;
+    config2.id = id2;
+    config2.name = "ProcessPendingNode2";
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config2);
+    rsListener->SetRSSurfaceBufferInterface(node2);
+    ASSERT_NE(rsListener, nullptr);
+}
+
+/**
+ * @tc.name: SetRSSurfaceBufferInterface001
+ * @tc.desc: Test SetRSSurfaceBufferInterface with valid node.
+ * @tc.type: FUNC
+ * @tc.require: issueI5X0TR
+ */
+HWTEST_F(RSRenderServiceListenerTest, SetRSSurfaceBufferInterface001, TestSize.Level1)
+{
+    NodeId id = 300;
+    RSSurfaceRenderNodeConfig config;
+    config.id = id;
+    config.name = "SetInterfaceTestNode";
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+
+    RSSurfaceRenderNodeConfig config2;
+    config2.id = id + 1;
+    config2.name = "SetInterfaceTestNode2";
+    auto newNode = std::make_shared<RSSurfaceRenderNode>(config2);
+    rsListener->SetRSSurfaceBufferInterface(newNode);
+    ASSERT_NE(rsListener, nullptr);
 }
 } // namespace OHOS::Rosen

@@ -19,7 +19,6 @@
 #include "modifier_ng/custom/rs_custom_modifier.h"
 
 namespace OHOS::Rosen {
-class RSUIDirector;
 namespace ModifierNG {
 
 /**
@@ -55,6 +54,8 @@ public:
         return;
     }
 
+    void FlushContentModifierImmediately();
+
 protected:
     // LCOV_EXCL_START
     RSPropertyType GetInnerPropertyType() const override
@@ -62,6 +63,8 @@ protected:
         return RSPropertyType::CONTENT_STYLE;
     }
     // LCOV_EXCL_STOP
+
+    bool RenderInClient(Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<RSNode> node) override;
 };
 } // namespace ModifierNG
 } // namespace OHOS::Rosen

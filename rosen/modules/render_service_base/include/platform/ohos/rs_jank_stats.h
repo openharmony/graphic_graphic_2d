@@ -83,6 +83,16 @@ struct JankFrames {
     int32_t traceId_ = TRACE_ID_INITIAL;
     int64_t totalFrameTimeSteadyForHTR_ = 0;
     int64_t lastTotalFrameTimeSteadyForHTR_ = 0;
+    int64_t curFrameMaxPipelineTime_ = 0;
+    int64_t curFrameTotalPipelineTime_ = 0;
+    int64_t animationMaxSinglePipelineTime_ = 0;
+    int64_t animationMaxSinglePipelineFrameTotal_ = 0;
+    int64_t animationMaxTotalPipelineTime_ = 0;
+    int64_t animationMaxTotalPipelineFrameSingle_ = 0;
+    int64_t lastAnimationMaxSinglePipelineTime_ = 0;
+    int64_t lastAnimationMaxSinglePipelineFrameTotal_ = 0;
+    int64_t lastAnimationMaxTotalPipelineTime_ = 0;
+    int64_t lastAnimationMaxTotalPipelineFrameSingle_ = 0;
     uint32_t lastMaxFrameRefreshRate_ = 0;
     uint32_t maxFrameRefreshRate_ = 0;
     float totalHitchTimeSteady_ = 0;
@@ -155,6 +165,7 @@ public:
     bool AvcodecVideoGetRecent();
     bool GetEarlyZEnableFlag();
     bool GetFlushEarlyZ();
+    void OnGraphicsPipelineCreated(int64_t startTime, int64_t duration, bool isGraphicsPipeline);
 
 private:
     RSJankStats() = default;
@@ -172,6 +183,8 @@ private:
     size_t GetJankRangeType(int64_t missedVsync) const;
     void UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, uint32_t dynamicRefreshRate);
     void UpdateHitchTime(JankFrames& jankFrames, float standardFrameTime);
+    void UpdateAnimationGraphicsPipelineTime(JankFrames& jankFrames);
+    std::string GetAnimationShaderTimeString(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames, bool isReportTaskDelayed) const;

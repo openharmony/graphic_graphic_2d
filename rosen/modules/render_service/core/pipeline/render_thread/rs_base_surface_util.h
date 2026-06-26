@@ -43,6 +43,7 @@ public:
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY,
         const DropFrameConfig& dropFrameConfig = DropFrameConfig::NoDrop(),
         uint64_t parentNodeId = 0, bool dropFrameByScreenFrozen = false);
+    static bool ConsumeAndUpdateBufferSimple(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY);
 };
 } // namespace Rosen
 } // namespace OHOS

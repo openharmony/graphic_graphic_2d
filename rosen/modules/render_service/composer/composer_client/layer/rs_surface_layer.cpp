@@ -1121,6 +1121,7 @@ void RSSurfaceLayer::SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler:
     }
     bufferOwnerCounts_[bufferOwnerCount->bufferId_] = bufferOwnerCount;
     if (needUpdate) {
+        bufferOwnerCount->SetTransitionFlag(true);
         bufferOwnerCount_ = bufferOwnerCount;
     }
 }
@@ -1156,6 +1157,7 @@ void RSSurfaceLayer::SetOriginalBufferOwnerCount(
     if (bufferOwnerCounts_.find(bufferOwnerCount->bufferId_) == bufferOwnerCounts_.end()) {
         bufferOwnerCount->AddRef();
     }
+    bufferOwnerCount->SetTransitionFlag(true);
     bufferOwnerCounts_[bufferOwnerCount->bufferId_] = bufferOwnerCount;
     originalBufferOwnerCount_ = bufferOwnerCount;
 }

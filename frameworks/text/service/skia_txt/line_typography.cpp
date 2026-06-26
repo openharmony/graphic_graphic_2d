@@ -30,9 +30,9 @@ size_t LineTypography::GetLineBreak(size_t startIndex, double width) const
     return lineFetcher_->GetLineBreak(startIndex, width);
 }
 
-std::unique_ptr<TextLineBase> LineTypography::CreateLine(size_t startIndex, size_t count)
+std::shared_ptr<TextLineBase> LineTypography::CreateLine(size_t startIndex, size_t count)
 {
-    return std::make_unique<TextLineBaseImpl>(lineFetcher_->CreateLine(startIndex, count));
+    return std::make_shared<TextLineBaseImpl>(lineFetcher_->CreateLine(startIndex, count));
 }
 
 std::unique_ptr<OHOS::Rosen::Typography> LineTypography::GetTempTypography()

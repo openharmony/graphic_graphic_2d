@@ -92,6 +92,9 @@ protected:
     RSUnionNode(const RSUnionNode&&) = delete;
     RSUnionNode& operator=(const RSUnionNode&) = delete;
     RSUnionNode& operator=(const RSUnionNode&&) = delete;
+
+    void CreateRenderNode() override;
+
 private:
     /**
      * @brief Registers the node in the node map.

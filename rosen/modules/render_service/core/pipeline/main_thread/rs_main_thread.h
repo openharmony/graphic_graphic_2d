@@ -160,6 +160,11 @@ public:
         return *context_;
     }
 
+    std::weak_ptr<RSContext> GetWeakContext()
+    {
+        return context_;
+    }
+
     bool HasContext() const
     {
         return context_ != nullptr;
@@ -431,6 +436,7 @@ public:
     }
     void SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart);
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
+    void InitCreatePipelineTimeCallback(Drawing::GPUContext* gpuContext);
 #ifdef RS_ENABLE_GPU
     void InitGPUCacheManager();
 #endif
@@ -478,6 +484,12 @@ public:
     void AddSurfaceFpsOp(const SurfaceFpsOp& op);
     std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
     void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
+
+    // for rebuild transaction
+    bool IsRebuildTransactionInProgress() const;
+    void AddSplitTransaction(std::unique_ptr<RSTransactionData> transaction);
+    void ProcessSplitTransactionCommands(); // 在 ProcessCommand 中调用，处理分帧事务的一部分命令
+    pid_t GetPendingSplitPid() const;
 
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
@@ -536,6 +548,8 @@ private:
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
+    bool CheckIfNeedSplitTransaction(std::unique_ptr<RSTransactionData>& rsTransactionData);
+
     void ClassifyRSTransactionData(std::shared_ptr<RSTransactionData> rsTransactionData);
     void ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
     void ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
@@ -558,6 +572,7 @@ private:
     uint32_t GetForceCommitReason() const;
 
     void TraverseCanvasDrawingNodes();
+    bool CheckIfNeedSplitTransaction();
 
     void SetFocusLeashWindowId();
     void PrintCurrentStatus();
@@ -781,6 +796,7 @@ private:
 #ifdef RS_ENABLE_GPU
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
 #endif
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> canvasDrawingSelfDrawables_;
 
     // Enable HWCompose
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
@@ -884,6 +900,10 @@ private:
     // for surface fps op
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
     std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
+
+    // for rebuild transaction
+    std::deque<std::unique_ptr<RSTransactionData>> pendingSplitTransactions_;
+    pid_t pendingSplitPid_ = -1;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

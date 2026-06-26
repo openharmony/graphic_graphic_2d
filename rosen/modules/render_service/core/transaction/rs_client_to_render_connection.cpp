@@ -311,8 +311,8 @@ ErrCode RSClientToRenderConnection::CreateNode(const RSSurfaceRenderNodeConfig& 
     return renderPipelineAgent_->CreateNode(config, success);
 }
 
-ErrCode RSClientToRenderConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-    sptr<Surface>& sfc, bool unobscured)
+ErrCode RSClientToRenderConnection::CreateNodeAndSurface(
+    const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured)
 {
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
@@ -749,6 +749,22 @@ void RSClientToRenderConnection::SetFreeMultiWindowStatus(bool enable)
     renderPipelineAgent_->SetFreeMultiWindowStatus(enable);
 }
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+sptr<Surface> RSClientToRenderConnection::CreateCanvasDrawingNodeSurface(NodeId nodeId)
+{
+    if (renderPipelineAgent_ != nullptr) {
+        return renderPipelineAgent_->CreateCanvasDrawingNodeSurface(nodeId, remotePid_);
+    }
+    return nullptr;
+}
+ 
+void RSClientToRenderConnection::ReleaseCanvasDrawingNodeSurface(NodeId nodeId)
+{
+    if (renderPipelineAgent_ != nullptr) {
+        renderPipelineAgent_->ReleaseCanvasDrawingNodeSurface(nodeId, remotePid_);
+    }
+}
+#endif
 bool RSClientToRenderConnection::SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid)
 {
     if (renderPipelineAgent_ == nullptr) {

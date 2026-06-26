@@ -87,6 +87,9 @@ protected:
     RSEffectNode(const RSEffectNode&&) = delete;
     RSEffectNode& operator=(const RSEffectNode&) = delete;
     RSEffectNode& operator=(const RSEffectNode&&) = delete;
+
+    void CreateRenderNode() override;
+
 private:
     /**
      * @brief Registers the node in the node map.

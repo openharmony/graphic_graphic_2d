@@ -38,4 +38,33 @@ void NodeMemReleaseParam::SetRsRenderNodeGCMemReleaseEnabled(bool isEnable)
     isRsRenderNodeGCMemReleaseEnabled_ = isEnable;
 }
 
+bool NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled()
+{
+    return isCanvasDrawingNodeBufferEnabled_;
+}
+ 
+void NodeMemReleaseParam::SetCanvasDrawingNodeBufferEnabled(bool isEnable)
+{
+    isCanvasDrawingNodeBufferEnabled_ = isEnable;
+}
+ 
+void NodeMemReleaseParam::AddToCanvasBufferBlacklist(std::string processName, std::string value)
+{
+    if (canvasBufferBlacklist_ == nullptr) {
+        canvasBufferBlacklist_ = std::make_shared<std::map<std::string, std::string>>();
+    }
+    canvasBufferBlacklist_->emplace(processName, value);
+}
+ 
+bool NodeMemReleaseParam::IsCanvasBufferEnabled(const std::string& processName)
+{
+    if (canvasBufferBlacklist_ == nullptr || canvasBufferBlacklist_->empty()) {
+        return true;
+    }
+    auto it = canvasBufferBlacklist_->find(processName);
+    if (it == canvasBufferBlacklist_->end()) {
+        return true;
+    }
+    return it->second != "1";
+}
 } // namespace OHOS::Rosen

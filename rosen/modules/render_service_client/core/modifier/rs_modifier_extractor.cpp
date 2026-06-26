@@ -535,6 +535,108 @@ int RSModifierExtractor::GetColorBlendApplyType() const
         int, BLENDER, COLOR_BLEND_APPLY_TYPE, static_cast<int>(RSColorBlendApplyType::FAST), =);
 }
 
+TransformPropertyValues RSModifierExtractor::GetAllTransformPropertyValues() const
+{
+    auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)
+                                    : RSNodeMap::Instance().GetNode<RSNode>(id_);
+    if (!node) {
+        return TransformPropertyValues();
+    }
+ 
+    std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());
+    TransformPropertyValues transformPropVals;
+ 
+    for (auto &[_, modifier] : node->modifiersNG_) {
+        if (modifier->GetType() == ModifierNG::RSModifierType::TRANSFORM) {
+            std::shared_ptr<RSProperty<float>> positionZProp = std::static_pointer_cast<RSProperty<float>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::POSITION_Z));
+            if (positionZProp != nullptr) {
+                transformPropVals.positionZ += positionZProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<Vector2f>> pivotProp = std::static_pointer_cast<RSProperty<Vector2f>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::PIVOT));
+            if (pivotProp != nullptr) {
+                transformPropVals.pivot = pivotProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<float>> pivotZProp =
+                std::static_pointer_cast<RSProperty<float>>(modifier->GetProperty(ModifierNG::RSPropertyType::PIVOT_Z));
+            if (pivotZProp != nullptr) {
+                transformPropVals.pivotZ = pivotZProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<Quaternion>> quaternionProp = std::static_pointer_cast<RSProperty<Quaternion>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::QUATERNION));
+            if (quaternionProp != nullptr) {
+                transformPropVals.quaternion = quaternionProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<float>> rotationProp = std::static_pointer_cast<RSProperty<float>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::ROTATION));
+            if (rotationProp != nullptr) {
+                transformPropVals.rotation += rotationProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<float>> rotationXProp = std::static_pointer_cast<RSProperty<float>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::ROTATION_X));
+            if (rotationXProp != nullptr) {
+                transformPropVals.rotationX += rotationXProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<float>> rotationYProp = std::static_pointer_cast<RSProperty<float>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::ROTATION_Y));
+            if (rotationYProp != nullptr) {
+                transformPropVals.rotationY += rotationYProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<float>> cameraDistanceProp = std::static_pointer_cast<RSProperty<float>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::CAMERA_DISTANCE));
+            if (cameraDistanceProp != nullptr) {
+                transformPropVals.cameraDistance = cameraDistanceProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<Vector2f>> translateProp = std::static_pointer_cast<RSProperty<Vector2f>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::TRANSLATE));
+            if (translateProp != nullptr) {
+                transformPropVals.translate += translateProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<float>> translateZProp = std::static_pointer_cast<RSProperty<float>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::TRANSLATE_Z));
+            if (translateZProp != nullptr) {
+                transformPropVals.translateZ += translateZProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<Vector2f>> scaleProp = std::static_pointer_cast<RSProperty<Vector2f>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::SCALE));
+            if (scaleProp != nullptr) {
+                transformPropVals.scale *= scaleProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<float>> scaleZProp =
+                std::static_pointer_cast<RSProperty<float>>(modifier->GetProperty(ModifierNG::RSPropertyType::SCALE_Z));
+            if (scaleZProp != nullptr) {
+                transformPropVals.scaleZ *= scaleZProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<Vector3f>> skewProp =
+                std::static_pointer_cast<RSProperty<Vector3f>>(modifier->GetProperty(ModifierNG::RSPropertyType::SKEW));
+            if (skewProp != nullptr) {
+                transformPropVals.skew += skewProp->Get();
+            }
+ 
+            std::shared_ptr<RSProperty<Vector4f>> perspProp = std::static_pointer_cast<RSProperty<Vector4f>>(
+                modifier->GetProperty(ModifierNG::RSPropertyType::PERSP));
+            if (perspProp != nullptr) {
+                transformPropVals.persp = perspProp->Get();
+            }
+        }
+    }
+ 
+    return transformPropVals;
+}
+
 std::string RSModifierExtractor::Dump() const
 {
     std::string dumpInfo;

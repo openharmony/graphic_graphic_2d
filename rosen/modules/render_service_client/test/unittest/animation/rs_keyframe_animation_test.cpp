@@ -13,18 +13,35 @@
  * limitations under the License.
  */
 
-#include "rs_animation_base_test.h"
-#include "rs_animation_test_utils.h"
+#include "gtest/gtest.h"
 
 #include "animation/rs_keyframe_animation.h"
+#include "rs_animation_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-using namespace ANIMATIONTEST;
-class RSKeyframeAnimationTest : public RSAnimationBaseTest {
+class RSKeyframeAnimationTest : public testing::Test {
 };
+
+/**
+ * @tc.name: RebuildInRender001
+ * @tc.desc: Verify RebuildInRender with empty keyframes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSKeyframeAnimationTest, RebuildInRender001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest RebuildInRender001 start";
+    auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATIONTEST::ANIMATION_START_BOUNDS);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
+    keyframeAnimation->SetRebuildParam({0.5f, false});
+    keyframeAnimation->RebuildInRender();
+    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest RebuildInRender001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

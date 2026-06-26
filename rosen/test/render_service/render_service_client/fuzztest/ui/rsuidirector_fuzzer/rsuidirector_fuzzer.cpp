@@ -67,8 +67,6 @@ const uint8_t DO_HAS_UIRUNNING_ANIMATION = 32;
 const uint8_t DO_GET_INDEX = 33;
 const uint8_t DO_DUMP_NODE_TREE_PROCESSOR = 34;
 const uint8_t DO_POST_DELAY_TASK = 35;
-const uint8_t DO_SET_TYPICAL_RESIDENT_PROCESS = 36;
-const uint8_t DO_GET_HYBRID_RENDER_SWITCH = 38;
 const uint8_t DO_INIT_001 = 40;
 const uint8_t DO_SEND_MESSAGES_001 = 41;
 const uint8_t DO_PROCESS_MESSAGES_001 = 42;
@@ -404,21 +402,6 @@ void DoPostDelayTask(const uint8_t* data, size_t size)
     director->PostDelayTask(task);
     director->PostDelayTask(task, delay, instanceId);
 }
-
-void DoSetTypicalResidentProcess()
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
-    bool isTypicalResidentProcess = GetData<bool>();
-    director->SetTypicalResidentProcess(isTypicalResidentProcess);
-}
-
-void DoGetHybridRenderSwitch()
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
-    ComponentEnableSwitch bitSeq = GetData<ComponentEnableSwitch>();
-    director->GetHybridRenderSwitch(bitSeq);
-}
-
 } // namespace Rosen
 } // namespace OHOS
 
@@ -538,12 +521,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_POST_DELAY_TASK:
             OHOS::Rosen::DoPostDelayTask(data, size);
-            break;
-        case OHOS::Rosen::DO_SET_TYPICAL_RESIDENT_PROCESS:
-            OHOS::Rosen::DoSetTypicalResidentProcess();
-            break;
-        case OHOS::Rosen::DO_GET_HYBRID_RENDER_SWITCH:
-            OHOS::Rosen::DoGetHybridRenderSwitch();
             break;
         case OHOS::Rosen::DO_INIT_001:
             OHOS::Rosen::DoInit001();

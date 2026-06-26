@@ -407,4 +407,109 @@ HWTEST_F(RSIpcPersistenceDataTest, SelfDrawingNodeRectChangeCallbackPersistenceD
     EXPECT_EQ(data->GetType(), RSIpcPersistenceType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
 }
 
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataMarshallingTest001, TestSize.Level1)
+{
+    auto data = SetWatermarkPersistenceData(1000, "test", nullptr, true, 10, 20);
+    Parcel parcel;
+    bool result = data.Marshalling(parcel);
+    EXPECT_TRUE(result);
+}
+
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataMarshallingTest002, TestSize.Level1)
+{
+    auto data = SetWatermarkPersistenceData(1000, "test", nullptr, true, 256, 20);
+    Parcel parcel;
+    bool result = data.Marshalling(parcel);
+    EXPECT_FALSE(result);
+}
+
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataMarshallingTest003, TestSize.Level1)
+{
+    auto data = SetWatermarkPersistenceData(1000, "test", nullptr, true, 10, 256);
+    Parcel parcel;
+    bool result = data.Marshalling(parcel);
+    EXPECT_FALSE(result);
+}
+
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataMarshallingTest004, TestSize.Level1)
+{
+    auto data = SetWatermarkPersistenceData(1000, "test", nullptr, true, 255, 255);
+    Parcel parcel;
+    bool result = data.Marshalling(parcel);
+    EXPECT_TRUE(result);
+}
+
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataUnmarshallingTest001, TestSize.Level1)
+{
+    Parcel parcel;
+    RSMarshallingHelper::Marshalling(parcel, static_cast<pid_t>(1000));
+    RSMarshallingHelper::Marshalling(parcel, std::string("test"));
+    parcel.WriteParcelable(nullptr);
+    RSMarshallingHelper::Marshalling(parcel, true);
+    RSMarshallingHelper::Marshalling(parcel, static_cast<uint32_t>(10));
+    RSMarshallingHelper::Marshalling(parcel, static_cast<uint32_t>(20));
+    auto data = SetWatermarkPersistenceData::Unmarshalling(parcel);
+    EXPECT_NE(data, nullptr);
+    EXPECT_EQ(data->GetType(), RSIpcPersistenceType::SET_WATERMARK);
+    EXPECT_EQ(data->GetCallingPid(), 1000);
+    delete data;
+}
+
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataUnmarshallingTest002, TestSize.Level1)
+{
+    Parcel parcel;
+    RSMarshallingHelper::Marshalling(parcel, static_cast<pid_t>(1000));
+    RSMarshallingHelper::Marshalling(parcel, std::string("test"));
+    parcel.WriteParcelable(nullptr);
+    RSMarshallingHelper::Marshalling(parcel, true);
+    RSMarshallingHelper::Marshalling(parcel, static_cast<uint32_t>(256));
+    RSMarshallingHelper::Marshalling(parcel, static_cast<uint32_t>(20));
+    auto data = SetWatermarkPersistenceData::Unmarshalling(parcel);
+    EXPECT_EQ(data, nullptr);
+}
+
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataUnmarshallingTest003, TestSize.Level1)
+{
+    Parcel parcel;
+    RSMarshallingHelper::Marshalling(parcel, static_cast<pid_t>(1000));
+    RSMarshallingHelper::Marshalling(parcel, std::string("test"));
+    parcel.WriteParcelable(nullptr);
+    RSMarshallingHelper::Marshalling(parcel, true);
+    RSMarshallingHelper::Marshalling(parcel, static_cast<uint32_t>(10));
+    RSMarshallingHelper::Marshalling(parcel, static_cast<uint32_t>(256));
+    auto data = SetWatermarkPersistenceData::Unmarshalling(parcel);
+    EXPECT_EQ(data, nullptr);
+}
+
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataRoundtripTest001, TestSize.Level1)
+{
+    auto originalData = SetWatermarkPersistenceData(1000, "test", nullptr, true, 10, 20);
+    Parcel parcel;
+    bool marshallingResult = originalData.Marshalling(parcel);
+    EXPECT_TRUE(marshallingResult);
+    auto unmarshalledData = SetWatermarkPersistenceData::Unmarshalling(parcel);
+    EXPECT_NE(unmarshalledData, nullptr);
+    EXPECT_EQ(unmarshalledData->GetType(), originalData.GetType());
+    EXPECT_EQ(unmarshalledData->GetCallingPid(), originalData.GetCallingPid());
+    delete unmarshalledData;
+}
+
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataRoundtripTest002, TestSize.Level1)
+{
+    auto originalData = SetWatermarkPersistenceData(1000, "test", nullptr, true, 255, 255);
+    Parcel parcel;
+    bool marshallingResult = originalData.Marshalling(parcel);
+    EXPECT_TRUE(marshallingResult);
+    auto unmarshalledData = SetWatermarkPersistenceData::Unmarshalling(parcel);
+    EXPECT_NE(unmarshalledData, nullptr);
+    EXPECT_EQ(unmarshalledData->GetType(), originalData.GetType());
+    EXPECT_EQ(unmarshalledData->GetCallingPid(), originalData.GetCallingPid());
+    delete unmarshalledData;
+}
+
+HWTEST_F(RSIpcPersistenceDataTest, SetWatermarkPersistenceDataApplyTest002, TestSize.Level1)
+{
+    auto data = SetWatermarkPersistenceData(1000, "test", nullptr, true, 10, 20);
+    data.Apply(nullptr);
+}
 } // namespace OHOS::Rosen

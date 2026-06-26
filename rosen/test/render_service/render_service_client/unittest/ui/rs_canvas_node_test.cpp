@@ -3047,19 +3047,6 @@ HWTEST_F(RSCanvasNodeTest, SetandGetRotationVector001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetandGetTranslateVector001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSCanvasNodeTest, SetandGetTranslateVector001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    ASSERT_NE(canvasNode, nullptr);
-    Vector2f quaternion(std::numeric_limits<int>::max(), 2.f);
-    canvasNode->SetTranslate(quaternion);
-}
-
-/**
  * @tc.name: CreateBlurFilter001
  * @tc.desc:
  * @tc.type:FUNC
@@ -3657,79 +3644,6 @@ HWTEST_F(RSCanvasNodeTest, ConstructorWithNodeId, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetBitmap001
- * @tc.desc: Test GetBitmap
- * @tc.type: FUNC
- * @tc.require: IBFOIN
- */
-HWTEST_F(RSCanvasNodeTest, GetBitmap001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRenderCanvas(false);
-    Drawing::Bitmap bitmap;
-    auto ret = canvasNode->GetBitmap(bitmap);
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: GetBitmap002
- * @tc.desc: Test GetBitmap
- * @tc.type: FUNC
- * @tc.require: IBFOIN
- */
-HWTEST_F(RSCanvasNodeTest, GetBitmap002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRenderCanvas(true);
-    Drawing::Bitmap bitmap;
-    auto ret = canvasNode->GetBitmap(bitmap);
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: GetPixelmap001
- * @tc.desc: Test GetPixelmap
- * @tc.type: FUNC
- * @tc.require: IBFOIN
- */
-HWTEST_F(RSCanvasNodeTest, GetPixelmap001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRenderCanvas(false);
-    auto ret = canvasNode->GetPixelmap(nullptr);
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: GetPixelmap002
- * @tc.desc: Test GetPixelmap
- * @tc.type: FUNC
- * @tc.require: IBFOIN
- */
-HWTEST_F(RSCanvasNodeTest, GetPixelmap002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRenderCanvas(true);
-    auto ret = canvasNode->GetPixelmap(nullptr);
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: GetPixelmap003
- * @tc.desc: Test GetPixelmap
- * @tc.type: FUNC
- * @tc.require: IBFOIN
- */
-HWTEST_F(RSCanvasNodeTest, GetPixelmap003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRenderCanvas(true);
-    Drawing::Rect rect = {0, 0, 0, 0};
-    auto ret = canvasNode->GetPixelmap(nullptr, nullptr, &rect);
-    EXPECT_EQ(ret, false);
-}
-
-/**
  * @tc.name: SetPixelmap
  * @tc.desc: Test SetPixelmap
  * @tc.type: FUNC
@@ -3742,38 +3656,6 @@ HWTEST_F(RSCanvasNodeTest, SetPixelmap, TestSize.Level1)
     auto pixelmap = std::make_shared<OHOS::Media::PixelMap>();
     EXPECT_NE(pixelmap, nullptr);
     canvasNode->SetPixelmap(pixelmap);
-}
-
-/**
- * @tc.name: ResetSurface001
- * @tc.desc: Test ResetSurface
- * @tc.type: FUNC
- * @tc.require: IBFOIN
- */
-HWTEST_F(RSCanvasNodeTest, ResetSurface001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRenderCanvas(false);
-    auto ret = canvasNode->ResetSurface(0, 0);
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: ResetSurface002
- * @tc.desc: Test ResetSurface
- * @tc.type: FUNC
- * @tc.require: IBFOIN
- */
-HWTEST_F(RSCanvasNodeTest, ResetSurface002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRenderCanvas(true);
-    auto ret = canvasNode->ResetSurface(0, 0);
-#if defined(RS_MODIFIERS_DRAW_ENABLE)
-    EXPECT_EQ(ret, true);
-#else
-    EXPECT_EQ(ret, false);
-#endif
 }
 
 /**

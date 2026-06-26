@@ -17,7 +17,9 @@
 
 #include "command/rs_animation_command.h"
 #include "modifier_ng/custom/rs_content_style_modifier.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "transaction/rs_transaction.h"
+#include "transaction/rs_transaction_data.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
@@ -552,4 +554,117 @@ HWTEST_F(RSUIContextTest, UiPiplineNum006, TestSize.Level1)
     ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
 }
 #endif
+
+/**
+ * @tc.name: RebuildStateTest
+ * @tc.desc: Test SetRebuildState and GetRebuildState
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, RebuildStateTest, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->SetRebuildState(RebuildState::Rebuilding);
+    EXPECT_EQ(uiContext->GetRebuildState(), RebuildState::Rebuilding);
+    uiContext->SetRebuildState(RebuildState::Normal);
+    EXPECT_EQ(uiContext->GetRebuildState(), RebuildState::Normal);
+}
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: FlushCanvasDrawingNodeBuffersTest
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers early return when hybrid canvas disabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->FlushCanvasDrawingNodeBuffers();
+
+    // transaction handler null path
+    auto savedTransaction = uiContext->rsTransactionHandler_;
+    uiContext->rsTransactionHandler_ = nullptr;
+    uiContext->FlushCanvasDrawingNodeBuffers();
+    uiContext->rsTransactionHandler_ = savedTransaction;
+    SUCCEED();
+}
+
+/**
+ * @tc.name: CreateCommitTransactionCallbackNullTest
+ * @tc.desc: Test callback returned by CreateCommitTransactionCallback handles null inputs
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, CreateCommitTransactionCallbackNullTest, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    auto callback = uiContext->CreateCommitTransactionCallback();
+    uint32_t index = 0;
+    std::shared_ptr<RSRenderPipelineClient> nullClient = nullptr;
+    std::unique_ptr<RSTransactionData> nullData = nullptr;
+    callback(nullClient, std::move(nullData), index);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: CreateCommitTransactionCallbackExpiredContextTest
+ * @tc.desc: Test callback handles expired RSUIContext
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, CreateCommitTransactionCallbackExpiredContextTest, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    auto callback = uiContext->CreateCommitTransactionCallback();
+    uint64_t token = uiContext->GetToken();
+    RSUIContextManager::MutableInstance().DestroyContext(token);
+    uiContext.reset();
+
+    uint32_t index = 0;
+    auto renderClient = std::make_shared<RSRenderPipelineClient>();
+    auto transactionData = std::make_unique<RSTransactionData>();
+    callback(renderClient, std::move(transactionData), index);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: UnblockUIThreadTest
+ * @tc.desc: Test UnblockUIThread with canBlockUIThread_ true and false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, UnblockUIThreadTest, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->canBlockUIThread_ = false;
+    uiContext->UnblockUIThread();
+
+    uiContext->canBlockUIThread_ = true;
+    uiContext->UnblockUIThread();
+    EXPECT_FALSE(uiContext->canBlockUIThread_);
+}
+
+/**
+ * @tc.name: ModifiersDrawThreadAccessorsTest
+ * @tc.desc: Test getters are consistent with hybrid canvas enabled state
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIContextTest, ModifiersDrawThreadAccessorsTest, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    bool hybridCanvasEnabled = RSSystemProperties::GetHybridRenderCanvasEnabled();
+    EXPECT_EQ(uiContext->GetModifiersDrawThread() != nullptr, hybridCanvasEnabled);
+    EXPECT_EQ(uiContext->GetCanvasModifiersDrawThread() != nullptr, hybridCanvasEnabled);
+    EXPECT_EQ(uiContext->GetCanvasModifiersDraw() != nullptr, hybridCanvasEnabled);
+}
+#endif
+
 } // namespace OHOS::Rosen

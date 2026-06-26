@@ -26,7 +26,6 @@
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
-#include "ui/rs_ui_context_manager.h"
 #ifdef ROSEN_OHOS
 #include "hisysevent.h"
 #include "sandbox_utils.h"
@@ -35,6 +34,13 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+class RSAnimationMock : public RSAnimation {
+public:
+    explicit RSAnimationMock(const std::shared_ptr<RSUIContext>& uiContext) : RSAnimation(uiContext) {}
+    void RebuildInRender() override {}
+};
+
 namespace {
 class MockCmdListProperty : public RSAnimatableProperty<float> {
 public:
@@ -64,9 +70,9 @@ void RSImplicitAnimationParamTest::TearDown() {}
 
 std::shared_ptr<RSUIContext> RSImplicitAnimationParamTest::CreateRSUIContext()
 {
-    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
-    sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRender);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     return rsUIContext;
 }
 
@@ -77,11 +83,10 @@ std::shared_ptr<RSUIContext> RSImplicitAnimationParamTest::CreateRSUIContext()
  */
 HWTEST_F(RSImplicitAnimationParamTest, ApplyTimingProtocolTest, Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     RSAnimationTimingProtocol timingProtocol;
     RSImplicitAnimationParam rsImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::CURVE);
-    auto animation = std::make_shared<RSAnimation>(rsUIContext);
+    auto animation = std::make_shared<RSAnimationMock>(rsUIContext);
     rsImplicitAnimationParam.ApplyTimingProtocol(animation);
     ASSERT_NE(animation, nullptr);
 }
@@ -112,8 +117,7 @@ HWTEST_F(RSImplicitAnimationParamTest, AddKeyframe001, TestSize.Level1)
     animationParam->AddKeyframe(animation, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
 
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     std::shared_ptr<RSAnimation> animation1 = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
     animationParam->AddKeyframe(animation1, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
@@ -144,8 +148,7 @@ HWTEST_F(RSImplicitAnimationParamTest, AddKeyframe002, TestSize.Level1)
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
 
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     std::shared_ptr<RSAnimation> animation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
     animationParam->AddKeyframe(animation, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
@@ -176,8 +179,7 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation001, TestSize.Level1)
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
 
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     animationParam->CreateAnimation(rsUIContext, property, true, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
 
@@ -206,8 +208,7 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation002, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<float>>(100.f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
 
     animationParam->CreateAnimation(rsUIContext, property, true, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
@@ -230,8 +231,7 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation003, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     ASSERT_TRUE(param.CreateAnimation(rsUIContext, property, startValue, endValue));
 }
 
@@ -250,8 +250,7 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation004, TestSize.Level1)
     auto property = std::make_shared<MockCmdListProperty>(1.f);
     auto startValue = std::make_shared<MockCmdListProperty>(0.f);
     auto endValue = std::make_shared<MockCmdListProperty>(1.f);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     ASSERT_TRUE(param.CreateAnimation(rsUIContext, property, startValue, endValue));
 }
 
@@ -362,8 +361,7 @@ HWTEST_F(RSImplicitAnimationParamTest, ExecuteSyncPropertiesTask_ReturnTaskExecu
     RSAnimationTimingProtocol protocol;
     RSImplicitCancelAnimationParam animationParam(protocol);
 
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
 
     auto node = RSCanvasNode::Create();
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
@@ -392,8 +390,7 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateEmptyAnimationTest, TestSize.Level1
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
 
     ASSERT_TRUE(animationParam.CreateEmptyAnimation(rsUIContext, property, startValue, endValue));
 }
@@ -414,8 +411,7 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimationTest, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     ASSERT_TRUE(animationParam.CreateAnimation(rsUIContext, property, startValue, endValue));
 }
 

@@ -8954,4 +8954,64 @@ HWTEST_F(RSNodeTest, CheckMultiThreadAccess002, TestSize.Level1)
     std::string func = "";
     ASSERT_FALSE(rsNode->CheckMultiThreadAccess(func));
 }
+
+/*
+ * @tc.name: SetBoundsAndFrame001
+ * @tc.desc: Test SetBoundsAndFrame with float and Vector4f parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetBoundsAndFrame001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    Vector4f newBounds(50.0f, 60.0f, 300.0f, 400.0f);
+    Vector4f newFrame(25.0f, 35.0f, 300.0f, 400.0f);
+    rsNode->SetBoundsAndFrame(newBounds, newFrame);
+    auto bounds = rsNode->GetStagingProperties().GetBounds();
+    auto frame = rsNode->GetStagingProperties().GetFrame();
+    EXPECT_TRUE(ROSEN_EQ(bounds.x_, 50.0f));
+    EXPECT_TRUE(ROSEN_EQ(frame.x_, 25.0f));
+}
+
+/**
+ * @tc.name: SetBoundsAndFrame002
+ * @tc.desc: Test SetBoundsAndFrame called multiple times (modifier exists branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetBoundsAndFrame002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->compositeLayerUtils_ =
+        std::make_shared<RSCompositeLayerUtils>(surfaceNode, static_cast<uint32_t>(TopLayerZOrder::POINTER_WINDOW));
+
+    Vector4f newBounds1(0.0f, 0.0f, 300.0f, 400.0f);
+    Vector4f newFrame1(0.0f, 0.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds1, newFrame1);
+
+    Vector4f newBounds2(30.0f, 0.0f, 300.0f, 400.0f);
+    Vector4f newFrame2(0.0f, 0.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds2, newFrame2);
+
+    Vector4f newBounds3(30.0f, 30.0f, 300.0f, 400.0f);
+    Vector4f newFrame3(0.0f, 0.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds3, newFrame3);
+
+    Vector4f newBounds4(30.0f, 30.0f, 300.0f, 400.0f);
+    Vector4f newFrame4(15.0f, 0.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds4, newFrame4);
+
+    Vector4f newBounds5(30.0f, 30.0f, 300.0f, 400.0f);
+    Vector4f newFrame5(15.0f, 15.0f, 300.0f, 400.0f);
+    surfaceNode->SetBoundsAndFrame(newBounds5, newFrame5);
+
+    auto bounds = surfaceNode->GetStagingProperties().GetBounds();
+    auto frame = surfaceNode->GetStagingProperties().GetFrame();
+    EXPECT_TRUE(ROSEN_EQ(bounds.x_, 30.0f));
+    EXPECT_TRUE(ROSEN_EQ(bounds.y_, 30.0f));
+    EXPECT_TRUE(ROSEN_EQ(frame.x_, 15.0f));
+    EXPECT_TRUE(ROSEN_EQ(frame.y_, 15.0f));
+}
 } // namespace OHOS::Rosen

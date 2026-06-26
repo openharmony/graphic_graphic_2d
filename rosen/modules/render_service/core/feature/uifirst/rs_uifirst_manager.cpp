@@ -1706,8 +1706,8 @@ bool RSUifirstManager::CheckHasTransAndFilter(const RSSurfaceRenderNode& node)
                 hasBgNode, mainAppSurfaceRect.ToString().c_str());
             continue;
         }
-        if (childSurface->IsTransparent() && childSurface->ChildHasVisibleFilter() &&
-            !childSurface->GetOldDirty().IsInsideOf(mainAppSurfaceRect)) {
+        if (!childSurface->GetOldDirty().IsEmpty() && childSurface->IsTransparent() &&
+            childSurface->ChildHasVisibleFilter() && !childSurface->GetOldDirty().IsInsideOf(mainAppSurfaceRect)) {
             hasTransparentBlurChildOutsideMain = true;
             RS_OPTIONAL_TRACE_NAME_FMT("node:%" PRIu64 " name:%s subRect:%s outside main", childSurface->GetId(),
                 childSurface->GetName().c_str(), childSurface->GetOldDirty().ToString().c_str());
@@ -1826,6 +1826,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
 {
     if ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) ||
         (node.GetFirstLevelNodeId() != node.GetId()) ||
+        (node.IsChildDestoryRebuild()) ||
         (RSUifirstManager::Instance().NodeIsInCardWhiteList(node)) ||
         (RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node))) {
         return false;

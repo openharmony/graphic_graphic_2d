@@ -760,7 +760,6 @@ void RSRenderNode::ResetChildRelevantFlags()
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
     ResetNodeColorSpace();
-    layerContentBits_[LayerDrawContent::SUBTREE] = false;
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
@@ -2366,6 +2365,7 @@ void RSRenderNode::SetParentSubTreeDirty()
         parentNode->SetSubTreeDirty(true);
         // Only used in quick skip prepare phase
         parentNode->SetForcePrepare(true);
+        parentNode->layerContentBits_[LayerDrawContent::SUBTREE_UPDATE] = true;
         parentNode->SetParentSubTreeDirty();
     }
 }
@@ -2378,6 +2378,7 @@ void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
     }
     if (parentNode && (isUpdateAllParentNode || !parentNode->IsTreeStateChangeDirty())) {
         parentNode->SetTreeStateChangeDirty(true);
+        parentNode->layerContentBits_[LayerDrawContent::SUBTREE_UPDATE] = true;
         parentNode->SetParentTreeStateChangeDirty(isUpdateAllParentNode);
     }
 }
@@ -3032,7 +3033,7 @@ void RSRenderNode::DrawPropertyDrawableRange(RSDrawableSlot begin, RSDrawableSlo
         auto& drawableMap = GetDrawableVec(__func__);
         for (auto i = static_cast<int8_t>(begin);
             i <= static_cast<int8_t>(end); ++i) {
-            auto &ptr = findMapValueRef(drawableMap, i);
+            auto& ptr = findMapValueRef(drawableMap, i);
             if (ptr) {
                 ptr->OnSync();
                 ptr->OnDraw(&canvas, &rect);
@@ -4352,6 +4353,13 @@ std::shared_ptr<RSAnimationManager> RSRenderNode::GetOrCreateAnimationManager()
     return animationManager_;
 }
 
+void RSRenderNode::DestroyAnimationInRender()
+{
+    if (animationManager_) {
+        animationManager_->DestroyInRender(GetId(), context_);
+    }
+}
+
 void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     if (!animationManager_) {
@@ -4732,6 +4740,8 @@ void RSRenderNode::OnSync()
         } else {
             RSLayerCacheManagerBase::layerDrawables_.emplace_back(renderDrawable_);
         }
+        RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer layerDrawables_ size:%d, id:%llu",
+            RSLayerCacheManagerBase::layerDrawables_.size(), renderDrawable_->GetId());
     }
 
     if (IsDrawableVecNeedClear()) {

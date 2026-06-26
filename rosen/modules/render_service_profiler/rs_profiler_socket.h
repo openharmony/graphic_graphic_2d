@@ -44,13 +44,12 @@ public:
     void Open(const std::string& name);
     void AcceptClient();
 
-    bool SendWhenReady(const void* data, size_t size);
+    bool Send(const void* data, size_t size);
     int PollSend(int timeout);
     int PollReceive(int timeout);
 
     size_t Available();
-    bool Receive(void* data, size_t& size);
-    bool ReceiveWhenReady(void* data, size_t size);
+    bool Receive(void* data, size_t size);
 
 private:
     int32_t socket_ = -1;

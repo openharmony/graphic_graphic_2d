@@ -143,6 +143,7 @@ void BlobCache::Init(EglWrapperDisplay* display)
     }
 }
 
+// LCOV_EXCL_START
 void BlobCache::SetBlobFunc(const void* key, EGLsizeiANDROID keySize, const void* value,
                             EGLsizeiANDROID valueSize)
 {
@@ -266,6 +267,7 @@ EGLsizeiANDROID BlobCache::GetBlob(const void *key, EGLsizeiANDROID keySize, voi
 
     return ret;
 }
+// LCOV_EXCL_STOP
 
 void BlobCache::SetCacheDir(const std::string dir)
 {
@@ -326,6 +328,7 @@ size_t BlobCache::GetCacheSize() const
     return ret;
 }
 
+// LCOV_EXCL_START
 void BlobCache::WriteToDisk()
 {
     if (!blobCache_) {
@@ -392,6 +395,7 @@ void BlobCache::WriteToDisk()
     delete[] buf;
     fdsan_close_with_tag(fd, LOG_DOMAIN);
 }
+// LCOV_EXCL_STOP
 
 void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
 {

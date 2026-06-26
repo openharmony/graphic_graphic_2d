@@ -259,7 +259,6 @@ bool RSRenderPipelineClient::RegisterBufferClearListener(NodeId id, const Buffer
     return true;
 }
 
-
 bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
@@ -1034,6 +1033,41 @@ int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t
     }
     return clientToRenderConnection->GetMaxGpuBufferSize(maxWidth, maxHeight);
 }
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+sptr<Surface> RSRenderPipelineClient::CreateCanvasDrawingNodeSurface(NodeId nodeId)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        ROSEN_LOGE("RSRenderPipelineClient::CreateCanvasDrawingNodeSurface Vulkan not enabled");
+        return nullptr;
+    }
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::CreateCanvasDrawingNodeSurface renderPipeline is nullptr");
+        return nullptr;
+    }
+    sptr<Surface> surface = renderPipeline->CreateCanvasDrawingNodeSurface(nodeId);
+    if (surface == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::CreateCanvasDrawingNodeSurface remote surface is nullptr");
+        return nullptr;
+    }
+    return surface;
+}
+
+void RSRenderPipelineClient::ReleaseCanvasDrawingNodeSurface(NodeId nodeId)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        ROSEN_LOGE("RSRenderPipelineClient::ReleaseCanvasDrawingNodeSurface Vulkan not enabled");
+        return;
+    }
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::ReleaseCanvasDrawingNodeSurface renderPipeline is nullptr");
+        return;
+    }
+    renderPipeline->ReleaseCanvasDrawingNodeSurface(nodeId);
+}
+#endif // RS_MODIFIERS_DRAW_ENABLE
 
 void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
 {

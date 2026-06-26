@@ -772,6 +772,21 @@ HWTEST_F(GpuContextTest, SetAbnormalPidTest001, TestSize.Level1)
     gpuContext->SetAbnormalPid(pid);
 }
 
+/**
+ * @tc.name: RegisterCreatePipelineTimeCallback001
+ * @tc.desc: Test RegisterCreatePipelineTimeCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuContextTest, RegisterCreatePipelineTimeCallback001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+
+    auto callback = [](int64_t, int64_t, bool) {};
+    gpuContext->RegisterCreatePipelineTimeCallback(callback);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

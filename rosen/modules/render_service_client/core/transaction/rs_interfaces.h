@@ -1539,6 +1539,7 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result);
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

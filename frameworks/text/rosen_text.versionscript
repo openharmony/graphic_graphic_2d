@@ -1,0 +1,37 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Denylist: export everything (global: *), then hide only the libc++
+# template-instantiation leakage that the linker comdat-folds into this
+# DSO. Globs are restricted to symbols that actually exist in the built
+# librosen_text.z.so (verified via `nm -D` against the unstripped
+# artifact at out/rk3568/lib.unstripped/graphic/graphic_2d/).
+#
+# The only leakage is iostream template RTTI/vtables/VTTs emitted by
+# uses of std::basic_ifstream / basic_stringstream / basic_ostringstream
+# / basic_filebuf / basic_stringbuf. Each glob is a mangled-name
+# substring, so it covers the matching _ZTV (vtable), _ZTI/_ZTS
+# (typeinfo), _ZTC (construction vtable) and _ZTT (VTT) variants.
+# Re-derive this list if the build changes the set of leaked templates
+# (e.g. shared_ptr_emplace / std::function holders may reappear).
+
+{
+    global:
+        *;
+    local:
+        *NSt3__h13basic_filebuf*;
+        *NSt3__h14basic_ifstream*;
+        *NSt3__h15basic_stringbuf*;
+        *NSt3__h18basic_stringstream*;
+        *NSt3__h19basic_ostringstream*;
+};

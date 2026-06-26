@@ -197,6 +197,7 @@ void RSUniRenderThread::InitGrContext()
         return;
     }
     RSMainThread::Instance()->InitVulkanErrorCallback(grContext);
+    RSMainThread::Instance()->InitCreatePipelineTimeCallback(grContext);
     if (RSSystemProperties::GetDrawOpLimitEnabled()) {
         InitDrawOpOverCallback(grContext);
     }

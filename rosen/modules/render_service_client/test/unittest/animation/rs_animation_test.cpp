@@ -35,6 +35,21 @@ namespace OHOS {
 namespace Rosen {
 using namespace ANIMATIONTEST;
 
+class RSRenderAnimationMock : public RSRenderAnimation {
+public:
+    RSRenderAnimationMock() : RSRenderAnimation() {}
+    explicit RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
+    ~RSRenderAnimationMock() override = default;
+    void RebuildPropertyValue(float fraction) override {}
+};
+
+class RSPropertyAnimationMock : public RSPropertyAnimation {
+public:
+    RSPropertyAnimationMock(const std::shared_ptr<RSUIContext>& rsUIContext,
+        std::shared_ptr<RSPropertyBase> property) : RSPropertyAnimation(rsUIContext, property) {}
+    void RebuildInRender() override {}
+};
+
 class RSAnimationTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -336,7 +351,7 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
     animation->state_ = RSAnimation::AnimationState::RUNNING;
     animation->Pause();
 
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     animation->OnReverse();
     animation->Resume();
     animation->Finish();
@@ -349,8 +364,8 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
     animation->OnReverse();
     animation->OnSetFraction(0.5);
 
-    auto propAnimation = std::make_shared<RSPropertyAnimation>(rsUIContext, nullptr);
-    propAnimation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    auto propAnimation = std::make_shared<RSPropertyAnimationMock>(rsUIContext, nullptr);
+    propAnimation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     propAnimation->property_ = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     propAnimation->UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
     std::string dumpInfo = "";
@@ -386,7 +401,7 @@ HWTEST_F(RSAnimationTest, InteractivePause, TestSize.Level1)
     animation->state_ = RSAnimation::AnimationState::RUNNING;
     animation->target_.reset();
     animation->InteractivePause();
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     animation->InteractivePause();
     EXPECT_NE(nullptr, animation->uiAnimation_);
     GTEST_LOG_(INFO) << "RSAnimationTest InteractivePause end";
@@ -419,7 +434,7 @@ HWTEST_F(RSAnimationTest, InteractiveContinue, TestSize.Level1)
     animation->state_ = RSAnimation::AnimationState::PAUSED;
     animation->target_.reset();
     animation->InteractiveContinue();
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     animation->InteractiveContinue();
     EXPECT_NE(nullptr, animation->uiAnimation_);
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveContinue end";
@@ -452,7 +467,7 @@ HWTEST_F(RSAnimationTest, InteractiveReverse, TestSize.Level1)
     animation->state_ = RSAnimation::AnimationState::PAUSED;
     animation->target_.reset();
     animation->InteractiveReverse();
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     animation->InteractiveReverse();
     EXPECT_NE(nullptr, animation->uiAnimation_);
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveReverse end";
@@ -578,7 +593,7 @@ HWTEST_F(RSAnimationTest, InteractiveSetFraction, TestSize.Level1)
     animation->state_ = RSAnimation::AnimationState::PAUSED;
     animation->target_.reset();
     animation->InteractiveSetFraction(3.14f);
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     animation->InteractiveSetFraction(3.14f);
     EXPECT_NE(nullptr, animation->uiAnimation_);
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveSetFraction end";
@@ -648,7 +663,7 @@ HWTEST_F(RSAnimationTest, InteractiveFinish, TestSize.Level1)
     animation->target_.reset();
     animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
 
-    animation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
+    animation->uiAnimation_ = std::make_shared<RSRenderAnimationMock>();
     animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
     EXPECT_NE(nullptr, animation->uiAnimation_);
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveFinish end";
@@ -742,6 +757,34 @@ HWTEST_F(RSAnimationTest, AnimationGetTarget003, TestSize.Level1)
     EXPECT_TRUE(target.lock() != nullptr);
     animation->Finish();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetTarget003 end";
+}
+
+/**
+ * @tc.name: RebuildParam001
+ * @tc.desc: Verify RebuildParam struct default values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, RebuildParam001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RebuildParam001 start";
+    RebuildParam param;
+    EXPECT_FLOAT_EQ(param.fraction, 0.f);
+    EXPECT_FALSE(param.isReverseCycle);
+    GTEST_LOG_(INFO) << "RSAnimationTest RebuildParam001 end";
+}
+
+/**
+ * @tc.name: RebuildParam002
+ * @tc.desc: Verify RebuildParam struct with custom values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, RebuildParam002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest RebuildParam002 start";
+    RebuildParam param{0.5f, true};
+    EXPECT_FLOAT_EQ(param.fraction, 0.5f);
+    EXPECT_TRUE(param.isReverseCycle);
+    GTEST_LOG_(INFO) << "RSAnimationTest RebuildParam002 end";
 }
 } // namespace Rosen
 } // namespace OHOS

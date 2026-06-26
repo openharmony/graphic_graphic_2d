@@ -66,6 +66,9 @@
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#include "pipeline/main_thread/rs_canvas_drawing_node_buffer_consumer_listener.h"
+#endif
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pixel_map_from_surface.h"
 #include "render/rs_typeface_cache.h"
@@ -1355,13 +1358,23 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         pipeline->PostMainThreadTask(registerNode, REGISTER_NODE, 0, AppExecFwk::EventQueue::Priority::VIP);
     }
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(node);
+    std::weak_ptr<RSSurfaceHandler> surfaceHandler(node->GetRSSurfaceHandler());
     sptr<IBufferConsumerListener> listener =
-        new RSRenderServiceListener(surfaceRenderNode, pipeline->GetComposerClientManager());
+        new RSRenderServiceListener(surfaceRenderNode, surfaceHandler, pipeline->GetComposerClientManager());
     SurfaceError ret = surface->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
         RS_LOGE("RSRenderService::CreateNodeAndSurface Register Consumer Listener fail");
         return ERR_INVALID_VALUE;
     }
+
+    RS_TRACE_NAME_FMT("RSRenderPipelineAgent::CreateNodeAndSurface, nodeId: %" PRIu64 ", uniqueId: %" PRIu64
+                      "", nodeId, surface->GetUniqueId());
+    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> info;
+    info.first= node->GetRSSurfaceHandler();
+    info.second = listener;
+#ifndef ROSEN_CROSS_PLATFORM
+    pipeline->GetMainThread()->GetContext().GetMutableNodeMap().SaveSurfaceHandlerInfo(nodeId, info);
+#endif
     sptr<IBufferProducer> producer = surface->GetProducer();
     sfc = Surface::CreateSurfaceAsProducer(producer);
     return ERR_OK;
@@ -1903,10 +1916,10 @@ bool RSRenderPipelineAgent::GetBehindWindowFilterEnabled()
     return enabled;
 }
 
-bool RSRenderPipelineAgent::SetApsConfigParams(
+ErrCode RSRenderPipelineAgent::SetApsConfigParams(
     ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
-    return true;
+    return ERR_OK;
 }
 
 int32_t RSRenderPipelineAgent::RegisterUIExtensionCallback(pid_t pid, uint64_t userId,
@@ -2511,6 +2524,120 @@ int32_t RSRenderPipelineAgent::UpdateFrameStabilityDetection(
     return repCode;
 }
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+sptr<Surface> RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface(NodeId nodeId, pid_t remotePid)
+{
+    auto rsRenderPipeline = rsRenderPipeline_.lock();
+    if (rsRenderPipeline == nullptr) {
+        RS_LOGW("RSRenderPipelineAgent::CreateCanvasDrawingNodeSurface, pipeline is nullptr");
+        return nullptr;
+    }
+    if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
+        return nullptr;
+    }
+    if (ExtractPid(nodeId) != remotePid) {
+        RS_LOGE("CreateCanvasDrawingNodeSurface: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d", nodeId,
+            remotePid);
+        return nullptr;
+    }
+    auto bundleName = GetBundleName(remotePid);
+    if (!NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled()) {
+        RS_LOGE("CreateCanvasDrawingNodeSurface: ccm disabled, nodeId=%{public}" PRIu64, nodeId);
+        return nullptr;
+    }
+    if (!bundleName.empty() && !NodeMemReleaseParam::IsCanvasBufferEnabled(bundleName)) {
+        RS_LOGE("CreateCanvasDrawingNodeSurface: bundleName ccm blacklist, nodeId=%{public}" PRIu64, nodeId);
+        return nullptr;
+    }
+ 
+    sptr<Surface> producerPurface = nullptr;
+    auto task = [&producerPurface, nodeId, mainThread = rsRenderPipeline->GetMainThread()]() -> void {
+        auto rsContext = mainThread->GetWeakContext().lock();
+        if (rsContext == nullptr) {
+            RS_LOGE("CreateCanvasDrawingNodeSurface: null rsContext, nodeId=%{public}" PRIu64, nodeId);
+            return;
+        }
+        auto surfaceHandler = CreateCanvasSurfaceHandler(nodeId);
+        if (surfaceHandler == nullptr) {
+            RS_LOGE("CreateCanvasDrawingNodeSurface: null surfaceHandler, nodeId=%{public}" PRIu64, nodeId);
+            return;
+        }
+        auto consumerSurface = surfaceHandler->GetConsumer();
+        sptr<IBufferProducer> producer = consumerSurface->GetProducer();
+        if (producer == nullptr) {
+            RS_LOGE("CreateCanvasDrawingNodeSurface: null producer, nodeId=%{public}" PRIu64, nodeId);
+            return;
+        }
+        producerPurface = Surface::CreateSurfaceAsProducer(producer);
+        if (producerPurface == nullptr) {
+            RS_LOGE("CreateCanvasDrawingNodeSurface: null producerPurface, nodeId=%{public}" PRIu64, nodeId);
+            return;
+        }
+ 
+        sptr<IBufferConsumerListener> listener =
+            new RSCanvasDrawingNodeBufferConsumerListener(mainThread->GetWeakContext(), nodeId);
+        consumerSurface->RegisterConsumerListener(listener);
+        auto& nodeMap = rsContext->GetMutableNodeMap();
+        auto canvasDrawingNode = nodeMap.GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);
+        if (canvasDrawingNode != nullptr) {
+            canvasDrawingNode->SetSurfaceHandler(surfaceHandler);
+        } else {
+            nodeMap.RegisterSurfaceHandler(nodeId, surfaceHandler);
+        }
+    };
+    rsRenderPipeline->PostMainThreadSyncTask(task);
+    return producerPurface;
+}
+ 
+void RSRenderPipelineAgent::ReleaseCanvasDrawingNodeSurface(NodeId nodeId, pid_t remotePid)
+{
+    auto rsRenderPipeline = rsRenderPipeline_.lock();
+    if (rsRenderPipeline == nullptr) {
+        RS_LOGW("RSRenderPipelineAgent::ReleaseCanvasDrawingNodeSurface, pipeline is nullptr");
+        return;
+    }
+    if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
+        return;
+    }
+    if (ExtractPid(nodeId) != remotePid) {
+        RS_LOGE("ReleaseCanvasDrawingNodeSurface: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d", nodeId,
+            remotePid);
+        return;
+    }
+ 
+    auto task = [nodeId, mainThread = rsRenderPipeline->GetMainThread()]() -> void {
+        auto rsContext = mainThread->GetWeakContext().lock();
+        if (rsContext == nullptr) {
+            RS_LOGE("ReleaseCanvasDrawingNodeSurface: null rsContext, nodeId=%{public}" PRIu64, nodeId);
+            return;
+        }
+        auto& nodeMap = rsContext->GetMutableNodeMap();
+        auto canvasDrawingNode = nodeMap.GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);
+        if (canvasDrawingNode != nullptr) {
+            canvasDrawingNode->SetSurfaceHandler(nullptr);
+        }
+        nodeMap.GetSurfaceHandler(nodeId, true);
+    };
+    rsRenderPipeline->PostMainThreadSyncTask(task);
+}
+ 
+std::shared_ptr<RSSurfaceHandler> RSRenderPipelineAgent::CreateCanvasSurfaceHandler(NodeId nodeId)
+{
+    if (!RSCanvasDrawingRenderNode::IsHybridEnabled()) {
+        return nullptr;
+    }
+ 
+    sptr<IConsumerSurface> surface = IConsumerSurface::Create("Canvas"); // Surface name is 'Canvas'
+    if (surface == nullptr) {
+        return nullptr;
+    }
+ 
+    surface->SetDefaultUsage(BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(nodeId);
+    surfaceHandler->SetConsumer(surface);
+    return surfaceHandler;
+}
+#endif // RS_MODIFIERS_DRAW_ENABLE
 bool RSRenderPipelineAgent::SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid)
 {
 #ifndef ROSEN_CROSS_PLATFORM

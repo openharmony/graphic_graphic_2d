@@ -104,6 +104,7 @@ DATA_CALLBACKS_REGISTER(
 static std::vector<uint8_t> supportedParcelVerFlags = {
     RSPARCELVER_ADD_ANIMTOKEN,
     RSPARCELVER_ADD_ISPROPDIRTY,
+    RSPARCELVER_ADD_NONEED,
 };
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
@@ -2045,7 +2046,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderFilterBase>& val)
 {
     if (val == nullptr) {
-        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
         if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderFilterBase write end failed");
             return false;
@@ -2072,7 +2073,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRend
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderMaskBase>& val)
 {
     if (val == nullptr) {
-        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSNGRenderFilterBase is nullptr");
         if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderFilterBase write end failed");
             return false;
@@ -2099,7 +2100,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRend
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderShaderBase>& val)
 {
     if (val == nullptr) {
-        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderShaderBase is nullptr");
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSNGRenderShaderBase is nullptr");
         if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderShaderBase write end failed");
             return false;
@@ -2126,7 +2127,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRend
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSNGRenderShapeBase>& val)
 {
     if (val == nullptr) {
-        ROSEN_LOGW("RSMarshallingHelper::Marshalling RSNGRenderShapeBase is nullptr");
+        ROSEN_LOGD("RSMarshallingHelper::Marshalling RSNGRenderShapeBase is nullptr");
         if (!RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN)) {
             ROSEN_LOGE("RSMarshallingHelper::Marshalling RSNGRenderShapeBase write end failed");
             return false;
@@ -3677,6 +3678,29 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SurfaceRegionConfig& val
 }
 #endif
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSSurfaceRenderNodeConfig& val)
+{
+    return Marshalling(parcel, val.id) && Marshalling(parcel, val.name) &&
+           Marshalling(parcel, static_cast<uint8_t>(val.nodeType)) &&
+           Marshalling(parcel, val.isTextureExportNode) && Marshalling(parcel, val.isSync) &&
+           Marshalling(parcel, val.surfaceWindowType) && Marshalling(parcel, val.bundleName);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSSurfaceRenderNodeConfig& val)
+{
+    uint8_t nodeType = 0;
+    bool success = Unmarshalling(parcel, val.id);
+    success &= Unmarshalling(parcel, val.name);
+    success &= Unmarshalling(parcel, nodeType);
+    val.nodeType = static_cast<RSSurfaceNodeType>(nodeType);
+    val.additionalData = nullptr;
+    success &= Unmarshalling(parcel, val.isTextureExportNode);
+    success &= Unmarshalling(parcel, val.isSync);
+    success &= Unmarshalling(parcel, val.surfaceWindowType);
+    success &= Unmarshalling(parcel, val.bundleName);
+    return success;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, sptr<Surface> surface)
 {
     if (surface != nullptr) {
@@ -3704,7 +3728,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, sptr<Surface> surface)
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<Surface>& surface)
 {
     surface = nullptr;
-    bool hasSurface{false};
+    bool hasSurface { false };
     if (!parcel.ReadBool(hasSurface)) {
         return false;
     }

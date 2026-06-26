@@ -38,7 +38,7 @@ private:
     int maxLines_ = 100;
 
     std::unique_ptr<Paragraph> paragraph_;
-    std::vector<std::unique_ptr<SPText::TextLineBase>> textLine_;
+    std::vector<std::shared_ptr<SPText::TextLineBase>> textLine_;
 };
 
 void TextLineBaseTest::SetUp()
@@ -110,7 +110,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest003, TestSize.Level0)
 HWTEST_F(TextLineBaseTest, TextLineBaseTest004, TestSize.Level0)
 {
     std::vector<PaintRecord> paints;
-    std::unique_ptr<skia::textlayout::TextLineBase> textLineBase = nullptr;
+    std::shared_ptr<skia::textlayout::TextLineBase> textLineBase = nullptr;
     auto textLineImpl = std::make_unique<SPText::TextLineImpl>(std::move(textLineBase), paints);
 
     textLineImpl->Paint(nullptr, 0.0, 0.0);
@@ -128,7 +128,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest004, TestSize.Level0)
 HWTEST_F(TextLineBaseTest, TextLineBaseTest005, TestSize.Level0)
 {
     std::string ellipsisStr;
-    std::unique_ptr<SPText::TextLineBase> line
+    std::shared_ptr<SPText::TextLineBase> line
         = textLine_[0]->CreateTruncatedLine(10, SPText::EllipsisModal::HEAD, ellipsisStr);
     EXPECT_NE(line, nullptr);
     EXPECT_EQ(line->GetGlyphCount(), 5);
@@ -157,10 +157,10 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest005, TestSize.Level0)
 HWTEST_F(TextLineBaseTest, TextLineBaseTest006, TestSize.Level0)
 {
     std::vector<PaintRecord> paints;
-    std::unique_ptr<SPText::TextLineBase> textLineBase = std::make_unique<SPText::TextLineImpl>(nullptr, paints);
+    std::shared_ptr<SPText::TextLineBase> textLineBase = std::make_shared<SPText::TextLineImpl>(nullptr, paints);
 
     std::string ellipsisStr;
-    std::unique_ptr<SPText::TextLineBase> line
+    std::shared_ptr<SPText::TextLineBase> line
         = textLineBase->CreateTruncatedLine(10, SPText::EllipsisModal::HEAD, ellipsisStr);
     EXPECT_EQ(line, nullptr);
 

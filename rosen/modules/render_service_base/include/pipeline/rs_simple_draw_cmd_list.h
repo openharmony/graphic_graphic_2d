@@ -38,6 +38,11 @@ public:
     static std::shared_ptr<RSSimpleDrawCmdList> CreateFromDrawCmdList(Drawing::DrawCmdListPtr drawCmdList);
      
     /**
+     * @brief Convert RSSimpleDrawCmdList to Drawing::DrawCmdList.
+     */
+    Drawing::DrawCmdListPtr ConvertToDrawCmdList() const;
+
+    /**
      * @brief Default constructor.
      */
     RSSimpleDrawCmdList();
