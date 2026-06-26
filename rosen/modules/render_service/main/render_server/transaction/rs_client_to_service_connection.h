@@ -301,6 +301,8 @@ private:
         std::shared_ptr<Media::PixelMap> watermark, bool& success,
         uint32_t rowCount = 0, uint32_t colCount = 0) override;
     
+    ErrCode SetUifirstScale(float scaleFactor) override;
+
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     ErrCode ReportJankStats() override;
@@ -400,6 +402,8 @@ private:
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
+
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params) override;
 
     ErrCode AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime) override;

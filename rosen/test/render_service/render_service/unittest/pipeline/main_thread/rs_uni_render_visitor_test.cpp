@@ -6221,25 +6221,14 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartRenderDisa
     ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
     rsUniRenderVisitor->curSurfaceDirtyManager_ = rsUniRenderVisitor->curSurfaceNode_->GetDirtyManager();
 
-    auto& uifirstManager = RSUifirstManager::Instance();
-    uifirstManager.currentFrameEvent_.clear();
-    RSUifirstManager::EventInfo info;
-    info.sceneId = "APP_LIST_FLING";
-    uifirstManager.currentFrameEvent_.push_back(info);
-
-    OPIncParam::SetLayerPartRenderEnable(true);
-    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*canvasNode);
-    OPIncParam::SetLayerPartRenderEnable(false);
-    uifirstManager.currentFrameEvent_.clear();
-
     auto& dirtyManager = canvasNode->GetLayerPartRenderCache().GetLayerPartRenderDirtyManager();
     auto& stagingRenderParams = canvasNode->GetStagingRenderParams();
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_NE(stagingRenderParams, nullptr);
-    ASSERT_TRUE(canvasNode->GetLayerPartRenderCache().IsLayerPartRender());
+    ASSERT_FALSE(canvasNode->GetLayerPartRenderCache().IsLayerPartRender());
     ASSERT_FALSE(stagingRenderParams->GetLayerPartRenderEnabled());
     ASSERT_EQ(canvasNode->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
-    ASSERT_NE(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
 }
 
 /**
@@ -7848,6 +7837,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOffscreenCanvasNodeId001, TestSize.Level2
     auto rsChildrenDrawable = std::make_shared<RSChildrenDrawableAdapter>();
     rsCanvasRenderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] =
         std::move(rsChildrenDrawable);
+    rsCanvasRenderNode->GetMutableRenderProperties().foregroundFilter_ = std::make_shared<RSFilter>();
     rsUniRenderVisitor->UpdateOffscreenCanvasNodeId(*rsCanvasRenderNode);
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, nodeId);
 }
@@ -10154,8 +10144,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateScreenHdrForceHwcState_001, TestSize.Leve
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curScreenNode_ = nullptr;
-    std::unordered_set<pid_t> hdrForceHwcNodes;
-    hdrForceHwcNodes.emplace(123456);
+    std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr> hdrForceHwcNodes;
     rsUniRenderVisitor->UpdateScreenHdrForceHwcState(hdrForceHwcNodes);
     ASSERT_EQ(rsUniRenderVisitor->curScreenNode_, nullptr);
 }
@@ -10184,6 +10173,59 @@ HWTEST_F(RSUniRenderVisitorTest, CheckPixelFormat_CollectHdrStatus, TestSize.Lev
     rsSurfaceRenderNode->hdrPhotoNum_ = 1;
     rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);
     EXPECT_EQ(rsSurfaceRenderNode->hdrPhotoNum_, 1);
+}
+
+/**
+ * @tc.name: UpdateFilterRenderContextForSkippedSubTree_WithBlurFilter
+ * @tc.desc: Test UpdateFilterRenderContextForSkippedSubTree when HasBlurFilter returns true
+ * @tc.type: FUNC
+ * @tc.require: issue24382
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRenderContextForSkippedSubTree_WithBlurFilter, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rootNode = std::make_shared<RSRenderNode>(0, rsContext->weak_from_this());
+    ASSERT_NE(rootNode, nullptr);
+
+    auto filterNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = { 0, 0, 500, 500 };
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSDirtyRegionManager dirtyManager;
+    RectI filterRect;
+    rsUniRenderVisitor->UpdateFilterRenderContextForSkippedSubTree(dirtyManager, *filterNode, *rootNode, filterRect);
+
+    EXPECT_TRUE(filterNode->HasBlurFilter());
+}
+
+/**
+ * @tc.name: UpdateFilterRenderContextForSkippedSubTree_WithoutBlurFilter
+ * @tc.desc: Test UpdateFilterRenderContextForSkippedSubTree when HasBlurFilter returns false
+ * @tc.type: FUNC
+ * @tc.require: issue24382
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateFilterRenderContextForSkippedSubTree_WithoutBlurFilter, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rootNode = std::make_shared<RSRenderNode>(0, rsContext->weak_from_this());
+    ASSERT_NE(rootNode, nullptr);
+
+    auto filterNode = std::make_shared<RSCanvasRenderNode>(1);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = { 0, 0, 500, 500 };
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSDirtyRegionManager dirtyManager;
+    RectI filterRect;
+    rsUniRenderVisitor->UpdateFilterRenderContextForSkippedSubTree(dirtyManager, *filterNode, *rootNode, filterRect);
+
+    EXPECT_FALSE(filterNode->HasBlurFilter());
 }
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

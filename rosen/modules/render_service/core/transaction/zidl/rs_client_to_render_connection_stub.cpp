@@ -114,6 +114,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE),
+#endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION),
@@ -121,6 +124,10 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UPDATE_FRAME_STABILITY_DETECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::MARK_WEB_NODE),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_TRANSACTION_LISTENER),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_TRANSACTION_LISTENER),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -236,7 +243,8 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
         if (nodeType != RSSurfaceNodeType::DEFAULT &&
             nodeType != RSSurfaceNodeType::APP_WINDOW_NODE &&
             nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE &&
-            nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
+            nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE &&
+            nodeType != RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
             RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid RSSurfaceNodeType %{public}d, pid %d",
                 typeNum, pid);
             return false;
@@ -339,6 +347,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
             std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
             int32_t readData{0};
+            bool waitUnmarshalling = true;
             if (!data.ReadInt32(readData)) {
                 RS_LOGE("RSClientToRenderConnectionStub::COMMIT_TRANSACTION read parcel failed");
                 return ERR_INVALID_DATA;
@@ -355,6 +364,12 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                     // execute Unmarshalling immediately
 
                     RSMarshallingHelper::UnmarshallingTransactionVer(data);
+
+                    if (!RSMarshallingHelper::CompatibleUnmarshalling(
+                        data, waitUnmarshalling, false, RSPARCELVER_ADD_NONEED)) {
+                        RS_LOGE("RSClientToRenderConnectionStub::COMMIT_TRANSACTION read parcel failed");
+                        return ERR_INVALID_DATA;
+                    }
 
                     auto transactionData = RSBaseRenderUtil::ParseTransactionData(data, parcelNumber);
                     if (transactionData && isNonSystemAppCalling) {
@@ -381,10 +396,15 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 return ERR_INVALID_DATA;
             }
             RSMarshallingHelper::UnmarshallingTransactionVer(*parsedParcel);
+            if (!RSMarshallingHelper::CompatibleUnmarshalling(
+                *parsedParcel, waitUnmarshalling, false, RSPARCELVER_ADD_NONEED)) {
+                RS_LOGE("RSClientToRenderConnectionStub::COMMIT_TRANSACTION read parcel failed");
+                return ERR_INVALID_DATA;
+            }
             if (isUniRender) {
                 // post Unmarshalling task to RSUnmarshalThread
                 RSUnmarshalThread::Instance().RecvParcel(parsedParcel, isNonSystemAppCalling, callingPid,
-                    std::move(ashmemFdWorker), ashmemFlowControlUnit, parcelNumber);
+                    std::move(ashmemFdWorker), ashmemFlowControlUnit, parcelNumber, waitUnmarshalling);
             } else {
                 // execute Unmarshalling immediately
                 auto transactionData = RSBaseRenderUtil::ParseTransactionData(*parsedParcel, parcelNumber);
@@ -507,11 +527,9 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
-                RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
-                ret = ERR_INVALID_DATA;
-                break;
-            }
+            bool isNonSystemAppCalling = false;
+            bool isTokenTypeValid = true;
+            RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
             RS_PROFILER_PATCH_NODE_ID(data, nodeId);
             std::string surfaceName;
             uint8_t type { 0 };
@@ -519,6 +537,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             bool isSync { false };
             uint8_t surfaceWindowType { 0 };
             bool unobscured { false };
+            bool readBuffer = false;
             if (!data.ReadString(surfaceName) || !data.ReadUint8(type) || !data.ReadBool(isTextureExportNode) ||
                 !data.ReadBool(isSync) || !data.ReadUint8(surfaceWindowType) || !data.ReadBool(unobscured)) {
                 RS_LOGE("RSClientToRenderConnectionStub::CREATE_NODE_AND_SURFACE read surfaceRenderNodeConfig failed!");
@@ -528,6 +547,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             if (!CheckCreateNodeAndSurface(callingPid, static_cast<RSSurfaceNodeType>(type),
                                            static_cast<SurfaceWindowType>(surfaceWindowType))) {
                 RS_LOGE("RSClientToRenderConnectionStub::CREATE_NODE_AND_SURFACE CheckCreateNodeAndSurface failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (isNonSystemAppCalling && (type != static_cast<int>(RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE)) &&
+                (type != static_cast<int>(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE)) &&
+                !IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
+                RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -1558,6 +1584,38 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_CANVAS_SURFACE): {
+            NodeId nodeId = INVALID_NODEID;
+            if (!data.ReadUint64(nodeId)) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE Read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<Surface> surface = GetCanvasSurface(nodeId);
+            if (surface == nullptr) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE GetCanvasSurface failed!");
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            auto producer = surface->GetProducer();
+            if (!reply.WriteRemoteObject(producer->AsObject())) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_CANVAS_SURFACE read RemoteObject failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE): {
+            NodeId nodeId = INVALID_NODEID;
+            if (!data.ReadUint64(nodeId)) {
+                RS_LOGE("RSClientToRenderConnectionStub::REMOVE_CANVAS_SURFACE Read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RemoveCanvasSurface(nodeId);
+            break;
+        }
+#endif
         case static_cast<uint32_t>(
             RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION): {
             FrameStabilityTarget target;
@@ -1738,6 +1796,77 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             SetFreeMultiWindowStatus(enable);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_TRANSACTION_LISTENER): {
+            sptr<IRemoteObject> listenerObject = data.ReadRemoteObject();
+            if (listenerObject == nullptr) {
+                RS_LOGE("DelegateModeDebugTag:REGISTER_SURFACE_TRANSACTION_LISTENER: ReadRemoteObject fail");
+                return ERR_INVALID_REPLY;
+            }
+            uint64_t listenerId = 0;
+            if (!data.ReadUint64(listenerId)) {
+                RS_LOGE("DelegateModeDebugTag:REGISTER_SURFACE_TRANSACTION_LISTENER: ReadUint64 fail, listenerId");
+                return ERR_INVALID_REPLY;
+            }
+            int32_t pid = 0;
+            uint32_t tid = 0;
+            if (!data.ReadInt32(pid) || !data.ReadUint32(tid)) {
+                RS_LOGE("DelegateModeDebugTag: REGISTER_SURFACE_TRANSACTION_LISTENER: ReadUint64 fail, pid/tid");
+                return ERR_INVALID_REPLY;
+            }
+            sptr<RSISurfaceTransactionListener> listener = iface_cast<RSISurfaceTransactionListener>(listenerObject);
+            if (listener == nullptr) {
+                RS_LOGE("DelegateModeDebugTag: REGISTER_SURFACE_TRANSACTION_LISTENER: iface_cast fail");
+                return ERR_INVALID_REPLY;
+            }
+            RegisterSurfaceTransactionListenerNew(listener, listenerId, pid, tid);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_TRANSACTION_LISTENER): {
+            uint64_t listenerId = 0;
+            if (!data.ReadUint64(listenerId)) {
+                RS_LOGE("DelegateModeDebugTag:UNREGISTER_SURFACE_TRANSACTION_LISTENER: ReadUint64 fail, listenerId");
+                return ERR_INVALID_REPLY;
+            }
+            UnRegisterSurfaceTransactionListener(listenerId);
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER): {
+            sptr<IRemoteObject> listenerObject = data.ReadRemoteObject();
+            if (listenerObject == nullptr) {
+                RS_LOGE("DelegateModeDebugTag:REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER: ReadRemoteObject fail");
+                return ERR_INVALID_REPLY;
+            }
+            sptr<RSISurfaceNodeBufferReleaseCallback> listener =
+                iface_cast<RSISurfaceNodeBufferReleaseCallback>(listenerObject);
+            if (listener == nullptr) {
+                RS_LOGE("DelegateModeDebugTag: REGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER: iface_cast fail");
+                return ERR_INVALID_REPLY;
+            }
+            RegisterSurfaceNodeBufferReleaseListener(listener);
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::UNREGISTER_CLIENT_PROCESS_BUFFER_RELEASE_LISTENER): {
+            UnRegisterSurfaceNodeBufferReleaseListener();
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::MARK_WEB_NODE): {
+            uint64_t id = 0;
+            bool isSetDelegateMode = false;
+            int32_t pid = 0;
+            if (!data.ReadUint64(id) || !data.ReadBool(isSetDelegateMode) || !data.ReadInt32(pid)) {
+                RS_LOGE("DelegateModeDebugTag:MARK_WEB_NODE: read data fail");
+                return IPC_STUB_INVALID_DATA_ERR;
+            }
+            RS_LOGI("MARK_WEB_NODE nodeId: %{public}" PRIu64 ", isSetDelegateMode: %{public}d", id, isSetDelegateMode);
+            if (!SetDelegateMode(id, isSetDelegateMode, pid)) {
+                RS_LOGE("DelegateModeDebugTag:MARK_WEB_NODE: SetDelegateMode fail");
+                return IPC_STUB_INVALID_DATA_ERR;
+            }
+            ret = ERR_NONE;
             break;
         }
         default: {

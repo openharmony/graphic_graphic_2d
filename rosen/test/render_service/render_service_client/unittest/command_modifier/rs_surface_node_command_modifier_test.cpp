@@ -2350,5 +2350,149 @@ HWTEST_F(RSSurfaceNodeCommandModifierTest, SurfaceDefaultSizeTest004, TestSize.L
     mod->UpdateToRender();
 }
 
+/**
+ * @tc.name: ForceHardwareAndFixRotationTest001
+ * @tc.desc: Test all methods
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ForceHardwareAndFixRotationTest001, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    ForceHardwareAndFixRotationCmdParam param{true};
+    auto mod = std::make_shared<ForceHardwareAndFixRotationCmdModifier>(node, param);
+    EXPECT_EQ(mod->GetType(), RSCmdModifierType::FORCE_HARDWARE_AND_FIX_ROTATION);
+    EXPECT_TRUE(mod->GetParam().flag_);
+
+    ForceHardwareAndFixRotationCmdParam param2{false};
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(mod->GetParam().flag_);
+
+    std::string out;
+    mod->DumpParam(out);
+    EXPECT_NE(out.find("flag"), std::string::npos);
+}
+
+/**
+ * @tc.name: ForceHardwareAndFixRotationTest002
+ * @tc.desc: Test UpdateToRender with null node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, ForceHardwareAndFixRotationTest002, TestSize.Level1)
+{
+    ForceHardwareAndFixRotationCmdParam param{true};
+    auto mod = std::make_shared<ForceHardwareAndFixRotationCmdModifier>(MakeExpiredNode(), param);
+    ASSERT_TRUE(mod);
+    mod->UpdateToRender();
+}
+
+/**
+ * @tc.name: AppRotationCorrectionTest001
+ * @tc.desc: Test all methods
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AppRotationCorrectionTest001, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    AppRotationCorrectionCmdParam param{ScreenRotation::ROTATION_90};
+    auto mod = std::make_shared<AppRotationCorrectionCmdModifier>(node, param);
+    EXPECT_EQ(mod->GetType(), RSCmdModifierType::APP_ROTATION_CORRECTION);
+    EXPECT_EQ(mod->GetParam().appRotationCorrection_, ScreenRotation::ROTATION_90);
+
+    AppRotationCorrectionCmdParam param2{ScreenRotation::ROTATION_180};
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().appRotationCorrection_, ScreenRotation::ROTATION_180);
+
+    std::string out;
+    mod->DumpParam(out);
+    EXPECT_NE(out.find("appRotationCorrection"), std::string::npos);
+}
+
+/**
+ * @tc.name: AppRotationCorrectionTest002
+ * @tc.desc: Test UpdateToRender with null node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, AppRotationCorrectionTest002, TestSize.Level1)
+{
+    AppRotationCorrectionCmdParam param{ScreenRotation::ROTATION_0};
+    auto mod = std::make_shared<AppRotationCorrectionCmdModifier>(MakeExpiredNode(), param);
+    ASSERT_TRUE(mod);
+    mod->UpdateToRender();
+}
+
+/**
+ * @tc.name: HDRTypeTest001
+ * @tc.desc: Test all methods
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HDRTypeTest001, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    HDRTypeCmdParam param{1};
+    auto mod = std::make_shared<HDRTypeCmdModifier>(node, param);
+    EXPECT_EQ(mod->GetType(), RSCmdModifierType::HDR_TYPE);
+    EXPECT_EQ(mod->GetParam().hdrType_, 1u);
+
+    HDRTypeCmdParam param2{2};
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(mod->GetParam().hdrType_, 2u);
+
+    std::string out;
+    mod->DumpParam(out);
+    EXPECT_NE(out.find("hdrType"), std::string::npos);
+}
+
+/**
+ * @tc.name: HDRTypeTest002
+ * @tc.desc: Test UpdateToRender with null node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, HDRTypeTest002, TestSize.Level1)
+{
+    HDRTypeCmdParam param{0};
+    auto mod = std::make_shared<HDRTypeCmdModifier>(MakeExpiredNode(), param);
+    ASSERT_TRUE(mod);
+    mod->UpdateToRender();
+}
+
+/**
+ * @tc.name: DarkColorModeTest001
+ * @tc.desc: Test all methods
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, DarkColorModeTest001, TestSize.Level1)
+{
+    auto node = RSSurfaceNode::Create(RSSurfaceNodeConfig{});
+    DarkColorModeCmdParam param{true};
+    auto mod = std::make_shared<DarkColorModeCmdModifier>(node, param);
+    EXPECT_EQ(mod->GetType(), RSCmdModifierType::SET_DARK_COLOR_MODE);
+    EXPECT_TRUE(mod->GetParam().isDarkColorMode_);
+
+    DarkColorModeCmdParam param2{false};
+    bool ret = mod->SetParam(param2);
+    EXPECT_TRUE(ret);
+    EXPECT_FALSE(mod->GetParam().isDarkColorMode_);
+
+    std::string out;
+    mod->DumpParam(out);
+    EXPECT_NE(out.find("isDarkColorMode"), std::string::npos);
+}
+
+/**
+ * @tc.name: DarkColorModeTest002
+ * @tc.desc: Test UpdateToRender with null node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandModifierTest, DarkColorModeTest002, TestSize.Level1)
+{
+    DarkColorModeCmdParam param{true};
+    auto mod = std::make_shared<DarkColorModeCmdModifier>(MakeExpiredNode(), param);
+    ASSERT_TRUE(mod);
+    mod->UpdateToRender();
+}
+
 } // namespace Rosen
 } // namespace OHOS

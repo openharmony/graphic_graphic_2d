@@ -73,6 +73,9 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
 {
     std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = value ? value->GenerateGEVisualEffect() : nullptr;
     std::shared_ptr<Drawing::GEShaderShape> geShape = geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+    if (geShape) {
+        geShape->SetHash(value->CalculateHash());
+    }
     geFilter.SetParam(desc, geShape);
 }
 

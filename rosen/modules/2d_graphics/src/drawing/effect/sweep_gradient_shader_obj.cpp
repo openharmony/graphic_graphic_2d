@@ -64,8 +64,8 @@ std::shared_ptr<void> SweepGradientShaderObj::GenerateBaseObject()
         return nullptr;
     }
 
-    auto gradientShader = ShaderEffect::CreateSweepGradientNotLazy(centerPt_, colors_, colorSpace_, pos_, mode_,
-        startAngle_, endAngle_, matrix_.get());
+    auto gradientShader = std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT,
+        centerPt_, colors_, colorSpace_, pos_, mode_, startAngle_, endAngle_, matrix_.get());
     return std::static_pointer_cast<void>(gradientShader);
 }
 

@@ -84,9 +84,9 @@ public:
     static bool Pull(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
     static bool Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
 
-    static bool Push(uint64_t id, PixelMap& map);
-    RSB_EXPORT static bool Push(uint64_t id, SurfaceBuffer& buffer); // used to save self-drawing node buffer
-    RSB_EXPORT static bool Pull(uint64_t id, SurfaceBuffer& buffer); // used to load self-drawing node buffer
+    RSB_EXPORT static bool Push(uint64_t id, PixelMap& map);
+    RSB_EXPORT static bool Push(uint64_t id, const SurfaceBuffer& buffer);
+    RSB_EXPORT static bool Pull(uint64_t id, SurfaceBuffer& buffer);
 
 private:
     static bool Fits(size_t size);
@@ -103,10 +103,10 @@ private:
         const ImageProperties* properties = nullptr);
 
     static bool IsSharedMemory(const PixelMap& map);
-    static bool IsSharedMemory(const PixelMemInfo& memory);
+    static bool IsSharedMemory(const PixelMemInfo& info);
     static bool IsSharedMemory(AllocatorType type);
     static bool IsDmaMemory(const PixelMap& map);
-    static bool IsDmaMemory(const PixelMemInfo& memory);
+    static bool IsDmaMemory(const PixelMemInfo& info);
     static bool IsDmaMemory(AllocatorType type);
 
     static bool PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);

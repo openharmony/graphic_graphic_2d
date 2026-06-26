@@ -150,6 +150,8 @@ protected:
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
     void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture = false);
 
+    virtual void DrawCustomContent(Drawing::Canvas& canvas) {}
+
     static inline bool isDrawingCacheEnabled_ = false;
     static inline bool isDrawingCacheDfxEnabled_ = false;
     static inline std::mutex drawingCacheInfoMutex_;

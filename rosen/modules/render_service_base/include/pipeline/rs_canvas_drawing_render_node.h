@@ -22,6 +22,9 @@
 
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#include "pipeline/rs_surface_handler.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -78,6 +81,33 @@ public:
         waitSync_ = waitSync;
     }
 
+    bool IsNodeMemClearEnable() override;
+ 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    const std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler() const
+    {
+        return surfaceHandler_;
+    }
+ 
+    std::shared_ptr<RSSurfaceHandler> GetMutableSurfaceHandler()
+    {
+        return surfaceHandler_;
+    }
+ 
+    void SetSurfaceHandler(std::shared_ptr<RSSurfaceHandler> surfaceHandler);
+ 
+    RSB_EXPORT void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
+ 
+    void OnDestoryTokenNode();
+ 
+    bool IsBufferDraw();
+ 
+    static bool IsHybridEnabled();
+#endif // RS_MODIFIERS_DRAW_ENABLE
+
 protected:
     void OnApplyModifiers() override;
 
@@ -97,6 +127,9 @@ private:
     void ClearResource();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
+#endif
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    void InitSurfaceHandler();
 #endif
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
@@ -124,6 +157,12 @@ private:
     size_t opCountAfterReset_ = 0;
 
     bool modifiersApplied_ = false;
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
+    bool sizeOutOfGpuLimit_ = false;
+    bool firstBufferAcquired_ = false;
+#endif
 
     friend class RSCanvasDrawingNodeCommandHelper;
     friend class RSRenderNode;

@@ -204,6 +204,22 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
 #endif
 }
 
+bool RSInterfaces::SetUifirstScale(float scaleFactor)
+{
+#ifdef ROSEN_OHOS
+    scaleFactor = std::round(scaleFactor * 100.0f) / 100.0f;
+    // scaleFactor must in (0,1]
+    if (ROSEN_LE(scaleFactor, 0.0f) || ROSEN_GNE(scaleFactor, 1.0f)) {
+        ROSEN_LOGE("RSInterfaces::SetUifirstScale invalid scaleFactor:%{public}f", scaleFactor);
+        return false;
+    }
+    ROSEN_LOGI("RSInterfaces::SetUifirstScale called, scaleFactor:%{public}f", scaleFactor);
+    return renderServiceClient_->SetUifirstScale(scaleFactor);
+#else
+    return false;
+#endif
+}
+
 uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string& name,
     const std::shared_ptr<Media::PixelMap> &watermark,
     const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType,
@@ -1183,6 +1199,11 @@ bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
 bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 {
     return renderServiceClient_->GetBehindWindowFilterEnabled(enabled);
+}
+
+bool RSInterfaces::SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    return renderServiceClient_->SetApsConfigParams(event, params);
 }
 
 void RSInterfaces::ClearUifirstCache(NodeId id)

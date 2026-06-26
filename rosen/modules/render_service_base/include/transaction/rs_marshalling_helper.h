@@ -27,9 +27,14 @@
 
 #include "image/image.h"
 
+#ifdef ROSEN_OHOS
+#include "surface_buffer.h"
+#endif
+
 #define RSPARCELVER_ALWAYS 0x100
 #define RSPARCELVER_ADD_ANIMTOKEN 0
 #define RSPARCELVER_ADD_ISPROPDIRTY 1
+#define RSPARCELVER_ADD_NONEED 2
 
 namespace OHOS {
 namespace Media {
@@ -289,6 +294,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
     DECLARE_FUNCTION_OVERLOAD(RRectT<float>)
+    DECLARE_FUNCTION_OVERLOAD(RSSurfaceRenderNodeConfig)
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)

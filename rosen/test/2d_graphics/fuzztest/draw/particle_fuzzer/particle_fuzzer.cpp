@@ -14,73 +14,75 @@
  */
 
 #include "particle_fuzzer.h"
-#include <cstddef>
-#include <cstdint>
-#include "get_object.h"
+
+#include <fuzzer/FuzzedDataProvider.h>
+
 #include "effect/particle_builder.h"
 #include "effect/particle_effect.h"
 #include "image/image.h"
 
 namespace OHOS {
 namespace Rosen {
+
 namespace {
 constexpr size_t MAX_SIZE = 5000;
 constexpr size_t FILTERMODE_SIZE = 2;
+const uint8_t DO_PARTICLE_TEST_001 = 0;
+const uint8_t DO_PARTICLE_TEST_002 = 1;
+const uint8_t DO_PARTICLE_TEST_003 = 2;
+const uint8_t DO_PARTICLE_TEST_004 = 3;
+const uint8_t DO_PARTICLE_TEST_005 = 4;
+const uint8_t DO_PARTICLE_TEST_006 = 5;
+const uint8_t DO_PARTICLE_TEST_007 = 6;
+const uint8_t TARGET_SIZE = 7;
 } // namespace
+
 namespace Drawing {
 
-bool ParticleFuzzTest001(const uint8_t* data, size_t size)
+void DoParticleTest001(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
-        return false;
+        return;
     }
-    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    size_t length = fdp.ConsumeIntegral<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
-        dataText[i] = GetObject<char>();
+        dataText[i] = fdp.ConsumeIntegral<char>();
     }
     dataText[length - 1] = '\0';
-    builder->AddConfigData(std::string(dataText), std::string(dataText), GetObject<uint32_t>());
+    builder->AddConfigData(std::string(dataText), std::string(dataText), fdp.ConsumeIntegral<uint32_t>());
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
     }
-
-    return true;
 }
 
-bool ParticleFuzzTest002(const uint8_t* data, size_t size)
+void DoParticleTest002(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
-        return false;
+        return;
     }
     Bitmap bitmap;
-    int width = GetObject<int>() % MAX_SIZE;
-    int height = GetObject<int>() % MAX_SIZE;
+    int width = fdp.ConsumeIntegral<int>() % MAX_SIZE;
+    int height = fdp.ConsumeIntegral<int>() % MAX_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool ret = bitmap.Build(width, height, bitmapFormat);
     if (!ret) {
-        return false;
+        return;
     }
     Image image;
     bool retTwo = image.BuildFromBitmap(bitmap);
     if (!retTwo) {
-        return false;
+        return;
     }
-    uint32_t fm = GetObject<uint32_t>();
+    uint32_t fm = fdp.ConsumeIntegral<uint32_t>();
     SamplingOptions samplingOptions = SamplingOptions(static_cast<FilterMode>(fm % FILTERMODE_SIZE));
-    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    size_t length = fdp.ConsumeIntegral<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
-        dataText[i] = GetObject<char>();
+        dataText[i] = fdp.ConsumeIntegral<char>();
     }
     dataText[length - 1] = '\0';
     builder->AddConfigImage(std::string(dataText), image, samplingOptions);
@@ -88,22 +90,18 @@ bool ParticleFuzzTest002(const uint8_t* data, size_t size)
         delete [] dataText;
         dataText = nullptr;
     }
-    return true;
 }
 
-bool ParticleFuzzTest003(const uint8_t* data, size_t size)
+void DoParticleTest003(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
-        return false;
+        return;
     }
-    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    size_t length = fdp.ConsumeIntegral<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
-        dataText[i] = GetObject<char>();
+        dataText[i] = fdp.ConsumeIntegral<char>();
     }
     dataText[length - 1] = '\0';
     builder->SetUpdateCode(std::string(dataText));
@@ -111,21 +109,15 @@ bool ParticleFuzzTest003(const uint8_t* data, size_t size)
         delete [] dataText;
         dataText = nullptr;
     }
-    return true;
 }
 
-bool ParticleFuzzTest004(const uint8_t* data, size_t size)
+void DoParticleTest004(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
-        return false;
+        return;
     }
-
-    builder->MakeParticleEffect(GetObject<uint32_t>());
-    return true;
+    builder->MakeParticleEffect(fdp.ConsumeIntegral<uint32_t>());
 }
 
 struct ConfigInfoTest {
@@ -207,14 +199,11 @@ void main() {
     particles.v[index] = p;
 })";
 
-bool ParticleFuzzTest005(const uint8_t* data, size_t size)
+void DoParticleTest005(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
-        return false;
+        return;
     }
     auto sysConfig = GetParticleSysConfigTest();
     builder->AddConfigData(sysConfig.name, sysConfig.str, sysConfig.configSize);
@@ -223,53 +212,49 @@ bool ParticleFuzzTest005(const uint8_t* data, size_t size)
     uint32_t maxParticleCount = 10;
     auto effect = builder->MakeParticleEffect(maxParticleCount);
     if (!effect) {
-        std::cout << "ParticleFuzzTest005 failed, effect faild." << std::endl;
-        return false;
+        std::cout << "DoParticleTest005 failed, effect faild." << std::endl;
+        return;
     }
     ParticleSystemConfigTest sysData;
-    sysData.maxParticleCount = GetObject<uint32_t>();
-    sysData.emitRate = GetObject<uint32_t>();
-    sysData.radius = GetObject<float>();
-    sysData.position[0] = GetObject<float>();
-    sysData.position[1] = GetObject<float>();
-    sysData.emitSize[0] = GetObject<float>();
-    sysData.emitSize[1] = GetObject<float>();
-    sysData.lifeTime[0] = GetObject<float>();
-    sysData.lifeTime[1] = GetObject<float>();
-    sysData.deltaT = GetObject<float>();
-    effect->UpdateConfigData(sysConfig.name, &sysData, GetObject<uint32_t>(), GetObject<uint32_t>());
-
-    return true;
+    sysData.maxParticleCount = fdp.ConsumeIntegral<uint32_t>();
+    sysData.emitRate = fdp.ConsumeIntegral<uint32_t>();
+    sysData.radius = fdp.ConsumeFloatingPoint<float>();
+    sysData.position[0] = fdp.ConsumeFloatingPoint<float>();
+    sysData.position[1] = fdp.ConsumeFloatingPoint<float>();
+    sysData.emitSize[0] = fdp.ConsumeFloatingPoint<float>();
+    sysData.emitSize[1] = fdp.ConsumeFloatingPoint<float>();
+    sysData.lifeTime[0] = fdp.ConsumeFloatingPoint<float>();
+    sysData.lifeTime[1] = fdp.ConsumeFloatingPoint<float>();
+    sysData.deltaT = fdp.ConsumeFloatingPoint<float>();
+    effect->UpdateConfigData(
+        sysConfig.name, &sysData, fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>());
 }
 
-bool ParticleFuzzTest006(const uint8_t* data, size_t size)
+void DoParticleTest006(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
     auto builder = std::make_shared<Drawing::ParticleBuilder>();
     if (!builder) {
-        return false;
+        return;
     }
     Bitmap bitmap;
-    int width = GetObject<int>() % MAX_SIZE;
-    int height = GetObject<int>() % MAX_SIZE;
+    int width = fdp.ConsumeIntegral<int>() % MAX_SIZE;
+    int height = fdp.ConsumeIntegral<int>() % MAX_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool ret = bitmap.Build(width, height, bitmapFormat);
     if (!ret) {
-        return false;
+        return;
     }
     Image image;
     bool retTwo = image.BuildFromBitmap(bitmap);
     if (!retTwo) {
-        return false;
+        return;
     }
-    uint32_t fm = GetObject<uint32_t>();
+    uint32_t fm = fdp.ConsumeIntegral<uint32_t>();
     SamplingOptions samplingOptions = SamplingOptions(static_cast<FilterMode>(fm % FILTERMODE_SIZE));
-    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    size_t length = fdp.ConsumeIntegral<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
-        dataText[i] = GetObject<char>();
+        dataText[i] = fdp.ConsumeIntegral<char>();
     }
     dataText[length - 1] = '\0';
     builder->AddConfigImage(std::string(dataText), image, samplingOptions);
@@ -277,12 +262,12 @@ bool ParticleFuzzTest006(const uint8_t* data, size_t size)
     uint32_t maxParticleCount = 10;
     auto effect = builder->MakeParticleEffect(maxParticleCount);
     if (!effect) {
-        std::cout << "ParticleFuzzTest006 failed, effect faild." << std::endl;
+        std::cout << "DoParticleTest006 failed, effect faild." << std::endl;
         if (dataText != nullptr) {
             delete [] dataText;
             dataText = nullptr;
         }
-        return false;
+        return;
     }
     std::shared_ptr<Image> imagePtr = std::make_shared<Image>(image);
     effect->UpdateConfigImage(std::string(dataText), imagePtr);
@@ -291,21 +276,17 @@ bool ParticleFuzzTest006(const uint8_t* data, size_t size)
         delete [] dataText;
         dataText = nullptr;
     }
-    return true;
 }
 
-bool ParticleFuzzTest007(const uint8_t* data, size_t size)
+void DoParticleTest007(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
     auto effect = std::make_shared<Drawing::ParticleEffect>();
 
     auto dataVal = std::make_shared<Data>();
-    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    size_t length = fdp.ConsumeIntegral<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
-        dataText[i] = GetObject<char>();
+        dataText[i] = fdp.ConsumeIntegral<char>();
     }
     dataText[length - 1] = '\0';
     dataVal->BuildWithoutCopy(dataText, length);
@@ -314,7 +295,6 @@ bool ParticleFuzzTest007(const uint8_t* data, size_t size)
         delete [] dataText;
         dataText = nullptr;
     }
-    return true;
 }
 } // namespace Drawing
 } // namespace Rosen
@@ -323,18 +303,37 @@ bool ParticleFuzzTest007(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    // initialize
-    OHOS::Rosen::Drawing::g_data = data;
-    OHOS::Rosen::Drawing::g_size = size;
-    OHOS::Rosen::Drawing::g_pos = 0;
+    if (data == nullptr) {
+        return -1;
+    }
 
-    /* Run your code on data */
-    OHOS::Rosen::Drawing::ParticleFuzzTest001(data, size);
-    OHOS::Rosen::Drawing::ParticleFuzzTest002(data, size);
-    OHOS::Rosen::Drawing::ParticleFuzzTest003(data, size);
-    OHOS::Rosen::Drawing::ParticleFuzzTest004(data, size);
-    OHOS::Rosen::Drawing::ParticleFuzzTest005(data, size);
-    OHOS::Rosen::Drawing::ParticleFuzzTest006(data, size);
-    OHOS::Rosen::Drawing::ParticleFuzzTest007(data, size);
+    FuzzedDataProvider fdp(data, size);
+
+    uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_PARTICLE_TEST_001:
+            OHOS::Rosen::Drawing::DoParticleTest001(fdp);
+            break;
+        case OHOS::Rosen::DO_PARTICLE_TEST_002:
+            OHOS::Rosen::Drawing::DoParticleTest002(fdp);
+            break;
+        case OHOS::Rosen::DO_PARTICLE_TEST_003:
+            OHOS::Rosen::Drawing::DoParticleTest003(fdp);
+            break;
+        case OHOS::Rosen::DO_PARTICLE_TEST_004:
+            OHOS::Rosen::Drawing::DoParticleTest004(fdp);
+            break;
+        case OHOS::Rosen::DO_PARTICLE_TEST_005:
+            OHOS::Rosen::Drawing::DoParticleTest005(fdp);
+            break;
+        case OHOS::Rosen::DO_PARTICLE_TEST_006:
+            OHOS::Rosen::Drawing::DoParticleTest006(fdp);
+            break;
+        case OHOS::Rosen::DO_PARTICLE_TEST_007:
+            OHOS::Rosen::Drawing::DoParticleTest007(fdp);
+            break;
+        default:
+            return -1;
+    }
     return 0;
 }

@@ -888,6 +888,13 @@ public:
     bool GetIsParticipateInOcclusion() const;
 
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
+
+    void SetDelegateMode(bool flag);
+    bool GetDelegateMode() const;
+    void SetDelegateDstRect(const RectI& rect);
+    const RectI& GetDelegateDstRect() const;
+    void SetDelegateSrcRect(const RectI& rect);
+    const RectI& GetDelegateSrcRect() const;
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
@@ -1036,6 +1043,10 @@ private:
 
     ScreenRotation appRotationCorrection_ = ScreenRotation::ROTATION_0;
     int32_t rotationCorrectionDegree_ = 0;
+
+    RectI delegateDstRect_;
+    RectI delegateSrcRect_;
+    bool isWebProxyComposerNode_ = false;
 
     ScreenId screenId_ = INVALID_SCREEN_ID;
 };

@@ -41,7 +41,7 @@ static auto findMapValueRef(Map& map, const int8_t key)
     if (it != map.end()) {
         return it->second;
     }
-    thread_local static typename Map::mapped_type null_instance{nullptr};
+    static typename Map::mapped_type null_instance{nullptr};
     return null_instance;
 }
 
@@ -56,7 +56,7 @@ static auto findMapValueRef(const Map& map, const int8_t key)
     if (it != map.end()) {
         return it->second;
     }
-    thread_local static typename Map::mapped_type null_instance{nullptr};
+    static typename Map::mapped_type null_instance{nullptr};
     return null_instance;
 }
 

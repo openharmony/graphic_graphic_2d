@@ -24,6 +24,7 @@
 #include "common/rs_vector2.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
+#include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
 
 using namespace testing;
@@ -37,6 +38,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSUIContext> CreateRSUIContext();
 
     const std::string  ANIMATION_PATH = "L350 0 L150 100";
     const Vector4f ANIMATION_START_BOUNDS = Vector4f(100.f, 100.f, 200.f, 300.f);
@@ -47,6 +49,14 @@ void RSImplicitAnimatorTest::SetUpTestCase() {}
 void RSImplicitAnimatorTest::TearDownTestCase() {}
 void RSImplicitAnimatorTest::SetUp() {}
 void RSImplicitAnimatorTest::TearDown() {}
+
+std::shared_ptr<RSUIContext> RSImplicitAnimatorTest::CreateRSUIContext()
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    return rsUIContext;
+}
 
 /**
  * @tc.name: OpenImplicitAnimation001
@@ -283,8 +293,7 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest001, TestSize.Level1)
  */
 HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest002, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
     implicitAnimator->SetRSUIContext(rsUIContext);
 
@@ -557,8 +566,7 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessAnimationFinishCallbackGuaranteeTaskTest
  */
 HWTEST_F(RSImplicitAnimatorTest, GetRSImplicitAnimator, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUIContext = CreateRSUIContext();
     // repeat count
     int count = 10;
     // thread count

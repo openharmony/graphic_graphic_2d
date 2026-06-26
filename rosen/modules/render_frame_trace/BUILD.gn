@@ -39,6 +39,7 @@ ohos_source_set("render_frame_trace") {
   }
   if (!build_ohos_sdk) {
     external_deps += [
+      "c_utils:utils",
       "ipc:ipc_single",
       "qos_manager:concurrent_task_client",
     ]

@@ -737,6 +737,61 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     return params;
 }
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
+    const DrawableV2::RSCanvasDrawingRenderNodeDrawable& drawable, bool forceCPU, uint32_t threadIndex)
+{
+    BufferDrawParam params;
+    auto& nodeParams = drawable.GetRenderParams();
+    if (!nodeParams) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam RenderThread nodeParams is nullptr");
+        return params;
+    }
+    params.threadIndex = threadIndex;
+    params.useCPU = forceCPU;
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    params.paint.SetFilter(filter);
+ 
+    auto boundWidth = nodeParams->GetBounds().GetWidth();
+    auto boundHeight = nodeParams->GetBounds().GetHeight();
+    params.dstRect = Drawing::Rect(0, 0, boundWidth, boundHeight);
+ 
+    const sptr<SurfaceBuffer> buffer = nodeParams->GetBuffer();
+    if (buffer == nullptr) {
+        return params;
+    }
+    params.buffer = buffer;
+    params.acquireFence = nodeParams->GetAcquireFence();
+    SetSrcRect(params, buffer);
+    auto consumer = drawable.GetConsumerSurface();
+    if (consumer == nullptr) {
+        return params;
+    }
+ 
+    GraphicAlphaType alphaType = GraphicAlphaType::GRAPHIC_ALPHATYPE_PREMUL;
+    if (consumer->GetAlphaType(alphaType) == GSERROR_OK) {
+        params.alphaType = static_cast<Drawing::AlphaType>(alphaType);
+    }
+ 
+    auto transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    if (consumer->GetSurfaceBufferTransformType(buffer, &transform) != GSERROR_OK) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam GetSurfaceBufferTransformType failed");
+    }
+    RectF localBounds = { 0.0f, 0.0f, boundWidth, boundHeight };
+    RSBaseRenderUtil::FlipMatrix(transform, params);
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        SrcRectScaleDown(params, buffer, localBounds);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        SrcRectScaleFit(params, buffer, localBounds);
+    }
+    RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderUtil::CreateBufferDrawParam(DrawableV2::RSCanvasDrawingRenderNodeDrawable):"
+        " Parameters creation completed");
+    return params;
+}
+#endif
+
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParamForRotationFixed(
     const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
     RSSurfaceRenderParams& renderParams, uint32_t threadIndex)
@@ -917,6 +972,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateLayerBufferDrawParam(RSLayerPtr): Parameters creation completed");
+    if (layer->GetDelegateMode()) {
+        auto srcRect = layer->GetCropRect();
+        params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
+        params.dstRect = Drawing::Rect(0, 0, localBounds.width_, localBounds.height_);
+        RS_TRACE_NAME_FMT("web node 3: src=[%s], dst=[%s]",
+            params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str());
+    }
     return params;
 }
 

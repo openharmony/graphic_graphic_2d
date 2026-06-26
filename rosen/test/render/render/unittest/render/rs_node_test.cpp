@@ -57,6 +57,14 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 constexpr static float FLOAT_DATA_ZERO = 0.0f;
+
+class RSAnimationMock : public RSAnimation {
+public:
+    explicit RSAnimationMock(const std::shared_ptr<RSUIContext>& uiContext) : RSAnimation(uiContext) {}
+    RSAnimationMock() : RSAnimation() {}
+    void RebuildInRender() override {}
+};
+
 constexpr static float FLOAT_DATA_POSITIVE = 485.44f;
 constexpr static float FLOAT_DATA_NEGATIVE = -34.4f;
 constexpr static float FLOAT_DATA_MAX = std::numeric_limits<float>::max();

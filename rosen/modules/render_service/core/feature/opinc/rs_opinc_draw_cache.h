@@ -133,7 +133,7 @@ public:
 
 protected:
     thread_local static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
-    static RectI screenRectInfo_;
+    static thread_local RectI screenRectInfo_;
 private:
     // opinc cache state
     void NodeCacheStateDisable();

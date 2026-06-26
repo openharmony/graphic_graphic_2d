@@ -277,6 +277,8 @@ void RSFrameRateVote::SetVideoRateInfo(const std::unordered_map<std::string, std
     {
         std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
         if (decRate == 0) {
+            CancelVoteRate(pid, VIDEO_VOTE_FLAG);
+            ReleaseSurfaceMap(lastSurfaceNodeId_);
             auto it = videoRateInfo_.find(pid);
             if (it != videoRateInfo_.end()) {
                 videoRateInfo_.erase(it);

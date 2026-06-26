@@ -133,6 +133,7 @@ template("render_service_client_source_set") {
       "core/modifier_ng/appearance/rs_overlay_ng_shader_modifier.cpp",
       "core/modifier_ng/appearance/rs_shadow_modifier.cpp",
       "core/modifier_ng/appearance/rs_use_effect_modifier.cpp",
+      "core/modifier_ng/appearance/rs_use_union_modifier.cpp",
       "core/modifier_ng/appearance/rs_visibility_modifier.cpp",
       "core/modifier_ng/background/rs_background_color_modifier.cpp",
       "core/modifier_ng/background/rs_background_image_modifier.cpp",
@@ -184,6 +185,8 @@ template("render_service_client_source_set") {
       "core/feature/hyper_graphic_manager/rs_frame_rate_policy.cpp",
       "core/feature/hyper_graphic_manager/rs_ui_display_soloist.cpp",
       "core/feature/window_keyframe/rs_window_keyframe_node.cpp",
+      "core/feature/delegate_composite/rs_delegate_composite_listener.cpp",
+      "core/feature/delegate_composite/rs_delegate_composite_buffer_manager.cpp",
       "core/ui/rs_callback_register.cpp",
       "core/ui/rs_canvas_callback_router.cpp",
       "core/ui/rs_canvas_drawing_node.cpp",
@@ -246,7 +249,7 @@ template("render_service_client_source_set") {
 
     if (is_cross_platform) {
       #ui
-      sources -= [ 
+      sources -= [
         "core/ui/rs_display_node.cpp",
         "core/feature/window_keyframe/rs_window_keyframe_node.cpp",
         "core/feature/hyper_graphic_manager/rs_frame_rate_linker.cpp",
@@ -337,6 +340,7 @@ template("render_service_client_source_set") {
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",
         "image_framework:image_native",
+        "init:libbegetutil",
         "qos_manager:qos",
         "qos_manager:concurrent_task_client",
       ]
@@ -406,9 +410,12 @@ template("render_service_client_source_set") {
       defines += tp_defines
     }
 
-    if (graphic_2d_feature_enable_vulkan) {
+    if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
       if (!is_arkui_x) {
+        defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
         sources += [
+          "core/modifier_render_thread/rs_canvas_modifiers_draw.cpp",
+          "core/modifier_render_thread/rs_canvas_modifiers_draw_thread.cpp",
           "core/modifier_render_thread/rs_modifiers_draw.cpp",
           "core/modifier_render_thread/rs_modifiers_draw_thread.cpp",
         ]
@@ -421,10 +428,6 @@ template("render_service_client_source_set") {
           sources -= graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources_del
         }
       }
-    }
-
-    if (graphic_2d_feature_rs_modifiers_draw_enable) {
-      defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
     }
 
     if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {

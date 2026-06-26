@@ -124,6 +124,8 @@ public:
     virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success, uint32_t rowCount = 0, uint32_t colCount = 0) = 0;
 
+    virtual ErrCode SetUifirstScale(float scaleFactor) = 0;
+
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
@@ -400,6 +402,9 @@ public:
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
 
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
+
+    virtual ErrCode SetApsConfigParams(
+        ApsEventType event, const std::unordered_map<std::string, std::string>& params) = 0;
 
     virtual int32_t GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB) = 0;
 

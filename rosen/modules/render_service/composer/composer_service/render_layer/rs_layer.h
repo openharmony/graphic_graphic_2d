@@ -180,6 +180,23 @@ public:
     virtual void SetIsNeedComposition(bool isNeedComposition) = 0;
     virtual void SetVcldInfo(const RSVcldParam& vcldInfo) = 0;
     virtual const RSVcldParam& GetVcldInfo() const = 0;
+    virtual bool GetDelegateMode() const
+    {
+        return false;
+    };
+    virtual void SetDelegateMode(bool isDelegateMode)
+    {
+        (void)isDelegateMode;
+    };
+    virtual void SetDelegateModeCropRect(const GraphicIRect& crop)
+    {
+        (void)crop;
+    };
+    virtual GraphicIRect GetDelegateModeCropRect()
+    {
+        GraphicIRect rect;
+        return rect;
+    };
 };
 
 using RSLayerPtr = std::shared_ptr<RSLayer>;

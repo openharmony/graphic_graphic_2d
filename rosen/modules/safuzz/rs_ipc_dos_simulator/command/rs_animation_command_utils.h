@@ -40,6 +40,14 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAnimationCreateSpring, Uint64, RSRenderSpringAnimationSharedPtr);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAnimationCreateInterpolatingSpring, Uint64,
                                     RSRenderInterpolatingSpringAnimationSharedPtr);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSAnimationRebuildCurve, Uint64, RSRenderCurveAnimationSharedPtr, Float, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSAnimationRebuildSpring, Uint64, RSRenderSpringAnimationSharedPtr, Float, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSAnimationRebuildKeyframe, Uint64, RSRenderKeyframeAnimationSharedPtr,
+                                    Float, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSAnimationRebuildPath, Uint64, RSRenderPathAnimationSharedPtr, Float, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSAnimationRebuildInterpolatingSpring, Uint64,
+                                    RSRenderInterpolatingSpringAnimationSharedPtr, Float, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_5(RSAnimationDestroyInRender, Uint64, Uint64, Uint64, Float, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSInteractiveAnimatorCreate, Uint64, Uint64AndUint64PairVector, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSInteractiveAnimatorDestory, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSInteractiveAnimatorPause, Uint64);

@@ -70,6 +70,7 @@
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
+#include "ipc_callbacks/rs_delegate_composite_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -90,8 +91,8 @@ public:
 
     virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;
 
-    virtual ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-        sptr<Surface>& sfc, bool unobscured) = 0;
+    virtual ErrCode CreateNodeAndSurface(
+        const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured) = 0;
 
     virtual ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
@@ -197,6 +198,11 @@ public:
 
     virtual int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    virtual sptr<Surface> GetCanvasSurface(NodeId nodeId) = 0;
+    virtual void RemoveCanvasSurface(NodeId nodeId) = 0;
+#endif
+
     virtual int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,
         const FrameStabilityConfig& config,
@@ -220,6 +226,13 @@ public:
     virtual void RegisterRemoteRefreshCallback() = 0;
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
+
+    virtual bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid) = 0;
+    virtual bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,
+        uint64_t listenerId) = 0;
+    virtual bool UnRegisterSurfaceTransactionListener(uint64_t listenerId) = 0;
+    virtual bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener) = 0;
+    virtual bool UnRegisterSurfaceNodeBufferReleaseListener() = 0;
 };
 
 } // namespace Rosen

@@ -31,6 +31,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature/opinc/rs_opinc_draw_cache.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -248,6 +249,13 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
     // Use user's gravity
     canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
+    // Apply inverse uifirst scale to resotre canvas to original size before drawing
+    // Since cache surface was scaled up during uifirst scaling, we need to apply
+    // inverse scale to draw the correct original size
+    if (cacheCompletedSurfaceInfo_.IsUifirstScale()) {
+        float inverseScale = 1.0f / cacheCompletedSurfaceInfo_.scaleRatio;
+        canvas.Scale(inverseScale, inverseScale);
+    }
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCacheSurface bound[%f %f] cache[%d %d] scale[%f %f]", boundSize.x_, boundSize.y_,
         cacheImage->GetWidth(), cacheImage->GetHeight(), scaleX, scaleY);
     if (RSSystemProperties::GetRecordingEnabled()) {
@@ -331,6 +339,15 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             params->GetLocalDrawRect().GetHeight() : size.y_;
     } else {
         RS_LOGE("uifirst cannot get cachesize");
+    }
+    // Get uifirst scaling parameter and apply scaling to cache size if enabled
+    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    // Apply uifirst scale ratio to cache widht/height when IsUifirstScale is enabled
+    if (LIKELY(uniParam) && uniParam->IsUifirstScale()) {
+        float uifirstScale = uniParam->GetUiFirstScale();
+        RS_TRACE_NAME_FMT("%s uifirstScale called scaleRatio is %f", __func__, uifirstScale);
+        width = width * uifirstScale;
+        height = height * uifirstScale;
     }
 
     auto params = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetUifirstRenderParams().get());
@@ -420,6 +437,16 @@ bool RsSubThreadCache::IsCacheValid() const
 
 bool RsSubThreadCache::NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams)
 {
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (LIKELY(uniParam)) {
+        float uifirstScale = uniParam->GetUiFirstScale();
+        // if uifirst scale ratio changed, update cache and return true to InitCacheSurface
+        if (ROSEN_NE(lastScale_, uifirstScale)) {
+            RS_TRACE_NAME_FMT("%s lastScale_:%f uifirstScale:%f", __func__, lastScale_, uifirstScale);
+            lastScale_ = uifirstScale;
+            return true;
+        }
+    }
     int width = 0;
     int height = 0;
 
@@ -869,6 +896,15 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
     }
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
 
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    if (uifirstParams && DrawableV2::RSOpincDrawCache::IsAutoCacheEnable()) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(uifirstParams.get());
+        if (surfaceParams) {
+            DrawableV2::RSOpincDrawCache::SetScreenRectInfo(surfaceParams->GetScreenRect());
+        }
+    }
+#endif
+
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(IDENTITY_MATRIX);
 
@@ -995,6 +1031,7 @@ void RsSubThreadCache::UpdateCacheSurfaceInfo(RSSurfaceRenderNodeDrawable* surfa
     cacheSurfaceInfo_.processedSubSurfaceNodeIds = surfaceParams->GetAllSubSurfaceNodeIds();
     if (const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
         cacheSurfaceInfo_.vsyncId = uniParam->GetVsyncId();
+        cacheSurfaceInfo_.SetCacheUifirstScale(uniParam->GetUiFirstScale());
     }
     if (isOcclusionEnabled_) {
         CalculateSurfaceOpaqueRegion(surfaceDrawable, surfaceParams, cacheSurfaceInfo_.opaqueRegion,

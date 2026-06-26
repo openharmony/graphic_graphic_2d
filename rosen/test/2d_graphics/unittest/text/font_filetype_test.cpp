@@ -482,6 +482,129 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataValidWithInputWrongFile, TestSiz
     EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
+
+// ----------------------------------------------------------------------------------
+// Test for FontFileFormat GetFontFileType(const void* data, size_t length, int& fileCount)
+// ----------------------------------------------------------------------------------
+
+/**
+ * @tc.name: GetFontFileTypeByRawDataNullptr
+ * @tc.desc: Test GetFontFileType with null data pointer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(FontFileTypeTest, GetFontFileTypeByRawDataNullptr, TestSize.Level1)
+{
+    int fileCount = 0;
+    auto filetype = FontFileType::GetFontFileType(nullptr, 0, fileCount);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
+    EXPECT_EQ(fileCount, 0);
+}
+
+/**
+ * @tc.name: GetFontFileTypeByRawDataZeroLength
+ * @tc.desc: Test GetFontFileType with zero length
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(FontFileTypeTest, GetFontFileTypeByRawDataZeroLength, TestSize.Level1)
+{
+    static constexpr uint8_t dummyData = 1;
+    int fileCount = 0;
+    auto filetype = FontFileType::GetFontFileType(&dummyData, 0, fileCount);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
+    EXPECT_EQ(fileCount, 0);
+}
+
+/**
+ * @tc.name: GetFontFileTypeByRawDataInvalidData
+ * @tc.desc: Test GetFontFileType with invalid raw data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(FontFileTypeTest, GetFontFileTypeByRawDataInvalidData, TestSize.Level1)
+{
+    static constexpr size_t invalidDataSize = 3;
+    uint8_t invalidData[invalidDataSize] = {0, 0, 0};
+    int fileCount = 0;
+    auto filetype = FontFileType::GetFontFileType(invalidData, invalidDataSize, fileCount);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
+    EXPECT_EQ(fileCount, 0);
+}
+
+/**
+ * @tc.name: GetFontFileTypeByRawDataValidTTF
+ * @tc.desc: Test GetFontFileType with valid TTF raw data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(FontFileTypeTest, GetFontFileTypeByRawDataValidTTF, TestSize.Level1)
+{
+    std::string pathDefault = "/system/fonts/HarmonyOS_Sans_SC.ttf";
+    std::ifstream ttfFile(pathDefault, std::ios::in | std::ios::binary);
+    ASSERT_TRUE(ttfFile.is_open());
+    ttfFile.seekg(0, std::ios::end);
+    size_t ttfLen = ttfFile.tellg();
+    ttfFile.seekg(0, std::ios::beg);
+    std::vector<uint8_t> fontData(ttfLen);
+    ttfFile.read(reinterpret_cast<char*>(fontData.data()), ttfLen);
+    ASSERT_TRUE(ttfFile.good());
+    ttfFile.close();
+    int fileCount = 0;
+    auto filetype = FontFileType::GetFontFileType(fontData.data(), fontData.size(), fileCount);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::TTF);
+    EXPECT_EQ(fileCount, 1);
+}
+
+/**
+ * @tc.name: GetFontFileTypeByRawDataValidOTC
+ * @tc.desc: Test GetFontFileType with valid TTC/OTC raw data
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(FontFileTypeTest, GetFontFileTypeByRawDataValidOTC, TestSize.Level1)
+{
+    std::string pathDefault = "/system/fonts/NotoSansCJK-Regular.ttc";
+    std::ifstream ttcFile(pathDefault, std::ios::in | std::ios::binary);
+    ASSERT_TRUE(ttcFile.is_open());
+    ttcFile.seekg(0, std::ios::end);
+    size_t ttcLen = ttcFile.tellg();
+    ttcFile.seekg(0, std::ios::beg);
+    std::vector<uint8_t> fontData(ttcLen);
+    ttcFile.read(reinterpret_cast<char*>(fontData.data()), ttcLen);
+    ASSERT_TRUE(ttcFile.good());
+    ttcFile.close();
+    int fileCount = 0;
+    auto filetype = FontFileType::GetFontFileType(fontData.data(), fontData.size(), fileCount);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::OTC);
+    EXPECT_EQ(fileCount, 10);
+}
+
+/**
+ * @tc.name: GetFontFileTypeByRawDataConsistencyWithVector
+ * @tc.desc: Test that void* overload produces same result as vector overload
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(FontFileTypeTest, GetFontFileTypeByRawDataConsistencyWithVector, TestSize.Level1)
+{
+    std::string pathDefault = "/system/fonts/HarmonyOS_Sans_SC.ttf";
+    std::ifstream ttfFile(pathDefault, std::ios::in | std::ios::binary);
+    ASSERT_TRUE(ttfFile.is_open());
+    ttfFile.seekg(0, std::ios::end);
+    size_t ttfLen = ttfFile.tellg();
+    ttfFile.seekg(0, std::ios::beg);
+    std::vector<uint8_t> fontData(ttfLen);
+    ttfFile.read(reinterpret_cast<char*>(fontData.data()), ttfLen);
+    ASSERT_TRUE(ttfFile.good());
+    ttfFile.close();
+    int fileCountVector = 0;
+    int fileCountRaw = 0;
+    auto typeFromVector = FontFileType::GetFontFileType(fontData, fileCountVector);
+    auto typeFromRaw = FontFileType::GetFontFileType(fontData.data(), fontData.size(), fileCountRaw);
+    EXPECT_EQ(typeFromVector, typeFromRaw);
+    EXPECT_EQ(fileCountVector, fileCountRaw);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

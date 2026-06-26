@@ -27,6 +27,7 @@
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
+#include <transaction/transaction.h>
 #include <utility>
 #endif
 
@@ -38,7 +39,9 @@
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
+#include "ipc_callbacks/rs_transaction_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
+#include "ipc_callbacks/rs_delegate_composite_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
 #endif
@@ -165,6 +168,8 @@ public:
 
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         uint32_t rowCount = 0, uint32_t colCount = 0);
+
+    bool SetUifirstScale(float scaleFactor);
 
     void RemoveVirtualScreen(ScreenId id);
 
@@ -422,6 +427,8 @@ public:
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
+
+    bool SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB);
 

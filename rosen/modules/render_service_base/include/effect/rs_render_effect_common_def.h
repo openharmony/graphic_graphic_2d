@@ -13,33 +13,20 @@
  * limitations under the License.
  */
 
-#include "rsproxynodecommand_fuzzer.h"
+#ifndef RENDER_SERVICE_BASE_EFFECT_RS_RENDER_EFFECT_COMMON_DEF_H
+#define RENDER_SERVICE_BASE_EFFECT_RS_RENDER_EFFECT_COMMON_DEF_H
 
-#include <cstddef>
-#include <cstdint>
-#include <fuzzer/FuzzedDataProvider.h>
-#include <securec.h>
-
-#include "command/rs_proxy_node_command.h"
+#include "common/rs_common_def.h"
+#include "utils/matrix.h"
 
 namespace OHOS {
 namespace Rosen {
-bool DoProxyNodeCommand(FuzzedDataProvider& fdp)
-{
-    RSContext context;
-    NodeId id = fdp.ConsumeIntegral<NodeId>();
-    NodeId target = fdp.ConsumeIntegral<NodeId>();
+struct FilterRenderContext {
+    Drawing::Matrix absMatrix;
+    NodeId offscreenNodeId = INVALID_NODEID;
+};
 
-    ProxyNodeCommandHelper::Create(context, id, target);
-    ProxyNodeCommandHelper::ResetContextVariableCache(context, id);
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
-{
-    FuzzedDataProvider fdp(data, size);
-    OHOS::Rosen::DoProxyNodeCommand(fdp);
-    return 0;
-}
+#endif // RENDER_SERVICE_BASE_EFFECT_RS_RENDER_EFFECT_COMMON_DEF_H

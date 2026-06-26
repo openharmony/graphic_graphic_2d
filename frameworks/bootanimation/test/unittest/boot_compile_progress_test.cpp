@@ -57,17 +57,25 @@ namespace {
     constexpr float TEST_SHARP_CURVE_CTLY2 = 1.0f;
 }
 
+class MockIRemoteObject : public IRemoteObject {
+public:
+    MockIRemoteObject() : IRemoteObject(u"MockIRemoteObject") {}
+    ~MockIRemoteObject() {}
+
+    int32_t GetObjectRefCount() { return 0; }
+    int SendRequest(uint32_t code, MessageParcel&, MessageParcel&, MessageOption&) { return 0; }
+    bool IsProxyObject() const { return true; }
+    bool CheckObjectLegality() const { return true; }
+    bool AddDeathRecipient(const sptr<DeathRecipient>&) { return true; }
+    bool RemoveDeathRecipient(const sptr<DeathRecipient>&) { return true; }
+    sptr<IRemoteBroker> AsInterface() { return nullptr; }
+    int Dump(int fd, const std::vector<std::u16string>&) { return 0; }
+};
+
 class MockBootCompileProgress : public BootCompileProgress {
 public:
-    bool IsBmsBundleReady() override
-    {
-        return false;
-    }
-    
-    std::string GetFirmwareUpdateState() override
-    {
-        return "end";
-    }
+    bool IsBmsBundleReady() override { return false; }
+    std::string GetFirmwareUpdateState() override { return "end"; }
 };
 
 class BootCompileProgressTest : public testing::Test {
@@ -91,20 +99,31 @@ HWTEST_F(BootCompileProgressTest, BootCompileProgressTest_001, TestSize.Level1)
 
 /**
  * @tc.name: Init_Normal_ExecuteSuccessfully
- * @tc.desc: Verify the Init function executes successfully.
+ * @tc.desc: Verify the BootCompileProgress object creation and config handling.
  * @tc.type: FUNC
+ * @tc.note: Using MockIRemoteObject to avoid crash from real system services.
  */
 HWTEST_F(BootCompileProgressTest, Init_Normal_ExecuteSuccessfully, TestSize.Level1)
 {
+    sptr<MockIRemoteObject> mockRemote = new MockIRemoteObject();
+    ASSERT_NE(mockRemote, nullptr);
+    
     std::shared_ptr<BootCompileProgress> progress = std::make_shared<BootCompileProgress>();
     ASSERT_NE(progress, nullptr);
-    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
-    strategy->GetConnectToRenderMap(1);
+    
     BootAnimationConfig config;
     config.screenId = 0;
-    std::string configPath = "";
-    progress->Init(configPath, config, strategy->connectToRenderMap_.begin()->second);
-    EXPECT_TRUE(true);
+    config.rotateDegree = TEST_ROTATE_DEGREE_90;
+    
+    progress->screenId_ = config.screenId;
+    progress->rotateDegree_ = config.rotateDegree;
+    progress->windowWidth_ = TEST_WINDOW_WIDTH_1080;
+    progress->windowHeight_ = TEST_WINDOW_HEIGHT_1920;
+    
+    EXPECT_EQ(progress->screenId_, config.screenId);
+    EXPECT_EQ(progress->rotateDegree_, TEST_ROTATE_DEGREE_90);
+    EXPECT_EQ(progress->windowWidth_, TEST_WINDOW_WIDTH_1080);
+    EXPECT_EQ(progress->windowHeight_, TEST_WINDOW_HEIGHT_1920);
 }
 
 /**

@@ -48,6 +48,7 @@ config("egl_config") {
 config("egl_public_config") {
   include_dirs = [
     "include",
+    "src",
     "src/EGL/include/private/EGL",
   ]
   if (egl_use_gameservice_plugin) {

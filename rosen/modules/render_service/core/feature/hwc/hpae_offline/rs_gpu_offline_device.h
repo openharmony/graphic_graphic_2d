@@ -105,14 +105,14 @@ public:
     ~RSGPUOfflineDevice() override;
     OfflineDeviceType GetDeviceType() const override { return OfflineDeviceType::GPU_OFFLINE_DEVICE; }
     static bool CheckCondition(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
-    bool IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRenderNode> surfaceNode) override;
+    bool IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) override;
     bool PostProcessOfflineTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
         offlineTaskId taskId) override;
     bool PostProcessOfflineTask(std::shared_ptr<RSSurfaceRenderNode>& node,
         offlineTaskId taskId) override;
     bool WaitForProcessOfflineResult(offlineTaskId taskId, std::chrono::milliseconds timeout,
         ProcessOfflineResult& result) override;
-    void CheckAndPostClearOfflineResourceTask() override;
+    void CheckAndPostClearOfflineResourceTask(const std::vector<uint64_t>& offlineNodeIds) override;
     bool CanDeleteDevice() override;
 
 private:
@@ -145,7 +145,6 @@ private:
 
     RSHpaeOfflineProcessSyncer offlineResultSync_;
     RSGPUOfflineThread offlineThread_;
-    std::atomic<bool> isBusy_ = false;
     std::map<NodeId, std::shared_ptr<GPUOfflineContext>> offlineContextCache_;
     mutable std::mutex cacheMutex_;
     uint64_t currentVsyncId_ = 0;

@@ -1203,6 +1203,12 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
 bool EffectNapi::ParseDistortionCollapseEffectPara(napi_env env, napi_value jsObject,
     DistortionCollapseEffectPara* para)
 {
+    // Mark as disabled when the JS parameter is undefined or null
+    napi_valuetype valueType = UIEffectNapiUtils::GetType(env, jsObject);
+    if (valueType == napi_undefined || valueType == napi_null) {
+        para->SetDisabled(true);
+        return true;
+    }
     napi_value tmpValue = nullptr;
     Vector2f tmpVector2;
     Vector4f tmpVector4;

@@ -952,6 +952,7 @@ void HdiOutput::UpdateThirdFrameAheadPresentFence(sptr<SyncFence>& fbFence)
         historicalPresentfences_[presentFenceIndex_] = fbFence;
         presentFenceIndex_ = (presentFenceIndex_ + 1) % NUMBER_OF_HISTORICAL_FRAMES;
     } else {
+        RS_TRACE_NAME("historicalPresentfences_ push_back");
         historicalPresentfences_.push_back(fbFence);
     }
 }

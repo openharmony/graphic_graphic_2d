@@ -35,6 +35,28 @@ RSHpaeOfflineLayer::~RSHpaeOfflineLayer()
 {
 }
 
+bool RSHpaeOfflineLayer::ConvertColorGamutToSpaceType(const GraphicColorGamut& colorGamut,
+    HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType)
+{
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    static const std::map<GraphicColorGamut, CM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP {
+        {GRAPHIC_COLOR_GAMUT_STANDARD_BT601, CM_BT601_EBU_FULL},
+        {GRAPHIC_COLOR_GAMUT_STANDARD_BT709, CM_BT709_FULL},
+        {GRAPHIC_COLOR_GAMUT_SRGB, CM_SRGB_FULL},
+        {GRAPHIC_COLOR_GAMUT_ADOBE_RGB, CM_ADOBERGB_FULL},
+        {GRAPHIC_COLOR_GAMUT_DISPLAY_P3, CM_P3_FULL},
+        {GRAPHIC_COLOR_GAMUT_BT2020, CM_DISPLAY_BT2020_SRGB},
+        {GRAPHIC_COLOR_GAMUT_BT2100_PQ, CM_BT2020_PQ_FULL},
+        {GRAPHIC_COLOR_GAMUT_BT2100_HLG, CM_BT2020_HLG_FULL},
+        {GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, CM_DISPLAY_BT2020_SRGB},
+    };
+    if (RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.find(colorGamut) == RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.end()) {
+        return false;
+    }
+    colorSpaceType = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(colorGamut);
+    return true;
+}
+
 bool RSHpaeOfflineLayer::PreAllocBuffers(const BufferRequestConfig& config)
 {
     if (!surfaceCreated_) {
@@ -65,6 +87,16 @@ sptr<SurfaceBuffer> RSHpaeOfflineLayer::RequestSurfaceBuffer(
             return nullptr;
         }
     }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    // set color space to surface buffer metadata
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    CM_ColorSpaceType colorSpace = CM_SRGB_FULL;
+    if (ConvertColorGamutToSpaceType(config.colorGamut, colorSpace)) {
+        if (pSurface_->SetUserData("ATTRKEY_COLORSPACE_INFO", std::to_string(colorSpace)) != GSERROR_OK) {
+            RS_OFFLINE_LOGD("RSHpaeOfflineLayer::set user data failed");
+        }
+    }
+#endif
     sptr<SurfaceBuffer> buffer = nullptr;
     pSurface_->RequestBuffer(buffer, releaseFence, config);
     return buffer;

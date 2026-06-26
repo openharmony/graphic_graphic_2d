@@ -44,7 +44,8 @@ public:
     bool PostProcessOfflineTask(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, offlineTaskId taskId);
     bool WaitForProcessOfflineResult(offlineTaskId taskId, std::chrono::milliseconds timeout,
         ProcessOfflineResult& processOfflineResult);
-    void CheckAndPostClearOfflineResourceTask(OfflineDeviceType offlineDeviceType);
+    void CheckAndPostClearOfflineResourceTask(OfflineDeviceType offlineDeviceType,
+        const std::vector<uint64_t>& offlineNodeIds = {});
 
 private:
     RSOfflineProcessor();

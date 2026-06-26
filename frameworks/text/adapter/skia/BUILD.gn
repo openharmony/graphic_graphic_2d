@@ -76,6 +76,7 @@ template("skia_libtxt") {
       external_deps += [
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
+        "c_utils:utils",
         "hitrace:hitrace_meter",
         "init:libbegetutil",
         "ipc:ipc_core",

@@ -33,7 +33,7 @@
 #include "pixel_map.h"
 #endif
 #include "skia_adapter/skia_convert_utils.h"
-#include "static_factory.h"
+#include "text/hm_symbol.h"
 #include "symbol_engine/hm_symbol_run.h"
 #include "text_font_utils.h"
 #include "text/font_metrics.h"
@@ -324,16 +324,16 @@ bool ParagraphImpl::GetLineFontMetrics(const size_t lineNumber, size_t& charNumb
     return paragraph_->GetLineFontMetrics(lineNumber, charNumber, fontMetrics);
 }
 
-std::vector<std::unique_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines() const
+std::vector<std::shared_ptr<SPText::TextLineBase>> ParagraphImpl::GetTextLines() const
 {
     if (!paragraph_) {
         return {};
     }
-    std::vector<std::unique_ptr<skt::TextLineBase>> textLineBases = paragraph_->GetTextLines();
-    std::vector<std::unique_ptr<SPText::TextLineBase>> lines;
-    for (std::unique_ptr<skt::TextLineBase>& textLineBase : textLineBases) {
-        std::unique_ptr<SPText::TextLineImpl> textLinePtr =
-            std::make_unique<SPText::TextLineImpl>(std::move(textLineBase), paints_);
+    std::vector<std::shared_ptr<skt::TextLineBase>> textLineBases = paragraph_->GetTextLines();
+    std::vector<std::shared_ptr<SPText::TextLineBase>> lines;
+    for (std::shared_ptr<skt::TextLineBase>& textLineBase : textLineBases) {
+        std::shared_ptr<SPText::TextLineImpl> textLinePtr =
+            std::make_shared<SPText::TextLineImpl>(std::move(textLineBase), paints_);
         lines.emplace_back(std::move(textLinePtr));
     }
     return lines;
@@ -682,7 +682,7 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
             auto& pathInfo = pathInfos[i];
             Drawing::Path tempPath;
             std::vector<Drawing::Path> allPaths;
-            Drawing::StaticFactory::PathOutlineDecompose(pathInfo.path, allPaths);
+            Drawing::DrawingHMSymbol::PathOutlineDecompose(pathInfo.path, allPaths);
             TextPathUtil::ExtractOuterPath(allPaths, tempPath);
             pathInfo.path = tempPath;
         }

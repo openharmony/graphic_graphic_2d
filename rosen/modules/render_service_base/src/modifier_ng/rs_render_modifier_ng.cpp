@@ -37,6 +37,7 @@
 #include "modifier_ng/appearance/rs_overlay_ng_shader_render_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_render_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_render_modifier.h"
+#include "modifier_ng/appearance/rs_use_union_render_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_render_modifier.h"
 #include "modifier_ng/background/rs_background_color_render_modifier.h"
 #include "modifier_ng/background/rs_background_image_render_modifier.h"
@@ -75,6 +76,7 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::MASK,                     RSMaskRenderModifier::ResetProperties },
     { RSModifierType::PIXEL_STRETCH,            RSPixelStretchRenderModifier::ResetProperties },
     { RSModifierType::USE_EFFECT,               RSUseEffectRenderModifier::ResetProperties },
+    { RSModifierType::USE_UNION,                RSUseUnionRenderModifier::ResetProperties },
     { RSModifierType::BLENDER,                  RSBlendRenderModifier::ResetProperties },
     { RSModifierType::OVERLAY_NG_SHADER,        RSOverlayNGShaderRenderModifier::ResetProperties },
     { RSModifierType::PARTICLE_EFFECT,          RSParticleEffectRenderModifier::ResetProperties },
@@ -129,6 +131,7 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier:
     [] { return std::make_shared<RSMaterialFilterRenderModifier>(); },                           // MATERIAL_FILTER
     [] { return std::make_shared<RSColorPickerRenderModifier>(); },                              // COLOR_PICKER
     [] { return std::make_shared<RSMaterialShaderRenderModifier>(); },                           // MATERIAL_SHADER
+    [] { return std::make_shared<RSUseUnionRenderModifier>(); },                                 // USE_UNION
     nullptr,                                                                                     // CHILDREN
 };
 

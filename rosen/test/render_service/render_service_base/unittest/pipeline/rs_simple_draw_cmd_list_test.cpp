@@ -15,12 +15,12 @@
  
 #include <atomic>
 #include "gtest/gtest.h"
- 
+
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "recording/draw_cmd.h"
- 
+
 using namespace testing;
 using namespace testing::ext;
  
@@ -426,5 +426,53 @@ HWTEST_F(RSSimpleDrawCmdListTest, Purge_WithPixelmapOpItems, TestSize.Level1)
     EXPECT_EQ(simpleDrawCmdList->GetOpItemSize(), 1);
 }
  
+/**
+ * @tc.name: ConvertToDrawCmdList_EmptyList
+ * @tc.desc: Test ConvertToDrawCmdList with empty drawOpItems_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSimpleDrawCmdListTest, ConvertToDrawCmdList_EmptyList, TestSize.Level1)
+{
+    auto emptyList = std::make_shared<RSSimpleDrawCmdList>();
+    auto result = emptyList->ConvertToDrawCmdList();
+    ASSERT_NE(result, nullptr);
+    EXPECT_NE(result->GetSize(), 0);
+}
+ 
+/**
+ * @tc.name: ConvertToDrawCmdList_WithOpItems
+ * @tc.desc: Test ConvertToDrawCmdList with non-empty drawOpItems_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSimpleDrawCmdListTest, ConvertToDrawCmdList_WithOpItems, TestSize.Level1)
+{
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems;
+    opItems.push_back(std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 10, 10), Drawing::Paint()));
+    opItems.push_back(std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(10, 10, 20, 20), Drawing::Paint()));
+    auto simpleDrawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+ 
+    auto result = simpleDrawCmdList->ConvertToDrawCmdList();
+    ASSERT_NE(result, nullptr);
+    EXPECT_GT(result->GetSize(), 0);
+}
+ 
+/**
+ * @tc.name: ConvertToDrawCmdList_WithNullOpItems
+ * @tc.desc: Test ConvertToDrawCmdList with null op items in drawOpItems_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSimpleDrawCmdListTest, ConvertToDrawCmdList_WithNullOpItems, TestSize.Level1)
+{
+    std::vector<std::shared_ptr<Drawing::DrawOpItem>> opItems;
+    opItems.push_back(std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(0, 0, 10, 10), Drawing::Paint()));
+    opItems.push_back(nullptr); // Add null op item
+    opItems.push_back(std::make_shared<Drawing::DrawRectOpItem>(Drawing::Rect(10, 10, 20, 20), Drawing::Paint()));
+    auto simpleDrawCmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100, opItems);
+ 
+    auto result = simpleDrawCmdList->ConvertToDrawCmdList();
+    ASSERT_NE(result, nullptr);
+    // Should handle null op items gracefully
+    EXPECT_GT(result->GetSize(), 0);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -119,6 +119,95 @@ constexpr char NORMAL_LIGHT_SHADER_STRING[](R"(
         return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
     }
 )");
+
+constexpr char NORMAL_SINGLE_LIGHT_SHADER_STRING[](R"(
+    uniform vec2 iResolution;
+    uniform float cornerRadius;
+    uniform vec4 lightPos[1];
+    uniform vec4 viewPos[1];
+    uniform vec4 specularLightColor[1];
+    uniform float specularStrength[1];
+    uniform float roundCurvature;
+    uniform float bumpFactor;
+    uniform float gradientRadius;
+    uniform float bulgeRadius;
+    uniform float attenuationCoeff;
+    uniform float eps;
+
+    float sdf_g2_rounded_box(vec2 p, vec2 b, float r, float k)
+    {
+        vec2 q = abs(p) - b;
+        float v_x =  max(q.x, 0.0);
+        float v_y =  max(q.y, 0.0);
+        float dist_corner_shape;
+        if (abs(k - 2.0) < 0.001) {
+            dist_corner_shape = length(vec2(v_x, v_y));
+            return dist_corner_shape + min(max(q.x, q.y), 0.0) - r;
+        } else {
+            if (v_x == 0.0 && v_y == 0.0) {
+                dist_corner_shape = 0.0;
+            } else {
+                dist_corner_shape = pow(pow(v_x, k) + pow(v_y, k), 1.0 / k);
+            }
+            return dist_corner_shape + min(max(q.x, q.y), 0.0) - r;
+        }
+    }
+
+    float sdScene(vec2 fragCoord)
+    {
+        vec2 boxSize = iResolution.xy * 0.5 - cornerRadius;
+        vec2 boxCenter = iResolution.xy * 0.5;
+        vec2 p = fragCoord - boxCenter;
+        return sdf_g2_rounded_box(p, boxSize, cornerRadius, roundCurvature);
+    }
+
+    float height(vec2 p, float radius)
+    {
+        float d = sdScene(p);
+        float h = 0.0;
+        if (d < 0.0 && d > -radius) {
+            float arg = 2.0 * radius * abs(d) - d * d;
+            h = sqrt(max(arg, 0.0));
+        } else if (d <= -radius) {
+            h = radius;
+        }
+        return h;
+    }
+
+    vec2 computeGradient(vec2 p) {
+        vec2 epsVec = vec2(eps, 0.0);
+        float dx = height(p - epsVec.xy, gradientRadius) - height(p + epsVec.xy, gradientRadius);
+        float dy = height(p - epsVec.yx, gradientRadius) - height(p + epsVec.yx, gradientRadius);
+        return vec2(dx, dy);
+    }
+
+    mediump vec4 main(vec2 drawing_coord)
+    {
+        float shininess = 8.0;
+        mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        vec2 grad = computeGradient(drawing_coord);
+        float h = height(drawing_coord, bulgeRadius);
+        vec3 norm = normalize(vec3(grad * bumpFactor, h));
+
+        if (abs(specularStrength[0]) > 0.01) {
+            vec3 lightVec = vec3(lightPos[0].xy - drawing_coord, lightPos[0].z);
+            vec3 lightDir = normalize(lightVec);
+            vec3 viewDir = normalize(lightVec); // view vector
+            vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
+
+            // lightPos[0].w stores the maximum lighting radius
+            float normalizedDistance = length(lightVec) / lightPos[0].w;
+            float smoothFactor = smoothstep(0.8, 1.0, normalizedDistance);
+            float attenuation = (1.0 - smoothFactor) / (1.0 + attenuationCoeff *
+                normalizedDistance * normalizedDistance);
+            float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess);
+            vec4 specularColor = specularLightColor[0];
+            fragColor += specularColor * spec * specularStrength[0] * attenuation;
+        }
+        return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
+    }
+)");
+
 static constexpr char FEATHERING_BORDER_LIGHT_SHADER_STRING[](R"(
     uniform vec2 iResolution;
     uniform float contentBorderRadius;
@@ -178,6 +267,65 @@ static constexpr char FEATHERING_BORDER_LIGHT_SHADER_STRING[](R"(
         return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
     }
 )");
+
+static constexpr char SINGLE_FEATHERING_BORDER_LIGHT_SHADER_STRING[](R"(
+    uniform vec2 iResolution;
+    uniform float contentBorderRadius;
+    uniform vec4 lightPos[1];
+    uniform vec4 viewPos[1];
+    uniform vec4 specularLightColor[1];
+    uniform float specularStrength[1];
+    uniform float borderWidth;
+
+    float sdRoundedBox(vec2 p, vec2 b, float r)
+    {
+        vec2 q = abs(p) - b + r;
+        return (min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r);
+    }
+
+    vec2 sdRoundedBoxGradient(vec2 p, vec2 b, float r)
+    {
+        vec2 signs = vec2(p.x >= 0.0 ? 1.0 : -1.0, p.y >= 0.0 ? 1.0 : -1.0);
+        vec2 q = abs(p) - b + r;
+        vec2 nor = (q.y > q.x) ? vec2(0.0, 1.0) : vec2(1.0, 0.0);
+        nor = (q.x > 0.0 && q.y > 0.0) ? normalize(q) : nor;
+        return signs * nor;
+    }
+
+    mediump vec4 main(vec2 drawing_coord)
+    {
+        float shininess = 8.0;
+        mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        vec2 halfResolution = iResolution.xy * 0.5;
+
+        float gradRadius = min(max(contentBorderRadius, abs(borderWidth) * 3.0), iResolution.y * 0.5);
+        float drawRadius = min(max(contentBorderRadius, abs(borderWidth) * 1.1), iResolution.y * 0.5);
+        float realRoundedBoxSDF =
+            sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius);
+        float virtualRoundedBoxSDF = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, drawRadius);
+        vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution, halfResolution, gradRadius);
+        if (abs(specularStrength[0]) > 0.01) {
+            vec2 lightGrad = sdRoundedBoxGradient(lightPos[0].xy - halfResolution,
+                halfResolution,
+                contentBorderRadius); // lightGrad could be pre-computed
+            float angleEfficient = dot(grad, lightGrad);
+            if (angleEfficient > 0.0) {
+                vec3 lightDir = normalize(vec3(lightPos[0].xy - drawing_coord, lightPos[0].z));
+                vec3 viewDir = normalize(vec3(viewPos[0].xy - drawing_coord, viewPos[0].z)); // view vector
+                vec3 halfwayDir = normalize(lightDir + viewDir);                             // half vector
+                // exponential relationship of angle
+                float spec = pow(max(halfwayDir.z, 0.0), shininess); // norm is (0.0, 0.0, 1.0)
+                spec *= specularStrength[0];
+                spec *= smoothstep(-borderWidth, 0.0, virtualRoundedBoxSDF);
+                spec *= (smoothstep(1.0, 0.0, spec) * 0.2 + 0.8);
+                vec4 specularColor = specularLightColor[0];
+                fragColor += specularColor * (spec * angleEfficient);
+            }
+        }
+        return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
+    }
+)");
+
 static constexpr char PHONG_SHADER_STRING[](R"(
     uniform vec4 lightPos[12];
     uniform vec4 viewPos[12];
@@ -213,6 +361,41 @@ static constexpr char PHONG_SHADER_STRING[](R"(
         return fragColor;
     }
 )");
+
+static constexpr char SINGLE_PHONG_SHADER_STRING[](R"(
+    uniform vec4 lightPos[1];
+    uniform vec4 viewPos[1];
+    uniform vec4 specularLightColor[1];
+    uniform float specularStrength[1];
+
+    mediump vec4 main(vec2 drawing_coord) {
+        vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
+        float ambientStrength = 0.0;
+        vec4 diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
+        float diffuseStrength = 0.0;
+        float shininess = 8.0;
+        mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        vec4 NormalMap = vec4(0.0, 0.0, 1.0, 0.0);
+        // ambient
+        vec4 ambient = lightColor * ambientStrength;
+        vec3 norm = normalize(NormalMap.rgb);
+
+        if (abs(specularStrength[0]) > 0.01) {
+            vec3 lightDir = normalize(vec3(lightPos[0].xy - drawing_coord, lightPos[0].z));
+            float diff = max(dot(norm, lightDir), 0.0);
+            vec4 diffuse = diff * lightColor;
+            vec3 viewDir = normalize(vec3(viewPos[0].xy - drawing_coord, viewPos[0].z)); // view vector
+            vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
+            float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); // exponential relationship of angle
+            vec4 specular = lightColor * spec; // multiply color of incident light
+            vec4 o = ambient + diffuse * diffuseStrength * diffuseColor; // diffuse reflection
+            vec4 specularColor = specularLightColor[0];
+            fragColor = fragColor + o + specular * specularStrength[0] * specularColor;
+        }
+        return fragColor;
+    }
+)");
+
 static constexpr char SDF_CONTENT_LIGHT_SHADER_STRING[](R"(
     uniform shader light;
     uniform shader sdf;
@@ -265,6 +448,7 @@ static constexpr char SDF_CONTENT_AND_BORDER_LIGHT_SHADER_STRING[](R"(
         return firstColor + secondColor * (1.0 - firstColor.a);
     }
 )");
+
 constexpr float SDR_LUMINANCE = 1.0f;
 } // namespace
 
@@ -473,9 +657,10 @@ bool RSOverlayNGShaderDrawable::NeedToneMapping(float supportHeadroom)
     return ROSEN_GNE(supportHeadroom, 0.0f) && ROSEN_LNE(supportHeadroom, EFFECT_MAX_LUMINANCE);
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::MakeFeatheringBoardLightShaderBuilder() const
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::MakeFeatheringBoardLightShaderBuilder
+    (size_t lightLength) const
 {
-    auto builder = GetFeatheringBorderLightShaderBuilder();
+    auto builder = GetFeatheringBorderLightShaderBuilder(lightLength);
     if (!builder) {
         return nullptr;
     }
@@ -488,9 +673,10 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::MakeFe
     return builder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::MakeNormalLightShaderBuilder() const
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::MakeNormalLightShaderBuilder
+    (size_t lightLength) const
 {
-    auto builder = GetNormalLightShaderBuilder();
+    auto builder = GetNormalLightShaderBuilder(lightLength);
     if (!builder) {
         return nullptr;
     }
@@ -522,18 +708,19 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::MakeNo
     return builder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::CreateShaderBuilder() const
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::CreateShaderBuilder
+    (size_t lightLength) const
 {
     std::shared_ptr<Drawing::RuntimeShaderBuilder> builder = nullptr;
     if (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT) {
-        builder = MakeNormalLightShaderBuilder();
+        builder = MakeNormalLightShaderBuilder(lightLength);
     } else if (illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
         if (sdfShaderEffect_ != nullptr) { // FEATHERING_BORDER not support SDF effect
             return nullptr;
         }
-        builder = MakeFeatheringBoardLightShaderBuilder();
+        builder = MakeFeatheringBoardLightShaderBuilder(lightLength);
     } else {
-        builder = GetPhongShaderBuilder();
+        builder = GetPhongShaderBuilder(lightLength);
     }
     return builder;
 }
@@ -559,6 +746,29 @@ void RSOverlayNGShaderDrawable::DrawLightByIlluminatedType(Drawing::Canvas& canv
         DrawBorderLight(canvas, builder, pen, lightIntensityArray);
     }
 }
+
+void RSOverlayNGShaderDrawable::DrawSingleLightByIlluminatedType(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder,
+    const std::array<float, 1>& lightIntensityArray) const
+{
+    Drawing::Pen pen;
+    Drawing::Brush brush;
+    pen.SetAntiAlias(true);
+    brush.SetAntiAlias(true);
+    if ((illuminatedType_ == IlluminatedType::BORDER_CONTENT) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) ||
+        (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT)) {
+        DrawSingleContentAndBorderLight(canvas, builder, brush, pen, lightIntensityArray);
+    } else if ((illuminatedType_ == IlluminatedType::CONTENT) ||
+        (illuminatedType_ == IlluminatedType::BLEND_CONTENT)) {
+        DrawSingleContentLight(canvas, builder, brush, lightIntensityArray);
+    } else if ((illuminatedType_ == IlluminatedType::BORDER) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER) ||
+        (illuminatedType_ == IlluminatedType::FEATHERING_BORDER)) {
+        DrawSingleBorderLight(canvas, builder, pen, lightIntensityArray);
+    }
+}
+
 void RSOverlayNGShaderDrawable::ProcessLightSourcesData(std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray,
     std::shared_ptr<Drawing::RuntimeShaderBuilder> builder) const
 {
@@ -592,31 +802,80 @@ void RSOverlayNGShaderDrawable::ProcessLightSourcesData(std::array<float, MAX_LI
     builder->SetUniform("viewPos", viewPosArray, vectorLen * MAX_LIGHT_SOURCES);
     builder->SetUniform("specularLightColor", lightColorArray, vectorLen * MAX_LIGHT_SOURCES);
 }
+
+void RSOverlayNGShaderDrawable::ProcessSingleLightSourcesData(std::array<float, 1>& lightIntensityArray,
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> builder) const
+{
+    constexpr int vectorLen = 4;
+    float lightPosArray[vectorLen] = { 0 };
+    float viewPosArray[vectorLen] = { 0 };
+    float lightColorArray[vectorLen] = { 0 };
+    auto iter = lightSourcesAndPosVec_.begin();
+    auto cnt = 0;
+    bool needToneMapping = NeedToneMapping(displayHeadroom_);
+    while (iter != lightSourcesAndPosVec_.end() && cnt < 1) {
+        auto lightPos = iter->second;
+        auto lightIntensity = iter->first.GetLightIntensity();
+        auto lightColor = iter->first.GetLightColor();
+        Vector4f lightColorVec =
+            Vector4f(lightColor.GetRed(), lightColor.GetGreen(), lightColor.GetBlue(), lightColor.GetAlpha());
+        for (int i = 0; i < vectorLen; i++) {
+            lightPosArray[cnt * vectorLen + i] = lightPos[i];
+            viewPosArray[cnt * vectorLen + i] = lightPos[i];
+            float lightColorNorm = lightColorVec[i] / UINT8_MAX;
+            if (enableEDREffect_ && needToneMapping) {
+                lightColorNorm = GetBrightnessMapping(displayHeadroom_, lightColorNorm);
+            }
+            lightColorArray[cnt * vectorLen + i] = lightColorNorm;
+        }
+        lightIntensityArray[cnt] = std::abs(lightIntensity);
+        iter++;
+        cnt++;
+    }
+    builder->SetUniform("lightPos", lightPosArray, vectorLen);
+    builder->SetUniform("viewPos", viewPosArray, vectorLen);
+    builder->SetUniform("specularLightColor", lightColorArray, vectorLen);
+}
+
 void RSOverlayNGShaderDrawable::DrawLight(Drawing::Canvas* canvas) const
 {
     if (lightSourcesAndPosVec_.empty()) {
         return;
     }
-    auto builder = CreateShaderBuilder();
+    size_t lightLength = lightSourcesAndPosVec_.size();
+    auto builder = CreateShaderBuilder(lightLength);
     if (!builder || !canvas) {
         return;
     }
-    std::array<float, MAX_LIGHT_SOURCES> lightIntensityArray = { 0 };
-    ProcessLightSourcesData(lightIntensityArray, builder);
-    ROSEN_LOGD("DrawLight type:%{public}d intensity:%{public}f enableEDR:%{public}d nodeId:%{public}" PRIu64 "",
-        illuminatedType_, lightIntensityArray[0], enableEDREffect_, nodeId_);
-    RS_OPTIONAL_TRACE_FMT("DrawLight intensity:%{public}f nodeId:%{public}" PRIu64 "", lightIntensityArray[0], nodeId_);
-    DrawLightByIlluminatedType(*canvas, builder, lightIntensityArray);
+
+    if (lightLength == 1) {
+        std::array<float, 1> lightIntensityArray = { 0 };
+        ProcessSingleLightSourcesData(lightIntensityArray, builder);
+        ROSEN_LOGD("DrawLight type:%{public}d intensity:%{public}f enableEDR:%{public}d nodeId:%{public}" PRIu64 "",
+            illuminatedType_, lightIntensityArray[0], enableEDREffect_, nodeId_);
+        RS_OPTIONAL_TRACE_FMT("DrawLight intensity:%{public}f nodeId:%{public}" PRIu64 "",
+            lightIntensityArray[0], nodeId_);
+        DrawSingleLightByIlluminatedType(*canvas, builder, lightIntensityArray);
+    } else {
+        std::array<float, MAX_LIGHT_SOURCES> lightIntensityArray = { 0 };
+        ProcessLightSourcesData(lightIntensityArray, builder);
+        ROSEN_LOGD("DrawLight type:%{public}d intensity:%{public}f enableEDR:%{public}d nodeId:%{public}" PRIu64 "",
+            illuminatedType_, lightIntensityArray[0], enableEDREffect_, nodeId_);
+        RS_OPTIONAL_TRACE_FMT("DrawLight intensity:%{public}f nodeId:%{public}" PRIu64 "",
+            lightIntensityArray[0], nodeId_);
+        DrawLightByIlluminatedType(*canvas, builder, lightIntensityArray);
+    }
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetPhongShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetPhongShaderBuilder
+    (size_t lightLength)
 {
     thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
-    if (shaderBuilder) {
-        return shaderBuilder;
-    }
-    std::shared_ptr<Drawing::RuntimeEffect> effect =
-        Drawing::RuntimeEffect::CreateForShader(std::string(PHONG_SHADER_STRING));
+    Drawing::RuntimeEffectOptions reo;
+    reo.useHighpLocalCoords = true;
+    std::shared_ptr<Drawing::RuntimeEffect> effect = lightLength == 1 ?
+        Drawing::RuntimeEffect::CreateForShader(std::string(SINGLE_PHONG_SHADER_STRING), reo) :
+        Drawing::RuntimeEffect::CreateForShader(std::string(PHONG_SHADER_STRING), reo);
     if (!effect) {
         ROSEN_LOGE("RSOverlayNGShaderDrawable::GetPhongShaderBuilder effect is null");
         return nullptr;
@@ -625,14 +884,15 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetPho
     return shaderBuilder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetFeatheringBorderLightShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetFeatheringBorderLightShaderBuilder
+    (size_t lightLength)
 {
     thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
-    if (shaderBuilder) {
-        return shaderBuilder;
-    }
-    std::shared_ptr<Drawing::RuntimeEffect> effect =
-        Drawing::RuntimeEffect::CreateForShader(std::string(FEATHERING_BORDER_LIGHT_SHADER_STRING));
+    Drawing::RuntimeEffectOptions reo;
+    reo.useHighpLocalCoords = true;
+    std::shared_ptr<Drawing::RuntimeEffect> effect = lightLength == 1 ?
+        Drawing::RuntimeEffect::CreateForShader(std::string(SINGLE_FEATHERING_BORDER_LIGHT_SHADER_STRING), reo) :
+        Drawing::RuntimeEffect::CreateForShader(std::string(FEATHERING_BORDER_LIGHT_SHADER_STRING), reo);
     if (!effect) {
         ROSEN_LOGE("RSOverlayNGShaderDrawable::GetFeatheringBorderLightShaderBuilder effect is null");
         return nullptr;
@@ -641,14 +901,15 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetFea
     return shaderBuilder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetNormalLightShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetNormalLightShaderBuilder
+    (size_t lightLength)
 {
     thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
-    if (shaderBuilder) {
-        return shaderBuilder;
-    }
-    std::shared_ptr<Drawing::RuntimeEffect> effect =
-        Drawing::RuntimeEffect::CreateForShader(std::string(NORMAL_LIGHT_SHADER_STRING));
+    Drawing::RuntimeEffectOptions reo;
+    reo.useHighpLocalCoords = true;
+    std::shared_ptr<Drawing::RuntimeEffect> effect = lightLength == 1 ?
+        Drawing::RuntimeEffect::CreateForShader(std::string(NORMAL_SINGLE_LIGHT_SHADER_STRING), reo) :
+        Drawing::RuntimeEffect::CreateForShader(std::string(NORMAL_LIGHT_SHADER_STRING), reo);
     if (!effect) {
         ROSEN_LOGE("RSOverlayNGShaderDrawable::GetNormalLightShaderBuilder effect is null");
         return nullptr;
@@ -663,8 +924,10 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetSDF
     if (shaderBuilder) {
         return shaderBuilder;
     }
+    Drawing::RuntimeEffectOptions reo;
+    reo.useHighpLocalCoords = true;
     std::shared_ptr<Drawing::RuntimeEffect> effect =
-        Drawing::RuntimeEffect::CreateForShader(std::string(SDF_CONTENT_LIGHT_SHADER_STRING));
+        Drawing::RuntimeEffect::CreateForShader(std::string(SDF_CONTENT_LIGHT_SHADER_STRING), reo);
     if (!effect) {
         ROSEN_LOGE("RSOverlayNGShaderDrawable::GetSDFContentLightShaderBuilder effect is null");
         return nullptr;
@@ -679,8 +942,10 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetSDF
     if (shaderBuilder) {
         return shaderBuilder;
     }
+    Drawing::RuntimeEffectOptions reo;
+    reo.useHighpLocalCoords = true;
     std::shared_ptr<Drawing::RuntimeEffect> effect =
-        Drawing::RuntimeEffect::CreateForShader(std::string(SDF_BORDER_LIGHT_SHADER_STRING));
+        Drawing::RuntimeEffect::CreateForShader(std::string(SDF_BORDER_LIGHT_SHADER_STRING), reo);
     if (!effect) {
         ROSEN_LOGE("RSOverlayNGShaderDrawable::GetSDFBorderLightShaderBuilder effect is null");
         return nullptr;
@@ -747,6 +1012,38 @@ void RSOverlayNGShaderDrawable::DrawContentLight(Drawing::Canvas& canvas,
         specularStrengthArr[i] = lightIntensityArray[i] * contentIntensityCoefficient;
     }
     lightBuilder->SetUniform("specularStrength", specularStrengthArr, MAX_LIGHT_SOURCES);
+    std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
+    if (sdfShaderEffect_) {
+        DrawSDFContentLight(canvas, shader, brush);
+        return;
+    }
+
+    brush.SetShaderEffect(shader);
+    if ((illuminatedType_ == IlluminatedType::BLEND_CONTENT) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
+        brush.SetAntiAlias(true);
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
+        Drawing::SaveLayerOps slo(&contentRRect_.GetRect(), &brush);
+        canvas.SaveLayer(slo);
+        canvas.AttachBrush(brush);
+        canvas.DrawRoundRect(contentRRect_);
+        canvas.DetachBrush();
+        canvas.Restore();
+    } else {
+        canvas.AttachBrush(brush);
+        canvas.DrawRoundRect(contentRRect_);
+        canvas.DetachBrush();
+    }
+}
+
+void RSOverlayNGShaderDrawable::DrawSingleContentLight(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
+    const std::array<float, 1>& lightIntensityArray) const
+{
+    float contentIntensityCoefficient = illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT ? 0.5f : 0.3f;
+    float specularStrengthArr[1] = { 0 };
+    specularStrengthArr[0] = lightIntensityArray[0] * contentIntensityCoefficient;
+    lightBuilder->SetUniform("specularStrength", specularStrengthArr, 1);
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
     if (sdfShaderEffect_) {
         DrawSDFContentLight(canvas, shader, brush);
@@ -839,6 +1136,39 @@ void RSOverlayNGShaderDrawable::DrawBorderLight(Drawing::Canvas& canvas,
     }
 }
 
+void RSOverlayNGShaderDrawable::DrawSingleBorderLight(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
+    const std::array<float, 1>& lightIntensityArray) const
+{
+    float specularStrengthArr[1] = { 0 };
+    specularStrengthArr[0] = lightIntensityArray[0];
+    lightBuilder->SetUniform("specularStrength", specularStrengthArr, 1);
+    std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
+    if (sdfShaderEffect_) {
+        DrawSDFBorderLight(canvas, shader);
+        return;
+    }
+
+    pen.SetShaderEffect(shader);
+    float borderWidth = std::ceil(borderWidth_);
+    pen.SetWidth(borderWidth);
+    if ((illuminatedType_ == IlluminatedType::BLEND_BORDER) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
+        Drawing::Brush maskPaint;
+        pen.SetBlendMode(Drawing::BlendMode::OVERLAY);
+        Drawing::SaveLayerOps slo(&borderRRect_.GetRect(), &maskPaint);
+        canvas.SaveLayer(slo);
+        canvas.AttachPen(pen);
+        canvas.DrawRoundRect(borderRRect_);
+        canvas.DetachPen();
+        canvas.Restore();
+    } else {
+        canvas.AttachPen(pen);
+        canvas.DrawRoundRect(borderRRect_);
+        canvas.DetachPen();
+    }
+}
+
 void RSOverlayNGShaderDrawable::DrawContentAndBorderLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Drawing::Pen& pen,
     const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
@@ -865,6 +1195,31 @@ void RSOverlayNGShaderDrawable::DrawContentAndBorderLight(Drawing::Canvas& canva
     } else {
         DrawContentLight(canvas, lightBuilder, brush, lightIntensityArray);
         DrawBorderLight(canvas, lightBuilder, pen, lightIntensityArray);
+    }
+}
+
+void RSOverlayNGShaderDrawable::DrawSingleContentAndBorderLight(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush, Drawing::Pen& pen,
+    const std::array<float, 1>& lightIntensityArray) const
+{
+    if (sdfShaderEffect_) {
+        std::shared_ptr<Drawing::RuntimeShaderBuilder> lightBuilderContent =
+            std::make_shared<Drawing::RuntimeShaderBuilder>(*lightBuilder);
+        float contentIntensityCoefficient = illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT ? 0.5f : 0.3f;
+        float specularStrengthArr[1] = { 0 };
+
+        specularStrengthArr[0] = lightIntensityArray[0] * contentIntensityCoefficient;
+        lightBuilderContent->SetUniform("specularStrength", specularStrengthArr, 1);
+        std::shared_ptr<Drawing::ShaderEffect> shaderContent = lightBuilderContent->MakeShader(nullptr, false);
+
+        specularStrengthArr[0] = lightIntensityArray[0];
+        lightBuilder->SetUniform("specularStrength", specularStrengthArr, 1);
+        std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
+
+        DrawSDFContentAndBorderLight(canvas, shaderContent, shader, brush);
+    } else {
+        DrawSingleContentLight(canvas, lightBuilder, brush, lightIntensityArray);
+        DrawSingleBorderLight(canvas, lightBuilder, pen, lightIntensityArray);
     }
 }
 

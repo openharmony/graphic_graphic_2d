@@ -146,6 +146,12 @@ ErrCode RSServiceToRenderConnection::GetBehindWindowFilterEnabled(bool& enabled)
     return ERR_OK;
 }
 
+ErrCode RSServiceToRenderConnection::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    return renderPipelineAgent_->SetApsConfigParams(event, params);
+}
+
 int32_t RSServiceToRenderConnection::SetBrightnessInfoChangeCallback(pid_t pid,
     sptr<RSIBrightnessInfoChangeCallback> callback)
 {
@@ -255,6 +261,12 @@ ErrCode RSServiceToRenderConnection::SetWatermark(pid_t callingPid, const std::s
     std::shared_ptr<Media::PixelMap> watermark, bool& success, uint32_t rowCount, uint32_t colCount)
 {
     return renderPipelineAgent_->SetWatermark(callingPid, name, watermark, success, rowCount, colCount);
+}
+
+ErrCode RSServiceToRenderConnection::SetUifirstScale(float scaleFactor)
+{
+    RS_LOGD("RSServiceToRenderConnection::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
+    return renderPipelineAgent_->SetUifirstScale(scaleFactor);
 }
 
 void RSServiceToRenderConnection::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)

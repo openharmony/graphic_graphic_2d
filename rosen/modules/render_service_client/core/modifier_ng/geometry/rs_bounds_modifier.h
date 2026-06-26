@@ -46,12 +46,6 @@ public:
     void SetBoundsPosition(Vector2f position);
     void SetBoundsPositionX(float positionX);
     void SetBoundsPositionY(float positionY);
-    void SetUseUnion(bool useUnion);
-    void SetUnionSpacing(float spacing);
-    void SetUnionMode(int uniModeUC);
-    void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
-    void SetGravityPullStrength(float gravityPullStrength);
-    void SetGravityHotZone(float hotZone);
 
     Vector4f GetBounds() const;
     Vector2f GetBoundsSize() const;
@@ -60,12 +54,6 @@ public:
     Vector2f GetBoundsPosition() const;
     float GetBoundsPositionX() const;
     float GetBoundsPositionY() const;
-    bool GetUseUnion() const;
-    float GetUnionSpacing() const;
-    int GetUnionMode() const;
-    bool GetGravityPullCenterFlag() const;
-    float GetGravityPullStrength() const;
-    float GetGravityHotZone() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_MODIFIER_H

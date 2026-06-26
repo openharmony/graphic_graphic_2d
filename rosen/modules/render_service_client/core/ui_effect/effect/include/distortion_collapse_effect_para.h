@@ -79,12 +79,23 @@ public:
         return barrelDistortion_;
     }
 
+    void SetDisabled(bool disabled)
+    {
+        disabled_ = disabled;
+    }
+
+    bool IsDisabled() const
+    {
+        return disabled_;
+    }
+
 private:
     Vector2f luCorner_;
     Vector2f ruCorner_;
     Vector2f lbCorner_;
     Vector2f rbCorner_;
     Vector4f barrelDistortion_;
+    bool disabled_ = false;
 };
 
 } // namespace Rosen

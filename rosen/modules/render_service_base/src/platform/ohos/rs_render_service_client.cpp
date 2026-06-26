@@ -361,6 +361,22 @@ bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_pt
     return success;
 }
 
+bool RSRenderServiceClient::SetUifirstScale(float scaleFactor)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (!clientToService) {
+        ROSEN_LOGE("RSRenderServiceClient::SetUifirstScale clientToService == nullptr!");
+        return false;
+    }
+    ROSEN_LOGD("RSRenderServiceClient::SetUifirstScale scaleFactor:%{public}f", scaleFactor);
+    auto ret = clientToService->SetUifirstScale(scaleFactor);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::SetUifirstScale fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<NodeId>& securityExemptionList)
@@ -2013,6 +2029,21 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
     auto ret = clientToService->GetBehindWindowFilterEnabled(enabled);
     if (ret != ERR_OK) {
         ROSEN_LOGE("RSRenderServiceClient::GetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderServiceClient::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return false;
+    }
+    auto ret = clientToService->SetApsConfigParams(event, params);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("%{public}s fail, ret[%{public}d]", __func__, ret);
         return false;
     }
     return true;

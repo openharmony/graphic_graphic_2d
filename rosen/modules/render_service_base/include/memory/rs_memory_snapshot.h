@@ -17,6 +17,7 @@
 
 #include <mutex>
 #include <set>
+#include <shared_mutex>
 
 #include "common/rs_common_def.h"
 #include <vector>
@@ -36,7 +37,7 @@ struct MemorySnapshotInfo {
         return cpuMemory + nativeGpuMemory + engineGpuMemory;
     }
 
-    size_t GpuMemory() const
+    size_t TotalGpuMemory() const
     {
         return nativeGpuMemory + engineGpuMemory;
     }
@@ -85,6 +86,7 @@ private:
         size_t& maxCpu, size_t& maxGpu, size_t& maxSum);
     float CalculateRiskScore(const MemorySnapshotInfo memorySnapshotInfo, size_t maxCpu, size_t maxGpu, size_t maxSum);
     void UpdateGpuInfoHelper(MemorySnapshotInfo& info, const size_t memorySize, bool isAdd, bool isEngine);
+    void RemoveAbnormalProcess(pid_t pid);
 
     std::mutex mutex_;
     std::unordered_map<pid_t, MemorySnapshotInfo> appMemorySnapshots_;
@@ -99,6 +101,8 @@ private:
     MemoryOverflowCalllback memoryOverflowCallback_ = nullptr;
     int64_t memorySnapshotHilogTime_ = 0;
     size_t memSnapshotPrintHilogLimit_ = 0;
+    std::shared_mutex killProcessSetMutex_;
+    std::atomic<int32_t> killProcessSetSize_ = 0;
     std::unordered_set<pid_t> killProcessSet_;
 };
 } // namespace OHOS

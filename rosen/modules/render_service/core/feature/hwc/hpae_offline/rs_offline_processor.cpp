@@ -96,7 +96,7 @@ bool RSOfflineProcessor::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRend
         RS_LOGW("RSOfflineProcessor::Offline device is invalid");
         return false;
     }
-    if (!offlineDevice->IsRSOfflineProcessorReady(surfaceNode)) {
+    if (!offlineDevice->IsRSOfflineDeviceReady(surfaceNode)) {
         RS_LOGD("RSOfflineProcessor::Offline device is not ready");
         return false;
     }
@@ -110,7 +110,8 @@ bool RSOfflineProcessor::IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRend
     return true;
 }
 
-void RSOfflineProcessor::CheckAndPostClearOfflineResourceTask(OfflineDeviceType deviceType)
+void RSOfflineProcessor::CheckAndPostClearOfflineResourceTask(OfflineDeviceType deviceType,
+    const std::vector<uint64_t>& offlineNodeIds)
 {
     RS_TRACE_NAME("RSOfflineProcessor::CheckAndPostClearOfflineResourceTask");
     RS_LOGD("RSOfflineProcessor::CheckAndPostClearOfflineResourceTask for type: %{public}d",
@@ -120,7 +121,7 @@ void RSOfflineProcessor::CheckAndPostClearOfflineResourceTask(OfflineDeviceType 
         RS_LOGD("RSOfflineProcessor::Offline device not ready in clear task");
         return;
     }
-    offlineDevice->CheckAndPostClearOfflineResourceTask();
+    offlineDevice->CheckAndPostClearOfflineResourceTask(offlineNodeIds);
     if (offlineDevice->CanDeleteDevice()) {
         DeleteOfflineDeviceFromType(deviceType);
     }

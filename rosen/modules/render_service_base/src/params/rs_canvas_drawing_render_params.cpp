@@ -14,6 +14,7 @@
  */
 
 #include "params/rs_canvas_drawing_render_params.h"
+
 #include "platform/common/rs_log.h"
 namespace OHOS::Rosen {
 RSCanvasDrawingRenderParams::RSCanvasDrawingRenderParams(NodeId id) : RSRenderParams(id) {}
@@ -21,10 +22,35 @@ RSCanvasDrawingRenderParams::RSCanvasDrawingRenderParams(NodeId id) : RSRenderPa
 void RSCanvasDrawingRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     RSRenderParams::OnSync(target);
+    auto targetParams = static_cast<RSCanvasDrawingRenderParams*>(target.get());
+    if (targetParams == nullptr) {
+        RS_LOGE("RSCanvasDrawingRenderParams::OnSync targetParams is nullptr");
+        return;
+    }
+ 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    targetParams->bufferDraw_ = bufferDraw_;
+    if (dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY)) {
+        targetParams->buffer_ = buffer_;
+        targetParams->preBuffer_ = preBuffer_;
+        targetParams->acquireFence_ = acquireFence_;
+        targetParams->damageRect_ = damageRect_;
+        targetParams->bufferOwnerCount_ = bufferOwnerCount_;
+        targetParams->preBufferOwnerCount_ = preBufferOwnerCount_;
+        if (preBufferOwnerCount_ != nullptr && !bufferSynced_ && preBufferOwnerCount_->DecRef()) {
+            targetParams->preBuffer_ = nullptr;
+            preBuffer_ = nullptr;
+            targetParams->preBufferOwnerCount_ = nullptr;
+            preBufferOwnerCount_ = nullptr;
+        }
+        bufferSynced_ = true;
+        dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+    }
+#endif
+
     if (!canvasDrawingNodeSurfaceChanged_) {
         return;
     }
-    auto targetParams = static_cast<RSCanvasDrawingRenderParams*>(target.get());
     targetParams->canvasDrawingNodeSurfaceChanged_ = true;
     targetParams->surfaceParams_.width = surfaceParams_.width;
     targetParams->surfaceParams_.height = surfaceParams_.height;
@@ -59,4 +85,85 @@ void RSCanvasDrawingRenderParams::SetCanvasDrawingSurfaceParams(int width, int h
     surfaceParams_.height = height;
     surfaceParams_.colorSpace = colorSpace;
 }
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+void RSCanvasDrawingRenderParams::SetBufferSynced(bool bufferSynced)
+{
+    bufferSynced_ = bufferSynced;
+}
+ 
+bool RSCanvasDrawingRenderParams::IsBufferSynced() const
+{
+    return bufferSynced_;
+}
+ 
+void RSCanvasDrawingRenderParams::SetBufferDraw(bool bufferDraw)
+{
+    bufferDraw_ = bufferDraw;
+    needSync_ = true;
+}
+ 
+bool RSCanvasDrawingRenderParams::IsBufferDraw() const
+{
+    return bufferDraw_;
+}
+ 
+void RSCanvasDrawingRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect)
+{
+    buffer_ = buffer;
+    damageRect_ = damageRect;
+    bufferOwnerCount_ = bufferOwnerCount;
+    needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+}
+ 
+sptr<SurfaceBuffer> RSCanvasDrawingRenderParams::GetBuffer() const
+{
+    return buffer_;
+}
+ 
+const Rect& RSCanvasDrawingRenderParams::GetBufferDamage() const
+{
+    return damageRect_;
+}
+ 
+void RSCanvasDrawingRenderParams::SetPreBuffer(
+    const sptr<SurfaceBuffer>& preBuffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount)
+{
+    preBuffer_ = preBuffer;
+    if (preBufferOwnerCount) {
+        preBufferOwnerCount_ = preBufferOwnerCount;
+    }
+    needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+}
+ 
+sptr<SurfaceBuffer> RSCanvasDrawingRenderParams::GetPreBuffer()
+{
+    return preBuffer_;
+}
+ 
+void RSCanvasDrawingRenderParams::SetAcquireFence(const sptr<SyncFence>& acquireFence)
+{
+    acquireFence_ = acquireFence;
+    needSync_ = true;
+    dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
+}
+ 
+sptr<SyncFence> RSCanvasDrawingRenderParams::GetAcquireFence() const
+{
+    return acquireFence_;
+}
+ 
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSCanvasDrawingRenderParams::GetBufferOwnerCount() const
+{
+    return bufferOwnerCount_;
+}
+ 
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSCanvasDrawingRenderParams::GetPreBufferOwnerCount() const
+{
+    return preBufferOwnerCount_;
+}
+#endif // RS_MODIFIERS_DRAW_ENABLE
 } // namespace OHOS::Rosen

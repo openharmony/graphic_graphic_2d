@@ -33,6 +33,7 @@ namespace Rosen {
 
 namespace {
 static AnimationCommandHelper::AnimationCallbackProcessor animationCallbackProcessor = nullptr;
+static AnimationCommandHelper::AnimationDestroyInRenderProcessor animationDestroyInRenderProcessor = nullptr;
 }
 
 void AnimationCommandHelper::AnimationCallback(
@@ -40,6 +41,14 @@ void AnimationCommandHelper::AnimationCallback(
 {
     if (animationCallbackProcessor != nullptr) {
         animationCallbackProcessor(targetId, animId, token, event);
+    }
+}
+
+void AnimationCommandHelper::AnimationDestroyInRender(
+    RSContext& context, NodeId targetId, AnimationId animId, uint64_t token, float fraction, bool isReverseCycle)
+{
+    if (animationDestroyInRenderProcessor != nullptr) {
+        animationDestroyInRenderProcessor(targetId, animId, token, fraction, isReverseCycle);
     }
 }
 
@@ -69,6 +78,11 @@ void AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProc
     animationCallbackProcessor = processor;
 }
 
+void AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(AnimationDestroyInRenderProcessor processor)
+{
+    animationDestroyInRenderProcessor = processor;
+}
+
 void AnimationCommandHelper::CreateAnimation(
     RSContext& context, NodeId targetId, const std::shared_ptr<RSRenderAnimation>& animation)
 {
@@ -92,6 +106,33 @@ void AnimationCommandHelper::CreateAnimation(
     animation->SetStartTime(currentTime);
     animation->Attach(node.get());
     // register node as animating node
+    context.RegisterAnimatingRenderNode(node);
+}
+
+void AnimationCommandHelper::RebuildAnimation(RSContext& context, NodeId targetId,
+    const std::shared_ptr<RSRenderAnimation>& animation, float fraction, bool isReverseCycle)
+{
+    if (animation == nullptr) {
+        RS_LOGE("AnimationCommandHelper::RebuildAnimation, animation is nullptr");
+        return;
+    }
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
+    if (node == nullptr) {
+        RS_LOGE("AnimationCommandHelper::RebuildAnimation, node[%{public}" PRIu64 "] is nullptr,"
+            " animation is %{public}" PRIu64, targetId, animation->GetAnimationId());
+        return;
+    }
+    RS_TRACE_NAME_FMT("RebuildAnimation animate[%llu] fraction[%f] isReverseCycle[%d]",
+        animation->GetAnimationId(), fraction, static_cast<int>(isReverseCycle));
+    RS_LOGI("AnimationCommandHelper::RebuildAnimation animate[%{public}" PRIu64 "] fraction[%{public}f] "
+        "isReverseCycle[%{public}d]", animation->GetAnimationId(), fraction, static_cast<int>(isReverseCycle));
+    auto currentTime = context.GetCurrentTimestamp();
+    if (auto property = node->GetProperty(animation->GetPropertyId())) {
+        animation->AttachRenderProperty(property);
+        animation->Rebuild(fraction, currentTime, isReverseCycle);
+    }
+    node->AddAnimation(animation);
+    animation->Attach(node.get());
     context.RegisterAnimatingRenderNode(node);
 }
 

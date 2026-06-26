@@ -53,6 +53,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -789,7 +790,7 @@ bool RSRenderNode::IsPixelStretchValid() const
         return false;
     }
     const auto drawablePtr = findMapValueRef(GetDrawableVec(__func__),
-        static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH));
+        static_cast<int8_t>(RSDrawableSlot::PIXEL_STRETCH));
     const auto pixelStretchDrawable = std::static_pointer_cast<const DrawableV2::RSPixelStretchDrawable>(drawablePtr);
     if (pixelStretchDrawable == nullptr) {
         return false;
@@ -2559,6 +2560,31 @@ void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirt
     filterRect = GetFilterRegionInfo().filterRegion_;
 }
 
+void RSRenderNode::UpdateFilterRenderContextInSkippedSubTree(const RSRenderNode& subTreeRoot,
+    NodeId offscreenNodeId, const RectI& clipRect, const std::optional<RectI>& surfaceClipRect,
+    FilterRenderContext& context)
+{
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
+    auto& rootProperties = subTreeRoot.GetRenderProperties();
+    auto rootGeo = rootProperties.GetBoundsGeometry();
+    if (rootGeo == nullptr || geoPtr == nullptr) {
+        return;
+    }
+
+    context.absMatrix = rootGeo->GetAbsMatrix();
+    context.offscreenNodeId = offscreenNodeId;
+    if (!RSEffectUtils::AccumulateFilterRenderContext(*this, subTreeRoot, context)) {
+        return;
+    }
+
+    geoPtr->SetAbsMatrix(context.absMatrix);
+    absDrawRect_ = RSObjAbsGeometry::MapRect(selfDrawRect_, context.absMatrix);
+    oldDirtyInSurface_ = absDrawRect_.IntersectRect(clipRect);
+    auto boundsRect = GetRenderProperties().GetBoundsRect();
+    auto totalRect = RSObjAbsGeometry::MapRect(boundsRect, context.absMatrix);
+    CalVisibleFilterRect(totalRect, context.absMatrix, clipRect, surfaceClipRect);
+}
+
 void RSRenderNode::FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager, const RectI& filterRect)
 {
     if (filterRect == lastFilterRegion_) {
@@ -2745,11 +2771,12 @@ void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
+    auto& drawableMap = GetDrawableVec(__func__);
     auto hasBackground =
-        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::MATERIAL_SHADER)) ||
-        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)) ||
-        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_SHADER)) ||
-        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_IMAGE));
+        findMapValueRef(drawableMap, static_cast<int8_t>(RSDrawableSlot::MATERIAL_SHADER)) ||
+        findMapValueRef(drawableMap, static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)) ||
+        findMapValueRef(drawableMap, static_cast<int8_t>(RSDrawableSlot::BACKGROUND_SHADER)) ||
+        findMapValueRef(drawableMap, static_cast<int8_t>(RSDrawableSlot::BACKGROUND_IMAGE));
     auto alphaDirty = dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::ALPHA));
     if (alphaDirty && hasBackground) {
         RS_OPTIONAL_TRACE_NAME_FMT(
@@ -2974,8 +3001,7 @@ void RSRenderNode::RenderTraceDebug() const
 
 void RSRenderNode::DrawPropertyDrawable(RSDrawableSlot slot, RSPaintFilterCanvas& canvas)
 {
-    auto& drawablePtr = findMapValueRef(GetDrawableVec(__func__),
-        static_cast<int8_t>(slot));
+    auto& drawablePtr = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot));
     if (!drawablePtr) {
         return;
     }
@@ -3006,10 +3032,10 @@ void RSRenderNode::DrawPropertyDrawableRange(RSDrawableSlot begin, RSDrawableSlo
         // non-recording canvas, draw directly
         Drawing::Rect rect = { 0, 0, GetRenderProperties().GetFrameWidth(), GetRenderProperties().GetFrameHeight() };
 
-        auto& drawVec = GetDrawableVec(__func__);
+        auto& drawableMap = GetDrawableVec(__func__);
         for (auto i = static_cast<int8_t>(begin);
             i <= static_cast<int8_t>(end); ++i) {
-            auto ptr = findMapValueRef(drawVec, i);
+            auto& ptr = findMapValueRef(drawableMap, i);
             if (ptr) {
                 ptr->OnSync();
                 ptr->OnDraw(&canvas, &rect);
@@ -3156,7 +3182,7 @@ void RSRenderNode::ApplyPositionZModifier()
     if (!dirtyTypesNG_.test(transformModifierTypeNG)) {
         return;
     }
-    auto transformModifiers = GetModifiersNG(ModifierNG::RSModifierType::TRANSFORM);
+    const auto& transformModifiers = GetModifiersNG(ModifierNG::RSModifierType::TRANSFORM);
     if (transformModifiers.empty()) {
         return;
     }
@@ -3200,7 +3226,7 @@ void RSRenderNode::ResetAndApplyModifiers()
         }
     }
     for (uint16_t type = 0; type < ModifierNG::MODIFIER_TYPE_COUNT; type++) {
-        auto slot = GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
+        const auto& slot = GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
         if (slot.empty() || !dirtyTypesNG_.test(type)) {
             continue;
         }
@@ -3268,7 +3294,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         ProcessBehindWindowAfterApplyModifiers();
     }
 #ifndef ROSEN_ARKUI_X
-    if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS))) {
+    if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_UNION))) {
         RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(shared_from_this());
     }
 #endif
@@ -3326,16 +3352,17 @@ void RSRenderNode::MarkParentNeedRegenerateChildren() const
 void RSRenderNode::UpdateDrawableVecV2()
 {
 #ifdef RS_ENABLE_GPU
+    auto& drawableMap = GetDrawableVec(__func__);
     // Step 1: Collect dirty slots
-    auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, GetDrawableVec(__func__));
+    auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, drawableMap);
     if (dirtySlots.empty()) {
         RS_LOGD("RSRenderNode::update drawable VecV2 dirtySlots is empty");
         return;
     }
     // Step 2: Update or regenerate drawable if needed
-    bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, GetDrawableVec(__func__), dirtySlots);
+    bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableMap, dirtySlots);
     // Step 2.1 (optional): fuze some drawables
-    RSDrawable::FuzeDrawableSlots(*this, GetDrawableVec(__func__));
+    RSDrawable::FuzeDrawableSlots(*this, drawableMap);
     // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
     // save/clip/restore.
     RS_LOGI_IF(DEBUG_NODE,
@@ -3346,13 +3373,13 @@ void RSRenderNode::UpdateDrawableVecV2()
     }
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
-        RSDrawable::UpdateSaveRestore(*this, GetDrawableVec(__func__), drawableVecStatus_);
+        RSDrawable::UpdateSaveRestore(*this, drawableMap, drawableVecStatus_);
         // if shadow changed, update shadow rect
         UpdateShadowRect();
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::SHADOW);
         std::unordered_set<RSDrawableSlot> dirtySlotShadow;
         dirtySlotShadow.emplace(RSDrawableSlot::SHADOW);
-        RSDrawable::UpdateDirtySlots(*this, GetDrawableVec(__func__), dirtySlotShadow);
+        RSDrawable::UpdateDirtySlots(*this, drawableMap, dirtySlotShadow);
         // Step 4: Generate drawCmdList from drawables
         UpdateDisplayList();
     }
@@ -3923,8 +3950,9 @@ RectI RSRenderNode::GetFilterRect() const
     RectI result = GetAbsRect();
     auto boundsRect = GetRenderProperties().GetBoundsRect();
     auto totalRect = boundsRect;
+    auto& drawableMap = GetDrawableVec(__func__);
     for (auto slot : filterDrawableSlotsSupportGetRect) {
-        auto drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot));
+        auto drawable = findMapValueRef(drawableMap, static_cast<int8_t>(slot));
         if (drawable == nullptr) {
             continue;
         }
@@ -3956,9 +3984,9 @@ void RSRenderNode::CalVisibleFilterRect(const RectI& absRect, const Drawing::Mat
     }
     GetFilterRegionInfo().defaultFilterRegion_ = GetFilterRegionInfo().filterRegion_;
     auto boundsRect = GetRenderProperties().GetBoundsRect();
-
+    auto& drawableMap = GetDrawableVec(__func__);
     for (RSDrawableSlot slot : filterDrawableSlotsSupportGetRect) {
-        auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot));
+        auto drawable = findMapValueRef(drawableMap, static_cast<int8_t>(slot));
         if (drawable == nullptr) {
             continue;
         }
@@ -4187,7 +4215,7 @@ std::list<RSRenderNode::WeakPtr> RSRenderNode::GetChildrenList() const
 
 float RSRenderNode::GetHDRBrightness() const
 {
-    auto modifiers = GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS);
+    const auto& modifiers = GetModifiersNG(ModifierNG::RSModifierType::HDR_BRIGHTNESS);
     if (modifiers.empty()) {
         return 1.0f; // 1.0f make sure HDR video is still HDR state if RSNode::SetHDRBrightness not called
     }
@@ -4324,6 +4352,13 @@ std::shared_ptr<RSAnimationManager> RSRenderNode::GetOrCreateAnimationManager()
     return animationManager_;
 }
 
+void RSRenderNode::DestroyAnimationInRender()
+{
+    if (animationManager_) {
+        animationManager_->DestroyInRender(GetId(), context_);
+    }
+}
+
 void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animation)
 {
     if (!animationManager_) {
@@ -4339,8 +4374,7 @@ RectI RSRenderNode::GetOldDirty() const
 
 bool RSRenderNode::IsForegroundFilterEnable()
 {
-    return findMapValueRef(GetDrawableVec(__func__),
-        static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)) != nullptr;
+    return GetRenderProperties().GetForegroundFilter() != nullptr;
 }
 
 void RSRenderNode::SetStaticCached(bool isStaticCached, bool isMarkedByUI)
@@ -4704,6 +4738,8 @@ void RSRenderNode::OnSync()
         } else {
             RSLayerCacheManagerBase::layerDrawables_.emplace_back(renderDrawable_);
         }
+        RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer layerDrawables_ size:%d, id:%llu",
+            RSLayerCacheManagerBase::layerDrawables_.size(), renderDrawable_->GetId());
     }
 
     if (IsDrawableVecNeedClear()) {
@@ -4728,8 +4764,9 @@ void RSRenderNode::OnSync()
     }
     if (!IsUifirstSkipPartialSync()) {
         if (!dirtySlots_.empty()) {
+            auto& drawableMap = GetDrawableVec(__func__);
             for (const auto& slot : dirtySlots_) {
-                if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
+                if (auto& drawable = findMapValueRef(drawableMap, static_cast<int8_t>(slot))) {
 #ifdef USE_PRIMITIVE
                     drawable->OnPrimitiveSync();
 #else
@@ -4774,9 +4811,10 @@ void RSRenderNode::OnSync()
 void RSRenderNode::DirtySlotsPartialSync()
 {
     std::vector<RSDrawableSlot> toDelete;
+    auto& drawableMap = GetDrawableVec(__func__);
     for (const auto& slot : dirtySlots_) {
         if (slot != RSDrawableSlot::CONTENT_STYLE && slot != RSDrawableSlot::CHILDREN) { // SAVE_FRAME
-            if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
+            if (auto& drawable = findMapValueRef(drawableMap, static_cast<int8_t>(slot))) {
                 drawable->OnSync();
             }
             toDelete.push_back(slot);
@@ -5085,16 +5123,17 @@ void RSRenderNode::UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType typ
 {
     AddDirtyType(type);
 #ifdef RS_ENABLE_GPU
-    auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, GetDrawableVec(__func__));
+    auto& drawableMap = GetDrawableVec(__func__);
+    auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, drawableMap);
     if (dirtySlots.empty()) {
         RS_LOGD("RSRenderNode::UpdateDrawableAfterPostPrepare dirtySlots is empty");
         return;
     }
-    bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, GetDrawableVec(__func__), dirtySlots);
-    RSDrawable::FuzeDrawableSlots(*this, GetDrawableVec(__func__));
+    bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableMap, dirtySlots);
+    RSDrawable::FuzeDrawableSlots(*this, drawableMap);
     RS_LOGD("RSRenderNode::UpdateDrawableAfterPostPrepare drawableChanged:%{public}d", drawableChanged);
     if (drawableChanged) {
-        RSDrawable::UpdateSaveRestore(*this, GetDrawableVec(__func__), drawableVecStatus_);
+        RSDrawable::UpdateSaveRestore(*this, drawableMap, drawableVecStatus_);
         UpdateDisplayList();
     }
     if (dirtySlots_.empty()) {
@@ -5123,29 +5162,30 @@ size_t RSRenderNode::GetAllModifierSize()
 void RSRenderNode::ClearDrawableVec2()
 {
     if (IsDrawableVecNeedClear()) {
+        auto& drawableMap = GetDrawableVec(__func__);
         if (GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE &&
-            findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE))) {
+            findMapValueRef(drawableMap, static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE))) {
             if (IsPurgeAble()) {
-                findMapValueRef(GetDrawableVec(__func__),
+                findMapValueRef(drawableMap,
                     static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE))->OnPurge();
             }
-            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE));
+            drawableMap.erase(static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
         }
-        if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::TRANSITION))) {
-            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::TRANSITION));
+        if (findMapValueRef(drawableMap, static_cast<int8_t>(RSDrawableSlot::TRANSITION))) {
+            drawableMap.erase(static_cast<int8_t>(RSDrawableSlot::TRANSITION));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::TRANSITION_STYLE), true);
         }
-        if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE))) {
-            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE));
+        if (findMapValueRef(drawableMap, static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE))) {
+            drawableMap.erase(static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::BACKGROUND_STYLE), true);
         }
-        if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE))) {
-            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE));
+        if (findMapValueRef(drawableMap, static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE))) {
+            drawableMap.erase(static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::FOREGROUND_STYLE), true);
         }
-        if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::OVERLAY))) {
-            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::OVERLAY));
+        if (findMapValueRef(drawableMap, static_cast<int8_t>(RSDrawableSlot::OVERLAY))) {
+            drawableMap.erase(static_cast<int8_t>(RSDrawableSlot::OVERLAY));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::OVERLAY_STYLE), true);
         }
         SetDrawableVecNeedClear(false);
@@ -5241,7 +5281,7 @@ void RSRenderNode::RemoveAllModifiersNG()
 std::shared_ptr<ModifierNG::RSRenderModifier> RSRenderNode::GetModifierNG(
     ModifierNG::RSModifierType type, ModifierId id) const
 {
-    auto slot = GetModifiersNG(type);
+    const auto& slot = GetModifiersNG(type);
     if (id == 0) {
         return slot.empty() ? nullptr : slot.back();
     }
@@ -5253,13 +5293,14 @@ std::shared_ptr<ModifierNG::RSRenderModifier> RSRenderNode::GetModifierNG(
     return *it;
 }
 
-RSRenderNode::ModifierNGContainer RSRenderNode::GetModifiersNG(ModifierNG::RSModifierType type) const
+const RSRenderNode::ModifierNGContainer& RSRenderNode::GetModifiersNG(ModifierNG::RSModifierType type) const
 {
+    static ModifierNGContainer defaultValue;
     auto it = modifiersNG_.find(type);
     if (it != modifiersNG_.end()) {
         return it->second;
     }
-    return {};
+    return defaultValue;
 }
 
 const RSRenderNode::ModifiersNGMap& RSRenderNode::GetAllModifiers() const
@@ -5485,7 +5526,7 @@ void RSRenderNode::NodePostPrepare(
 
 RSDrawable::Vec& RSRenderNode::GetDrawableVec(const char* func) const
 {
-    if (!drawableVec_) {
+    if (UNLIKELY(!drawableVec_)) {
         drawableVec_ = std::make_unique<RSDrawable::Vec>();
         ROSEN_LOGD("drawableVec_ is nullptr, %{public}s", func);
     }
@@ -5560,13 +5601,13 @@ void RSRenderNode::UpdateSDFTransformRectInfo()
 void RSRenderNode::UpdateFilterRectInfo()
 {
     auto boundsRect = GetRenderProperties().GetBoundsRect();
+    auto& drawableMap = GetDrawableVec(__func__);
     for (auto slot : filterDrawableSlotsSupportGetRect) {
         std::shared_ptr<RSFilter> filter = GetRSFilterWithSlot(slot);
         if (filter == nullptr) {
             continue;
         }
-
-        auto drawable = GetDrawableVec(__func__)[static_cast<int8_t>(slot)];
+        auto drawable = findMapValueRef(drawableMap, static_cast<int8_t>(slot));
         if (drawable == nullptr) {
             continue;
         }
@@ -5578,8 +5619,9 @@ void RSRenderNode::UpdateFilterRectInfo()
 RectI RSRenderNode::GetFilterDrawableSnapshotRegion() const
 {
     RectI snapshotRegion;
+    auto& drawableMap = GetDrawableVec(__func__);
     for (auto slot : filterDrawableSlotsSupportGetRect) {
-        auto drawable = GetDrawableVec(__func__)[static_cast<int8_t>(slot)];
+        auto drawable = findMapValueRef(drawableMap, static_cast<int8_t>(slot));
         if (drawable == nullptr) {
             continue;
         }

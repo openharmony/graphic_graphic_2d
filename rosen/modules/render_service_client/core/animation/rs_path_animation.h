@@ -79,6 +79,8 @@ protected:
 
     void SetPropertyOnAllAnimationFinish() override {}
 
+    void RebuildInRender() override;
+
 private:
     void ReplaceSubString(std::string& sourceStr, const std::string& subStr, const std::string& newStr) const;
 
@@ -101,6 +103,8 @@ private:
     void UpdateVector2fValueAddOrigin(Vector2f& startValue, Vector2f& endValue, Vector2f& deltaValue);
 
     void UpdateVector4fValueAddOrigin(Vector4f& startValue, Vector4f& endValue, Vector4f& deltaValue);
+
+    std::shared_ptr<RSRenderPathAnimation> CreateRenderAnimation(const std::shared_ptr<RSNode>& target);
 
     float beginFraction_ { FRACTION_MIN };
     float endFraction_ { FRACTION_MAX };

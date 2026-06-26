@@ -32,7 +32,7 @@ public:
                              std::vector<PaintRecord>&& paints);
     virtual ~ParagraphLineFetcherImpl() = default;
     size_t GetLineBreak(size_t startIndex, SkScalar width) const override;
-    std::unique_ptr<TextLineBase> CreateLine(size_t startIndex, size_t count) override;
+    std::shared_ptr<TextLineBase> CreateLine(size_t startIndex, size_t count) override;
     std::unique_ptr<Paragraph> GetTempParagraph() override;
     size_t GetUnicodeSize() const override { return lineFetcher_->getUnicodeSize(); };
 

@@ -37,6 +37,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr size_t MAX_APS_PARAMS_SIZE = 128;
 namespace {
 const uint8_t* g_data = nullptr;
 const std::string XCOMPONENT_ID = "xcomponentId";
@@ -405,6 +406,28 @@ bool DoBehindWindowFilterEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetApsConfigParams(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    ApsEventType event = static_cast<ApsEventType>(GetData<uint32_t>());
+    uint32_t paramsSize = GetData<uint32_t>();
+    std::unordered_map<std::string, std::string> params;
+    for (uint32_t i = 0; i < paramsSize && i < MAX_APS_PARAMS_SIZE; ++i) {
+        std::string key = GetData<std::string>();
+        std::string value = GetData<std::string>();
+        params[key] = value;
+    }
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSClientToServiceConnectionProxy rsClientToServiceConnectionProxy(remoteObject);
+    rsClientToServiceConnectionProxy.SetApsConfigParams(event, params);
+    return true;
+}
+
 bool DoSetVirtualScreenAutoRotation(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -687,6 +710,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #endif
     OHOS::Rosen::DoTakeSurfaceCapture(data, size);
     OHOS::Rosen::DoBehindWindowFilterEnabled(data, size);
+    OHOS::Rosen::DoSetApsConfigParams(data, size);
     OHOS::Rosen::DoSetVirtualScreenBlackList(data, size);
     OHOS::Rosen::DoAddVirtualScreenBlackList(data, size);
     OHOS::Rosen::DoRemoveVirtualScreenBlackList(data, size);

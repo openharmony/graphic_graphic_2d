@@ -286,7 +286,7 @@ bool ExtractSnapshotAndScheduleColorPick(RSPaintFilterCanvas& canvas,
     RSTagTracker tracker(canvas.GetGPUContext(), RSTagTracker::TAG_COLOR_PICKER_SNAPSHOT);
 #endif
     std::shared_ptr<Drawing::Image> snapshot;
-    if (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0) {
+    if (HveFilter::GetHveFilter().HasValidFilterNode(canvas, filterId)) {
         snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, snapshotIBounds, filterId);
     } else {
         snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);

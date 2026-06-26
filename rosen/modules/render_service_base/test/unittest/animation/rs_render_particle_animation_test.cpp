@@ -825,5 +825,20 @@ HWTEST_F(RSRenderParticleAnimationTest, OnDetach003, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest OnDetach003 end";
 }
 
+/**
+ * @tc.name: RebuildPropertyValue001
+ * @tc.desc: Verify RebuildPropertyValue does nothing for particle animation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, RebuildPropertyValue001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest RebuildPropertyValue001 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    renderParticleAnimation->RebuildPropertyValue(0.5f);
+    EXPECT_TRUE(renderParticleAnimation != nullptr);
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest RebuildPropertyValue001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

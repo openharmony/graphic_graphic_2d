@@ -45,7 +45,7 @@ public:
     void UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByRotate(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-        std::unordered_set<pid_t>& hdrForceHwcNodes);
+        std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
     void UpdateHwcNodeEnable();
     void UpdateHwcNodeEnableByNodeBelow();
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
@@ -119,6 +119,8 @@ private:
     // Solid Layer
     bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
     bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
+
+    bool IsRectIsInsideOfScreenRect(const RectI& rect) const;
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

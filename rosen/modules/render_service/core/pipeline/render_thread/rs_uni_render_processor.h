@@ -58,6 +58,8 @@ public:
     bool ProcessOfflineLayer(std::shared_ptr<RSSurfaceRenderNode>& node) override;
 
 private:
+    void HandleDelegateComposerLayer(RSLayerPtr& layer, RSSurfaceRenderParams& params);
+    RectI GetDelegateDstRectByTranXY(RSSurfaceRenderParams& params);
     bool GetForceClientForDRM(RSSurfaceRenderParams& params);
     RSLayerPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,

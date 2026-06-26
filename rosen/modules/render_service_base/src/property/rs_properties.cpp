@@ -1438,6 +1438,8 @@ void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
         }
         GetEffect().dynamicLightUpPara_->rate = rate.value();
         isDrawn_ = true;
+    } else if (GetEffect().dynamicLightUpPara_) {
+        GetEffect().dynamicLightUpPara_->rate = 0;
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1452,6 +1454,8 @@ void RSProperties::SetDynamicLightUpDegree(const std::optional<float>& degree)
         }
         GetEffect().dynamicLightUpPara_->degree = degree.value();
         isDrawn_ = true;
+    } else if (GetEffect().dynamicLightUpPara_) {
+        GetEffect().dynamicLightUpPara_->degree = 0;
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -1556,6 +1560,9 @@ void RSProperties::SetDistortionK(const std::optional<float>& distortionK)
         GetEffect().distortionPara_->distortionK = distortionK.value();
         GetEffect().distortionPara_->dirty = ROSEN_GNE(*distortionK, 0.0f) && ROSEN_LE(*distortionK, 1.0f);
         isDrawn_ = true;
+    } else if (GetEffect().distortionPara_) {
+        GetEffect().distortionPara_->distortionK = 0;
+        GetEffect().distortionPara_->dirty = false;
     }
     filterNeedUpdate_ = true;
     SetDirty();
@@ -4337,11 +4344,13 @@ void RSProperties::SetUseShadowBatching(bool useShadowBatching)
 
 void RSProperties::SetPixelStretch(const std::optional<Vector4f>& stretchSize)
 {
-    if (stretchSize.has_value() && !stretchSize->IsZero()) {
+    if (stretchSize.has_value()) {
         if (!GetEffect().pixelStretchPara_) {
             GetEffect().pixelStretchPara_ = std::make_unique<RSPixelStretchPara>();
         }
         GetEffect().pixelStretchPara_->size = stretchSize.value();
+    } else if (GetEffect().pixelStretchPara_) {
+        GetEffect().pixelStretchPara_->size = Vector4f();
     }
     SetDirty();
     pixelStretchNeedUpdate_ = true;
@@ -4365,26 +4374,26 @@ RectI RSProperties::GetPixelStretchDirtyRect() const
 
 void RSProperties::SetPixelStretchPercent(const std::optional<Vector4f>& stretchPercent)
 {
-    if (stretchPercent.has_value() && !stretchPercent->IsZero()) {
+    if (stretchPercent.has_value()) {
         if (!GetEffect().pixelStretchPara_) {
             GetEffect().pixelStretchPara_ = std::make_unique<RSPixelStretchPara>();
         }
         GetEffect().pixelStretchPara_->percent = stretchPercent.value();
+    } else if (GetEffect().pixelStretchPara_) {
+        GetEffect().pixelStretchPara_->percent = Vector4f();
     }
     SetDirty();
     pixelStretchNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
-void RSProperties::SetPixelStretchTileMode(const std::optional<int>& tileMode)
+void RSProperties::SetPixelStretchTileMode(int tileMode)
 {
-    if (tileMode.has_value()) {
-        if (!GetEffect().pixelStretchPara_) {
-            GetEffect().pixelStretchPara_ = std::make_unique<RSPixelStretchPara>();
-        }
-        GetEffect().pixelStretchPara_->tileMode = std::clamp<int>(tileMode.value(),
-            static_cast<int>(Drawing::TileMode::CLAMP), static_cast<int>(Drawing::TileMode::DECAL));
+    if (!GetEffect().pixelStretchPara_) {
+        GetEffect().pixelStretchPara_ = std::make_unique<RSPixelStretchPara>();
     }
+    GetEffect().pixelStretchPara_->tileMode = std::clamp<int>(tileMode,
+        static_cast<int>(Drawing::TileMode::CLAMP), static_cast<int>(Drawing::TileMode::DECAL));
     SetDirty();
     pixelStretchNeedUpdate_ = true;
     contentDirty_ = true;

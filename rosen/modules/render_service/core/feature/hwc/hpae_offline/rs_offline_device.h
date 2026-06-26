@@ -34,7 +34,7 @@ public:
 
     virtual OfflineDeviceType GetDeviceType() const = 0;
 
-    virtual bool IsRSOfflineProcessorReady(std::shared_ptr<RSSurfaceRenderNode> surfaceNode) = 0;
+    virtual bool IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) = 0;
 
     virtual bool PostProcessOfflineTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
         offlineTaskId taskId) = 0;
@@ -45,7 +45,7 @@ public:
     virtual bool WaitForProcessOfflineResult(offlineTaskId taskId, std::chrono::milliseconds timeout,
         ProcessOfflineResult& processOfflineResult) = 0;
 
-    virtual void CheckAndPostClearOfflineResourceTask() = 0;
+    virtual void CheckAndPostClearOfflineResourceTask(const std::vector<uint64_t>& offlineNodeIds) = 0;
 
     virtual bool CanDeleteDevice() = 0;
     

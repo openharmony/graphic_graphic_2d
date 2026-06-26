@@ -2334,6 +2334,36 @@ HWTEST_F(RSSurfaceNodeTest, DumpSubClass004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetStaticCached001
+ * @tc.desc: Test SetStaticCached with the same false value branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetStaticCached001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_FALSE(surfaceNode->isStaticFreeze_);
+    surfaceNode->SetStaticCached(false);
+    EXPECT_FALSE(surfaceNode->isStaticFreeze_);
+}
+
+/**
+ * @tc.name: SetStaticCached002
+ * @tc.desc: Test SetStaticCached from false to true branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetStaticCached002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_FALSE(surfaceNode->isStaticFreeze_);
+    surfaceNode->SetStaticCached(true);
+    EXPECT_TRUE(surfaceNode->isStaticFreeze_);
+}
+
+/**
  * @tc.name: SendDataToRender001
  * @tc.desc: Test SendDataToRender returns false when rsUIContext is nullptr
  * @tc.type: FUNC

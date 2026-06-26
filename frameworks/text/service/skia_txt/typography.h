@@ -82,11 +82,12 @@ public:
     Drawing::FontMetrics GetFontMetrics(const OHOS::Rosen::TextStyle& textStyle) override;
     bool GetLineFontMetrics(const size_t lineNumber, size_t& charNumber,
         std::vector<Drawing::FontMetrics>& fontMetrics) override;
-    std::vector<std::unique_ptr<TextLineBase>> GetTextLines() const override;
+    std::vector<std::shared_ptr<TextLineBase>> GetTextLines() const override;
     std::unique_ptr<OHOS::Rosen::Typography> CloneSelf() override;
     void UpdateColor(size_t from, size_t to, const Drawing::Color& color) override;
     void* GetParagraph() override { return reinterpret_cast<void*>(paragraph_.get()); }
     Drawing::RectI GeneratePaintRegion(double x, double y) const override;
+    bool IsLayoutDone() const override;
     void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) override;
     void UpdateAllTextStyles(const TextStyle& textStyleTemplate) override;

@@ -266,6 +266,13 @@ public:
         uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
+     * @brief Frames can be scaled when uifirst
+     * @param scaleFactor scaler ratio
+     * @return true means success, others failed.
+     */
+    bool SetUifirstScale(float scaleFactor);
+
+    /**
      * @brief Set watermark for surfaceNode.
      * @param pid pid of process.
      * @param name Watermark name. Note: ensure watermark name is unique.
@@ -1451,6 +1458,14 @@ public:
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
+    /**
+     * @brief Set Aps config parameters.
+     * @param event Indicates the Aps event type, see ApsEventType.
+     * @param params Indicates the config parameters key-value pairs.
+     * @return Returns true if success, false otherwise.
+     */
+    bool SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
+
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
 
     /**
@@ -1524,6 +1539,7 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result);
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

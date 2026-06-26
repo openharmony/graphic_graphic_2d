@@ -17,6 +17,7 @@
 #include "animation/rs_animation.h"
 #include "core/transaction/rs_interfaces.h"
 #include "feature/window_keyframe/rs_window_keyframe_node.h"
+#include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
 #include "ui/rs_surface_node.h"
 #include "parameters.h"
@@ -31,6 +32,14 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    std::shared_ptr<RSUIContext> CreateRSUIContext()
+    {
+        auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+        sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+        return rsUIContext;
+    }
 };
 
 void RSWindowKeyFrameNodeTest::SetUpTestCase() {}
@@ -48,8 +57,8 @@ HWTEST_F(RSWindowKeyFrameNodeTest, Create001, TestSize.Level1)
 	// return shared_ptr
     RSWindowKeyFrameNode::SharedPtr keyframeNode = RSWindowKeyFrameNode::Create();
     ASSERT_NE(keyframeNode, nullptr);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUiCtx = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+
+    auto rsUiCtx = CreateRSUIContext();
     keyframeNode = RSWindowKeyFrameNode::Create(false, false, rsUiCtx);
     ASSERT_NE(keyframeNode, nullptr);
 }
@@ -80,7 +89,8 @@ HWTEST_F(RSWindowKeyFrameNodeTest, LifeCycle001, TestSize.Level1)
      * @tc.steps: step1. create RSSurfaceNode and add RSWindowKeyFrameNode as child
      */
     RSSurfaceNodeConfig surfaceNodeConfig;
-    RSSurfaceNode::SharedPtr appNode = RSSurfaceNode::Create(surfaceNodeConfig);
+    auto rsUiCtx = CreateRSUIContext();
+    RSSurfaceNode::SharedPtr appNode = RSSurfaceNode::Create(surfaceNodeConfig, true, rsUiCtx);
     ASSERT_TRUE(appNode != nullptr);
 
     RSWindowKeyFrameNode::SharedPtr keyframeNode = RSWindowKeyFrameNode::Create(false);
@@ -104,7 +114,8 @@ HWTEST_F(RSWindowKeyFrameNodeTest, LifeCycle002, TestSize.Level1)
      * @tc.steps: step1. create RSSurfaceNode and add RSWindowKeyFrameNode as child
      */
     RSSurfaceNodeConfig surfaceNodeConfig;
-    RSSurfaceNode::SharedPtr appNode = RSSurfaceNode::Create(surfaceNodeConfig);
+    auto rsUiCtx = CreateRSUIContext();
+    RSSurfaceNode::SharedPtr appNode = RSSurfaceNode::Create(surfaceNodeConfig, true, rsUiCtx);
     ASSERT_TRUE(appNode != nullptr);
 
     RSWindowKeyFrameNode::SharedPtr keyframeNode = RSWindowKeyFrameNode::Create(false);
@@ -176,7 +187,7 @@ HWTEST_F(RSWindowKeyFrameNodeTest, ReadFromParcel, TestSize.Level1)
     parcel.WriteUint64(linkedNodeId);
     keyframeNode = RSWindowKeyFrameNode::ReadFromParcel(parcel);
     ASSERT_NE(keyframeNode, nullptr);
-    EXPECT_EQ(keyframeNode->IsRenderServiceNode(), false);
+    EXPECT_EQ(keyframeNode->isRenderServiceNode_, false);
     EXPECT_EQ(keyframeNode->GetId(), nodeId);
     EXPECT_EQ(keyframeNode->GetLinkedNodeId(), linkedNodeId);
 
@@ -196,8 +207,7 @@ HWTEST_F(RSWindowKeyFrameNodeTest, ReadFromParcel, TestSize.Level1)
  */
 HWTEST_F(RSWindowKeyFrameNodeTest, RegisterNodeMap, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUiCtx = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUiCtx = CreateRSUIContext();
     RSWindowKeyFrameNode::SharedPtr keyframeNode = std::make_shared<RSWindowKeyFrameNode>(false);
     ASSERT_NE(keyframeNode, nullptr);
 
@@ -219,8 +229,7 @@ HWTEST_F(RSWindowKeyFrameNodeTest, RegisterNodeMap, TestSize.Level1)
  */
 HWTEST_F(RSWindowKeyFrameNodeTest, SetLinkedNodeId, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUiCtx = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto rsUiCtx = CreateRSUIContext();
     RSWindowKeyFrameNode::SharedPtr keyframeNode = std::make_shared<RSWindowKeyFrameNode>(false);
     ASSERT_NE(keyframeNode, nullptr);
 

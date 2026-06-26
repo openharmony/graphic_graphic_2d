@@ -3179,7 +3179,8 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes005, TestSize.Level1)
 
     auto surfaceConsumer1 = rsSurfaceRenderNode1->GetRSSurfaceHandler()->GetConsumer();
     ASSERT_NE(surfaceConsumer1, nullptr);
-    sptr<IBufferConsumerListener> listener1 = new RSRenderServiceListener(rsSurfaceRenderNode1,
+    auto surfaceHandler(rsSurfaceRenderNode1->GetRSSurfaceHandler());
+    sptr<IBufferConsumerListener> listener1 = new RSRenderServiceListener(rsSurfaceRenderNode1, surfaceHandler,
         rsComposerClientManager);
     EXPECT_EQ(surfaceConsumer1->RegisterConsumerListener(listener1), SURFACE_ERROR_OK);
     auto producer1 = surfaceConsumer1->GetProducer();
@@ -3191,7 +3192,8 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes005, TestSize.Level1)
 
     auto surfaceConsumer2 = rsSurfaceRenderNode2->GetRSSurfaceHandler()->GetConsumer();
     ASSERT_NE(surfaceConsumer2, nullptr);
-    sptr<IBufferConsumerListener> listener2 = new RSRenderServiceListener(rsSurfaceRenderNode2,
+    auto surfaceHandler2(rsSurfaceRenderNode2->GetRSSurfaceHandler());
+    sptr<IBufferConsumerListener> listener2 = new RSRenderServiceListener(rsSurfaceRenderNode2, surfaceHandler2,
         rsComposerClientManager);
     EXPECT_EQ(surfaceConsumer2->RegisterConsumerListener(listener2), SURFACE_ERROR_OK);
     auto producer2 = surfaceConsumer2->GetProducer();
@@ -3317,7 +3319,8 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateLowPowerVideoNode001, TestSize.Level1
 
     auto surfaceConsumer = surfaceHandler->GetConsumer();
     ASSERT_NE(surfaceConsumer, nullptr);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(rsSurfaceRenderNode, rsComposerClientManager);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(rsSurfaceRenderNode, surfaceHandler, rsComposerClientManager);
     EXPECT_EQ(surfaceConsumer->RegisterConsumerListener(listener), SURFACE_ERROR_OK);
     auto producer = surfaceConsumer->GetProducer();
     ASSERT_NE(producer, nullptr);
@@ -6973,5 +6976,22 @@ HWTEST_F(RSMainThreadTest, RequestDelayedVSyncForAnimation_DelayOverflowClamp001
 
     GTEST_LOG_(INFO) << "RSMainThreadTest RequestDelayedVSyncForAnimation_DelayOverflowClamp001 end";
 }
+/**
+ * @tc.name: InitCreatePipelineTimeCallbackTest001
+ * @tc.desc: Test InitCreatePipelineTimeCallback with nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMainThreadTest, InitCreatePipelineTimeCallbackTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSMainThreadTest InitCreatePipelineTimeCallbackTest001 start";
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->InitCreatePipelineTimeCallback(nullptr);
+
+    GTEST_LOG_(INFO) << "RSMainThreadTest InitCreatePipelineTimeCallbackTest001 end";
+}
+
 } // namespace OHOS::Rosen
 #endif

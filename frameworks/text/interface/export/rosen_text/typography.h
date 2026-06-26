@@ -164,6 +164,7 @@ public:
     virtual void SetIndents(const std::vector<float>& indents) = 0;
     virtual float DetectIndents(size_t index) = 0;
     virtual void Layout(double width) = 0;
+    virtual bool IsLayoutDone() const = 0;
     virtual void Paint(SkCanvas* canvas, double x, double y) = 0; // SKIA
     virtual void Paint(Drawing::Canvas* canvas, double x, double y) = 0; // DRAWING
     virtual void Paint(Drawing::Canvas* canvas, Drawing::Path* path, double hOffset, double vOffset) = 0; // DRAWING
@@ -194,7 +195,7 @@ public:
     virtual Drawing::FontMetrics GetFontMetrics(const OHOS::Rosen::TextStyle& textStyle) = 0;
     virtual bool GetLineFontMetrics(const size_t lineNumber,
         size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics) = 0;
-    virtual std::vector<std::unique_ptr<TextLineBase>> GetTextLines() const = 0;
+    virtual std::vector<std::shared_ptr<TextLineBase>> GetTextLines() const = 0;
     virtual std::unique_ptr<Typography> CloneSelf() = 0;
     virtual double GetLongestLineWithIndent() const = 0;
     virtual void UpdateColor(size_t from, size_t to, const Drawing::Color& color) = 0;

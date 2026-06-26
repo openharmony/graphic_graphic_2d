@@ -55,7 +55,9 @@ void RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(const RSLogica
     }
 
     const auto& specialLayerMgr = sourceNode.GetSpecialLayerMgr();
-    auto totalSpecialLayerType = specialLayerMgr.Get() | SpecialLayerType::HAS_BLACK_LIST;
+    // Virtual screen ignores the snapshotskip flag.
+    auto totalSpecialLayerType = (specialLayerMgr.Get() & ~SpecialLayerType::HAS_SNAPSHOT_SKIP)
+        | SpecialLayerType::HAS_BLACK_LIST;
     // Only one bit representing the currently processed type
     uint32_t currentType = SpecialLayerType::HAS_SECURITY;
     // skip security process if virtual screen is security exemption

@@ -270,7 +270,6 @@ bool RsFrameReport::GetVulkanFunctionPointersByInstance()
     }
     if (!vkGetInstanceProcAddr) {
         LOGE("Failed to get Vulkan function pointers : vkGetInstanceProcAddr");
-        vkDestroyInstance(instance_, nullptr);
         return false;
     }
  
@@ -400,16 +399,12 @@ bool RsFrameReport::InitializeVulkanExtensions()
         return false;
     }
     if (!CreateVulkanDevice()) {
-        vkDestroyInstance(instance_, nullptr);
-        instance_ = VK_NULL_HANDLE;
         vkhandle.reset();
         return false;
     }
     if (!GetSetFrontWindowStatusHUAWEI()) {
         vkDestroyDevice(device_, nullptr);
         device_ = VK_NULL_HANDLE;
-        vkDestroyInstance(instance_, nullptr);
-        instance_ = VK_NULL_HANDLE;
         vkhandle.reset();
         return false;
     }

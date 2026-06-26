@@ -59,6 +59,7 @@ static EglWrapperDisplay *ValidateDisplay(EGLDisplay dpy)
     return display;
 }
 
+// LCOV_EXCL_START
 EGLBoolean EglChooseConfigImpl(EGLDisplay dpy, const EGLint *attribList,
     EGLConfig *configs, EGLint configSize, EGLint *numConfig)
 {
@@ -222,6 +223,7 @@ EGLBoolean EglGetConfigsImpl(EGLDisplay dpy, EGLConfig *configs,
 
     return ret;
 }
+// LCOV_EXCL_STOP
 
 EGLDisplay EglGetCurrentDisplayImpl(void)
 {
@@ -298,6 +300,7 @@ EGLint EglGetErrorImpl(void)
     return ret;
 }
 
+// LCOV_EXCL_START
 static __eglMustCastToProperFunctionPointerType FindBuiltinWrapper(const char* procname)
 {
 #if (defined(__aarch64__) || defined(__x86_64__))
@@ -401,6 +404,7 @@ EGLBoolean EglQueryContextImpl(EGLDisplay dpy, EGLContext ctx,
 
     return display->QueryContext(ctx, attribute, value);
 }
+// LCOV_EXCL_STOP
 
 const char *EglQueryStringImpl(EGLDisplay dpy, EGLint name)
 {
@@ -442,6 +446,7 @@ const char *EglQueryStringImpl(EGLDisplay dpy, EGLint name)
 #endif // IS_EMULATOR
 }
 
+// LCOV_EXCL_START
 EGLBoolean EglQuerySurfaceImpl(EGLDisplay dpy, EGLSurface surf,
     EGLint attribute, EGLint* value)
 {
@@ -646,6 +651,7 @@ EGLBoolean EglWaitClientImpl(void)
     }
     return ret;
 }
+// LCOV_EXCL_STOP
 
 EGLContext EglGetCurrentContextImpl(void)
 {
@@ -654,6 +660,7 @@ EGLContext EglGetCurrentContextImpl(void)
     return ctx;
 }
 
+// LCOV_EXCL_START
 EGLSync EglCreateSyncImpl(EGLDisplay dpy, EGLenum type, const EGLAttrib *attribList)
 {
     ClearError();
@@ -1436,6 +1443,7 @@ EGLClientBuffer EglGetNativeClientBufferANDROIDImpl(const struct AHardwareBuffer
     auto nativeBuffer = reinterpret_cast<OH_NativeBuffer*>(const_cast<AHardwareBuffer*>(buffer));
     return EglGetNativeClientBufferOHOSImpl(nativeBuffer);
 }
+// LCOV_EXCL_STOP
 
 static const std::map<std::string, EglWrapperFuncPointer> gEglWrapperMap = {
     /* EGL_VERSION_1_0 */

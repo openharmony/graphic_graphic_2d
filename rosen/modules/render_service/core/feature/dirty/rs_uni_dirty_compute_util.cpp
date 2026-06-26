@@ -249,7 +249,7 @@ bool RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled(const FilterDi
     // The following are dynamic switch, disable partial render screen conditions and effects
     if (!RSSystemProperties::GetCachedBlurPartialRenderEnabled() ||
         !RSFilterDirtyCollector::GetValidCachePartialRender() || info.forceDisablePartialRender_) {
-            RS_TRACE_NAME("RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled disable");
+        RS_OPTIONAL_TRACE_FMT("RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled disable");
         return false;
     }
     auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(info.id_);

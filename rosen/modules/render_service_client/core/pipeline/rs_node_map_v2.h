@@ -38,6 +38,7 @@ public:
     }
     template<>
     const std::shared_ptr<RSBaseNode> GetNode(NodeId id) const;
+    void TraversalNodes(std::function<void(const std::shared_ptr<RSBaseNode>&)> func) const;
 
 private:
     RSNodeMapV2();

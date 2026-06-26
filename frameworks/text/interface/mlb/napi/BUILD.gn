@@ -107,6 +107,7 @@ ohos_shared_library("text_napi_impl") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
     "ability_runtime:napi_common",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "graphic_surface:surface",

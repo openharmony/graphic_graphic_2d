@@ -162,8 +162,6 @@ HWTEST_F(RSCommandModifierTest, RSCmdModifierTypeEnumTest001, TestSize.Level1)
     EXPECT_EQ(static_cast<uint16_t>(RSCmdModifierType::OCCLUSION_CULLING_STATUS), 1);
     EXPECT_EQ(static_cast<uint16_t>(RSCmdModifierType::IS_P3COLOR), 2);
     EXPECT_EQ(static_cast<uint16_t>(RSCmdModifierType::DRAW_REGION), 3);
-    EXPECT_EQ(static_cast<uint16_t>(RSCmdModifierType::HDR_PRESENT), 16);
-    EXPECT_EQ(static_cast<uint16_t>(RSCmdModifierType::LEASH_PERSISTENT_ID), 22);
     EXPECT_NE(static_cast<uint16_t>(RSCmdModifierType::MAX), 0);
 }
 

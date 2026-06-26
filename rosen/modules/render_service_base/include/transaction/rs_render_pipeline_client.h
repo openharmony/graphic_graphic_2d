@@ -64,6 +64,7 @@
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "utils/scalar.h"
+#include "ipc_callbacks/rs_delegate_composite_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -84,7 +85,8 @@ using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSS
 using FirstFrameCommitCallback = std::function<void(uint64_t, int64_t)>;
 using FrameStabilityCallback = std::function<void(bool)>;
 
-class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
+class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient,
+                                          public std::enable_shared_from_this<RSRenderPipelineClient> {
 public:
     RSRenderPipelineClient();
     RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote);
@@ -203,6 +205,11 @@ public:
 
     void SetFreeMultiWindowStatus(bool enable);
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    sptr<Surface> GetCanvasSurface(NodeId nodeId);
+    void RemoveCanvasSurface(NodeId nodeId);
+#endif
+
     int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,
         const FrameStabilityConfig& config,
@@ -224,6 +231,11 @@ public:
     );
 
     void SetOnRenderProcessDiedCallback(const std::function<void()>& callback);
+    bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid);
+    bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener, uint64_t listenerId);
+    bool UnRegisterSurfaceTransactionListener(uint64_t listenerId);
+    bool RegisterSurfaceNodeBufferReleaseListener(sptr<RSISurfaceNodeBufferReleaseCallback> listener);
+    bool UnRegisterSurfaceNodeBufferReleaseListener();
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,

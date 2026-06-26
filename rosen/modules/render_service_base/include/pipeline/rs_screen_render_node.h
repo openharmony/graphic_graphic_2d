@@ -467,6 +467,11 @@ public:
 
     HdrStatus GetDisplayHdrStatus() const;
 
+    void SetLastDisplayHdrStatus(HdrStatus lastDisplayHdrStatus)
+    {
+        lastDisplayTotalHdrStatus_ = lastDisplayHdrStatus;
+    }
+
     HdrStatus GetLastDisplayHDRStatus() const
     {
         return lastDisplayTotalHdrStatus_;
@@ -535,7 +540,10 @@ public:
     
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
     void SetHasForceHwcHdrSurface(bool hasForceHwcHdrSurface);
-    bool GetHasForceHwcHdrSurface() const;
+    void SetHdrForceHwcNodes(const std::unordered_map<NodeId, std::weak_ptr<RSSurfaceRenderNode>>& hdrForceHwcNodes);
+    const std::unordered_map<NodeId, std::weak_ptr<RSSurfaceRenderNode>>& GetHdrForceHwcNodes() const;
+    void ClearHdrForceHwcNodes();
+    void HandleHdrForceHwcNodes();
 
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;
@@ -625,7 +633,7 @@ private:
     RSHwcDisplayRecorder hwcDisplayRecorder_;
 
     std::unordered_map<NodeId, uint32_t> displayHDRStatusMap_ = {};
-    bool hasForceHwcHdrSurface_ = false;
+    std::unordered_map<NodeId, std::weak_ptr<RSSurfaceRenderNode>> hdrForceHwcNodes_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -77,6 +77,9 @@ public:
         uint32_t rowCount = 0, uint32_t colCount = 0) override;
     void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) override;
 
+    // uifristscale
+    ErrCode SetUifirstScale(float scaleFactor) override;
+
     // Vrate
     ErrCode GetSurfaceRootNodeId(NodeId& windowNodeId) override;
 
@@ -116,6 +119,9 @@ public:
     // Behind Window Filter
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
+
+    // Aps
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params) override;
 
     // Others
     ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) override;

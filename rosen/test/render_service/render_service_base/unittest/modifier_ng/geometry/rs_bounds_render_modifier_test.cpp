@@ -46,17 +46,45 @@ HWTEST_F(RSBoundsRenderModifierNGTypeTest, RSBoundsRenderModifierTest, TestSize.
 {
     RSBoundsRenderModifier modifier;
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::BOUNDS);
+
+    // ResetProperties is empty
     RSProperties properties;
+    properties.SetBounds(Vector4f(10.0f, 20.0f, 100.0f, 200.0f));
+    modifier.ResetProperties(properties);
+    // Bounds value should remain unchanged after ResetProperties
+    Vector4f bounds = properties.GetBounds();
+    EXPECT_FLOAT_EQ(bounds.x_, 10.0f);
+    EXPECT_FLOAT_EQ(bounds.y_, 20.0f);
+    EXPECT_FLOAT_EQ(bounds.z_, 100.0f);
+    EXPECT_FLOAT_EQ(bounds.w_, 200.0f);
+}
+
+/**
+ * @tc.name: BoundsResetDoesNotResetUnionProperties
+ * @tc.desc: Verify Bounds ResetProperties does not reset Union-related properties
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsRenderModifierNGTypeTest, BoundsResetDoesNotResetUnionProperties, TestSize.Level1)
+{
+    RSBoundsRenderModifier modifier;
+    RSProperties properties;
+
+    // Set Union-related properties to non-default values
     properties.SetUseUnion(true);
     properties.SetUnionSpacing(0.5f);
-    std::string dumpExistingUnion = properties.Dump();
+    properties.SetSDFUnionMode(1);
+    properties.SetGravityPullCenterFlag(true);
+    properties.SetGravityPullStrength(0.5f);
+    properties.SetGravityHotZone(0.5f);
 
+    // Bounds ResetProperties should NOT reset any Union properties
     modifier.ResetProperties(properties);
-    EXPECT_EQ(properties.GetUseUnion(), false);
-    EXPECT_EQ(properties.GetUnionSpacing(), 0.0f);
-    EXPECT_EQ(properties.GetSDFShape(), nullptr);
 
-    std::string dumpClearUnion = properties.Dump();
-    EXPECT_NE(dumpExistingUnion, dumpClearUnion);
+    EXPECT_EQ(properties.GetUseUnion(), true);
+    EXPECT_FLOAT_EQ(properties.GetUnionSpacing(), 0.5f);
+    EXPECT_EQ(properties.GetSDFUnionMode(), 1);
+    EXPECT_EQ(properties.GetGravityPullCenterFlag(), true);
+    EXPECT_FLOAT_EQ(properties.GetGravityPullStrength(), 0.5f);
+    EXPECT_FLOAT_EQ(properties.GetGravityHotZone(), 0.5f);
 }
 } // namespace OHOS::Rosen

@@ -144,6 +144,8 @@ public:
 
     void UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node);
 
+    bool InitForDelegateMode(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine);
+    void GetScreenRotation(RSScreenRenderNode& node);
 private:
     /* Prepare relevant calculation */
     struct RotationStatus {
@@ -210,7 +212,8 @@ private:
     void UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node);
     void ProcessAncoNode(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
     void UpdateAncoNodeHWCDisabledState(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
-    void UpdateScreenHdrForceHwcState(const std::unordered_set<pid_t>& hdrForceHwcNodes);
+    void UpdateScreenHdrForceHwcState(
+        const std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes);
     void UpdateHwcNodeDirtyRegionAndCreateLayer(
         std::shared_ptr<RSSurfaceRenderNode>& node, std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
     void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
@@ -317,6 +320,8 @@ void ProcessGpuOfflineForTopLayer(
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void UpdateFilterRegionInSkippedSurfaceNode(const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
+    void UpdateFilterRenderContextForSkippedSubTree(RSDirtyRegionManager& dirtyManager, RSRenderNode& filterNode,
+        const RSRenderNode& rootNode, RectI& filterRect);
     void UpdateVisibleEffectChildrenStatus(const RSRenderNode& rootNode);
     void CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(const RSRenderNode& node,
         RSDirtyRegionManager& dirtyManager);
@@ -386,6 +391,9 @@ void ProcessGpuOfflineForTopLayer(
      * @brief Prepare color pickers with dirty region intersection checking
      */
     void PrepareColorPickers();
+
+    void UpdateHardWareForcedDisabledStateForDelegateMode(
+        std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr, std::optional<bool>& isHardwareForcedDisabled);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;

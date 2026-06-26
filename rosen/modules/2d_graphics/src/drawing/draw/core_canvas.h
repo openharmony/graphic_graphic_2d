@@ -159,7 +159,7 @@ public:
      * @param canvas canvas to be switch
      * @return Returns the result of canvas switch
      */
-    bool InheritStateAndContentFrom(Canvas* canvas);
+    bool InheritStateAndContentFrom(Canvas* canvas, bool willReleaseSrcCanvas = true);
 
     /**
      * @brief Gets the total matrix of Canvas to device.

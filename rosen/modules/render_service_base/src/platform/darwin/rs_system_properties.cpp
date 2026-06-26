@@ -15,8 +15,6 @@
 
 #include "platform/common/rs_system_properties.h"
 
-#include "transaction/rs_render_service_client.h"
-
 namespace OHOS {
 namespace Rosen {
 
@@ -497,6 +495,16 @@ bool RSSystemProperties::GetSingleFrameComposerCanvasNodeEnabled()
     return false;
 }
 
+float RSSystemProperties::GetSplitTransactionMaxProcessTimeMs()
+{
+    return 2.0f;
+}
+ 
+size_t RSSystemProperties::GetSplitTransactionCheckInterval()
+{
+    return 200;
+}
+
 bool RSSystemProperties::GetDrawFilterWithoutSnapshotEnabled()
 {
     return false;
@@ -703,67 +711,13 @@ bool RSSystemProperties::GetTextureExportDFXEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetHybridRenderEnabled()
-{
-    return false;
-}
-
-int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
-{
-    return 0;
-}
-
-// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
-bool RSSystemProperties::GetHybridRenderSystemEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetHybridRenderDfxEnabled()
-{
-    return false;
-}
-
-uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
-{
-    return 0;
-}
-
-bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
 {
     return false;
 }
 
 // The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
-{
-    return false;
-}
-
-// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
-bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
-{
-    return false;
-}
-
-// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
-bool RSSystemProperties::GetHybridRenderSvgEnabled()
-{
-    return false;
-}
-
-// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
-bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
-{
-    return false;
-}
-
-bool RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
     return false;
 }
@@ -815,15 +769,6 @@ int RSSystemProperties::GetSubThreadDropFrameInterval()
 bool RSSystemProperties::GetCompositeLayerEnabled()
 {
     return false;
-}
-
-bool RSSystemProperties::GetTypicalResidentProcess()
-{
-    return false;
-}
-
-void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess)
-{
 }
 
 bool RSSystemProperties::GetAIBarOptEnabled()
@@ -915,7 +860,27 @@ bool RSSystemProperties::GetNewTunnelEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRebuildSceneEnabled()
+{
+    return true;
+}
+ 
+bool RSSystemProperties::IsRenderNodeRebuildEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::RebuildDebugEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetXcomponentEdrEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetRsDelegateCompositeCleanCacheDfxEnable()
 {
     return false;
 }

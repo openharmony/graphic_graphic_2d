@@ -69,6 +69,7 @@ enum class RSModifierType : uint16_t {
     MATERIAL_FILTER = 36,
     COLOR_PICKER = 37,
     MATERIAL_SHADER = 38,
+    USE_UNION = 39,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -147,6 +148,7 @@ public:
             case RSModifierType::MATERIAL_FILTER: return "MaterialFilter";
             case RSModifierType::MATERIAL_SHADER: return "MaterialShader";
             case RSModifierType::COLOR_PICKER : return "ColorPicker";
+            case RSModifierType::USE_UNION: return "UseUnion";
             case RSModifierType::CHILDREN: return "Children";
             default: return "Invalid";
         }
@@ -325,6 +327,7 @@ public:
             case RSPropertyType::SDF_UNION_MODE: return "SDFUnionMode";
             case RSPropertyType::GRAVITY_UNION_STRENGTH: return "UnionGravityStrength";
             case RSPropertyType::GRAVITY_CENTER_FLAG: return "UnionGravityCenter";
+            case RSPropertyType::GRAVITY_HOT_ZONE: return "UnionGravityHotZone";
             case RSPropertyType::SDF_SHAPE: return "SDFShape";
             case RSPropertyType::MATERIAL_NG_FILTER: return "MaterialNGFilter";
             case RSPropertyType::COLOR_PICKER_PLACEHOLDER : return "ColorPickerPlaceholder";

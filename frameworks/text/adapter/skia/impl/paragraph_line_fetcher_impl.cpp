@@ -29,12 +29,12 @@ size_t ParagraphLineFetcherImpl::GetLineBreak(size_t startIndex, SkScalar width)
     }
     return lineFetcher_->getLineBreak(startIndex, width);
 }
-std::unique_ptr<TextLineBase> ParagraphLineFetcherImpl::CreateLine(size_t startIndex, size_t count)
+std::shared_ptr<TextLineBase> ParagraphLineFetcherImpl::CreateLine(size_t startIndex, size_t count)
 {
     if (lineFetcher_ == nullptr) {
         return nullptr;
     }
-    return std::make_unique<TextLineImpl>(lineFetcher_->createLine(startIndex, count), paints_);
+    return std::make_shared<TextLineImpl>(lineFetcher_->createLine(startIndex, count), paints_);
 }
 std::unique_ptr<Paragraph> ParagraphLineFetcherImpl::GetTempParagraph()
 {

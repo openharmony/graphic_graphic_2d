@@ -57,6 +57,15 @@ void RSNodeMapV2::UnregisterNode(NodeId id)
     }
 }
 
+void RSNodeMapV2::TraversalNodes(std::function<void(const std::shared_ptr<RSBaseNode>&)> func) const
+{
+    for (const auto& [_, node] : nodeMapNew_) {
+        if (auto nodeShared = node.lock()) {
+            func(nodeShared);
+        }
+    }
+}
+
 template<>
 const std::shared_ptr<RSBaseNode> RSNodeMapV2::GetNode<RSBaseNode>(NodeId id) const
 {

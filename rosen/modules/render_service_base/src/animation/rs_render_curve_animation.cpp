@@ -104,6 +104,17 @@ void RSRenderCurveAnimation::InitValueEstimator()
     valueEstimator_->InitCurveAnimationValue(property_, startValue_, endValue_, lastValue_);
 }
 
+void RSRenderCurveAnimation::RebuildPropertyValue(float fraction)
+{
+    if (interpolator_ == nullptr || valueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderCurveAnimation::RebuildPropertyValue failed: interpolator[%{public}d] "
+            "estimator[%{public}d]", interpolator_ != nullptr, valueEstimator_ != nullptr);
+        return;
+    }
+    auto interpolatedFraction = interpolator_->Interpolate(fraction);
+    valueEstimator_->RebuildValue(interpolatedFraction);
+}
+
 void RSRenderCurveAnimation::OnAttach()
 {
     auto target = GetTarget();

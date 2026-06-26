@@ -114,6 +114,12 @@ Drawing::Rect RSUniHwcComputeUtil::CalcSrcRectByBufferRotation(const SurfaceBuff
 
 void RSUniHwcComputeUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix)
 {
+    if (node.GetDelegateMode()) {
+        RS_TRACE_NAME("use webNodeFrame for delegate mode");
+        const Vector4f& frameRect = node.GetDelegateSrcRect();
+        node.SetSrcRect({frameRect.x_, frameRect.y_, frameRect.z_, frameRect.w_});
+        return;
+    }
     auto surfaceHandler = node.GetRSSurfaceHandler();
     if (!surfaceHandler) {
         return;

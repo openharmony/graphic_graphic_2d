@@ -697,7 +697,8 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable001, TestSize.Level1)
     RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
     context.surfaceHandler->SetAvailableBufferCount(0);
 
-    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, nullptr);
+    auto surfaceHandler(context.node->GetRSSurfaceHandler());
+    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, surfaceHandler, nullptr);
     rsListener->OnBufferAvailable();
 
     EXPECT_EQ(context.surfaceHandler->GetBuffer(), normalBuffer);
@@ -749,7 +750,8 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable002, TestSize.Level1)
     RSTunnelRuntimeStore::GetOrCreate(context.node->GetId()).SetPendingBuffer(firstTunnelBufferEntry);
     context.surfaceHandler->SetAvailableBufferCount(0);
 
-    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, composerManager);
+    auto surfaceHandler(context.node->GetRSSurfaceHandler());
+    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, surfaceHandler, composerManager);
     rsListener->OnBufferAvailable();
 
     EXPECT_TRUE(connection->commitTunnelCalled);
@@ -809,7 +811,8 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable003, TestSize.Level1)
     ASSERT_NE(composerManager, nullptr);
     context.surfaceHandler->SetAvailableBufferCount(0);
 
-    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, composerManager);
+    auto surfaceHandler(context.node->GetRSSurfaceHandler());
+    auto rsListener = std::make_shared<RSRenderServiceListener>(context.node, surfaceHandler, composerManager);
     rsListener->OnBufferAvailable();
 
     EXPECT_FALSE(connection->commitTunnelCalled);

@@ -86,19 +86,16 @@ ani_object AniLineTypeset::CreateLine(ani_env* env, ani_object object, ani_int s
         return AniTextUtils::CreateAniUndefined(env);
     }
 
-    std::unique_ptr<TextLineBase> textLineBase =
+    std::shared_ptr<TextLineBase> textLineBase =
         aniLineTypeSet->lineTypography_->CreateLine(static_cast<size_t>(startIndex), static_cast<size_t>(count));
     if (textLineBase == nullptr) {
         TEXT_LOGE("Failed to create line. %{public}d %{public}d %{public}zu", startIndex, count, limitSize);
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Create line failed.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    TextLineBase* textLineBasePtr = textLineBase.release();
-    ani_object textLineObj = AniTextLine::CreateTextLine(env, textLineBasePtr);
+    ani_object textLineObj = AniTextLine::CreateTextLine(env, std::move(textLineBase));
     if (AniTextUtils::IsUndefined(env, textLineObj)) {
         TEXT_LOGE("Failed to create ani line, line is undefined");
-        delete textLineBasePtr;
-        textLineBasePtr = nullptr;
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create TextLine object.");
         return AniTextUtils::CreateAniUndefined(env);
     }

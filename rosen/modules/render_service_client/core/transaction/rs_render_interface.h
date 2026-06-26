@@ -462,6 +462,11 @@ public:
      */
     void SetFreeMultiWindowStatus(bool enable);
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    sptr<Surface> GetCanvasSurface(NodeId nodeId);
+    void RemoveCanvasSurface(NodeId nodeId);
+#endif // RS_MODIFIERS_DRAW_ENABLE
+
     /**
      * @brief Set callback for render process died event.
      * @param callback Callback function triggered when render process dies.
@@ -470,6 +475,12 @@ public:
      */
     void SetOnRenderProcessDiedCallback(const std::function<void()>& callback);
 
+    /**
+     * @brief Set surfaceNode delegate mode flag
+     * @param id nodeId.
+     * @param isDelegateMode Indicates whether enable.
+     */
+    bool SetDelegateMode(NodeId id, bool isDelegateMode);
 private:
     RSRenderInterface();
     RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
@@ -492,7 +503,7 @@ private:
     friend class RSSurfaceNode;
     friend class RSUIContextManager;
     friend class HidePrivacyContentCmdModifier; // for SetHidePrivacyContent
-    friend class HardwareEnabledCmdModifier; // SetHardwareEnabled
+    friend class HardwareEnabledCmdModifier; // for SetHardwareEnabled
 };
 }
 }

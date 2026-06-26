@@ -78,6 +78,8 @@ public:
     ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success, uint32_t rowCount = 0, uint32_t colCount = 0) override;
 
+    ErrCode SetUifirstScale(float scaleFactor) override;
+
     void ForceRefreshOneFrameWithNextVSync() override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
@@ -344,6 +346,8 @@ public:
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
+
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params) override;
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 

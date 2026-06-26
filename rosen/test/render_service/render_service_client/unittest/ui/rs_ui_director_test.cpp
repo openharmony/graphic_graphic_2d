@@ -20,7 +20,6 @@
 
 #include "animation/rs_render_animation.h"
 #include "modifier/rs_modifier_manager.h"
-#include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "transaction/rs_interfaces.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
@@ -71,9 +70,6 @@ void RSUIDirectorTest::SetUpTestCase()
 }
 void RSUIDirectorTest::TearDownTestCase()
 {
-#ifdef RS_ENABLE_VK
-    RSModifiersDrawThread::Destroy();
-#endif
     RSRenderThread::Instance().renderContext_ = nullptr;
 }
 void RSUIDirectorTest::SetUp() {}
@@ -636,33 +632,6 @@ HWTEST_F(RSUIDirectorTest, SetCacheDir, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCacheDir002
- * @tc.desc: test cache directory can be sync from uidirector to RSModifiersDrawThread
- * @tc.type: FUNC
- * @tc.require: issueICR877
- */
-HWTEST_F(RSUIDirectorTest, SetCacheDir002, TestSize.Level1)
-{
-#ifdef RS_ENABLE_VK
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    if (!RSSystemProperties::GetHybridRenderEnabled()) {
-        return;
-    }
-    RSModifiersDrawThread::SetCacheDir("");
-    ASSERT_TRUE(RSModifiersDrawThread::GetCacheDir().empty());
-    // test cacheDir can be set.
-    const std::string& cacheFilePath1 = "test";
-    director->SetCacheDir(cacheFilePath1);
-    ASSERT_FALSE(RSModifiersDrawThread::GetCacheDir().empty());
-    // empty dir can not be set.
-    const std::string& cacheFilePath2 = "";
-    director->SetCacheDir(cacheFilePath2);
-    ASSERT_FALSE(RSModifiersDrawThread::GetCacheDir().empty());
-#endif
-}
-
-/**
  * @tc.name: SetRTRenderForced
  * @tc.desc:
  * @tc.type:FUNC
@@ -868,54 +837,6 @@ HWTEST_F(RSUIDirectorTest, ProcessUIContextMessagesTest003, TestSize.Level1)
 }
 
 /**
- * @tc.name: AnimationCallbackProcessor
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessor, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    // for test
-    NodeId nodeId = 0;
-    AnimationId animId = 0;
-    uint64_t token = 0;
-    AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-}
-
-/**
- * @tc.name: AnimationCallbackProcessorTest001
- * @tc.desc: test results of AnimationCallbackProcessor
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIDirectorTest, AnimationCallbackProcessorTest001, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    // for test
-    NodeId nodeId = 0;
-    AnimationId animId = 0;
-    uint64_t token = 0;
-    AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-
-    auto node = std::make_shared<RSRootNode>(false);
-    nodeId = node->GetId();
-    director->SetRoot(nodeId);
-    RSRootNode::SharedPtr nodePtr = std::make_shared<RSRootNode>(nodeId);
-    bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    auto animation = std::make_shared<RSAnimation>(director->GetRSUIContext());
-    animId = animation->GetId();
-    director->rsUIContext_->animations_.emplace(animId, animation);
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    director->rsUIContext_ = nullptr;
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    ASSERT_TRUE(res);
-}
-
-/**
  * @tc.name: PostTask
  * @tc.desc:
  * @tc.type:FUNC
@@ -1035,101 +956,6 @@ HWTEST_F(RSUIDirectorTest, ReportUiSkipEventTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsHybridRenderEnabled001
- * @tc.desc: IsHybridRenderEnabled Test with default param
- * @tc.type: FUNC
- * @tc.require: issueICJVZA
- */
-HWTEST_F(RSUIDirectorTest, IsHybridRenderEnabled001, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderEnabled();
-    bool directorRet = director->IsHybridRenderEnabled();
-    EXPECT_EQ(systemPropertiesRet, directorRet);
-}
-
-/**
- * @tc.name: GetHybridRenderSwitch001
- * @tc.desc: GetHybridRenderSwitch Test with normal param ComponentEnableSwitch::TEXTBLOB
- * @tc.type: FUNC
- * @tc.require: issueICJVZA
- */
-HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch001, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    ComponentEnableSwitch bitSeq = ComponentEnableSwitch::TEXTBLOB;
-    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
-    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
-    EXPECT_EQ(systemPropertiesRet, directorRet);
-}
-
-/**
- * @tc.name: GetHybridRenderSwitch002
- * @tc.desc: GetHybridRenderSwitch Test with abnormal param ComponentEnableSwitch::MAX_VALUE
- * @tc.type: FUNC
- * @tc.require: issueICJVZA
- */
-HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch002, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    ComponentEnableSwitch bitSeq = ComponentEnableSwitch::MAX_VALUE;
-    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
-    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
-    EXPECT_EQ(systemPropertiesRet, directorRet);
-}
-
-/**
- * @tc.name: GetHybridRenderSwitch003
- * @tc.desc: GetHybridRenderSwitch Test with abnormal param -1
- * @tc.type: FUNC
- * @tc.require: issueICJVZA
- */
-HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch003, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    ComponentEnableSwitch bitSeq = static_cast<ComponentEnableSwitch>(-1);
-    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
-    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
-    EXPECT_EQ(systemPropertiesRet, directorRet);
-}
-
-/**
- * @tc.name: GetHybridRenderSwitch004
- * @tc.desc: GetHybridRenderSwitch Test with abnormal param ComponentEnableSwitch::MAX_VALUE + 1
- * @tc.type: FUNC
- * @tc.require: issueICJVZA
- */
-HWTEST_F(RSUIDirectorTest, GetHybridRenderSwitch004, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    ComponentEnableSwitch bitSeq =
-        static_cast<ComponentEnableSwitch>(static_cast<uint8_t>(ComponentEnableSwitch::MAX_VALUE) + 1);
-    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderSwitch(bitSeq);
-    bool directorRet = director->GetHybridRenderSwitch(bitSeq);
-    EXPECT_EQ(systemPropertiesRet, directorRet);
-}
-
-/**
- * @tc.name: GetHybridRenderTextBlobLenCount001
- * @tc.desc: GetHybridRenderTextBlobLenCount Test with default param
- * @tc.type: FUNC
- * @tc.require: issueICJVZA
- */
-HWTEST_F(RSUIDirectorTest, GetHybridRenderTextBlobLenCount001, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    uint32_t systemPropertiesRet = RSSystemProperties::GetHybridRenderTextBlobLenCount();
-    uint32_t directorRet = director->GetHybridRenderTextBlobLenCount();
-    EXPECT_EQ(systemPropertiesRet, directorRet);
-}
-
-/**
  * @tc.name: TestTransactionHandler001
  * @tc.desc: Test the input param transactionHandler of callback is nullptr under single instance.
  * @tc.type: FUNC
@@ -1223,27 +1049,6 @@ HWTEST_F(RSUIDirectorTest, TestTransactionHandler003, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetTypicalResidentProcessTest001
- * @tc.desc: SetTypicalResidentProcess Test
- * @tc.type: FUNC
- * @tc.require: issueI9N1QF
- */
-HWTEST_F(RSUIDirectorTest, SetTypicalResidentProcessTest001, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
-    ASSERT_TRUE(director != nullptr);
-    bool enabled = RSSystemProperties::GetTypicalResidentProcess();
-    director->SetTypicalResidentProcess(!enabled);
-    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
-    director->SetTypicalResidentProcess(enabled);
-    // isTypicalResidentProcess_ will only be set once
-    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), !enabled);
-    // recover isTypicalResidentProcess_
-    RSSystemProperties::SetTypicalResidentProcess(enabled);
-    EXPECT_EQ(RSSystemProperties::GetTypicalResidentProcess(), enabled);
-}
-
-/**
  * @tc.name: SetDVSyncUpdate001
  * @tc.desc: SetDVSyncUpdate Test
  * @tc.type: FUNC
@@ -1258,5 +1063,509 @@ HWTEST_F(RSUIDirectorTest, SetDVSyncUpdate001, TestSize.Level1)
     EXPECT_EQ(time, director->dvsyncTime_);
     EXPECT_EQ(true, director->dvsyncUpdate_);
 }
+/**
+ * @tc.name: GoCreateTest
+ * @tc.desc: Test GoCreate sets state to CREATE and adds command
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoCreateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->GoCreate();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+}
+
+/**
+ * @tc.name: GoCreateWithNullUIContextTest
+ * @tc.desc: Test GoCreate handles null RSUIContext in AddUIDirectorCommand
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoCreateWithNullUIContextTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->rsUIContext_ = nullptr;
+    director->GoCreate();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+}
+
+/**
+ * @tc.name: AddUIDirectorCommandNullTransactionTest
+ * @tc.desc: Test AddUIDirectorCommand returns when transaction is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, AddUIDirectorCommandNullTransactionTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    ASSERT_NE(director->rsUIContext_, nullptr);
+    director->rsUIContext_->rsTransactionHandler_ = nullptr;
+    director->GoCreate();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+}
+
+/**
+ * @tc.name: GoResumeInvalidStateTest
+ * @tc.desc: Test GoResume returns early for invalid states and leaves state unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoResumeInvalidStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    // state is FOREGROUND after Init, invalid for GoResume
+    director->GoResume();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::FOREGROUND);
+
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+    director->GoResume();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+
+    director->Destroy();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+    director->GoResume();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+}
+
+/**
+ * @tc.name: GoResumeNormalStateTest
+ * @tc.desc: Test GoResume from CREATE and STOP states
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoResumeNormalStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    auto rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+
+    director->GoCreate();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+    director->GoResume();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::RESUME);
+
+    director->GoForeground();
+    director->GoBackground();
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+    director->GoResume();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::RESUME);
+}
+
+/**
+ * @tc.name: RebuildNodeTreeTest
+ * @tc.desc: Test RebuildNodeTree branches with and without root node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, RebuildNodeTreeTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    // no root node, should return directly
+    director->RebuildNodeTree();
+
+    auto rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    director->RebuildNodeTree();
+    EXPECT_EQ(director->GetRSUIContext()->GetRebuildState(), RebuildState::Normal);
+}
+
+/**
+ * @tc.name: GoForegroundInvalidStateTest
+ * @tc.desc: Test GoForeground returns early for invalid states and leaves state unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoForegroundInvalidStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    director->GoCreate();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+    director->GoForeground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+
+    director->GoResume();
+    director->GoBackground();
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+    director->GoForeground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+
+    director->Destroy();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+    director->GoForeground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+}
+
+/**
+ * @tc.name: GoForegroundNormalStateTest
+ * @tc.desc: Test GoForeground from RESUME and BACKGROUND
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoForegroundNormalStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    director->GoCreate();
+    director->GoResume();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::RESUME);
+    director->GoForeground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::FOREGROUND);
+
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+    director->GoForeground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::FOREGROUND);
+}
+
+/**
+ * @tc.name: ExecuteGoForegroundBranchesTest
+ * @tc.desc: Test ExecuteGoForeground with different isActive_/isUniRenderEnabled_/textureExport
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ExecuteGoForegroundBranchesTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    director->isActive_ = false;
+    director->isUniRenderEnabled_ = false;
+    director->ExecuteGoForeground(false);
+    EXPECT_TRUE(director->isActive_);
+
+    director->isActive_ = false;
+    director->isUniRenderEnabled_ = true;
+    director->ExecuteGoForeground(false);
+    EXPECT_TRUE(director->isActive_);
+
+    director->isActive_ = false;
+    director->isUniRenderEnabled_ = true;
+    director->ExecuteGoForeground(true);
+    EXPECT_TRUE(director->isActive_);
+
+    // second call when isActive_ is true should not update again
+    director->ExecuteGoForeground(false);
+    EXPECT_TRUE(director->isActive_);
+}
+
+/**
+ * @tc.name: GoBackgroundInvalidStateTest
+ * @tc.desc: Test GoBackground returns early when state is not FOREGROUND and leaves state unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoBackgroundInvalidStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    director->GoCreate();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::CREATE);
+
+    director->GoResume();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::RESUME);
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::RESUME);
+
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+
+    director->Destroy();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+}
+
+/**
+ * @tc.name: GoBackgroundNormalStateTest
+ * @tc.desc: Test GoBackground from FOREGROUND with various ExecuteGoBackground branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoBackgroundNormalStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    // isActive_ false: ExecuteGoBackground does nothing
+    director->isActive_ = false;
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+
+    // reset to FOREGROUND and test isUniRenderEnabled_ path
+    director->currentUIDirectorState_ = RSUIDirectorLifecycleState::FOREGROUND;
+    director->isActive_ = true;
+    director->isUniRenderEnabled_ = true;
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+
+    // reset to FOREGROUND and test textureExport path
+    director->currentUIDirectorState_ = RSUIDirectorLifecycleState::FOREGROUND;
+    director->isActive_ = true;
+    director->isUniRenderEnabled_ = false;
+    director->GoBackground(true);
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+
+    // reset to FOREGROUND and test normal buffer clean path
+    director->currentUIDirectorState_ = RSUIDirectorLifecycleState::FOREGROUND;
+    director->isActive_ = true;
+    director->isUniRenderEnabled_ = false;
+    RSSurfaceNodeConfig config;
+    auto surfaceNode = RSSurfaceNode::Create(config);
+    director->SetRSSurfaceNode(surfaceNode);
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+}
+
+/**
+ * @tc.name: GoStopInvalidStateTest
+ * @tc.desc: Test GoStop returns early for invalid states and leaves state unchanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoStopInvalidStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    // state is FOREGROUND after Init, invalid for GoStop
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::FOREGROUND);
+
+    director->GoBackground();
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+
+    director->Destroy();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+}
+
+/**
+ * @tc.name: GoStopNormalStateTest
+ * @tc.desc: Test GoStop from BACKGROUND and RESUME
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GoStopNormalStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    director->GoBackground();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::BACKGROUND);
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+
+    director->currentUIDirectorState_ = RSUIDirectorLifecycleState::RESUME;
+    director->GoStop();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
+}
+
+/**
+ * @tc.name: ReleaseRenderNodeBranchesTest
+ * @tc.desc: Test ReleaseRenderNode handles null context, skip flag and node filtering
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeBranchesTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    ASSERT_NE(director->rsUIContext_, nullptr);
+
+    // rsUIContext_ is null path
+    auto savedContext = director->rsUIContext_;
+    director->rsUIContext_ = nullptr;
+    director->ReleaseRenderNode();
+    director->rsUIContext_ = savedContext;
+
+    // skipDestroyUIContext_ is true path
+    director->skipDestroyUIContext_ = true;
+    director->ReleaseRenderNode();
+    director->skipDestroyUIContext_ = false;
+
+    // normal path with app window surface node and a canvas child
+    RSSurfaceNodeConfig config;
+    config.SurfaceNodeName = "AppWindow";
+    auto surfaceNode = RSSurfaceNode::Create(config);
+    director->SetRSSurfaceNode(surfaceNode);
+    auto child = RSCanvasNode::Create(false, false, director->GetRSUIContext());
+    auto rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    rootNode->AddChild(child, -1);
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    director->ReleaseRenderNode();
+}
+
+/**
+ * @tc.name: ExecuteGoDestroyBranchesTest
+ * @tc.desc: Test ExecuteGoDestroy with root node and skipDestroyUIContext variations
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ExecuteGoDestroyBranchesTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+
+    // no root node and no ui context
+    director->ExecuteGoDestroy(false);
+
+    auto rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+
+    director->isUniRenderEnabled_ = false;
+    director->ExecuteGoDestroy(false);
+    EXPECT_EQ(director->rootNode_.lock(), nullptr);
+
+    // re-create root node and test skipDestroyUIContext_
+    auto rootNode2 = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode2->ReinterpretCastTo<RSRootNode>());
+    director->skipDestroyUIContext_ = true;
+    director->ExecuteGoDestroy(false);
+}
+
+/**
+ * @tc.name: DestroyStateTest
+ * @tc.desc: Test Destroy sets DESTROYED state and executes destroy logic
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, DestroyStateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->Destroy();
+    EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::DESTROYED);
+}
+
+/**
+ * @tc.name: SetRSRootNodeUpdatesRootNodeIdTest
+ * @tc.desc: Test SetRSRootNode updates rootNodeId_ in RSUIContext
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetRSRootNodeUpdatesRootNodeIdTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    auto uiContext = director->GetRSUIContext();
+    ASSERT_NE(uiContext, nullptr);
+
+    auto rootNode = RSRootNode::Create(false, false, uiContext);
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    EXPECT_EQ(uiContext->rootNodeId_, rootNode->GetId());
+
+    // setting the same root node again should return early
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    EXPECT_EQ(uiContext->rootNodeId_, rootNode->GetId());
+}
+
+/**
+ * @tc.name: GetHybridRenderCanvasEnabledTest
+ * @tc.desc: Test GetHybridRenderCanvasEnabled returns system property value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetHybridRenderCanvasEnabledTest, TestSize.Level1)
+{
+    bool systemPropertiesRet = RSSystemProperties::GetHybridRenderCanvasEnabled();
+    bool directorRet = RSUIDirector::GetHybridRenderCanvasEnabled();
+    EXPECT_EQ(systemPropertiesRet, directorRet);
+}
+
+/**
+ * @tc.name: OnCanvasDrawingNodeRenderStartEndTest
+ * @tc.desc: Test canvas drawing node render start/end bookkeeping
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, OnCanvasDrawingNodeRenderStartEndTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    NodeId nodeId1 = 1001;
+    NodeId nodeId2 = 1002;
+    director->OnCanvasDrawingNodeRenderStart(nodeId1);
+    director->OnCanvasDrawingNodeRenderStart(nodeId2);
+    director->OnCanvasDrawingNodeRenderEnd(nodeId1);
+    director->OnCanvasDrawingNodeRenderEnd(nodeId2);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: AnimationDestroyInRenderCallbackProcessorInvalidTest
+ * @tc.desc: Test AnimationDestroyInRenderCallbackProcessor with invalid token, invalid node id and valid node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, AnimationDestroyInRenderCallbackProcessorInvalidTest, TestSize.Level1)
+{
+    // invalid token
+    RSUIDirector::AnimationDestroyInRenderCallbackProcessor(0, 0, 0, 0.0f, false);
+
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    auto uiContext = director->GetRSUIContext();
+    ASSERT_NE(uiContext, nullptr);
+    // valid token but invalid node id
+    RSUIDirector::AnimationDestroyInRenderCallbackProcessor(0, 0, uiContext->GetToken(), 0.0f, false);
+
+    // valid token and valid node
+    auto node = RSCanvasNode::Create(false, false, uiContext);
+    RSUIDirector::AnimationDestroyInRenderCallbackProcessor(
+        node->GetId(), 1, uiContext->GetToken(), 0.5f, true);
+}
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: InitHybridRenderTest
+ * @tc.desc: Test InitHybridRender handles disabled hybrid canvas and null checks
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, InitHybridRenderTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        director->InitHybridRender();
+        SUCCEED();
+        return;
+    }
+    director->InitHybridRender();
+}
+
+/**
+ * @tc.name: FlushCanvasDrawingNodeBuffersTest
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers proxy to RSUIContext
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, FlushCanvasDrawingNodeBuffersTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->FlushCanvasDrawingNodeBuffers();
+
+    director->rsUIContext_ = nullptr;
+    director->FlushCanvasDrawingNodeBuffers();
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SetCacheDirHybridCanvasTest
+ * @tc.desc: Test SetCacheDir with hybrid canvas paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, SetCacheDirHybridCanvasTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    director->SetCacheDir("");
+    director->SetCacheDir("/data/cache");
+
+    director->rsUIContext_ = nullptr;
+    director->SetCacheDir("/data/cache2");
+    SUCCEED();
+}
+#endif
+
 #endif
 } // namespace OHOS::Rosen

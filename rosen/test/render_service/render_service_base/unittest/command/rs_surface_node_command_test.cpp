@@ -20,6 +20,12 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "common/rs_anco_type.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include "iconsumer_surface.h"
+#include "pipeline/rs_surface_handler.h"
+#include "ibuffer_consumer_listener.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -947,4 +953,160 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetHDRTypeTest, TestSize.Level1)
     SurfaceNodeCommandHelper::SetHDRType(context, InvalidNodeId, 0);
     ASSERT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(InvalidNodeId) == nullptr);
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+/**
+ * @tc.name: RSSurfaceBufferInterfaceTest001
+ * @tc.desc: Test RSSurfaceBufferInterface interface methods
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, RSSurfaceBufferInterfaceTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    RSSurfaceBufferInterface* bufferInterface = surfaceNode.get();
+    ASSERT_NE(bufferInterface, nullptr);
+
+    EXPECT_EQ(bufferInterface->GetId(), nodeId);
+    EXPECT_EQ(bufferInterface->GetName(), surfaceNode->GetName());
+
+    RSSurfaceRenderNode* castedNode = bufferInterface->AsRSSurfaceRenderNode();
+    ASSERT_NE(castedNode, nullptr);
+    EXPECT_EQ(castedNode->GetId(), nodeId);
+    surfaceNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::FORCE_REFRESH));
+    bool forceRefreshed = bufferInterface->OnBufferAvailable();
+    ASSERT_EQ(forceRefreshed, true);
+
+    std::set<uint64_t> bufferCacheSet;
+    bufferInterface->OnCleanCache(bufferCacheSet);
+    bufferInterface->OnSurfaceGoBackground();
+    bufferInterface->OnTransformChange();
+    bufferInterface->OnTunnelHandleChange();
+}
+
+/**
+ * @tc.name: SaveSurfaceHandlerInfoTest001
+ * @tc.desc: Test SaveSurfaceHandlerInfo and GetSurfaceHandlerInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SaveSurfaceHandlerInfoTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(nodeId);
+    sptr<IBufferConsumerListener> listener = nullptr;
+    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> info = { surfaceHandler, listener };
+
+    context.GetMutableNodeMap().SaveSurfaceHandlerInfo(nodeId, info);
+
+    auto retrievedInfo = context.GetNodeMap().GetSurfaceHandlerInfo(nodeId);
+    EXPECT_EQ(retrievedInfo.first, surfaceHandler);
+    EXPECT_EQ(retrievedInfo.second, listener);
+
+    context.GetMutableNodeMap().RemoveSurfaceHandlerInfo(nodeId);
+    retrievedInfo = context.GetNodeMap().GetSurfaceHandlerInfo(nodeId);
+    EXPECT_EQ(retrievedInfo.first, nullptr);
+    EXPECT_EQ(retrievedInfo.second, nullptr);
+}
+
+/**
+ * @tc.name: RecreateNodeCallbackTest001
+ * @tc.desc: Test SetRecreateNodeCallBack and InvokeRecreateNodeCallBack
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeCallbackTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    bool callbackInvoked = false;
+    NodeId callbackNodeId = 0;
+
+    auto callback = [&callbackInvoked, &callbackNodeId](NodeId id, std::weak_ptr<RSSurfaceBufferInterface> surface) {
+        callbackInvoked = true;
+        callbackNodeId = id;
+        auto surfacePtr = surface.lock();
+        if (surfacePtr) {
+            EXPECT_EQ(surfacePtr->GetId(), id);
+        }
+    };
+
+    context.SetRecreateNodeCallback(callback);
+
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    context.InvokeRecreateNodeCallBack(nodeId, RSSurfaceBufferInterface::WeakPtr(surfaceNode));
+
+    EXPECT_TRUE(callbackInvoked);
+    EXPECT_EQ(callbackNodeId, nodeId);
+}
+
+/**
+ * @tc.name: CreateWithConfigInRSTest001
+ * @tc.desc: Test CreateWithConfigInRS with custom surfaceHandler
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigInRSTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config;
+    config.id = nodeId;
+    config.name = "TestSurfaceNode";
+    config.nodeType = RSSurfaceNodeType::DEFAULT;
+    config.isTextureExportNode = false;
+
+    auto customSurfaceHandler = std::make_shared<RSSurfaceHandler>(nodeId);
+    auto node = SurfaceNodeCommandHelper::CreateWithConfigInRS(config, context, false, customSurfaceHandler);
+
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->GetId(), nodeId);
+    EXPECT_EQ(node->GetName(), "TestSurfaceNode");
+}
+
+#ifndef ROSEN_CROSS_PLATFORM
+class MockBufferConsumerListener : public IBufferConsumerListener {
+public:
+    MockBufferConsumerListener() = default;
+    ~MockBufferConsumerListener() override = default;
+    void OnBufferAvailable() override {}
+};
+
+/**
+ * @tc.name: RecreateNodeAndSurfaceTest001
+ * @tc.desc: Test RecreateNodeAndSurface with invalid node id
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, RecreateNodeAndSurfaceTest001, TestSize.Level1)
+{
+    RSContext context;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    SurfaceId surfaceId = 100;
+    bool unobscured = false;
+
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(config.id);
+    auto consumer = IConsumerSurface::Create();
+    surfaceHandler->SetConsumer(consumer);
+    sptr<IBufferConsumerListener> listener = new MockBufferConsumerListener();
+    consumer->RegisterConsumerListener(listener);
+    surfaceHandler->SetConsumer(consumer);
+
+    std::pair<std::shared_ptr<RSSurfaceHandler>, sptr<IBufferConsumerListener>> info = { surfaceHandler, listener };
+    context.GetMutableNodeMap().SaveSurfaceHandlerInfo(config.id, info);
+
+    SurfaceNodeCommandHelper::RecreateNodeAndSurface(context, config, surfaceId, unobscured);
+
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(config.id);
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->GetId(), config.id);
+}
+#endif
+#endif
 } // namespace OHOS::Rosen

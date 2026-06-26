@@ -100,8 +100,6 @@ RSScreen::RSScreen(ScreenId id)
     PhysicalScreenInit();
     HILOG_COMM_WARN("init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u], "
         "screenType: %{public}u}", id, property_.GetWidth(), property_.GetHeight(), property_.GetScreenType());
-
-    capability_.props.clear();
 }
 
 RSScreen::RSScreen(const VirtualScreenConfigs& configs)

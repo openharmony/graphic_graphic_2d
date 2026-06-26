@@ -190,6 +190,12 @@ void GPUContext::RegisterVulkanErrorCallback(
     impl_->RegisterVulkanErrorCallback(vulkanErrorCallback);
 }
 
+void GPUContext::RegisterCreatePipelineTimeCallback(
+    const std::function<void(int64_t, int64_t, bool)>& createPipelineTimeCallback)
+{
+    impl_->RegisterCreatePipelineTimeCallback(createPipelineTimeCallback);
+}
+
 void GPUContext::RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback)
 {
     impl_->RegisterDrawOpOverCallback(drawOpOverCallback);

@@ -100,24 +100,23 @@ static std::unordered_map<RSNGEffectType, ShapeGetTransformRect> getTransformRec
             float top = transformRect.GetTop() + std::min(luCorner[1], ruCorner[1]) * transformRect.GetHeight();
             float right = std::max(ruCorner[0], rbCorner[0]) * transformRect.GetWidth();
             float bottom = std::max(lbCorner[1], rbCorner[1]) * transformRect.GetHeight();
+            float width = std::abs(right - left);
+            float height = std::abs(bottom - top);
             constexpr float halfUV = 0.5f;
             constexpr float distortScale = 0.25f;
             constexpr float tuneNum = 4.0f;
             constexpr float tuneDenomBase = 2.0f;
             if (distortion[0] > 0) {
-                left -= rect.GetWidth() *
-                    (halfUV - distortScale * (tuneNum + distortion[0]) / (tuneDenomBase + distortion[0]));
+                left -= width * (halfUV - distortScale * (tuneNum + distortion[0]) / (tuneDenomBase + distortion[0]));
             }
             if (distortion[1] > 0) {
-                right += rect.GetWidth() *
-                    (halfUV - distortScale * (tuneNum + distortion[1]) / (tuneDenomBase + distortion[1]));
+                right += width * (halfUV - distortScale * (tuneNum + distortion[1]) / (tuneDenomBase + distortion[1]));
             }
             if (distortion[2] > 0) {
-                top -= rect.GetHeight() *
-                    (halfUV - distortScale * (tuneNum + distortion[2]) / (tuneDenomBase + distortion[2]));
+                top -= height * (halfUV - distortScale * (tuneNum + distortion[2]) / (tuneDenomBase + distortion[2]));
             }
             if (distortion[3] > 0) {
-                bottom += rect.GetHeight() *
+                bottom += height *
                     (halfUV - distortScale * (tuneNum + distortion[3]) / (tuneDenomBase + distortion[3]));
             }
             return RectF(floor(left), floor(top), ceil(right) - floor(left), ceil(bottom) - floor(top));

@@ -195,6 +195,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     ON_EXPOSED_EVENT = 0x011001,
     GET_PID_GPU_MEMORY_IN_MB = 0X13000,
     GET_MAX_GPU_BUFFER_SIZE = 0X13001,
+    SET_UIFIRST_SCALE = 0X13003,
 
     PROFILER_SERVICE_OPEN_FILE = 0x014000,
     PROFILER_SERVICE_POPULATE_FILES = 0x014001,
@@ -216,6 +217,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 1010,
     NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID = 1011,
     NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME = 1012,
+    SET_APS_CONFIG_PARAMS = 1015,
 };
 } // namespace Rosen
 } // namespace OHOS

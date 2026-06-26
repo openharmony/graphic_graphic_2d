@@ -234,98 +234,6 @@ HWTEST_F(DrawCmdListTest, GetBounds004, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsHybridRenderEnabled001
- * @tc.desc: Test the IsHybridRenderEnabled function.
- * @tc.type: FUNC
- * @tc.require: IC2UAC
- */
-HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled001, TestSize.Level1)
-{
-    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
-    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() <= drawCmdList->offset_);
-    drawCmdList->hybridRenderType_ = DrawCmdList::HybridRenderType::CANVAS;
-    auto ret = drawCmdList->IsHybridRenderEnabled(0, 0);
-    EXPECT_EQ(ret, true);
-    delete drawCmdList;
-}
-
-/**
- * @tc.name: IsHybridRenderEnabled002
- * @tc.desc: Test the IsHybridRenderEnabled function.
- * @tc.type: FUNC
- * @tc.require: IC2UAC
- */
-HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled002, TestSize.Level1)
-{
-    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
-    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
-    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
-    auto ret = drawCmdList->IsHybridRenderEnabled(INT_MAX, INT_MAX);
-    EXPECT_EQ(ret, true);
-    delete drawCmdList;
-}
-
-/**
- * @tc.name: IsHybridRenderEnabled003
- * @tc.desc: Test the IsHybridRenderEnabled function.
- * @tc.type: FUNC
- * @tc.require: IC2UAC
- */
-HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled003, TestSize.Level1)
-{
-    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
-    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
-    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
-    drawCmdList->lastOpGenSize_ = drawCmdList->opAllocator_.GetSize();
-    Brush brush;
-    drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
-    Rect rect = Rect(0.0f, 0.0f, 100.0f, 100.0f);
-    auto opItem = std::make_shared<HybridRenderPixelMapSizeOpItem>(rect.GetWidth(), rect.GetHeight());
-    drawCmdList->drawOpItems_.emplace_back(opItem);
-    auto ret = drawCmdList->IsHybridRenderEnabled(INT_MAX, INT_MAX);
-    EXPECT_EQ(ret, true);
-    delete drawCmdList;
-}
-
-/**
- * @tc.name: IsHybridRenderEnabled004
- * @tc.desc: Test the IsHybridRenderEnabled function.
- * @tc.type: FUNC
- * @tc.require: IC2UAC
- */
-HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled004, TestSize.Level1)
-{
-    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
-    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
-    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
-    drawCmdList->width_ = 5001;
-    drawCmdList->height_ = 1000;
-    auto ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
-    EXPECT_EQ(ret, false);
-    drawCmdList->width_ = 5001;
-    drawCmdList->height_ = 5000;
-    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
-    EXPECT_EQ(ret, false);
-    drawCmdList->width_ = 1000;
-    drawCmdList->height_ = 5001;
-    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
-    EXPECT_EQ(ret, false);
-    drawCmdList->width_ = -1;
-    drawCmdList->height_ = 5001;
-    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
-    EXPECT_EQ(ret, false);
-    drawCmdList->width_ = 5001;
-    drawCmdList->height_ = -1;
-    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
-    EXPECT_EQ(ret, false);
-    drawCmdList->width_ = -1;
-    drawCmdList->height_ = -1;
-    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
-    EXPECT_EQ(ret, true);
-    delete drawCmdList;
-}
-
-/**
  * @tc.name: GetDrawOpItemsTest
  * @tc.desc: Test GetDrawOpItems
  * @tc.type: FUNC
@@ -631,6 +539,63 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsTest002, TestSize.Level1)
     drawCmdList->drawOpItems_.push_back(std::make_shared<DrawBackgroundOpItem>(brush));
     drawCmdList->ProfilerMarshallingDrawOps(otherDrawCmdList.get());
     ASSERT_NE(drawCmdList->mode_, DrawCmdList::UnmarshalMode::IMMEDIATE);
+}
+
+/**
+ * @tc.name: PlaybackToDrawCmdList001
+ * @tc.desc: Test the PlaybackToDrawCmdList function with nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, PlaybackToDrawCmdList001, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->PlaybackToDrawCmdList(nullptr);
+    EXPECT_TRUE(drawCmdList->drawingObjectVec_.empty());
+}
+
+/**
+ * @tc.name: PlaybackToDrawCmdList002
+ * @tc.desc: Test the PlaybackToDrawCmdList function in DEFERRED mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, PlaybackToDrawCmdList002, TestSize.Level1)
+{
+    auto srcDrawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto dstDrawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    Brush brush;
+    srcDrawCmdList->drawOpItems_.push_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    EXPECT_EQ(srcDrawCmdList->drawOpItems_.size(), 1);
+    EXPECT_EQ(dstDrawCmdList->drawOpItems_.size(), 0);
+
+    srcDrawCmdList->PlaybackToDrawCmdList(dstDrawCmdList);
+    EXPECT_EQ(dstDrawCmdList->drawOpItems_.size(), 1);
+}
+
+/**
+ * @tc.name: PlaybackToDrawCmdList003
+ * @tc.desc: Test the PlaybackToDrawCmdList function in IMMEDIATE mode with drawingObjectVec swap.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, PlaybackToDrawCmdList003, TestSize.Level1)
+{
+    auto srcDrawCmdList = std::make_shared<DrawCmdList>(100, 100, DrawCmdList::UnmarshalMode::IMMEDIATE);
+    int testData[4] = {100, 100, 0, 0};
+    srcDrawCmdList->opAllocator_.Add(testData, sizeof(testData));
+    auto dstDrawCmdList = std::make_shared<DrawCmdList>(100, 100, DrawCmdList::UnmarshalMode::IMMEDIATE);
+
+    std::shared_ptr<Object> mockObject1 = std::make_shared<MockDrawingObject>();
+    std::shared_ptr<Object> mockObject2 = std::make_shared<MockDrawingObject>();
+    srcDrawCmdList->drawingObjectVec_.push_back(mockObject1);
+    srcDrawCmdList->drawingObjectVec_.push_back(mockObject2);
+
+    std::shared_ptr<Object> dstMockObject = std::make_shared<MockDrawingObject>();
+    dstDrawCmdList->drawingObjectVec_.push_back(dstMockObject);
+    EXPECT_EQ(srcDrawCmdList->drawingObjectVec_.size(), 2);
+    EXPECT_EQ(dstDrawCmdList->drawingObjectVec_.size(), 1);
+
+    srcDrawCmdList->PlaybackToDrawCmdList(dstDrawCmdList);
+    EXPECT_EQ(srcDrawCmdList->drawingObjectVec_.size(), 1);
+    EXPECT_EQ(dstDrawCmdList->drawingObjectVec_.size(), 2);
 }
 } // namespace Drawing
 } // namespace Rosen

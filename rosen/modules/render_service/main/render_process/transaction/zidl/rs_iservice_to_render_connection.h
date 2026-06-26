@@ -87,6 +87,9 @@ public:
         uint32_t rowCount = 0, uint32_t colCount = 0) = 0;
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow) = 0;
 
+    // uifirstscale
+    virtual ErrCode SetUifirstScale(float scaleFactor) = 0;
+
     // Vrate
     virtual ErrCode GetSurfaceRootNodeId(NodeId& windowNodeId) = 0;
 
@@ -127,6 +130,10 @@ public:
     // Behind Window Filter
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
+
+    // Aps
+    virtual ErrCode SetApsConfigParams(
+        ApsEventType event, const std::unordered_map<std::string, std::string>& params) = 0;
 
     // Others
     virtual ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) = 0;

@@ -1267,25 +1267,22 @@ HWTEST_F(RSScreenRenderNodeTest, SetLogicalCameraRotationCorrectionTest, TestSiz
 }
 
 /**
- * @tc.name: HasForceHwcHdrSurfaceTest
- * @tc.desc: test results of SetHasForceHwcHdrSurface, GetHasForceHwcHdrSurface
- * @tc.type:FUNC
+ * @tc.name: HdrForceHwcNodesTest
+ * @tc.desc: test results of SetHdrForceHwcNodes, GetHdrForceHwcNodes, ClearHdrForceHwcNodes
+ * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSScreenRenderNodeTest, HasForceHwcHdrSurfaceTest, TestSize.Level1)
+HWTEST_F(RSScreenRenderNodeTest, HdrForceHwcNodesTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
-    node->SetHasForceHwcHdrSurface(false);
-    EXPECT_EQ(node->GetHasForceHwcHdrSurface(), false);
-    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
-    ASSERT_NE(node->stagingRenderParams_, nullptr);
-    node->SetHasForceHwcHdrSurface(true);
-    EXPECT_EQ(node->GetHasForceHwcHdrSurface(), true);
-    node->stagingRenderParams_->SetNeedSync(false);
-    node->SetHasForceHwcHdrSurface(false);
-    node->stagingRenderParams_->SetNeedSync(true);
-    node->SetHasForceHwcHdrSurface(true);
-    EXPECT_EQ(node->GetHasForceHwcHdrSurface(), true);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    std::unordered_map<NodeId, std::weak_ptr<RSSurfaceRenderNode>> hdrForceHwcNodes;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    hdrForceHwcNodes.emplace(surfaceNode->GetId(), surfaceNode);
+    screenNode->SetHdrForceHwcNodes(hdrForceHwcNodes);
+    EXPECT_EQ(screenNode->GetHdrForceHwcNodes().size(), 1);
+
+    screenNode->ClearHdrForceHwcNodes();
+    EXPECT_EQ(screenNode->GetHdrForceHwcNodes().size(), 0);
 }
 
 /**
@@ -1360,16 +1357,18 @@ HWTEST_F(RSScreenRenderNodeTest, SetHasForceHwcHdrSurface_DifferentValue, TestSi
 {
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenNode->stagingRenderParams_.get());
 
     screenNode->SetHasForceHwcHdrSurface(true);
-    EXPECT_TRUE(screenNode->GetHasForceHwcHdrSurface());
+    EXPECT_TRUE(screenParams->GetHasForceHwcHdrSurface());
 
     screenNode->SetHasForceHwcHdrSurface(false);
-    EXPECT_FALSE(screenNode->GetHasForceHwcHdrSurface());
+    EXPECT_FALSE(screenParams->GetHasForceHwcHdrSurface());
 
-    screenNode->stagingRenderParams_->SetNeedSync(false);
+    screenParams->SetNeedSync(false);
     screenNode->SetHasForceHwcHdrSurface(true);
-    EXPECT_TRUE(screenNode->GetHasForceHwcHdrSurface());
+    EXPECT_TRUE(screenParams->GetHasForceHwcHdrSurface());
 }
 
 /**
@@ -1383,7 +1382,7 @@ HWTEST_F(RSScreenRenderNodeTest, SetHasForceHwcHdrSurface_NullScreenParams, Test
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
 
     screenNode->SetHasForceHwcHdrSurface(true);
-    EXPECT_FALSE(screenNode->GetHasForceHwcHdrSurface());
+    EXPECT_EQ(screenNode->stagingRenderParams_, nullptr);
 }
 
 /**

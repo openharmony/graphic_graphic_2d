@@ -75,12 +75,13 @@ public:
     MOCK_METHOD(Drawing::FontMetrics, GetFontMetrics, (const OHOS::Rosen::TextStyle& textStyle), (override));
     MOCK_METHOD(bool, GetLineFontMetrics,
         (size_t lineNumber, size_t& charNumber, std::vector<Drawing::FontMetrics>& fontMetrics), (override));
-    MOCK_METHOD(std::vector<std::unique_ptr<TextLineBase>>, GetTextLines, (), (const, override));
+    MOCK_METHOD(std::vector<std::shared_ptr<TextLineBase>>, GetTextLines, (), (const, override));
     MOCK_METHOD(std::unique_ptr<Typography>, CloneSelf, (), (override));
     MOCK_METHOD(double, GetLongestLineWithIndent, (), (const, override));
     MOCK_METHOD(void, UpdateColor, (size_t from, size_t to, const Drawing::Color& color), (override));
     MOCK_METHOD(void*, GetParagraph, (), (override));
     MOCK_METHOD(Drawing::RectI, GeneratePaintRegion, (double x, double y), (const, override));
+    MOCK_METHOD(bool, IsLayoutDone, (), (const, override));
     MOCK_METHOD(void, Relayout,
         (double width, const TypographyStyle& typograhyStyle, const std::vector<TextStyle>& textStyles), (override));
     MOCK_METHOD(void, UpdateAllTextStyles, (const TextStyle& textStyleTemplate), (override));

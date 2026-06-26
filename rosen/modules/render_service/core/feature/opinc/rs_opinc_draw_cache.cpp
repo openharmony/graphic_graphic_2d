@@ -36,7 +36,7 @@ constexpr float RECT_PEN_ALPHA = 0.2f;
 constexpr float DFX_FONT_SIZE = 30.f;
 }
 
-RectI RSOpincDrawCache::screenRectInfo_ = {0, 0, 0, 0};
+thread_local RectI RSOpincDrawCache::screenRectInfo_ = {0, 0, 0, 0};
 thread_local bool RSOpincDrawCache::opincBlockNodeSkip_ = true;
 thread_local int RSOpincDrawCache::opincRootNodeCount_ = 0;
 

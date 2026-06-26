@@ -96,7 +96,7 @@ void RSMaterialShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
         visualEffectContainer_->UpdateFrostedGlassEffectParams(blurImageForEdge, effectData->refractOut_);
         Drawing::RectF cacheRectF(effectData->cachedRect_);
         visualEffectContainer_->UpdateSnapshotRect(cacheRectF);
-        RS_TRACE_NAME_FMT("RSBackgroundNGShaderDrawable::OnDraw image[%d], fractOut[%f], cacheRectF[%s]",
+        RS_TRACE_NAME_FMT("RSMaterialShaderDrawable::OnDraw image[%d], fractOut[%f], cacheRectF[%s]",
             effectData->cachedImage_ != nullptr, effectData->refractOut_, cacheRectF.ToString().c_str());
     } else {
         visualEffectContainer_->UpdateCachedBlurImage(canvas, nullptr, 0, 0);

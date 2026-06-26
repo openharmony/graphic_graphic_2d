@@ -62,8 +62,8 @@ std::shared_ptr<void> LinearGradientShaderObj::GenerateBaseObject()
         return nullptr;
     }
 
-    auto gradientShader = ShaderEffect::CreateLinearGradientNotLazy(startPt_, endPt_, colors_, colorSpace_, pos_,
-        mode_, matrix_.get());
+    auto gradientShader = std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::LINEAR_GRADIENT,
+        startPt_, endPt_, colors_, colorSpace_, pos_, mode_, matrix_.get());
     return std::static_pointer_cast<void>(gradientShader);
 }
 

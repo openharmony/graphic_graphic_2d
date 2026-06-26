@@ -1180,4 +1180,27 @@ HWTEST_F(RSMemorySnapshotTest, EraseSnapshotInfoByPidTest004, testing::ext::Test
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
     ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
 }
+
+/**
+ * @tc.name: EraseSnapshotInfoByPidAbnormalProcessTest001
+ * @tc.desc: Test EraseSnapshotInfoByPid removes abnormal process correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, EraseSnapshotInfoByPidAbnormalProcessTest001, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 3020;
+    std::set<pid_t> exitedPids = {pid};
+
+    // Clean up first
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Mark as abnormal
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+    ASSERT_TRUE(MemorySnapshot::Instance().IsAbnormalProcess(pid));
+
+    // Erase should remove from abnormal set
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+    ASSERT_FALSE(MemorySnapshot::Instance().IsAbnormalProcess(pid));
+}
 } // namespace OHOS::Rosen

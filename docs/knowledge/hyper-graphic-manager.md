@@ -5,28 +5,38 @@
 改动涉及以下任一内容时，必须先读本文：
 
 - LTPO、LTPS、fps、frame rate、refresh rate、刷新率切换、刷新率拆分。
-- 刷新率投票、软 VSync、DVSync、触控提频、空闲降频、多应用帧率策略。
+- 刷新率投票、软 VSync、DVSync、AdaptiveVsync、触控提频、空闲降频、多应用帧率策略。
 - `rosen/modules/hyper_graphic_manager/` 或 Render Service 中 HGM 初始化、IPC、回调和 per-frame 同步。
 
 ## 模块定位
 
 HGM 是 OpenHarmony 图形子系统中的 Hyper Graphic Manager 模块，编译为
 `libhyper_graphic_manager` 共享库。
-它通过 XML 策略和投票框架动态决策显示刷新率，典型目标包括 30Hz、60Hz、90Hz 和 120Hz。
+它通过 XML 策略和投票框架动态决策显示刷新率，典型目标包括并不限于 30Hz、60Hz、90Hz 和 120Hz。
 本文所有代码路径均以仓库根目录为基准。
 
 ## 目录结构
 
 ```text
-rosen/modules/hyper_graphic_manager/
-├── core/
-│   ├── frame_rate_manager/     # HgmFrameRateManager 和各类帧率子管理器
-│   ├── hgm_screen_manager/     # HgmCore、HgmScreen、HgmScreenInfo
-│   ├── config/                 # XML 解析、日志、IPC 回调管理、用户自定义配置
-│   ├── utils/                  # 公共类型、投票器、状态机、timer、LRU cache
-│   ├── soft_vsync_manager/     # 应用维度软 VSync 分频
-│   └── native_display_soloist/ # OH_DisplaySoloist 应用帧率控制 C API
-└── frame_rate_vote/            # RSFrameRateVote、RSVideoFrameRateVote
+rosen/modules
+├── hyper_graphic_manager/
+│   ├── core/
+│   │   ├── frame_rate_manager/                                           # HgmFrameRateManager 和各类帧率子管理器
+│   │   ├── hgm_screen_manager/                                           # HgmCore、HgmScreen、HgmScreenInfo
+│   │   ├── config/                                                       # XML 解析、日志、IPC 回调管理、用户自定义配置
+│   │   ├── utils/                                                        # 公共类型、投票器、状态机、timer、LRU cache
+│   │   ├── soft_vsync_manager/                                           # 应用维度软 VSync 分频
+│   │   └── native_display_soloist/                                       # OH_DisplaySoloist 应用帧率控制 C API
+│   └── frame_rate_vote/                                                  # RSFrameRateVote、RSVideoFrameRateVote
+├── render_service/
+│   ├── core/feature/hyper_graphic_manager/                               # 模块间交互，包括IPC事件输入，渲染端数据输入，刷新率数据输出
+│   └── composer/composer_service/external_depend/hyper_graphic_manager/  # 切换屏幕刷新率档位和设置送显模式，跟硬件相关的业务
+├── render_service_base/src/
+│   ├── transaction/rs_hgm_config_data.cpp                                # 应用端动画速度对应的帧率值配置数据
+│   ├── transaction/rp_hgm_config_data.cpp                                # 渲染端动画速度对应的帧率值配置数据
+│   └── feature/hyper_graphic_manager/                                    # frameRateLinker管理器
+└── render_service_client/core/
+    └── feature/hyper_graphic_manager/                                    # 应用端的刷新率业务包括对外接口及UI动画速度帧率计算等
 ```
 
 ## 运行链路
@@ -73,8 +83,9 @@ Render Service 启动时，`RSRenderService::Init()` 只执行一次，并调用
 3. 服务端执行 `HgmContext::ProcessHgmFrameRate()`。
 4. 服务端填充 `HgmServiceToProcessInfo`，判断本帧是否需要刷新帧率决策。
 5. 服务端投递任务到 `HgmTaskHandleThread`，调用 `frameRateManager->UniProcessDataForLtpo()`。
-6. 服务端组合外部输入计算下一帧刷新率，并把结果传给硬件层。
+6. 服务端组合外部输入计算下一帧刷新率，并把结果保存到下一帧通过NotifyRpHgmFrameRate接口回传给渲染端。
 7. 调用返回后，渲染端通过 `SetServiceToProcessInfo()` 同步服务端返回的数据。
+8. 渲染端获得决策的刷新率数据随帧传递给服务端的composer模块，composer模块调用屏幕管理接口给硬件层设置新的刷新率。
 
 当 `HgmServiceToProcessInfo` 中 `hgmDataChangeTypes.test(HGM_CONFIG_DATA)` 为真时，
 渲染端配置更新回调 `rpFrameRatePolicy_->HgmConfigUpdateCallback()` 才会执行。
@@ -87,11 +98,12 @@ Render Service 启动时，`RSRenderService::Init()` 只执行一次，并调用
 外部事件 / per-frame 数据
   -> HgmContext 投递到 HgmTaskHandleThread
   -> HgmFrameRateManager 收集场景和 linker
-  -> HgmFrameVoter / HgmVoter 合并 min/max/preferred
+  -> HgmFrameVoter 刷新率合并 min/max/preferred
   -> HgmFrameRateManager::ProcessLtpoVote()
   -> HgmFrameRateManager::CalcRefreshRate()
   -> HgmVSyncGeneratorController / 硬件刷新率设置
   -> HgmSoftVSyncManager::CollectFrameRateChange()
+  -> HgmVoter 软VSync合并 min/max/preferred
 ```
 
 决策树检查点：
@@ -246,10 +258,9 @@ HGM 还会接收外部 IPC 输入参与帧率决策，典型链路如下：
 - 不要在 `rosen/modules/hyper_graphic_manager/core/frame_rate_manager/` 中直接访问
   `PolicyConfigData` 字段，优先使用 `PolicyConfigVisitor`。
 - 不要从 `render_service` 直接调用 `HgmFrameRateManager`，应通过 `HgmContext` 或 `HgmRenderContext`。
+- 不要在 `RenderProcessManager` 相关的实现中 使用HgmCore这个单例。
 - 不要直接访问对侧对象；服务端和渲染端只能通过 `renderToServiceConnection_` 或
   `RSRenderToServiceConnection` 交换运行时数据。
-- 不要在没有 `pendingMutex_` 锁的情况下修改 `currRefreshRate_`。
-- 不要在错误返回前跳过必要的 `HGM_LOGE`。
 - 不要把多进程模式下帧率决策回调不执行误判为普通 bug；这是当前规格禁用路径。
 
 ## 验证建议
@@ -294,10 +305,7 @@ prebuilts/build-tools/linux-x86/bin/ninja -C out/<product-name> \
 ## 额外注意
 
 - `HgmCore` 是 HGM 单例根，外部访问通常从 `HgmCore::Instance()` 开始。
-- 外部模块通过 `HgmContext` 和 `HgmRenderContext` facade 交互，不直接访问内部 manager。
 - 每帧集成链路是 `mainLoop_()`、`HgmRenderContext::NotifyRpHgmFrameRate()`、连接回调、
   `HgmContext::ProcessHgmFrameRate()`。
 - IPC callback 主要有 `OnHgmConfigChanged`、`OnHgmRefreshRateModeChanged`、
   `OnHgmRefreshRateUpdate` 三类，通过 `RSIHgmConfigChangeCallback` 分发。
-- 测试工程可能使用 `-Dprivate=public` 直接访问私有成员。
-- vendor 扩展入口是 GN 中的 `graphic_2d_hgm_configs.vendor_root`，会添加扩展源码和映射。

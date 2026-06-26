@@ -54,6 +54,11 @@ bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_pt
     return false;
 }
 
+bool RSRenderServiceClient::SetUifirstScale(float scaleFactor)
+{
+    return false;
+}
+
 bool RSRenderServiceClient::GetUniRenderEnabled()
 {
     return {};
@@ -738,6 +743,12 @@ bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
 }
 
 bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::SetApsConfigParams(
+    ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
     return false;
 }

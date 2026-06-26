@@ -256,5 +256,19 @@ void NodeGroupCmdModifier::DumpParam(std::string& out) const
            ", nodeGroupIncludeProperty:" + std::string(param_.nodeGroupIncludeProperty_ ? "true" : "false") + "}";
 }
 
+void LayerPartRenderCmdModifier::UpdateToRender()
+{
+    auto node = GetNode();
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkLayerPartRender>(
+        node->GetId(), param_.isLayerPartRender_);
+    AddCommand(command, node->IsRenderServiceNode());
+}
+
+void LayerPartRenderCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{isLayerPartRender:" + std::string(param_.isLayerPartRender_ ? "true" : "false") + "}";
+}
+
 } // namespace Rosen
 } // namespace OHOS

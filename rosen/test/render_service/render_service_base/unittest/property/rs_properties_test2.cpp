@@ -2529,7 +2529,7 @@ HWTEST_F(PropertiesTest, SetPixelStretchTileModeNullParaTest, TestSize.Level1)
 {
     RSProperties properties;
     EXPECT_EQ(properties.GetEffect().pixelStretchPara_, nullptr);
-    std::optional<int> tileMode = static_cast<int>(Drawing::TileMode::REPEAT);
+    int tileMode = static_cast<int>(Drawing::TileMode::REPEAT);
     properties.SetPixelStretchTileMode(tileMode);
     EXPECT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
     EXPECT_EQ(properties.GetEffect().pixelStretchPara_->tileMode, static_cast<int>(Drawing::TileMode::REPEAT));
@@ -2563,7 +2563,10 @@ HWTEST_F(PropertiesTest, CalculatePixelStretchAllZeroTest, TestSize.Level1)
     properties.SetBounds(bounds);
     properties.SetPixelStretch(Vector4f(0.f, 0.f, 0.f, 0.f));
     properties.OnApplyModifiers();
-    EXPECT_EQ(properties.GetEffect().pixelStretchPara_, nullptr);
+    // SetPixelStretch now creates para even for zero values;
+    // CalculatePixelStretch returns early but does not reset para
+    EXPECT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
+    EXPECT_TRUE(properties.GetPixelStretch().IsZero());
 }
 
 /**
@@ -2734,6 +2737,108 @@ HWTEST_F(PropertiesTest, DumpDynamicLightUpTest, TestSize.Level1)
     std::string dumpInfo = properties.Dump();
     EXPECT_TRUE(dumpInfo.find("DynamicLightUpRate") != std::string::npos);
     EXPECT_TRUE(dumpInfo.find("DynamicLightUpDegree") != std::string::npos);
+}
+
+/**
+ * @tc.name: SetDynamicLightUpRateResetTest
+ * @tc.desc: test SetDynamicLightUpRate resets rate to 0 when nullopt passed and para exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetDynamicLightUpRateResetTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // First set a valid rate to create dynamicLightUpPara_
+    std::optional<float> rate = std::optional<float>(1.f);
+    properties.SetDynamicLightUpRate(rate);
+    EXPECT_EQ(properties.GetDynamicLightUpRate(), 1.f);
+
+    // Now set nullopt - should hit the else-if branch and reset rate to 0
+    std::optional<float> nullRate = std::nullopt;
+    properties.SetDynamicLightUpRate(nullRate);
+    EXPECT_EQ(properties.GetDynamicLightUpRate(), 0.f);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+}
+
+/**
+ * @tc.name: SetDynamicLightUpDegreeResetTest
+ * @tc.desc: test SetDynamicLightUpDegree resets degree to 0 when nullopt passed and para exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetDynamicLightUpDegreeResetTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // First set a valid degree to create dynamicLightUpPara_
+    std::optional<float> degree = std::optional<float>(1.f);
+    properties.SetDynamicLightUpDegree(degree);
+    EXPECT_EQ(properties.GetDynamicLightUpDegree(), 1.f);
+
+    // Now set nullopt - should hit the else-if branch and reset degree to 0
+    std::optional<float> nullDegree = std::nullopt;
+    properties.SetDynamicLightUpDegree(nullDegree);
+    EXPECT_EQ(properties.GetDynamicLightUpDegree(), 0.f);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+}
+
+/**
+ * @tc.name: SetDistortionKResetTest
+ * @tc.desc: test SetDistortionK resets to 0 and dirty to false when nullopt passed and para exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetDistortionKResetTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // First set a valid distortionK to create distortionPara_
+    properties.SetDistortionK(0.7f);
+    ASSERT_TRUE(properties.IsDistortionKValid());
+    ASSERT_TRUE(properties.GetDistortionDirty());
+
+    // Now set nullopt - should hit the else-if branch and reset
+    properties.SetDistortionK(std::nullopt);
+    auto distortionK = properties.GetDistortionK();
+    ASSERT_TRUE(distortionK.has_value());
+    EXPECT_FLOAT_EQ(*distortionK, 0.f);
+    EXPECT_FALSE(properties.GetDistortionDirty());
+}
+
+/**
+ * @tc.name: SetPixelStretchNulloptResetTest
+ * @tc.desc: test SetPixelStretch resets size to zero when nullopt passed and para exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetPixelStretchNulloptResetTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // First set a valid stretch to create pixelStretchPara_
+    properties.SetPixelStretch(Vector4f(5.f, 5.f, 5.f, 5.f));
+    ASSERT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
+    EXPECT_FALSE(properties.GetPixelStretch().IsZero());
+
+    // Now set nullopt - should hit the else-if branch and reset size to zero
+    properties.SetPixelStretch(std::nullopt);
+    ASSERT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
+    EXPECT_TRUE(properties.GetPixelStretch().IsZero());
+    EXPECT_TRUE(properties.pixelStretchNeedUpdate_);
+}
+
+/**
+ * @tc.name: SetPixelStretchPercentNulloptResetTest
+ * @tc.desc: test SetPixelStretchPercent resets percent to zero when nullopt passed and para exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetPixelStretchPercentNulloptResetTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // First set a valid percent to create pixelStretchPara_
+    std::optional<Vector4f> percent = Vector4f(0.1f, 0.1f, 0.1f, 0.1f);
+    properties.SetPixelStretchPercent(percent);
+    ASSERT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
+    EXPECT_FALSE(properties.GetPixelStretchPercent().IsZero());
+
+    // Now set nullopt - should hit the else-if branch and reset percent to zero
+    properties.SetPixelStretchPercent(std::nullopt);
+    ASSERT_NE(properties.GetEffect().pixelStretchPara_, nullptr);
+    EXPECT_TRUE(properties.GetPixelStretchPercent().IsZero());
+    EXPECT_TRUE(properties.pixelStretchNeedUpdate_);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -26,7 +26,7 @@
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
-#include "feature/layer/rs_layer_cache_manager_base.h"
+#include "effect/rs_render_effect_common_def.h"
 #include "effect/rs_render_shader_base.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -4677,37 +4677,6 @@ HWTEST_F(RSRenderNodeTest, GetNodeColorSpaceForceSRGBTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: HasAnimation001
- * @tc.desc: Verify HasAnimation returns false when animationManager is null
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, HasAnimation001, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(id, context);
-    // Fresh node, animationManager_ is nullptr
-    EXPECT_FALSE(node->HasAnimation());
-}
-
-/**
- * @tc.name: HasAnimation002
- * @tc.desc: Verify HasAnimation returns true when animationManager has animations
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, HasAnimation002, TestSize.Level1)
-{
-    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
-    // Add animation to make animationManager_ non-null and non-empty
-    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
-    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
-    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
-    node->AddAnimation(animation);
-    EXPECT_TRUE(node->HasAnimation());
-}
-
-/**
  * @tc.name: DumpTreeWithAnimationManager001
  * @tc.desc: Verify DumpTree with non-null animationManager
  * @tc.type: FUNC
@@ -5172,6 +5141,82 @@ HWTEST_F(RSRenderNodeTest, AccumulateParentGeoDirty005, TestSize.Level1)
     parent->GetMutableRenderProperties().curGeoDirty_ = false;
     child->AccumulateParentGeoDirty();
     EXPECT_TRUE(child->GetRenderProperties().IsParentGeoDirty());
+}
+
+/**
+ * @tc.name: UpdateFilterRenderContextInSkippedSubTree001
+ * @tc.desc: test UpdateFilterRenderContextInSkippedSubTree with null geometry
+ * @tc.type: FUNC
+ * @tc.require: issue24382
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterRenderContextInSkippedSubTree001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    RSRenderNode subTreeRoot(id + 1, context);
+    FilterRenderContext filterContext;
+    RectI clipRect{0, 0, 1000, 1000};
+    node.UpdateFilterRenderContextInSkippedSubTree(subTreeRoot, INVALID_NODEID, clipRect, clipRect, filterContext);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateFilterRenderContextInSkippedSubTree002
+ * @tc.desc: test UpdateFilterRenderContextInSkippedSubTree with valid geometry
+ * @tc.type: FUNC
+ * @tc.require: issue24382
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterRenderContextInSkippedSubTree002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    auto subTreeRoot = std::make_shared<RSRenderNode>(id + 1, context);
+    subTreeRoot->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    auto parentNode = std::make_shared<RSRenderNode>(id + 2, context);
+    parentNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+
+    parentNode->AddChild(node);
+    subTreeRoot->AddChild(parentNode);
+
+    Drawing::Matrix identityMatrix;
+    auto& nodeMatrix = node->GetMutableRenderProperties().boundsGeo_->matrix_;
+    auto& nodeAbsMatrix = node->GetMutableRenderProperties().boundsGeo_->absMatrix_;
+    auto& parentNodeMatrix = parentNode->GetMutableRenderProperties().boundsGeo_->matrix_;
+    auto& subTreeRootAbsMatrix = subTreeRoot->GetMutableRenderProperties().boundsGeo_->absMatrix_;
+    nodeMatrix = identityMatrix;
+    nodeAbsMatrix = identityMatrix;
+    parentNodeMatrix = identityMatrix;
+    subTreeRootAbsMatrix = identityMatrix;
+    subTreeRootAbsMatrix->SetScale(100.0f, 100.0f);
+
+    FilterRenderContext filterContext;
+    RectI clipRect;
+    node->UpdateFilterRenderContextInSkippedSubTree(*subTreeRoot, INVALID_NODEID, clipRect, clipRect, filterContext);
+    ASSERT_NE(nodeAbsMatrix->Get(0), identityMatrix.Get(0));
+}
+
+/**
+ * @tc.name: UpdateFilterRenderContextInSkippedSubTree003
+ * @tc.desc: test UpdateFilterRenderContextInSkippedSubTree with rootGeo not null but geoPtr null
+ * @tc.type: FUNC
+ * @tc.require: issue24382
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterRenderContextInSkippedSubTree003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    auto subTreeRoot = std::make_shared<RSRenderNode>(id + 1, context);
+    subTreeRoot->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+
+    Drawing::Matrix identityMatrix;
+    auto& subTreeRootAbsMatrix = subTreeRoot->GetMutableRenderProperties().boundsGeo_->absMatrix_;
+    subTreeRootAbsMatrix = identityMatrix;
+    subTreeRootAbsMatrix->SetScale(100.0f, 100.0f);
+
+    FilterRenderContext filterContext;
+    RectI clipRect{0, 0, 1000, 1000};
+    node->GetMutableRenderProperties().boundsGeo_ = nullptr;
+    node->UpdateFilterRenderContextInSkippedSubTree(*subTreeRoot, INVALID_NODEID, clipRect, clipRect, filterContext);
+
+    EXPECT_EQ(filterContext.absMatrix.Get(0), identityMatrix.Get(0));
 }
 } // namespace Rosen
 } // namespace OHOS

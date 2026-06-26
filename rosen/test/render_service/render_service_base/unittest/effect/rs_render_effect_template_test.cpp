@@ -22,6 +22,7 @@
 #include "effect/rs_render_mask_base.h"
 #include "effect/rs_render_property_tag.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_render_node.h"
 
 using namespace testing;
@@ -41,6 +42,25 @@ void RSNGRenderEffectTemplateTest::SetUpTestCase() {}
 void RSNGRenderEffectTemplateTest::TearDownTestCase() {}
 void RSNGRenderEffectTemplateTest::SetUp() {}
 void RSNGRenderEffectTemplateTest::TearDown() {}
+
+class MockRSNGRenderShapeBase : public RSNGRenderShapeBase {
+public:
+    MockRSNGRenderShapeBase() = default;
+    ~MockRSNGRenderShapeBase() override = default;
+
+    RSNGEffectType GetType() const override { return RSNGEffectType::SDF_EMPTY_SHAPE; }
+    bool Marshalling(Parcel& parcel) const override { return false; }
+    void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) override {}
+    void Detach() override {}
+    void Dump(std::string& out) const override {}
+    std::string Dump() const override { return ""; }
+    uint32_t CalculateHash() override { return 0; }
+    void CalculateHashInner(uint32_t& hash) override {}
+    bool CanSkipFrame() override { return false; }
+    bool OnUnmarshalling(Parcel& parcel) override { return false; }
+    std::string DumpProperties() const override { return ""; }
+    bool CanCurrentFilterSkipFrame() override { return false; }
+};
 
 /**
  * @tc.name: GetEffectTypeStringForBasicTypes
@@ -737,4 +757,46 @@ HWTEST_F(RSNGRenderEffectTemplateTest, MaskDumpPropertiesReturnsNonEmptyString, 
     EXPECT_TRUE(dumpStr.find("RadialGradientMask") != std::string::npos);
 }
 
+/**
+ * @tc.name: UpdateVisualEffectParamImplShapeNull
+ * @tc.desc: Verify UpdateVisualEffectParamImpl with nullptr shape value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderEffectTemplateTest, UpdateVisualEffectParamImplShapeNull, TestSize.Level1)
+{
+    auto testEffect = RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType::SDF_RRECT_SHAPE);
+    EXPECT_NE(testEffect, nullptr);
+    std::shared_ptr<RSNGRenderShapeBase> nullShape = nullptr;
+    RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(*testEffect, "test_shape", nullShape);
+    EXPECT_NE(testEffect->GetImpl(), nullptr);
+}
+
+/**
+ * @tc.name: UpdateVisualEffectParamImplShapeGenerateReturnsNull
+ * @tc.desc: Verify UpdateVisualEffectParamImpl when GenerateGEVisualEffect returns nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderEffectTemplateTest, UpdateVisualEffectParamImplShapeGenerateReturnsNull, TestSize.Level1)
+{
+    auto testEffect = RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType::SDF_RRECT_SHAPE);
+    EXPECT_NE(testEffect, nullptr);
+    auto mockShape = std::make_shared<MockRSNGRenderShapeBase>();
+    RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(*testEffect, "test_shape", mockShape);
+    EXPECT_NE(testEffect->GetImpl(), nullptr);
+}
+
+/**
+ * @tc.name: UpdateVisualEffectParamImplShapeValid
+ * @tc.desc: Verify UpdateVisualEffectParamImpl with valid shape, geShape and geShape hash set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNGRenderEffectTemplateTest, UpdateVisualEffectParamImplShapeValid, TestSize.Level1)
+{
+    auto testEffect = RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType::SDF_RRECT_SHAPE);
+    EXPECT_NE(testEffect, nullptr);
+    auto validShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(validShape, nullptr);
+    RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(*testEffect, "test_shape", validShape);
+    EXPECT_NE(testEffect->GetImpl(), nullptr);
+}
 } // namespace OHOS::Rosen

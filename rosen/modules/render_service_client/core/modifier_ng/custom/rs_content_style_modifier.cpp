@@ -16,4 +16,8 @@
 #include "modifier_ng/custom/rs_content_style_modifier.h"
 
 namespace OHOS::Rosen::ModifierNG {
+void RSContentStyleModifier::FlushContentModifierImmediately()
+{
+    UpdateToRender();
+}
 } // namespace OHOS::Rosen::ModifierNG

@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interactive_implict_animator.h"
 #include "include/command/rs_animation_command.h"
 
@@ -28,6 +29,8 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void TestProcessor(NodeId, AnimationId, uint64_t, AnimationCallbackEvent);
+    static void TestDestroyInRenderProcessor(NodeId, AnimationId, uint64_t, float, bool);
+    static constexpr uint64_t ANIMATION_ID = 12345;
 protected:
     static inline NodeId nodeId_;
     static inline AnimationId animationId_;
@@ -40,6 +43,14 @@ void RSAnimationCommandTest::SetUp() {}
 void RSAnimationCommandTest::TearDown() {}
 void RSAnimationCommandTest::TestProcessor(
     NodeId nodeId, AnimationId animId, uint64_t token, AnimationCallbackEvent event)
+{
+    nodeId_ = nodeId;
+    animationId_ = animId;
+    token_ = token;
+}
+
+void RSAnimationCommandTest::TestDestroyInRenderProcessor(
+    NodeId nodeId, AnimationId animId, uint64_t token, float fraction, bool isReverseCycle)
 {
     nodeId_ = nodeId;
     animationId_ = animId;
@@ -321,6 +332,81 @@ HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorGroup007, TestSize.Lev
     EXPECT_TRUE(animator2 != nullptr);
 
     GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup007 end";
+}
+
+/**
+ * @tc.name: AnimationDestroyInRender001
+ * @tc.desc: Verify AnimationDestroyInRender with processor set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, AnimationDestroyInRender001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest AnimationDestroyInRender001 start";
+    AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(TestDestroyInRenderProcessor);
+    RSContext context;
+    AnimationCommandHelper::AnimationDestroyInRender(
+        context, 1, ANIMATION_ID, 0, 0.5f, false);
+    AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest AnimationDestroyInRender001 end";
+}
+
+/**
+ * @tc.name: AnimationDestroyInRender002
+ * @tc.desc: Verify AnimationDestroyInRender with null processor
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, AnimationDestroyInRender002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest AnimationDestroyInRender002 start";
+    AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(nullptr);
+    RSContext context;
+    AnimationCommandHelper::AnimationDestroyInRender(
+        context, 1, ANIMATION_ID, 0, 0.5f, true);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest AnimationDestroyInRender002 end";
+}
+
+/**
+ * @tc.name: RebuildAnimation001
+ * @tc.desc: Verify RebuildAnimation with null animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, RebuildAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation001 start";
+    RSContext context;
+    AnimationCommandHelper::RebuildAnimation(context, 1, nullptr, 0.5f, false);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation001 end";
+}
+
+/**
+ * @tc.name: RebuildAnimation002
+ * @tc.desc: Verify RebuildAnimation with null node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, RebuildAnimation002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation002 start";
+    RSContext context;
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(
+        ANIMATION_ID, 0, property, property1, property2);
+    AnimationCommandHelper::RebuildAnimation(context, 99999, animation, 0.5f, false);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest RebuildAnimation002 end";
+}
+
+/**
+ * @tc.name: SetAnimationDestroyInRenderProcessor001
+ * @tc.desc: Verify SetAnimationDestroyInRenderProcessor sets processor correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, SetAnimationDestroyInRenderProcessor001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest SetAnimationDestroyInRenderProcessor001 start";
+    AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(TestDestroyInRenderProcessor);
+    AnimationCommandHelper::SetAnimationDestroyInRenderProcessor(nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest SetAnimationDestroyInRenderProcessor001 end";
 }
 
 } // namespace OHOS::Rosen

@@ -44,6 +44,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_singleton.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
 #include "feature_cfg/feature_param/extend_feature/mem_param.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
@@ -284,6 +285,9 @@ void MemoryManager::DumpMem(std::unordered_set<std::u16string>& argSets, std::st
     dumpString.append(log.GetString());
     if (!isLite) {
         RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
+#ifndef ROSEN_CROSS_PLATFORM
+        RsDelegateCompositeCallbackManager::GetInstance().DumpInfo(dumpString);
+#endif
     }
 #else
     dumpString.append("No GPU in this device");
@@ -1094,7 +1098,7 @@ bool MemoryManager::NeedReportFromKernel(pid_t& abnormalPid)
     std::vector<std::pair<pid_t, MemorySnapshotInfo>> sortedPidInfo(snapshotInfo.begin(), snapshotInfo.end());
     std::sort(sortedPidInfo.begin(), sortedPidInfo.end(),
         [](const std::pair<pid_t, MemorySnapshotInfo>& info1, const std::pair<pid_t, MemorySnapshotInfo>& info2) {
-            return info1.second.GpuMemory() > info2.second.GpuMemory();
+            return info1.second.TotalGpuMemory() > info2.second.TotalGpuMemory();
         });
     // find abnormal pid with the max gpu memory.
     abnormalPid = 0;
@@ -1103,7 +1107,7 @@ bool MemoryManager::NeedReportFromKernel(pid_t& abnormalPid)
         maxIndex++;
     }
     if (maxIndex + 1 < sortedPidInfo.size() &&
-        sortedPidInfo[maxIndex].second.GpuMemory() - sortedPidInfo[maxIndex + 1].second.GpuMemory() >
+        sortedPidInfo[maxIndex].second.TotalGpuMemory() - sortedPidInfo[maxIndex + 1].second.TotalGpuMemory() >
         MEMParam::GetKernelReportMemInterval() * MEMUNIT_RATE * MEMUNIT_RATE) {
         abnormalPid = sortedPidInfo[maxIndex].first;
     }
@@ -1218,7 +1222,7 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
 {
     if (pid == 0) {
         RS_LOGE("MemoryManager::MemoryOverReport pid:0 cpu[%{public}zu] gpu[%{public}zu]",
-            info.cpuMemory, info.GpuMemory());
+            info.cpuMemory, info.TotalGpuMemory());
         return;
     }
     RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");

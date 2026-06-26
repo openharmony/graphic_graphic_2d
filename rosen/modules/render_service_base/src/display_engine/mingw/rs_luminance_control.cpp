@@ -14,6 +14,7 @@
  */
 
 #include "display_engine/rs_luminance_control.h"
+#include "pipeline/rs_surface_render_node.h"
 
 namespace {
 constexpr float HDR_DEFAULT_TMO_NIT = 1000.0f;
@@ -100,6 +101,12 @@ float RSLuminanceControl::CalScaler(const float& maxContentLightLevel,
     return HDR_DEFAULT_SCALER;
 }
 
+float RSLuminanceControl::GetSurfaceNodeMaxScaler(RSSurfaceRenderNode& surfaceNode, ScreenId screenId,
+    HdrStatus hdrstatus)
+{
+    return HDR_DEFAULT_SCALER;
+}
+
 bool RSLuminanceControl::IsHdrPictureOn()
 {
     return false;
@@ -161,7 +168,7 @@ void RSLuminanceControl::SetDualScreenStatus(ScreenId screenId, DualScreenStatus
     // Set dual screen coordination status
 }
 
-float RSLuminanceControl::HdrDimmingProcess(ScreenId screenId, uint64_t nodeId)
+float RSLuminanceControl::HdrDimmingProcess(ScreenId screenId, RSSurfaceRenderNode& surfaceNode)
 {
     return 1.0f;
 }

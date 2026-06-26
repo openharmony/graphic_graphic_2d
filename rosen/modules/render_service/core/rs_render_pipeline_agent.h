@@ -129,8 +129,7 @@ public:
         const std::vector<std::string>& surfaceNameList, uint32_t fps);
     ErrCode AvcodecVideoGet(uint64_t uniqueId);
     ErrCode AvcodecVideoGetRecent();
-    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
-        bool unobscured = false);
+    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured = false);
     int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback);
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
@@ -156,6 +155,7 @@ public:
     void SetVmaCacheStatus(bool flag);
     ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success, uint32_t rowCount = 0, uint32_t colCount = 0);
+    ErrCode SetUifirstScale(float scaleFactor);
     ErrCode GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success);
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
@@ -171,6 +171,7 @@ public:
 #endif
     void SetBehindWindowFilterEnabled(bool enabled);
     bool GetBehindWindowFilterEnabled();
+    ErrCode SetApsConfigParams(ApsEventType event, const std::unordered_map<std::string, std::string>& params);
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false);
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface);
@@ -233,11 +234,26 @@ public:
         const FrameStabilityTarget& oldTarget,
         const FrameStabilityTarget& newTarget
     );
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    sptr<Surface> GetCanvasSurface(NodeId nodeId, pid_t remotePid);
+    void RemoveCanvasSurface(NodeId nodeId, pid_t remotePid);
+#endif
+    bool SetDelegateMode(NodeId id, bool isSetDelegateMode, pid_t pid);
+    bool RegisterSurfaceTransactionListener(sptr<RSISurfaceTransactionListener> listener,
+    uint64_t listenerId, uint32_t pid, uint32_t tid);
+    bool UnRegisterSurfaceTransactionListener(uint64_t listenerId);
+    bool RegisterSurfaceNodeBufferReleaseListener(pid_t pid, sptr<RSISurfaceNodeBufferReleaseCallback> listener);
+    bool UnRegisterSurfaceNodeBufferReleaseListener(pid_t pid);
+
 private:
     void ConfigureForceTunnelLayer(const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface);
     void ConfigureForceTunnelLayer(
         const RSSurfaceRenderNodeConfig& config, const sptr<IConsumerSurface>& surface, SurfaceUtils* utils);
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    static std::shared_ptr<RSSurfaceHandler> CreateCanvasSurfaceHandler(NodeId nodeId);
+#endif
     std::weak_ptr<RSRenderPipeline> rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;
     mutable std::mutex pidToBundleMutex_;

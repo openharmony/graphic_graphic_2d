@@ -867,7 +867,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
-    
+
     bool specialLayerInSecDisplay = uniParam->IsSecurityDisplay() && (specialLayerManager.Find(HAS_GENERAL_SPECIAL) ||
         specialLayerManager.FindWithScreen(curDisplayScreenId_, SpecialLayerType::HAS_BLACK_LIST));
     bool wiredMirrorProjectionInHDR = surfaceParams->SelfOrChildHasHDR() &&
@@ -924,16 +924,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
         surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
         !surfaceParams->IsTransparent();
-
-    // In single-app cast scenario, skip offscreen rotation.
-    auto screenDrawable =
-        std::static_pointer_cast<RSScreenRenderNodeDrawable>(surfaceParams->GetAncestorScreenDrawable().lock());
-    auto screenParams = screenDrawable ?
-        static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get()) : nullptr;
-    bool isSingleAppCast = screenParams &&
-        screenParams->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE &&
-        screenParams->HasMirrorScreen();
-    needOffscreen = needOffscreen && !isSingleAppCast;
 
     needOffscreen = needOffscreen || (captureConfig ? captureConfig->isSyncRender : false);
     if (captureConfig && captureConfig->isSyncRender) {
@@ -1283,7 +1273,7 @@ bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot(
     }
     // Check black list.
     const auto& blackList = RSUniRenderThread::Instance().GetBlackList();
-    if (surfaceParams.IsLeashWindow() && blackList.find(surfaceParams.GetLeashPersistentId()) != blackList.end()) {
+    if (blackList.find(surfaceParams.GetLeashPersistentId()) != blackList.end()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
             "(LeashPersistentId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetLeashPersistentId());
         return true;
@@ -1448,7 +1438,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             return;
         }
     }
-    
+
     if (DrawRelatedSourceNode(canvas, *uniParams, surfaceParams)) {
         return;
     }
@@ -1566,6 +1556,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSAutoCanvasRestore arc(&canvas);
     auto params = RSUniRenderUtil::DealWithBufferDrawParam(canvas, surfaceParams, *this);
 
+    UpdateRectForDelegateMode(surfaceParams, params);
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
 }
 
@@ -1875,4 +1866,19 @@ void  RSSurfaceRenderNodeDrawable::SetCulledNodesToCanvas(RSPaintFilterCanvas* c
     canvas->SetCulledNodes(std::move(newCulledNodes));
 }
 
+void RSSurfaceRenderNodeDrawable::UpdateRectForDelegateMode(const RSSurfaceRenderParams& surfaceParams,
+    BufferDrawParam& params)
+{
+    if (surfaceParams.GetDelegateMode()) {
+        auto& nodeParams = GetRenderParams();
+        if (nodeParams) {
+            const GraphicIRect srcRect = nodeParams->GetLayerInfo().srcRect;
+            params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
+            params.dstRect = Drawing::Rect(0, 0, nodeParams->GetBounds().GetWidth(),
+                nodeParams->GetBounds().GetHeight());
+            RS_TRACE_NAME_FMT("update rect for delegate mode: src=[%s], dst=[%s]",
+                params.srcRect.ToString().c_str(), params.dstRect.ToString().c_str());
+        }
+    }
+}
 } // namespace OHOS::Rosen::DrawableV2

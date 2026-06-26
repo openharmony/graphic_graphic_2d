@@ -15,7 +15,7 @@
 
 #include "ani_resource_parser.h"
 
-#include "ability.h"
+#include "application_context.h"
 #include "ani_common.h"
 #include "ani_text_utils.h"
 

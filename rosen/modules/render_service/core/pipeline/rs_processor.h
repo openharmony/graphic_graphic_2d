@@ -115,6 +115,7 @@ protected:
 #endif
 
     ScreenInfo screenInfo_;
+    ScreenInfo screenInfoForDelegateMode_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     ScreenInfo mirroredScreenInfo_;

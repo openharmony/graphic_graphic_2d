@@ -62,8 +62,8 @@ std::shared_ptr<void> RadialGradientShaderObj::GenerateBaseObject()
         return nullptr;
     }
 
-    auto gradientShader = ShaderEffect::CreateRadialGradientNotLazy(centerPt_, radius_, colors_, colorSpace_, pos_,
-        mode_, matrix_.get());
+    auto gradientShader = std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::RADIAL_GRADIENT,
+        centerPt_, radius_, colors_, colorSpace_, pos_, mode_, matrix_.get());
     return std::static_pointer_cast<void>(gradientShader);
 }
 

@@ -57,9 +57,6 @@ class RSUIContext;
 class RSTransactionHandler;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
-using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
-    std::shared_ptr<RSTransactionHandler>)>;
 
 /**
  * @class RSUIDirector
@@ -83,6 +80,24 @@ public:
     ~RSUIDirector();
 
     /**
+     * @brief Moves the UI director to the create state.
+     */
+    void GoCreate();
+
+    /**
+     * @brief Moves the UI director to the resume state.
+     */
+    void GoResume();
+
+    /**
+     * @brief Moves the UI director to the foreground.
+     *
+     * @param isTextureExport Indicates whether texture export should be performed
+     *                        during the transition to the foreground. Defaults to false.
+     */
+    void GoForeground(bool isTextureExport = false);
+
+    /**
      * @brief Moves the UI director to the background.
      *
      * Update the window status, node status, and clear cache and redundant resources
@@ -93,12 +108,14 @@ public:
     void GoBackground(bool isTextureExport = false);
 
     /**
-     * @brief Moves the UI director to the foreground.
-     *
-     * @param isTextureExport Indicates whether texture export should be performed
-     *                        during the transition to the foreground. Defaults to false.
+     * @brief Moves the UI director to the stop state.
      */
-    void GoForeground(bool isTextureExport = false);
+    void GoStop();
+
+    /**
+     * @brief Moves the UI director to the destroyed state.
+     */
+    void GoDestroy();
 
     /**
      * @brief Initiates the process of exporting texture data.
@@ -301,33 +318,11 @@ public:
     size_t GetUIDescendantCount() const;
 
     /**
-     * @brief Identify typical resident processes of the system, such as FSR, SCB, inputMethod.
-     *
-     * @param isTypicalResidentProcess means whether the relevant services are disabled.
-     */
-    static void SetTypicalResidentProcess(bool isTypicalResidentProcess = false);
-
-    /**
-     * @brief Checks whether hybrid render is enabled.
+     * @brief Checks whether hybrid render is enabled on canvas component.
      *
      * @return true if hybrid render is enabled, false otherwise.
      */
-    static bool IsHybridRenderEnabled();
-
-    /**
-     * @brief Checks whether hybrid render is enabled on componentEnableSwitch item.
-     *
-     * @param bitSeq ComponentEnableSwitch value .
-     * @return true if hybrid render is enabled, false otherwise.
-     */
-    static bool GetHybridRenderSwitch(ComponentEnableSwitch bitSeq);
-
-    /**
-     * @brief Gets the textBlob length count that is supported when hybrid render is enabled.
-     *
-     * @return the textBlob length count that is supported.
-     */
-    static uint32_t GetHybridRenderTextBlobLenCount();
+    static bool GetHybridRenderCanvasEnabled();
 
     /**
      * @brief Sets the dvsynctime to command which will update the dvsync time.
@@ -342,6 +337,31 @@ public:
      * @param isContainerWindowTransparent means whether the ContainerWindow is transparent.
      */
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
+
+    void OnCanvasDrawingNodeRenderStart(NodeId nodeId);
+
+    void OnCanvasDrawingNodeRenderEnd(NodeId nodeId);
+
+    RSUIDirectorLifecycleState GetCurrentState() const;
+
+    // HybridDraw Start
+    static void SetTypicalResidentProcess(bool isTypicalResidentProcess = false) {}
+
+    static bool IsHybridRenderEnabled()
+    {
+        return false;
+    }
+
+    static bool GetHybridRenderSwitch(ComponentEnableSwitch bitSeq) {
+        return false;
+    }
+
+    static uint32_t GetHybridRenderTextBlobLenCount()
+    {
+        return 0;
+    }
+    // HybridDraw End
+
 private:
     /**
      * @brief Initializes the RSUIDirector instance.
@@ -352,7 +372,17 @@ private:
      */
     void Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext);
     void ReportUiSkipEvent(const std::string& abilityName);
+    void RebuildNodeTree();
+    void ExecuteGoCreate();
+    void ExecuteGoResume();
+    void ExecuteGoForeground(bool isTextureExport);
+    void ExecuteGoBackground(bool isTextureExport);
+    void ExecuteGoStop();
+    void ReleaseRenderNode();
+    void ExecuteGoDestroy(bool isTextureExport);
     void AttachSurface();
+    template<typename CommandType>
+    void AddUIDirectorCommand();
     static std::shared_ptr<RSUIDirector> CreateRSUIDirector();
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
@@ -363,16 +393,19 @@ private:
     static void ProcessMessages(std::shared_ptr<RSTransactionData> cmds); // receive message
     static void AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
         AnimationCallbackEvent event);
+    static void AnimationDestroyInRenderCallbackProcessor(
+        NodeId nodeId, AnimationId animId, uint64_t token, float fraction, bool isReverseCycle);
     static void ColorPickerCallbackProcessor(NodeId nodeId, uint64_t token, uint32_t color);
     static void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint64_t token, uint32_t taskId);        // DFX to do
     static void PostTask(const std::function<void()>& task, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
     static void PostDelayTask(
         const std::function<void()>& task, uint32_t delay = 0, int32_t instanceId = INSTANCE_ID_UNDEFINED); // planing
-    static void SetTypicalResidentProcessOnce(bool isResidentProcess);
     static bool RequestVsyncCallback(int32_t instanceId);
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
     void InitHybridRender();
-    void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
+    void FlushCanvasDrawingNodeBuffers();
+#endif
 
     RSUIDirector() = default;
     RSUIDirector(const RSUIDirector&) = delete;
@@ -402,6 +435,11 @@ private:
     bool dvsyncUpdate_ = false;
     uint64_t dvsyncTime_ = 0;
     bool skipDestroyUIContext_ = false;
+    RSUIDirectorLifecycleState currentUIDirectorState_;
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    std::unordered_set<NodeId> canvasDrawingNodeIds_;
+#endif
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

@@ -105,6 +105,11 @@ void RSUniHwcVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Ma
 void RSUniHwcVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
     auto dstRect = absRect;
+    if (node.GetDelegateMode() && IsRectIsInsideOfScreenRect(dstRect)) {
+        node.SetDstRect(dstRect);
+        node.SetDstRectWithoutRenderFit(dstRect);
+        return;
+    }
     if (!node.IsHardwareEnabledTopSurface() && !node.GetHwcGlobalPositionEnabled()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle
         dstRect = dstRect.IntersectRect(RectI(0, 0, uniRenderVisitor_.curScreenNode_->GetScreenInfo().width,
@@ -307,7 +312,9 @@ void RSUniHwcVisitor::ProcessSolidLayerDisabled(RSSurfaceRenderNode& node)
                 node.GetId(), HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, node.GetName());
             return;
         }
-        uniRenderVisitor_.curSurfaceNode_->SetExistTransparentHardwareEnabledNode(true);
+        if (uniRenderVisitor_.curSurfaceNode_) {
+            uniRenderVisitor_.curSurfaceNode_->SetExistTransparentHardwareEnabledNode(true);
+        }
         node.SetNodeHasBackgroundColorAlpha(true);
     } else {
         auto parentNode = node.GetParent().lock();
@@ -517,7 +524,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurface
 }
 
 void RSUniHwcVisitor::CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-    std::unordered_set<pid_t>& hdrForceHwcNodes)
+    std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr>& hdrForceHwcNodes)
 {
     if (!RSSystemProperties::GetXcomponentEdrEnabled() || RSBaseHdrUtil::GetRGBA1010108Enabled()) {
         return;
@@ -525,14 +532,14 @@ void RSUniHwcVisitor::CollectHdrForceHwcNodes(const std::shared_ptr<RSSurfaceRen
     // Collect HDR_VIDEO status first
     uniRenderVisitor_.curScreenNode_->CollectHdrStatus(hwcNode->GetId(), hwcNode->GetVideoHdrStatus());
     if (hwcNode->IsHdrForceHwcEnabled()) {
-        hdrForceHwcNodes.emplace(ExtractPid(hwcNode->GetId()));
+        hdrForceHwcNodes.emplace(hwcNode->GetId(), hwcNode);
     }
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeEnable()
 {
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
-    std::unordered_set<pid_t> hdrForceHwcNodes;
+    std::unordered_map<NodeId, RSSurfaceRenderNode::WeakPtr> hdrForceHwcNodes;
     int inputHwclayers = 3;
     auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
@@ -639,7 +646,7 @@ void RSUniHwcVisitor::UpdateTransparentHwcNodeEnable(
 {
     for (size_t index = 1; index < hwcNodes.size(); ++index) {
         auto transparentHwcNodeSPtr = hwcNodes[index].lock();
-        if (!transparentHwcNodeSPtr) {
+        if (!transparentHwcNodeSPtr || transparentHwcNodeSPtr->GetDelegateMode()) {
             continue;
         }
         const bool isTransparentEnableHwcNode = transparentHwcNodeSPtr->IsNodeHasBackgroundColorAlpha() &&
@@ -1444,7 +1451,9 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
                             uniRenderVisitor_.isScreenRotationAnimating_);
     bool isHardwareForcedDisabled = !node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) &&
         (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
-         IsDisableHwcOnExpandScreen() || uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
+         IsDisableHwcOnExpandScreen() ||
+         (!uniRenderVisitor_.curSurfaceNode_ ?
+            false : uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty()) ||
          !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer());
     if (isHardwareForcedDisabled) {
         auto parentNode = node.GetParent().lock();
@@ -1453,13 +1462,15 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
             "IsDisableHwcOnExpandScreen[%d], IsVisibleRegionEmpty[%d], HasBuffer[%d]", node.GetName().c_str(),
             node.GetId(), parentNode ? parentNode->GetId() : 0,
             uniRenderVisitor_.IsHardwareComposerEnabled(), node.IsDynamicHardwareEnable(),
-            IsDisableHwcOnExpandScreen(), uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty(),
+            IsDisableHwcOnExpandScreen(),
+            ((!uniRenderVisitor_.curSurfaceNode_ ?
+                false : uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty())),
             node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer());
         PrintHiperfLog(&node, "param/invisible/no buffer");
         node.SetHardwareForcedDisabledState(true);
         Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
             HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, node.GetName());
-        if (!node.GetFixRotationByUser() && !subTreeSkipped) {
+        if (!node.GetFixRotationByUser() && !subTreeSkipped && !node.IsDelegateModeNodeWithBuffer()) {
             return;
         }
     }
@@ -1484,6 +1495,35 @@ void RSUniHwcVisitor::UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node)
             node.GetName().c_str(), node.GetId(), dstRect.ToString().c_str());
         node.SetDstRect(dstRect);
     }
+}
+
+bool RSUniHwcVisitor::IsRectIsInsideOfScreenRect(const RectI& rect) const
+{
+    if (!uniRenderVisitor_.curScreenNode_) {
+        return false;
+    }
+    auto children = uniRenderVisitor_.curScreenNode_->GetChildrenList();
+    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
+    for (const auto& child : children) {
+        if (auto childNode = child.lock()) {
+            if (childNode->GetBootAnimation()) {
+                displayNode = childNode->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+                break;
+            } else if (!displayNode) {
+                displayNode = childNode->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+            }
+        }
+    }
+    if (!displayNode) {
+        return false;
+    }
+
+    ScreenInfo screenInfo = uniRenderVisitor_.curScreenNode_->GetScreenInfo();
+    screenInfo.rotation = displayNode->GetRotation();
+    RectI screenRect = {0, 0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight()};
+    RS_LOGD("IsRectIsInsideOfScreenRect: IsInsideOf=%{public}d, rect=%{public}s, screenRect=%{public}s",
+        rect.IsInsideOf(screenRect), rect.ToString().c_str(), screenRect.ToString().c_str());
+    return rect.IsInsideOf(screenRect);
 }
 } // namespace Rosen
 } // namespace OHOS

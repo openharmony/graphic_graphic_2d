@@ -1736,7 +1736,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest01, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1765,7 +1765,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest02, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1794,7 +1794,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest03, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1824,7 +1824,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest04, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1853,7 +1853,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest05, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
 }
@@ -1883,9 +1883,745 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest06, TestSize.Leve
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
     double maxWidth = DEFAULT_MAX_WIDTHS;
     typography->Layout(maxWidth);
-    std::vector<std::unique_ptr<TextLineBase>> textLine = typography->GetTextLines();
+    std::vector<std::shared_ptr<TextLineBase>> textLine = typography->GetTextLines();
     EXPECT_EQ(typography->GetLineCount(), typographyStyle.maxLines);
     EXPECT_LT(typography->GetLineWidth(typographyStyle.maxLines - 1), maxWidth);
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest001
+ * @tc.desc: Test that ZWJ (U+200B) does not trigger letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.letterSpacing = 10;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    // Layout "你\u200B好" (with ZWJ) and "你好" (without ZWJ), widths should be the same
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    textStyle.fontSize = 40;
+    builderWithCtrl->PushStyle(textStyle);
+    builderWithCtrl->AppendText(u"你\u200B好");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(textStyle);
+    builderNoCtrl->AppendText(u"你好");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(),
+        typographyNoCtrl->GetLongestLineWithIndent()));
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest002
+ * @tc.desc: Test that LRM (U+200E) does not trigger letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest002, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.letterSpacing = 10;
+    textStyle.fontSize = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    // Layout "Hello\u200E世界" (with LRM) and "Hello世界" (without LRM)
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderWithCtrl->PushStyle(textStyle);
+    builderWithCtrl->AppendText(u"Hello\u200E世界");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(textStyle);
+    builderNoCtrl->AppendText(u"Hello世界");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(),
+        typographyNoCtrl->GetLongestLineWithIndent()));
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest003
+ * @tc.desc: Test that text without control characters has unchanged behavior
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest003, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.letterSpacing = 10;
+    textStyle.fontSize = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builder =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"Hello World");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(10000);
+    // "Hello World" has 11 chars, letterSpacing applies to 10 gaps = 10 * 10 = 100
+    EXPECT_DOUBLE_EQ(typography->GetLongestLineWithIndent(), 323.51983642578125);
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest004
+ * @tc.desc: Test that multiple consecutive control characters do not trigger letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest004, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.letterSpacing = 10;
+    textStyle.fontSize = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    // Layout "A‍‍‌B" (multiple control chars) and "AB"
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderWithCtrl->PushStyle(textStyle);
+    builderWithCtrl->AppendText(u"A\u200D\u200BB");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(textStyle);
+    builderNoCtrl->AppendText(u"AB");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(),
+        typographyNoCtrl->GetLongestLineWithIndent()));
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest005
+ * @tc.desc: Test that multi-style paragraphs with control characters skip letterSpacing correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest005, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 40;
+    style1.letterSpacing = 10;
+    style1.fontWeight = FontWeight::W700;
+
+    OHOS::Rosen::TextStyle style2;
+    style2.fontSize = 40;
+    style2.letterSpacing = 15;
+    style2.fontStyle = FontStyle::ITALIC;
+
+    // "A‍B" with two different styles (multi-run)
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderWithCtrl->PushStyle(style1);
+    builderWithCtrl->AppendText(u"A\u200D");
+    builderWithCtrl->PushStyle(style2);
+    builderWithCtrl->AppendText(u"B");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    // "AB" with two different styles (multi-run, no control chars)
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(style1);
+    builderNoCtrl->AppendText(u"A");
+    builderNoCtrl->PushStyle(style2);
+    builderNoCtrl->AppendText(u"B");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(),
+        typographyNoCtrl->GetLongestLineWithIndent()));
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest006
+ * @tc.desc: Test text with only control characters has zero letterSpacing contribution
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest006, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.letterSpacing = 10;
+    textStyle.fontSize = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+
+    // Text with only control chars: "‍‌"
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builder =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(textStyle);
+    builder->AppendText(u"\u200D\u200B");
+    auto typography = builder->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    typography->Layout(10000);
+    // Only control characters, no letterSpacing should be triggered
+    auto skiaParagraph = GetSkiaParagraph(typography.get());
+    ASSERT_NE(skiaParagraph, nullptr);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetLongestLineWithIndent(), 0));
+}
+
+void generateGeneralCategoryZeroWidthControlCharacters(std::vector<char16_t>& controlChars)
+{
+    // C0 & Zero Width: U+0001–U+0008;
+    for (char16_t c = 0x0001; c <= 0x0008; c++) {
+        controlChars.push_back(c);
+    }
+    // C0 & Zero Width: U+000E–U+001C
+    for (char16_t c = 0x000D; c <= 0x001C; c++) {
+        controlChars.push_back(c);
+    }
+    // C0 & Zero Width: U+001D–U+001F
+    for (char16_t c = 0x001D; c <= 0x001F; c++) {
+        controlChars.push_back(c);
+    }
+}
+
+void generateGeneralCategoryNonZeroWidthControlCharacters(std::vector<char16_t>& controlChars)
+{
+    // C0 & Non zero With: U+0009;
+    controlChars.push_back(0x0009);
+}
+
+void generateBreakGeneralCategoryNonZeroWidthControlCharacters(std::vector<char16_t>& controlChars)
+{
+    // C0 & Non zero Width & Break: U+000A–U+000C;
+    for (char16_t c = 0x000A; c <= 0x000C; c++) {
+        controlChars.push_back(c);
+    }
+}
+
+void generateDelGeneralCategoryZeroWidthControlCharacters(std::vector<char16_t>& controlChars)
+{
+    // DEL + C1: U+007F–U+009F
+    for (char16_t c = 0x007F; c <= 0x009F; c++) {
+        controlChars.push_back(c);
+    }
+}
+
+
+void generateFormatGeneralCategoryZeroWidthControlCharacters(std::vector<char16_t>& controlChars)
+{
+    // Format: U+200B–U+200F
+    for (char16_t c = 0x200B; c <= 0x200F; c++) {
+        controlChars.push_back(c);
+    }
+}
+
+void generateBidiGeneralCategoryZeroWidthControlCharacters(std::vector<char16_t>& controlChars)
+{
+    // Bidi: U+202A–U+202E
+    for (char16_t c = 0x202A; c <= 0x202E; c++) {
+        controlChars.push_back(c);
+    }
+}
+
+float getLayoutWidth(const std::u16string& text, float letterSpacing = 0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    OHOS::Rosen::TextStyle style;
+    // Font size 40
+    style.fontSize = 40;
+    style.letterSpacing = letterSpacing;
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(style);
+    builder->AppendText(text);
+    auto typo = builder->CreateTypography();
+    // Layout width 10000
+    typo->Layout(10000);
+    return typo->GetLongestLineWithIndent();
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest007
+ * @tc.desc: Test c0 zero width kControl characters do not trigger letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest007, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateGeneralCategoryZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A";
+        text += ctrl;
+        text += u"B";
+        // "A<ctrl>B" has 2 visible chars → if control char is skipped, gapCount = 2
+        double widthDelta = getLayoutWidth(text, 10) - getLayoutWidth(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 20)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 20;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest008
+ * @tc.desc: Test c0 non zero width kControl characters do not trigger letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest008, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateGeneralCategoryNonZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A";
+        text += ctrl;
+        text += u"B";
+        // "A<ctrl>B" has 3 visible chars → if control char is skipped, gapCount = 2
+        double widthDelta = getLayoutWidth(text, 10) - getLayoutWidth(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 30)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 30;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest009
+ * @tc.desc: Test break c0 zero width kControl characters do not trigger letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest009, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateBreakGeneralCategoryNonZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A";
+        text += ctrl;
+        text += u"B";
+        // "A<ctrl>B" has 2 visible chars → if control char is skipped, gapCount = 2
+        double widthDelta = getLayoutWidth(text, 10) - getLayoutWidth(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 10)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 10;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest010
+ * @tc.desc: Test del cc zero width kControl characters do not trigger letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest010, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateDelGeneralCategoryZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A";
+        text += ctrl;
+        text += u"B";
+        // "A<ctrl>B" has 2 visible chars → if control char is skipped, gapCount = 2
+        double widthDelta = getLayoutWidth(text, 10) - getLayoutWidth(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 20)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 20;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest011
+ * @tc.desc: Test format cf zero width kControl characters do not trigger letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest011, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateFormatGeneralCategoryZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A";
+        text += ctrl;
+        text += u"B";
+        // "A<ctrl>B" has 2 visible chars → if control char is skipped, gapCount = 2
+        double widthDelta = getLayoutWidth(text, 10) - getLayoutWidth(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 20)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 20;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharLetterSpacingTest012
+ * @tc.desc: Test bidi cf zero width kControl characters do not trigger letterSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharLetterSpacingTest012, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateBidiGeneralCategoryZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A";
+        text += ctrl;
+        text += u"B";
+        // "A<ctrl>B" has 2 visible chars → if control char is skipped, gapCount = 2
+        double widthDelta = getLayoutWidth(text, 10) - getLayoutWidth(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 20)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 20;
+    }
+}
+
+float getLayoutWidthWithWordSpacing(const std::u16string& text, float wordSpacing = 0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    OHOS::Rosen::TextStyle style;
+    // Font size 40
+    style.fontSize = 40;
+    style.wordSpacing = wordSpacing;
+    auto builder = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builder->PushStyle(style);
+    builder->AppendText(text);
+    auto typo = builder->CreateTypography();
+    // Layout width 10000
+    typo->Layout(10000);
+    return typo->GetLongestLineWithIndent();
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest001
+ * @tc.desc: Test that ZWSP (U+200B) between spaces does not trigger extra wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest001, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.wordSpacing = 10;
+    textStyle.fontSize = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    // Layout "Hello \u200B World" (ZWSP between spaces) and "Hello  World" (two spaces),
+    // widths should be the same when control char does not break consecutive whitespace
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderWithCtrl->PushStyle(textStyle);
+    builderWithCtrl->AppendText(u"Hello \u200B World");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(textStyle);
+    builderNoCtrl->AppendText(u"Hello  World");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(),
+        typographyNoCtrl->GetLongestLineWithIndent()));
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest002
+ * @tc.desc: Test that LRM (U+200E) between spaces does not trigger extra wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest002, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.wordSpacing = 10;
+    textStyle.fontSize = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    // Layout "Hello \u200E World" (LRM between spaces) and "Hello  World" (two spaces)
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderWithCtrl->PushStyle(textStyle);
+    builderWithCtrl->AppendText(u"Hello \u200E World");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(textStyle);
+    builderNoCtrl->AppendText(u"Hello  World");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(),
+        typographyNoCtrl->GetLongestLineWithIndent()));
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest003
+ * @tc.desc: Test that text without control characters has unchanged wordSpacing behavior
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest003, TestSize.Level0)
+{
+    // "Hello World" has 1 word boundary, wordSpacing applies to 1 gap = 1 * 10 = 10
+    std::u16string text = u"Hello World";
+    double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
+    EXPECT_DOUBLE_EQ(widthDelta, 10);
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest004
+ * @tc.desc: Test that multiple consecutive control characters do not trigger wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest004, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.wordSpacing = 10;
+    textStyle.fontSize = 40;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    // Layout "A \u200D\u200B B" (multiple control chars between spaces) and "A  B"
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderWithCtrl->PushStyle(textStyle);
+    builderWithCtrl->AppendText(u"A \u200D\u200B B");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(textStyle);
+    builderNoCtrl->AppendText(u"A  B");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(),
+        typographyNoCtrl->GetLongestLineWithIndent()));
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest005
+ * @tc.desc: Test that multi-style paragraphs with control characters skip wordSpacing correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest005, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 40;
+    style1.wordSpacing = 10;
+    style1.fontWeight = FontWeight::W700;
+
+    OHOS::Rosen::TextStyle style2;
+    style2.fontSize = 40;
+    style2.wordSpacing = 15;
+    style2.fontStyle = FontStyle::ITALIC;
+
+    // "A \u200D B" with two different styles (multi-run, control char between spaces)
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderWithCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderWithCtrl->PushStyle(style1);
+    builderWithCtrl->AppendText(u"A \u200D");
+    builderWithCtrl->PushStyle(style2);
+    builderWithCtrl->AppendText(u" B");
+    auto typographyWithCtrl = builderWithCtrl->CreateTypography();
+    typographyWithCtrl->Layout(10000);
+
+    // "A  B" with two different styles (multi-run, no control chars)
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> builderNoCtrl =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    builderNoCtrl->PushStyle(style1);
+    builderNoCtrl->AppendText(u"A ");
+    builderNoCtrl->PushStyle(style2);
+    builderNoCtrl->AppendText(u" B");
+    auto typographyNoCtrl = builderNoCtrl->CreateTypography();
+    typographyNoCtrl->Layout(10000);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(
+        typographyWithCtrl->GetLongestLineWithIndent(),
+        typographyNoCtrl->GetLongestLineWithIndent()));
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest006
+ * @tc.desc: Test text with only spaces and control characters has zero wordSpacing contribution
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest006, TestSize.Level0)
+{
+    // Text with only spaces and control chars: " \u200D " (no word, no wordSpacing triggered)
+    std::u16string text = u" \u200D ";
+    double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
+    EXPECT_DOUBLE_EQ(widthDelta, 0);
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest007
+ * @tc.desc: Test c0 zero width kControl characters do not trigger wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest007, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateGeneralCategoryZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A ";
+        text += ctrl;
+        text += u" B";
+        // "A <ctrl> B" has 1 word boundary → control char should not break grouping → gapCount = 1
+        double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 10)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 10;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest008
+ * @tc.desc: Test c0 non zero width kControl characters do not trigger wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest008, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateGeneralCategoryNonZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A ";
+        text += ctrl;
+        text += u" B";
+        // "A <ctrl> B" has 1 word boundary → control char should not break grouping → gapCount = 1
+        double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 20)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 20;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest009
+ * @tc.desc: Test break c0 zero width kControl characters do not trigger wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest009, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateBreakGeneralCategoryNonZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A ";
+        text += ctrl;
+        text += u" B";
+        // "A <ctrl> B" has 1 word boundary → control char should not break grouping → gapCount = 1
+        double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 10)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 10;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest010
+ * @tc.desc: Test del cc zero width kControl characters do not trigger wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest010, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateDelGeneralCategoryZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A ";
+        text += ctrl;
+        text += u" B";
+        // "A <ctrl> B" has 1 word boundary → control char should not break grouping → gapCount = 1
+        double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 10)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 10;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest011
+ * @tc.desc: Test format cf zero width kControl characters do not trigger wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest011, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateFormatGeneralCategoryZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A ";
+        text += ctrl;
+        text += u" B";
+        // "A <ctrl> B" has 1 word boundary → control char should not break grouping → gapCount = 1
+        double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 10)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 10;
+    }
+}
+
+/*
+ * @tc.name: TypographyControlCharWordSpacingTest012
+ * @tc.desc: Test bidi cf zero width kControl characters do not trigger wordSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyControlCharWordSpacingTest012, TestSize.Level0)
+{
+    std::vector<char16_t> controlChars;
+    generateBidiGeneralCategoryZeroWidthControlCharacters(controlChars);
+
+    for (char16_t ctrl : controlChars) {
+        std::u16string text = u"A ";
+        text += ctrl;
+        text += u" B";
+        // "A <ctrl> B" has 1 word boundary → control char should not break grouping → gapCount = 1
+        double widthDelta = getLayoutWidthWithWordSpacing(text, 10) - getLayoutWidthWithWordSpacing(text);
+        EXPECT_DOUBLE_EQ(widthDelta, 10)
+            << "Control char U+" << std::hex << static_cast<int>(ctrl)
+            << " widthDelta=" << std::dec << widthDelta
+            << " expected=" << 10;
+    }
 }
 
 /*

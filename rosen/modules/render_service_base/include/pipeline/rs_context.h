@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_PIPELINE_RS_CONTEXT_H
 
 #include <cstdint>
+#include <unordered_map>
 #include <unordered_set>
 #include "common/rs_macros.h"
 #ifndef ROSEN_CROSS_PLATFORM
@@ -29,10 +30,14 @@
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/rs_render_node_map.h"
+#include "pipeline/rs_surface_buffer_interface.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 
 namespace OHOS {
 namespace Rosen {
+
+class RSUIRenderDirector;
+
 enum ClearMemoryMoment : uint32_t {
     FILTER_INVALID = 0,
     PROCESS_EXIT,
@@ -76,6 +81,11 @@ public:
     const RSRenderNodeMap& GetNodeMap() const
     {
         return nodeMap;
+    }
+
+    std::set<NodeId>& GetWebNodeMap()
+    {
+        return webNodeIds;
     }
 
     const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& GetAnimatingNodeList() const
@@ -244,6 +254,22 @@ public:
         return powerOffRenderController_;
     }
 
+    void SetRecreateNodeCallback(std::function<void(NodeId, std::weak_ptr<RSSurfaceBufferInterface>)> callBack)
+    {
+        recreateNodeCallBack_ = std::move(callBack);
+    }
+
+    void InvokeRecreateNodeCallBack(NodeId nodeId, std::weak_ptr<RSSurfaceBufferInterface> surfaceBufferInterface) const
+    {
+        if (recreateNodeCallBack_) {
+            recreateNodeCallBack_(nodeId, surfaceBufferInterface);
+        }
+    }
+
+    std::shared_ptr<RSUIRenderDirector> GetUIRenderDirector(pid_t pid, uint64_t token);
+    void CreateUIRenderDirector(pid_t pid, uint64_t token);
+    void DestroyUIRenderDirector(pid_t pid, uint64_t token);
+
     std::unordered_map<std::string, pid_t> GetUIFrameworkDirtyNodeNameMap();
 private:
     // This function is used for initialization, should be called once after constructor.
@@ -257,6 +283,7 @@ private:
     // The root of render node tree, Note: this node is not the animation fallback node.
     std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     RSRenderNodeMap nodeMap;
+    std::set<NodeId> webNodeIds;
     std::vector<std::string> uiFrameworkTypeTable_;
     std::vector<std::weak_ptr<RSRenderNode>> uiFrameworkDirtyNodes_;
     std::unordered_set<FrameRateLinkerId> frameRateLinkerDestroyIds_;
@@ -270,6 +297,7 @@ private:
 
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
     std::function<void(const std::function<void()>&)> rttaskRunner_;
+    std::function<void(NodeId, std::weak_ptr<RSSurfaceBufferInterface>)> recreateNodeCallBack_;
     std::function<void()> vsyncRequestFunc_;
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
@@ -281,6 +309,9 @@ private:
     std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
     std::atomic<uint32_t> visibleLeashWindowCount_ = 0;
     RSPowerOffRenderController powerOffRenderController_;
+
+    std::unordered_map<pid_t, std::unordered_map<uint64_t, std::shared_ptr<RSUIRenderDirector>>> uiRenderDirectors_;
+    std::mutex uiRenderDirectorsMutex_;
 
     friend class RSRenderThread;
     friend class RSMainThread;
