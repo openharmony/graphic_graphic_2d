@@ -538,56 +538,46 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         imageSnapshot->GetHeight()), dst);
 }
 
-void RSPropertyDrawableUtils::RestoreSdfClip(RSPaintFilterCanvas& canvas,
+void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
-    const Drawing::Rect& sdfDrawRect, const Drawing::Rect& boundsRect)
+    const Drawing::Rect& sdfDrawRect, const Drawing::Rect* frameRect)
 {
-    RS_OPTIONAL_TRACE_NAME("RestoreSdfClip");
-    // If offscreen was not started (MakeSurface failed in BeginForegroundFilter), skip restore
-    if (canvas.GetOffscreenDataList().empty()) {
-        ROSEN_LOGD("RSPropertyDrawableUtils::RestoreSdfClip offscreen not started, skip");
+    RS_OPTIONAL_TRACE_NAME("DrawSdfClip");
+    if (canvas.GetOffscreenDataList().empty()) { // offscreen not started
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip offscreen not started, skip");
         return;
     }
 
-    // 1. Snapshot the offscreen content (unclipped) before restoring the canvas. The offscreen
-    //    only exists so child BackgroundFilter can snapshot the parent content behind it; the
-    //    SDF clip itself is applied on the original canvas's SaveLayer below.
     auto surface = canvas.GetSurface();
     std::shared_ptr<Drawing::Image> imageSnapshot = nullptr;
     if (surface != nullptr) {
         imageSnapshot = surface->GetImageSnapshot();
     } else {
-        ROSEN_LOGD("RSPropertyDrawableUtils::RestoreSdfClip surface null");
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip surface null");
     }
-
-    // 2. Restore canvas back to original (undo BeginForegroundFilter)
-    canvas.RestorePCanvasList();
+    canvas.RestorePCanvasList(); // undo BeginForegroundFilter
     canvas.SwapBackMainScreenData();
     canvas.RestoreEnv();
-
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGD("RSPropertyDrawableUtils::RestoreSdfClip image null");
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip image null");
         return;
     }
-
-    // 3. Composite the snapshot through an SDF-clipped SaveLayer on the original canvas. The SDF
-    //    shader runs on the original canvas's SaveLayer (shares the main GPU/GE render context);
-    //    drawing it on the MakeSurface offscreen canvas hangs the GPU on the device. SaveLayer and
-    //    Restore are paired here; RestoreToCount in OnDraw only balances BG_SAVE_BOUNDS's Save.
-    Drawing::Rect dstRect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
+    // Composite the snapshot through an SDF-clipped SaveLayer on the original canvas.
+    Drawing::Rect dstRect(sdfDrawRect.GetLeft(), sdfDrawRect.GetTop(),
+        sdfDrawRect.GetLeft() + imageSnapshot->GetWidth(), sdfDrawRect.GetTop() + imageSnapshot->GetHeight());
     Drawing::SaveLayerOps slo(&sdfDrawRect, nullptr);
     canvas.SaveLayer(slo);
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*imageSnapshot, dstRect, Drawing::SamplingOptions());
     canvas.DetachBrush();
-    if (geContainer != nullptr) {
-        geContainer->SetGeometry(canvas.GetTotalMatrix(), boundsRect, boundsRect,
-            boundsRect.GetWidth(), boundsRect.GetHeight());
+    if (geContainer != nullptr && frameRect != nullptr) { // skip shader if invalid
+        geContainer->SetGeometry(canvas.GetTotalMatrix(), *frameRect, *frameRect,
+            frameRect->GetWidth(), frameRect->GetHeight());
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
         geRender->DrawShaderEffect(canvas, *geContainer, sdfDrawRect);
     }
-    canvas.Restore(); // composites the SaveLayer (SDF-clipped snapshot) back to the canvas
+    canvas.Restore();
 }
 
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()

@@ -76,10 +76,12 @@ public:
     static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
     static void DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect = std::nullopt);
-    // Draw SDF clip shader on offscreen canvas (DST_IN blend), snapshot, restore to original canvas
-    static void RestoreSdfClip(RSPaintFilterCanvas& canvas,
+    // Draw SDF clip: snapshot offscreen, restore canvas, composite through an SDF-clipped SaveLayer.
+    // frameRect is the drawable's OnDraw rect (node frame, includes border); used as the SDF shader
+    // geometry so the border is not clipped. May be null (falls back to sdfDrawRect).
+    static void DrawSdfClip(RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
-        const Drawing::Rect& sdfDrawRect, const Drawing::Rect& boundsRect);
+        const Drawing::Rect& sdfDrawRect, const Drawing::Rect* frameRect);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const std::unique_ptr<RSFilterCacheManager>& cacheManager, NodeId id, const bool isForegroundFilter,
         const std::optional<Drawing::RectI>& snapshotRect = std::nullopt,

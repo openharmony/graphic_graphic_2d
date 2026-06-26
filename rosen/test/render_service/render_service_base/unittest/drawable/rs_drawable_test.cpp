@@ -303,4 +303,39 @@ HWTEST_F(RSDrawableTest, CanFusePixelStretchTest002, TestSize.Level1)
     drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_STYLE)] = drawable3;
     ASSERT_FALSE(RSDrawable::CanFusePixelStretch(drawableVec));
 }
+
+/**
+ * @tc.name: CalculateDirtySlotsCLIP_TO_BOUNDS
+ * @tc.desc: Test CLIP_TO_BOUNDS dirty marks RESTORE_CLIP_TO_BOUNDS via boundsDirtyTypes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawableTest, CalculateDirtySlotsCLIP_TO_BOUNDS, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    RSDrawable::Vec drawableVec;
+    drawableVec[static_cast<size_t>(RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS)] =
+        std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    ModifierNG::ModifierDirtyTypes dirtyTypes;
+    dirtyTypes.set(static_cast<int>(ModifierNG::RSModifierType::CLIP_TO_BOUNDS));
+    auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypes, drawableVec);
+    EXPECT_TRUE(dirtySlots.find(RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS) != dirtySlots.end());
+}
+
+/**
+ * @tc.name: UpdateSaveRestoreSDFClipRestore
+ * @tc.desc: Test UpdateSaveRestore always creates RSSdfClipRestoreDrawable at RESTORE_CLIP_TO_BOUNDS
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawableTest, UpdateSaveRestoreSDFClipRestore, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().clipToBounds_ = true;
+    RSDrawable::Vec drawableVec;
+    uint8_t status = 0;
+    RSDrawable::UpdateSaveRestore(node, drawableVec, status);
+    auto restore = drawableVec[static_cast<size_t>(RSDrawableSlot::RESTORE_CLIP_TO_BOUNDS)];
+    EXPECT_NE(restore, nullptr);
+}
 } // namespace OHOS::Rosen

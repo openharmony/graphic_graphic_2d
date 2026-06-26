@@ -233,35 +233,21 @@ inline static void SaveRestoreHelper(RSDrawable::Vec& drawableVec, RSDrawableSlo
     }
 }
 
-static void SetupSdfClipSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec,
-    RSDrawableSlot saveSlot, RSDrawableSlot restoreSlot)
-{
-    // CLIP_SDF uses ForegroundFilter-style offscreen (MakeSurface) instead of SaveLayer,
-    // so child BackgroundFilter can snapshot the offscreen surface. The SDF clip is applied
-    // in RSSdfClipRestoreDrawable during restore. The save/restore slot pair is caller-supplied
-    // so the same offscreen restore works in every bounds case (BG or FG slots, or
-    // RESTORE_CLIP_TO_BOUNDS in case 1).
-    auto count = std::make_shared<uint32_t>(std::numeric_limits<uint32_t>::max());
-    assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(saveSlot),
-        std::make_shared<RSSaveDrawable>(count));
-    assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(restoreSlot),
-        RSSdfClipRestoreDrawable::OnGenerate(node, count));
-}
-
-// Generate the clip drawable at clipSlot, then set up the matching save/restore pair at
-// saveSlot/restoreSlot. Uses RSSdfClipRestoreDrawable when the clip resolves to CLIP_SDF
-// (so the BeginForegroundFilter offscreen started in OnDraw is balanced), otherwise the
-// standard RSSaveDrawable/RSRestoreDrawable pair.
+// Generate the clip drawable at clipSlot and a save/restore pair at saveSlot/restoreSlot.
+// RSSaveDrawable/RSSdfClipRestoreDrawable share a save count; RSSdfClipRestoreDrawable's
+// OnUpdate/OnDraw branch on sdfShape, so the same pair serves CLIP_SDF (offscreen + DrawSdfClip)
+// and standard clip (RestoreToCount only). The restore drawable is created once and sdfShape
+// changes are reconciled by OnUpdate (OptimizeBoundsSaveRestore is not re-run for sdfShape).
 static void GenerateClipAndSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec,
     RSDrawableSlot clipSlot, RSDrawableSlot saveSlot, RSDrawableSlot restoreSlot)
 {
     assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(clipSlot),
         RSClipToBoundsDrawable::OnGenerate(node));
-    if (node.GetRenderProperties().GetSDFShape()) {
-        SetupSdfClipSaveRestore(node, drawableVec, saveSlot, restoreSlot);
-    } else {
-        SaveRestoreHelper(drawableVec, saveSlot, restoreSlot, RSPaintFilterCanvas::kCanvas);
-    }
+    auto count = std::make_shared<uint32_t>(std::numeric_limits<uint32_t>::max());
+    assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(saveSlot),
+        std::make_shared<RSSaveDrawable>(count));
+    assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(restoreSlot),
+        RSSdfClipRestoreDrawable::OnGenerate(node, count));
 }
 
 static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec, uint8_t flags)

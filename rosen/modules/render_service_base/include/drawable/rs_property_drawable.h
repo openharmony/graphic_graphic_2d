@@ -98,12 +98,6 @@ public:
     void OnSync() override;
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
-    // Generate SDF clip GE container and draw rects from node's resolved SDF shape.
-    // Returns true if SDF shape is resolved, false otherwise.
-    static bool GenerateSdfClipData(const RSRenderNode& node,
-        std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
-        Drawing::Rect& sdfDrawRect, Drawing::Rect& boundsRect);
-
 private:
     Drawing::Path stagingDrawingPath_;
     Drawing::Path drawingPath_;
@@ -118,8 +112,6 @@ private:
     RSClipToBoundsType stagingType_ = RSClipToBoundsType::INVALID;
     RSClipToBoundsType type_ = RSClipToBoundsType::INVALID;
     bool needSync_ = false;
-    std::shared_ptr<Drawing::GEVisualEffectContainer> stagingGeContainer_ = nullptr;
-    std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
     Drawing::Rect sdfDrawRect_;
     Drawing::Rect stagingSdfDrawRect_;
 };
@@ -136,8 +128,9 @@ public:
 private:
 };
 
-// Restore drawable for CLIP_SDF: draws SDF clip shader on offscreen canvas,
-// snapshots the clipped content, restores to original canvas, then RestoreToCount.
+// Restore drawable for CLIP_SDF: snapshots the offscreen content, restores the canvas
+// (undo BeginForegroundFilter), composites the snapshot, then RestoreToCount to balance
+// BG_SAVE_BOUNDS's Save.
 class RSSdfClipRestoreDrawable : public RSDrawable {
 public:
     explicit RSSdfClipRestoreDrawable(std::shared_ptr<uint32_t> content) : content_(std::move(content)) {}
@@ -156,8 +149,11 @@ private:
     std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
     Drawing::Rect stagingSdfDrawRect_;
     Drawing::Rect sdfDrawRect_;
-    Drawing::Rect stagingBoundsRect_;
-    Drawing::Rect boundsRect_;
+    // True when sdfShape resolves (CLIP_SDF): OnDraw runs DrawSdfClip (offscreen restore +
+    // composite). False (standard clip): OnDraw only RestoreToCount, behaving as RSRestoreDrawable.
+    // OnUpdate always returns true so the drawable is never erased in standard mode.
+    bool stagingIsSdfMode_ = false;
+    bool isSdfMode_ = false;
 };
 
 class RSFilterDrawable : public RSDrawable {
