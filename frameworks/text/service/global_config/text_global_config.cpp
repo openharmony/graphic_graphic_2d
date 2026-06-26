@@ -58,13 +58,13 @@ namespace {
 
 void TextConfig::SetLocaleTextBreakEnabled(bool enabled)
 {
-    g_localeTextBreakEnabled.store(enabled, std::memory_order_relaxed);
+    g_localeTextBreakEnabled.store(enabled, std::memory_order_release);
     TEXT_LOGI("Locale text break set to: %{public}s", enabled ? "enabled" : "disabled");
 }
 
 bool TextConfig::IsLocaleTextBreakEnabled()
 {
-    return g_localeTextBreakEnabled.load(std::memory_order_relaxed);
+    return g_localeTextBreakEnabled.load(std::memory_order_acquire);
 }
 
 } // namespace Rosen

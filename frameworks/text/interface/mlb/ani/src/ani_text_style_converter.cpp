@@ -213,7 +213,7 @@ void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj
     AniTextUtils::ReadOptionalArrayField<std::string>(
         env, obj, AniGlobalMethod::GetInstance().textStyleTextShadows, array, [&textShadow](ani_env* env, ani_ref ref) {
             ani_object shadowObj = reinterpret_cast<ani_object>(ref);
-            double runTimeRadius;
+            double runTimeRadius = 0;
             AniTextUtils::ReadOptionalDoubleField(
                 env, shadowObj, AniGlobalMethod::GetInstance().textShadowBlurRadius, runTimeRadius);
 

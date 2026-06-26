@@ -66,6 +66,7 @@ private:
     static bool GetFontTypeFromParams(const std::string& fullName,
         int32_t systemFontType, int32_t& fontType);
     void ParserFontsByFontType(int32_t fontType);
+    static void CollectGenericFontPaths(std::unordered_set<std::string>& fontPaths);
 
 private:
     TextEngine::FontParser parser_;
