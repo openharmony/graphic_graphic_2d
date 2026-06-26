@@ -1779,6 +1779,20 @@ HWTEST_F(RSSurfaceNodeTest, SetColorSpace, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetColorSpaceWithoutContextTest
+ * @tc.desc: Test SetColorSpace without RSUIContext
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceNodeTest, SetColorSpaceWithoutContextTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config, true, nullptr);
+    surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(surfaceNode->colorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
  * @tc.name: SetSKipDraw
  * @tc.desc: Test function SetSkipDraw
  * @tc.type: FUNC

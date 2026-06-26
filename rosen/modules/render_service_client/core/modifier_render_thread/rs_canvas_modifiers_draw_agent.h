@@ -23,7 +23,7 @@ class RSModifiersDrawThread;
 class RSUIContext;
 class RSUIDirector;
 class RSCanvasDrawingNode;
-class RSCanvasModifiersDrawAgent final {
+class RSC_EXPORT RSCanvasModifiersDrawAgent final {
 public:
     RSCanvasModifiersDrawAgent();
     ~RSCanvasModifiersDrawAgent();

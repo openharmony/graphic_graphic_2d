@@ -667,4 +667,43 @@ HWTEST_F(RSUIContextTest, ModifiersDrawThreadAccessorsTest, TestSize.Level1)
 }
 #endif
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/**
+ * @tc.name: FlushCanvasDrawingNodeBuffersTest001
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers with canvasDrawingNodeUpdated false
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest001, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    rsUIContext->canvasDrawingNodeUpdated_ = false;
+    rsUIContext->FlushCanvasDrawingNodeBuffers();
+}
+ 
+/**
+ * @tc.name: FlushCanvasDrawingNodeBuffersTest002
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers with null transaction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest002, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    rsUIContext->canvasDrawingNodeUpdated_ = true;
+    rsUIContext->rsTransactionHandler_ = nullptr;
+    rsUIContext->FlushCanvasDrawingNodeBuffers();
+}
+ 
+/**
+ * @tc.name: FlushCanvasDrawingNodeBuffersTest003
+ * @tc.desc: Test FlushCanvasDrawingNodeBuffers with canvasDrawingNodeBufferFlushed true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, FlushCanvasDrawingNodeBuffersTest003, TestSize.Level1)
+{
+    auto rsUIContext = CreateRSUIContext();
+    rsUIContext->canvasDrawingNodeUpdated_ = true;
+    rsUIContext->canvasDrawingNodeBufferFlushed_ = true;
+    rsUIContext->FlushCanvasDrawingNodeBuffers();
+}
+#endif
 } // namespace OHOS::Rosen

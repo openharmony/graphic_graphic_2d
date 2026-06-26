@@ -497,6 +497,22 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayerPreProcess_DrmCornerRadiusTransparentTe
 }
 
 /**
+ * @tc.name: DrawCanvasDrawingNodeWithParamsTest001
+ * @tc.desc: Test DrawCanvasDrawingNodeWithParams
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderEngineTest, DrawCanvasDrawingNodeWithParamsTest001, TestSize.Level1)
+{
+    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(canvas, nullptr);
+    BufferDrawParam params;
+    params.matrix = Drawing::Matrix();
+    uniRenderEngine->DrawCanvasDrawingNodeWithParams(*canvas, params);
+}
+
+/**
  * @tc.name: DrawLayerPreProcess_ProtectedBufferTest001
  * @tc.desc: Test DrawLayerPreProcess with protected buffer and non-transparent background
  *           The if (buffer && BUFFER_USAGE_PROTECTED && backgroundColor != Transparent)
