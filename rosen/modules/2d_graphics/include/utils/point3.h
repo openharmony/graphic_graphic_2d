@@ -144,7 +144,7 @@ inline Point3& Point3::operator/=(scalar divisor)
 
 inline const Point3 operator+(const Point3& p1, const Point3& p2)
 {
-    return Point3(p1.x_ + p1.y_, p2.x_ + p2.y_, p1.z_ + p2.z_);
+    return Point3(p1.x_ + p2.x_, p1.y_ + p2.y_, p1.z_ + p2.z_);
 }
 
 inline const Point3 operator-(const Point3& p1, const Point3& p2)
