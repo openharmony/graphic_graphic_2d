@@ -820,6 +820,92 @@ HWTEST_F(RSTunnelLayerHelperTest, OnBufferAvailable003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResolveTunnelLayerInfo_NodeIdFallback001
+ * @tc.desc: Test ResolveTunnelLayerInfo uses nodeId fallback when consumer returns zero tunnelLayerId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo_NodeIdFallback001, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+ 
+    constexpr uint64_t expectedTunnelLayerId = 9001;
+    constexpr uint32_t expectedProperty = TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT;
+    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), expectedTunnelLayerId, expectedProperty);
+ 
+    auto countingConsumer = new CountingTunnelInfoConsumerSurface("fallback_test");
+    ASSERT_NE(countingConsumer, nullptr);
+    countingConsumer->SetTunnelInfoResult(GSERROR_OK, 0, TUNNEL_PROP_INVALID);
+ 
+    uint64_t tunnelLayerId = 0;
+    uint32_t property = TUNNEL_PROP_INVALID;
+    EXPECT_TRUE(RSTunnelLayerHelper::ResolveTunnelLayerInfo(
+        countingConsumer, tunnelLayerId, property, context.node->GetId()));
+    EXPECT_EQ(tunnelLayerId, expectedTunnelLayerId);
+    EXPECT_EQ(property, expectedProperty);
+    EXPECT_EQ(countingConsumer->GetTunnelLayerInfoCallCount(), 0);
+}
+ 
+/**
+ * @tc.name: ResolveTunnelLayerInfo_NodeIdFallbackFallsThrough002
+ * @tc.desc: Test ResolveTunnelLayerInfo falls through to consumer when nodeId store has zero tunnelLayerId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo_NodeIdFallbackFallsThrough002, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+ 
+    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), 0, TUNNEL_PROP_INVALID);
+ 
+    constexpr uint64_t consumerTunnelLayerId = 9002;
+    constexpr uint32_t consumerProperty = TUNNEL_PROP_BUFFER_ADDR;
+    auto countingConsumer = new CountingTunnelInfoConsumerSurface("fallback_through_test");
+    ASSERT_NE(countingConsumer, nullptr);
+    countingConsumer->SetTunnelInfoResult(GSERROR_OK, consumerTunnelLayerId, consumerProperty);
+ 
+    uint64_t tunnelLayerId = 0;
+    uint32_t property = TUNNEL_PROP_INVALID;
+    EXPECT_TRUE(RSTunnelLayerHelper::ResolveTunnelLayerInfo(
+        countingConsumer, tunnelLayerId, property, context.node->GetId()));
+    EXPECT_EQ(tunnelLayerId, consumerTunnelLayerId);
+    EXPECT_EQ(property, consumerProperty);
+    EXPECT_EQ(countingConsumer->GetTunnelLayerInfoCallCount(), 1);
+}
+ 
+/**
+ * @tc.name: ResolveTunnelLayerInfo_NodeIdZeroSkipsFallback003
+ * @tc.desc: Test ResolveTunnelLayerInfo skips nodeId fallback when nodeId is zero.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTunnelLayerHelperTest, ResolveTunnelLayerInfo_NodeIdZeroSkipsFallback003, TestSize.Level1)
+{
+    ScopedNewTunnelSwitch scopedNewTunnelSwitch(true);
+    auto context = CreateTunnelTestContext(false);
+    ASSERT_TRUE(context.IsBaseReady());
+ 
+    constexpr uint64_t storedTunnelLayerId = 9003;
+    constexpr uint32_t storedProperty = TUNNEL_PROP_BUFFER_ADDR;
+    RSTunnelRuntimeStore::SetLayerInfo(context.node->GetId(), storedTunnelLayerId, storedProperty);
+ 
+    constexpr uint64_t consumerTunnelLayerId = 9004;
+    constexpr uint32_t consumerProperty = TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_RS_FORCE;
+    auto countingConsumer = new CountingTunnelInfoConsumerSurface("skip_fallback_test");
+    ASSERT_NE(countingConsumer, nullptr);
+    countingConsumer->SetTunnelInfoResult(GSERROR_OK, consumerTunnelLayerId, consumerProperty);
+ 
+    uint64_t tunnelLayerId = 0;
+    uint32_t property = TUNNEL_PROP_INVALID;
+    EXPECT_TRUE(RSTunnelLayerHelper::ResolveTunnelLayerInfo(
+        countingConsumer, tunnelLayerId, property, 0));
+    EXPECT_EQ(tunnelLayerId, consumerTunnelLayerId);
+    EXPECT_EQ(property, consumerProperty);
+    EXPECT_EQ(countingConsumer->GetTunnelLayerInfoCallCount(), 1);
+}
+
+/**
  * @tc.name: OnBufferAvailable004
  * @tc.desc: Test listener keeps tunnel buffer for normal consume fallback when direct IPC commit fails.
  * @tc.type: FUNC
