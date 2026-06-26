@@ -156,33 +156,7 @@ void RSUIDirector::InitHybridRender()
         transaction->SetCommitTransactionCallback(rsUIContext_->CreateCommitTransactionCallback());
     }
 }
-
-void RSUIDirector::FlushCanvasDrawingNodeBuffers()
-{
-    if (rsUIContext_ != nullptr) {
-        rsUIContext_->FlushCanvasDrawingNodeBuffers();
-    } else {
-        RS_LOGE("RSUIDirector::FlushCanvasDrawingNodeBuffers, null uiContext.");
-    }
-}
 #endif // RS_MODIFIERS_DRAW_ENABLE
-
-void RSUIDirector::OnCanvasDrawingNodeRenderStart(NodeId nodeId)
-{
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    canvasDrawingNodeIds_.emplace(nodeId);
-#endif
-}
-
-void RSUIDirector::OnCanvasDrawingNodeRenderEnd(NodeId nodeId)
-{
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    canvasDrawingNodeIds_.erase(nodeId);
-    if (canvasDrawingNodeIds_.empty()) {
-        FlushCanvasDrawingNodeBuffers();
-    }
-#endif
-}
 
 RSUIDirectorLifecycleState RSUIDirector::GetCurrentState() const
 {
@@ -306,10 +280,10 @@ void RSUIDirector::RebuildNodeTree()
         rootNode->RebuildTree();
         if (rsUIContext_) {
             rsUIContext_->SetRebuildState(RebuildState::Normal);
-        }
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-        FlushCanvasDrawingNodeBuffers();
+            rsUIContext_->FlushCanvasDrawingNodeBuffers();
 #endif
+        }
     }
 }
 
@@ -648,8 +622,11 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
     if (cacheDir_.empty()) {
         return;
     }
-    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
-        rsUIContext_->GetCanvasModifiersDrawThread()->SetCacheDir(cacheDir_);
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        return;
+    }
+    if (auto canvasModifiersDrawAgent = rsUIContext_->GetCanvasModifiersDrawAgent()) {
+        canvasModifiersDrawAgent->SetCacheDir(cacheDir_);
     }
 #endif
 }
@@ -699,6 +676,9 @@ void RSUIDirector::FlushModifier()
         modifierManager = RSModifierManagerMap::Instance()->GetModifierManager();
     } else {
         modifierManager = rsUIContext_->GetRSModifierManager();
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        rsUIContext_->FlushCanvasDrawingNodeBuffers();
+#endif
     }
     if (modifierManager == nullptr) {
         return;

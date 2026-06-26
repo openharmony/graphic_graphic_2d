@@ -28,58 +28,17 @@ RSModifiersDrawThread::RSModifiersDrawThread()
     modifiersDraw_ = std::make_shared<RSModifiersDraw>();
 }
 
-RSModifiersDrawThread::~RSModifiersDrawThread()
-{
-    if (!IsStarted()) {
-        return;
-    }
-    std::lock_guard<std::mutex> lock(startMutex_);
-    ClearResource();
-    started_ = false;
-}
-
-void RSModifiersDrawThread::Destroy()
-{
-    if (!IsStarted()) {
-        return;
-    }
-    auto task = [this]() {
-        ClearResource();
-        started_ = false;
-    };
-    PostSyncTask(task);
-}
-
-void RSModifiersDrawThread::ClearResource()
-{
-    if (handler_ != nullptr) {
-        handler_->RemoveAllEvents();
-        handler_ = nullptr;
-    }
-    if (runner_ != nullptr) {
-        runner_->Stop();
-        runner_ = nullptr;
-    }
-}
-
-bool RSModifiersDrawThread::IsStarted()
-{
-    std::lock_guard<std::mutex> lock(startMutex_);
-    return started_;
-}
+RSModifiersDrawThread::~RSModifiersDrawThread() = default;
 
 void RSModifiersDrawThread::Start()
 {
-    {
-        std::lock_guard<std::mutex> lock(startMutex_);
-        if (started_) {
-            return;
-        }
-        runner_ = AppExecFwk::EventRunner::Create("ModifiersDraw");
-        handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-        runner_->Run();
-        started_ = true;
+    if (started_) {
+        return;
     }
+    runner_ = AppExecFwk::EventRunner::Create("ModifiersDraw");
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    runner_->Run();
+    started_ = true;
     PostTask([] {
         OHOS::ConcurrentTask::IntervalReply reply;
         reply.tid = gettid();
@@ -98,60 +57,20 @@ void RSModifiersDrawThread::Start()
 void RSModifiersDrawThread::PostTask(
     const std::function<void()>&& task, const std::string& name, int64_t delayTime)
 {
-    if (!IsStarted()) {
-        Start();
-    }
     if (handler_ != nullptr) {
         handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 
-void RSModifiersDrawThread::PostSyncTask(const std::function<void()>&& task)
-{
-    if (!IsStarted()) {
-        Start();
-    }
-    if (handler_ != nullptr) {
-        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    }
-}
-
-void RSModifiersDrawThread::RemoveTask(const std::string& name)
-{
-    if (!IsStarted()) {
-        return;
-    }
-    if (handler_ != nullptr) {
-        handler_->RemoveTask(name);
-    }
-}
-
-void RSModifiersDrawThread::CommitTransaction(std::shared_ptr<RSCanvasModifiersDraw> canvasModifiersDraw,
+void RSModifiersDrawThread::CommitTransaction(std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent,
     std::shared_ptr<RSRenderPipelineClient> renderPiplineClient, std::unique_ptr<RSTransactionData> transactionData,
     uint32_t& transactionDataIndex)
 {
-    std::unique_lock<std::mutex> mdtLock(mdtMutex_);
-    mdtCV_.wait(mdtLock, [this] { return !canBlockMdt_; });
     std::vector<RSTransactionConfig> transactionConfigList;
-    canvasModifiersDraw->SwapTransactionConfigList(transactionConfigList);
+    canvasModifiersDrawAgent->SwapTransactionConfigList(transactionConfigList);
     modifiersDraw_->ConvertTransaction(transactionData, transactionConfigList);
     renderPiplineClient->CommitTransaction(transactionData);
     transactionDataIndex = transactionData->GetIndex();
-}
-
-void RSModifiersDrawThread::Block()
-{
-    std::unique_lock<std::mutex> mdtLock(mdtMutex_);
-    canBlockMdt_ = true;
-}
-
-void RSModifiersDrawThread::Unblock()
-{
-    std::unique_lock<std::mutex> mdtLock(mdtMutex_);
-    if (canBlockMdt_) {
-        canBlockMdt_ = false;
-        mdtCV_.notify_all();
-    }
 }
 } // namespace Rosen
 } // namespace OHOS

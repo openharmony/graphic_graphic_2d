@@ -1592,9 +1592,9 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            sptr<Surface> surface = GetCanvasSurface(nodeId);
+            sptr<Surface> surface = CreateCanvasDrawingNodeSurface(nodeId);
             if (surface == nullptr) {
-                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE GetCanvasSurface failed!");
+                RS_LOGE("RSClientToRenderConnectionStub::GET_CANVAS_SURFACE CreateCanvasDrawingNodeSurface failed!");
                 ret = ERR_NULL_OBJECT;
                 break;
             }
@@ -1612,7 +1612,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RemoveCanvasSurface(nodeId);
+            ReleaseCanvasDrawingNodeSurface(nodeId);
             break;
         }
 #endif

@@ -199,8 +199,8 @@ public:
     virtual int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-    virtual sptr<Surface> GetCanvasSurface(NodeId nodeId) = 0;
-    virtual void RemoveCanvasSurface(NodeId nodeId) = 0;
+    virtual sptr<Surface> CreateCanvasDrawingNodeSurface(NodeId nodeId) = 0;
+    virtual void ReleaseCanvasDrawingNodeSurface(NodeId nodeId) = 0;
 #endif
 
     virtual int32_t RegisterFrameStabilityDetection(

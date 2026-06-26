@@ -57,11 +57,13 @@ HWTEST_F(RSCanvasDrawingNodeTest, CreateTest, TestSize.Level1)
     bool isRenderServiceNode = true;
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
     ASSERT_NE(canvasNode, nullptr);
+    canvasNode = nullptr;
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
     canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
     ASSERT_NE(canvasNode, nullptr);
     ASSERT_EQ(RSCanvasDrawingNode::preAllocateDmaCcm_, false);
+    canvasNode = nullptr;
 
     RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
     canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
@@ -86,7 +88,6 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceTest, TestSize.Level1)
     RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
     auto node = RSCanvasDrawingNode::Create(isRenderServiceNode);
     bool ret = node->ResetSurface(width, height);
-    RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
     EXPECT_EQ(ret, true);
 #endif
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
@@ -269,7 +270,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, DestructorBranchesTest002, TestSize.Level1)
     }
     RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
     {
-        auto node = std::make_shared<RSCanvasDrawingNode>(true);
+        auto node = RSCanvasDrawingNode::Create(true);
         node->resetSurfaceIndex_ = 1;
         ASSERT_NE(node, nullptr);
     }
@@ -285,7 +286,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, DestructorWithDmaBufferTest, TestSize.Level1)
     // Test with resetSurfaceIndex > 0
     {
         RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
-        auto node = std::make_shared<RSCanvasDrawingNode>(true);
+        auto node = RSCanvasDrawingNode::Create(true);
         node->resetSurfaceIndex_ = 2;
         node->canvasSurfaceBuffer_ = SurfaceBuffer::Create();
         ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
@@ -293,7 +294,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, DestructorWithDmaBufferTest, TestSize.Level1)
     // Test with resetSurfaceIndex == 0
     {
         RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
-        auto node = std::make_shared<RSCanvasDrawingNode>(true);
+        auto node = RSCanvasDrawingNode::Create(true);
         node->resetSurfaceIndex_ = 0;
         node->canvasSurfaceBuffer_ = SurfaceBuffer::Create();
         ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
@@ -301,7 +302,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, DestructorWithDmaBufferTest, TestSize.Level1)
     // Test with null buffer
     {
         RSCanvasDrawingNode::preAllocateDmaCcm_ = true;
-        auto node = std::make_shared<RSCanvasDrawingNode>(true);
+        auto node = RSCanvasDrawingNode::Create(true);
         node->resetSurfaceIndex_ = 1;
         node->canvasSurfaceBuffer_ = nullptr;
         ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);

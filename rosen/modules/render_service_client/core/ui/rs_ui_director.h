@@ -338,10 +338,6 @@ public:
      */
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
 
-    void OnCanvasDrawingNodeRenderStart(NodeId nodeId);
-
-    void OnCanvasDrawingNodeRenderEnd(NodeId nodeId);
-
     RSUIDirectorLifecycleState GetCurrentState() const;
 
     // HybridDraw Start
@@ -404,7 +400,6 @@ private:
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     void InitHybridRender();
-    void FlushCanvasDrawingNodeBuffers();
 #endif
 
     RSUIDirector() = default;
@@ -436,10 +431,6 @@ private:
     uint64_t dvsyncTime_ = 0;
     bool skipDestroyUIContext_ = false;
     RSUIDirectorLifecycleState currentUIDirectorState_;
-
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    std::unordered_set<NodeId> canvasDrawingNodeIds_;
-#endif
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

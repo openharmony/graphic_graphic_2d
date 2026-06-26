@@ -18,6 +18,26 @@
 namespace OHOS::Rosen::ModifierNG {
 void RSContentStyleModifier::FlushContentModifierImmediately()
 {
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    if (!RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        return;
+    }
+    auto node = node_.lock();
+    if (node == nullptr || node->GetType() != RSUINodeType::CANVAS_DRAWING_NODE) {
+        return;
+    }
     UpdateToRender();
+    if (auto uiContext = node->GetRSUIContext()) {
+        uiContext->OnCanvasDrawingNodeUpdate();
+    }
+#endif
+}
+
+bool RSContentStyleModifier::RenderInClient(Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<RSNode> node)
+{
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+    return node != nullptr && node->RenderInClient(drawCmdList);
+#endif
+    return false;
 }
 } // namespace OHOS::Rosen::ModifierNG

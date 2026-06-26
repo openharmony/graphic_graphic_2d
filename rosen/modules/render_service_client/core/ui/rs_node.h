@@ -82,6 +82,7 @@ enum class FilterQuality;
 namespace ModifierNG {
 class RSModifier;
 class RSCustomModifier;
+class RSContentStyleModifier;
 class RSForegroundFilterModifier;
 class RSBackgroundFilterModifier;
 enum class RSModifierType : uint16_t;
@@ -2284,6 +2285,11 @@ protected:
 
     virtual void SetSkipContentModifierDraw(bool skip) {}
 
+    virtual bool RenderInClient(Drawing::DrawCmdListPtr drawCmdList)
+    {
+        return false;
+    }
+
 private:
     static void InitUniRenderEnabled();
 
@@ -2482,14 +2488,15 @@ private:
     friend class RSModifierExtractor;
     friend class ModifierNG::RSModifier;
     friend class ModifierNG::RSCustomModifier;
+    friend class ModifierNG::RSContentStyleModifier;
+    friend class ModifierNG::RSForegroundFilterModifier;
+    friend class ModifierNG::RSBackgroundFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitCancelAnimationParam;
     friend class RSImplicitAnimator;
     friend class RSCurveAnimation;
     friend class RSAnimation;
-    friend class ModifierNG::RSForegroundFilterModifier;
-    friend class ModifierNG::RSBackgroundFilterModifier;
     template<typename T>
     friend class RSProperty;
     template<typename T>

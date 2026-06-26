@@ -43,8 +43,7 @@
 #include "transaction/rs_transaction_handler.h"
 #include "transaction/rs_render_interface.h"
 #ifdef RS_MODIFIERS_DRAW_ENABLE
-#include "modifier_render_thread/rs_canvas_modifiers_draw.h"
-#include "modifier_render_thread/rs_canvas_modifiers_draw_thread.h"
+#include "modifier_render_thread/rs_canvas_modifiers_draw_agent.h"
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #endif
 
@@ -232,26 +231,15 @@ public:
      */
     void RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId id);
 
-#ifdef RS_MODIFIERS_DRAW_ENABLE
-    std::shared_ptr<RSModifiersDrawThread> GetModifiersDrawThread()
+    void SetColorSpace(GraphicColorGamut colorSpace)
     {
-        return modifiersDrawThread_;
+        colorSpace_ = colorSpace;
     }
 
-    std::shared_ptr<RSCanvasModifiersDrawThread> GetCanvasModifiersDrawThread()
+    GraphicColorGamut GetColorSpace()
     {
-        return canvasModifiersDrawThread_;
+        return colorSpace_;
     }
-
-    std::shared_ptr<RSCanvasModifiersDraw> GetCanvasModifiersDraw()
-    {
-        return canvasModifiersDrawThread_ != nullptr ? canvasModifiersDrawThread_->GetCanvasModifiersDraw() : nullptr;
-    }
-
-    void FlushCanvasDrawingNodeBuffers();
-
-    CommitTransactionCallback CreateCommitTransactionCallback();
-#endif
 
     void SetRebuildState(RebuildState state)
     {
@@ -274,7 +262,20 @@ private:
     void DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, std::string& out);
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
+    CommitTransactionCallback CreateCommitTransactionCallback();
     void UnblockUIThread();
+
+    std::shared_ptr<RSCanvasModifiersDrawAgent> GetCanvasModifiersDrawAgent()
+    {
+        return canvasModifiersDrawAgent_;
+    }
+
+    void OnCanvasDrawingNodeUpdate()
+    {
+        canvasDrawingNodeUpdated_ = true;
+    }
+
+    void FlushCanvasDrawingNodeBuffers();
 #endif
 
     uint64_t token_;
@@ -305,9 +306,14 @@ private:
     int32_t uiPipelineNum_ = UI_PiPLINE_NUM_UNDEFINED;
     std::recursive_mutex uiTaskRunnersVisitorMutex_;
 
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     std::shared_ptr<RSModifiersDrawThread> modifiersDrawThread_ = nullptr;
-    std::shared_ptr<RSCanvasModifiersDrawThread> canvasModifiersDrawThread_ = nullptr;
+    std::shared_ptr<RSCanvasModifiersDrawAgent> canvasModifiersDrawAgent_ = nullptr;
+
+    bool canvasDrawingNodeUpdated_ = false;
+    bool canvasDrawingNodeBufferFlushed_ = false;
 
     std::mutex uiMutex_;
     std::condition_variable uiCV_;
@@ -318,6 +324,8 @@ private:
     friend class RSUIContextManager;
     friend class RSUIDirector;
     friend class RSCanvasDrawingNode;
+    friend class RSRenderInterface;
+    friend class ModifierNG::RSContentStyleModifier;
 };
 
 } // namespace Rosen

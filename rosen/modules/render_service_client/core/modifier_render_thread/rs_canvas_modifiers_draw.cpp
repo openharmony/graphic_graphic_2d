@@ -19,162 +19,306 @@
 #include "include/gpu/ganesh/GrBackendSemaphore.h"
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
 #endif
+#include "concurrent_task_client.h"
+#include "feature/hdr/rs_colorspace_util.h"
+#include "qos.h"
+
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "render_context/shader_cache.h"
-#include "ui/rs_canvas_drawing_node.h"
 
 namespace OHOS {
 namespace Rosen {
-void RSCanvasModifiersDraw::SetCacheDir(const std::string& path)
-{
-    ShaderCache::Instance().SetFilePath(path);
-    cacheDir_ = path;
+namespace {
+constexpr const char* CLEAN_FREE_BUFFERS_TASK_NAME = "CleanFreeBuffersTask";
+constexpr int64_t CLEAN_FREE_BUFFERS_DURATION = 2000;
+constexpr int64_t CLEAN_FREE_BUFFERS_IMMEDIATELY_DELAY = 50;
 }
 
-std::string RSCanvasModifiersDraw::GetCacheDir()
+// RSCanvasModifiersDrawable Start
+void RSCanvasModifiersDrawable::Reset()
 {
-    return cacheDir_;
-}
-
-void RSCanvasModifiersDraw::CleanCanvasDrawingNodeCache(
-    NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface)
-{
-    auto surfaceEntryIt = surfaceEntryMap_.find(nodeId);
-    if (surfaceEntryIt != surfaceEntryMap_.end()) {
-        surfaceEntryMap_.erase(surfaceEntryIt);
-    }
-
-    auto nodeIt = canvasDrawingNodeMap_.find(nodeId);
-    if (nodeIt != canvasDrawingNodeMap_.end()) {
-        canvasDrawingNodeMap_.erase(nodeIt);
-    }
-
-    if (auto renderInterface = weakRenderInterface.lock()) {
-        renderInterface->RemoveCanvasSurface(nodeId);
+    width_ = 0;
+    height_ = 0;
+    forceFlushBuffer_ = false;
+    needResetCanvas_ = false;
+    drawingSurface_ = nullptr;
+    surfaceFrame_ = nullptr;
+    semaphore_ = VK_NULL_HANDLE;
+    if (drawCmdListCache_ != nullptr) {
+        drawCmdListCache_->clear();
     }
 }
 
-void RSCanvasModifiersDraw::OnProducerSurfaceCreated(NodeId nodeId, std::shared_ptr<RSSurface> producerSurface)
+void RSCanvasModifiersDrawable::CreateProducerSurface(
+    std::weak_ptr<RSRenderInterface> weakRenderInterface, const std::string& cacheDir)
 {
-    surfaceEntryMap_[nodeId].producerSurface = producerSurface;
-    surfaceEntryMap_[nodeId].drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
-}
-
-void RSCanvasModifiersDraw::CacheDrawCmdList(NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList)
-{
-    auto& surfaceEntry = surfaceEntryMap_[nodeId];
-    if (surfaceEntry.drawCmdListCache_ != nullptr) {
-        surfaceEntry.drawCmdListCache_->emplace_back(drawCmdList);
-    } else {
-        RS_LOGE("%{public}s Null drawCmdListCache, drop drawCmdList, nodeId=%{public}" PRIu64, __func__, nodeId);
-    }
-}
-
-void RSCanvasModifiersDraw::ResetSurface(
-    int width, int height, NodeId nodeId, bool sizeOutOfGpuLimit, std::weak_ptr<RSCanvasDrawingNode> weakNode)
-{
-    if (weakNode.expired()) {
-        RS_LOGE("%{public}s Node released already, nodeId=%{public}" PRIu64, __func__, nodeId);
+    auto renderInterface = weakRenderInterface.lock();
+    if (renderInterface == nullptr) {
+        RS_LOGE(
+            "RSCanvasModifiersDrawable::CreateProducerSurface, null renderInterface, nodeId=%{public}" PRIu64, nodeId_);
         return;
     }
-    if (sizeOutOfGpuLimit && surfaceEntryMap_.count(nodeId) == 0) {
-        return;
-    }
-    auto& surfaceEntry = surfaceEntryMap_[nodeId];
-    if (surfaceEntry.producerSurface == nullptr) {
-        RS_LOGE("%{public}s Null producer surface, nodeId=%{public}" PRIu64, __func__, nodeId);
-        return;
-    }
-    if (surfaceEntry.width == width && surfaceEntry.height == height) {
-        RS_LOGE("%{public}s Same width and height, nodeId=%{public}" PRIu64, __func__, nodeId);
-        return;
-    }
-
-    // Current buffer is not flushed, cancel it.
-    if (surfaceEntry.surfaceFrame != nullptr) {
-        std::static_pointer_cast<RSSurfaceOhosVulkan>(surfaceEntry.producerSurface)->CancelBufferForCurrentFrame();
-    }
-
-    surfaceEntry.Reset();
-    if (sizeOutOfGpuLimit) {
-        canvasDrawingNodeMap_.erase(nodeId);
-        return;
-    }
-
-    canvasDrawingNodeMap_[nodeId] = weakNode;
-    surfaceEntry.width = width;
-    surfaceEntry.height = height;
-    surfaceEntry.needResetCanvas = true;
-    surfaceEntry.forceFlushBuffer = true;
-    ConvertCmdListForCanvas(nodeId);
-}
-
-std::shared_ptr<Drawing::Image> RSCanvasModifiersDraw::GetImage(NodeId nodeId, const SurfaceEntry& surfaceEntry,
-    const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<Drawing::GPUContext> gpuContext)
-{
-    if (surfaceEntry.drawingSurface == nullptr) {
-        RS_LOGE("%{public}s Null surface, nodeId=%{public}" PRIu64, __func__, nodeId);
-        return nullptr;
-    }
+    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir);
     if (gpuContext == nullptr) {
-        RS_LOGE("%{public}s Null GPU context, nodeId=%{public}" PRIu64, __func__, nodeId);
-        return nullptr;
+        RS_LOGE("RSCanvasModifiersDrawable::CreateProducerSurface, null gpuContext, nodeId=%{public}" PRIu64, nodeId_);
+        return;
     }
 
-    auto image = std::make_shared<Drawing::Image>();
-    if (!image->BuildFromTexture(*gpuContext, surfaceEntry.drawingSurface->GetBackendTexture().GetTextureInfo(),
-        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
-        RS_LOGE("%{public}s BuildFromTexture fail, nodeId=%{public}" PRIu64, __func__, nodeId);
-        return nullptr;
+    auto surface = renderInterface->CreateCanvasDrawingNodeSurface(nodeId_);
+    if (surface == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::CreateProducerSurface, null surface, nodeId=%{public}" PRIu64, nodeId_);
+        return;
     }
-    return image;
+    auto producerSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
+    producerSurface->SetSkContext(gpuContext);
+    producerSurface->SetTimeOut(2); // Timeout 2ms
+    producerSurface_ = producerSurface;
+    drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
 }
 
-bool RSCanvasModifiersDraw::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<RSCanvasDrawingNode> node)
+void RSCanvasModifiersDrawable::ReleaseProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface)
 {
-    if (node == nullptr) {
-        RS_LOGE("%{public}s Node released already" PRIu64, __func__);
+    auto renderInterface = weakRenderInterface.lock();
+    if (renderInterface == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::ReleaseProducerSurface, null renderInterface, nodeId=%{public}" PRIu64,
+            nodeId_);
+        return;
+    }
+    renderInterface->ReleaseCanvasDrawingNodeSurface(nodeId_);
+}
+
+DestroySemaphoreInfo* RSCanvasModifiersDrawable::ResetSurface(
+    int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace)
+{
+    if (producerSurface_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
+        return nullptr;
+    }
+    if (width_ == width && height_ == height) {
+        RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: Same width and height, nodeId=%{public}" PRIu64, nodeId_);
+        return nullptr;
+    }
+
+    auto ohosSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(producerSurface_);
+    // Current buffer is not flushed, cancel it.
+    if (surfaceFrame_ != nullptr) {
+        ohosSurface->CancelBufferForCurrentFrame();
+    }
+
+    Reset();
+    if (sizeOutOfGpuLimit) {
+        return nullptr;
+    }
+
+    width_ = width;
+    height_ = height;
+    needResetCanvas_ = true;
+    forceFlushBuffer_ = true;
+    ohosSurface->SetColorSpace(colorSpace);
+    HDIV::CM_ColorSpaceType colorSpaceType = HDIV::CM_SRGB_FULL;
+    if (RSColorSpaceUtil::ConvertColorGamutToSpaceType(colorSpace, colorSpaceType)) {
+        auto surface = ohosSurface->GetSurface();
+        // ATTRKEY_COLORSPACE_INFO is color space key
+        if (surface && surface->SetUserData("ATTRKEY_COLORSPACE_INFO", std::to_string(colorSpaceType)) != GSERROR_OK) {
+            RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: SetColorSpace fail, nodeId=%{public}" PRIu64, nodeId_);
+        }
+    }
+    return Draw();
+}
+
+DestroySemaphoreInfo* RSCanvasModifiersDrawable::UpdateContent(
+    Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer)
+{
+    if (drawCmdListCache_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::UpdateContent: Null drawCmdListCache, drop drawCmdList, "
+            "nodeId=%{public}" PRIu64, nodeId_);
+        return nullptr;
+    }
+
+    if (drawCmdList != nullptr) {
+        drawCmdListCache_->emplace_back(drawCmdList);
+    }
+    forceFlushBuffer_ = forceFlushBuffer;
+    return Draw();
+}
+
+DestroySemaphoreInfo* RSCanvasModifiersDrawable::Draw()
+{
+    if (producerSurface_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::Draw: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
+        return nullptr;
+    }
+    if (drawCmdListCache_->empty() && !forceFlushBuffer_) {
+        return nullptr;
+    }
+
+    if (surfaceFrame_ == nullptr) {
+        surfaceFrame_ = RequestBufferAndDrawHistory();
+    }
+    if (surfaceFrame_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::Draw: Null surfaceFrame, nodeId=%{public}" PRIu64, nodeId_);
+        return nullptr;
+    }
+    auto drawingSurface = drawingSurface_;
+    for (auto& cmdList : *drawCmdListCache_) {
+        Playback(cmdList);
+        cmdList->ClearOp();
+    }
+    forceFlushBuffer_ = false;
+    NativeBufferUtils::CreateVkSemaphore(semaphore_);
+    return FlushSurfaceWithSemaphore();
+}
+
+std::unique_ptr<RSSurfaceFrame> RSCanvasModifiersDrawable::RequestBufferAndDrawHistory()
+{
+    auto ohosSurface = std::static_pointer_cast<RSSurfaceOhos>(producerSurface_);
+    auto renderFrame = ohosSurface->RequestFrame(width_, height_);
+    if (renderFrame == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::RequestBufferAndDrawHistory: Null renderFrame, nodeId=%{public}" PRIu64
+            ", width=%{public}d, height=%{public}d", nodeId_, width_, height_);
+        return nullptr;
+    }
+    auto drawingSurface = renderFrame->GetSurface();
+    if (drawingSurface == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::RequestBufferAndDrawHistory: Null drawingSurface, nodeId=%{public}" PRIu64,
+            nodeId_);
+        return nullptr;
+    }
+    auto canvas = drawingSurface->GetCanvas();
+    if (canvas == nullptr) {
+        RS_LOGE(
+            "RSCanvasModifiersDrawable::RequestBufferAndDrawHistory: Null canvas, nodeId=%{public}" PRIu64, nodeId_);
+        return nullptr;
+    }
+
+    if (drawingSurface_ != nullptr) {
+        if (auto lastCanvas = drawingSurface_->GetCanvas()) {
+            canvas->InheritStateAndContentFrom(lastCanvas.get(), false);
+        }
+    }
+    if (needResetCanvas_) {
+        canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+        canvas->RestoreToCount(1);
+        canvas->SetMatrix(Drawing::Matrix());
+        needResetCanvas_ = false;
+    }
+    drawingSurface_ = drawingSurface;
+    return renderFrame;
+}
+
+void RSCanvasModifiersDrawable::Playback(const Drawing::DrawCmdListPtr& cmdList)
+{
+    auto canvas = drawingSurface_->GetCanvas();
+    cmdList->Playback(*canvas);
+    if (RSSystemProperties::GetHybridRenderDfxEnabled()) {
+        auto matrix = canvas->GetTotalMatrix();
+        canvas->SetMatrix(Drawing::Matrix());
+        Drawing::Pen pen;
+        pen.SetWidth(10);         // DFX border width 10
+        pen.SetColor(0xFFFF8000); // 0xFFFF8000 is orange
+        canvas->AttachPen(pen);
+        auto rect = Drawing::Rect(0, 0, drawingSurface_->Width(), drawingSurface_->Height());
+        canvas->DrawRect(rect);
+        canvas->DetachPen();
+        canvas->SetMatrix(matrix);
+    }
+}
+
+DestroySemaphoreInfo* RSCanvasModifiersDrawable::FlushSurfaceWithSemaphore()
+{
+#ifdef USE_M133_SKIA
+    GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore_);
+#else
+    GrBackendSemaphore backendSemaphore;
+    backendSemaphore.initVulkan(semaphore_);
+#endif
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    DestroySemaphoreInfo* destroyInfo =
+        new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore_);
+    Drawing::FlushInfo drawingFlushInfo;
+    drawingFlushInfo.backendSurfaceAccess = true;
+    drawingFlushInfo.numSemaphores = 1;
+    drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
+    drawingFlushInfo.finishedProc = [](void* context) { DestroySemaphoreInfo::DestroySemaphore(context); };
+    drawingFlushInfo.finishedContext = destroyInfo;
+    drawingSurface_->Flush(&drawingFlushInfo);
+    return destroyInfo;
+}
+
+sptr<SurfaceBuffer> RSCanvasModifiersDrawable::OnFlushBuffer()
+{
+    if (nodeState_ == RSNodeState::INACTIVE) {
+        return nullptr;
+    }
+    if (producerSurface_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::OnFlushBuffer: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
+        return nullptr;
+    }
+    if (surfaceFrame_ == nullptr || semaphore_ == VK_NULL_HANDLE) {
+        return nullptr;
+    }
+    auto ohosSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(producerSurface_);
+    if (auto buffer = ohosSurface->GetCurrentBuffer()) {
+        ohosSurface->OnFlushBuffer();
+        return buffer;
+    }
+    return nullptr;
+}
+
+void RSCanvasModifiersDrawable::OnDirtyBufferCollected(int64_t lastFlushBufferTime)
+{
+    surfaceFrame_ = nullptr;
+    semaphore_ = VK_NULL_HANDLE;
+    lastFlushBufferTime_ = lastFlushBufferTime;
+}
+
+int32_t RSCanvasModifiersDrawable::GetFenceFd()
+{
+    int32_t fenceFd = 0;
+    NativeBufferUtils::GetFenceFdFromSemaphore(semaphore_, fenceFd);
+    return fenceFd;
+}
+
+bool RSCanvasModifiersDrawable::IsFree(int64_t now, int64_t maxDuration)
+{
+    if (lastFlushBufferTime_ == 0) {
         return false;
     }
-    auto nodeId = node->GetId();
-    auto& surfaceEntry = surfaceEntryMap_[nodeId];
-    auto bitmapFormat = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir_);
-    auto image = GetImage(nodeId, surfaceEntry, bitmapFormat, gpuContext);
-    if (image == nullptr) {
+    auto duration = now - lastFlushBufferTime_;
+    if (duration <= maxDuration) {
         return false;
     }
-    if (!image->AsLegacyBitmap(bitmap)) {
-        RS_LOGE("%{public}s AsLegacyBitmap fail, nodeId=%{public}" PRIu64, __func__, nodeId);
+    if (producerSurface_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::IsFree: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
         return false;
     }
     return true;
 }
 
-bool RSCanvasModifiersDraw::GetPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* rect,
-    std::shared_ptr<RSCanvasDrawingNode> node, Drawing::DrawCmdListPtr drawCmdList)
+void RSCanvasModifiersDrawable::CleanBuffer()
 {
-    if (node == nullptr) {
-        RS_LOGE("%{public}s Node released already" PRIu64, __func__);
-        return false;
-    }
+    std::static_pointer_cast<RSSurfaceOhosVulkan>(producerSurface_)->CleanReleasedBuffers();
+    lastFlushBufferTime_ = 0;
+    RS_LOGI("RSCanvasModifiersDrawable::CleanBuffer, nodeId=%{public}" PRIu64, nodeId_);
+}
+
+bool RSCanvasModifiersDrawable::GetPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* rect,
+    Drawing::DrawCmdListPtr drawCmdList, const std::string& cacheDir)
+{
     if (pixelMap == nullptr || rect == nullptr) {
         return false;
     }
-    auto nodeId = node->GetId();
-    auto& surfaceEntry = surfaceEntryMap_[nodeId];
-    auto bitmapFormat = Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir_);
-    auto image = GetImage(nodeId, surfaceEntry, bitmapFormat, gpuContext);
+    auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir);
+    auto image = GetImage(bitmapFormat, gpuContext);
     if (image == nullptr) {
         return false;
     }
 
     if (drawCmdList != nullptr && !drawCmdList->IsEmpty()) {
-        auto imageInfo =
-            Drawing::ImageInfo{surfaceEntry.width, surfaceEntry.height, bitmapFormat.colorType, bitmapFormat.alphaType};
+        auto imageInfo = Drawing::ImageInfo { width_, height_, bitmapFormat.colorType, bitmapFormat.alphaType };
         auto surface = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, imageInfo);
         if (auto canvas = surface != nullptr ? surface->GetCanvas() : nullptr) {
             canvas->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
@@ -183,200 +327,267 @@ bool RSCanvasModifiersDraw::GetPixelMap(std::shared_ptr<Media::PixelMap> pixelMa
             image = surface->GetImageSnapshot();
         }
         if (image == nullptr) {
-            RS_LOGE("%{public}s GetImageSnapshot fail, nodeId=%{public}" PRIu64, __func__, nodeId);
+            RS_LOGE("RSCanvasModifiersDrawable::GetPixelMap: GetImageSnapshot fail, nodeId=%{public}" PRIu64, nodeId_);
             return false;
         }
     }
 
-    auto imageInfo =
-        Drawing::ImageInfo{pixelMap->GetWidth(), pixelMap->GetHeight(), bitmapFormat.colorType, bitmapFormat.alphaType};
+    auto imageInfo = Drawing::ImageInfo { pixelMap->GetWidth(), pixelMap->GetHeight(), bitmapFormat.colorType,
+        bitmapFormat.alphaType };
     if (!image->ReadPixels(
         imageInfo, pixelMap->GetWritablePixels(), pixelMap->GetRowStride(), rect->GetLeft(), rect->GetTop())) {
-        RS_LOGE("%{public}s ReadPixels fail, nodeId=%{public}" PRIu64, __func__, nodeId);
+        RS_LOGE("RSCanvasModifiersDrawable::GetPixelMap: ReadPixels fail, nodeId=%{public}" PRIu64, nodeId_);
         return false;
     }
-    if (auto* surfaceBuffer = static_cast<SurfaceBuffer*>(pixelMap->GetFd())) {
-        if (surfaceBuffer->FlushCache() != GSERROR_OK) {
-            RS_LOGE("%{public}s FlushCache fail, nodeId=%{public}" PRIu64, __func__, nodeId);
+    if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        auto* surfaceBuffer = static_cast<SurfaceBuffer*>(pixelMap->GetFd());
+        if (surfaceBuffer != nullptr && (surfaceBuffer->GetUsage() & BUFFER_USAGE_MEM_MMZ_CACHE)) {
+            surfaceBuffer->FlushCache();
         }
     }
     return true;
 }
 
-void RSCanvasModifiersDraw::Playback(
-    const std::shared_ptr<Drawing::Surface>& surface, const Drawing::DrawCmdListPtr& cmdList)
+bool RSCanvasModifiersDrawable::GetBitmap(Drawing::Bitmap& bitmap, const std::string& cacheDir)
 {
-    auto canvas = surface->GetCanvas();
-    cmdList->Playback(*canvas);
-    if (RSSystemProperties::GetHybridRenderDfxEnabled()) {
-        auto matrix = canvas->GetTotalMatrix();
-        canvas->SetMatrix(Drawing::Matrix());
-        Drawing::Pen pen;
-        pen.SetWidth(10); // DFX border width 10
-        pen.SetColor(0xFFFF8000); // 0xFFFF8000 is orange
-        canvas->AttachPen(pen);
-        auto rect = Drawing::Rect(0, 0, surface->Width(), surface->Height());
-        canvas->DrawRect(rect);
-        canvas->DetachPen();
-        canvas->SetMatrix(matrix);
+    auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir);
+    auto image = GetImage(bitmapFormat, gpuContext);
+    if (image == nullptr) {
+        return false;
     }
+    if (!image->AsLegacyBitmap(bitmap)) {
+        RS_LOGE("RSCanvasModifiersDrawable::GetBitmap: AsLegacyBitmap fail, nodeId=%{public}" PRIu64, nodeId_);
+        return false;
+    }
+    return true;
 }
 
-void RSCanvasModifiersDraw::UpdateCanvasContent(
-    NodeId nodeId, std::weak_ptr<RSCanvasDrawingNode> weakNode, bool forceFlushBuffer)
+std::shared_ptr<Drawing::Image> RSCanvasModifiersDrawable::GetImage(
+    const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
-    if (weakNode.expired()) {
-        RS_LOGE("%{public}s Node released already, nodeId=%{public}" PRIu64, __func__, nodeId);
-        return;
-    }
-    surfaceEntryMap_[nodeId].forceFlushBuffer = forceFlushBuffer;
-    ConvertCmdListForCanvas(nodeId);
-}
-
-void RSCanvasModifiersDraw::ConvertCmdListForCanvas(NodeId nodeId)
-{
-    auto& surfaceEntry = surfaceEntryMap_[nodeId];
-    if (surfaceEntry.producerSurface == nullptr) {
-        RS_LOGE("%{public}s Null producer surface, nodeId=%{public}" PRIu64, __func__, nodeId);
-        return;
-    }
-
-    if (!surfaceEntry.drawCmdListCache_->empty() || surfaceEntry.forceFlushBuffer) {
-        ConvertCmdListByBuffer(nodeId, surfaceEntry);
-    }
-}
-
-void RSCanvasModifiersDraw::ConvertCmdListByBuffer(NodeId nodeId, SurfaceEntry& surfaceEntry)
-{
-    RequestCanvasBuffer(nodeId);
-    if (surfaceEntry.surfaceFrame == nullptr) {
-        RS_LOGE("%{public}s Null surfaceFrame, nodeId=%{public}" PRIu64, __func__, nodeId);
-        return;
-    }
-    auto drawingSurface = surfaceEntry.drawingSurface;
-    for (auto& cmdList : *surfaceEntry.drawCmdListCache_) {
-        Playback(drawingSurface, cmdList);
-        cmdList->ClearOp();
-    }
-    NativeBufferUtils::CreateVkSemaphore(surfaceEntry.semaphore);
-    FlushCanvasSurfaceWithSemaphore(drawingSurface, surfaceEntry.semaphore);
-    surfaceEntry.forceFlushBuffer = false;
-}
-
-void RSCanvasModifiersDraw::RequestCanvasBuffer(NodeId nodeId)
-{
-    if (canvasDrawingNodeMap_.find(nodeId) == canvasDrawingNodeMap_.end()) {
-        return;
-    }
-    auto& surfaceEntry = surfaceEntryMap_[nodeId];
-    if (surfaceEntry.producerSurface == nullptr) {
-        return;
-    }
-    if (surfaceEntry.surfaceFrame != nullptr) {
-        return;
-    }
-    surfaceEntry.surfaceFrame = CheckAndDrawHistory(surfaceEntry, nodeId);
-}
-
-void RSCanvasModifiersDraw::FlushCanvasSurfaceWithSemaphore(
-    const std::shared_ptr<Drawing::Surface>& surface, VkSemaphore& semaphore)
-{
-#ifdef USE_M133_SKIA
-    GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
-#else
-    GrBackendSemaphore backendSemaphore;
-    backendSemaphore.initVulkan(semaphore);
-#endif
-    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    DestroySemaphoreInfo* destroyInfo =
-        new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);
-
-    Drawing::FlushInfo drawingFlushInfo;
-    drawingFlushInfo.backendSurfaceAccess = true;
-    drawingFlushInfo.numSemaphores = 1;
-    drawingFlushInfo.backendSemaphore = static_cast<void*>(&backendSemaphore);
-    drawingFlushInfo.finishedProc = [](void* context) {
-        DestroySemaphoreInfo::DestroySemaphore(context);
-    };
-    drawingFlushInfo.finishedContext = destroyInfo;
-    surface->Flush(&drawingFlushInfo);
-    canvasNewSemaphoreInfos_.emplace_back(destroyInfo);
-}
-
-std::unique_ptr<RSSurfaceFrame> RSCanvasModifiersDraw::CheckAndDrawHistory(SurfaceEntry& surfaceEntry, NodeId nodeId)
-{
-    auto ohosSurface = std::static_pointer_cast<RSSurfaceOhos>(surfaceEntry.producerSurface);
-    auto renderFrame = ohosSurface->RequestFrame(surfaceEntry.width, surfaceEntry.height);
-    if (renderFrame == nullptr) {
-        RS_LOGE("%{public}s null renderFrame, nodeId=%{public}lu, width=%{public}d, height=%{public}d",
-            __func__, nodeId, surfaceEntry.width, surfaceEntry.height);
+    if (drawingSurface_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::GetImage: Null surface, nodeId=%{public}" PRIu64, nodeId_);
         return nullptr;
     }
-    auto drawingSurface = renderFrame->GetSurface();
-    if (drawingSurface == nullptr) {
-        RS_LOGE("%{public}s null drawingSurface, nodeId=%{public}lu", __func__, nodeId);
-        return nullptr;
-    }
-    auto canvas = drawingSurface->GetCanvas();
-    if (canvas == nullptr) {
-        RS_LOGE("%{public}s null canvas", __func__);
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSCanvasModifiersDrawable::GetImage: Null GPU context, nodeId=%{public}" PRIu64, nodeId_);
         return nullptr;
     }
 
-    if (surfaceEntry.drawingSurface != nullptr) {
-        if (auto lastCanvas = surfaceEntry.drawingSurface->GetCanvas()) {
-            canvas->InheritStateAndContentFrom(lastCanvas.get(), false);
+    auto image = std::make_shared<Drawing::Image>();
+    if (!image->BuildFromTexture(*gpuContext, drawingSurface_->GetBackendTexture().GetTextureInfo(),
+        Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr)) {
+        RS_LOGE("RSCanvasModifiersDrawable::GetImage: BuildFromTexture fail, nodeId=%{public}" PRIu64, nodeId_);
+        return nullptr;
+    }
+    return image;
+}
+// RSCanvasModifiersDrawable End
+
+// Thread-related methods
+void RSCanvasModifiersDraw::StartThread()
+{
+    if (threadStarted_) {
+        return;
+    }
+
+    runner_ = AppExecFwk::EventRunner::Create("CanvasModifiersDraw");
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    runner_->Run();
+    threadStarted_ = true;
+    PostTask([] {
+        OHOS::ConcurrentTask::IntervalReply reply;
+        reply.tid = gettid();
+        OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().QueryInterval(
+            OHOS::ConcurrentTask::QUERY_MODIFIER_DRAW, reply);
+        SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
+        // Init shader cache, shader save delay time differs between uni-render and hybrid-render.
+        std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
+        auto size = vkVersion.size();
+        auto& cache = ShaderCache::Instance();
+        cache.InitShaderCache(vkVersion.c_str(), size, false);
+    });
+    CleanFreeBuffers(CLEAN_FREE_BUFFERS_DURATION, false);
+    RS_LOGI("RSCanvasModifiersDraw::StartThread: Thread started");
+}
+
+void RSCanvasModifiersDraw::PostTask(
+    const std::function<void()>&& task, const std::string& name, int64_t delayTime)
+{
+    StartThread();
+    handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+}
+
+void RSCanvasModifiersDraw::PostSyncTask(const std::function<void()>&& task)
+{
+    StartThread();
+    handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+}
+
+void RSCanvasModifiersDraw::RemoveTask(const std::string& name)
+{
+    if (threadStarted_) {
+        handler_->RemoveTask(name);
+    }
+}
+// End of thread-related methods
+
+void RSCanvasModifiersDraw::SetCacheDir(const std::string& cacheDir)
+{
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostTask([weakCanvasModifiersDraw, path = cacheDir] {
+        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
+            ShaderCache::Instance().SetFilePath(path);
+            canvasModifiersDraw->cacheDir_ = path;
         }
-    }
-    if (surfaceEntry.needResetCanvas) {
-        canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-        canvas->RestoreToCount(1);
-        canvas->SetMatrix(Drawing::Matrix());
-        surfaceEntry.needResetCanvas = false;
-    }
-    surfaceEntry.drawingSurface = drawingSurface;
-    return renderFrame;
+    });
+}
+
+void RSCanvasModifiersDraw::OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface)
+{
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostTask([weakCanvasModifiersDraw, nodeId, weakRenderInterface] {
+        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
+            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+            drawable.nodeId_ = nodeId;
+            drawable.CreateProducerSurface(weakRenderInterface, canvasModifiersDraw->cacheDir_);
+        }
+    });
+}
+
+void RSCanvasModifiersDraw::OnNodeRelease(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface)
+{
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostTask([weakCanvasModifiersDraw, nodeId, weakRenderInterface] {
+        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
+            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+            drawable.ReleaseProducerSurface(weakRenderInterface);
+            canvasModifiersDraw->drawableMap_.erase(nodeId);
+        }
+    });
+}
+
+void RSCanvasModifiersDraw::OnNodeStateChanged(NodeId nodeId, RSNodeState nodeState)
+{
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostTask([weakCanvasModifiersDraw, nodeId, nodeState] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        if (canvasModifiersDraw == nullptr) {
+            return;
+        }
+        auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+        drawable.nodeState_ = nodeState;
+        if (nodeState != RSNodeState::ACTIVE) {
+            canvasModifiersDraw->CleanFreeBuffersImmediately();
+            return;
+        }
+        if (auto* destroySemaphoreInfo = drawable.UpdateContent(nullptr, true)) {
+            canvasModifiersDraw->canvasNewSemaphoreInfos_.emplace_back(destroySemaphoreInfo);
+        }
+    });
+}
+
+void RSCanvasModifiersDraw::ResetSurface(
+    NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace)
+{
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostTask([weakCanvasModifiersDraw, nodeId, width, height, sizeOutOfGpuLimit, colorSpace] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        if (canvasModifiersDraw == nullptr) {
+            return;
+        }
+        auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+        if (auto* destroySemaphoreInfo = drawable.ResetSurface(width, height, sizeOutOfGpuLimit, colorSpace)) {
+            canvasModifiersDraw->canvasNewSemaphoreInfos_.emplace_back(destroySemaphoreInfo);
+        }
+        if (sizeOutOfGpuLimit) {
+            canvasModifiersDraw->CleanFreeBuffersImmediately();
+        }
+    });
+}
+
+bool RSCanvasModifiersDraw::GetBitmap(NodeId nodeId, Drawing::Bitmap& bitmap)
+{
+    bool ret = false;
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostSyncTask([weakCanvasModifiersDraw, nodeId, &bitmap, &ret] {
+        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
+            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+            ret = drawable.GetBitmap(bitmap, canvasModifiersDraw->cacheDir_);
+        }
+    });
+    return ret;
+}
+
+bool RSCanvasModifiersDraw::GetPixelMap(NodeId nodeId, std::shared_ptr<Media::PixelMap> pixelMap,
+    const Drawing::Rect* rect, Drawing::DrawCmdListPtr drawCmdList)
+{
+    bool ret = false;
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostSyncTask([weakCanvasModifiersDraw, nodeId, pixelMap, rect, drawCmdList, &ret] {
+        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
+            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+            ret = drawable.GetPixelMap(pixelMap, rect, drawCmdList, canvasModifiersDraw->cacheDir_);
+        }
+    });
+    return ret;
+}
+
+void RSCanvasModifiersDraw::UpdateCanvasContent(NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList)
+{
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostTask([weakCanvasModifiersDraw, nodeId, drawCmdList] {
+        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
+            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+            if (auto* destroySemaphoreInfo = drawable.UpdateContent(drawCmdList, false)) {
+                canvasModifiersDraw->canvasNewSemaphoreInfos_.emplace_back(destroySemaphoreInfo);
+            }
+        }
+    });
 }
 
 void RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers()
 {
-    std::vector<std::tuple<NodeId, sptr<SurfaceBuffer>, SurfaceEntry*>> bufferList;
-    for (const auto& [nodeId, weakNode] : canvasDrawingNodeMap_) {
-        if (auto node = weakNode.lock(); node == nullptr || node->GetNodeState() == RSNodeState::INACTIVE) {
-            continue;
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostTask([weakCanvasModifiersDraw] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        if (canvasModifiersDraw == nullptr) {
+            return;
         }
-        auto& surfaceEntry = surfaceEntryMap_[nodeId];
-        if (surfaceEntry.producerSurface == nullptr) {
-            RS_LOGE("%{public}s Null producer surface, nodeId=%{public}" PRIu64, __func__, nodeId);
-            continue;
+
+        std::vector<std::pair<sptr<SurfaceBuffer>, RSCanvasModifiersDrawable*>> bufferList;
+        for (auto& [_, drawable] : canvasModifiersDraw->drawableMap_) {
+            if (auto buffer = drawable.OnFlushBuffer()) {
+                bufferList.emplace_back(buffer, &drawable);
+            }
         }
-        if (surfaceEntry.surfaceFrame == nullptr || surfaceEntry.semaphore == VK_NULL_HANDLE) {
-            continue;
+        if (!bufferList.empty()) {
+            if (auto gpuContext =
+                    RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(canvasModifiersDraw->cacheDir_)) {
+                gpuContext->Submit();
+            }
+            auto now = static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+            for (const auto& [buffer, drawable] : bufferList) {
+                canvasModifiersDraw->AppendTransactionConfig(drawable->nodeId_, buffer, drawable->GetFenceFd());
+                drawable->OnDirtyBufferCollected(now);
+            }
         }
-        auto ohosSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(surfaceEntry.producerSurface);
-        auto buffer = ohosSurface->GetCurrentBuffer();
-        if (buffer == nullptr) {
-            continue;
-        }
-        ohosSurface->OnFlushBuffer();
-        bufferList.emplace_back(nodeId, buffer, &surfaceEntry);
-    }
-    if (!bufferList.empty()) {
-        if (auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir_)) {
-            gpuContext->Submit();
-        }
-        auto now = static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-        for (const auto& [nodeId, buffer, surfaceEntry] : bufferList) {
-            int32_t fenceFd = -1;
-            NativeBufferUtils::GetFenceFdFromSemaphore(surfaceEntry->semaphore, fenceFd);
-            AppendTransactionConfig(buffer, fenceFd, nodeId);
-            surfaceEntry->surfaceFrame = nullptr;
-            surfaceEntry->semaphore = VK_NULL_HANDLE;
-            surfaceEntry->lastFlushBufferTime = now;
-        }
-    }
-    DestroyCanvasSemaphore();
+        canvasModifiersDraw->DestroyCanvasSemaphore();
+    });
+}
+
+void RSCanvasModifiersDraw::AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, int fenceFd)
+{
+    RSTransactionConfig config;
+    config.nodeId = nodeId;
+    config.transaction = new RSBufferTransaction(buffer);
+    sptr<SyncFence> fence = new SyncFence(fenceFd);
+    config.transaction->SetFence(fence);
+    std::vector<Rect> damages{Rect{0, 0, buffer->GetWidth(), buffer->GetHeight()}};
+    config.transaction->SetDamages(damages);
+    transactionConfigList_.emplace_back(config);
 }
 
 void RSCanvasModifiersDraw::DestroyCanvasSemaphore()
@@ -391,59 +602,55 @@ void RSCanvasModifiersDraw::DestroyCanvasSemaphore()
     std::swap(canvasNewSemaphoreInfos_, canvasExpiredSemaphoreInfos_);
 }
 
-void RSCanvasModifiersDraw::AppendTransactionConfig(sptr<SurfaceBuffer> buffer, int fenceFd, NodeId nodeId)
-{
-    RSTransactionConfig config;
-    config.nodeId = nodeId;
-    config.transaction = new RSBufferTransaction(buffer);
-    sptr<SyncFence> fence = new SyncFence(fenceFd);
-    config.transaction->SetFence(fence);
-    std::vector<Rect> damages{Rect{0, 0, buffer->GetWidth(), buffer->GetHeight()}};
-    config.transaction->SetDamages(damages);
-    transactionConfigList_.push_back(config);
-}
-
 void RSCanvasModifiersDraw::SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList)
 {
-    std::swap(transactionConfigList, transactionConfigList_);
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostSyncTask([weakCanvasModifiersDraw, &transactionConfigList] {
+        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
+            std::swap(transactionConfigList, canvasModifiersDraw->transactionConfigList_);
+        }
+    });
 }
 
-void RSCanvasModifiersDraw::CleanFreeBuffers(int64_t maxDuration)
+void RSCanvasModifiersDraw::CleanFreeBuffers(int64_t delayTime, bool immediately)
+{
+    if (immediately) {
+        RemoveTask(CLEAN_FREE_BUFFERS_TASK_NAME);
+    }
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
+    PostTask(
+        [weakCanvasModifiersDraw, delayTime, immediately] {
+            if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
+                canvasModifiersDraw->DoCleanFreeBuffers(immediately ? 0 : delayTime);
+                canvasModifiersDraw->CleanFreeBuffers(CLEAN_FREE_BUFFERS_DURATION, false);
+            }
+        },
+        CLEAN_FREE_BUFFERS_TASK_NAME, delayTime);
+}
+
+void RSCanvasModifiersDraw::CleanFreeBuffersImmediately()
+{
+    CleanFreeBuffers(CLEAN_FREE_BUFFERS_IMMEDIATELY_DELAY, true);
+}
+
+void RSCanvasModifiersDraw::DoCleanFreeBuffers(int64_t maxDuration)
 {
     auto now = static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count());
-    std::vector<std::pair<std::shared_ptr<RSSurfaceOhosVulkan>, NodeId>> surfaceList;
-    for (const auto& [nodeId, weakNode] : canvasDrawingNodeMap_) {
-        auto& surfaceEntry = surfaceEntryMap_[nodeId];
-        // No free buffers
-        if (surfaceEntry.lastFlushBufferTime == 0) {
-            continue;
+    std::vector<RSCanvasModifiersDrawable*> freeDrawableList;
+    for (auto& [_, drawable] : drawableMap_) {
+        if (drawable.IsFree(now, maxDuration)) {
+            freeDrawableList.emplace_back(&drawable);
         }
-        auto duration = now - surfaceEntry.lastFlushBufferTime;
-        if (duration <= maxDuration) {
-            continue;
-        }
-        if (weakNode.expired()) {
-            continue;
-        }
-        if (surfaceEntry.producerSurface == nullptr) {
-            RS_LOGE("%{public}s Null producer surface, nodeId=%{public}" PRIu64, __func__, nodeId);
-            continue;
-        }
-        surfaceList.push_back(
-            std::make_pair(std::static_pointer_cast<RSSurfaceOhosVulkan>(surfaceEntry.producerSurface), nodeId));
     }
-    if (surfaceList.empty()) {
+    if (freeDrawableList.empty()) {
         return;
     }
     if (auto gpuContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext(cacheDir_)) {
         gpuContext->FlushAndSubmit(true);
     }
-    for (const auto& [surface, nodeId] : surfaceList) {
-        surface->CleanReleasedBuffers();
-        auto& surfaceEntry = surfaceEntryMap_[nodeId];
-        surfaceEntry.lastFlushBufferTime = 0;
-        RS_LOGI("RSCanvasModifiersDraw::CleanFreeBuffers, nodeId=%{public}" PRIu64, nodeId);
+    for (auto* drawable : freeDrawableList) {
+        drawable->CleanBuffer();
     }
 }
 } // namespace Rosen

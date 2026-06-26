@@ -16,8 +16,12 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_RENDER_THREAD_RS_CANVAS_MODIFIERS_DRAW_H
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RENDER_THREAD_RS_CANVAS_MODIFIERS_DRAW_H
 
+#include <future>
+#include <mutex>
 #include <unordered_map>
 
+#include "event_handler.h"
+#include "refbase.h"
 #include "surface_buffer.h"
 
 #include "common/rs_common_def.h"
@@ -30,37 +34,81 @@ namespace Media {
 class PixelMap;
 }
 namespace Rosen {
-struct DestroySemaphoreInfo;
-class RSCanvasDrawingNode;
-class RSCanvasModifiersDraw {
+namespace TaskDetail {
+template<typename Task>
+class ScheduledTask : public RefBase {
 public:
-    struct SurfaceEntry {
-        int width = 0;
-        int height = 0;
-        bool forceFlushBuffer = false;
-        bool needResetCanvas = false;
-        int64_t lastFlushBufferTime = 0;
-        std::shared_ptr<RSSurface> producerSurface = nullptr;
-        std::shared_ptr<Drawing::Surface> drawingSurface = nullptr;
-        std::unique_ptr<RSSurfaceFrame> surfaceFrame = nullptr;
-        VkSemaphore semaphore = VK_NULL_HANDLE;
-        std::unique_ptr<std::vector<Drawing::DrawCmdListPtr>> drawCmdListCache_ = nullptr;
+    static auto Create(Task&& task)
+    {
+        sptr<ScheduledTask<Task>> scheduledTask(new ScheduledTask(std::forward<Task&&>(task)));
+        return std::make_pair(scheduledTask, scheduledTask->task_.get_future());
+    }
 
-        void Reset()
-        {
-            width = 0;
-            height = 0;
-            forceFlushBuffer = false;
-            needResetCanvas = false;
-            drawingSurface = nullptr;
-            surfaceFrame = nullptr;
-            semaphore = VK_NULL_HANDLE;
-            if (drawCmdListCache_ != nullptr) {
-                drawCmdListCache_->clear();
-            }
-        }
-    };
+    void Run()
+    {
+        task_();
+    }
 
+private:
+    explicit ScheduledTask(Task&& task) : task_(std::move(task)) {}
+    ~ScheduledTask() override = default;
+
+    using Return = std::invoke_result_t<Task>;
+    std::packaged_task<Return()> task_;
+};
+} // namespace TaskDetail
+
+struct DestroySemaphoreInfo;
+
+class RSCanvasModifiersDrawable {
+public:
+    RSCanvasModifiersDrawable() = default;
+    ~RSCanvasModifiersDrawable() = default;
+
+private:
+    void Reset();
+    void CreateProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface, const std::string& cacheDir);
+    void ReleaseProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface);
+    DestroySemaphoreInfo* ResetSurface(int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
+    DestroySemaphoreInfo* UpdateContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer);
+    DestroySemaphoreInfo* Draw();
+    std::unique_ptr<RSSurfaceFrame> RequestBufferAndDrawHistory();
+    void Playback(const Drawing::DrawCmdListPtr& cmdList);
+    DestroySemaphoreInfo* FlushSurfaceWithSemaphore();
+
+    sptr<SurfaceBuffer> OnFlushBuffer();
+    void OnDirtyBufferCollected(int64_t lastFlushBufferTime);
+    int32_t GetFenceFd();
+
+    bool IsFree(int64_t now, int64_t maxDuration);
+    void CleanBuffer();
+
+    bool GetPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* rect,
+        Drawing::DrawCmdListPtr drawCmdList, const std::string& cacheDir);
+
+    bool GetBitmap(Drawing::Bitmap& bitmap, const std::string& cacheDir);
+
+    std::shared_ptr<Drawing::Image> GetImage(
+        const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<Drawing::GPUContext> gpuContext);
+
+    NodeId nodeId_ = 0;
+    int width_ = 0;
+    int height_ = 0;
+    bool forceFlushBuffer_ = false;
+    bool needResetCanvas_ = false;
+    int64_t lastFlushBufferTime_ = 0;
+    RSNodeState nodeState_ = RSNodeState::ACTIVE;
+    std::shared_ptr<RSSurface> producerSurface_ = nullptr;
+    std::shared_ptr<Drawing::Surface> drawingSurface_ = nullptr;
+    std::unique_ptr<RSSurfaceFrame> surfaceFrame_ = nullptr;
+    VkSemaphore semaphore_ = VK_NULL_HANDLE;
+    std::unique_ptr<std::vector<Drawing::DrawCmdListPtr>> drawCmdListCache_ = nullptr;
+
+    friend class RSCanvasModifiersDraw;
+};
+
+class RSCanvasModifiersDraw : public std::enable_shared_from_this<RSCanvasModifiersDraw> {
+public:
     RSCanvasModifiersDraw() = default;
     ~RSCanvasModifiersDraw() = default;
     RSCanvasModifiersDraw(const RSCanvasModifiersDraw&) = delete;
@@ -68,62 +116,70 @@ public:
     RSCanvasModifiersDraw& operator=(const RSCanvasModifiersDraw&) = delete;
     RSCanvasModifiersDraw& operator=(const RSCanvasModifiersDraw&&) = delete;
 
-    void SetCacheDir(const std::string& path);
-    std::string GetCacheDir();
+private:
+    // Thread-related methods
+    void StartThread();
+    void PostTask(const std::function<void()>&& task, const std::string& name = std::string(), int64_t delayTime = 0);
+    void PostSyncTask(const std::function<void()>&& task);
+    void RemoveTask(const std::string& name);
 
-    void CleanCanvasDrawingNodeCache(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
+    template<typename Task, typename Return = std::invoke_result_t<Task>>
+    std::future<Return> ScheduleTask(Task&& task)
+    {
+        auto [scheduledTask, taskFuture] = TaskDetail::ScheduledTask<Task>::Create(std::forward<Task&&>(task));
+        PostTask([scheduledTask_(std::move(scheduledTask))]() { scheduledTask_->Run(); });
+        return std::move(taskFuture);
+    }
+    // End of thread-related methods
 
-    void OnProducerSurfaceCreated(NodeId nodeId, std::shared_ptr<RSSurface> producerSurface);
+    void SetCacheDir(const std::string& cacheDir);
 
-    void CacheDrawCmdList(NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList);
+    void OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
 
-    void ResetSurface(
-        int width, int height, NodeId nodeId, bool sizeOutOfGpuLimit, std::weak_ptr<RSCanvasDrawingNode> weakNode);
+    void OnNodeRelease(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
 
-    bool GetPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* rect,
-        std::shared_ptr<RSCanvasDrawingNode> node, Drawing::DrawCmdListPtr drawCmdList);
+    void OnNodeStateChanged(NodeId nodeId, RSNodeState nodeState);
 
-    bool GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<RSCanvasDrawingNode> node);
+    void ResetSurface(NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
 
-    void UpdateCanvasContent(NodeId nodeId, std::weak_ptr<RSCanvasDrawingNode> weakNode, bool forceFlushBuffer);
+    bool GetBitmap(NodeId nodeId, Drawing::Bitmap& bitmap);
+
+    bool GetPixelMap(NodeId nodeId, std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* rect,
+        Drawing::DrawCmdListPtr drawCmdList);
+
+    void UpdateCanvasContent(NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList);
 
     void SubmitAndCollectCanvasBuffers();
 
-    void SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList);
-
-    void CleanFreeBuffers(int64_t maxDuration);
-
-private:
-    std::shared_ptr<Drawing::Image> GetImage(NodeId nodeId, const SurfaceEntry& surfaceEntry,
-        const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<Drawing::GPUContext> gpuContext);
-
-    void Playback(const std::shared_ptr<Drawing::Surface>& surface, const Drawing::DrawCmdListPtr& cmdList);
-
-    void ConvertCmdListForCanvas(NodeId nodeId);
-
-    void ConvertCmdListByBuffer(NodeId nodeId, SurfaceEntry& surfaceEntry);
-
-    void RequestCanvasBuffer(NodeId nodeId);
-
-    void FlushCanvasSurfaceWithSemaphore(const std::shared_ptr<Drawing::Surface>& surface, VkSemaphore& semaphore);
+    void AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, int fenceFd);
 
     void DestroyCanvasSemaphore();
 
-    std::unique_ptr<RSSurfaceFrame> CheckAndDrawHistory(SurfaceEntry& surfaceEntry, NodeId nodeId);
+    void SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList);
 
-    void AppendTransactionConfig(sptr<SurfaceBuffer> buffer, int fenceFd, NodeId nodeId);
+    void CleanFreeBuffers(int64_t delayTime, bool immediately);
+
+    void CleanFreeBuffersImmediately();
+
+    void DoCleanFreeBuffers(int64_t maxDuration);
+
+    // Thread-related members
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    bool threadStarted_ = false;
+    // End of thread-related members
 
     std::string cacheDir_;
 
-    std::unordered_map<NodeId, SurfaceEntry> surfaceEntryMap_;
-
-    std::unordered_map<NodeId, std::weak_ptr<RSCanvasDrawingNode>> canvasDrawingNodeMap_;
+    std::unordered_map<NodeId, RSCanvasModifiersDrawable> drawableMap_;
 
     std::vector<DestroySemaphoreInfo*> canvasNewSemaphoreInfos_;
 
     std::vector<DestroySemaphoreInfo*> canvasExpiredSemaphoreInfos_;
 
     std::vector<RSTransactionConfig> transactionConfigList_;
+
+    friend class RSCanvasModifiersDrawAgent;
 };
 } // namespace Rosen
 } // namespace OHOS
