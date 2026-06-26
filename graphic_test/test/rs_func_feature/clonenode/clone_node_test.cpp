@@ -42,6 +42,8 @@ private:
         std::shared_ptr<Media::PixelMap> pixelmap = smpixelmap,
         RSSurfaceNodeType type = RSSurfaceNodeType::APP_WINDOW_NODE)
     {
+        constexpr int BOUNDS_WIDTH_INDEX = 2;
+        constexpr int BOUNDS_HEIGHT_INDEX = 3;
         if (!pixelmap) {
             LOGE("CreateClonedNodeWithImageCanvas pixelmap is nullptr");
             return nullptr;
@@ -61,14 +63,14 @@ private:
 
         auto canvasNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
         canvasNode->SetClipToBounds(true);
-        canvasNode->SetBounds({0, 0, bounds[2], bounds[3]});
-        canvasNode->SetFrame({0, 0, bounds[2], bounds[3]});
+        canvasNode->SetBounds({0, 0, bounds[BOUNDS_WIDTH_INDEX], bounds[BOUNDS_HEIGHT_INDEX]});
+        canvasNode->SetFrame({0, 0, bounds[BOUNDS_WIDTH_INDEX], bounds[BOUNDS_HEIGHT_INDEX]});
         RegisterNode(canvasNode);
         clonedSurfaceNode->AddChild(canvasNode, 0);
-        auto drawing = canvasNode->BeginRecording(bounds[2], bounds[3]);
+        auto drawing = canvasNode->BeginRecording(bounds[BOUNDS_WIDTH_INDEX], bounds[BOUNDS_HEIGHT_INDEX]);
         auto rosenImage = std::make_shared<Rosen::RSImage>();
         rosenImage->SetImageFit(static_cast<int>(ImageFit::SCALE_DOWN));
-        Drawing::Rect imageFrameRect(0, 0, bounds[2], bounds[3]);
+        Drawing::Rect imageFrameRect(0, 0, bounds[BOUNDS_WIDTH_INDEX], bounds[BOUNDS_HEIGHT_INDEX]);
         auto imageInfo = rosenImage->GetAdaptiveImageInfoWithCustomizedFrameRect(imageFrameRect);
         drawing->DrawPixelMapWithParm(pixelmap, imageInfo, sampling);
         canvasNode->FinishRecording();
