@@ -459,7 +459,7 @@ void HgmEnergyConsumptionPolicy::VoterVideoFrameRate(const std::unordered_map<st
     bool eventStatus = eventStatusIter->second == "true";
     uint32_t refreshRate = 0;
     if (refreshRateIter != commonData.end() && XMLParser::IsNumber(refreshRateIter->second)) {
-        refreshRate = std::stoi(refreshRateIter->second.c_str());
+        refreshRate = static_cast<uint32_t>(std::stoi(refreshRateIter->second.c_str()));
     }
     EventInfo eventInfo = {
         .eventName = std::move(eventName),

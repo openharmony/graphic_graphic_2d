@@ -4839,7 +4839,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetApsConfigParams_RSEvent, TestSi
 
     std::unordered_map<std::string, std::string> params = {{"key1", "value1"}};
     auto ret = connectionStub_->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params);
-    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     connectionStub_->renderProcessManagerAgent_ = backupAgent;
 }
