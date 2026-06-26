@@ -34,7 +34,6 @@ public:
     virtual ~FontConfig() = default;
     virtual void Dump() const;
     std::vector<std::string> GetFontSet() const;
-    bool IsValid() const { return valid_; }
 
 protected:
     int ParseConfig(const char* fname);
@@ -45,7 +44,6 @@ protected:
 private:
     std::vector<std::string> fontSet_;
     std::string rootPath_;
-    bool valid_ = false;
 };
 
 typedef struct AdjustInfo {
