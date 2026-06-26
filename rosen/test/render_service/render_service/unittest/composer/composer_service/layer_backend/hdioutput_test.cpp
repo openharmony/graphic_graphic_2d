@@ -5188,6 +5188,24 @@ HWTEST_F(HdiOutputTest, MarkEraseTunnelSurfaceInvalid_MixedOperations_CorrectSta
     output->EraseTunnelSurfaceInvalid(id3);
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
 }
+
+HWTEST_F(HdiOutputTest, ClearRecoveredInvalidTunnelSurfaceIdsLocked_SimplifiedErase, TestSize.Level1)
+{
+    auto output = HdiOutput::CreateHdiOutput(TEST_SCREEN_ID);
+    ASSERT_NE(output, nullptr);
+ 
+    constexpr uint64_t id1 = 60001;
+    constexpr uint64_t id2 = 60002;
+    constexpr uint64_t id3 = 60003;
+ 
+    output->invalidTunnelSurfaceIds_.insert(id1);
+    output->invalidTunnelSurfaceIds_.insert(id2);
+    output->invalidTunnelSurfaceIds_.insert(id3);
+    ASSERT_EQ(output->invalidTunnelSurfaceIds_.size(), 3u);
+ 
+    output->ClearRecoveredInvalidTunnelSurfaceIdsLocked();
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

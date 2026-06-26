@@ -30,6 +30,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSLayer;
 class RSB_EXPORT RSTunnelRuntimeState {
 public:
     enum class TunnelState : uint32_t {
@@ -87,7 +88,7 @@ public:
 #endif
 
     void SetCommittedTunnelBufferId(uint64_t bufferId);
-    bool IsCommittedTunnelBuffer(uint64_t bufferId) const;
+    bool IsCommittedTunnelBuffer() const;
     void ClearCommittedTunnelBuffer();
 
     Phase GetPhase() const;
@@ -103,6 +104,15 @@ public:
     const LastFrameRouteSnapshot& GetLastFrameRouteSnapshot() const;
     void UpdateLastFrameRouteSnapshot(const LastFrameRouteSnapshot& snapshot);
 #endif
+    bool IsBufferSizeChanged(const uint32_t bufferSize) const;
+    void SetTunnelLayer(std::shared_ptr<RSLayer> tunnelLayer)
+    {
+        tunnelLayer_ = tunnelLayer;
+    }
+    std::shared_ptr<RSLayer> GetTunnelLayer()
+    {
+        return tunnelLayer_;
+    }
 
 private:
 #ifndef ROSEN_CROSS_PLATFORM
@@ -118,6 +128,7 @@ private:
     std::atomic<Phase> phase_ { Phase::TUNNEL_IDLE };
     std::atomic_bool pendingParam_ { false };
     std::atomic<uint64_t> committedTunnelBufferId_ { 0 };
+    std::shared_ptr<RSLayer> tunnelLayer_ { nullptr };
 
 #ifndef ROSEN_CROSS_PLATFORM
     RSSurfaceHandler::SurfaceBufferEntry pendingBuffer_;

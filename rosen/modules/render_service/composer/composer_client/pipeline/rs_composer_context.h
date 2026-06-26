@@ -41,6 +41,7 @@ public:
     RSComposerContext& operator=(const RSComposerContext&&) = delete;
     RSComposerContext() = default;
     virtual ~RSComposerContext() = default;
+    std::shared_ptr<RSLayer> GetUniRsLayer() const;
 
 protected:
     std::shared_ptr<RSLayerTransactionHandler> GetRSLayerTransaction() const;

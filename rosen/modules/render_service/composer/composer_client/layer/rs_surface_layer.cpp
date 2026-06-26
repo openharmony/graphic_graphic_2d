@@ -16,6 +16,7 @@
 #include "rs_surface_layer.h"
 #include <memory>
 #include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "rs_composer_context.h"
 #include "rs_layer_parcel.h"
 #include "rs_surface_layer_parcel.h"
@@ -26,7 +27,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-bool ShouldNotifyTunnelLayerDestroyed(const sptr<IConsumerSurface>& surface, uint64_t tunnelLayerId, uint32_t property)
+bool ShouldNotifyTunnelLayerDestroyed(const sptr<IConsumerSurface>& surface, uint64_t tunnelLayerId,
+    uint32_t property, NodeId nodeId)
 {
     if (!IsNewTunnelEnabled()) {
         return false;
@@ -34,13 +36,8 @@ bool ShouldNotifyTunnelLayerDestroyed(const sptr<IConsumerSurface>& surface, uin
     if (surface == nullptr) {
         return false;
     }
-    if (tunnelLayerId == 0) {
-        TunnelLayerState state;
-        if (surface->GetTunnelLayerInfo(state) != GSERROR_OK) {
-            return false;
-        }
-        tunnelLayerId = state.tunnelLayerId;
-        property = state.property;
+    if (tunnelLayerId == 0 && nodeId != 0) {
+        RSTunnelRuntimeStore::GetLayerInfoIfPresent(nodeId, tunnelLayerId, property);
     }
     return tunnelLayerId != 0;
 }
@@ -138,7 +135,8 @@ RSSurfaceLayer::~RSSurfaceLayer()
         ROSEN_LOGE("%{public}s failed to send destroy command, layerId: %{public}" PRIu64, __func__, GetRSLayerId());
     } else {
         ROSEN_LOGI("%{public}s destroy command sent successfully, layerId: %{public}" PRIu64, __func__, GetRSLayerId());
-        if (context != nullptr && ShouldNotifyTunnelLayerDestroyed(cSurface_, tunnelLayerId_, tunnelLayerProperty_)) {
+        if (context != nullptr && ShouldNotifyTunnelLayerDestroyed(
+            cSurface_, tunnelLayerId_, tunnelLayerProperty_, nodeId_)) {
             context->NotifyLayerStateChanged(GetNodeId(), LayerStateChange::UNAVAILABLE, tunnelLayerGeneration_);
         }
     }

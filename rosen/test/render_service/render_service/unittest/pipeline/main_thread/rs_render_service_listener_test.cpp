@@ -412,4 +412,83 @@ HWTEST_F(RSRenderServiceListenerTest, SetRSSurfaceBufferInterface001, TestSize.L
     rsListener->SetRSSurfaceBufferInterface(newNode);
     ASSERT_NE(rsListener, nullptr);
 }
+
+/**
+ * @tc.name: OnTunnelLayerInfoChanged001
+ * @tc.desc: Test OnTunnelLayerInfoChanged with null node, should early return without crash.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTunnelLayerInfoChanged001, TestSize.Level1)
+{
+    std::weak_ptr<RSSurfaceRenderNode> wp;
+    std::weak_ptr<RSSurfaceHandler> sh;
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(wp, sh, nullptr);
+    TunnelLayerState state;
+    state.tunnelLayerId = 1001;
+    state.property = TUNNEL_PROP_BUFFER_ADDR;
+    rsListener->OnTunnelLayerInfoChanged(state);
+    ASSERT_NE(rsListener, nullptr);
+}
+ 
+/**
+ * @tc.name: OnTunnelLayerInfoChanged002
+ * @tc.desc: Test OnTunnelLayerInfoChanged stores layer info in RSTunnelRuntimeStore and requests VSync.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTunnelLayerInfoChanged002, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+ 
+    constexpr uint64_t testTunnelLayerId = 2001;
+    constexpr uint32_t testProperty = TUNNEL_PROP_BUFFER_ADDR | TUNNEL_PROP_DEVICE_COMMIT;
+    TunnelLayerState state;
+    state.tunnelLayerId = testTunnelLayerId;
+    state.property = static_cast<TunnelLayerProperty>(testProperty);
+ 
+    rsListener->OnTunnelLayerInfoChanged(state);
+ 
+    uint64_t storedTunnelLayerId = 0;
+    uint32_t storedProperty = TUNNEL_PROP_INVALID;
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(node->GetId(), storedTunnelLayerId, storedProperty);
+    EXPECT_EQ(storedTunnelLayerId, testTunnelLayerId);
+    EXPECT_EQ(storedProperty, testProperty);
+ 
+    RSTunnelRuntimeStore::Erase(node->GetId());
+}
+ 
+/**
+ * @tc.name: OnTunnelLayerInfoChanged003
+ * @tc.desc: Test OnTunnelLayerInfoChanged with zero tunnelLayerId resets stored info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceListenerTest, OnTunnelLayerInfoChanged003, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    auto surfaceHandler = node->GetRSSurfaceHandler();
+    std::shared_ptr<RSRenderServiceListener> rsListener =
+        std::make_shared<RSRenderServiceListener>(node, surfaceHandler, nullptr);
+ 
+    constexpr uint64_t initialTunnelLayerId = 3001;
+    constexpr uint32_t initialProperty = TUNNEL_PROP_BUFFER_ADDR;
+    RSTunnelRuntimeStore::SetLayerInfo(node->GetId(), initialTunnelLayerId, initialProperty);
+ 
+    TunnelLayerState state;
+    state.tunnelLayerId = 0;
+    state.property = TUNNEL_PROP_INVALID;
+    rsListener->OnTunnelLayerInfoChanged(state);
+ 
+    uint64_t storedTunnelLayerId = 0;
+    uint32_t storedProperty = TUNNEL_PROP_INVALID;
+    RSTunnelRuntimeStore::GetLayerInfoOrDefault(node->GetId(), storedTunnelLayerId, storedProperty);
+    EXPECT_EQ(storedTunnelLayerId, 0u);
+    EXPECT_EQ(storedProperty, TUNNEL_PROP_INVALID);
+ 
+    RSTunnelRuntimeStore::Erase(node->GetId());
+}
 } // namespace OHOS::Rosen

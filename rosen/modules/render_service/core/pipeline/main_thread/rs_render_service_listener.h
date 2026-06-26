@@ -32,6 +32,7 @@ public:
     ~RSRenderServiceListener() override;
     void OnBufferAvailable() override;
     void OnTunnelHandleChange() override;
+    void OnTunnelLayerInfoChanged(const TunnelLayerState& state) override;
     void OnCleanCache(uint32_t *bufSeqNum) override;
     void OnGoBackground() override;
     void OnTransformChange() override;

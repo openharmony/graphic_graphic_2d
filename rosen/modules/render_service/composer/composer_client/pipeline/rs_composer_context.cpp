@@ -69,6 +69,21 @@ std::shared_ptr<RSLayer> RSComposerContext::GetRSLayer(RSLayerId rsLayerId) cons
     return nullptr;
 }
 
+std::shared_ptr<RSLayer> RSComposerContext::GetUniRsLayer() const
+{
+    std::unique_lock<std::mutex> lock(rsLayerMutex_);
+    for (const auto& [layerId, layerWpt] : rsLayers_) {
+        auto layer = layerWpt.lock();
+        if (layer == nullptr) {
+            continue;
+        }
+        if (layer->GetUniRenderFlag()) {
+            return layer;
+        }
+    }
+    return nullptr;
+}
+
 void RSComposerContext::DumpLayersInfo(std::string& dumpString)
 {
     std::unique_lock<std::mutex> lock(rsLayerMutex_);
