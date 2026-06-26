@@ -42,7 +42,7 @@ void RsHardwareComposeDisabledReasonCollectionTest::TearDown() {}
  */
 HWTEST_F(RsHardwareComposeDisabledReasonCollectionTest, UpdateHwcDisabledReasonForDFX001, TestSize.Level1)
 {
-    const auto& hardwareComposeDisabledReasonCollection = HwcDisabledReasonCollection::GetInstance();
+    auto& hardwareComposeDisabledReasonCollection = HwcDisabledReasonCollection::GetInstance();
     auto originDisabledReasonInfoMapSize = hardwareComposeDisabledReasonCollection.GetHwcDisabledReasonInfo().size();
 
     NodeId id = 0;
