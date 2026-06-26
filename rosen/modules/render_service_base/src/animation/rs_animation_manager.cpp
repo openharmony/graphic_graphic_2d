@@ -196,12 +196,6 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
     return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
 }
 
-void RSAnimationManager::SetRateDeciderEnable(bool enabled, const FrameRateGetFunc& func)
-{
-    rateDecider_.SetEnable(enabled);
-    frameRateGetFunc_ = func;
-}
-
 void RSAnimationManager::SetRateDeciderSize(float width, float height)
 {
     rateDecider_.SetNodeSize(width, height);

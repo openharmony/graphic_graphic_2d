@@ -56,7 +56,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace001, TestSize.Level
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest AnimationDebugTrace001 start";
 
     RSAnimationTraceUtils::GetInstance().AddAnimationNameTrace(NODE_NAME);
-    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME, NODE_ID, ANIMATION_ID, false);
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME.c_str(), NODE_ID, ANIMATION_ID, false);
     auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
     auto renderNode = std::make_shared<RSRenderNode>(NODE_ID);
@@ -81,7 +81,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace002, TestSize.Level
 
     system("param set persist.rosen.animationtrace.enabled 1");
     RSAnimationTraceUtils::GetInstance().AddAnimationNameTrace(NODE_NAME);
-    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME, NODE_ID, ANIMATION_ID, true);
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME.c_str(), NODE_ID, ANIMATION_ID, true);
     auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
     auto renderNode = std::make_shared<RSRenderNode>(NODE_ID);
@@ -105,7 +105,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace003, TestSize.Level
 
     RSAnimationTraceUtils::isDebugEnabled_ = true;
     RSAnimationTraceUtils::GetInstance().AddAnimationNameTrace(NODE_NAME);
-    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME, NODE_ID, ANIMATION_ID, true);
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME.c_str(), NODE_ID, ANIMATION_ID, true);
     auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(100.0f);
     auto renderNode = std::make_shared<RSRenderNode>(NODE_ID);
@@ -127,12 +127,12 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AddAnimationFinishTrace, TestSize.Leve
 {
     RSAnimationTraceUtils::isDebugEnabled_ = true;
     auto renderNode = std::make_shared<RSRenderNode>(NODE_ID);
-    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME, NODE_ID, ANIMATION_ID, true);
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME.c_str(), NODE_ID, ANIMATION_ID, true);
 
     RSAnimationTraceUtils::isDebugEnabled_ = false;
     OHOS::Rosen::RSSystemProperties::SetDebugFmtTraceEnabled(true);
     EXPECT_TRUE(OHOS::Rosen::RSSystemProperties::GetDebugFmtTraceEnabled());
-    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME, NODE_ID, ANIMATION_ID, true);
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(NODE_NAME.c_str(), NODE_ID, ANIMATION_ID, true);
     EXPECT_TRUE(renderNode->GetNodeName().empty());
 }
 
