@@ -4341,6 +4341,12 @@ void RSNode::RebuildTree()
     if (GetNodeState() != RSNodeState::INACTIVE) {
         return;
     }
+    if (auto rsUIContext = GetRSUIContext()) {
+        rsUIContext->SetRebuildState(RebuildState::Rebuilding);
+    }
+    if (isTextureExportNode_) {
+        return;
+    }
     _RebuildTreeInternal();
 }
 
@@ -4387,6 +4393,29 @@ void RSNode::_RebuildTreeLevel(const std::vector<std::tuple<RSNode*, RSNode*, si
     _RebuildTreeLevel(nextLevel);
 }
 
+bool RSNode::CheckAndWaitForNodeRebuild()
+{
+    auto rsUIContext = GetRSUIContext();
+    if (rsUIContext == nullptr) {
+        return true;
+    }
+    if (nodeState_ == RSNodeState::ACTIVE) {
+        RebuildState states = rsUIContext->GetRebuildState();
+        if (states == RebuildState::Normal) {
+            return true;
+        } else {
+            return rsUIContext->WaitForRebuildNormal();
+        }
+    }
+    RebuildTree();
+    if (auto transaction = GetRSTransaction()) {
+        transaction->FlushImplicitTransaction();
+    }
+    rsUIContext->GetRSRenderInterface()->RegisterTransactionDataCallback(
+        rsUIContext->GetToken(), 0, [rsUIContext]() { rsUIContext->SetRebuildState(RebuildState::Normal); });
+    return rsUIContext->WaitForRebuildNormal();
+}
+
 void RSNode::SetExportTypeChangedCallback(ExportTypeChangedCallback callback)
 {
     exportTypeChangedCallback_ = callback;
@@ -4403,6 +4432,10 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
     }
     if (exportTypeChangedCallback_) {
         exportTypeChangedCallback_(isTextureExportNode);
+    }
+    if (GetNodeState() == RSNodeState::INACTIVE) {
+        RebuildTree();
+        return;
     }
     if ((isTextureExportNode_ && !hasCreateRenderNodeInRT_) ||
         (!isTextureExportNode_ && !hasCreateRenderNodeInRS_)) {

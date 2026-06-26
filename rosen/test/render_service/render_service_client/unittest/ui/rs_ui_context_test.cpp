@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#include <chrono>
+#include <thread>
+
 #include "gtest/gtest.h"
 
 #include "command/rs_animation_command.h"
@@ -569,6 +572,57 @@ HWTEST_F(RSUIContextTest, RebuildStateTest, TestSize.Level1)
     EXPECT_EQ(uiContext->GetRebuildState(), RebuildState::Rebuilding);
     uiContext->SetRebuildState(RebuildState::Normal);
     EXPECT_EQ(uiContext->GetRebuildState(), RebuildState::Normal);
+}
+
+/**
+ * @tc.name: WaitForRebuildNormal_AlreadyNormal
+ * @tc.desc: Test WaitForRebuildNormal returns true immediately when state is Normal.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSUIContextTest, WaitForRebuildNormal_AlreadyNormal, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->SetRebuildState(RebuildState::Normal);
+    EXPECT_TRUE(uiContext->WaitForRebuildNormal(0));
+}
+
+/**
+ * @tc.name: WaitForRebuildNormal_Timeout
+ * @tc.desc: Test WaitForRebuildNormal returns false when Rebuilding and timeout expires.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSUIContextTest, WaitForRebuildNormal_Timeout, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->SetRebuildState(RebuildState::Rebuilding);
+    EXPECT_FALSE(uiContext->WaitForRebuildNormal(0));
+}
+
+/**
+ * @tc.name: WaitForRebuildNormal_NotifyWakes
+ * @tc.desc: Test WaitForRebuildNormal wakes up when another thread sets state to Normal.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSUIContextTest, WaitForRebuildNormal_NotifyWakes, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    uiContext->SetRebuildState(RebuildState::Rebuilding);
+
+    std::thread notifier([uiContext]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        uiContext->SetRebuildState(RebuildState::Normal);
+    });
+    EXPECT_TRUE(uiContext->WaitForRebuildNormal(1000));
+    notifier.join();
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE

@@ -285,6 +285,32 @@ void RSUIContext::RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId 
     interactiveImplictAnimators_.erase(id);
 }
 
+void RSUIContext::SetRebuildState(RebuildState state)
+{
+    std::lock_guard<std::mutex> lock(rebuildStateMutex_);
+    rebuildState_ = state;
+    if (state == RebuildState::Normal) {
+        rebuildStateCV_.notify_all();
+    }
+}
+
+bool RSUIContext::WaitForRebuildNormal(uint32_t timeoutMs)
+{
+    std::unique_lock<std::mutex> lock(rebuildStateMutex_);
+    if (rebuildState_ == RebuildState::Normal) {
+        return true;
+    }
+    auto timeoutDuration = std::chrono::milliseconds(timeoutMs);
+    rebuildStateCV_.wait_for(lock, timeoutDuration, [this] {
+        return rebuildState_ == RebuildState::Normal;
+    });
+    if (rebuildState_ != RebuildState::Normal) {
+        ROSEN_LOGW("WaitForRebuildNormal timeout after %{public}u ms", timeoutMs);
+        return false;
+    }
+    return true;
+}
+
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 void RSUIContext::UnblockUIThread()
 {

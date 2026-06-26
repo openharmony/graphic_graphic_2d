@@ -2088,6 +2088,13 @@ public:
     void SetHybridRenderCanvas(bool hybridRenderCanvas) {}
     // HybridDraw End
 
+    bool CheckAndWaitForNodeRebuild();
+
+    bool HasCreateRenderNodeInRS() const
+    {
+        return hasCreateRenderNodeInRS_;
+    }
+
 protected:
     explicit RSNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,

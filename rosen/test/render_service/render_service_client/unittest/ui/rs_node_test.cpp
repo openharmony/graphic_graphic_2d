@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+#include <chrono>
 #include <memory>
+#include <thread>
 
 #include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "gmock/gmock.h"
@@ -42,6 +44,8 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
+#include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
 #include "ui_effect/effect/include/background_color_effect_para.h"
 #include "ui_effect/effect/include/border_light_effect_para.h"
@@ -8986,4 +8990,102 @@ HWTEST_F(RSNodeTest, SetBoundsAndFrame002, TestSize.Level1)
     EXPECT_TRUE(ROSEN_EQ(frame.x_, 15.0f));
     EXPECT_TRUE(ROSEN_EQ(frame.y_, 15.0f));
 }
+
+/**
+ * @tc.name: CheckAndWaitForNodeRebuild_NoContext_ReturnsTrue
+ * @tc.desc: Test CheckAndWaitForNodeRebuild returns true when RSUIContext is null.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, CheckAndWaitForNodeRebuild_NoContext_ReturnsTrue, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->rsUIContext_ = nullptr;
+    EXPECT_TRUE(rsNode->CheckAndWaitForNodeRebuild());
+}
+
+/**
+ * @tc.name: CheckAndWaitForNodeRebuild_ActiveNormal_ReturnsTrue
+ * @tc.desc: Test CheckAndWaitForNodeRebuild returns true for active node in Normal state.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, CheckAndWaitForNodeRebuild_ActiveNormal_ReturnsTrue, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    rsNode->rsUIContext_ = uiContext;
+
+    rsNode->SetNodeState(RSNodeState::ACTIVE);
+    EXPECT_TRUE(rsNode->CheckAndWaitForNodeRebuild());
+}
+
+/**
+ * @tc.name: CheckAndWaitForNodeRebuild_ActiveRebuilding_WaitsAndReturnsTrue
+ * @tc.desc: Test CheckAndWaitForNodeRebuild waits and returns true when Rebuilding turns Normal.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, CheckAndWaitForNodeRebuild_ActiveRebuilding_WaitsAndReturnsTrue, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    ASSERT_NE(uiContext, nullptr);
+    rsNode->rsUIContext_ = uiContext;
+
+    rsNode->SetNodeState(RSNodeState::ACTIVE);
+    uiContext->SetRebuildState(RebuildState::Rebuilding);
+
+    std::thread notifier([uiContext]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        uiContext->SetRebuildState(RebuildState::Normal);
+    });
+    EXPECT_TRUE(rsNode->CheckAndWaitForNodeRebuild());
+    notifier.join();
+}
+
+/**
+ * @tc.name: HasCreateRenderNodeInRS_DefaultTrue
+ * @tc.desc: Test HasCreateRenderNodeInRS returns true for a default non-texture-export node.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, HasCreateRenderNodeInRS_DefaultTrue, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    EXPECT_TRUE(rsNode->HasCreateRenderNodeInRS());
+}
+
+/**
+ * @tc.name: SetTextureExport_BasicFlow
+ * @tc.desc: Test SetTextureExport toggles texture export flag without crashing.
+ * @tc.type: FUNC
+ * @tc.require: issues30915
+ */
+HWTEST_F(RSNodeTest, SetTextureExport_BasicFlow, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    EXPECT_FALSE(rsNode->IsTextureExportNode());
+
+    rsNode->SetTextureExport(true);
+    EXPECT_TRUE(rsNode->IsTextureExportNode());
+
+    // Duplicate call with the same value should be a no-op.
+    rsNode->SetTextureExport(true);
+    EXPECT_TRUE(rsNode->IsTextureExportNode());
+
+    rsNode->SetTextureExport(false);
+    EXPECT_FALSE(rsNode->IsTextureExportNode());
+}
+
 } // namespace OHOS::Rosen

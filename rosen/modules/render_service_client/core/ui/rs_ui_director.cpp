@@ -62,7 +62,7 @@ namespace Rosen {
 constexpr int32_t INSTANCE_ID_UNDEFINED_TASK_RUNNER = 0;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
-
+constexpr int NODE_ID = 1; // Image size difference
 
 std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectToRenderRemote,
     std::shared_ptr<RSUIContext> rsUIContext)
@@ -210,9 +210,10 @@ void RSUIDirector::AddUIDirectorCommand()
     }
 
     auto rootNode = rootNode_.lock();
-    NodeId nodeId = rootNode ? rootNode->GetId() : 0;
+    static pid_t pid = getpid();
+    NodeId nodeId = rootNode ? rootNode->GetId() : (((NodeId)pid << 32) | NODE_ID);
     std::unique_ptr<RSCommand> command =
-        std::make_unique<CommandType>(nodeId, getpid(), rsUIContext_ ? rsUIContext_->GetToken() : 0);
+        std::make_unique<CommandType>(nodeId, pid, rsUIContext_ ? rsUIContext_->GetToken() : 0);
     RS_TRACE_NAME_FMT(
         "RSUIDirector::AddUIDirectorCommand type is %d, token is %lu", command->GetSubType(), rsUIContext_->GetToken());
     transaction->AddCommand(command, true);
@@ -447,7 +448,10 @@ void RSUIDirector::ReleaseRenderNode()
         if (baseNode->GetType() == RSUINodeType::SURFACE_NODE && baseNode->GetId() == appWindowNodeId) {
             return;
         }
-        if (baseNode->IsTextureExportNode()) {
+        if (baseNode->GetType() == RSUINodeType::SURFACE_NODE && baseNode->IsTextureExportNode()) {
+            return;
+        }
+        if (!baseNode->HasCreateRenderNodeInRS()) {
             return;
         }
         if (baseNode->GetNodeState() != RSNodeState::LAZY_LOAD) {

@@ -241,15 +241,14 @@ public:
         return colorSpace_;
     }
 
-    void SetRebuildState(RebuildState state)
-    {
-        rebuildState_ = state;
-    }
+    void SetRebuildState(RebuildState state);
 
     RebuildState GetRebuildState() const
     {
         return rebuildState_;
     }
+
+    bool WaitForRebuildNormal(uint32_t timeoutMs = 500);
 
 private:
     RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRemote);
@@ -320,6 +319,8 @@ private:
     bool canBlockUIThread_ = false;
 #endif
     RebuildState rebuildState_ = RebuildState::Normal;
+    std::mutex rebuildStateMutex_;
+    std::condition_variable rebuildStateCV_;
 
     friend class RSUIContextManager;
     friend class RSUIDirector;

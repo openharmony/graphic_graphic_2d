@@ -849,6 +849,7 @@ void RSMainThread::CleanRenderNodes(pid_t remotePid) noexcept
     RS_PROFILER_KILL_PID_END();
 
     RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
+    context.DestoryUIRenderDirectorByPid(remotePid);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
