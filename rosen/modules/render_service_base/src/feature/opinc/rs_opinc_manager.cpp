@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t LAYER_PART_RENDER_DIRTY_MANAGER_BUFFER_AGE = 4;
+[[maybe_unused]] constexpr int TRACE_LEVEL_PRINT_NODEID = 6;
 
 namespace {
 void DisableLayerPartRender(RSRenderNode& node, RSRenderParams& stagingRenderParams)
