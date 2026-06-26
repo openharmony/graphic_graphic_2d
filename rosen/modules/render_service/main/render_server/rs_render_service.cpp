@@ -157,6 +157,7 @@ bool RSRenderService::CoreComponentsInit()
         RSUniRenderUtil::DrawRectForDfx);
     // composerManager init
     rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_);
+
     // hgm init
     HgmInit();
 
