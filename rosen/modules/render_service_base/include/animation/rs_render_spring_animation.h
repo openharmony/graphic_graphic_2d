@@ -69,8 +69,11 @@ private:
     void CallLogicallyFinishCallback() const;
 
     // spring model related
+    // oscillation period in seconds
     float response_ = 0.0f;
+    // damping ratio: <1 under-damped(oscillate), =1 critically-damped, >1 over-damped
     float dampingRatio_ = 0.0f;
+    // amplitude threshold to determine animation end
     float minimumAmplitudeRatio_ = SPRING_MIN_AMPLITUDE_RATIO;
 
     // blend related

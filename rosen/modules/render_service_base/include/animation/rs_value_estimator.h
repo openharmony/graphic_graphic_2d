@@ -485,7 +485,7 @@ public:
 
     std::shared_ptr<RSRenderPropertyBase> GetPropertyVelocity(float time) const override
     {
-        if (!springModel_) {
+        if (!springModel_ || ROSEN_LE(springModel_->dampingRatio_, 0.0f)) {
             return nullptr;
         }
         constexpr float TIME_INTERVAL = 1e-6f; // 1 microsecond

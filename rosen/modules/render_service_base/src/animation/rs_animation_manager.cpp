@@ -161,6 +161,9 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
         // infinite iteration animation out of the tree or in the background does not request vsync
         if ((!nodeIsOnTheTree || abilityState == RSSurfaceNodeAbilityState::BACKGROUND) &&
             animation->GetRepeatCount() == -1) {
+            RS_TRACE_NAME_FMT("InfiniteAnim Suspend animId:%llu nodeId:%llu pid:%d onTree:%d abilityState:%d",
+                animation->GetAnimationId(), animation->GetTargetId(), GetAnimationPid(), nodeIsOnTheTree,
+                static_cast<int>(abilityState));
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
             return false;
         }
