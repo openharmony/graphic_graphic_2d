@@ -109,7 +109,7 @@
 #include "drawable/rs_misc_drawable.h"
 
 #undef LOG_TAG
-#define LOG_TAG "RSUniRenderVisitor" 
+#define LOG_TAG "RSUniRenderVisitor"
 
 namespace OHOS {
 namespace Rosen {
@@ -4253,14 +4253,15 @@ void RSUniRenderVisitor::CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& nod
 
 void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
 {
+    auto& tunnelRuntime = RSTunnelRuntimeStore::GetOrCreate(node.GetId());
     uint64_t tunnelLayerId = 0;
     uint32_t property = TUNNEL_PROP_INVALID;
-    RSTunnelRuntimeStore::GetLayerInfoOrDefault(node.GetId(), tunnelLayerId, property);
+    tunnelRuntime.GetLayerInfo(tunnelLayerId, property);
     if (tunnelLayerId == 0) {
         return;
     }
     tunnelLayerSnapshots_[node.GetId()] = { tunnelLayerId, property,
-        RSTunnelRuntimeStore::GetTunnelLayerGeneration(node.GetId()) };
+        tunnelRuntime.GetTunnelLayerGeneration() };
     RS_LOGI("%{public}s tunnel surfaceid:%{public}" PRIu64 ", property:%{public}u, nodeid:%{public}" PRIu64,
         __func__, tunnelLayerId, property, node.GetId());
     RS_TRACE_NAME_FMT("%s tunnel surfaceid:%" PRIu64 ", property:%u, nodeid:%" PRIu64,
