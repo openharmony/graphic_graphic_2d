@@ -223,6 +223,7 @@ void RSCanvasDrawingNode::ResetSurfaceForClientRender(int width, int height)
         height > static_cast<int>(maxGpuSupportedHeight) || width <= 0 || height <= 0;
     if (auto uiContext = GetRSUIContext()) {
         if (auto canvasModifiersDrawAgent = uiContext->GetCanvasModifiersDrawAgent()) {
+            uiContext->OnCanvasDrawingNodeUpdate();
             canvasModifiersDrawAgent->ResetSurface(
                 GetId(), width, height, sizeOutOfGpuLimit_, uiContext->GetColorSpace());
         }
