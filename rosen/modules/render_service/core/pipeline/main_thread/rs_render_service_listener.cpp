@@ -17,10 +17,11 @@
 
 #include "common/rs_optional_trace.h"
 #include "common/rs_tunnel_layer_utils.h"
+#include "feature/tunnel_layer/rs_tunnel_runtime_state.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/tunnel_layer/rs_tunnel_layer_helper.h"
-#include "sync_fence.h" 
+#include "sync_fence.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -144,6 +145,14 @@ void RSRenderServiceListener::OnTunnelHandleChange()
         node->NotifyUIBufferAvailable();
     }
     RSMainThread::Instance()->RequestNextVSync();
+}
+
+void RSRenderServiceListener::OnTunnelLayerInfoChanged(const TunnelLayerState& state)
+{
+    RSTunnelRuntimeStore::SetLayerInfo(nodeId_, state.tunnelLayerId, state.property);
+    RS_LOGD("TUNNEL_DEBUG RSRenderServiceListener::OnTunnelLayerInfoChanged id = %{public}" PRIu64
+        ", tunnelLayerId = %{public}" PRIu64 ", property = %{public}u",
+        nodeId_, state.tunnelLayerId, state.property);
 }
 
 void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
