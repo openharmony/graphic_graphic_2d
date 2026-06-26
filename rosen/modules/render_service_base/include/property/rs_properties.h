@@ -773,6 +773,7 @@ public:
     void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
     void SetIlluminatedType(int illuminatedType);
     void SetBloom(float bloomIntensity);
+    void SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader);
     void SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader);
 
     float GetLightIntensity() const;
@@ -790,6 +791,7 @@ public:
         const auto& illuminatedPtr = GetIlluminated();
         return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
+    std::shared_ptr<RSNGRenderShaderBase> GetCoverageNGShader() const;
     std::shared_ptr<RSNGRenderShaderBase> GetOverlayNGShader() const;
 
     inline const std::shared_ptr<RSLightSource>& GetLightSource() const
@@ -954,8 +956,9 @@ private:
         std::shared_ptr<RSNGRenderFilterBase> cgNGRenderFilter_ = nullptr; // for compositing render
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
-        std::shared_ptr<RSNGRenderShaderBase> olRenderShader_ = nullptr; // for overlay shader
+        std::shared_ptr<RSNGRenderShaderBase> coRenderShader_ = nullptr; // for coverage shader
         std::shared_ptr<RSNGRenderShaderBase> mtRenderShader_ = nullptr; // for material shader
+        std::shared_ptr<RSNGRenderShaderBase> olRenderShader_ = nullptr; // for overlay shader
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;
         bool useUnion_ = false;
         float unionSpacing_ = 0.f;

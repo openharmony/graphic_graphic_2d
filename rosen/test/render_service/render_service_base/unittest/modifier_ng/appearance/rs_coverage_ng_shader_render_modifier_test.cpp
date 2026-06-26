@@ -27,13 +27,13 @@
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "property/rs_properties.h"
-#include "modifier_ng/appearance/rs_overlay_ng_shader_render_modifier.h"
+#include "modifier_ng/appearance/rs_coverage_ng_shader_render_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::Rosen::ModifierNG;
 namespace OHOS::Rosen {
-class RSOverlayNGShaderRenderModifierNGTypeTest : public testing::Test {
+class RSCoverageNGShaderRenderModifierNGTypeTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -41,21 +41,21 @@ public:
     void TearDown() override;
 };
 
-void RSOverlayNGShaderRenderModifierNGTypeTest::SetUpTestCase() {}
-void RSOverlayNGShaderRenderModifierNGTypeTest::TearDownTestCase() {}
-void RSOverlayNGShaderRenderModifierNGTypeTest::SetUp() {}
-void RSOverlayNGShaderRenderModifierNGTypeTest::TearDown() {}
+void RSCoverageNGShaderRenderModifierNGTypeTest::SetUpTestCase() {}
+void RSCoverageNGShaderRenderModifierNGTypeTest::TearDownTestCase() {}
+void RSCoverageNGShaderRenderModifierNGTypeTest::SetUp() {}
+void RSCoverageNGShaderRenderModifierNGTypeTest::TearDown() {}
 
 /**
- * @tc.name: RSOverlayNGShaderRenderModifierTest
+ * @tc.name: RSCoverageNGShaderRenderModifierTest
  * @tc.desc:GetType & ResetProperties
  * @tc.type:FUNC
  */
-HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModifierTest, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest, RSCoverageNGShaderRenderModifierTest, TestSize.Level1)
 {
-    RSOverlayNGShaderRenderModifier modifier;
+    RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
-    EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::OVERLAY_NG_SHADER);
+    EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
     modifier.ResetProperties(properties);
     EXPECT_EQ(properties.GetLightIntensity(), 0.0f);
     EXPECT_EQ(properties.GetLightColor(), RgbPalette::White());
@@ -66,13 +66,13 @@ HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModif
 }
 
 /**
- * @tc.name: RSOverlayNGShaderRenderModifierResetTest001
+ * @tc.name: RSCoverageNGShaderRenderModifierResetTest001
  * @tc.desc: ResetProperties test with preset values
  * @tc.type:FUNC
  */
-HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModifierResetTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest, RSCoverageNGShaderRenderModifierResetTest001, TestSize.Level1)
 {
-    RSOverlayNGShaderRenderModifier modifier;
+    RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
     
     properties.SetLightIntensity(5.0f);
@@ -96,13 +96,13 @@ HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModif
 }
 
 /**
- * @tc.name: RSOverlayNGShaderRenderModifierResetTest002
+ * @tc.name: RSCoverageNGShaderRenderModifierResetTest002
  * @tc.desc: ResetProperties test with extreme values
  * @tc.type:FUNC
  */
-HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModifierResetTest002, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest, RSCoverageNGShaderRenderModifierResetTest002, TestSize.Level1)
 {
-    RSOverlayNGShaderRenderModifier modifier;
+    RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
     
     constexpr float maxFloat = std::numeric_limits<float>::max();
@@ -120,26 +120,26 @@ HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModif
 }
 
 /**
- * @tc.name: RSOverlayNGShaderRenderModifierGetTypeTest001
+ * @tc.name: RSCoverageNGShaderRenderModifierGetTypeTest001
  * @tc.desc: GetType test multiple times
  * @tc.type:FUNC
  */
-HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModifierGetTypeTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest, RSCoverageNGShaderRenderModifierGetTypeTest001, TestSize.Level1)
 {
-    RSOverlayNGShaderRenderModifier modifier;
-    EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::OVERLAY_NG_SHADER);
-    EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::OVERLAY_NG_SHADER);
-    EXPECT_EQ(modifier.GetType(), RSOverlayNGShaderRenderModifier::Type);
+    RSCoverageNGShaderRenderModifier modifier;
+    EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
+    EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
+    EXPECT_EQ(modifier.GetType(), RSCoverageNGShaderRenderModifier::Type);
 }
 
 /**
- * @tc.name: RSOverlayNGShaderRenderModifierResetTest003
+ * @tc.name: RSCoverageNGShaderRenderModifierResetTest003
  * @tc.desc: ResetProperties test with negative values
  * @tc.type:FUNC
  */
-HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModifierResetTest003, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest, RSCoverageNGShaderRenderModifierResetTest003, TestSize.Level1)
 {
-    RSOverlayNGShaderRenderModifier modifier;
+    RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
     
     properties.SetLightIntensity(-5.0f);
@@ -158,67 +158,67 @@ HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModif
 }
 
 /**
- * @tc.name: RSOverlayNGShaderRenderModifierOverlayShaderTest001
+ * @tc.name: RSCoverageNGShaderRenderModifierOverlayShaderTest001
  * @tc.desc: ResetProperties test with overlay shader
  * @tc.type:FUNC
  */
-HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest,
-    RSOverlayNGShaderRenderModifierOverlayShaderTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
+    RSCoverageNGShaderRenderModifierOverlayShaderTest001, TestSize.Level1)
 {
-    RSOverlayNGShaderRenderModifier modifier;
+    RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
     
     auto overlayShader = std::make_shared<RSNGRenderAIBarRectHalo>();
     EXPECT_NE(overlayShader, nullptr);
     
-    properties.SetOverlayNGShader(overlayShader);
-    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    properties.SetCoverageNGShader(overlayShader);
+    EXPECT_EQ(properties.GetCoverageNGShader(), overlayShader);
     
     modifier.ResetProperties(properties);
     
-    EXPECT_EQ(properties.GetOverlayNGShader(), nullptr);
+    EXPECT_EQ(properties.GetCoverageNGShader(), nullptr);
 }
 
 /**
- * @tc.name: RSOverlayNGShaderRenderModifierOverlayShaderTest002
+ * @tc.name: RSCoverageNGShaderRenderModifierOverlayShaderTest002
  * @tc.desc: ResetProperties test with multiple overlay shader operations
  * @tc.type:FUNC
  */
-HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest,
-    RSOverlayNGShaderRenderModifierOverlayShaderTest002, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
+    RSCoverageNGShaderRenderModifierOverlayShaderTest002, TestSize.Level1)
 {
-    RSOverlayNGShaderRenderModifier modifier;
+    RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
     
     auto shader1 = std::make_shared<RSNGRenderAIBarRectHalo>();
     auto shader2 = std::make_shared<RSNGRenderAIBarRectHalo>();
     
-    properties.SetOverlayNGShader(shader1);
-    EXPECT_EQ(properties.GetOverlayNGShader(), shader1);
+    properties.SetCoverageNGShader(shader1);
+    EXPECT_EQ(properties.GetCoverageNGShader(), shader1);
     
     modifier.ResetProperties(properties);
-    EXPECT_EQ(properties.GetOverlayNGShader(), nullptr);
+    EXPECT_EQ(properties.GetCoverageNGShader(), nullptr);
     
-    properties.SetOverlayNGShader(shader2);
-    EXPECT_EQ(properties.GetOverlayNGShader(), shader2);
+    properties.SetCoverageNGShader(shader2);
+    EXPECT_EQ(properties.GetCoverageNGShader(), shader2);
     
     modifier.ResetProperties(properties);
-    EXPECT_EQ(properties.GetOverlayNGShader(), nullptr);
+    EXPECT_EQ(properties.GetCoverageNGShader(), nullptr);
 }
 
 /**
- * @tc.name: RSOverlayNGShaderRenderModifierCombinedResetTest001
+ * @tc.name: RSCoverageNGShaderRenderModifierCombinedResetTest001
  * @tc.desc: ResetProperties test with overlay shader and other properties
  * @tc.type:FUNC
  */
-HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest,
-    RSOverlayNGShaderRenderModifierCombinedResetTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
+    RSCoverageNGShaderRenderModifierCombinedResetTest001, TestSize.Level1)
 {
-    RSOverlayNGShaderRenderModifier modifier;
+    RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
     
     auto overlayShader = std::make_shared<RSNGRenderAIBarRectHalo>();
-    properties.SetOverlayNGShader(overlayShader);
+    properties.SetCoverageNGShader(overlayShader);
     properties.SetLightIntensity(5.0f);
     properties.SetLightColor(Color(255, 128, 64, 255));
     properties.SetLightPosition(Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
@@ -228,7 +228,7 @@ HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest,
     
     modifier.ResetProperties(properties);
     
-    EXPECT_EQ(properties.GetOverlayNGShader(), nullptr);
+    EXPECT_EQ(properties.GetCoverageNGShader(), nullptr);
     EXPECT_EQ(properties.GetLightIntensity(), 5.0f); // skip while reset call
     EXPECT_EQ(properties.GetLightColor(), RgbPalette::White());
     EXPECT_EQ(properties.GetLightPosition(), Vector4f());

@@ -4002,43 +4002,43 @@ HWTEST_F(RSPropertiesTest, SetAndGetCompositingNGFilter, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetOverlayNGShader001
- * @tc.desc: test results of SetOverlayNGShader with nullptr
+ * @tc.name: SetCoverageNGShader001
+ * @tc.desc: test results of SetCoverageNGShader with nullptr
  * @tc.type:FUNC
  * @tc.require: issueNumber
  */
-HWTEST_F(RSPropertiesTest, SetOverlayNGShader001, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetCoverageNGShader001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetOverlayNGShader(nullptr);
-    EXPECT_EQ(properties.GetOverlayNGShader(), nullptr);
+    properties.SetCoverageNGShader(nullptr);
+    EXPECT_EQ(properties.GetCoverageNGShader(), nullptr);
 }
 
 /**
- * @tc.name: SetOverlayNGShader002
- * @tc.desc: test results of SetOverlayNGShader with multiple shader types
+ * @tc.name: SetCoverageNGShader002
+ * @tc.desc: test results of SetCoverageNGShader with multiple shader types
  * @tc.type:FUNC
  * @tc.require: issueNumber
  */
-HWTEST_F(RSPropertiesTest, SetOverlayNGShader002, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetCoverageNGShader002, TestSize.Level1)
 {
     RSProperties properties;
     
     auto overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
-    properties.SetOverlayNGShader(overlayShader);
-    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    properties.SetCoverageNGShader(overlayShader);
+    EXPECT_EQ(properties.GetCoverageNGShader(), overlayShader);
     
     overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
-    properties.SetOverlayNGShader(overlayShader);
-    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    properties.SetCoverageNGShader(overlayShader);
+    EXPECT_EQ(properties.GetCoverageNGShader(), overlayShader);
     
     overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
-    properties.SetOverlayNGShader(overlayShader);
-    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    properties.SetCoverageNGShader(overlayShader);
+    EXPECT_EQ(properties.GetCoverageNGShader(), overlayShader);
     
     overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
-    properties.SetOverlayNGShader(overlayShader);
-    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    properties.SetCoverageNGShader(overlayShader);
+    EXPECT_EQ(properties.GetCoverageNGShader(), overlayShader);
 }
 
 /**

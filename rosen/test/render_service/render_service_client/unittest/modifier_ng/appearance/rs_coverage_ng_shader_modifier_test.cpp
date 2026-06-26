@@ -23,7 +23,7 @@
 #include "message_parcel.h"
 
 #include "common/rs_vector4.h"
-#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
+#include "modifier_ng/appearance/rs_coverage_ng_shader_modifier.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
@@ -31,7 +31,7 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::ModifierNG;
 
 namespace OHOS::Rosen {
-class RSOverlayNGShaderModifierNGTypeTest : public testing::Test {
+class RSCoverageNGShaderModifierNGTypeTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
@@ -40,16 +40,16 @@ public:
 };
 
 /**
- * @tc.name: RSOverlayNGShaderModifierTest
- * @tc.desc: Test Set/Get functions of RSOverlayNGShaderModifier
+ * @tc.name: RSCoverageNGShaderModifierTest
+ * @tc.desc: Test Set/Get functions of RSCoverageNGShaderModifier
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierTest, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierTest, TestSize.Level1)
 {
-    std::shared_ptr<ModifierNG::RSOverlayNGShaderModifier> modifier =
-        std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    std::shared_ptr<ModifierNG::RSCoverageNGShaderModifier> modifier =
+        std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
 
-    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::OVERLAY_NG_SHADER);
+    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
 
     modifier->SetLightIntensity(1.0f);
     EXPECT_EQ(modifier->GetLightIntensity(), 1.0f);
@@ -73,79 +73,79 @@ HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierTest, Tes
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierConstructorTest001
- * @tc.desc: Test constructor of RSOverlayNGShaderModifier
+ * @tc.name: RSCoverageNGShaderModifierConstructorTest001
+ * @tc.desc: Test constructor of RSCoverageNGShaderModifier
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierConstructorTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierConstructorTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
-    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::OVERLAY_NG_SHADER);
+    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierOverlayShaderTest001
- * @tc.desc: Test Set/Get OverlayNGShader with valid shader
+ * @tc.name: RSCoverageNGShaderModifierCoverageShaderTest001
+ * @tc.desc: Test Set/Get CoverageNGShader with valid shader
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierOverlayShaderTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierCoverageShaderTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
     auto shader = std::make_shared<RSNGAIBarRectHalo>();
     EXPECT_NE(shader, nullptr);
     
-    modifier->SetOverlayNGShader(shader);
-    EXPECT_EQ(modifier->GetOverlayNGShader(), shader);
+    modifier->SetCoverageNGShader(shader);
+    EXPECT_EQ(modifier->GetCoverageNGShader(), shader);
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierOverlayShaderTest002
- * @tc.desc: Test Set/Get OverlayNGShader with nullptr
+ * @tc.name: RSCoverageNGShaderModifierCoverageShaderTest002
+ * @tc.desc: Test Set/Get CoverageNGShader with nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierOverlayShaderTest002, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierCoverageShaderTest002, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
-    modifier->SetOverlayNGShader(nullptr);
-    EXPECT_EQ(modifier->GetOverlayNGShader(), nullptr);
+    modifier->SetCoverageNGShader(nullptr);
+    EXPECT_EQ(modifier->GetCoverageNGShader(), nullptr);
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierOverlayShaderTest003
- * @tc.desc: Test Set/Get OverlayNGShader multiple times
+ * @tc.name: RSCoverageNGShaderModifierCoverageShaderTest003
+ * @tc.desc: Test Set/Get CoverageNGShader multiple times
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierOverlayShaderTest003, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierCoverageShaderTest003, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
     auto shader1 = std::make_shared<RSNGAIBarRectHalo>();
     auto shader2 = std::make_shared<RSNGAIBarRectHalo>();
     
-    modifier->SetOverlayNGShader(shader1);
-    EXPECT_EQ(modifier->GetOverlayNGShader(), shader1);
+    modifier->SetCoverageNGShader(shader1);
+    EXPECT_EQ(modifier->GetCoverageNGShader(), shader1);
     
-    modifier->SetOverlayNGShader(shader2);
-    EXPECT_EQ(modifier->GetOverlayNGShader(), shader2);
+    modifier->SetCoverageNGShader(shader2);
+    EXPECT_EQ(modifier->GetCoverageNGShader(), shader2);
     
-    modifier->SetOverlayNGShader(nullptr);
-    EXPECT_EQ(modifier->GetOverlayNGShader(), nullptr);
+    modifier->SetCoverageNGShader(nullptr);
+    EXPECT_EQ(modifier->GetCoverageNGShader(), nullptr);
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierLightIntensityTest001
+ * @tc.name: RSCoverageNGShaderModifierLightIntensityTest001
  * @tc.desc: Test Set/Get LightIntensity with boundary values
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierLightIntensityTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierLightIntensityTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
     modifier->SetLightIntensity(0.0f);
@@ -159,13 +159,13 @@ HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierLightInte
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierLightColorTest001
+ * @tc.name: RSCoverageNGShaderModifierLightColorTest001
  * @tc.desc: Test Set/Get LightColor with different colors
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierLightColorTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierLightColorTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
     Color whiteColor(255, 255, 255, 255);
@@ -182,13 +182,13 @@ HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierLightColo
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierLightPositionTest001
+ * @tc.name: RSCoverageNGShaderModifierLightPositionTest001
  * @tc.desc: Test Set/Get LightPosition with boundary values
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierLightPositionTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierLightPositionTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
     Vector4f pos1(0.0f, 0.0f, 0.0f, 0.0f);
@@ -205,13 +205,13 @@ HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierLightPosi
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierBorderWidthTest001
+ * @tc.name: RSCoverageNGShaderModifierBorderWidthTest001
  * @tc.desc: Test Set/Get IlluminatedBorderWidth with boundary values
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierBorderWidthTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierBorderWidthTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
     modifier->SetIlluminatedBorderWidth(0.0f);
@@ -225,13 +225,13 @@ HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierBorderWid
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierIlluminatedTypeTest001
+ * @tc.name: RSCoverageNGShaderModifierIlluminatedTypeTest001
  * @tc.desc: Test Set/Get IlluminatedType with different types
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierIlluminatedTypeTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierIlluminatedTypeTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
     modifier->SetIlluminatedType(0);
@@ -248,13 +248,13 @@ HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierIlluminat
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierBloomTest001
+ * @tc.name: RSCoverageNGShaderModifierBloomTest001
  * @tc.desc: Test Set/Get Bloom with boundary values
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierBloomTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierBloomTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
     modifier->SetBloom(0.0f);
@@ -271,28 +271,28 @@ HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierBloomTest
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierGetTypeTest001
+ * @tc.name: RSCoverageNGShaderModifierGetTypeTest001
  * @tc.desc: Test GetType returns correct type consistently
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierGetTypeTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierGetTypeTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
-    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::OVERLAY_NG_SHADER);
-    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::OVERLAY_NG_SHADER);
-    EXPECT_EQ(modifier->GetType(), ModifierNG::RSOverlayNGShaderModifier::Type);
+    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
+    EXPECT_EQ(modifier->GetType(), ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
+    EXPECT_EQ(modifier->GetType(), ModifierNG::RSCoverageNGShaderModifier::Type);
 }
 
 /**
- * @tc.name: RSOverlayNGShaderModifierCombinedTest001
+ * @tc.name: RSCoverageNGShaderModifierCombinedTest001
  * @tc.desc: Test setting multiple properties together
  * @tc.type: FUNC
  */
-HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierCombinedTest001, TestSize.Level1)
+HWTEST_F(RSCoverageNGShaderModifierNGTypeTest, RSCoverageNGShaderModifierCombinedTest001, TestSize.Level1)
 {
-    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSCoverageNGShaderModifier>();
     EXPECT_NE(modifier, nullptr);
 
     modifier->SetLightIntensity(5.0f);
@@ -303,7 +303,7 @@ HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierCombinedT
     modifier->SetBloom(1.5f);
 
     auto shader = std::make_shared<RSNGAIBarRectHalo>();
-    modifier->SetOverlayNGShader(shader);
+    modifier->SetCoverageNGShader(shader);
 
     EXPECT_EQ(modifier->GetLightIntensity(), 5.0f);
     EXPECT_EQ(modifier->GetLightColor(), Color(255, 128, 64, 255));
@@ -311,6 +311,6 @@ HWTEST_F(RSOverlayNGShaderModifierNGTypeTest, RSOverlayNGShaderModifierCombinedT
     EXPECT_EQ(modifier->GetIlluminatedBorderWidth(), 3.5f);
     EXPECT_EQ(modifier->GetIlluminatedType(), 2);
     EXPECT_EQ(modifier->GetBloom(), 1.5f);
-    EXPECT_EQ(modifier->GetOverlayNGShader(), shader);
+    EXPECT_EQ(modifier->GetCoverageNGShader(), shader);
 }
 } // namespace OHOS::Rosen

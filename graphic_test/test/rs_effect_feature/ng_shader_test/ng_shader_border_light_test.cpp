@@ -117,7 +117,7 @@ std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const size_t i, const size_t
     }
     effectChildNode->SetBounds(x, y, sizeX, sizeY);
     effectChildNode->SetFrame(x, y, sizeX, sizeY);
-    effectChildNode->SetOverlayNGShader(borderLight);
+    effectChildNode->SetCoverageNGShader(borderLight);
     effectNode->AddChild(effectChildNode);
     return effectChildNode;
 }

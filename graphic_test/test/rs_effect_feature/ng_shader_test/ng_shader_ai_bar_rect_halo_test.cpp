@@ -91,7 +91,7 @@ private:
         RegisterNode(testNode);
     }
 
-    void SetUpOverlayNGShaderTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
+    void SetUpCoverageNGShaderTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
         std::shared_ptr<RSNGAIBarRectHalo>& aiBarRectHalo)
     {
         if (columnCount == 0 || rowCount == 0) {
@@ -103,7 +103,7 @@ private:
         const size_t y = (i / columnCount) * sizeY;
 
         auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, { x, y, sizeX, sizeY });
-        testNode->SetOverlayNGShader(aiBarRectHalo);
+        testNode->SetCoverageNGShader(aiBarRectHalo);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -155,7 +155,7 @@ GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Extrem
     }
 }
 
-GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Overlay_NG_Shader_Test1)
+GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Coverage_NG_Shader_Test1)
 {
     const size_t columnCount = 3;
     const size_t rowCount = 1;
@@ -168,11 +168,11 @@ GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Overla
         aiBarRectHalo->Setter<AIBarRectHaloStrengthTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
         aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
 
-        SetUpOverlayNGShaderTestNode(i, columnCount, rowCount, aiBarRectHalo);
+        SetUpCoverageNGShaderTestNode(i, columnCount, rowCount, aiBarRectHalo);
     }
 }
 
-GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Overlay_NG_Shader_Test2)
+GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Coverage_NG_Shader_Test2)
 {
     const size_t columnCount = 4;
     const size_t rowCount = 1;
@@ -182,7 +182,7 @@ GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Overla
         InitAIBarRectHalo(aiBarRectHalo);
         aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(extremeValues[i]);
         aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
-        SetUpOverlayNGShaderTestNode(i, columnCount, rowCount, aiBarRectHalo);
+        SetUpCoverageNGShaderTestNode(i, columnCount, rowCount, aiBarRectHalo);
     }
 }
 } // namespace OHOS::Rosen

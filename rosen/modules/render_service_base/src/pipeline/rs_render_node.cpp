@@ -103,7 +103,7 @@ const std::unordered_set<RSDrawableSlot> edrDrawableSlots = {
     RSDrawableSlot::BACKGROUND_NG_SHADER,
     RSDrawableSlot::COMPOSITING_FILTER,
     RSDrawableSlot::BLENDER,
-    RSDrawableSlot::OVERLAY_NG_SHADER,
+    RSDrawableSlot::COVERAGE_NG_SHADER,
 };
 
 // ensure the corresponding drawable type inherits from RSFilterDrawable.
@@ -1923,8 +1923,8 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(materialShader, boundsRect));
     const auto& backgroundNGShader = GetRenderProperties().GetBackgroundNGShader();
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(backgroundNGShader, boundsRect));
-    const auto& overlayNGShader = GetRenderProperties().GetOverlayNGShader();
-    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(overlayNGShader, boundsRect));
+    const auto& coverageNGShader = GetRenderProperties().GetCoverageNGShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(coverageNGShader, boundsRect));
 }
 
 void RSRenderNode::UpdateBufferDirtyRegion()
@@ -4897,12 +4897,12 @@ void RSRenderNode::UpdateDrawableEnableEDR()
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
     auto& drawablePtr =
-        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::OVERLAY_NG_SHADER));
+        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::COVERAGE_NG_SHADER));
     if (!drawablePtr) {
         return;
     }
     drawablePtr->OnUpdate(*shared_from_this());
-    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::OVERLAY_NG_SHADER);
+    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COVERAGE_NG_SHADER);
     // The illuminated node has no attribute changes, so it does not call applymodifier, and consequently does not
     // call SetEnableHdrEffect. Therefore, here we need call SetEnableHdrEffect.
     SetEnableHdrEffect(drawablePtr->GetEnableEDR());

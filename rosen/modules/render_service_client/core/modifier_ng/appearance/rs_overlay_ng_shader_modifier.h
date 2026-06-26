@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,20 +30,6 @@ public:
         return Type;
     };
 
-    void SetLightIntensity(float lightIntensity);
-    float GetLightIntensity() const;
-    void SetLightColor(const Color lightColor);
-    Color GetLightColor() const;
-    void SetLightPosition(const Vector4f& lightPosition);
-    Vector4f GetLightPosition() const;
-    void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
-    float GetIlluminatedBorderWidth() const;
-    void SetIlluminatedType(int illuminatedType);
-    int GetIlluminatedType() const;
-    void SetBloom(float bloomIntensity);
-    float GetBloom() const;
-
-    // Overlay Shader
     void SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayNGShader);
     std::shared_ptr<RSNGShaderBase> GetOverlayNGShader() const;
 };

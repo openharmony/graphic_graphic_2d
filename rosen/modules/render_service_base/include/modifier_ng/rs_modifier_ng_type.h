@@ -48,7 +48,7 @@ enum class RSModifierType : uint16_t {
     USE_EFFECT = 18,
     BLENDER = 19,
 
-    OVERLAY_NG_SHADER = 20,
+    COVERAGE_NG_SHADER = 20,
     PARTICLE_EFFECT = 21,
     COMPOSITING_FILTER = 22,
     BACKGROUND_FILTER = 23,
@@ -69,7 +69,7 @@ enum class RSModifierType : uint16_t {
     MATERIAL_FILTER = 36,
     COLOR_PICKER = 37,
     MATERIAL_SHADER = 38,
-    USE_UNION = 39,
+    OVERLAY_NG_SHADER = 39,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -129,7 +129,7 @@ public:
             case RSModifierType::PIXEL_STRETCH: return "PixelStretch";
             case RSModifierType::USE_EFFECT: return "UseEffect";
             case RSModifierType::BLENDER: return "Blender";
-            case RSModifierType::OVERLAY_NG_SHADER: return "OverlayNGShader";
+            case RSModifierType::COVERAGE_NG_SHADER: return "CoverageNGShader";
             case RSModifierType::PARTICLE_EFFECT: return "ParticleEffect";
             case RSModifierType::COMPOSITING_FILTER: return "CompositingFilter";
             case RSModifierType::BACKGROUND_FILTER: return "BackgroundFilter";
@@ -148,7 +148,7 @@ public:
             case RSModifierType::MATERIAL_FILTER: return "MaterialFilter";
             case RSModifierType::MATERIAL_SHADER: return "MaterialShader";
             case RSModifierType::COLOR_PICKER : return "ColorPicker";
-            case RSModifierType::USE_UNION: return "UseUnion";
+            case RSModifierType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             case RSModifierType::CHILDREN: return "Children";
             default: return "Invalid";
         }
@@ -338,6 +338,7 @@ public:
             case RSPropertyType::DOUBLE_SIDED: return "DoubleSided";
             case RSPropertyType::CHILDREN: return "Children";
             case RSPropertyType::MATERIAL_SHADER: return "MaterialShader";
+            case RSPropertyType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             default: return "Unknown";
         }
         return "Unknown";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,29 +18,13 @@
 namespace OHOS::Rosen::ModifierNG {
 const RSOverlayNGShaderRenderModifier::LegacyPropertyApplierMap
     RSOverlayNGShaderRenderModifier::LegacyPropertyApplierMap_ = {
-        { RSPropertyType::LIGHT_INTENSITY,
-            RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetLightIntensity> },
-        { RSPropertyType::LIGHT_COLOR, RSRenderModifier::PropertyApplyHelper<Color, &RSProperties::SetLightColor> },
-        { RSPropertyType::LIGHT_POSITION,
-            RSRenderModifier::PropertyApplyHelper<Vector4f, &RSProperties::SetLightPosition> },
-        { RSPropertyType::ILLUMINATED_BORDER_WIDTH,
-            RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetIlluminatedBorderWidth> },
-        { RSPropertyType::ILLUMINATED_TYPE,
-            RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetIlluminatedType> },
-        { RSPropertyType::BLOOM, RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetBloom> },
         { RSPropertyType::OVERLAY_NG_SHADER,
             RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderShaderBase>,
                 &RSProperties::SetOverlayNGShader> },
-};
+    };
 
 void RSOverlayNGShaderRenderModifier::ResetProperties(RSProperties& properties)
 {
-    properties.SetLightIntensity(INVALID_INTENSITY);
-    properties.SetLightColor(RgbPalette::White());
-    properties.SetLightPosition(Vector4f());
-    properties.SetIlluminatedBorderWidth(0.f);
-    properties.SetIlluminatedType(static_cast<int>(IlluminatedType::INVALID));
-    properties.SetBloom(0.f);
     properties.SetOverlayNGShader(nullptr);
 }
 } // namespace OHOS::Rosen::ModifierNG
