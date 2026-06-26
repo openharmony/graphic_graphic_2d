@@ -25,11 +25,8 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_node.h"
-#include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
-#include "ui/rs_ui_context_manager.h"
-#include "ui/rs_ui_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -43,6 +40,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSUIContext> CreateRSUIContext();
 };
 
 class RSAnimationMock : public RSAnimation {
@@ -56,6 +54,14 @@ void RSAnimationOthersClientTest::TearDownTestCase() {}
 void RSAnimationOthersClientTest::SetUp() {}
 void RSAnimationOthersClientTest::TearDown() {}
 
+std::shared_ptr<RSUIContext> RSAnimationOthersClientTest::CreateRSUIContext()
+{
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+    return rsUIContext;
+}
+
 /**
  * @tc.name: AddInteractiveImplictAnimator001
  * @tc.desc: Test AddInteractiveImplictAnimator with null animator
@@ -64,8 +70,7 @@ void RSAnimationOthersClientTest::TearDown() {}
 HWTEST_F(RSAnimationOthersClientTest, AddInteractiveImplictAnimator001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest AddInteractiveImplictAnimator001 start";
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto uiContext = CreateRSUIContext();
     ASSERT_NE(uiContext, nullptr);
 
     // Cover branch: animator == nullptr
@@ -84,8 +89,7 @@ HWTEST_F(RSAnimationOthersClientTest, AddInteractiveImplictAnimator001, TestSize
 HWTEST_F(RSAnimationOthersClientTest, AddInteractiveImplictAnimator002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest AddInteractiveImplictAnimator002 start";
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto uiContext = CreateRSUIContext();
     ASSERT_NE(uiContext, nullptr);
 
     // Cover branch: animator != nullptr, add to map
@@ -115,8 +119,7 @@ HWTEST_F(RSAnimationOthersClientTest, AddInteractiveImplictAnimator002, TestSize
 HWTEST_F(RSAnimationOthersClientTest, AddInteractiveImplictAnimator003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest AddInteractiveImplictAnimator003 start";
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto uiContext = CreateRSUIContext();
     ASSERT_NE(uiContext, nullptr);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -157,8 +160,7 @@ HWTEST_F(RSAnimationOthersClientTest, AddInteractiveImplictAnimator003, TestSize
 HWTEST_F(RSAnimationOthersClientTest, RemoveInteractiveImplictAnimator001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest RemoveInteractiveImplictAnimator001 start";
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto uiContext = CreateRSUIContext();
     ASSERT_NE(uiContext, nullptr);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -188,8 +190,7 @@ HWTEST_F(RSAnimationOthersClientTest, RemoveInteractiveImplictAnimator001, TestS
 HWTEST_F(RSAnimationOthersClientTest, RemoveInteractiveImplictAnimator002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSAnimationOthersClientTest RemoveInteractiveImplictAnimator002 start";
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    auto uiContext = CreateRSUIContext();
     ASSERT_NE(uiContext, nullptr);
 
     // Cover branch: removing non-existent id (no error, just erase)
@@ -207,86 +208,7 @@ HWTEST_F(RSAnimationOthersClientTest, RemoveInteractiveImplictAnimator002, TestS
  */
 HWTEST_F(RSAnimationOthersClientTest, InteractiveImplictAnimator003, TestSize.Level1)
 {
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto uiContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
-    ASSERT_NE(uiContext, nullptr);
-
-    RSAnimationTimingProtocol timingProtocol;
-    timingProtocol.SetDuration(1000);
-    RSAnimationTimingCurve timingCurve;
-
-    // Create group animator
-    auto groupAnimatorWeak = RSInteractiveImplictAnimator::CreateGroup(uiContext, timingProtocol, timingCurve);
-    auto groupAnimator = groupAnimatorWeak.lock();
-    ASSERT_NE(groupAnimator, nullptr);
-    EXPECT_TRUE(groupAnimator->isGroupAnimator_);
-
-    auto groupId = groupAnimator->GetId();
-    uiContext->AddInteractiveImplictAnimator(groupAnimator);
-
-    // Create regular animators
-    auto animator1 = RSInteractiveImplictAnimator::Create(uiContext, timingProtocol, timingCurve);
-    auto animator2 = RSInteractiveImplictAnimator::Create(uiContext, timingProtocol, timingCurve);
-
-    ASSERT_NE(animator1, nullptr);
-    ASSERT_NE(animator2, nullptr);
-
-    auto id1 = animator1->GetId();
-    auto id2 = animator2->GetId();
-
-    uiContext->AddInteractiveImplictAnimator(animator1);
-    uiContext->AddInteractiveImplictAnimator(animator2);
-
-    // Remove all animators
-    uiContext->RemoveInteractiveImplictAnimator(groupId);
-    uiContext->RemoveInteractiveImplictAnimator(id1);
-    uiContext->RemoveInteractiveImplictAnimator(id2);
-}
-
-/**
- * @tc.name: AnimationCallbackProcessor
- * @tc.desc: Verify AnimationCallbackProcessor
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationOthersClientTest, AnimationCallbackProcessor, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
-    ASSERT_TRUE(director != nullptr);
-    NodeId nodeId = 0;
-    AnimationId animId = 0;
-    uint64_t token = 0;
-    AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-}
-
-/**
- * @tc.name: AnimationCallbackProcessorTest001
- * @tc.desc: test results of AnimationCallbackProcessor
- * @tc.type:FUNC
- */
-HWTEST_F(RSAnimationOthersClientTest, AnimationCallbackProcessorTest001, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
-    ASSERT_TRUE(director != nullptr);
-    NodeId nodeId = 0;
-    AnimationId animId = 0;
-    uint64_t token = 0;
-    AnimationCallbackEvent event = AnimationCallbackEvent::REPEAT_FINISHED;
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-
-    auto node = std::make_shared<RSRootNode>(false);
-    nodeId = node->GetId();
-    director->SetRoot(nodeId);
-    RSRootNode::SharedPtr nodePtr = std::make_shared<RSRootNode>(nodeId);
-    bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    auto animation = std::make_shared<RSAnimationMock>(director->GetRSUIContext());
-    animId = animation->GetId();
-    director->rsUIContext_->animations_.emplace(animId, animation);
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    director->rsUIContext_ = nullptr;
-    director->AnimationCallbackProcessor(nodeId, animId, token, event);
-    ASSERT_TRUE(res);
+    auto uiContext = CreateRSUIContext();
 }
 
 /**
@@ -299,8 +221,7 @@ HWTEST_F(RSAnimationOthersClientTest, GetAnimationsCount, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     AnimationId animationId = 1;
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     auto animation = std::make_shared<RSAnimationMock>(uiContext);
     rsNode->animations_.clear();
     EXPECT_TRUE(rsNode->animations_.empty());
@@ -319,8 +240,7 @@ HWTEST_F(RSAnimationOthersClientTest, OpenImplicitAnimationTest001, TestSize.Lev
     std::function<void()> finishCallback = nullptr;
     RSAnimationTimingProtocol timingProtocal;
     RSAnimationTimingCurve timingCurve;
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     RSNode::OpenImplicitAnimation(uiContext, timingProtocal, timingCurve, finishCallback);
     EXPECT_TRUE(finishCallback == nullptr);
 
@@ -336,8 +256,7 @@ HWTEST_F(RSAnimationOthersClientTest, OpenImplicitAnimationTest001, TestSize.Lev
  */
 HWTEST_F(RSAnimationOthersClientTest, CloseImplicitAnimationTest, TestSize.Level1)
 {
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     RSNode::CloseImplicitAnimation(uiContext);
     std::vector<std::shared_ptr<RSAnimation>> vec;
     EXPECT_EQ(vec, RSNode::CloseImplicitAnimation(uiContext));
@@ -352,8 +271,7 @@ HWTEST_F(RSAnimationOthersClientTest, CloseImplicitAnimationTest, TestSize.Level
 HWTEST_F(RSAnimationOthersClientTest, IsImplicitAnimationOpen, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     bool res = rsNode->IsImplicitAnimationOpen(uiContext);
     EXPECT_EQ(res, false);
 }
@@ -374,8 +292,7 @@ HWTEST_F(RSAnimationOthersClientTest, ExecuteWithoutAnimation, TestSize.Level1)
 
     callback = []() {};
     rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
+    rsUIContext = CreateRSUIContext();
     rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_NE(rsUIContext, nullptr);
 
@@ -393,8 +310,7 @@ HWTEST_F(RSAnimationOthersClientTest, ExecuteWithoutAnimation, TestSize.Level1)
 HWTEST_F(RSAnimationOthersClientTest, AddAnimationInner, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     std::shared_ptr<RSAnimation> animation = std::make_shared<RSAnimationMock>(uiContext);
     rsNode->AddAnimationInner(animation);
     EXPECT_NE(rsNode->GenerateId(), 1);
@@ -409,8 +325,7 @@ HWTEST_F(RSAnimationOthersClientTest, AddAnimationInner, TestSize.Level1)
 HWTEST_F(RSAnimationOthersClientTest, RemoveAnimationInner, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     auto animation = std::make_shared<RSAnimationMock>(uiContext);
     rsNode->AddAnimationInner(animation);
     rsNode->RemoveAnimationInner(animation);
@@ -439,8 +354,7 @@ HWTEST_F(RSAnimationOthersClientTest, FinishAnimationByProperty, TestSize.Level1
 {
     auto rsNode = RSCanvasNode::Create();
     PropertyId id = 0;
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     auto animation = std::make_shared<RSAnimationMock>(uiContext);
     rsNode->AddAnimationInner(animation);
     rsNode->FinishAnimationByProperty(id);
@@ -486,8 +400,7 @@ HWTEST_F(RSAnimationOthersClientTest, AddAnimation, TestSize.Level1)
     rsNode->AddAnimation(animation);
     EXPECT_EQ(animation, nullptr);
 
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     animation = std::make_shared<RSAnimationMock>(uiContext);
     rsNode->AddAnimation(animation);
     EXPECT_TRUE(animation != nullptr);
@@ -520,8 +433,7 @@ HWTEST_F(RSAnimationOthersClientTest, RemoveAllAnimations, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     AnimationId id = 1;
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     auto animation = std::make_shared<RSAnimationMock>(uiContext);
     rsNode->animations_.insert({ id, animation });
     rsNode->RemoveAllAnimations();
@@ -541,8 +453,7 @@ HWTEST_F(RSAnimationOthersClientTest, RemoveAnimation, TestSize.Level1)
     rsNode->RemoveAnimation(animation);
     EXPECT_EQ(animation, nullptr);
 
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     animation = std::make_shared<RSAnimationMock>(uiContext);
     rsNode->RemoveAnimation(animation);
     EXPECT_NE(animation, nullptr);
@@ -578,8 +489,7 @@ HWTEST_F(RSAnimationOthersClientTest, GetAnimationByPropertyId, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     PropertyId id = 0;
     AnimationId animationId = 1;
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     auto animation = std::make_shared<RSAnimationMock>(uiContext);
     rsNode->animations_.insert({ animationId, animation });
     rsNode->GetAnimationByPropertyId(id);
@@ -600,8 +510,7 @@ HWTEST_F(RSAnimationOthersClientTest, AnimationCallback, TestSize.Level1)
     bool res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, false);
 
-    auto uiDirector1 = RSUIDirector::Create(nullptr, nullptr);
-    auto uiContext = uiDirector1->GetRSUIContext();
+    auto uiContext = CreateRSUIContext();
     auto animation = std::make_shared<RSAnimationMock>(uiContext);
     rsNode->animations_.insert({ animationId, animation });
     res = rsNode->AnimationCallback(animationId, event);

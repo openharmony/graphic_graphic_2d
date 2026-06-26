@@ -66,6 +66,46 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
   ]
 }
 
+##############################  RSAnimationCallbackProcessorTest  ##################################
+ohos_unittest("RSAnimationCallbackProcessorTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_animation_callback_processor_test.cpp",
+  ]
+
+  include_dirs = [
+    "/graphic_2d/rosen/test/include",
+    "/graphic_2d/utils/log",
+  ]
+  configs = [
+    ":ui_test",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
+  ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+  ]
+
+  subsystem_name = "graphic"
+  external_deps = [
+    "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "image_framework:image_native",
+    "opengles:libGLES",
+    "hilog:libhilog",
+    "graphic_surface:surface_static",
+  ]
+}
+
 ###############################################################################
 config("ui_test") {
   visibility = [ ":*" ]
@@ -77,5 +117,8 @@ config("ui_test") {
 
 group("unittest") {
   testonly = true
-  deps = [ ":RSRenderServiceClientAnimationTest" ]
+  deps = [
+    ":RSRenderServiceClientAnimationTest",
+    ":RSAnimationCallbackProcessorTest",
+  ]
 }
