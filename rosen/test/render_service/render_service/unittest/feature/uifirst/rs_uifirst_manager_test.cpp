@@ -1601,6 +1601,7 @@ HWTEST_F(RSUifirstManagerTest, LeashWindowContainMainWindowAndStarting001, TestS
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
     auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1);
     rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    rsSurfaceRenderNode->SetIsNotifyUIBufferAvailable(false);
     children.push_back(rsSurfaceRenderNode);
     children.push_back(rsCanvasRenderNode);
     node.fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
@@ -1640,6 +1641,32 @@ HWTEST_F(RSUifirstManagerTest, LeashWindowContainMainWindowAndStarting001, TestS
 }
 
 /**
+ * @tc.name: LeashWindowContainMainWindowAndStarting002
+ * @tc.desc: Test LeashWindowContainMainWindowAndStarting with IsNotifyUIBufferAvailable=true
+ * @tc.type: FUNC
+ * @tc.require: issueIADDL3
+ */
+HWTEST_F(RSUifirstManagerTest, LeashWindowContainMainWindowAndStarting002, TestSize.Level1)
+{
+    RSSurfaceRenderNode node(++RSTestUtil::id);
+    node.nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+
+    std::vector<std::shared_ptr<RSRenderNode>> children;
+    auto appWindow = std::make_shared<RSSurfaceRenderNode>(++RSTestUtil::id);
+    appWindow->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    appWindow->SetIsNotifyUIBufferAvailable(true);
+    children.push_back(appWindow);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(++RSTestUtil::id);
+    canvasNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(++RSTestUtil::id);
+    children.push_back(canvasNode);
+    node.fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
+
+    NodeId resId = uifirstManager_.LeashWindowContainMainWindowAndStarting(node);
+    EXPECT_FALSE(resId);
+    EXPECT_FALSE(node.GetUifirstHasContentAppWindow());
+}
+
+/**
  * @tc.name: HasStartingWindowTest
  * @tc.desc: Test HasStartingWindow
  * @tc.type: FUNC
@@ -1653,6 +1680,7 @@ HWTEST_F(RSUifirstManagerTest, HasStartingWindowTest, TestSize.Level1)
 
     auto appWindow = RSTestUtil::CreateSurfaceNode();
     appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindow->SetIsNotifyUIBufferAvailable(false);
     auto startingWindow = std::make_shared<RSCanvasRenderNode>(1);
     startingWindow->stagingRenderParams_ = std::make_unique<RSRenderParams>(1);
     std::vector<std::shared_ptr<RSRenderNode>> children;
