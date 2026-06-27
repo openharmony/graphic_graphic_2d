@@ -43,8 +43,8 @@ extern "C" {
 /**
  * @brief Creates an **OH_Filter** object.
  *
- * @param[in] pixelmap Pointer to the PixelMap. Cannot be NULL.
- * @param[out] filter Double pointer to the filter created. Cannot be NULL.
+ * @param pixelmap [in] Pointer to the PixelMap. Cannot be NULL.
+ * @param filter [out] Double pointer to the filter created. Cannot be NULL.
  * @return <ul>
  *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
  *         <li>{@link EffectErrorCode#EFFECT_BAD_PARAMETER} if pixelmap or filter is NULL.</li>
@@ -58,7 +58,7 @@ EffectErrorCode OH_Filter_CreateEffect(OH_PixelmapNative* pixelmap, OH_Filter** 
 /**
  * @brief Releases an **OH_Filter** object.
  *
- * @param[in] filter Pointer to the filter. Cannot be NULL.
+ * @param filter [in] Pointer to the filter. Cannot be NULL.
  * @return <ul>
  *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
  *         <li>{@link EffectErrorCode#EFFECT_BAD_PARAMETER} if filter is NULL.</li>
@@ -71,8 +71,8 @@ EffectErrorCode OH_Filter_Release(OH_Filter* filter);
 /**
  * @brief Creates the frosted glass effect and adds it to a filter.
  *
- * @param[in] filter Pointer to the filter. Cannot be NULL.
- * @param[in] radius Blur radius of the frosted glass effect, in px.
+ * @param filter [in] Pointer to the filter. Cannot be NULL.
+ * @param radius [in] Blur radius of the frosted glass effect, in px.
  * @return <ul>
  *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
  *         <li>{@link EffectErrorCode#EFFECT_BAD_PARAMETER} if filter is NULL.</li>
@@ -85,9 +85,9 @@ EffectErrorCode OH_Filter_Blur(OH_Filter* filter, float radius);
 /**
  * @brief Creates the frosted glass effect and adds it to a filter. It supports the tiling mode of the shader effect.
  *
- * @param[in] filter Pointer to the filter. Cannot be NULL.
- * @param[in] radius Blur radius of the frosted glass effect, in px.
- * @param[in] tileMode Tile mode of the shader effect. For details about the available options,
+ * @param filter [in] Pointer to the filter. Cannot be NULL.
+ * @param radius [in] Blur radius of the frosted glass effect, in px.
+ * @param tileMode [in] Tile mode of the shader effect. For details about the available options,
  *     see {@link EffectTileMode}.
  * @return <ul>
  *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
@@ -118,8 +118,8 @@ EffectErrorCode OH_Filter_BlurWithDirection(OH_Filter* filter, float radius, flo
 /**
  * @brief Creates the brightening effect and adds it to a filter.
  *
- * @param[in] filter Pointer to the filter. Cannot be NULL.
- * @param[in] brightness Brightness value of the brightening effect, ranging from 0 to 1.
+ * @param filter [in] Pointer to the filter. Cannot be NULL.
+ * @param brightness [in] Brightness value of the brightening effect, ranging from 0 to 1.
  *     When the value is 0, the image brightness remains unchanged.
  *     When the value is 1, the image becomes fully brightened.
  * @return <ul>
@@ -134,7 +134,7 @@ EffectErrorCode OH_Filter_Brighten(OH_Filter* filter, float brightness);
 /**
  * @brief Creates the grayscale effect and adds it to a filter.
  *
- * @param[in] filter Pointer to the filter. Cannot be NULL.
+ * @param filter [in] Pointer to the filter. Cannot be NULL.
  * @return <ul>
  *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
  *         <li>{@link EffectErrorCode#EFFECT_BAD_PARAMETER} if filter is NULL.</li>
@@ -147,7 +147,7 @@ EffectErrorCode OH_Filter_GrayScale(OH_Filter* filter);
 /**
  * @brief Creates the inverted color effect and adds it to a filter.
  *
- * @param[in] filter Pointer to the filter. Cannot be NULL.
+ * @param filter [in] Pointer to the filter. Cannot be NULL.
  * @return <ul>
  *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
  *         <li>{@link EffectErrorCode#EFFECT_BAD_PARAMETER} if filter is NULL.</li>
@@ -160,8 +160,8 @@ EffectErrorCode OH_Filter_Invert(OH_Filter* filter);
 /**
  * @brief Creates a custom effect through a matrix and adds it to a filter.
  *
- * @param[in] filter Pointer to the filter. Cannot be NULL.
- * @param[in] matrix Custom {@link OH_Filter_ColorMatrix} used to create the filter. Cannot be NULL.
+ * @param filter [in] Pointer to the filter. Cannot be NULL.
+ * @param matrix [in] Custom {@link OH_Filter_ColorMatrix} used to create the filter. Cannot be NULL.
  * @return <ul>
  *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
  *         <li>{@link EffectErrorCode#EFFECT_BAD_PARAMETER} if filter or matrix is NULL.</li>
@@ -231,8 +231,8 @@ EffectErrorCode OH_Filter_WaterDropletTransition(OH_Filter* filter,
 /**
  * @brief Obtains the PixelMap with the filter effect.
  *
- * @param[in] filter Pointer to the filter. Cannot be NULL.
- * @param[out] pixelmap Double pointer to the PixelMap obtained. Cannot be NULL.
+ * @param filter [in] Pointer to the filter. Cannot be NULL.
+ * @param pixelmap [out] Double pointer to the PixelMap obtained. Cannot be NULL.
  * @return <ul>
  *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
  *         <li>{@link EffectErrorCode#EFFECT_BAD_PARAMETER} if filter or pixelmap is NULL.</li>
