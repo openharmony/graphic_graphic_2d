@@ -50,7 +50,6 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_node.h"
 #include "command_modifier/rs_surface_node_command_modifier.h"
-#include "common/rs_optional_trace.h"
 
 namespace OHOS {
 namespace Rosen {
