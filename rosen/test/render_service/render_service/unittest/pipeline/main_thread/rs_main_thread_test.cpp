@@ -6992,6 +6992,24 @@ HWTEST_F(RSMainThreadTest, InitCreatePipelineTimeCallbackTest001, TestSize.Level
 
     GTEST_LOG_(INFO) << "RSMainThreadTest InitCreatePipelineTimeCallbackTest001 end";
 }
-
+ 
+/**
+ * @tc.name: SetWindowModeType001
+ * @tc.desc: Test SetWindowModeType when IsSplitScreenSourceTuning is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, SetWindowModeType001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+ 
+    mainThread->hwcContext_ = std::make_shared<RSHwcContext>(
+        std::unordered_map<std::string, std::string>(), std::unordered_map<std::string, std::string>());
+    HWCParam::SetSplitScreenSourceTuning(true);
+    mainThread->SetWindowModeType(1);
+    HWCParam::SetSplitScreenSourceTuning(false);
+    mainThread->SetWindowModeType(1);
+}
 } // namespace OHOS::Rosen
 #endif

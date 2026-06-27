@@ -140,6 +140,7 @@ public:
         std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled = false);
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
+    void NotifyWindowModeTypeEvent(uint8_t windowModeType);
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop);
     ErrCode SetHdrForceHwcEnabled(const std::string& nodeIdStr, bool isHdrForceHwcEnabled);

@@ -153,6 +153,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_JANK_STATS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME),
@@ -2476,6 +2477,16 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             NotifyPackageEvent(listSize, packageList);
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT) : {
+            uint8_t windowModeType = 0;
+            if (!data.ReadUint8(windowModeType)) {
+                RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_WINDOW_MODE_TYPE_EVENT Read package failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifyWindowModeTypeEvent(windowModeType);
             break;
         }
         case static_cast<uint32_t>(

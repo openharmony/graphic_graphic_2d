@@ -6068,6 +6068,13 @@ void RSMainThread::CheckPackageInConfigList(const std::vector<std::string>& pack
     hwcContext_->CheckPackageInConfigList(packageList);
 }
 
+void RSMainThread::SetWindowModeType(uint8_t windowModeType)
+{
+    if (HWCParam::IsSplitScreenSourceTuning()) {
+        hwcContext_->SetWindowModeType(windowModeType);
+    }
+}
+
 void RSMainThread::AddSurfaceFpsOp(const SurfaceFpsOp& op)
 {
     if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {

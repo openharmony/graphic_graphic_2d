@@ -4204,6 +4204,28 @@ void RSClientToServiceConnectionProxy::NotifyPackageEvent(
     }
 }
 
+void RSClientToServiceConnectionProxy::NotifyWindowModeTypeEvent(uint8_t windowModeType)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("NotifyWindowModeTypeEvent: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    if (!data.WriteUint8(windowModeType)) {
+        ROSEN_LOGE("NotifyWindowModeTypeEvent: WriteUint8 windowModeType err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::NotifyWindowModeTypeEvent: Send Request err.");
+        return;
+    }
+}
+
 void RSClientToServiceConnectionProxy::SetWindowExpectedRefreshRate(
     const std::unordered_map<uint64_t, EventInfo>& eventInfos
 )

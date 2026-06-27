@@ -117,6 +117,9 @@ private:
         int bottomTolerance, bool enableTolerance) const;
     bool IsSplitEnabled() const;
 
+    // Sourcetuning
+    bool IsTargetSourceTuning(RSSurfaceRenderNode& node);
+    
     bool IsRectIsInsideOfScreenRect(const RectI& rect) const;
 
     // indicates if hardware composer is totally disabled

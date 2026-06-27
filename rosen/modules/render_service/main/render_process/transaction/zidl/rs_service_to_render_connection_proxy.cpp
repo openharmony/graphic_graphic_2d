@@ -1046,6 +1046,28 @@ void RSServiceToRenderConnectionProxy::NotifyPackageEvent(uint32_t listSize,
     }
 }
 
+void RSServiceToRenderConnectionProxy::NotifyWindowModeTypeEvent(uint8_t windowModeType)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return;
+    }
+    if (!data.WriteUint8(windowModeType)) {
+        ROSEN_LOGE("%{public}s: WriteUint8 windowModeType err.", __func__);
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSserviceToRenderConnectionProxy::NotifyWindowModeTypeEvent: Send Request err.");
+        return;
+    }
+}
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 ErrCode RSServiceToRenderConnectionProxy::SetOverlayDisplayMode(int32_t mode)
 {

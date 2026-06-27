@@ -2204,6 +2204,28 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SendVideoRateInfo_MapSizeExceedMa
 }
 
 /**
+ * @tc.name: NotifyWindowModeTypeEvent001
+ * @tc.desc: Test NotifyWindowModeTypeEvent with various scenarios
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, NotifyWindowModeTypeEvent001, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    ASSERT_NE(mockProxy, nullptr);
+    
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    mockProxy->NotifyWindowModeTypeEvent(1);
+    
+    mockProxy->NotifyWindowModeTypeEvent(0);
+    mockProxy->NotifyWindowModeTypeEvent(255);
+    
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
+    mockProxy->NotifyWindowModeTypeEvent(2);
+}
+
+/**
  * @tc.name: SetApsConfigParams_ParamsSizeExceed
  * @tc.desc: Test SetApsConfigParams when paramsSize exceeds MAX_APS_PARAMS_SIZE (129 > 128)
  * @tc.type: FUNC

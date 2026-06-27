@@ -1745,6 +1745,15 @@ void RSClientToServiceConnection::NotifyPackageEvent(uint32_t listSize, const st
     }
 }
 
+void RSClientToServiceConnection::NotifyWindowModeTypeEvent(uint8_t windowModeType)
+{
+    auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
+    auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
+    if (serviceToRenderConn) {
+        serviceToRenderConn->NotifyWindowModeTypeEvent(windowModeType);
+    }
+}
+
 ErrCode RSClientToServiceConnection::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
     const std::vector<std::pair<std::string, std::string>>& newConfig)
 {

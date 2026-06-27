@@ -415,6 +415,14 @@ bool RSUniHwcVisitor::IsTargetSolidLayer(RSSurfaceRenderNode& node)
            RSMainThread::Instance()->GetSystemAnimatedScenes() != SystemAnimatedScenes::DRAG_WINDOW;
 }
 
+bool RSUniHwcVisitor::IsTargetSourceTuning(RSSurfaceRenderNode& node)
+{
+    const std::string& bundleName = node.GetBundleName();
+    auto hwcContext = RSMainThread::Instance()->GetHwcContext();
+    return hwcContext->IsSourceTuningConfig(bundleName) ||
+           hwcContext->IsHwcSourceTuningConfig(bundleName);
+}
+
 void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node)
 {
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
@@ -851,7 +859,8 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
             hwcRects.push_back(hwcNodePtr->GetDstRect());
         } else if (hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled() &&
                    hwcRects.size() != 0 && (hwcRects.back().IsInsideOf(hwcNodePtr->GetDstRect()) ||
-                                            hwcNodePtr->GetDstRect().IsInsideOf(hwcRects.back()))) {
+                                            hwcNodePtr->GetDstRect().IsInsideOf(hwcRects.back())) &&
+                                            IsTargetSourceTuning(*hwcNodePtr)) {
             isHardwareEnableByBackgroundAlpha = true;
             backgroundAlphaRect = hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
             continue;

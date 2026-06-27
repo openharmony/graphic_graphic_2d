@@ -20,10 +20,16 @@
 #include "hwc_param.h"
 #include "platform/common/rs_log.h"
 
+static const uint8_t SPLIT_WINDOW_MODE = 1;
+static const std::string DSS_SCHEME_VALUE = "2";
+
 namespace OHOS::Rosen {
 // use in temporary scheme to check package name
 void RSHwcContext::CheckPackageInConfigList(const std::vector<std::string>& pkgs)
 {
+    std::lock_guard<std::mutex> lock(windowModeMutex_);
+    
+    packages_ = pkgs;
     auto& rsCommonHook = RsCommonHook::Instance();
     rsCommonHook.SetVideoSurfaceFlag(false);
     rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
@@ -39,7 +45,7 @@ void RSHwcContext::CheckPackageInConfigList(const std::vector<std::string>& pkgs
         rsCommonHook.SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
         return true;
     }();
-    if (pkgs.size() > 1) {
+    if (pkgs.size() > 1 && windowModeType_ != SPLIT_WINDOW_MODE) {
         return;
     }
     for (auto& param : pkgs) {
@@ -68,5 +74,25 @@ void RSHwcContext::CheckPackageInConfigList(const std::vector<std::string>& pkgs
             rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(true);
         }
     }
+}
+
+void RSHwcContext::SetWindowModeType(uint8_t windowModeType)
+{
+    windowModeType_ = windowModeType;
+    if (!packages_.empty()) {
+        CheckPackageInConfigList(packages_);
+    }
+}
+ 
+bool RSHwcContext::IsSourceTuningConfig(const std::string& bundleName)
+{
+    auto it = sourceTuningConfig_.find(bundleName);
+    return it != sourceTuningConfig_.end() && it->second == DSS_SCHEME_VALUE;
+}
+ 
+bool RSHwcContext::IsHwcSourceTuningConfig(const std::string& bundleName)
+{
+    auto it = hwcSourceTuningConfig_.find(bundleName);
+    return it != hwcSourceTuningConfig_.end() && it->second == DSS_SCHEME_VALUE;
 }
 } // namespace OHOS::Rosen

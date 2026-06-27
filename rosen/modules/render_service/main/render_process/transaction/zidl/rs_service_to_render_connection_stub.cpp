@@ -512,6 +512,16 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             NotifyPackageEvent(listSize, packageList);
             break;
         }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_WINDOW_MODE_TYPE_EVENT): {
+            uint8_t windowModeType = 0;
+            if (!data.ReadUint8(windowModeType)) {
+                RS_LOGE("RSServiceToRenderConnectionStub::NOTIFY_WINDOW_MODE_TYPE_EVENT Read listSize failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifyWindowModeTypeEvent(windowModeType);
+            break;
+        }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE): {
             RS_LOGI("RSServiceToRenderConnectionStub::OnRemoteRequest SET_OVERLAY_DISPLAY_MODE");

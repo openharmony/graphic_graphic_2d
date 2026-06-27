@@ -1499,6 +1499,16 @@ void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& p
     });
 }
 
+void RSRenderPipelineAgent::NotifyWindowModeTypeEvent(uint8_t windowModeType)
+{
+    auto pipeline = rsRenderPipeline_.lock();
+    if (pipeline != nullptr) {
+        pipeline->PostMainThreadTask([this, pipeline, windowModeType] {
+            pipeline->GetMainThread()->SetWindowModeType(windowModeType);
+        });
+    }
+}
+
 ErrCode RSRenderPipelineAgent::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     auto pipeline = rsRenderPipeline_.lock();

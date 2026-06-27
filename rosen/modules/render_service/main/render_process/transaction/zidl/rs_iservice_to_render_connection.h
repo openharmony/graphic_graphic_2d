@@ -100,6 +100,7 @@ public:
 
     // Hgm
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
+    virtual void NotifyWindowModeTypeEvent(uint8_t windowModeType) = 0;
     virtual void HgmForceUpdateTask(bool flag, const std::string& fromWhom) = 0;
     virtual uint32_t GetRealtimeRefreshRate(ScreenId screenId) = 0;
     virtual void SetShowRefreshRateEnabled(bool enabled, int32_t type) = 0;

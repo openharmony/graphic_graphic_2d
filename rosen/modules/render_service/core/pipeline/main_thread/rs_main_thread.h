@@ -479,6 +479,8 @@ public:
         return aibarNodes_;
     }
 
+    void SetWindowModeType(uint8_t windowModeType);
+
     uint64_t GetVsyncId() const { return vsyncId_; }
 
     // for surface fps op

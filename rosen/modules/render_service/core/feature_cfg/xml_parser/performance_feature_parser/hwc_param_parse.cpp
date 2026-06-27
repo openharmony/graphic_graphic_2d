@@ -75,6 +75,9 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType& featureMap, xmlNode
         } else if (name == "IsDisableInScaleScene") {
             HWCParam::SetDisableHwcInScaleScene(isEnabled);
             RS_LOGI("parse DisableHwcInScaleScene %{public}d", HWCParam::IsDisableHwcInScaleScene());
+        } else if (name == "SplitScreenSourceTuning") {
+            HWCParam::SetSplitScreenSourceTuning(isEnabled);
+            RS_LOGI("parse SplitScreenSourceTuning %{public}d", HWCParam::IsSplitScreenSourceTuning());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {
