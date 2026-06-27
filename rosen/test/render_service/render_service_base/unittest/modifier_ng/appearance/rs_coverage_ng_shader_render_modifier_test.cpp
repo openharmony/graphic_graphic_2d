@@ -158,21 +158,21 @@ HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest, RSCoverageNGShaderRenderMod
 }
 
 /**
- * @tc.name: RSCoverageNGShaderRenderModifierOverlayShaderTest001
- * @tc.desc: ResetProperties test with overlay shader
+ * @tc.name: RSCoverageNGShaderRenderModifierCoverageShaderTest001
+ * @tc.desc: ResetProperties test with coverage shader
  * @tc.type:FUNC
  */
 HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
-    RSCoverageNGShaderRenderModifierOverlayShaderTest001, TestSize.Level1)
+    RSCoverageNGShaderRenderModifierCoverageShaderTest001, TestSize.Level1)
 {
     RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
     
-    auto overlayShader = std::make_shared<RSNGRenderAIBarRectHalo>();
-    EXPECT_NE(overlayShader, nullptr);
+    auto coverageShader = std::make_shared<RSNGRenderAIBarRectHalo>();
+    EXPECT_NE(coverageShader, nullptr);
     
-    properties.SetCoverageNGShader(overlayShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), overlayShader);
+    properties.SetCoverageNGShader(coverageShader);
+    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
     
     modifier.ResetProperties(properties);
     
@@ -180,12 +180,12 @@ HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
 }
 
 /**
- * @tc.name: RSCoverageNGShaderRenderModifierOverlayShaderTest002
- * @tc.desc: ResetProperties test with multiple overlay shader operations
+ * @tc.name: RSCoverageNGShaderRenderModifierCoverageShaderTest002
+ * @tc.desc: ResetProperties test with multiple coverage shader operations
  * @tc.type:FUNC
  */
 HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
-    RSCoverageNGShaderRenderModifierOverlayShaderTest002, TestSize.Level1)
+    RSCoverageNGShaderRenderModifierCoverageShaderTest002, TestSize.Level1)
 {
     RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
@@ -208,7 +208,7 @@ HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
 
 /**
  * @tc.name: RSCoverageNGShaderRenderModifierCombinedResetTest001
- * @tc.desc: ResetProperties test with overlay shader and other properties
+ * @tc.desc: ResetProperties test with coverage shader and other properties
  * @tc.type:FUNC
  */
 HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
@@ -217,8 +217,8 @@ HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
     RSCoverageNGShaderRenderModifier modifier;
     RSProperties properties;
     
-    auto overlayShader = std::make_shared<RSNGRenderAIBarRectHalo>();
-    properties.SetCoverageNGShader(overlayShader);
+    auto coverageShader = std::make_shared<RSNGRenderAIBarRectHalo>();
+    properties.SetCoverageNGShader(coverageShader);
     properties.SetLightIntensity(5.0f);
     properties.SetLightColor(Color(255, 128, 64, 255));
     properties.SetLightPosition(Vector4f(10.0f, 20.0f, 30.0f, 40.0f));

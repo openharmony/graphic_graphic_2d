@@ -27,7 +27,7 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
     "rs_drawable_test.cpp",
     "rs_material_shader_drawable_test.cpp",
     "rs_misc_drawable_test.cpp",
-    "rs_overlay_ng_shader_drawable_test.cpp", // TODO: 待补充
+    "rs_overlay_ng_shader_drawable_test.cpp",
     "rs_property_drawable_background_test.cpp",
     "rs_property_drawable_foreground_test.cpp",
     "rs_property_drawable_test.cpp",

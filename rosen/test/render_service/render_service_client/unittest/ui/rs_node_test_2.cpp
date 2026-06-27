@@ -40,7 +40,6 @@
 #include "modifier_ng/appearance/rs_hdr_brightness_modifier.h"
 #include "modifier_ng/appearance/rs_mask_modifier.h"
 #include "modifier_ng/appearance/rs_outline_modifier.h"
-#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h" //TODO：待补充
 #include "modifier_ng/appearance/rs_particle_effect_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"

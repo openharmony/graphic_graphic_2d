@@ -7011,8 +7011,22 @@ HWTEST_F(RSNodeTest, SetFunTest, TestSize.Level1)
     rsNode->SetInvert(position);
     rsNode->SetHueRotate(position);
     std::shared_ptr<RSNGSDFEdgeLightEffect> effect1 = std::make_shared<RSNGSDFEdgeLightEffect>();
-    rsNode->SetCoverageNGShader(effect1);
+rsNode->SetCoverageNGShader(effect1);
     EXPECT_NE(position, 0.f);
+}
+
+/**
+ * @tc.name: SetOverlayNGShader
+ * @tc.desc: test results of SetOverlayNGShader
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, SetOverlayNGShader, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    std::shared_ptr<RSNGShaderBase> overlayShader = std::make_shared<RSNGShaderBase>();
+    rsNode->SetOverlayNGShader(overlayShader);
+    EXPECT_NE(overlayShader, nullptr);
 }
 
 /**

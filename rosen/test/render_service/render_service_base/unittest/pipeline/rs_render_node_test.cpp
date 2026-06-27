@@ -23,7 +23,7 @@
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_coverage_ng_shader_drawable.h"
-#include "drawable/rs_overlay_ng_shader_drawable.h" // TODO： 看下是否要补充
+#include "drawable/rs_coverage_ng_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
@@ -1769,15 +1769,38 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest3, TestSize.Level1)
     context = sContext;
     auto node = std::make_shared<RSRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
-    auto overlayDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
-    ASSERT_NE(overlayDrawable, nullptr);
-    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COVERAGE_NG_SHADER)] = overlayDrawable;
+    auto coverageDrawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
+    ASSERT_NE(coverageDrawable, nullptr);
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COVERAGE_NG_SHADER)] = coverageDrawable;
     EXPECT_TRUE(node->dirtySlots_.empty());
-    auto overlayShader = std::make_shared<RSNGRenderAIBarRectHalo>();
-    node->GetMutableRenderProperties().SetCoverageNGShader(overlayShader);
+    auto coverageShader = std::make_shared<RSNGRenderAIBarRectHalo>();
+    node->GetMutableRenderProperties().SetCoverageNGShader(coverageShader);
     node->UpdatePointLightDirtySlot();
     EXPECT_FALSE(node->dirtySlots_.empty());
-    EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::COVERAGE_NG_SHADER) > 0);
+EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::COVERAGE_NG_SHADER) > 0);
+}
+
+/**
+ * @tc.name: UpdateOverlayNGShaderDirtySlotTest1
+ * @tc.desc: test results of UpdateOverlayNGShaderDirtySlot
+ * @tc.type: FUNC
+ * @tc.require: issueI9SCBR
+ */
+HWTEST_F(RSRenderNodeTest, UpdateOverlayNGShaderDirtySlotTest1, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    context = sContext;
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    auto overlayDrawable = std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
+    ASSERT_NE(overlayDrawable, nullptr);
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY_NG_SHADER)] = overlayDrawable;
+    EXPECT_TRUE(node->dirtySlots_.empty());
+    auto overlayShader = std::make_shared<RSNGRenderShaderBase>();
+    node->GetMutableRenderProperties().SetOverlayNGShader(overlayShader);
+    node->dirtySlots_.insert(RSDrawableSlot::OVERLAY_NG_SHADER);
+    EXPECT_FALSE(node->dirtySlots_.empty());
+    EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::OVERLAY_NG_SHADER) > 0);
 }
 
 /**
