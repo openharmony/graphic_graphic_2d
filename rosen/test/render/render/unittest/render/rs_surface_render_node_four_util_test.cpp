@@ -48,11 +48,16 @@ public:
     RSTestVisitor() = default;
     ~RSTestVisitor() override {}
 
-    void QuickPrepareScreenRenderNode(RSScreenRenderNode& node) override {}
-    void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override {}
-    void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override {}
-    void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) override {}
-    void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) override {}
+    void QuickPrepareScreenRenderNode(RSScreenRenderNode& node,
+        bool isParentPrepareInReverseOrder = false) override {}
+    void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node,
+        bool isParentPrepareInReverseOrder = false) override {}
+    void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node,
+        bool isParentPrepareInReverseOrder = false) override {}
+    void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node,
+        bool isParentPrepareInReverseOrder = false) override {}
+    void QuickPrepareEffectRenderNode(RSEffectRenderNode& node,
+        bool isParentPrepareInReverseOrder = false) override {}
     void QuickPrepareChildren(RSRenderNode& node) override {}
 
     void PrepareChildren(RSRenderNode& node) override {}
@@ -101,9 +106,8 @@ HWTEST_F(RSSurfaceRenderNodeFourUtilTest, UpdateAbilityNodeIds, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeFourUtilTest, UpdateChildHardwareEnabledNode, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->UpdateChildHardwareEnabledNode(1, false);
-    node->UpdateChildHardwareEnabledNode(1, true);
-    ASSERT_TRUE(node->GetNeedCollectHwcNode());
+    node->UpdateChildHardwareEnabledNode();
+    ASSERT_FALSE(node->GetNeedCollectHwcNode());
 }
 
 /**

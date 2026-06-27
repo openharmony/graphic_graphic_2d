@@ -524,16 +524,16 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeDirtyRegionAndCreateLayerTest005, 
     EXPECT_TRUE(node->GetVisibleRegion().IsEmpty());
     EXPECT_EQ(rsUniRenderVisitor->curScreenDirtyManager_, nullptr);
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers;
-    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(topLayers);
 
     rsUniRenderVisitor->hasMirrorDisplay_ = true;
-    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(topLayers);
 
     auto handler = childNode->GetMutableRSSurfaceHandler();
     ASSERT_NE(handler, nullptr);
     handler->SetCurrentFrameBufferConsumed();
     EXPECT_TRUE(childNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed());
-    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(topLayers);
 
     Occlusion::Rect r;
     node->visibleRegion_.rects_.push_back(r);
@@ -542,11 +542,11 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeDirtyRegionAndCreateLayerTest005, 
     node->visibleRegion_.bound_.top_ = 0;
     node->visibleRegion_.bound_.bottom_ = 1;
     EXPECT_FALSE(node->GetVisibleRegion().IsEmpty());
-    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(topLayers);
 
     rsUniRenderVisitor->curScreenDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     EXPECT_NE(rsUniRenderVisitor->curScreenDirtyManager_, nullptr);
-    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(topLayers);
 }
 
 /*

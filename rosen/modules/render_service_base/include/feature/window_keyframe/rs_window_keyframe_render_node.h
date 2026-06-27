@@ -40,7 +40,8 @@ public:
     // LCOV_EXCL_STOP
 
     void OnTreeStateChanged() override;
-    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+        bool isParentPrepareInReverseOrder = false) override;
 
     void SetLinkedNodeId(NodeId nodeId);
     NodeId GetLinkedNodeId() const;

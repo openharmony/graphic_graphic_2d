@@ -82,7 +82,7 @@ public:
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
     bool IsPrevalidateEnable();
     void CollectSurfaceNodeLayerInfo(std::vector<RequestLayerInfo>& prevalidLayers,
-        std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes, uint32_t curFps, uint32_t& zOrder,
+        const RSScreenRenderNode::SharedPtr screenRenderNode, uint32_t curFps, uint32_t& zOrder,
         const RSScreenProperty& screenProperty);
     void UpdateVcldEnabledInfo();
     bool IsVcldEnabled();

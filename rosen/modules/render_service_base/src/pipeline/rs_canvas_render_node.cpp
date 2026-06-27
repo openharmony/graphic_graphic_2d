@@ -83,7 +83,8 @@ void RSCanvasRenderNode::ClearRecording()
     RemoveModifierNG(ANONYMOUS_MODIFIER_NG_ID);
 }
 
-void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;
@@ -92,7 +93,7 @@ void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
 #if defined(ROSEN_OHOS)
     visitor->RegisterHpaeCallback(*this);
 #endif
-    visitor->QuickPrepareCanvasRenderNode(*this);
+    visitor->QuickPrepareCanvasRenderNode(*this, isParentPrepareInReverseOrder);
 }
 
 void RSCanvasRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)

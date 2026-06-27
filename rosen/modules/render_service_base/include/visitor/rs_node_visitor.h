@@ -41,13 +41,15 @@ public:
     virtual ~RSNodeVisitor() = default;
 
     virtual void QuickPrepareChildren(RSRenderNode& node) {}
-    virtual void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node) {}
-    virtual void QuickPrepareScreenRenderNode(RSScreenRenderNode& node) {}
-    virtual void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) {}
-    virtual void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) {}
-    virtual void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) {}
-    virtual void QuickPrepareUnionRenderNode(RSUnionRenderNode& node) {}
-    virtual void QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRenderNode& node) {}
+    virtual void QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
+    virtual void QuickPrepareScreenRenderNode(RSScreenRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
+    virtual void QuickPrepareEffectRenderNode(RSEffectRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
+    virtual void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node,
+        bool isParentPrepareInReverseOrder = false) {}
+    virtual void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
+    virtual void QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bool isParentPrepareInReverseOrder = false) {}
+    virtual void QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRenderNode& node,
+        bool isParentPrepareInReverseOrder = false) {}
 
     virtual void PrepareChildren(RSRenderNode& node) = 0;
     virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) = 0;

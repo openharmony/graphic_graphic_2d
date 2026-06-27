@@ -33,7 +33,8 @@ public:
 
     ~RSRootRenderNode() override;
 
-    virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+        bool isParentPrepareInReverseOrder = false) override;
     virtual void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     virtual void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 

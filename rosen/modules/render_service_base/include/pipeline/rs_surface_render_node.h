@@ -279,7 +279,7 @@ public:
     }
 
     // indicate if this node type can enable hardware composer
-    bool IsHardwareEnabledType() const
+    bool IsHardwareEnabledType() const override
     {
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
             IsLayerTop();
@@ -666,7 +666,8 @@ public:
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSelfDrawingChild(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec) override;
-    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+        bool isParentPrepareInReverseOrder = false) override;
     // keep specified nodetype preparation
     virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
@@ -1604,7 +1605,6 @@ public:
         return ancestorScreenNode_;
     }
     bool QuerySubAssignable(bool isRotation);
-    bool QueryIfAllHwcChildrenForceDisabledByFilter();
     bool GetHasSharedTransitionNode() const
     {
         return hasSharedTransitionNode_;
@@ -2034,7 +2034,7 @@ private:
     bool IsYUVBufferFormat() const;
     void InitRenderParams() override;
     void UpdateRenderParams() override;
-    void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
+    void UpdateChildHardwareEnabledNode();
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
 
     bool isForcedClipHole() const;

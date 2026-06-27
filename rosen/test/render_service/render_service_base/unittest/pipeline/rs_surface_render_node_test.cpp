@@ -1761,25 +1761,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSurfaceOcclusionRect, TestSize.Level1)
 }
 
 /**
- * @tc.name: QueryIfAllHwcChildrenForceDisabledByFilter
- * @tc.desc: test results of QueryIfAllHwcChildrenForceDisabledByFilter
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, QueryIfAllHwcChildrenForceDisabledByFilter, TestSize.Level1)
-{
-    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    EXPECT_TRUE(testNode->QueryIfAllHwcChildrenForceDisabledByFilter());
-
-    auto childNode1 = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    auto childNode2 = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    testNode->AddChildHardwareEnabledNode(childNode1);
-    testNode->AddChildHardwareEnabledNode(childNode2);
-    childNode1->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    EXPECT_TRUE(testNode->QueryIfAllHwcChildrenForceDisabledByFilter());
-}
-
-/**
  * @tc.name: AccumulateOcclusionRegion
  * @tc.desc: test results of AccumulateOcclusionRegion
  * @tc.type: FUNC
@@ -3478,6 +3459,98 @@ HWTEST_F(RSSurfaceRenderNodeTest, SurfaceNodeSelfAddedForSubSurfaceTest, TestSiz
 
     node->isSelfAddedForSubSurface_ = false;
     ASSERT_FALSE(node->isSelfAddedForSubSurface_);
+}
+
+/**
+ * @tc.name: UpdateChildHardwareEnabledNode_New_001
+ * @tc.desc: Test UpdateChildHardwareEnabledNode with empty allHwcNodeAndFilterNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateChildHardwareEnabledNode_New_001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->ClearAllHwcNodeAndFilterNode();
+    surfaceNode->ResetChildHardwareEnabledNodes();
+    ASSERT_EQ(surfaceNode->GetChildHardwareEnabledNodes().size(), 0);
+
+    surfaceNode->UpdateChildHardwareEnabledNode();
+    EXPECT_EQ(surfaceNode->GetChildHardwareEnabledNodes().size(), 0);
+}
+
+/**
+ * @tc.name: UpdateChildHardwareEnabledNode_New_002
+ * @tc.desc: Test UpdateChildHardwareEnabledNode with hardware enabled node in allHwcNodeAndFilterNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateChildHardwareEnabledNode_New_002, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->ClearAllHwcNodeAndFilterNode();
+    surfaceNode->ResetChildHardwareEnabledNodes();
+
+    RSSurfaceRenderNodeConfig config;
+    config.id = 100;
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto hwcChild = std::make_shared<RSSurfaceRenderNode>(config, context);
+    ASSERT_NE(hwcChild, nullptr);
+    hwcChild->SetHardwareEnabled(true, SelfDrawingNodeType::DEFAULT, true);
+    ASSERT_TRUE(hwcChild->IsHardwareEnabledType());
+    surfaceNode->GetAllHwcNodeAndFilterNode().push_back(hwcChild);
+
+    surfaceNode->UpdateChildHardwareEnabledNode();
+    EXPECT_EQ(surfaceNode->GetChildHardwareEnabledNodes().size(), 1);
+}
+
+/**
+ * @tc.name: UpdateChildHardwareEnabledNode_New_003
+ * @tc.desc: Test UpdateChildHardwareEnabledNode skips non-hardware-enabled node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateChildHardwareEnabledNode_New_003, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->ClearAllHwcNodeAndFilterNode();
+    surfaceNode->ResetChildHardwareEnabledNodes();
+
+    // Add a non-hardware-enabled node (base RSRenderNode)
+    auto renderNode = std::make_shared<RSRenderNode>(200);
+    ASSERT_NE(renderNode, nullptr);
+    ASSERT_FALSE(renderNode->IsHardwareEnabledType());
+    surfaceNode->GetAllHwcNodeAndFilterNode().push_back(renderNode);
+
+    surfaceNode->UpdateChildHardwareEnabledNode();
+    EXPECT_EQ(surfaceNode->GetChildHardwareEnabledNodes().size(), 0);
+}
+
+/**
+ * @tc.name: SetHwcChildrenDisabledState_New_001
+ * @tc.desc: Test SetHwcChildrenDisabledState with hardware enabled child
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetHwcChildrenDisabledState_New_001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    RSSurfaceRenderNodeConfig config;
+    config.id = 100;
+    auto hwcChild = std::make_shared<RSSurfaceRenderNode>(config, context);
+    ASSERT_NE(hwcChild, nullptr);
+    hwcChild->SetHardwareEnabled(true, SelfDrawingNodeType::DEFAULT, true);
+    hwcChild->SetHardwareForcedDisabledState(false);
+
+    surfaceNode->AddChildHardwareEnabledNode(hwcChild);
+    ASSERT_EQ(surfaceNode->GetChildHardwareEnabledNodes().size(), 1);
+
+    surfaceNode->SetHwcChildrenDisabledState();
+    EXPECT_TRUE(hwcChild->IsHardwareForcedDisabled());
 }
 } // namespace Rosen
 } // namespace OHOS

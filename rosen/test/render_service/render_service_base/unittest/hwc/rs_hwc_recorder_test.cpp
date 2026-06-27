@@ -211,4 +211,67 @@ HWTEST_F(RSHwcRecorderTest, SetLastFrameHasVisibleRegion_001, TestSize.Level1)
     node.HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(false);
     ASSERT_FALSE(node.HwcSurfaceRecorder().GetLastFrameHasVisibleRegion());
 }
+
+/**
+ * @tc.name: SetGlobalHwcFilterRect_001
+ * @tc.desc: test SetGlobalHwcFilterRect and GetGlobalHwcFilterRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcRecorderTest, SetGlobalHwcFilterRect_001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    RectI filterRect(10, 20, 100, 200);
+    node.GetHwcRecorder().SetGlobalHwcFilterRect(filterRect);
+    ASSERT_EQ(node.GetHwcRecorder().GetGlobalHwcFilterRect(), filterRect);
+}
+
+/**
+ * @tc.name: SetGlobalHwcFilterRect_002
+ * @tc.desc: test GetGlobalHwcFilterRect default value is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcRecorderTest, SetGlobalHwcFilterRect_002, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    ASSERT_TRUE(node.GetHwcRecorder().GetGlobalHwcFilterRect().IsEmpty());
+    node.GetHwcRecorder().SetGlobalHwcFilterRect(RectI(0, 0, 0, 0));
+    ASSERT_TRUE(node.GetHwcRecorder().GetGlobalHwcFilterRect().IsEmpty());
+}
+
+/**
+ * @tc.name: SetGlobalHwcFilterRect_003
+ * @tc.desc: test SetGlobalHwcFilterRect override
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcRecorderTest, SetGlobalHwcFilterRect_003, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    RectI filterRect1(0, 0, 50, 50);
+    node.GetHwcRecorder().SetGlobalHwcFilterRect(filterRect1);
+    ASSERT_EQ(node.GetHwcRecorder().GetGlobalHwcFilterRect(), filterRect1);
+    RectI filterRect2(100, 100, 200, 200);
+    node.GetHwcRecorder().SetGlobalHwcFilterRect(filterRect2);
+    ASSERT_EQ(node.GetHwcRecorder().GetGlobalHwcFilterRect(), filterRect2);
+}
+
+/**
+ * @tc.name: GetConstHwcRecorder_001
+ * @tc.desc: test GetConstHwcRecorder returns same value as GetHwcRecorder
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcRecorderTest, GetConstHwcRecorder_001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    RectI filterRect(10, 20, 100, 200);
+    node.GetHwcRecorder().SetGlobalHwcFilterRect(filterRect);
+    ASSERT_EQ(node.GetConstHwcRecorder().GetGlobalHwcFilterRect(), filterRect);
+}
 } //namespace OHOS::Rosen

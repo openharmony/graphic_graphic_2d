@@ -70,7 +70,8 @@ public:
     ~RenderCanvasDrawingRenderNode() override = default;
 
     void ApplyModifiers() override {}
-    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override {}
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+        bool isParentPrepareInReverseOrder = false) override {}
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override {}
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override {}
     void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override {}
