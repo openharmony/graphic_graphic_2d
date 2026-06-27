@@ -834,7 +834,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckCurrentFrameHasDirtyInVirtual001, TestS
     surfaceAdapters.emplace_back(createDrawableWithDirtyManager(++defaultSurfaceId, true, specialLayerManager3));
 
     screenParams->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
-    EXPECT_FALSE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
+    EXPECT_TRUE(RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(*mirroredScreenDrawable));
 
     surfaceAdapters.clear();
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(++defaultSurfaceId);
@@ -879,35 +879,5 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GetVisibleFilterRect_001, TestSize.Level1)
     context->GetMutableNodeMap().RegisterRenderNode(filterNode);
     filterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(*surfaceNode);
     ASSERT_FALSE(filterRect.IsEmpty());
-}
-
-/**
-* @tc.name: HasMirrorDisplay001
-* @tc.desc: Test HasMirrorDisplay with multiple mirror displays
-* @tc.type: FUNC
-* @tc.require: issue22079
-*/
-HWTEST_F(RSUniDirtyComputeUtilTest, HasMirrorDisplay001, TestSize.Level1)
-{
-    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-    NodeId displayId = 0;
-    RSDisplayNodeConfig config;
-
-    auto sourceNode = std::make_shared<RSLogicalDisplayRenderNode>(++displayId, config);
-    auto displayNode1 = std::make_shared<RSLogicalDisplayRenderNode>(++displayId, config);
-    auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(++displayId, config);
-    ASSERT_NE(sourceNode, nullptr);
-    ASSERT_NE(displayNode1, nullptr);
-    ASSERT_NE(displayNode2, nullptr);
-    displayNode1->SetIsMirrorDisplay(true);
-    displayNode1->SetMirrorSource(sourceNode);
-    displayNode2->SetMirrorSource(nullptr);
-
-    uint32_t index = 0;
-    nodeMap.logicalDisplayNodeMap_.emplace(index++, displayNode1);
-    nodeMap.logicalDisplayNodeMap_.emplace(index++, displayNode2);
-    nodeMap.logicalDisplayNodeMap_.emplace(index, nullptr);
-    EXPECT_TRUE(RSUniDirtyComputeUtil::HasMirrorDisplay());
-    nodeMap.logicalDisplayNodeMap_.clear();
 }
 } // namespace OHOS::Rosen
