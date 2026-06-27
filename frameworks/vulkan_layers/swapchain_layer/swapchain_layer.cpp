@@ -2192,7 +2192,7 @@ VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL GetInstanceProcAddr(VkInstance instance
         return reinterpret_cast<PFN_vkVoidFunction>(EnumerateDeviceExtensionProperties);
     }
     if (strcmp("vkGetPhysicalDeviceFeatures2", funcName) == 0 ||
- 	    strcmp("vkGetPhysicalDeviceFeatures2KHR", funcName) == 0) {
+        strcmp("vkGetPhysicalDeviceFeatures2KHR", funcName) == 0) {
         return reinterpret_cast<PFN_vkVoidFunction>(GetPhysicalDeviceFeatures2);
     }
 
