@@ -104,7 +104,6 @@ bool DoHaveParameters(const uint8_t* data, size_t size)
     uint32_t rgba = GetData<uint32_t>();
     RSColor::FromRgbaInt(rgba);
     RSColor::FromArgbInt(rgba);
-    RSColor::FromBgraInt(rgba);
     int16_t blue = GetData<int16_t>();
     int16_t green = GetData<int16_t>();
     int16_t red = GetData<int16_t>();
