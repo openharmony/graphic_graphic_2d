@@ -307,21 +307,6 @@ uint32_t RSColor::AsBgraInt() const
            ((static_cast<uint32_t>(std::clamp<int16_t>(blue_, 0, UINT8_MAX))) << 24);     // 24 blue shift
 }
 
-RSColor RSColor::FromBgraInt(uint32_t bgra)
-{
-    union {
-        struct {
-            uint8_t blu_ : 8;
-            uint8_t gre_ : 8;
-            uint8_t red_ : 8;
-            uint8_t alp_ : 8;
-        };
-        uint32_t bgra_;
-    } color;
-    color.bgra_ = bgra;
-    return RSColor(color.red_, color.gre_, color.blu_, color.alp_);
-}
-
 int16_t RSColor::GetBlue() const
 {
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {

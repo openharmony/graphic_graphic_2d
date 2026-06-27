@@ -85,7 +85,6 @@ bool RSColorFuzzTest(const uint8_t* data, size_t size)
     // getdata
     uint32_t argbInt = GetData<uint32_t>();
     uint32_t rgbaInt = GetData<uint32_t>();
-    uint32_t brgaInt = GetData<uint32_t>();
     int16_t blue = GetData<int16_t>();
     int16_t green = GetData<int16_t>();
     int16_t red = GetData<int16_t>();
@@ -111,7 +110,6 @@ bool RSColorFuzzTest(const uint8_t* data, size_t size)
 
     (void)rscolor.FromArgbInt(argbInt);
     (void)rscolor.FromRgbaInt(rgbaInt);
-    (void)rscolor.FromBgraInt(brgaInt);
     (void)rscolor.Dump(out);
     rscolor.SetBlue(blue);
     rscolor.SetAlpha(alpha3);

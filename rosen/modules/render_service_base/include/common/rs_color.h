@@ -86,7 +86,6 @@ public:
     uint32_t AsArgbInt() const;
     static RSColor FromArgbInt(uint32_t rgba);
     uint32_t AsBgraInt() const;
-    static RSColor FromBgraInt(uint32_t bgra);
 
     int16_t GetBlue() const;
     int16_t GetGreen() const;
