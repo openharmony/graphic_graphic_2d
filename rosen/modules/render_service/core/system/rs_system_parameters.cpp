@@ -334,5 +334,21 @@ bool RSSystemParameters::GetCropRectDebugOverlayEnabled()
         std::atoi((system::GetParameter("persist.sys.graphic.cropRectDebugOverlay.Enabled", "0")).c_str()) != 0;
     return cropRectDebugOverlayEnabled;
 }
+
+bool RSSystemParameters::GetLayerSplitterEnable()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.layerSplitter.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemParameters::GetLayerSplitterDfxEnable()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.layerSplitterDfx.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

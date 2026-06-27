@@ -801,11 +801,13 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
 
     PostPrepare(node, isParentPrepareInReverseOrder);
     node.UpdateChildHwcNode();
+    RSLayerSplitManager::GetInstance()->CheckNeedLeave();
     UpdateCompositeType(node);
     RSHdrUtil::UpdateSelfDrawingNodesNit(node);
     hwcVisitor_->UpdateHwcNodeEnable();
     UpdateSurfaceDirtyAndGlobalDirty();
     UpdateSurfaceOcclusionInfo();
+    RSLayerSplitManager::GetInstance()->UpdatePlanAndDirtyRegion(curScreenDirtyManager_);
     GetScreenRotation(node);
     if (needRecalculateOcclusion_) {
         // Callback for registered self drawing surfacenode
@@ -2097,7 +2099,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, 
     if (node.GetHwcRecorder().GetZorderChanged() && curSurfaceNode_) {
         curSurfaceNode_->SetNeedCollectHwcNode(true);
     }
-
+    RSLayerSplitManager::GetInstance()->RecordSplitNode(node.shared_from_this());
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isOpincSubTreeDirty = RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
@@ -2361,6 +2363,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     // set geometry properties here
     auto screenInfo = screenProperty.GetScreenInfo();
     node.SetScreenInfo(std::move(screenInfo));
+    RSLayerSplitManager::GetInstance()->InitSplitSurface(screenInfo);
     curScreenDirtyManager_->SetSurfaceSize(screenProperty.GetWidth(), screenProperty.GetHeight());
     curScreenDirtyManager_->SetActiveSurfaceRect(screenProperty.GetActiveRect());
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();

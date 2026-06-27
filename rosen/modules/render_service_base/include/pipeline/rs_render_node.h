@@ -480,6 +480,11 @@ public:
         dirtyTypesNG_.set(static_cast<int>(type), true);
     }
 
+    const ModifierNG::ModifierDirtyTypes& GetDirtyTypes() const
+    {
+        return dirtyTypesNG_;
+    }
+
     std::tuple<bool, bool, bool> Animate(
         int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime,
         int64_t period = 0, bool isDisplaySyncEnabled = false);
@@ -595,6 +600,7 @@ public:
     const ModifierNGContainer& GetModifiersNG(ModifierNG::RSModifierType type) const;
     const ModifiersNGMap& GetAllModifiers() const;
     bool HasDrawCmdModifiers() const;
+    bool HasValidDrawCmd(bool isOpincSplit) const;
     bool HasValidDrawCmd() const;
     bool HasContentStyleModifierOnly() const;
 
@@ -641,7 +647,7 @@ public:
 
     bool IsPureContainer() const;
     bool IsContentNode() const;
-    bool IsPureBackgroundColor() const;
+    bool IsPureBackgroundColor(bool isOpincSplit) const;
     void SetDrawNodeType(DrawNodeType nodeType);
     DrawNodeType GetDrawNodeType() const;
 
@@ -1457,6 +1463,8 @@ private:
     void InitRenderDrawableAndDrawableVec();
 
     void DirtySlotsPartialSync();
+
+    bool HasValidModifierInOpincSplit(int8_t slot) const;
 
     RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();

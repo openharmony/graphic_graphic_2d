@@ -761,6 +761,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     useDeviceOffline_ = rsLayer->GetUseDeviceOffline();
     ignoreAlpha_ = rsLayer->GetIgnoreAlpha();
     ancoSrcRect_ = rsLayer->GetAncoSrcRect();
+    splitLayerTag_ = rsLayer->GetSplitLayerTag();
     vcldInfo_ = rsLayer->GetVcldInfo();
     delegateModeCropRect_ = rsLayer->GetDelegateModeCropRect();
     isDelegateMode_ = rsLayer->GetDelegateMode();
@@ -848,6 +849,16 @@ void RSRenderSurfaceLayer::DumpCurrentFrameLayer() const
     if (cSurface_ != nullptr) {
         cSurface_->DumpCurrentFrameLayer();
     }
+}
+
+void RSRenderSurfaceLayer::SetSplitLayerTag(bool splitLayerTag)
+{
+    splitLayerTag_ = splitLayerTag;
+}
+
+bool RSRenderSurfaceLayer::GetSplitLayerTag() const
+{
+    return splitLayerTag_;
 }
 } // namespace Rosen
 } // namespace OHOS

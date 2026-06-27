@@ -113,6 +113,9 @@ private:
     // Solid Layer
     bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
     bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
+    bool IsSurfaceInsideRect(const RectI& innerRect, const RectI& outerRect,
+        int bottomTolerance, bool enableTolerance) const;
+    bool IsSplitEnabled() const;
 
     bool IsRectIsInsideOfScreenRect(const RectI& rect) const;
 

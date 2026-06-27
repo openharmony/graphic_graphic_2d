@@ -467,6 +467,8 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect) override;
+    void UpdateBuffer(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect);
     sptr<SurfaceBuffer> GetBuffer() const override;
     void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount) override;
@@ -889,6 +891,15 @@ public:
 
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 
+    void SetSplitLayerTag(bool splitLayerTag)
+    {
+        splitLayerTag_ = splitLayerTag;
+    }
+    bool GetSplitLayerTag() const
+    {
+        return splitLayerTag_;
+    }
+
     void SetDelegateMode(bool flag);
     bool GetDelegateMode() const;
     void SetDelegateDstRect(const RectI& rect);
@@ -1049,6 +1060,8 @@ private:
     bool isWebProxyComposerNode_ = false;
 
     ScreenId screenId_ = INVALID_SCREEN_ID;
+    // for layer splitter
+    bool splitLayerTag_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

@@ -499,6 +499,15 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
         RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas is null");
         return;
     }
+    if (layerSplitterProcessor_ != nullptr) {
+        if (layerSplitterProcessor_->NeedDrawSplitCanvas(canvas, GetId())) {
+            DrawCachedImage(*(layerSplitterProcessor_->GetSplitCanvas()), params);
+            RS_LOGW("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas");
+        }
+        if (layerSplitterProcessor_->CanSkipOpIncNodeDraw(GetId())) {
+            return;
+        }
+    }
     if (LIKELY(!params.IsRenderGroupIncludeProperty())) {
         DrawBackground(canvas, params.GetBounds());
         // traverse children to draw filter/shadow/effect
@@ -1022,6 +1031,9 @@ void RSRenderNodeDrawable::DrawCachedImage(
     if (cacheImage == nullptr || cacheImage->GetWidth() == 0 || cacheImage->GetHeight() == 0) {
         RS_LOGE("RSRenderNodeDrawable::DrawCachedImage invalid cacheimage");
         return;
+    }
+    if (layerSplitterProcessor_) {
+        layerSplitterProcessor_->RecordNodeWithCacheImage(GetId());
     }
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
     float scaleX = params.GetCacheSize().x_ / static_cast<float>(cacheImage->GetWidth());

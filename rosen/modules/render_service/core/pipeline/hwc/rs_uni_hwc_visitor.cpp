@@ -177,7 +177,8 @@ bool RSUniHwcVisitor::CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& no
             return true;
         }
 
-        bool willNotDraw = node->IsPureBackgroundColor();
+        bool isSplitEnabled = IsSplitEnabled();
+        bool willNotDraw = node->IsPureBackgroundColor(isSplitEnabled);
         RS_LOGD("solidLayer: id:%{public}" PRIu64 ", willNotDraw: %{public}d", node->GetId(), willNotDraw);
         if (!willNotDraw) {
             RS_LOGD("solidLayer: presence drawing, id:%{public}" PRIu64, node->GetId());
@@ -187,7 +188,7 @@ bool RSUniHwcVisitor::CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& no
         const auto& nodeBgColorAlpha = nodeBgColor.GetAlpha();
         bool isSolid = ROSEN_EQ(nodeProperties.GetAlpha(), 1.f) && (nodeBgColorAlpha == MAX_ALPHA);
         if (isSolid) {
-            if (surfaceNodeAbsRect.IsInsideOf(absRect)) {
+            if (IsSurfaceInsideRect(surfaceNodeAbsRect, absRect, 1, isSplitEnabled)) {
                 validBgColor = nodeBgColor;
                 RS_LOGD("solidLayer: canvas node color, id:%{public}" PRIu64 ", color:%{public}08x",
                     node->GetId(), validBgColor.AsArgbInt());
@@ -200,6 +201,30 @@ bool RSUniHwcVisitor::CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& no
         return nodeBgColorAlpha != 0;
     }
     return false;
+}
+
+bool RSUniHwcVisitor::IsSplitEnabled() const
+{
+    const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
+    for (auto surfaceNode : selfDrawingNodes) {
+        if (surfaceNode && surfaceNode->IsSplitSurfaceNode()) {
+            RS_LOGW("IsSplitEnabled id:%{public}" PRIu64, surfaceNode->GetId());
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RSUniHwcVisitor::IsSurfaceInsideRect(
+    const RectI& innerRect, const RectI& outerRect, int bottomTolerance, bool enableTolerance) const
+{
+    if (!enableTolerance) {
+        return innerRect.IsInsideOf(outerRect);
+    }
+    return innerRect.GetLeft() >= outerRect.GetLeft() &&
+           innerRect.GetTop() >= outerRect.GetTop() &&
+           innerRect.GetRight() <= outerRect.GetRight() &&
+           innerRect.GetBottom() <= outerRect.GetBottom() + bottomTolerance;
 }
 
 bool RSUniHwcVisitor::CheckSubTreeOcclusion(
@@ -386,7 +411,7 @@ bool RSUniHwcVisitor::IsTargetSolidLayer(RSSurfaceRenderNode& node)
 {
     const std::string& bundleName = node.GetBundleName();
     return (RsCommonHook::Instance().IsSolidColorLayerConfig(bundleName) ||
-            RsCommonHook::Instance().IsHwcSolidColorLayerConfig(bundleName)) &&
+            RsCommonHook::Instance().IsHwcSolidColorLayerConfig(bundleName) || node.IsSplitSurfaceNode()) &&
            RSMainThread::Instance()->GetSystemAnimatedScenes() != SystemAnimatedScenes::DRAG_WINDOW;
 }
 
@@ -404,7 +429,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& 
     // Enabling conditions: target type, overall a==1, pure color non-black/pure transparent,
     // no bullet screen
     bool isTargetNodeType = node.GetSelfDrawingNodeType() == SelfDrawingNodeType::XCOM ||
-        (node.IsRosenWeb() && static_cast<uint8_t>(appBackgroundColor.GetAlpha()) == 0);
+        (node.IsRosenWeb() && static_cast<uint8_t>(appBackgroundColor.GetAlpha()) == 0) || node.IsSplitSurfaceNode();
     bool isTargetColor = (static_cast<uint8_t>(appBackgroundColor.GetAlpha()) == MAX_ALPHA &&
                           appBackgroundColor != RgbPalette::Black()) ||
                           static_cast<uint8_t>(appBackgroundColor.GetAlpha()) == 0;
@@ -499,6 +524,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByRotate(const std::shared_ptr<RSSurfac
             hwcNode->GetName().c_str(), hwcNode->GetId(), parentNode ? parentNode->GetId() : 0, degree);
         PrintHiperfLog(hwcNode, "rotation");
         hwcNode->SetHardwareForcedDisabledState(true);
+        RSLayerSplitManager::GetInstance()->CheckSplitNodeIntersectFilter(hwcNode);
         Statistics().UpdateHwcDisabledReasonForDFX(hwcNode->GetId(),
             HwcDisabledReasons::DISABLED_BY_ROTATION, hwcNode->GetName());
         return;

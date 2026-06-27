@@ -678,6 +678,15 @@ public:
     }
     void DumpCurrentFrameLayer() const override {}
 
+    void SetSplitLayerTag(bool splitLayerTag) override
+    {
+        splitLayerTag_ = splitLayerTag;
+    }
+    bool GetSplitLayerTag() const override
+    {
+        return splitLayerTag_;
+    }
+
 private:
     RSLayerId id_ = 0;
     bool isNeedComposition_ = false;
@@ -727,6 +736,7 @@ private:
     bool layerCopybit_ = false;
     bool needBilinear_ = false;
     bool isMaskLayer_ = false;
+    bool splitLayerTag_ = false;
     uint64_t nodeId_ = 0;
     uint32_t ancoFlags_ = 0;
     LayerMask layerMask_ {};

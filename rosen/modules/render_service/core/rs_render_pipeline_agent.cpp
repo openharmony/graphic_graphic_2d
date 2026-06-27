@@ -1919,6 +1919,14 @@ bool RSRenderPipelineAgent::GetBehindWindowFilterEnabled()
 ErrCode RSRenderPipelineAgent::SetApsConfigParams(
     ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
+    if (event == ApsEventType::SPLIT_LAYER) {
+        if (auto layerSplitManager = RSLayerSplitManager::GetInstance(); layerSplitManager != nullptr) {
+            auto it = params.find("ENABLE");
+            bool enabled = (it != params.end() && it->second == "true");
+            layerSplitManager->SetEnabled(enabled);
+        }
+        return ERR_OK;
+    }
     return ERR_OK;
 }
 

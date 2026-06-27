@@ -379,6 +379,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
+    layer->SetSplitLayerTag(params.GetSplitLayerTag());
     if (offlineResult) {
         SetDeviceOfflineOriginalInfo(layer, params);
     }
