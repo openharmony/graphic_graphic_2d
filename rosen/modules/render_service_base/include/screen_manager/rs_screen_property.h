@@ -287,7 +287,7 @@ private:
         return property->Get();
     }
 
-    std::map<ScreenPropertyType, sptr<ScreenPropertyBase>> screenProperties_;
+    std::unordered_map<ScreenPropertyType, sptr<ScreenPropertyBase>> screenProperties_;
 
     friend class RSScreenThreadSafeProperty;
 };
