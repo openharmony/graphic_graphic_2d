@@ -139,6 +139,39 @@ static void InitFrostedGlassFilter(std::shared_ptr<RSNGFrostedGlassFilter>& fros
     frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(thickEdLightNeg);
 }
 
+static void InitFrostedGlassFilterDefault(std::shared_ptr<RSNGFrostedGlassFilter>& frostedGlassFilter)
+{
+    if (frostedGlassFilter == nullptr) {
+        frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    }
+
+    frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
+    frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
+    frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
+    frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
+    frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
+    frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
+    frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
+    frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
+    frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
+    frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
+    frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
+    frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
+    frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
+    frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
+    frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
+    frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
+    frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
+    frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
+}
+
 static RRect MakeRRectWithCornerRadii(const RRectCornerParam& param)
 {
     return RRect(param.rect, param.radius.data());
@@ -209,6 +242,91 @@ GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, Set_SDF_RRectShape_NonUniformRadius_Pr
         auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
         childNode->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, FrostedGlass_Default_RRectShape_ClipTest)
+{
+    int rowCount = PROPERTY_ROW_COUNT;
+    auto sizeX = SCREEN_WIDTH / COLUMN_COUNT;
+    auto sizeY = SCREEN_HEIGHT * COLUMN_COUNT / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = (i % COLUMN_COUNT) * sizeX;
+        int y = (i / COLUMN_COUNT) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilterDefault(frostedGlassFilter);
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        if (i == 0) {
+            bounds = {50, 50, 362, 800};
+        } else {
+            bounds = {50, 50, 462, 800};
+        }
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+        backgroundTestNode->SetCornerRadius(112.0f);
+        backgroundTestNode->SetShadowRadius(10.0f);
+        backgroundTestNode->SetClipToBounds(true);
+
+        auto colorNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
+        Rosen::Vector4f colorBounds{0, 0, sizeX, sizeY};
+        colorNode->SetBounds(colorBounds);
+        colorNode->SetFrame(colorBounds);
+        colorNode->SetBackgroundColor(0xFFF2A93B);
+        backgroundTestNode->AddChild(colorNode);
+
+        auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        RegisterNode(colorNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFRRectTest, EFFECT_TEST, FrostedGlass_Default_Capsule_ClipTest)
+{
+    constexpr float capsuleRadius = 112.0f;
+    const std::array<Rosen::Vector4f, 4> capsuleBounds = {
+        Rosen::Vector4f{50, 50, 300, 200},
+        Rosen::Vector4f{50, 50, 500, 200},
+        Rosen::Vector4f{50, 50, 200, 300},
+        Rosen::Vector4f{50, 50, 224, 225},
+    };
+    int rowCount = static_cast<int>(capsuleBounds.size());
+    auto sizeX = SCREEN_WIDTH / COLUMN_COUNT;
+    auto sizeY = SCREEN_HEIGHT * COLUMN_COUNT / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = (i % COLUMN_COUNT) * sizeX;
+        int y = (i / COLUMN_COUNT) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilterDefault(frostedGlassFilter);
+        backgroundTestNode->SetBounds(capsuleBounds[i]);
+        backgroundTestNode->SetFrame(capsuleBounds[i]);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+        backgroundTestNode->SetCornerRadius(capsuleRadius);
+        backgroundTestNode->SetShadowRadius(10.0f);
+        backgroundTestNode->SetClipToBounds(true);
+
+        auto colorNode = RSCanvasNode::Create(false, false,
+        RSGraphicTestDirector::Instance().GetRSUIContext());
+        Rosen::Vector4f colorBounds{0, 0, sizeX, sizeY};
+        colorNode->SetBounds(colorBounds);
+        colorNode->SetFrame(colorBounds);
+        colorNode->SetBackgroundColor(0xFFF2A93B);
+        backgroundTestNode->AddChild(colorNode);
+
+        auto childNode = SetUpNodeBgImage(BACKGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        RegisterNode(colorNode);
         GetRootNode()->AddChild(childNode);
         RegisterNode(childNode);
     }
