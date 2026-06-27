@@ -102,7 +102,12 @@ ohos_shared_library("libcomposer") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
-
+  if (!build_ohos_sdk) {
+    external_deps += [
+      "hdf_core:libhdf_utils",
+      "hdf_core:libhdi",
+    ]
+  }
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
