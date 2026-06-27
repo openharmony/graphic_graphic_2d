@@ -181,6 +181,8 @@ public:
     bool GetIsNeedComposition() const override;
     void SetVcldInfo(const RSVcldParam& vcldInfo) override;
     const RSVcldParam& GetVcldInfo() const override;
+    void SetSplitLayerTag(bool splitLayerTag) override;
+    bool GetSplitLayerTag() const override;
     void SetDelegateModeCropRect(const GraphicIRect& crop) override;
     GraphicIRect GetDelegateModeCropRect() override;
     bool GetDelegateMode() const override;
@@ -253,6 +255,9 @@ private:
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
     sptr<IConsumerSurface> cSurface_ = nullptr;
     RSVcldParam vcldInfo_;
+    // opinc_split begin
+    bool splitLayerTag_ = false;
+    // opinc_split end
     bool isDelegateMode_ = false;
 };
 } // namespace Rosen

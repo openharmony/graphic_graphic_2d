@@ -737,6 +737,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    if (layerSplitterProcessor_) {
+        layerSplitterProcessor_->RequestFrame(*surfaceParams);
+    }
+
     bool isDoubleSided = surfaceParams->GetDoubleSidedEnabled();
     if (!isDoubleSided) {
         Drawing::Matrix baseMatrix = surfaceParams->HasSandBox()

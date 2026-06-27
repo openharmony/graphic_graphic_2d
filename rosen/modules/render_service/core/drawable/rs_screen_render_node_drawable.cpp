@@ -908,7 +908,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #ifdef USE_PRIMITIVE
     primListAdapter->PrimDrawSuspend();
 #endif
-
+    RSLayerSplitManager::GetInstance()->DrawDfx(curCanvas_, RSUniRenderThread::Instance().GetVsyncId());
     renderFrame->Flush();
     bufferGuard.SetAcquireFence(renderFrame->GetAcquireFence());
     RS_TRACE_END();

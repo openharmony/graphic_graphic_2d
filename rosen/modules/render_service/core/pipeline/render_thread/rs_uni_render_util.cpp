@@ -589,6 +589,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceRenderNode
     auto boundWidth = useRenderParams ? nodeParams->GetBounds().GetWidth() : property.GetBoundsWidth();
     auto boundHeight = useRenderParams ? nodeParams->GetBounds().GetHeight() : property.GetBoundsHeight();
     params.dstRect = Drawing::Rect(0, 0, boundWidth, boundHeight);
+    params.splitLayerTag = surfaceParams->GetSplitLayerTag();
 
     const sptr<SurfaceBuffer> buffer = useRenderParams ? surfaceParams->GetBuffer() : surfaceHandler->GetBuffer();
     if (buffer == nullptr) {
@@ -698,6 +699,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto boundWidth = nodeParams->GetBounds().GetWidth();
     auto boundHeight = nodeParams->GetBounds().GetHeight();
     params.dstRect = Drawing::Rect(0, 0, boundWidth, boundHeight);
+    params.splitLayerTag = surfaceNodeParams->GetSplitLayerTag();
 
     const sptr<SurfaceBuffer> buffer = nodeParams->GetBuffer();
     if (buffer == nullptr) {
@@ -920,6 +922,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     SetSrcRect(params, buffer);
     auto boundRect = layer->GetBoundSize();
     params.dstRect = Drawing::Rect(0, 0, boundRect.w, boundRect.h);
+    params.splitLayerTag = layer->GetSplitLayerTag();
 
     auto layerMatrix = layer->GetMatrix();
     params.matrix = Drawing::Matrix();
@@ -1849,5 +1852,6 @@ BufferDrawParam RSUniRenderUtil::ProcessCanvasBySurfaceNode(
     canvas.DetachBrush();
     return params;
 }
+
 } // namespace Rosen
 } // namespace OHOS

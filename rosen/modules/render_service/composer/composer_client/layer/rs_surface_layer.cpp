@@ -1166,6 +1166,21 @@ std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetOriginalB
     return originalBufferOwnerCount_;
 }
 // hpae_offline end
- 
+
+// opinc_split begin
+void RSSurfaceLayer::SetSplitLayerTag(bool splitLayerTag)
+{
+    if (splitLayerTag_ == splitLayerTag) {
+        return;
+    }
+    splitLayerTag_ = splitLayerTag;
+    SetRSLayerCmd<RSRenderLayerSplitLayerTagCmd>(splitLayerTag);
+}
+
+bool RSSurfaceLayer::GetSplitLayerTag() const
+{
+    return splitLayerTag_;
+}
+// opinc_split end
 } // namespace Rosen
 } // namespace OHOS

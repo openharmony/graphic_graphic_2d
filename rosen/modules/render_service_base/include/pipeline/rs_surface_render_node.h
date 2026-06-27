@@ -338,11 +338,22 @@ public:
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
         std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
+        void UpdateBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
     {
         return isLastFrameHardwareEnabled_;
+    }
+
+    bool IsSplitSurfaceNode() const
+    {
+        return isSplitSurfaceNode_;
+    }
+
+    void SetSplitSurfaceNode(bool isSplitSurfaceNode)
+    {
+        isSplitSurfaceNode_ = isSplitSurfaceNode;
     }
 
     bool IsCurrentFrameHardwareEnabled() const
@@ -2001,6 +2012,11 @@ public:
     void SetHDRType(uint32_t hdrType);
     uint32_t GetHDRType() const;
 
+    void SetRSSurfaceHandler(std::shared_ptr<RSSurfaceHandler> surfaceHandler)
+    {
+        surfaceHandler_ = surfaceHandler;
+    }
+
     void SetDelegateDstRect(float positionX, float positionY, float positionZ, float positionW);
     Vector4f GetDelegateDstRect();
     void SetDelegateSrcRect(float positionX, float positionY, float positionZ, float positionW);
@@ -2112,6 +2128,7 @@ private:
     bool isInFixedRotation_ = false;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     bool isCurrentFrameHardwareEnabled_ = false;
+    bool isSplitSurfaceNode_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool isLastFrameHwcEnabled_ = false;
     bool needCollectHwcNode_ = false;
@@ -2433,6 +2450,7 @@ private:
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
+    friend class SplitSurface;
 };
 } // namespace Rosen
 } // namespace OHOS

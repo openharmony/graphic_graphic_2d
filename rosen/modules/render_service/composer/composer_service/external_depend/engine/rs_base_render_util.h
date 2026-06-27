@@ -117,6 +117,7 @@ struct BufferDrawParam {
     Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;
 
     bool ignoreAlpha = false;
+    bool splitLayerTag = false;
 };
 
 using WriteToPngParam = struct {

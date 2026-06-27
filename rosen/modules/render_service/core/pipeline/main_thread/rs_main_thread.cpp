@@ -541,12 +541,14 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
         ProcessDelegateCompositeCommand();
         ConsumeAndUpdateAllNodes();
+        RSLayerSplitManager::GetInstance()->Reset(vsyncId_);
         ClearNeedDropframePidList();
         if (renderThreadParams_) {
             renderThreadParams_->ClearWhiteListRect();
         }
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
+        RSLayerSplitManager::GetInstance()->MoveSplitSurfaceNode();
         RsFrameBlurPredict::GetInstance().AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
         UpdateSubSurfaceCnt();
         Animate(timestamp_);
@@ -1679,11 +1681,6 @@ void RSMainThread::ProcessCommandForUniRender()
         CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);
     }
     DelayedSingleton<RSFrameRateVote>::GetInstance()->SetTransactionFlags(transactionFlags);
-    if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
-        doDirectComposition_ = false;
-        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by transactionDataEffective not empty");
-        UpdateDoDirectCompositionFlagForDelegateMode(transactionDataEffective);
-    }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
     if (transactionFlags != "") {
         transactionFlags_ = transactionFlags;
@@ -1710,6 +1707,11 @@ void RSMainThread::ProcessCommandForUniRender()
         if (isWebCommandOnly_ && doDirectComposition_) {
             transactionDataEffective->clear();
         } else {
+            if (!RSLayerSplitManager::GetInstance()->CheckDoDirectCompositionWithSplitLayer(
+                transactionDataEffective, doDirectComposition_)) {
+                doDirectComposition_ = false;
+                RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by transactionDataEffective not empty");
+            }
             RSBackgroundThread::Instance().PostTask([transactionDataEffective]() {
                 RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
                 transactionDataEffective->clear();

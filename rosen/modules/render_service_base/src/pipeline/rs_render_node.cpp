@@ -136,9 +136,9 @@ bool RSRenderNode::IsPureContainer() const
     return (!GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_ && !HasDrawCmdModifiers());
 }
 
-bool RSRenderNode::IsPureBackgroundColor() const
+bool RSRenderNode::IsPureBackgroundColor(bool isOpincSplit) const
 {
-    if (HasValidDrawCmd()) {
+    if (HasValidDrawCmd(isOpincSplit)) {
         RS_LOGD("drawCmdList is not none");
         return false;
     }
@@ -177,10 +177,43 @@ bool RSRenderNode::IsPureBackgroundColor() const
                 property.GetColorBlendApplyType() == static_cast<int>(RSColorBlendApplyType::FAST)) {
                 continue;
             }
+            if (isOpincSplit && HasValidModifierInOpincSplit(i)) {
+                continue;
+            }
             return false;
         }
     }
     return true;
+}
+
+bool RSRenderNode::HasValidModifierInOpincSplit(int8_t slot) const
+{
+    if (slot != static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE) &&
+        slot != static_cast<int8_t>(RSDrawableSlot::OVERLAY)) {
+        return false;
+    }
+
+    const auto CheckModifier = [this](ModifierNG::RSModifierType type,
+        Drawing::DrawOpItem::Type invalidType) -> bool {
+        auto slot = GetModifiersNG(type);
+        if (slot.empty()) {
+            RS_LOGW("solidLayer: CheckCmdIn2Modifier no slot");
+            return true;
+        }
+        auto typeString = ModifierNG::RSModifierTypeString::GetModifierTypeString(type);
+        for (const auto& modifier : slot) {
+            const auto& drawOpItems = modifier->GetPropertySimpleDrawCmdList()->GetDrawOpItems();
+            if (drawOpItems.empty() || (drawOpItems.size() == 1 && drawOpItems[0]->GetType() == invalidType)) {
+                RS_LOGW("solidLayer: CheckCmdIn2Modifier ret is false %{public}s", typeString.c_str());
+                return true;
+            }
+        }
+        RS_LOGW("solidLayer: CheckCmdIn2Modifier ret is true %{public}s", typeString.c_str());
+        return false;
+    };
+
+    return CheckModifier(ModifierNG::RSModifierType::CONTENT_STYLE, Drawing::DrawOpItem::CLIP_RECT_OPITEM) ||
+           CheckModifier(ModifierNG::RSModifierType::OVERLAY_STYLE, Drawing::DrawOpItem::ROUND_RECT_OPITEM);
 }
 
 void RSRenderNode::SetDrawNodeType(DrawNodeType nodeType)
@@ -5321,16 +5354,19 @@ const RSRenderNode::ModifiersNGMap& RSRenderNode::GetAllModifiers() const
     return modifiersNG_;
 }
 
-bool RSRenderNode::HasValidDrawCmd() const
+bool RSRenderNode::HasValidDrawCmd(bool isOpincSplit) const
 {
     // modifiers with draw cmdlist, such as CONTENT_STYLE, TRANSITION_STYLE, BACKGROUND_STYLE, FOREGROUND_STYLE,
     // OVERLAY_STYLE and NODE_MODIFIER, should judge whether there is valid cmdlist in modifier.
     for (uint16_t type = static_cast<uint16_t>(ModifierNG::RSModifierType::TRANSITION_STYLE);
         type <= static_cast<uint16_t>(ModifierNG::RSModifierType::NODE_MODIFIER); type++) {
         const auto& modifierContainer = GetModifiersNG(static_cast<ModifierNG::RSModifierType>(type));
+        bool isModifierForOpincSplit = isOpincSplit &&
+            (type == static_cast<uint16_t>(ModifierNG::RSModifierType::CONTENT_STYLE)
+            || type == static_cast<uint16_t>(ModifierNG::RSModifierType::OVERLAY_STYLE));
         for (const auto& modifier : modifierContainer) {
             const auto& cmdList = modifier->GetPropertySimpleDrawCmdList();
-            if (cmdList != nullptr && !cmdList->IsEmpty()) {
+            if (cmdList != nullptr && !cmdList->IsEmpty() && !isModifierForOpincSplit) {
                 return true;
             }
         }

@@ -180,6 +180,8 @@ public:
     virtual void SetIsNeedComposition(bool isNeedComposition) = 0;
     virtual void SetVcldInfo(const RSVcldParam& vcldInfo) = 0;
     virtual const RSVcldParam& GetVcldInfo() const = 0;
+    virtual void SetSplitLayerTag(bool splitLayerTag) = 0;
+    virtual bool GetSplitLayerTag() const = 0;
     virtual bool GetDelegateMode() const
     {
         return false;

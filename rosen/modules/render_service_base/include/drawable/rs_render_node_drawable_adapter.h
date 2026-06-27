@@ -52,6 +52,10 @@ class RSDirtyRegionManager;
 class RSDrawWindowCache;
 class RSRenderNodeGC;
 class RSLayer;
+class RSOpincLayerSplitterProcessor;
+class RSOpincLayerSplitterPlanner;
+class RSLayerSplitterProcessor;
+class RSLayerSplitterPlanner;
 #ifdef SUBTREE_PARALLEL_ENABLE
 class RSParallelRBPolicy;
 struct RSSubtreeDrawElement;
@@ -418,6 +422,20 @@ private:
     friend class OHOS::Rosen::RSDrawWindowCache;
     friend class ModifierNG::RSUseEffectRenderModifier;
     friend class OHOS::Rosen::RSRenderNodeGC;
+protected:
+    std::shared_ptr<RSLayerSplitterProcessor> layerSplitterProcessor_ = nullptr;
+
+public:
+    std::shared_ptr<RSLayerSplitterProcessor> GetLayerSplitterProcessor() const
+    {
+        return layerSplitterProcessor_;
+    };
+
+    void SetLayerSplitterProcessor(std::shared_ptr<RSLayerSplitterProcessor> processor)
+    {
+        layerSplitterProcessor_ = processor;
+    };
+
 #ifdef SUBTREE_PARALLEL_ENABLE
     friend class OHOS::Rosen::RSParallelRBPolicy;
     friend struct OHOS::Rosen::RSSubtreeDrawElement;

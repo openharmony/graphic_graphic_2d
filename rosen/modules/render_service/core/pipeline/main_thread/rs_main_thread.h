@@ -43,6 +43,7 @@
 #include "memory/rs_memory_graphic.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/layer_split/rs_layer_split_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/hwc/rs_direct_composition_helper.h"
 #include "pipeline/hwc/rs_hwc_context.h"

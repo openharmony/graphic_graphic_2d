@@ -1562,6 +1562,9 @@ void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
             GetName().c_str());
         return;
     }
+    if (IsSplitSurfaceNode()) {
+        return;
+    }
     const sptr<SurfaceBuffer>& buffer = GetRSSurfaceHandler()->GetBuffer();
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
@@ -1631,6 +1634,15 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
     surfaceParams->SetIsBufferFlushed(true);
     AddToPendingSyncList();
 #endif
+}
+
+void RSSurfaceRenderNode::UpdateBuffer()
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    surfaceParams->UpdateBuffer(nullptr, nullptr, Rect());
+    surfaceParams->SetBufferSynced(false);
+    surfaceHandler_->SetBuffer(nullptr, nullptr, Rect(), 0, nullptr);
+    AddToPendingSyncList();
 }
 
 void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint64_t>& bufferCacheSet)
