@@ -25,6 +25,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_hisysevent.h"
 #include "platform/ohos/rs_jank_report_thread.h"
@@ -1012,7 +1013,7 @@ void RSJankStats::OnGraphicsPipelineCreated(int64_t startTime, int64_t duration,
             jankFrames.curFrameTotalPipelineTime_ += duration;
         }
     }
-    RS_TRACE_NAME_FMT("RSJankStats::OnGraphicsPipelineCreated startTime=%" PRId64 ", duration=%" PRId64 "us,"
+    RS_OPTIONAL_TRACE_NAME_FMT("RSJankStats::OnGraphicsPipelineCreated startTime=%" PRId64 ", duration=%" PRId64 "us,"
         " isGraphicsPipeline=%d", startTime, duration, static_cast<int>(isGraphicsPipeline));
 }
 
