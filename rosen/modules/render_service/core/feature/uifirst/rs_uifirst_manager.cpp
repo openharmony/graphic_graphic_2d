@@ -2381,40 +2381,30 @@ void RSUifirstManager::CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHw
     if (enabledType == SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB) {
         return;
     }
-    if (node.IsAppWindow()) {
-        auto hwcNodes = node.GetChildHardwareEnabledNodes();
-        if (hwcNodes.empty()) {
-            return;
+    auto hwcNodes = node.GetChildHardwareEnabledNodes();
+    if (hwcNodes.empty()) {
+        return;
+    }
+    if (IsSubHighPriorityType(node)) {
+        enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+        return;
+    }
+    if (node.IsRosenWeb()) {
+        enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
+        return;
+    }
+    for (auto hwcNode : hwcNodes) {
+        auto hwcNodePtr = hwcNode.lock();
+        if (!hwcNodePtr) {
+            continue;
         }
-        if (IsSubHighPriorityType(node)) {
-            enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
-            return;
-        }
-        if (node.IsRosenWeb()) {
+        if (hwcNodePtr->IsRosenWeb()) {
             enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
             return;
         }
-        for (auto hwcNode : hwcNodes) {
-            auto hwcNodePtr = hwcNode.lock();
-            if (!hwcNodePtr) {
-                continue;
-            }
-            if (hwcNodePtr->IsRosenWeb()) {
-                enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
-                return;
-            }
-            if (IsSubHighPriorityType(*hwcNodePtr)) {
-                enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
-                return;
-            }
-        }
-    } else if (node.IsLeashWindow()) {
-        for (auto& child : *(node.GetChildren())) {
-            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode == nullptr) {
-                continue;
-            }
-            CheckHwcChildrenType(*surfaceNode, enabledType);
+        if (IsSubHighPriorityType(*hwcNodePtr)) {
+            enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+            return;
         }
     }
 }

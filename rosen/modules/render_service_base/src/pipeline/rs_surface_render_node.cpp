@@ -529,12 +529,6 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 surfaceNode->UpdateAbilityNodeIds(GetId(), IsOnTheTree());
             }
         }
-    } else if (IsHardwareEnabledType() && RSUniRenderJudgement::IsUniRender()) {
-        if (auto instanceRootNode = GetInstanceRootNode()) {
-            if (auto surfaceNode = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-                surfaceNode->UpdateChildHardwareEnabledNode(GetId(), IsOnTheTree());
-            }
-        }
     }
     OnSubSurfaceChanged();
 
@@ -672,13 +666,14 @@ void RSSurfaceRenderNode::SetIsNotifyUIBufferAvailable(bool available)
     isNotifyUIBufferAvailable_.store(available);
 }
 
-void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;
     }
     ApplyModifiers();
-    visitor->QuickPrepareSurfaceRenderNode(*this);
+    visitor->QuickPrepareSurfaceRenderNode(*this, isParentPrepareInReverseOrder);
 }
 
 bool RSSurfaceRenderNode::IsUIBufferAvailable()
@@ -1888,28 +1883,6 @@ Occlusion::Rect RSSurfaceRenderNode::GetSurfaceOcclusionRect(bool isUniRender)
     return occlusionRect;
 }
 
-bool RSSurfaceRenderNode::QueryIfAllHwcChildrenForceDisabledByFilter()
-{
-    std::shared_ptr<RSSurfaceRenderNode> appWindow;
-    for (auto& child : *GetSortedChildren()) {
-        auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-        if (node && node->IsAppWindow()) {
-            appWindow = node;
-            break;
-        }
-    }
-    if (appWindow) {
-        auto hardwareEnabledNodes = appWindow->GetChildHardwareEnabledNodes();
-        for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
-            auto hardwareEnabledNodePtr = hardwareEnabledNode.lock();
-            if (hardwareEnabledNodePtr && !hardwareEnabledNodePtr->IsHardwareForcedDisabledByFilter()) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulatedRegion,
     Occlusion::Region& curRegion,
     bool& hasFilterCacheOcclusion,
@@ -2755,20 +2728,15 @@ void RSSurfaceRenderNode::AddChildHardwareEnabledNode(std::weak_ptr<RSSurfaceRen
     childHardwareEnabledNodes_.emplace_back(childNode);
 }
 
-void RSSurfaceRenderNode::UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree)
+void RSSurfaceRenderNode::UpdateChildHardwareEnabledNode()
 {
-    if (isOnTree) {
-        needCollectHwcNode_ = true;
-    } else {
-        childHardwareEnabledNodes_.erase(std::remove_if(childHardwareEnabledNodes_.begin(),
-            childHardwareEnabledNodes_.end(),
-            [&id](std::weak_ptr<RSSurfaceRenderNode> item) {
-                std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr = item.lock();
-                if (!hwcNodePtr) {
-                    return false;
-                }
-                return hwcNodePtr->GetId() == id;
-            }), childHardwareEnabledNodes_.end());
+    auto& allHwcNodeAndFilterNode = GetAllHwcNodeAndFilterNode();
+    for (const auto& weakNode : allHwcNodeAndFilterNode) {
+        auto node = weakNode.lock();
+        if (node && node->IsHardwareEnabledType()) {
+            auto hwcNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node);
+            childHardwareEnabledNodes_.emplace_back(hwcNode);
+        }
     }
 }
 
@@ -2786,13 +2754,6 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
         }
     };
     TraverseHwcNodes(GetChildHardwareEnabledNodes());
-    std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
-    GetAllSubSurfaceNodes(allSubSurfaceNodes);
-    for (const auto& [_, weakNode] : allSubSurfaceNodes) {
-        if (auto surfaceNode = weakNode.lock(); surfaceNode != nullptr) {
-            TraverseHwcNodes(surfaceNode->GetChildHardwareEnabledNodes());
-        }
-    }
 }
 
 void RSSurfaceRenderNode::SetLocalZOrder(float localZOrder)

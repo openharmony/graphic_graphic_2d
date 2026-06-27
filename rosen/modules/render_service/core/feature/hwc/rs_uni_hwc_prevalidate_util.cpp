@@ -315,9 +315,13 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(RSRcdSurfaceRenderNode::SharedP
 }
 
 void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(std::vector<RequestLayerInfo>& prevalidLayers,
-    std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes, uint32_t curFps, uint32_t &zOrder,
+    const RSScreenRenderNode::SharedPtr screenRenderNode, uint32_t curFps, uint32_t &zOrder,
     const RSScreenProperty& screenProperty)
 {
+    if (!screenRenderNode) {
+        return;
+    }
+    auto& surfaceNodes = screenRenderNode->GetAllMainAndLeashSurfaces();
     for (auto it = surfaceNodes.rbegin(); it != surfaceNodes.rend(); it++) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (!surfaceNode) {
@@ -327,18 +331,14 @@ void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(std::vector<RequestLay
             RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, surfaceNode, curFps, zOrder,
                 screenProperty);
         }
-        const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
-        if (hwcNodes.empty()) {
+    }
+    auto& hwcNodes = screenRenderNode->GetChildHwcNodes();
+    for (const auto& hwcNode : hwcNodes) {
+        auto hwcNodePtr = hwcNode.lock();
+        if (!RSUniHwcPrevalidateUtil::CheckHwcNode(hwcNodePtr)) {
             continue;
         }
-        for (auto& hwcNode : hwcNodes) {
-            auto hwcNodePtr = hwcNode.lock();
-            if (!RSUniHwcPrevalidateUtil::CheckHwcNode(hwcNodePtr)) {
-                continue;
-            }
-            RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, hwcNodePtr, curFps, zOrder,
-                screenProperty);
-        }
+        RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, hwcNodePtr, curFps, zOrder, screenProperty);
     }
 }
 

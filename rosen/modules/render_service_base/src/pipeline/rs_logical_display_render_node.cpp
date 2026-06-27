@@ -50,13 +50,14 @@ void RSLogicalDisplayRenderNode::OnSync()
     RSRenderNode::OnSync();
 }
 
-void RSLogicalDisplayRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSLogicalDisplayRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;
     }
     ApplyModifiers();
-    visitor->QuickPrepareLogicalDisplayRenderNode(*this);
+    visitor->QuickPrepareLogicalDisplayRenderNode(*this, isParentPrepareInReverseOrder);
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->PrepareLight();
 }
 

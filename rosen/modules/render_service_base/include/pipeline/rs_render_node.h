@@ -18,6 +18,7 @@
 #include <atomic>
 #include <bitset>
 #include <cstdint>
+#include <deque>
 #include <functional>
 #include <list>
 #include <memory>
@@ -152,6 +153,15 @@ public:
     }
     void RemoveFromTree(bool skipTransition = false);
 
+    virtual bool IsHardwareEnabledType() const
+    {
+        return false;
+    }
+    // manage renderNode's child hardware enabled nodes and filter nodes info
+    std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() { return allHwcNodeAndFilterNode_; }
+    const std::deque<WeakPtr>& GetAllHwcNodeAndFilterNode() const { return allHwcNodeAndFilterNode_; }
+    void ClearAllHwcNodeAndFilterNode() { allHwcNodeAndFilterNode_.clear(); }
+
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, int32_t index = -1);
     void RemoveCrossParentChild(const std::shared_ptr<RSSurfaceRenderNode>& child, const WeakPtr& newParent);
@@ -175,7 +185,8 @@ public:
                                 bool isUniRender,
                                 bool onlyFirstLevel);
     virtual void CollectSelfDrawingChild(const std::shared_ptr<RSRenderNode>& node, std::vector<NodeId>& vec);
-    virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
+    virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+        bool isParentPrepareInReverseOrder = false);
     void PrepareSelfNodeForApplyModifiers();
     void PrepareChildrenForApplyModifiers();
     // if subtree dirty or child filter need prepare
@@ -1343,6 +1354,8 @@ private:
     };
     std::unique_ptr<FilterRegionInfo> filterRegionInfo_;
     RectI lastFilterRegion_;
+
+    std::deque<WeakPtr> allHwcNodeAndFilterNode_;
 
     ModifiersNGMap modifiersNG_;
     std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;

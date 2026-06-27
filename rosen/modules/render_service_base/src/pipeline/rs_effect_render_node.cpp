@@ -60,13 +60,14 @@ void RSEffectRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->PrepareEffectRenderNode(*this);
 }
 
-void RSEffectRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSEffectRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;
     }
     ApplyModifiers();
-    visitor->QuickPrepareEffectRenderNode(*this);
+    visitor->QuickPrepareEffectRenderNode(*this, isParentPrepareInReverseOrder);
 }
 
 void RSEffectRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)

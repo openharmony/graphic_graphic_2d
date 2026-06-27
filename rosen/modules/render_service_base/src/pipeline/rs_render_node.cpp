@@ -761,6 +761,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
     ResetNodeColorSpace();
+    ClearAllHwcNodeAndFilterNode();
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
@@ -1103,6 +1104,14 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", zOrder: " + std::to_string(hwcRecorder_.GetZOrderForHwcEnableByFilter());
         out += ", hasDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SELF]);
         out += ", hasChildrenDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SUBTREE]);
+        out += ", allHwcAndFilterNode: {";
+        for (const auto& weakNode : allHwcNodeAndFilterNode_) {
+            auto node = weakNode.lock();
+            if (node) {
+                out += '<' + std::to_string(node->GetId()) + '>';
+            }
+        }
+        out += "}";
     }
 #endif
 
@@ -1486,7 +1495,8 @@ void RSRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->PrepareChildren(*this);
 }
 
-void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor)
+void RSRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor,
+    bool isParentPrepareInReverseOrder)
 {
     if (!visitor) {
         return;

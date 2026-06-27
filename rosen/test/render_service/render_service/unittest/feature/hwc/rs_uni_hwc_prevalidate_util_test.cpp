@@ -620,13 +620,13 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo001, TestSize.L
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     std::vector<RequestLayerInfo> prevalidLayers;
-    std::vector<RSBaseRenderNode::SharedPtr> surfaceNodes;
-    surfaceNodes.push_back(nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNodes.push_back(surfaceNode);
+    screenNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
     uint32_t zOrder = DEFAULT_Z_ORDER;
-    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, surfaceNodes, DEFAULT_FPS, zOrder,
+    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, screenNode, DEFAULT_FPS, zOrder,
         defaultProperty_);
 }
 
@@ -694,7 +694,8 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo002, TestSize.L
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     std::vector<RequestLayerInfo> prevalidLayers;
-    std::vector<RSBaseRenderNode::SharedPtr> surfaceNodes;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -702,11 +703,14 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo002, TestSize.L
 
     hwcNode->isOnTheTree_ = true;
     hwcNode->dstRect_ = { DEFAULT_POSITION, DEFAULT_POSITION, DEFAULT_WIDTH, DEFAULT_HEIGHT };
-    surfaceNode->AddChildHardwareEnabledNode(hwcNode);
-    surfaceNodes.emplace_back(surfaceNode);
+    hwcNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    hwcNode->isHardwareEnabledNode_ = true;
+    screenNode->curMainAndLeashSurfaceNodes_.emplace_back(surfaceNode);
+    screenNode->GetAllHwcNodeAndFilterNode().push_back(hwcNode);
+    screenNode->UpdateChildHwcNode();
 
     uint32_t zOrder = DEFAULT_Z_ORDER;
-    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, surfaceNodes, DEFAULT_FPS, zOrder,
+    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, screenNode, DEFAULT_FPS, zOrder,
         defaultProperty_);
     ASSERT_EQ(prevalidLayers.size(), 1);
 }
@@ -721,7 +725,8 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo003, TestSize.L
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     std::vector<RequestLayerInfo> prevalidLayers;
-    std::vector<RSBaseRenderNode::SharedPtr> surfaceNodes;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -729,12 +734,13 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo003, TestSize.L
 
     hwcNode->isOnTheTree_ = true;
     hwcNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
+    hwcNode->isHardwareEnabledNode_ = true;
     hwcNode->name_ = "pointer window";
-    surfaceNode->AddChildHardwareEnabledNode(hwcNode);
-    surfaceNodes.emplace_back(surfaceNode);
+    screenNode->curMainAndLeashSurfaceNodes_.emplace_back(surfaceNode);
+    screenNode->childHwcNodes_.push_back(hwcNode);
 
     uint32_t zOrder = DEFAULT_Z_ORDER;
-    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, surfaceNodes, DEFAULT_FPS, zOrder,
+    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, screenNode, DEFAULT_FPS, zOrder,
         defaultProperty_);
     ASSERT_EQ(prevalidLayers.size(), 1);
 }
@@ -780,7 +786,8 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo004, TestSize.L
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
     std::vector<RequestLayerInfo> prevalidLayers;
-    std::vector<RSBaseRenderNode::SharedPtr> surfaceNodes;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext);
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode1, nullptr);
 
@@ -795,13 +802,14 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo004, TestSize.L
     ASSERT_NE(hwcNode, nullptr);
     hwcNode->isOnTheTree_ = false;
     hwcNode->dstRect_ = { DEFAULT_POSITION, DEFAULT_POSITION, DEFAULT_WIDTH, DEFAULT_HEIGHT };
-    surfaceNode2->AddChildHardwareEnabledNode(hwcNode);
 
-    surfaceNodes.emplace_back(surfaceNode1);
-    surfaceNodes.emplace_back(surfaceNode2);
+    screenNode->curMainAndLeashSurfaceNodes_.emplace_back(surfaceNode1);
+    screenNode->curMainAndLeashSurfaceNodes_.emplace_back(surfaceNode2);
+    screenNode->GetAllHwcNodeAndFilterNode().push_back(hwcNode);
+    screenNode->UpdateChildHwcNode();
 
     uint32_t zOrder = DEFAULT_Z_ORDER;
-    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, surfaceNodes, DEFAULT_FPS, zOrder,
+    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, screenNode, DEFAULT_FPS, zOrder,
         defaultProperty_);
     ASSERT_EQ(prevalidLayers.size(), 1);
 }
@@ -858,5 +866,20 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, ResetVcldInfoTest, TestSize.Level1)
     node->stagingRenderParams_ = nullptr;
     ASSERT_EQ(node->stagingRenderParams_, nullptr);
     node->ResetVcldInfo();
+}
+
+/**
+ * @tc.name: CollectSurfaceNodeLayerInfo005
+ * @tc.desc: Test CollectSurfaceNodeLayerInfo with null screenNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CollectSurfaceNodeLayerInfo005, TestSize.Level2)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    std::vector<RequestLayerInfo> prevalidLayers;
+    uint32_t zOrder = DEFAULT_Z_ORDER;
+    uniHwcPrevalidateUtil.CollectSurfaceNodeLayerInfo(prevalidLayers, nullptr, DEFAULT_FPS, zOrder, defaultProperty_);
+    ASSERT_EQ(prevalidLayers.size(), 0);
 }
 }
