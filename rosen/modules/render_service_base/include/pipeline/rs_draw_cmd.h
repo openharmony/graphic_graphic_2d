@@ -39,6 +39,7 @@
  
 namespace OHOS {
 namespace Rosen {
+class ExtendRecordingCanvas;
 #ifdef ROSEN_OHOS
 #ifdef RS_ENABLE_VK
 namespace NativeBufferUtils {
@@ -74,6 +75,8 @@ public:
         const Drawing::AdaptiveImageInfo& imageInfo);
     RSExtendImageObject(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::AdaptiveImageInfo& imageInfo);
     ~RSExtendImageObject() override;
+    void Record(Drawing::Canvas& canvas, const Drawing::Rect& rect,
+        const Drawing::SamplingOptions& sampling, bool isWithParam = false) override;
     void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         const Drawing::SamplingOptions& sampling, bool isBackground = false) override;
     bool Marshalling(Parcel &parcel) const;
@@ -98,6 +101,8 @@ public:
     void Dump(std::string& dump) override;
 protected:
     std::shared_ptr<RSImage> rsImage_ = nullptr;
+    Drawing::Rect src_;
+    Drawing::Rect dst_;
 private:
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
@@ -114,6 +119,7 @@ private:
 #endif
 #endif
     std::shared_ptr<Drawing::Image> image_;
+    std::shared_ptr<Drawing::Data> data_;
     Drawing::AdaptiveImageInfo imageInfo_;
     NodeId nodeId_ = INVALID_NODEID;
     std::mutex drawingImageMutex_;
@@ -125,6 +131,10 @@ public:
     RSExtendImageBaseObj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst);
     ~RSExtendImageBaseObj() override = default;
+    void Record(ExtendRecordingCanvas& canvas, const Drawing::SamplingOptions& sampling,
+        Drawing::SrcRectConstraint constraint);
+    void Record(Drawing::Canvas& canvas, const Drawing::SamplingOptions& sampling,
+        Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override;
     void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& sampling,
         Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override;
     bool Marshalling(Parcel &parcel) const;
@@ -133,6 +143,8 @@ public:
     void Purge() override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_ = nullptr;
+    Drawing::Rect src_;
+    Drawing::Rect dst_;
 };
 
 class RSB_EXPORT RSExtendImageNineObject : public Drawing::ExtendImageNineObject {
@@ -140,6 +152,10 @@ public:
     RSExtendImageNineObject() = default;
     RSExtendImageNineObject(const std::shared_ptr<Media::PixelMap>& pixelMap);
     ~RSExtendImageNineObject() override = default;
+    void Record(ExtendRecordingCanvas& canvas, const Drawing::RectI& center, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode);
+    void Record(Drawing::Canvas& canvas, const Drawing::RectI& center, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode) override;
     void Playback(Drawing::Canvas& canvas, const Drawing::RectI& center, const Drawing::Rect& dst,
         Drawing::FilterMode filterMode) override;
     bool Marshalling(Parcel &parcel) const;
@@ -155,6 +171,10 @@ public:
     RSExtendImageLatticeObject() = default;
     RSExtendImageLatticeObject(const std::shared_ptr<Media::PixelMap>& pixelMap);
     ~RSExtendImageLatticeObject() override = default;
+    void Record(ExtendRecordingCanvas& canvas, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode);
+    void Record(Drawing::Canvas& canvas, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode) override;
     void Playback(Drawing::Canvas& canvas, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
         Drawing::FilterMode filterMode) override;
     bool Marshalling(Parcel &parcel) const;
