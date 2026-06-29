@@ -329,7 +329,9 @@ bool RSGPUOfflineDevice::UpdateContext(std::shared_ptr<RSSurfaceRenderNode>& sur
     GPUOfflineDrawParams currentDrawParams = CollectDrawParams(surfaceNode, surfaceHandler, *surfaceParams);
     // skipDraw: buffer not consumed + previous frame drawn + same params
     bool bufferConsumed = surfaceHandler->IsCurrentFrameBufferConsumed();
-    if (!bufferConsumed && offlineContext->hasDrawn && offlineContext->drawParams == currentDrawParams) {
+    if (!bufferConsumed && offlineContext->hasDrawn &&
+         offlineContext->drawParams == currentDrawParams &&
+         currentDrawParams.switchType == SingleBufferMode::SINGLE_BUFFER_MODE_NONE) {
         offlineContext->skipDraw = true;
         RS_LOGD("RSGPUOfflineDevice::SkipDraw: reuse previous frame");
         return true;
@@ -340,6 +342,15 @@ bool RSGPUOfflineDevice::UpdateContext(std::shared_ptr<RSSurfaceRenderNode>& sur
     offlineContext->drawParams = currentDrawParams;
     RS_LOGD("RSGPUOfflineDevice::Need GPU offline process, bufferConsumed=%{public}d", bufferConsumed);
     return true;
+}
+
+SingleBufferMode RSGPUfflineDevice::GetSingleBufferMode(
+    const std::shared_ptr<RSSurfaceHandler> surfaceHandler)
+{
+    if (!surfaceHandler || !surfaceHandler->GetConsumer()) {
+        return SingleBufferMode::SINGLE_BUFFER_MODE_NONE;
+    }
+    return surfaceHandler->GetConsumer()->GetAndResetSingleBufferMode();
 }
 
 GPUOfflineDrawParams RSGPUOfflineDevice::CollectDrawParams(std::shared_ptr<RSSurfaceRenderNode> surfaceNode,
@@ -365,6 +376,7 @@ GPUOfflineDrawParams RSGPUOfflineDevice::CollectDrawParams(std::shared_ptr<RSSur
     drawParams.screenId = surfaceParams.GetScreenId();
     drawParams.hdrPresent = surfaceParams.GetHDRPresent();
     drawParams.gAlpha = static_cast<uint8_t>(std::clamp(surfaceParams.GetLayerInfo().alpha, 0.0f, 1.0f) * RGBA_MAX);
+    drawParams.switchType = GetSingleBufferMode();
     return drawParams;
 }
 
@@ -411,7 +423,7 @@ bool RSGPUOfflineDevice::DrawHDRImage(RSSurfaceRenderParams& surfaceParams,
     }
     BufferRequestConfig bufferConfig = GetGPUBufferConfig(taskContext);
     auto engine = offlineThread_.GetRenderEngine();
-    auto renderFrame = offlineBuffer->RequestFrame(engine, bufferConfig, false);
+    auto renderFrame = offlineBuffer->RequestFrame(engine, bufferConfig, false, taskContext.drawParams.switchType);
     if (renderFrame == nullptr) {
         RS_LOGW("RSGPUOfflineDevice::RequestFrame failed, force redraw next frame");
         return false;

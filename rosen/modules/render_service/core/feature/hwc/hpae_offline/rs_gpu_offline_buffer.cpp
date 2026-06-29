@@ -79,15 +79,14 @@ bool NativeWindowBufferInfo::Marshalling(Parcel &parcel) const
     return true;
 }
 
-NativeWindowBufferInfo *NativeWindowBufferInfo::Unmarshalling(Parcel &parcel, bool autoSeq)
+NativeWindowBufferInfo NativeWindowBufferInfo::Unmarshalling(Parcel &parcel, bool autoSeq)
 {
     MessageParcel* msgParcel = reinterpret_cast<MessageParcel*>(&parcel);
     if (msgParcel == nullptr) {
         return nullptr;
     }
-    NativeWindowBufferInfo *ret = new (std::nothrow) NativeWindowBufferInfo(autoSeq);
+     OHOS::sptr<NativeWindowBufferInfo> ret = new NativeWindowBufferInfo(autoSeq);
     if ((ret != nullptr) && (!ret->ReadFromParcel(*msgParcel))) {
-        delete ret;
         ret = nullptr;
     }
     return ret;
@@ -144,7 +143,7 @@ bool RSGPUOfflineBuffer::ConvertColorGamutToSpaceType(const GraphicColorGamut& c
 }
 
 std::unique_ptr<RSRenderFrame> RSGPUOfflineBuffer::RequestFrame(std::shared_ptr<RSBaseRenderEngine> renderEngine,
-    const BufferRequestConfig& config, bool isHebc)
+    const BufferRequestConfig& config, bool isHebc, SingleBufferMode switchType)
 {
     RS_OPTIONAL_TRACE_NAME("RSGPUOfflineBuffer::RequestFrame");
     if (!surfaceCreated_) {
@@ -166,10 +165,12 @@ std::unique_ptr<RSRenderFrame> RSGPUOfflineBuffer::RequestFrame(std::shared_ptr<
     }
 #endif
     // clean cache when config changed, for single buffer
-    if (currentConfig_ != config) {
+    bool needFillSingleBuffer = false;
+    if (currentConfig_ != config || switchType != SingleBufferMode::SINGLE_BUFFER_MODE_NONE) {
         RS_LOGD("RSGPUOfflineBuffer::CleanCache when config changed");
         CleanCache(true);
         isFirstRequest_ = true;
+        needFillSingleBuffer = (switchType != SingleBufferMode::SINGLE_BUFFER_MODE_TO_MULTI);
     }
     auto renderFrame = renderEngine->RequestFrame(
         std::static_pointer_cast<RSSurfaceOhos>(rsSurface_), config, false, isHebc);
@@ -177,9 +178,8 @@ std::unique_ptr<RSRenderFrame> RSGPUOfflineBuffer::RequestFrame(std::shared_ptr<
         RS_LOGE("RSGPUOfflineBuffer::RequestFrame renderEngine requestFrame is null");
         return nullptr;
     }
-    if (isFirstRequest_) {
+    if (needFillSingleBuffer) {
         AttachSingleBuffer(renderFrame);
-        isFirstRequest_ = false;
     }
     currentConfig_ = config;
     return renderFrame;
@@ -218,7 +218,7 @@ bool RSGPUOfflineBuffer::CopyAndAttachBufferToQueue(NativeWindowBufferInfo& info
     bool addSuccess = false;
     MessageParcel msgParcel;
     info.Marshalling(msgParcel);
-    NativeWindowBufferInfo *tempInfo = NativeWindowBufferInfo::Unmarshalling(msgParcel, true);
+    OHOS::sptr<NativeWindowBufferInfo> tempInfo = NativeWindowBufferInfo::Unmarshalling(msgParcel, true);
     if (!tempInfo) {
         return false;
     }
@@ -239,9 +239,6 @@ bool RSGPUOfflineBuffer::CopyAndAttachBufferToQueue(NativeWindowBufferInfo& info
             (unsigned long long)bufferQueueId, sBuffer->GetSeqNum());
         addSuccess = true;
     } while (false);
-    if (tempInfo) {
-        delete tempInfo;
-    }
     RS_LOGI("RSGPUOfflineBuffer::CopyAndAttachBufferToQueue succeeded!");
     return addSuccess;
 }

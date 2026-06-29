@@ -51,6 +51,7 @@ struct GPUOfflineDrawParams {
     GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     int32_t resultWidth = 0;
     int32_t resultHeight = 0;
+    SingleBufferMode switchType = SingleBufferMode::SINGLE_BUFFER_MODE_NONE;
 
     bool operator==(const GPUOfflineDrawParams& other) const
     {
@@ -65,6 +66,7 @@ struct GPUOfflineDrawParams {
             hdrPresent != other.hdrPresent ||
             gAlpha != other.gAlpha ||
             transformType != other.transformType ||
+            switchType != other.switchType ||
             resultWidth != other.resultWidth ||
             resultHeight != other.resultHeight) {
             return false;
@@ -143,6 +145,7 @@ private:
         const std::shared_ptr<RSSurfaceHandler> surfaceHandler, RSSurfaceRenderParams& surfaceParams);
     void ClearContextCache(NodeId nodeId);
 
+    SingleBufferMode GetSingleBufferMode(const std::share_ptr<RSSurfaceHandler> surfaceHandler);
     RSHpaeOfflineProcessSyncer offlineResultSync_;
     RSGPUOfflineThread offlineThread_;
     std::map<NodeId, std::shared_ptr<GPUOfflineContext>> offlineContextCache_;
