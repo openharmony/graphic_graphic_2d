@@ -322,6 +322,7 @@ void RSUIDirector::ExecuteGoForeground(bool isTextureExport)
         isActive_ = true;
         auto node = rootNode_.lock();
         if (node) {
+            node->RebuildTree();
             node->SetEnableRender(true);
         }
         auto surfaceNode = surfaceNode_.lock();
