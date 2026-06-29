@@ -1877,18 +1877,6 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
     return isNeedAssignToSubThread;
 }
 
-// Vm app not use uifirst when it is focused
-bool RSUifirstManager::IsVMSurfaceName(std::string surfaceName)
-{
-    for (auto& item : vmAppNameSet_) {
-        if (surfaceName.find(item) != std::string::npos) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 // NonFocusWindow, may reuse last image cache
 bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation)
 {
@@ -1915,9 +1903,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     // open app with modal window animation, close uifirst
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
     bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
-    if (optFocus && (node.GetHasSharedTransitionNode() ||
-        (RSUifirstManager::Instance().IsVMSurfaceName(surfaceName) && !animation) ||
-        !animation || modalAnimation)) {
+    if (optFocus && (node.GetHasSharedTransitionNode() || !animation || modalAnimation)) {
         RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
             surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());
         return false;

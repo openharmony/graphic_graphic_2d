@@ -306,7 +306,6 @@ private:
     bool IsPreFirstLevelNodeDoingAndTryClear(std::shared_ptr<RSRenderNode> node);
     SkipSyncState CollectSkipSyncNodeWithDrawableState(const std::shared_ptr<RSRenderNode> &node);
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
-    bool IsVMSurfaceName(std::string surfaceName);
 
     bool IsToSubByAppAnimation() const;
     bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
@@ -394,12 +393,6 @@ private:
         { "LAUNCHER_APP_LAUNCH_FROM_DOCK" },
     };
 
-    const std::vector<std::string> vmAppNameSet_ = {
-        { "ohvm" },
-        { "win_emulator" },
-        { "hongyunvd" },
-        { "ecoengine" },
-    };
     std::vector<NodeId> capturedNodes_;
 
     // maximum uifirst window count
