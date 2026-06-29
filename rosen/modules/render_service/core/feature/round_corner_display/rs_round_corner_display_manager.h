@@ -47,6 +47,8 @@ public:
     RoundCornerDisplayManager();
     virtual ~RoundCornerDisplayManager();
 
+    void SendRcdMessage(NodeId id, const RSScreenProperty& screenProperty);
+
     // add rendertarget nodeId info to map by layername, if layername exist update info
     void AddLayer(const std::string& name, NodeId id, RCDLayerType type);
 

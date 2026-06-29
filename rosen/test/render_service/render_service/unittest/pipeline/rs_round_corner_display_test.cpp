@@ -2663,4 +2663,173 @@ HWTEST_F(RSRoundCornerDisplayTest, AlphaTypeToDrawingAlphaType, TestSize.Level1)
     EXPECT_EQ(RSRenderRcdDraw::AlphaTypeToDrawingAlphaType(AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL),
         Drawing::AlphaType::ALPHATYPE_UNPREMUL);
 }
+
+/*
+ * @tc.name: SendRcdMessage_WithEmptyActiveRect
+ * @tc.desc: Test RoundCornerDisplayManager.SendRcdMessage with empty activeRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, SendRcdMessage_WithEmptyActiveRect, TestSize.Level1)
+{
+    auto& rcdMgr = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+    NodeId id = 100;
+    rcdMgr.AddRoundCornerDisplay(id);
+    ASSERT_TRUE(rcdMgr.CheckExist(id));
+
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>(std::pair<uint32_t, uint32_t>{1344, 2772});
+
+    rcdMgr.SendRcdMessage(id, screenProperty);
+
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetLeft() == 0);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetTop() == 0);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetWidth() == 1344);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetHeight() == 2772);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->notchStatus_ == WINDOW_NOTCH_DEFAULT);
+
+    rcdMgr.RemoveRCDResource(id);
+}
+
+/*
+ * @tc.name: SendRcdMessage_WithNonEmptyActiveRect
+ * @tc.desc: Test RoundCornerDisplayManager.SendRcdMessage with non-empty activeRect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, SendRcdMessage_WithNonEmptyActiveRect, TestSize.Level1)
+{
+    auto& rcdMgr = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+    NodeId id = 101;
+    rcdMgr.AddRoundCornerDisplay(id);
+    ASSERT_TRUE(rcdMgr.CheckExist(id));
+
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>(std::pair<uint32_t, uint32_t>{1344, 2772});
+    RectI activeRect(10, 20, 1080, 1920);
+    screenProperty.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(activeRect, RectI(), RectI()));
+
+    rcdMgr.SendRcdMessage(id, screenProperty);
+
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetLeft() == 10);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetTop() == 20);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetWidth() == 1080);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetHeight() == 1920);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->notchStatus_ == WINDOW_NOTCH_DEFAULT);
+
+    rcdMgr.RemoveRCDResource(id);
+}
+
+/*
+ * @tc.name: SendRcdMessage_WithNonExistId
+ * @tc.desc: Test RoundCornerDisplayManager.SendRcdMessage with non-existent id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, SendRcdMessage_WithNonExistId, TestSize.Level1)
+{
+    auto& rcdMgr = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+    NodeId id = 102;
+
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>(std::pair<uint32_t, uint32_t>{1344, 2772});
+
+    rcdMgr.SendRcdMessage(id, screenProperty);
+
+    EXPECT_TRUE(rcdMgr.CheckExist(id) == false);
+}
+
+/*
+ * @tc.name: SendRcdMessage_WithNullRcdModule
+ * @tc.desc: Test RoundCornerDisplayManager.SendRcdMessage with null rcd module in map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, SendRcdMessage_WithNullRcdModule, TestSize.Level1)
+{
+    auto& rcdMgr = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+    NodeId id = 103;
+    rcdMgr.AddRoundCornerDisplay(id);
+    ASSERT_TRUE(rcdMgr.CheckExist(id));
+    rcdMgr.rcdMap_[id] = nullptr;
+
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>(std::pair<uint32_t, uint32_t>{1344, 2772});
+
+    rcdMgr.SendRcdMessage(id, screenProperty);
+
+    EXPECT_TRUE(rcdMgr.CheckExist(id) == false);
+}
+
+/*
+ * @tc.name: SendRcdMessage_WithNegativeActiveRectValues
+ * @tc.desc: Test RoundCornerDisplayManager.SendRcdMessage with negative activeRect values clamped to 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, SendRcdMessage_WithNegativeActiveRectValues, TestSize.Level1)
+{
+    auto& rcdMgr = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+    NodeId id = 104;
+    rcdMgr.AddRoundCornerDisplay(id);
+    ASSERT_TRUE(rcdMgr.CheckExist(id));
+
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>(std::pair<uint32_t, uint32_t>{1344, 2772});
+    RectI activeRect(-10, -20, 1080, 1920);
+    screenProperty.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
+        std::make_tuple(activeRect, RectI(), RectI()));
+
+    rcdMgr.SendRcdMessage(id, screenProperty);
+
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetLeft() == 0);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetTop() == 0);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetWidth() == 1080);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->lastRcvDisplayRect_.GetHeight() == 1920);
+    EXPECT_TRUE(rcdMgr.rcdMap_[id]->notchStatus_ == WINDOW_NOTCH_DEFAULT);
+
+    rcdMgr.RemoveRCDResource(id);
+}
+
+/*
+ * @tc.name: CheckRcdRenderEnable_HdiOutputEnable
+ * @tc.desc: Test RoundCornerDisplayManager.CheckRcdRenderEnable with HDI_OUTPUT_ENABLE state
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, CheckRcdRenderEnable_HdiOutputEnable, TestSize.Level1)
+{
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::STATE>(
+        static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    EXPECT_TRUE(RoundCornerDisplayManager::CheckRcdRenderEnable(screenProperty));
+}
+
+/*
+ * @tc.name: CheckRcdRenderEnable_OtherStates
+ * @tc.desc: Test RoundCornerDisplayManager.CheckRcdRenderEnable with non-HDI_OUTPUT_ENABLE states
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, CheckRcdRenderEnable_OtherStates, TestSize.Level1)
+{
+    RSScreenProperty screenProperty;
+
+    screenProperty.Set<ScreenPropertyType::STATE>(
+        static_cast<uint8_t>(ScreenState::UNKNOWN));
+    EXPECT_TRUE(RoundCornerDisplayManager::CheckRcdRenderEnable(screenProperty) == false);
+
+    screenProperty.Set<ScreenPropertyType::STATE>(
+        static_cast<uint8_t>(ScreenState::PRODUCER_SURFACE_ENABLE));
+    EXPECT_TRUE(RoundCornerDisplayManager::CheckRcdRenderEnable(screenProperty) == false);
+
+    screenProperty.Set<ScreenPropertyType::STATE>(
+        static_cast<uint8_t>(ScreenState::DISABLED));
+    EXPECT_TRUE(RoundCornerDisplayManager::CheckRcdRenderEnable(screenProperty) == false);
+
+    RSScreenProperty defaultProperty;
+    EXPECT_TRUE(RoundCornerDisplayManager::CheckRcdRenderEnable(defaultProperty) == false);
+}
 } // OHOS::Rosen

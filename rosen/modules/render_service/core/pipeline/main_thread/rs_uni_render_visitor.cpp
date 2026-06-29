@@ -4152,25 +4152,8 @@ void RSUniRenderVisitor::SendRcdMessage(RSScreenRenderNode& node)
 {
     if (RoundCornerDisplayManager::CheckRcdRenderEnable(curScreenNode_->GetScreenProperty()) &&
         RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        using rcd_msg = RSSingleton<RsMessageBus>;
-        const auto& screenProperty = curScreenNode_->GetScreenProperty();
-        uint32_t left = 0; // render region
-        uint32_t top = 0;
-        uint32_t width = screenProperty.GetWidth();
-        uint32_t height = screenProperty.GetHeight();
-        const auto& activeRect = screenProperty.GetActiveRect();
-        if (!activeRect.IsEmpty()) {
-            left = static_cast<uint32_t>(std::max(0, activeRect.GetLeft()));
-            top = static_cast<uint32_t>(std::max(0, activeRect.GetTop()));
-            width = static_cast<uint32_t>(std::max(0, activeRect.GetWidth()));
-            height = static_cast<uint32_t>(std::max(0, activeRect.GetHeight()));
-        }
-        rcd_msg::GetInstance().SendMsg<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(TOPIC_RCD_DISPLAY_SIZE,
-            node.GetId(), left, top, width, height);
-        // rcd_msg::GetInstance().SendMsg<NodeId, ScreenRotation>(TOPIC_RCD_DISPLAY_ROTATION,
-        //    node.GetId(), node.GetScreenRotation());
-        rcd_msg::GetInstance().SendMsg<NodeId, int>(TOPIC_RCD_DISPLAY_NOTCH,
-            node.GetId(), RSSystemParameters::GetHideNotchStatus());
+        RSRcdRenderManager::GetInstance().CheckRenderTargetNode(RSMainThread::Instance()->GetContext());
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().AddRoundCornerDisplay(node.GetId());
     }
 }
 
