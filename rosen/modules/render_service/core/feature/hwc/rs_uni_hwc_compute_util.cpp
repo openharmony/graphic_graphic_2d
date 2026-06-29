@@ -574,6 +574,9 @@ void RSUniHwcComputeUtil::UpdateHwcNodeVcldInfo(const std::shared_ptr<RSSurfaceR
     if (hwcNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
         return;
     }
+    if (hwcNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) {
+        return;
+    }
     RSVcldParam vcldInfo;
     auto& parentProperty = parent->GetRenderProperties();
     auto cornerRadius = parentProperty.GetCornerRadius();
