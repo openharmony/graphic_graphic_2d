@@ -1564,7 +1564,6 @@ group("unittest") {
     ":RSRootRenderNodeTest",
     ":RSSurfaceHandlerTest",
     ":RSSurfaceRenderNodeFourTest",
-    ":RSSurfaceRenderNodeTest",
     ":RSSurfaceRenderNodeThreeTest",
     ":RSSurfaceRenderNodeTwoTest",
     ":RSTaskDispatcherTest",

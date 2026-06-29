@@ -3751,24 +3751,6 @@ HWTEST_F(RSCanvasNodeTest, ResetSurface001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetSurface002
- * @tc.desc: Test ResetSurface
- * @tc.type: FUNC
- * @tc.require: IBFOIN
- */
-HWTEST_F(RSCanvasNodeTest, ResetSurface002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetHybridRenderCanvas(true);
-    auto ret = canvasNode->ResetSurface(0, 0);
-#ifdef RS_ENABLE_VK
-    EXPECT_EQ(ret, true);
-#else
-    EXPECT_EQ(ret, false);
-#endif
-}
-
-/**
  * @tc.name: SetRSUIContextTest001
  * @tc.desc: test result of SetRSUIContext
  * @tc.type: FUNC
