@@ -85,7 +85,7 @@ NativeWindowBufferInfo NativeWindowBufferInfo::Unmarshalling(Parcel &parcel, boo
     if (msgParcel == nullptr) {
         return nullptr;
     }
-     OHOS::sptr<NativeWindowBufferInfo> ret = new NativeWindowBufferInfo(autoSeq);
+    OHOS::sptr<NativeWindowBufferInfo> ret = new NativeWindowBufferInfo(autoSeq);
     if ((ret != nullptr) && (!ret->ReadFromParcel(*msgParcel))) {
         ret = nullptr;
     }
