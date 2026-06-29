@@ -987,7 +987,7 @@ bool RSCoverageNGShaderDrawable::DrawSDFContentLight(Drawing::Canvas& canvas,
     if ((illuminatedType_ == IlluminatedType::BLEND_CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
         brush.SetAntiAlias(true);
-        brush.SetBlendMode(Drawing::BlendMode::COVERAGE);
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
         Drawing::SaveLayerOps slo(&contentRRect_.GetRect(), &brush);
         canvas.SaveLayer(slo);
         canvas.AttachBrush(brush);
@@ -1022,7 +1022,7 @@ void RSCoverageNGShaderDrawable::DrawContentLight(Drawing::Canvas& canvas,
     if ((illuminatedType_ == IlluminatedType::BLEND_CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
         brush.SetAntiAlias(true);
-        brush.SetBlendMode(Drawing::BlendMode::COVERAGE);
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
         Drawing::SaveLayerOps slo(&contentRRect_.GetRect(), &brush);
         canvas.SaveLayer(slo);
         canvas.AttachBrush(brush);
@@ -1054,7 +1054,7 @@ void RSCoverageNGShaderDrawable::DrawSingleContentLight(Drawing::Canvas& canvas,
     if ((illuminatedType_ == IlluminatedType::BLEND_CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
         brush.SetAntiAlias(true);
-        brush.SetBlendMode(Drawing::BlendMode::COVERAGE);
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
         Drawing::SaveLayerOps slo(&contentRRect_.GetRect(), &brush);
         canvas.SaveLayer(slo);
         canvas.AttachBrush(brush);
@@ -1085,7 +1085,7 @@ bool RSCoverageNGShaderDrawable::DrawSDFBorderLight(Drawing::Canvas& canvas,
     brush.SetShaderEffect(lightShaderEffect);
     if ((illuminatedType_ == IlluminatedType::BLEND_BORDER) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
-        brush.SetBlendMode(Drawing::BlendMode::COVERAGE);
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
         Drawing::Brush maskPaint;
         Drawing::SaveLayerOps slo(&contentRRect_.GetRect(), &maskPaint);
         canvas.SaveLayer(slo);
@@ -1122,7 +1122,7 @@ void RSCoverageNGShaderDrawable::DrawBorderLight(Drawing::Canvas& canvas,
     if ((illuminatedType_ == IlluminatedType::BLEND_BORDER) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
         Drawing::Brush maskPaint;
-        pen.SetBlendMode(Drawing::BlendMode::COVERAGE);
+        pen.SetBlendMode(Drawing::BlendMode::OVERLAY);
         Drawing::SaveLayerOps slo(&borderRRect_.GetRect(), &maskPaint);
         canvas.SaveLayer(slo);
         canvas.AttachPen(pen);
@@ -1155,7 +1155,7 @@ void RSCoverageNGShaderDrawable::DrawSingleBorderLight(Drawing::Canvas& canvas,
     if ((illuminatedType_ == IlluminatedType::BLEND_BORDER) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
         Drawing::Brush maskPaint;
-        pen.SetBlendMode(Drawing::BlendMode::COVERAGE);
+        pen.SetBlendMode(Drawing::BlendMode::OVERLAY);
         Drawing::SaveLayerOps slo(&borderRRect_.GetRect(), &maskPaint);
         canvas.SaveLayer(slo);
         canvas.AttachPen(pen);
@@ -1242,9 +1242,9 @@ void RSCoverageNGShaderDrawable::DrawSDFContentAndBorderLight(Drawing::Canvas& c
     brush.SetAntiAlias(true);
     brush.SetShaderEffect(lightShaderEffect);
 
-    // For BLEND types, apply COVERAGE blend mode
+    // For BLEND types, apply OVERLAY blend mode
     if (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) {
-        brush.SetBlendMode(Drawing::BlendMode::COVERAGE);
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
         Drawing::Brush maskPaint;
         Drawing::SaveLayerOps slo(&contentRRect_.GetRect(), &maskPaint);
         canvas.SaveLayer(slo);

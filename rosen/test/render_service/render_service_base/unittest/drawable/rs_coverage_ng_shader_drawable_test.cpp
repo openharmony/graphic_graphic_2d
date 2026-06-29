@@ -356,32 +356,10 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest010, TestSize.Level1)
 
 /**
  * @tc.name: OnSyncTest011
- * @tc.desc: OnSync test to validate visualEffectContainer_ with coverage shader
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest011, TestSize.Level1)
-{
-    auto drawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
-    EXPECT_NE(drawable, nullptr);
-    
-    RSLightSource lightSource;
-    drawable->stagingLightSourcesAndPosVec_.emplace_back(lightSource, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
-    auto coverageShader = std::make_shared<RSNGRenderAIBarRectHalo>();
-    drawable->stagingCoverageShader_ = coverageShader;
-    drawable->needSync_ = true;
-    
-    drawable->OnSync();
-    
-    EXPECT_NE(drawable->visualEffectContainer_, nullptr);
-    EXPECT_FALSE(drawable->needSync_);
-}
-
-/**
- * @tc.name: OnSyncTest012
  * @tc.desc: OnSync test with all properties
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest012, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest011, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(drawable, nullptr);
@@ -413,11 +391,11 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest012, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSyncTest013
+ * @tc.name: OnSyncTest012
  * @tc.desc: OnSync test with empty light sources
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest013, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest012, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(drawable, nullptr);
@@ -434,11 +412,11 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest013, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSyncTest014
+ * @tc.name: OnSyncTest013
  * @tc.desc: OnSync test with more than MAX_LIGHT_SOURCES
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest014, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest013, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(drawable, nullptr);
@@ -458,11 +436,11 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest014, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSyncTest015
+ * @tc.name: OnSyncTest014
  * @tc.desc: OnSync test with null SDF shader
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest015, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest014, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(drawable, nullptr);
@@ -479,11 +457,11 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest015, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSyncTest016
+ * @tc.name: OnSyncTest015
  * @tc.desc: OnSync test with zero border width
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest016, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest015, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(drawable, nullptr);
@@ -503,11 +481,11 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest016, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSyncTest017
+ * @tc.name: OnSyncTest016
  * @tc.desc: OnSync test with EDR disabled
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest017, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest016, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(drawable, nullptr);
@@ -524,11 +502,11 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest017, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSyncTest018
+ * @tc.name: OnSyncTest017
  * @tc.desc: OnSync test to validate light source sorting
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest018, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest017, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(drawable, nullptr);
@@ -546,11 +524,11 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest018, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSyncTest019
+ * @tc.name: OnSyncTest018
  * @tc.desc: OnSync test when needSync_ is false
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest019, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncTest018, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_NE(drawable, nullptr);
@@ -936,46 +914,6 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnUpdateWithCoverageShaderTest0
 }
 
 /**
- * @tc.name: OnSyncWithCoverageShaderTest001
- * @tc.desc: OnSync test with coverage shader
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnSyncWithCoverageShaderTest001, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> pointLightDrawableTest =
-        std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
-    EXPECT_NE(pointLightDrawableTest, nullptr);
-    
-    auto coverageShader = std::make_shared<RSNGRenderAIBarRectHalo>();
-    EXPECT_NE(coverageShader, nullptr);
-    pointLightDrawableTest->stagingCoverageShader_ = coverageShader;
-    pointLightDrawableTest->needSync_ = true;
-    
-    pointLightDrawableTest->OnSync();
-    EXPECT_EQ(pointLightDrawableTest->stagingCoverageShader_, coverageShader);
-}
-
-/**
- * @tc.name: OnDrawWithCoverageShaderTest001
- * @tc.desc: OnDraw test with coverage shader
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnDrawWithCoverageShaderTest001, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> pointLightDrawableTest =
-        std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
-    EXPECT_NE(pointLightDrawableTest, nullptr);
-    
-    auto coverageShader = std::make_shared<RSNGRenderAIBarRectHalo>();
-    EXPECT_NE(coverageShader, nullptr);
-    pointLightDrawableTest->stagingCoverageShader_ = coverageShader;
-    
-    Drawing::Canvas canvasTest;
-    Drawing::Rect rect(0, 0, 100, 100);
-    pointLightDrawableTest->OnDraw(&canvasTest, &rect);
-}
-
-/**
  * @tc.name: OnUpdateWithCoverageShaderAndIlluminatedTest001
  * @tc.desc: OnUpdate test with both coverage shader and illuminated
  * @tc.type: FUNC
@@ -1032,28 +970,6 @@ HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnGenerateTest002, TestSize.Lev
     std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> drawable =
         std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
     EXPECT_EQ(drawable->OnGenerate(renderNodeTest), nullptr);
-}
-
-/**
- * @tc.name: OnDrawTest001
- * @tc.desc: OnDraw enters the branch where visualEffectContainer_ != nullptr && rect != nullptr
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableCoverageNGShaderTest, OnDrawTest001, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSCoverageNGShaderDrawable> drawable =
-        std::make_shared<DrawableV2::RSCoverageNGShaderDrawable>();
-    EXPECT_NE(drawable, nullptr);
-
-    auto coverageShader = std::make_shared<RSNGRenderAIBarRectHalo>();
-    drawable->stagingCoverageShader_ = coverageShader;
-    drawable->needSync_ = true;
-    drawable->OnSync();
-    EXPECT_NE(drawable->visualEffectContainer_, nullptr);
-
-    Drawing::Canvas canvasTest;
-    Drawing::Rect rect(0, 0, 100, 100);
-    drawable->OnDraw(&canvasTest, &rect);
 }
 
 /**

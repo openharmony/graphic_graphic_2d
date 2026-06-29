@@ -23,7 +23,7 @@
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_coverage_ng_shader_drawable.h"
-#include "drawable/rs_coverage_ng_shader_drawable.h"
+#include "drawable/rs_overlay_ng_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
@@ -1777,7 +1777,7 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest3, TestSize.Level1)
     node->GetMutableRenderProperties().SetCoverageNGShader(coverageShader);
     node->UpdatePointLightDirtySlot();
     EXPECT_FALSE(node->dirtySlots_.empty());
-EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::COVERAGE_NG_SHADER) > 0);
+    EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::COVERAGE_NG_SHADER) > 0);
 }
 
 /**
