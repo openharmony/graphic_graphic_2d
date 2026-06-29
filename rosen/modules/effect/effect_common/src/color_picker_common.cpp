@@ -59,6 +59,12 @@ std::shared_ptr<Rosen::ColorPickerCommon> ColorPickerCommon::CreateColorPicker(
         return nullptr;
     }
 
+    if (region.size() < REGION_SIZE) {
+        EFFECT_LOG_E("[ColorPickerCommon]region size is less than REGION_SIZE.");
+        errorCode = ERR_EFFECT_INVALID_VALUE;
+        return nullptr;
+    }
+
     double coordinatesBuffer[REGION_SIZE];
     for (uint32_t i = 0; i < REGION_SIZE; i++) {
         coordinatesBuffer[i] = std::clamp<double>(region[i], 0.0, 1.0);
@@ -159,16 +165,13 @@ std::vector<ColorManager::Color> ColorPickerCommon::GetTopProportionColors(doubl
     unsigned int colorsNum = 0;
     std::vector<ColorManager::Color> colors = {};
     std::shared_ptr<Rosen::ColorPickerCommon> thisColorPicker = sConstructor_;
-    if (thisColorPicker != nullptr) {
-        thisColorPicker->nativeColorPicker_ = sConstructor_->sColorPicker_;
-        if (thisColorPicker->nativeColorPicker_ == nullptr) {
-            EFFECT_LOG_E("[ColorPickerCommon]GetTopProportionColors, empty native ColorPicker");
-            errorCode = ERROR;
-            return colors;
-        }
+    if (thisColorPicker == nullptr || thisColorPicker->sColorPicker_ == nullptr) {
+        EFFECT_LOG_E("[ColorPickerCommon]GetTopProportionColors, empty ColorPicker");
+        errorCode = ERROR;
+        return colors;
     }
     colorsNum = static_cast<unsigned int>(std::clamp(colorCount, 0.0, PROPORTION_COLORS_NUM_LIMIT));
-    colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
+    colors = thisColorPicker->sColorPicker_->GetTopProportionColors(colorsNum);
 
     return colors;
 }

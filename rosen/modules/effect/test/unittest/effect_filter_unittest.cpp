@@ -17,6 +17,7 @@
 
 #include "effect_filter.h"
 #include "image/pixelmap_native.h"
+#include "surface_buffer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -916,6 +917,117 @@ HWTEST_F(EffectFilterUnittest, ReededGlassValidParameters, TestSize.Level1)
     ASSERT_TRUE(OH_Filter_ReededGlass(filter, &params) == EFFECT_SUCCESS);
     ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
     OH_PixelmapNative_Release(*pixMap);
+}
+
+static OH_NativeBuffer* CreateNativeBuffer(int32_t width, int32_t height, int32_t format)
+{
+    OH_NativeBuffer_Config config {
+        .width = static_cast<uint32_t>(width),
+        .height = static_cast<uint32_t>(height),
+        .format = format,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA
+    };
+    return OH_NativeBuffer_Alloc(&config);
+}
+
+/**
+ * @tc.name: OH_Filter_GetEffectNativeBuffer001
+ * @tc.desc: Test null parameters for GetEffectNativeBuffer.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectNativeBuffer001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectNativeBuffer001 start";
+
+    OH_PixelmapNative *pixmap = nullptr;
+    OH_PixelmapNative **pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+
+    int32_t syncFenceFd = -1;
+    OH_NativeBuffer *buffer = CreateNativeBuffer(4, 4, GRAPHIC_PIXEL_FMT_RGBA_8888);
+    ASSERT_TRUE(buffer != nullptr);
+
+    ASSERT_TRUE(OH_Filter_GetEffectNativeBuffer(nullptr, buffer, &syncFenceFd, false)
+        == EFFECT_BAD_PARAMETER);
+    ASSERT_TRUE(OH_Filter_GetEffectNativeBuffer(filter, nullptr, &syncFenceFd, false)
+        == EFFECT_BAD_PARAMETER);
+    ASSERT_TRUE(OH_Filter_GetEffectNativeBuffer(nullptr, nullptr, nullptr, false)
+        == EFFECT_BAD_PARAMETER);
+
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_NativeBuffer_Unreference(buffer);
+    OH_PixelmapNative_Release(*pixMap);
+
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectNativeBuffer001 end";
+}
+
+/**
+ * @tc.name: OH_Filter_GetEffectNativeBuffer002
+ * @tc.desc: Test GetEffectNativeBuffer with mismatched NativeBuffer format.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectNativeBuffer002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectNativeBuffer002 start";
+
+    OH_PixelmapNative *pixmap = nullptr;
+    OH_PixelmapNative **pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+    ASSERT_TRUE(OH_Filter_Invert(filter) == EFFECT_SUCCESS);
+
+    int32_t syncFenceFd = -1;
+    OH_NativeBuffer *buffer = CreateNativeBuffer(4, 4, GRAPHIC_PIXEL_FMT_YCBCR_420_SP);
+    if (buffer != nullptr) {
+        ASSERT_TRUE(OH_Filter_GetEffectNativeBuffer(filter, buffer, &syncFenceFd, false)
+            == EFFECT_BAD_PARAMETER);
+        OH_NativeBuffer_Unreference(buffer);
+    }
+
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectNativeBuffer002 end";
+}
+
+/**
+ * @tc.name: OH_Filter_GetEffectNativeBuffer003
+ * @tc.desc: Test GetEffectNativeBuffer with valid parameters and matching NativeBuffer.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectNativeBuffer003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectNativeBuffer003 start";
+
+    OH_PixelmapNative *pixmap = nullptr;
+    OH_PixelmapNative **pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+    ASSERT_TRUE(OH_Filter_Invert(filter) == EFFECT_SUCCESS);
+
+    int32_t syncFenceFd = -1;
+    OH_NativeBuffer *buffer = CreateNativeBuffer(4, 4, GRAPHIC_PIXEL_FMT_RGBA_8888);
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(OH_Filter_GetEffectNativeBuffer(filter, buffer, &syncFenceFd, false)
+        == EFFECT_SUCCESS);
+    ASSERT_TRUE(OH_Filter_GetEffectNativeBuffer(filter, buffer, &syncFenceFd, true)
+        == EFFECT_SUCCESS);
+
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_NativeBuffer_Unreference(buffer);
+    OH_PixelmapNative_Release(*pixMap);
+
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectNativeBuffer003 end";
 }
 } // namespace Rosen
 } // namespace OHOS

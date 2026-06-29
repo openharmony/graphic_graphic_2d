@@ -52,8 +52,8 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
 
 ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coordinates)
 {
-    if (pixmap == nullptr) {
-        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with null pixmap.");
+    if (pixmap == nullptr || coordinates == nullptr) {
+        EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with null pixmap or coordinates.");
         return;
     }
     pixelmap_ = pixmap;
@@ -61,15 +61,26 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
         EFFECT_LOG_I("[ColorExtract]failed to construct ColorExtract with non-positive pixmap width or height.");
         return;
     }
-    uint32_t left = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[0]); // 0 is index of left
-    uint32_t top = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[1]); // 1 is index of top
-    uint32_t right = static_cast<uint32_t>(pixmap->GetWidth() * coordinates[2]); // 2 is index of right
-    uint32_t bottom = static_cast<uint32_t>(pixmap->GetHeight() * coordinates[3]); // 3 is index of bottom
+    double coordLeft = std::clamp(coordinates[0], 0.0, 1.0);
+    double coordTop = std::clamp(coordinates[1], 0.0, 1.0);
+    double coordRight = std::clamp(coordinates[2], 0.0, 1.0);
+    double coordBottom = std::clamp(coordinates[3], 0.0, 1.0);
+    int32_t imgWidth = pixmap->GetWidth();
+    int32_t imgHeight = pixmap->GetHeight();
+    int32_t left = static_cast<int32_t>(imgWidth * coordLeft);
+    int32_t top = static_cast<int32_t>(imgHeight * coordTop);
+    int32_t right = static_cast<int32_t>(imgWidth * coordRight);
+    int32_t bottom = static_cast<int32_t>(imgHeight * coordBottom);
+    if (left >= right || top >= bottom) {
+        return;
+    }
     format_ = pixmap->GetPixelFormat();
     if (format_ == Media::PixelFormat::RGBA_1010102) {
-        InitColorValBy1010102Color(pixmap, left, top, right, bottom);
+        InitColorValBy1010102Color(pixmap, static_cast<uint32_t>(left), static_cast<uint32_t>(top),
+            static_cast<uint32_t>(right), static_cast<uint32_t>(bottom));
     } else {
-        InitColorValBy8888Color(pixmap, left, top, right, bottom);
+        InitColorValBy8888Color(pixmap, static_cast<uint32_t>(left), static_cast<uint32_t>(top),
+            static_cast<uint32_t>(right), static_cast<uint32_t>(bottom));
     }
     grayMsd_ = CalcGrayMsd();
     contrastToWhite_ = CalcContrastToWhite();
@@ -83,8 +94,11 @@ void ColorExtract::InitColorValBy1010102Color(std::shared_ptr<Media::PixelMap> p
         EFFECT_LOG_E("[ColorExtract]failed to InitColorValBy1010102Color with null pixmap.");
         return;
     }
-    colorValLen_ = (right - left) * (bottom -top);
-    if (colorValLen_ <= 0) {
+    if (right <= left || bottom <= top) {
+        return;
+    }
+    colorValLen_ = (right - left) * (bottom - top);
+    if (colorValLen_ == 0) {
         return;
     }
     colorVal_.resize(colorValLen_);
@@ -92,8 +106,8 @@ void ColorExtract::InitColorValBy1010102Color(std::shared_ptr<Media::PixelMap> p
     for (uint32_t i = top; i < bottom; i++) {
         for (uint32_t j = left; j < right; j++) {
             uint32_t pixelColor;
-            pixmap->GetRGBA1010102Color(j, i, pixelColor);
-            if (GetRGBA1010102ColorA(pixelColor) != 0) {
+            bool getSucc = pixmap->GetRGBA1010102Color(j, i, pixelColor);
+            if (getSucc && GetRGBA1010102ColorA(pixelColor) != 0) {
                 colorVal_.data()[realColorCnt] = pixelColor;
                 realColorCnt++;
             } else {
@@ -111,8 +125,11 @@ void ColorExtract::InitColorValBy8888Color(std::shared_ptr<Media::PixelMap> pixm
         EFFECT_LOG_E("[ColorExtract]failed to InitColorValBy8888Color with null pixmap.");
         return;
     }
-    colorValLen_ = (right - left) * (bottom -top);
-    if (colorValLen_ <= 0) {
+    if (right <= left || bottom <= top) {
+        return;
+    }
+    colorValLen_ = (right - left) * (bottom - top);
+    if (colorValLen_ == 0) {
         return;
     }
     colorVal_.resize(colorValLen_);
@@ -120,8 +137,8 @@ void ColorExtract::InitColorValBy8888Color(std::shared_ptr<Media::PixelMap> pixm
     for (uint32_t i = top; i < bottom; i++) {
         for (uint32_t j = left; j < right; j++) {
             uint32_t pixelColor;
-            pixmap->GetARGB32Color(j, i, pixelColor);
-            if (GetARGB32ColorA(pixelColor) != 0) {
+            bool getSucc = pixmap->GetARGB32Color(j, i, pixelColor);
+            if (getSucc && GetARGB32ColorA(pixelColor) != 0) {
                 colorVal_.data()[realColorCnt] = pixelColor;
                 realColorCnt++;
             } else {
