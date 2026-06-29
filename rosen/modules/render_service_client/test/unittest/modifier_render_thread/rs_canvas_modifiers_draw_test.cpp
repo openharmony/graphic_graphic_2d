@@ -18,6 +18,7 @@
 #include "modifier_render_thread/rs_canvas_modifiers_draw.h"
 #include "iconsumer_surface.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#include "surface_buffer_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -525,6 +526,31 @@ HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollectCanvasBuffers_EmptyMap001, T
     auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
     canvasModifiersDraw->StartThread();
     canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+}
+
+HWTEST_F(RSCanvasModifiersDrawTest, SubmitAndCollectCanvasBuffers_WithSemaphore001, TestSize.Level1)
+{
+    auto canvasModifiersDraw = std::make_shared<RSCanvasModifiersDraw>();
+    NodeId nodeId = 1;
+    auto renderInterface = std::make_shared<RSRenderInterface>();
+    std::weak_ptr<RSRenderInterface> weakInterface = renderInterface;
+    canvasModifiersDraw->OnNodeCreate(nodeId, weakInterface);
+    auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+    drawable.nodeState_ = RSNodeState::ACTIVE;
+    drawable.producerSurface_ = RSCanvasModifiersDrawableTest::CreateSurface();
+    NativeBufferUtils::CreateVkSemaphore(drawable.semaphore_);
+    drawable.width_ = 100;
+    drawable.height_ = 100;
+    auto drawingSurface = std::make_shared<Drawing::Surface>();
+    drawable.surfaceFrame_ =
+        std::make_unique<RSSurfaceFrameOhosVulkan>(drawingSurface, drawable.width_, drawable.height_, 1);
+    auto ohosSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(drawable.producerSurface_);
+    NativeWindowBuffer windowBuffer;
+    windowBuffer.sfbuffer = new SurfaceBufferImpl();
+    ohosSurface->mSurfaceList.emplace_back(&windowBuffer);
+    canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+    usleep(10000);
+    EXPECT_TRUE(canvasModifiersDraw->canvasNewSemaphoreInfos_.empty());
 }
 } // namespace Rosen
 } // namespace OHOS

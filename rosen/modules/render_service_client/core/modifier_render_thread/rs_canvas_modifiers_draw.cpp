@@ -577,8 +577,8 @@ void RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers()
                 canvasModifiersDraw->AppendTransactionConfig(drawable->nodeId_, buffer, drawable->GetFenceFd());
                 drawable->OnDirtyBufferCollected(now);
             }
+            canvasModifiersDraw->DestroyCanvasSemaphore();
         }
-        canvasModifiersDraw->DestroyCanvasSemaphore();
     });
 }
 

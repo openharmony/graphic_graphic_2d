@@ -208,6 +208,11 @@ bool RSRenderInterface::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> b
     // need consider stability
     if (beginNode->GetNodeState() == RSNodeState::INACTIVE) {
         beginNode->RebuildTree();
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        if (auto uiContext = beginNode->GetRSUIContext()) {
+            uiContext->FlushCanvasDrawingNodeBuffers();
+        }
+#endif
         captureConfig.isSync = true;
     }
     captureConfig.uiCaptureInRangeParam.endNodeId = endNode->GetId();
