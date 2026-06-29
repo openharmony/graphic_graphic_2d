@@ -95,23 +95,23 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateCanvasDrawingRenderNodeDra
 
 #ifdef RS_ENABLE_VK
 /**
- * @tc.name: ReleaseSurfaceVk
- * @tc.desc: Test If ReleaseSurfaceVk Can Run
+ * @tc.name: ReleaseSurfaceVK
+ * @tc.desc: Test If ReleaseSurfaceVK Can Run
  * @tc.type: FUNC
  * @tc.require: issueIB2B14
  */
-HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseSurfaceVkTest, TestSize.Level1)
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseSurfaceVKTest, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(0, rsContext->weak_from_this());
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     int width = 10;
     int height = 10;
-    auto res = drawable->ReleaseSurfaceVk(width, height);
+    auto res = drawable->ReleaseSurfaceVK(width, height);
     EXPECT_TRUE(res);
 
     drawable->backendTexture_ = Drawing::BackendTexture(false);
-    res = drawable->ReleaseSurfaceVk(width, height);
+    res = drawable->ReleaseSurfaceVK(width, height);
     EXPECT_TRUE(res);
 }
 #endif
@@ -1070,7 +1070,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest001, 
     ASSERT_EQ(ret, RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled() &&
         NodeMemReleaseParam::IsCanvasDrawingNodeDMAMemEnabled());
     drawable->backendTexture_ = {};
-    ret = drawable->ReleaseSurfaceVk(100, 100);
+    ret = drawable->ReleaseSurfaceVK(100, 100);
     ASSERT_EQ(ret, true);
     Drawing::Canvas drawingCanvas;
     drawingCanvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
@@ -1103,7 +1103,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest002, 
     drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(2);
     drawable->renderParams_->SetCanvasDrawingResetSurfaceIndex(2);
     drawable->backendTexture_ = {};
-    ret = drawable->ReleaseSurfaceVk(100, 100);
+    ret = drawable->ReleaseSurfaceVK(100, 100);
     ASSERT_EQ(ret, true);
     drawable->ResetSurface();
     ASSERT_EQ(drawable->surface_, nullptr);
