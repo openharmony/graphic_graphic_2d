@@ -73,7 +73,7 @@ std::shared_ptr<RSCanvasNode> CreateEffectChildNode(const size_t i, const size_t
     }
     effectChildNode->SetBounds(x, y, sizeX, sizeY);
     effectChildNode->SetFrame(x, y, sizeX, sizeY);
-    effectChildNode->SetCoverageNGShader(particleCircularHalo);
+    effectChildNode->SetOverlayNGShader(particleCircularHalo);
     effectNode->AddChild(effectChildNode);
     return effectChildNode;
 }

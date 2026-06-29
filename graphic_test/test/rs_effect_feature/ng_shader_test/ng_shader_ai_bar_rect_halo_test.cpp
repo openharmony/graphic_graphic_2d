@@ -103,7 +103,7 @@ private:
         const size_t y = (i / columnCount) * sizeY;
 
         auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, { x, y, sizeX, sizeY });
-        testNode->SetCoverageNGShader(aiBarRectHalo);
+        testNode->SetOverlayNGShader(aiBarRectHalo);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }

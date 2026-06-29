@@ -1813,9 +1813,7 @@ public:
     void SetIlluminatedType(uint32_t illuminatedType);
 
     void SetBloom(float bloomIntensity);
-    
-    void SetCoverageNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader);
-    
+        
     void SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader);
 
     void SetBrightness(float brightness);
