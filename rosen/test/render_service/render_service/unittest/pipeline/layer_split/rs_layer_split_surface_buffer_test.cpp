@@ -31,6 +31,10 @@ using namespace OHOS::Rosen;
 namespace OHOS::Rosen {
 namespace {
 
+constexpr int32_t BUFFER_DEFAULT_WIDTH = 100;
+constexpr int32_t BUFFER_DEFAULT_HEIGHT = 100;
+constexpr int32_t kBusyWaitTimeout = 10000;
+
 class RSSplitSurfaceBufferTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
@@ -38,7 +42,8 @@ public:
 
     void SetUp() override
     {
-        splitBuffer_ = std::make_unique<RSSplitSurfaceBuffer>("test_layer", 0, 100, 100);
+        splitBuffer_ = std::make_unique<RSSplitSurfaceBuffer>("test_layer", 0,
+            BUFFER_DEFAULT_WIDTH, BUFFER_DEFAULT_HEIGHT);
     }
 
     void TearDown() override
@@ -147,24 +152,36 @@ HWTEST_F(RSSplitSurfaceBufferTest, PreAllocateBuffer005_BufferRequestConfig, Tes
     splitBuffer_->bufferConfig_.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
     splitBuffer_->isHebc_ = false;
     splitBuffer_->PreAllocateBuffer();
-    while (splitBuffer_->isPreAllocInProgress_.load()) {
+    int timeoutCount = 0;
+    while (splitBuffer_->isPreAllocInProgress_.load() && timeoutCount < kBusyWaitTimeout) {
         std::this_thread::yield();
+        ++timeoutCount;
     }
+    ASSERT_LT(timeoutCount, kBusyWaitTimeout);
     splitBuffer_->isHebc_ = true;
     splitBuffer_->PreAllocateBuffer();
-    while (splitBuffer_->isPreAllocInProgress_.load()) {
+    timeoutCount = 0;
+    while (splitBuffer_->isPreAllocInProgress_.load() && timeoutCount < kBusyWaitTimeout) {
         std::this_thread::yield();
+        ++timeoutCount;
     }
+    ASSERT_LT(timeoutCount, kBusyWaitTimeout);
     splitBuffer_->bufferConfig_.format = GRAPHIC_PIXEL_FMT_RGBA_1010108;
     splitBuffer_->PreAllocateBuffer();
-    while (splitBuffer_->isPreAllocInProgress_.load()) {
+    timeoutCount = 0;
+    while (splitBuffer_->isPreAllocInProgress_.load() && timeoutCount < kBusyWaitTimeout) {
         std::this_thread::yield();
+        ++timeoutCount;
     }
+    ASSERT_LT(timeoutCount, kBusyWaitTimeout);
     splitBuffer_->bufferConfig_.format = 1;
     splitBuffer_->PreAllocateBuffer();
-    while (splitBuffer_->isPreAllocInProgress_.load()) {
+    timeoutCount = 0;
+    while (splitBuffer_->isPreAllocInProgress_.load() && timeoutCount < kBusyWaitTimeout) {
         std::this_thread::yield();
+        ++timeoutCount;
     }
+    ASSERT_LT(timeoutCount, kBusyWaitTimeout);
     splitBuffer_->isPreAllocInProgress_.store(originInProgress);
     splitBuffer_->surfaceCreated_ = originCreated;
 }

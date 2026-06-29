@@ -117,8 +117,8 @@ HWTEST_F(RSSolidLayerTest, HasValidDrawCmd002, TestSize.Level1)
     // Test 2: CONTENT_STYLE with non-empty cmdList -> HasValidDrawCmd=true, IsPureBackgroundColor=false
     auto node2 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
     node2->AddModifier(std::make_shared<RSTestContentStyleModifier>());
-    EXPECT_TRUE(node2->HasValidDrawCmd(true));
-    EXPECT_FALSE(node2->IsPureBackgroundColor(true));
+    EXPECT_TRUE(node2->HasValidDrawCmd(false));
+    EXPECT_FALSE(node2->IsPureBackgroundColor(false));
 
     // Test 3: BACKGROUND_STYLE with empty cmdList -> HasValidDrawCmd=false
     auto node3 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);

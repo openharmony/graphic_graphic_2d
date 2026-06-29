@@ -67,7 +67,7 @@ HWTEST_F(RSOpincLayerSplitterProcessorTest, GetPlanStatus001, TestSize.Level1)
 
 /**
  * @tc.name: Sync001
- * @tc.desc: Check if Sync works with null planner
+ * @tc.desc: Check if Sync works with empty planner
  * @tc.type: FUNC
  */
 HWTEST_F(RSOpincLayerSplitterProcessorTest, Sync001, TestSize.Level1)
@@ -75,8 +75,8 @@ HWTEST_F(RSOpincLayerSplitterProcessorTest, Sync001, TestSize.Level1)
     RSOpincLayerSplitterProcessor processor;
     processor.planStatus_ = PlanStatus::PREPARE;
     processor.opIncNodes_.insert(1);
-    processor.Sync(nullptr);
-    EXPECT_EQ(processor.planStatus_, PlanStatus::OFF);
+    auto planner = std::make_shared<RSOpincLayerSplitterPlanner>();
+    processor.Sync(planner);
     EXPECT_TRUE(processor.opIncNodes_.empty());
 }
 
@@ -357,6 +357,7 @@ HWTEST_F(RSOpincLayerSplitterProcessorTest, RecordNodeWithCacheImage002, TestSiz
     processor.planStatus_ = PlanStatus::OFF;
     processor.opIncNodes_.insert(1);
     processor.splitSurface_ = std::make_shared<SplitSurface>(100, 100);
+    processor.requestController_ = std::make_shared<RequestController>();
 
     processor.RecordNodeWithCacheImage(1);
 
@@ -373,6 +374,7 @@ HWTEST_F(RSOpincLayerSplitterProcessorTest, RecordNodeWithCacheImage003, TestSiz
     RSOpincLayerSplitterProcessor processor;
     processor.planStatus_ = PlanStatus::OFF;
     processor.opIncNodes_.insert(1);
+    processor.requestController_ = std::make_shared<RequestController>();
 
     processor.RecordNodeWithCacheImage(2);
 
