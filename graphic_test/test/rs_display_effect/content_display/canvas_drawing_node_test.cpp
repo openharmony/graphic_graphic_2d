@@ -104,7 +104,9 @@ GRAPHIC_TEST(CanvasDrawingNodeTest, CONTENT_DISPLAY_TEST, CanvasDrawingNode_Draw
     auto modifier1 = std::make_shared<TestContentStyleModifier>();
     testNode1->AddModifier(modifier1);
     GetRootNode()->AddChild(testNode1);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
     uiContext->FlushCanvasDrawingNodeBuffers();
+#endif
     RegisterNode(testNode1);
  
     Media::InitializationOptions opts;
