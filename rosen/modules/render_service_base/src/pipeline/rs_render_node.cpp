@@ -2878,20 +2878,24 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
             }
         }
     };
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
     RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
-    auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
-    if (filterDrawable != nullptr) {
-        auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
-        auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
-        bool regionChanged = (properties.GetFilter() && snapshotRegion != lastSnapshotRegion) &&
-            !IsForceClearOrUseFilterCache(filterDrawable);
-        RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] compositing UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
-            GetId(), lastSnapshotRegion.ToString().c_str(), snapshotRegion.ToString().c_str());
-        if (regionChanged) {
-            MarkFilterStatusChanged(filterDrawable, true, true);
+    auto regionChangeCheckFunc = [this](RSDrawableSlot slot) {
+        auto filterDrawable = GetFilterDrawable(slot);
+        if (filterDrawable != nullptr) {
+            auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
+            auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
+            bool regionChanged = snapshotRegion != lastSnapshotRegion &&
+                !IsForceClearOrUseFilterCache(filterDrawable);
+            RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] drawable:%d UpdateFilterCacheWithSelfDirty"
+                " lastRect:%s, currRegion:%s", GetId(), static_cast<int>(slot), lastSnapshotRegion.ToString().c_str(),
+                snapshotRegion.ToString().c_str());
+            if (regionChanged) {
+                MarkFilterStatusChanged(filterDrawable, slot == RSDrawableSlot::COMPOSITING_FILTER, true);
+            }
         }
-    }
+    };
+    regionChangeCheckFunc(RSDrawableSlot::MATERIAL_FILTER);
+    regionChangeCheckFunc(RSDrawableSlot::COMPOSITING_FILTER);
 #endif
 }
 
