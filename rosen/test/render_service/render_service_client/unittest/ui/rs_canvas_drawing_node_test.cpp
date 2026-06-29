@@ -356,7 +356,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, SetNodeStateTest001, TestSize.Level1)
 {
     auto drawingNode = RSCanvasDrawingNode::Create(true);
     bool res = drawingNode->SetNodeState(RSNodeState::ACTIVE);
-    EXPECT_EQ(res, false);
+    EXPECT_EQ(res, RSSystemProperties::GetHybridRenderCanvasEnabled());
 }
  
 /**
