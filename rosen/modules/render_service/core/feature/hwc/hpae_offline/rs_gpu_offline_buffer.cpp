@@ -79,7 +79,7 @@ bool NativeWindowBufferInfo::Marshalling(Parcel &parcel) const
     return true;
 }
 
-NativeWindowBufferInfo NativeWindowBufferInfo::Unmarshalling(Parcel &parcel, bool autoSeq)
+OHOS::sptr<NativeWindowBufferInfo> NativeWindowBufferInfo::Unmarshalling(Parcel &parcel, bool autoSeq)
 {
     MessageParcel* msgParcel = reinterpret_cast<MessageParcel*>(&parcel);
     if (msgParcel == nullptr) {
