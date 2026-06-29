@@ -407,7 +407,7 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node == nullptr) {
-        RS_TRACE_NAME_FMT("MarkLayer fail node not found isLayer:%d id:%llu", isLayer, node->GetId());
+        RS_TRACE_NAME_FMT("MarkLayer fail node not found isLayer:%d id:%llu", isLayer, nodeId);
         return;
     }
     // only support canvas node mark
