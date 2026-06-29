@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -15,37 +15,31 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-module_output_path = "graphic_2d/graphic_2d"
+module_out_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DrawImageFuzzTest") {
-  module_out_path = module_output_path
-  fuzz_config_file = "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/image/drawimage_fuzzer"
-
-  sources = [
-    "get_object.h",
-    "draw_image_fuzzer.cpp"
-  ]
-
-  cflags = [
-    "-g",
-    "-O0",
-    "-Wno-unused-variable",
-    "-fno-omit-frame-pointer",
-  ]
+ohos_fuzztest("StaticFactoryFuzzTest") {
+  module_out_path = module_out_path
+  fuzz_config_file = "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/draw/staticfactory_fuzzer"
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
   ]
-
-  external_deps = [ "image_framework:image_native" ]
-  external_deps += [ "bounds_checking_function:libsec_shared" ]
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
   ]
+  sources = [
+    "get_object.h",
+    "static_factory_fuzzer.cpp",
+  ]
+
+  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -55,10 +49,9 @@ ohos_fuzztest("DrawImageFuzzTest") {
 group("fuzztest") {
   testonly = true
   deps = []
-
   deps += [
     # deps file
-    ":DrawImageFuzzTest",
+    ":StaticFactoryFuzzTest",
   ]
 }
 ###############################################################################

@@ -141,6 +141,19 @@ void BrushFuzzTestInner04(Brush& brush)
     };
     RectF rect2 {GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>()};
     brush.ComputeFastBounds(rect, &rect2);
+    auto dataVal = std::make_shared<Data>();
+    const size_t maxLength = 500;
+    size_t length = GetObject<size_t>() % maxLength + 1;
+    auto dataText = std::make_unique<char[]>(length);
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithCopy(dataText.get(), length);
+    std::shared_ptr<Blender> blender2 = Blender::CreateWithBlendMode(BlendMode::SRC);
+    if (blender2 != nullptr) {
+        blender2->Deserialize(dataVal);
+    }
 }
 
 /**

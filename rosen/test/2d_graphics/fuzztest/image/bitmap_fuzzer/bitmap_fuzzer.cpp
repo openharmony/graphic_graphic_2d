@@ -113,8 +113,8 @@ bool BitmapFuzzTest003(const uint8_t* data, size_t size)
     }
 
     Bitmap bitmap;
-    int imageInfoWidth = GetObject<int>();
-    int imageInfoHeight = GetObject<int>();
+    int imageInfoWidth = GetObject<int>() % MAX_ARRAY_SIZE;
+    int imageInfoHeight = GetObject<int>() % MAX_ARRAY_SIZE;
     uint32_t colorType = GetObject<uint32_t>();
     uint32_t alphaType = GetObject<uint32_t>();
     ImageInfo imageInfo = ImageInfo(imageInfoWidth, imageInfoHeight,
@@ -190,8 +190,8 @@ bool BitmapFuzzTest005(const uint8_t* data, size_t size)
 
     Bitmap bitmap;
     Bitmap dst;
-    int srcLeft = GetObject<int>();
-    int srcTop = GetObject<int>();
+    int srcLeft = GetObject<int>() % MAX_ARRAY_SIZE;
+    int srcTop = GetObject<int>() % MAX_ARRAY_SIZE;
     bitmap.CopyPixels(dst, srcLeft, srcTop);
     bitmap.SetImmutable();
     bitmap.IsImmutable();
@@ -227,8 +227,8 @@ bool BitmapFuzzTest006(const uint8_t* data, size_t size)
     BitmapFormat format;
     bitmap.GetFormat();
     bitmap.SetFormat(format);
-    int imageInfoWidth = GetObject<int>();
-    int imageInfoHeight = GetObject<int>();
+    int imageInfoWidth = GetObject<int>() % MAX_ARRAY_SIZE;
+    int imageInfoHeight = GetObject<int>() % MAX_ARRAY_SIZE;
     uint32_t colorType = GetObject<uint32_t>();
     uint32_t alphaType = GetObject<uint32_t>();
     ImageInfo imageInfo = ImageInfo(imageInfoWidth, imageInfoHeight,
@@ -254,8 +254,8 @@ bool BitmapFuzzTest007(const uint8_t* data, size_t size)
     }
 
     Bitmap bitmap;
-    int imageInfoWidth = GetObject<int>();
-    int imageInfoHeight = GetObject<int>();
+    int imageInfoWidth = GetObject<int>() % MAX_ARRAY_SIZE;
+    int imageInfoHeight = GetObject<int>() % MAX_ARRAY_SIZE;
     uint32_t colorType = GetObject<uint32_t>();
     uint32_t alphaType = GetObject<uint32_t>();
     ImageInfo imageInfo = ImageInfo(imageInfoWidth, imageInfoHeight,
