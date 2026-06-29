@@ -2345,8 +2345,11 @@ bool WebGLRenderingContextBaseImpl::CheckAttachment(napi_env env, GLenum attachm
                 attachment > WebGLRenderingContextBase::COLOR_ATTACHMENT0 +
                 static_cast<GLenum>(GetMaxColorAttachments())) {
                 return false;
+            } else {
+                return true;
             }
         }
+        return false;
     }
     return true;
 }

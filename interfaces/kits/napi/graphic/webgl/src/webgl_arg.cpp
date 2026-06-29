@@ -920,7 +920,7 @@ bool BufferExt::GetBufferExt(napi_env env, napi_value offsetArg, napi_value lenA
     bool succ = false;
     if (!NVal(env, offsetArg).IsNull()) {
         tie(succ, srcByteOffset) = NVal(env, offsetArg).ToInt64();
-        if (!succ || srcByteOffset < 0) {
+        if (!succ || srcByteOffset < 0 || srcByteOffset > std::numeric_limits<GLuint>::max()) {
             return false;
         }
         offset = static_cast<GLuint>(srcByteOffset);
@@ -928,7 +928,7 @@ bool BufferExt::GetBufferExt(napi_env env, napi_value offsetArg, napi_value lenA
 
     if (!NVal(env, lenArg).IsNull()) {
         tie(succ, srcByteOffset) = NVal(env, lenArg).ToInt64();
-        if (!succ || srcByteOffset < 0) {
+        if (!succ || srcByteOffset < 0 || srcByteOffset > std::numeric_limits<GLuint>::max()) {
             return false;
         }
         length = static_cast<GLuint>(srcByteOffset);
