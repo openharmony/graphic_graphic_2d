@@ -110,7 +110,7 @@ public:
  * @tc.type: FUNC
  * @tc.require: issue23513
  */
-GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter01)
+GRAPHIC_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter01)
 {
     auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
@@ -145,7 +145,6 @@ GRAPHIC_N_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter01)
     DoAnimation(subNode, DEFAULT_TRANSLATE);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
