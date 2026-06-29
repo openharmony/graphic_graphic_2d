@@ -30,6 +30,8 @@ public:
     void Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles,
         std::vector<std::shared_ptr<RSImage>>& imageVector);
     void UpdateParticle(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
+    void Warmup(int64_t totalTimeNs, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles,
+        std::vector<std::shared_ptr<RSImage>>& imageVector);
     bool IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
     void UpdateEmitter(const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams);
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
@@ -53,8 +55,18 @@ public:
     {
         return particleVelocityFields_;
     }
+    bool HasAnyField() const
+    {
+        return (particleFields_ != nullptr && particleFields_->Count() > 0) ||
+               (particleNoiseFields_ != nullptr && particleNoiseFields_->GetFieldCount() > 0) ||
+               (particleRippleFields_ != nullptr && particleRippleFields_->GetRippleFieldCount() > 0) ||
+               (particleVelocityFields_ != nullptr && particleVelocityFields_->GetVelocityFieldCount() > 0);
+    }
 
 private:
+    void WarmupFields(int64_t totalTimeNs);
+    void WarmupEmitter(const std::shared_ptr<RSRenderParticleEmitter>& emitter, int64_t totalTimeNs,
+        std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_ = {};
     std::vector<std::shared_ptr<RSRenderParticleEmitter>> emitters_ = {};
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_;

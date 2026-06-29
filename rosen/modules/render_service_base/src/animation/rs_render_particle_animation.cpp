@@ -36,35 +36,6 @@ void RSRenderParticleAnimation::DumpAnimationInfo(std::string& out) const
     out.append("Type:RSRenderParticleAnimation");
 }
 
-bool RSRenderParticleAnimation::IsInfiniteEmit() const
-{
-    constexpr int INFINITE_PARTICLE_COUNT = -1;
-    constexpr int64_t INFINITE_LIFETIME_MS = -1;
-    for (const auto& p : particlesRenderParams_) {
-        if (p == nullptr) {
-            continue;
-        }
-        if (p->GetParticleCount() == INFINITE_PARTICLE_COUNT) {
-            return true;
-        }
-        if (p->emitterConfig_.lifeTime_.start_ == INFINITE_LIFETIME_MS &&
-            p->emitterConfig_.lifeTime_.end_ == INFINITE_LIFETIME_MS) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void RSRenderParticleAnimation::SoftClearKeepParams()
-{
-    renderParticleVector_.renderParticleVector_.clear();
-    renderParticleVector_.imageVector_.clear();
-    if (particleSystem_ != nullptr) {
-        particleSystem_->ClearEmitter();
-    }
-    isDormant_ = true;
-}
-
 bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom, bool isOnTree)
 {
     RS_TRACE_NAME("RSRenderParticleAnimation::Animate");
@@ -72,41 +43,66 @@ bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime,
     auto target = GetTarget();
     if (!target) {
         return true;
-    } else if (!target->GetRenderProperties().GetVisible()) {
-        if (auto modifierNG = property_->GetModifierNG().lock()) {
-            target->RemoveModifierNG(modifierNG->GetId());
+    }
+    if (!IsRunning()) {
+        if (IsFinished()) {
+            RemoveDrawModifier(target);
+            return true;
         }
+        return false;
+    }
+    if (!target->GetRenderProperties().GetVisible()) {
+        RemoveDrawModifier(target);
         return true;
     }
-
-    if (isDormant_) {
-        particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
-        animationFraction_.SetLastFrameTime(time);
-        isDormant_ = false;
+    if (GetNeedUpdateStartTime()) {
+        SetStartTime(time);
+        return IsFinished();
     }
 
+    FillRebuildProgress();
     int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
     animationFraction_.SetLastFrameTime(time);
+    runningTimeNs_ += deltaTime;
     if (particleSystem_ != nullptr) {
         particleSystem_->Emit(
             deltaTime, renderParticleVector_.renderParticleVector_, renderParticleVector_.imageVector_);
         particleSystem_->UpdateParticle(deltaTime, renderParticleVector_.renderParticleVector_);
     }
-    auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_);
-    if (property) {
+    if (auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_)) {
         property->Set(renderParticleVector_);
     }
 
     if (particleSystem_ == nullptr || particleSystem_->IsFinish(renderParticleVector_.renderParticleVector_)) {
-        if (!target) {
-            return true;
-        }
-        if (auto modifierNG = property_->GetModifierNG().lock()) {
-            target->RemoveModifierNG(modifierNG->GetId());
-        }
+        RemoveDrawModifier(target);
         return true;
     }
     return false;
+}
+
+void RSRenderParticleAnimation::RemoveDrawModifier(RSRenderNode* target)
+{
+    if (target == nullptr) {
+        return;
+    }
+    if (auto modifierNG = property_->GetModifierNG().lock()) {
+        target->RemoveModifierNG(modifierNG->GetId());
+    }
+}
+
+void RSRenderParticleAnimation::FillRebuildProgress()
+{
+    if (rebuildRunningTimeNs_ <= 0 || particleSystem_ == nullptr) {
+        return;
+    }
+    renderParticleVector_.renderParticleVector_.clear();
+    particleSystem_->Warmup(
+        rebuildRunningTimeNs_, renderParticleVector_.renderParticleVector_, renderParticleVector_.imageVector_);
+    runningTimeNs_ = rebuildRunningTimeNs_;
+    rebuildRunningTimeNs_ = 0;
+    if (auto property = std::static_pointer_cast<RSRenderProperty<RSRenderParticleVector>>(property_)) {
+        property->Set(renderParticleVector_);
+    }
 }
 
 void RSRenderParticleAnimation::UpdateEmitter(const std::vector<std::shared_ptr<EmitterUpdater>>& emitterUpdaters)
@@ -262,6 +258,26 @@ bool RSRenderParticleAnimation::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("multi-instance, RSRenderParticleAnimation::Marshalling, write token failed");
         return false;
     }
+    if (!parcel.WriteInt32(GetRepeatCount())) {
+        ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write repeatCount failed");
+        return false;
+    }
+    if (!parcel.WriteInt64(rebuildRunningTimeNs_)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write rebuildRunningTimeNs failed");
+        return false;
+    }
+    if (!RSMarshallingHelper::Marshalling(parcel, particleNoiseFields_)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write particleNoiseFields failed");
+        return false;
+    }
+    if (!RSMarshallingHelper::Marshalling(parcel, particleRippleFields_)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write particleRippleFields failed");
+        return false;
+    }
+    if (!RSMarshallingHelper::Marshalling(parcel, particleVelocityFields_)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write particleVelocityFields failed");
+        return false;
+    }
     return true;
 }
 
@@ -296,6 +312,33 @@ bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
         return false;
     }
     SetToken(token);
+    int32_t repeatCount = 1;
+    if (!parcel.ReadInt32(repeatCount)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling repeatCount failed");
+        return false;
+    }
+    SetRepeatCount(repeatCount);
+    int64_t rebuildRunningTimeNs = 0;
+    if (!parcel.ReadInt64(rebuildRunningTimeNs)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling rebuildRunningTimeNs failed");
+        return false;
+    }
+    rebuildRunningTimeNs_ = rebuildRunningTimeNs;
+    if (!(RSMarshallingHelper::Unmarshalling(parcel, particleNoiseFields_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, particleRippleFields_) &&
+            RSMarshallingHelper::Unmarshalling(parcel, particleVelocityFields_))) {
+        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling fields failed");
+        return false;
+    }
+    if (particleNoiseFields_ != nullptr) {
+        particleSystem_->UpdateNoiseField(particleNoiseFields_);
+    }
+    if (particleRippleFields_ != nullptr) {
+        particleSystem_->UpdateRippleField(particleRippleFields_);
+    }
+    if (particleVelocityFields_ != nullptr) {
+        particleSystem_->UpdateVelocityField(particleVelocityFields_);
+    }
     return true;
 }
 

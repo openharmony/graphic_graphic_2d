@@ -50,6 +50,7 @@
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_implicit_animator.h"
+#include "animation/rs_particle_animation.h"
 #include "animation/rs_property_animation.h"
 #include "animation/rs_render_particle_animation.h"
 #include "command/rs_base_node_command.h"
@@ -1578,36 +1579,35 @@ void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyT
 // Set ParticleParams
 void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, const std::function<void()>& finishCallback)
 {
+    RemoveParticleAnimations();
+
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
     for (size_t i = 0; i < particleParams.size(); i++) {
         particlesRenderParams.push_back(particleParams[i].SetParamsToRenderParticle());
     }
 
     SetParticleDrawRegion(particleParams);
-    auto property = std::make_shared<RSProperty<int>>();
-    auto propertyId = property->GetId();
-    auto uiAnimation = std::make_shared<RSDummyAnimation>(rsUIContext_);
-    auto animationId = uiAnimation->GetId();
-    AddAnimation(uiAnimation);
-    if (finishCallback != nullptr) {
-        uiAnimation->SetFinishCallback(std::make_shared<AnimationFinishCallback>(finishCallback));
-    }
-    auto animation =
-        std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
-    // set token to RSRenderParticleAnimation
-    if (rsUIContext_ != nullptr) {
-        animation->SetParticleAnimationToken(rsUIContext_->GetToken());
-    } else {
-        ROSEN_LOGE("multi-instance, RSNode [%{public}" PRIu64 "] without RSUIContext "
-            "when creating particle animation [%{public}" PRIu64 "]", GetId(), animationId);
-    }
     ModifierId modifierId = ModifierNG::RSModifier::GenerateModifierId();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticleNG>(GetId(), modifierId, animation);
-    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-    if (NeedForcedSendToRemote()) {
-        std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSAnimationCreateParticleNG>(GetId(), modifierId, animation);
-        AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+    auto animation = std::make_shared<RSParticleAnimation>(rsUIContext_, std::move(particlesRenderParams), modifierId);
+    if (finishCallback != nullptr) {
+        animation->SetFinishCallback(finishCallback);
+    }
+    AddAnimation(animation);
+}
+
+void RSNode::RemoveParticleAnimations()
+{
+    std::vector<std::shared_ptr<RSAnimation>> particleAnimations;
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        for (const auto& [animationId, animation] : animations_) {
+            if (animation != nullptr && animation->IsParticleAnimation()) {
+                particleAnimations.emplace_back(animation);
+            }
+        }
+    }
+    for (const auto& animation : particleAnimations) {
+        RemoveAnimationInner(animation);
     }
 }
 

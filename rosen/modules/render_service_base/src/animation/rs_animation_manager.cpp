@@ -165,6 +165,10 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
                 animation->GetAnimationId(), animation->GetTargetId(), GetAnimationPid(), nodeIsOnTheTree,
                 static_cast<int>(abilityState));
             hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
+            if (animation->GetType() == RSRenderAnimationType::PARTICLE_ANIMATION &&
+                !animation->GetNeedUpdateStartTime()) {
+                animation->needUpdateStartTime_ = true;
+            }
             return false;
         }
         // finite iteration animation in the background finished immediately
@@ -254,32 +258,35 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
 void RSAnimationManager::DestroyInRender(NodeId nodeId, const std::weak_ptr<RSContext>& context)
 {
     constexpr int infiniteRepeatCount = -1;
-    std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>> dormantParticles;
     for (auto& [id, animation] : animations_) {
         if (!animation) {
-            continue;
-        }
-        if (animation->GetType() == RSRenderAnimationType::PARTICLE_ANIMATION) {
-            auto pa = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
-            if (pa->IsInfiniteEmit()) {
-                pa->SoftClearKeepParams();
-                dormantParticles[id] = std::move(animation);
-            }
             continue;
         }
         // Only infinite loop animations need to be rebuilt, normal animations will finish when going to background
         if (animation->GetRepeatCount() != infiniteRepeatCount) {
             continue;
         }
-        float currentFraction = animation->GetCurrentFraction();
-        bool isReverseCycle = animation->GetCurrentIsReverseCycle();
+        bool isParticle = (animation->GetType() == RSRenderAnimationType::PARTICLE_ANIMATION);
+        float currentFraction = isParticle ? static_cast<float>(
+            std::static_pointer_cast<RSRenderParticleAnimation>(animation)->GetRunningTimeNs())
+            : animation->GetCurrentFraction();
+        bool isReverseCycle = isParticle ? false : animation->GetCurrentIsReverseCycle();
         RS_TRACE_NAME_FMT("DestroyInRender animate[%llu] fraction[%f] isReverseCycle[%d]", animation->GetAnimationId(),
             currentFraction, static_cast<int>(isReverseCycle));
         std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationDestroyInRender>(animation->GetTargetId(),
             animation->GetAnimationId(), animation->GetToken(), currentFraction, isReverseCycle);
         RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animation->GetAnimationId()), command);
+        if (isParticle) {
+            auto target = animation->GetTarget();
+            auto property = target ? target->GetProperty(animation->GetPropertyId()) : nullptr;
+            auto modifierNG = property ? property->GetModifierNG().lock() : nullptr;
+            if (modifierNG != nullptr) {
+                target->RemoveModifierNG(modifierNG->GetId());
+            }
+            animation->Detach();
+        }
     }
-    animations_ = std::move(dormantParticles);
+    animations_.clear();
     particleAnimations_.clear();
     if (auto ctx = context.lock()) {
         ctx->UnregisterAnimatingRenderNode(nodeId);

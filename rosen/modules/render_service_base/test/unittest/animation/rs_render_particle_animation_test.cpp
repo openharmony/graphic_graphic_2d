@@ -764,6 +764,66 @@ HWTEST_F(RSRenderParticleAnimationTest, MarshallingWithToken002, TestSize.Level1
 }
 
 /**
+ * @tc.name: MarshallingRebuildFields001
+ * @tc.desc: repeatCount and the carried rebuild running time survive a Marshalling/Unmarshalling
+ *           round-trip, so the render->client->render rebuild contract is preserved.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, MarshallingRebuildFields001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingRebuildFields001 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+
+    constexpr int infiniteRepeatCount = -1;
+    constexpr int64_t carriedRunningTimeNs = 1234500000;
+    renderParticleAnimation->SetRepeatCount(infiniteRepeatCount);
+    renderParticleAnimation->SetRebuildRunningTimeNs(carriedRunningTimeNs);
+
+    Parcel parcel;
+    ASSERT_TRUE(renderParticleAnimation->Marshalling(parcel));
+
+    auto unmarshalled = RSRenderParticleAnimation::Unmarshalling(parcel);
+    ASSERT_TRUE(unmarshalled != nullptr);
+    EXPECT_EQ(unmarshalled->GetRepeatCount(), infiniteRepeatCount);
+    EXPECT_EQ(unmarshalled->GetRebuildRunningTimeNs(), carriedRunningTimeNs);
+    delete unmarshalled;
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingRebuildFields001 end";
+}
+
+/**
+ * @tc.name: MarshallingRebuildFields002
+ * @tc.desc: A force field set on the animation survives a Marshalling/Unmarshalling round-trip and
+ *           is seeded into the rebuilt particle system, so the rebuild warmup runs with the field
+ *           present instead of relying on a later re-entry.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, MarshallingRebuildFields002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingRebuildFields002 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+
+    auto rippleFields = std::make_shared<ParticleRippleFields>();
+    rippleFields->AddRippleField(std::make_shared<ParticleRippleField>(Vector2f { 0.f, 0.f }, 100.f, 50.f, 200.f));
+    renderParticleAnimation->UpdateRippleField(rippleFields);
+
+    Parcel parcel;
+    ASSERT_TRUE(renderParticleAnimation->Marshalling(parcel));
+
+    auto unmarshalled = RSRenderParticleAnimation::Unmarshalling(parcel);
+    ASSERT_TRUE(unmarshalled != nullptr);
+    auto system = unmarshalled->GetParticleSystem();
+    ASSERT_TRUE(system != nullptr);
+    EXPECT_TRUE(system->HasAnyField());
+    EXPECT_EQ(system->GetParticleRippleFields()->GetRippleFieldCount(), 1u);
+    delete unmarshalled;
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingRebuildFields002 end";
+}
+
+/**
  * @tc.name: ParseParamTokenFail001
  * @tc.desc: Verify Unmarshalling fails with empty parcel
  * @tc.type: FUNC
