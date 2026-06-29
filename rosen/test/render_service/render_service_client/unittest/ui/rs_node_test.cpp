@@ -7024,7 +7024,7 @@ HWTEST_F(RSNodeTest, SetFunTest, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetOverlayNGShader, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    std::shared_ptr<RSNGShaderBase> overlayShader = std::make_shared<RSNGShaderBase>();
+    std::shared_ptr<RSNGShaderBase> overlayShader = RSNGShaderBase::Create(RSNGEffectType::AIBAR_RECT_HALO);
     rsNode->SetOverlayNGShader(overlayShader);
     EXPECT_NE(overlayShader, nullptr);
 }

@@ -66,7 +66,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnGenerateAndOnUpdateTest001, Te
 HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnGenerateAndOnUpdateTest002, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE)();
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     renderNode.renderProperties_.SetOverlayNGShader(shader);
     
     std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> overlayDrawable =
@@ -87,7 +87,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnGenerateAndOnUpdateTest002, Te
 HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateTest001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE)();
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     renderNode.renderProperties_.SetOverlayNGShader(shader);
     
     std::shared_ptr<DrawableV2::RSOverlayNGShaderDrawable> overlayDrawable =
@@ -108,7 +108,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateTest001, TestSize.Level1
 HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnUpdateTest002, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE)();
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     renderNode.renderProperties_.SetOverlayNGShader(shader);
     renderNode.renderProperties_.SetCornerRadius(Vector4f(5.0f, 5.0f, 5.0f, 5.0f));
     
@@ -150,7 +150,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest001, TestSize.Level1)
         std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
     EXPECT_NE(overlayDrawable, nullptr);
     
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE)();
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     overlayDrawable->stagingShader_ = shader;
     overlayDrawable->needSync_ = true;
     overlayDrawable->stagingDrawRect_ = RectF(0, 0, 100, 100);
@@ -173,7 +173,7 @@ HWTEST_F(RSPropertyDrawableOverlayNGShaderTest, OnSyncTest002, TestSize.Level1)
         std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
     EXPECT_NE(overlayDrawable, nullptr);
     
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE)();
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     overlayDrawable->stagingShader_ = shader;
     overlayDrawable->needSync_ = true;
     overlayDrawable->stagingDrawRect_ = RectF(10, 10, 50, 50);

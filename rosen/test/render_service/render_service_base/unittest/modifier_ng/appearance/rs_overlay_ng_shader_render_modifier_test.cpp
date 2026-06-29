@@ -81,7 +81,7 @@ HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModif
     RSOverlayNGShaderRenderModifier modifier;
     RSProperties properties;
     
-    auto shader = std::make_shared<RSNGRenderShaderBase>();
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     properties.SetOverlayNGShader(shader);
     EXPECT_NE(properties.GetOverlayNGShader(), nullptr);
     
@@ -97,7 +97,7 @@ HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModif
 HWTEST_F(RSOverlayNGShaderRenderModifierNGTypeTest, RSOverlayNGShaderRenderModifierTest004, TestSize.Level1)
 {
     const auto& map = RSOverlayNGShaderRenderModifier::LegacyPropertyApplierMap_;
-    auto it = map.find(RSPropertyType::OVERLAY_NG_SHADER);
+    auto it = map.find(ModifierNG::RSPropertyType::OVERLAY_NG_SHADER);
     EXPECT_NE(it, map.end());
 }
 } // namespace OHOS::Rosen
