@@ -33,6 +33,7 @@ void RSUIDirectorCommandHelper::GoCreate(RSContext& context, NodeId nodeId, pid_
     director = context.GetUIRenderDirector(pid, token);
     if (director == nullptr) {
         ROSEN_LOGE("RSUIDirectorCommandHelper::GoCreate failed to create director for token: %{public}" PRIu64, token);
+        return;
     }
     director->OnStateSync(static_cast<RSUIDirectorLifecycleState>(RSUIDirectorLifecycleState::CREATE));
 }
