@@ -145,7 +145,7 @@ private:
         const std::shared_ptr<RSSurfaceHandler> surfaceHandler, RSSurfaceRenderParams& surfaceParams);
     void ClearContextCache(NodeId nodeId);
 
-    SingleBufferMode GetSingleBufferMode(const std::share_ptr<RSSurfaceHandler> surfaceHandler);
+    SingleBufferMode GetSingleBufferMode(const std::shared_ptr<RSSurfaceHandler> surfaceHandler);
     RSHpaeOfflineProcessSyncer offlineResultSync_;
     RSGPUOfflineThread offlineThread_;
     std::map<NodeId, std::shared_ptr<GPUOfflineContext>> offlineContextCache_;

@@ -344,7 +344,7 @@ bool RSGPUOfflineDevice::UpdateContext(std::shared_ptr<RSSurfaceRenderNode>& sur
     return true;
 }
 
-SingleBufferMode RSGPUfflineDevice::GetSingleBufferMode(
+SingleBufferMode RSGPUOfflineDevice::GetSingleBufferMode(
     const std::shared_ptr<RSSurfaceHandler> surfaceHandler)
 {
     if (!surfaceHandler || !surfaceHandler->GetConsumer()) {
@@ -376,7 +376,7 @@ GPUOfflineDrawParams RSGPUOfflineDevice::CollectDrawParams(std::shared_ptr<RSSur
     drawParams.screenId = surfaceParams.GetScreenId();
     drawParams.hdrPresent = surfaceParams.GetHDRPresent();
     drawParams.gAlpha = static_cast<uint8_t>(std::clamp(surfaceParams.GetLayerInfo().alpha, 0.0f, 1.0f) * RGBA_MAX);
-    drawParams.switchType = GetSingleBufferMode();
+    drawParams.switchType = GetSingleBufferMode(surfaceHandler);
     return drawParams;
 }
 
