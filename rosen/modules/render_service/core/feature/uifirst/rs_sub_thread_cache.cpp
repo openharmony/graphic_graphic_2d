@@ -462,11 +462,10 @@ bool RsSubThreadCache::NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams
     int height = 0;
 
     if (surfaceParams) {
-        auto size = surfaceParams->GetCacheSize();
-        width =  surfaceParams->IsUIFirstLeashAllEnable() ?
-            surfaceParams->GetLocalDrawRect().GetWidth() : size.x_;
+        width = surfaceParams->IsUIFirstLeashAllEnable() ?
+            surfaceParams->GetLocalDrawRect().GetWidth() : surfaceParams->GetCacheSize().x_;
         height = surfaceParams->IsUIFirstLeashAllEnable() ?
-            surfaceParams->GetLocalDrawRect().GetHeight() : size.y_;
+            surfaceParams->GetLocalDrawRect().GetHeight() : surfaceParams->GetCacheSize().y_;
     }
 
     if (cacheSurface_ == nullptr) {
@@ -628,9 +627,9 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
         UpdateDirtyRecordCompletedState(false);
         return;
     }
-    bool isShouldContainShadow = surfaceParams->IsUIFirstLeashAllEnable() &&
+    bool isContainShadow = surfaceParams->IsUIFirstLeashAllEnable() &&
         surfaceParams->IsLeashWindow() && syncUifirstDirtyManager_;
-    if (isShouldContainShadow) {
+    if (isContainShadow) {
         auto screenNodeDrawable = surfaceParams->GetAncestorScreenDrawable().lock();
         if (screenNodeDrawable) {
             auto dirtyManager = screenNodeDrawable->GetSyncDirtyManager();
@@ -659,9 +658,7 @@ void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNode
 
 bool RsSubThreadCache::IsDirtyRecordCompleted()
 {
-    bool isDirtyRecordCompleted = isDirtyRecordCompleted_;
-    isDirtyRecordCompleted_ = false;
-    return isDirtyRecordCompleted;
+    return std::exchange(isDirtyRecordCompleted_, false);
 }
 
 void RsSubThreadCache::UpdateDirtyRecordCompletedState(bool isCompleted)
@@ -743,7 +740,7 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
         RS_LOGD("absRect params is err or out of dispaly");
         return false;
     }
-    bool isContainShadow = surfaceParams->IsUIFirstLeashAllEnable() && surfaceParams->IsLeashWindow();
+    bool isContainShadow = surfaceParams->IsUIFirstLeashAllEnable();
     if (isContainShadow) {
         auto localDrawRect = surfaceParams->GetLocalDrawRect();
         absDrawRect.Move(static_cast<int>(localDrawRect.GetLeft()), static_cast<int>(localDrawRect.GetTop()));
@@ -941,11 +938,10 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
         RSAutoCanvasRestore acr(rscanvas);
         const auto& localDrawRect = uifirstParams->GetLocalDrawRect();
         rscanvas->Translate(-1 * localDrawRect.GetLeft(), -1 * localDrawRect.GetTop());
-        cacheSurfaceRect_ = {localDrawRect.GetLeft(), localDrawRect.GetTop(),
-            localDrawRect.GetWidth(), localDrawRect.GetHeight()};
+        cacheSurfaceRect_ = {localDrawRect.GetLeft(), localDrawRect.GetTop(), bounds.GetWidth(), bounds.GetHeight()};
         auto rect = Drawing::Rect(0, 0, localDrawRect.GetWidth(), localDrawRect.GetHeight());
         surfaceDrawable->DrawAllUifirst(*rscanvas, rect);
-        RS_TRACE_NAME_FMT("RsSubThreadCache::SubDraw DrawAllUifirst");
+        RS_TRACE_NAME_FMT("RsSubThreadCache::SubDraw DrawAllUifirst.");
     } else {
         cacheSurfaceRect_ = {0, 0, bounds.GetWidth(), bounds.GetHeight()};
         surfaceDrawable->DrawUifirstContentChildren(*rscanvas, bounds);

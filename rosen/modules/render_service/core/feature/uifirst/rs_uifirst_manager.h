@@ -221,12 +221,13 @@ public:
     }
 
     bool IsOcclusionEnabled() const;
+    bool IsLayerPartRenderDisableAnimation() const;
+
     // only use in RT sync phase
     bool IsNodeInSubthreadProcessing(NodeId id) const
     {
         return subthreadProcessingNode_.count(id) > 0;
     }
-    bool IsLayerPartRenderDisableAnimation() const;
 private:
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;
@@ -404,12 +405,13 @@ private:
 
     // auto clear the cache when cache reuse count reach threshold
     int clearCacheThreshold_ = 0;
-    // when all screens are power off, uifirst pending post nodes need purge.
-    bool allScreenPowerOffNeedPurge_ = false;
 
     float sizeChangedThreshold_ = 0.1f;
 
     bool isUIFirstLeashAllEnable_ = false;
+
+    // when all screens are power off, uifirst pending post nodes need purge.
+    bool allScreenPowerOffNeedPurge_ = false;
 };
 
 // If a subnode is delivered directly
