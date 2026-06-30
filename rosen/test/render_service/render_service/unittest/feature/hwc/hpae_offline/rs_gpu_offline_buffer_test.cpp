@@ -35,7 +35,7 @@ constexpr NodeId TEST_NODE_ID = 12345;
 }
 
 class RSGPUOfflineBufferPrivateTest : public testing::Test {
-    public:
+public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -227,7 +227,6 @@ HWTEST_F(NativeWindowBufferInfoMarshallingTest, UnmarshallingSptrTest001, Level1
     Parcel parcel;
     OHOS::sptr<NativeWindowBufferInfo> result = NativeWindowBufferInfo::Unmarshalling(parcel, false);
     EXPECT_EQ(result, nullptr);
-
 }
 
 
@@ -242,5 +241,4 @@ HWTEST_F(NativeWindowBufferInfoMarshallingTest, UnmarshallingSptrAutoSeqTest001,
     Parcel parcel;
     OHOS::sptr<NativeWindowBufferInfo> result = NativeWindowBufferInfo::Unmarshalling(parcel, true);
     EXPECT_EQ(result, nullptr);
-
 }
