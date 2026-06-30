@@ -113,6 +113,8 @@ public:
     std::atomic<bool> preAllocBufferSucc = false;
     std::atomic<size_t> invalidFrames = 0;
     std::atomic<size_t> maxInvalidFrames = 0;
+    int32_t heteroEnableFrames = 0;
+    bool isSetHeteroEnable = false;
     std::atomic<bool> skipDraw = false;
     std::atomic<bool> hasDrawn = false;
     std::mutex offlineConfigMutex;
@@ -171,6 +173,7 @@ private:
     bool SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineContext>& context,
         RSSurfaceRenderParams* surfaceParams, offlineTaskId taskId);
     void SetNodeArsrTag(const std::vector<uint64_t>& offlineNodeIds);
+    bool IsOfflineDeviceEnable(std::shared_ptr<RSHpaeOfflineContext>& context);
     // so handler
     bool loadSuccess_ = false;
     std::atomic<bool> isInitOfflineFuncSucc_ = false;

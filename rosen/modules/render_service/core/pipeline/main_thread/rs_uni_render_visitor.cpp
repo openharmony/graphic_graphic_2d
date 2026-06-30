@@ -2707,9 +2707,6 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByPrevalidate(std::map<uint64_t, Req
         }
         if ((it.second == RequestCompositionType::OFFLINE_DEVICE ||
             it.second == RequestCompositionType::OFFLINE_VCLD_OFF) &&
-#ifdef HETERO_HDR_ENABLE
-            !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
-#endif
             RSOfflineProcessor::GetOfflineProcessor().IsRSOfflineProcessorReady(node,
                 OfflineDeviceType::HPAE_OFFLINE_DEVICE)) {
             node->SetDeviceOfflineEnable(true);
