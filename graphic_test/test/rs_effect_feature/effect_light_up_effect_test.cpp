@@ -66,8 +66,6 @@ constexpr uint32_t COLOR_MASK_BLUE = 0x6d0000ff;
 constexpr uint32_t COLOR_MASK_BLACK = 0xff000000;
 constexpr uint32_t COLOR_MASK_WHITE = 0xffffffff;
 constexpr uint32_t COLOR_MASK_TRANSPARENT = 0x00000000;
-constexpr uint32_t COLOR_BORDER_RED = 0x2dff0000;
-constexpr int COLUMN_COUNT_1 = 1;
 constexpr int COLUMN_COUNT_2 = 2;
 constexpr int COLUMN_COUNT_3 = 3;
 
