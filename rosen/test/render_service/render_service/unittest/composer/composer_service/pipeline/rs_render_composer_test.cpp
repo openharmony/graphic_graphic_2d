@@ -9423,12 +9423,12 @@ HWTEST_F(RsRenderComposerTest, HandleTunnelCommitFailure_DoesNotDestroyLayer, Te
     ASSERT_NE(hdiLayer, nullptr);
     rsLayer->SetTunnelLayerGeneration(tunnelLayerGeneration);
     output->RegisterCreatedLayerLocked(surfaceId, hdiLayer, rsLayer, false);
-    ASSERT_EQ(output->layerIdMap_.count(surfaceId), 1u);
+    ASSERT_EQ(output->surfaceIdMap_.count(surfaceId), 1u);
 
     composer->HandleTunnelCommitFailure(surfaceId);
 
     EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(surfaceId) > 0);
-    EXPECT_EQ(output->layerIdMap_.count(surfaceId), 1u);
+    EXPECT_EQ(output->surfaceIdMap_.count(surfaceId), 1u);
 
     composer->uniRenderEngine_ = nullptr;
 }

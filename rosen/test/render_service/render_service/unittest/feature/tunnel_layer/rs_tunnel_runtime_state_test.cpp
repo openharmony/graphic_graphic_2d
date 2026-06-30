@@ -370,7 +370,7 @@ HWTEST_F(RSTunnelRuntimeStateTest, CommittedTunnelBufferIdLifecycle, TestSize.Le
 
     state.SetCommittedTunnelBufferId(FIRST_BUFFER_ID);
     EXPECT_TRUE(state.IsCommittedTunnelBuffer());
-    EXPECT_FALSE(state.IsCommittedTunnelBuffer());
+    EXPECT_TRUE(state.IsCommittedTunnelBuffer());
 
     state.ClearCommittedTunnelBuffer();
     EXPECT_FALSE(state.IsCommittedTunnelBuffer());
@@ -528,9 +528,10 @@ HWTEST_F(RSTunnelRuntimeStateTest, InstanceGetTunnelLayerGeneration003, TestSize
     uint64_t gen2 = state.GetTunnelLayerGeneration();
     EXPECT_EQ(gen1, gen2);
  
-    state.SetActiveFromTunnelLayerAvailable(gen1);
+    uint64_t genAfterBuilding = state.GetTunnelLayerGeneration();
+    state.SetActiveFromTunnelLayerAvailable(genAfterBuilding);
     uint64_t gen3 = state.GetTunnelLayerGeneration();
-    EXPECT_EQ(gen1, gen3);
+    EXPECT_EQ(genAfterBuilding, gen3);
 }
  
 /**

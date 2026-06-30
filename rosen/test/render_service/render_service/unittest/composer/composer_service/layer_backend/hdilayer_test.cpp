@@ -26,7 +26,7 @@ using namespace testing::ext;
 #define WIDTH_VAL 50
 #define HEIGHT_VAL 50
 
-namespace OHOS {
+namespace OHOS { 
 namespace Rosen {
 class HdiLayerTest : public testing::Test {
 public:
@@ -832,6 +832,8 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerParametersTest, Function | MediumTest| Leve
     rsLayer->SetTunnelLayerId(1);
     rsLayer->SetTunnelLayerProperty(1);
     hdiLayer_->rsLayer_ = rsLayer;
+    hdiLayer_->hasSetTunnel_ = true;
+    hdiLayer_->tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
     EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, _)).WillRepeatedly(testing::Return(-1));
     auto ret = hdiLayer_->SetTunnelLayerParameters();
     EXPECT_EQ(ret, -1);
@@ -932,6 +934,9 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerPropertyWithHasSetTunnelFlag, Function | Me
     auto hdiLayer = HdiLayer::CreateHdiLayer(0);
     ASSERT_NE(hdiLayer, nullptr);
     ASSERT_EQ(hdiLayer->SetHdiDeviceMock(&hdiDeviceMock), GRAPHIC_DISPLAY_SUCCESS);
+
+    hdiLayer->hasSetTunnel_ = true;
+    hdiLayer->tunnelLayerProperty_ = TUNNEL_PROP_INVALID;
  
     auto rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     rsLayer->SetTunnelLayerProperty(TUNNEL_PROP_BUFFER_ADDR);

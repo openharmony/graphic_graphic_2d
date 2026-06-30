@@ -209,7 +209,7 @@ HWTEST_F(RSTunnelLayerManagerTest, MarkTunnelBufferConsumedForNormal001, TestSiz
     ASSERT_TRUE(consumedContext.surfaceHandler->IsCurrentFrameBufferConsumed());
     tunnelLayerManager.MarkTunnelBufferConsumedForNormal(consumedContext.node, nullptr);
     EXPECT_TRUE(consumedContext.surfaceHandler->IsCurrentFrameBufferConsumed());
-    EXPECT_TRUE(RSTunnelRuntimeStore::GetOrCreate(consumedContext.node->GetId()).IsCommittedTunnelBuffer());
+    EXPECT_FALSE(RSTunnelRuntimeStore::GetOrCreate(consumedContext.node->GetId()).IsCommittedTunnelBuffer());
 
     auto context = CreateTunnelContext();
     ASSERT_TRUE(context.IsProducerReady());

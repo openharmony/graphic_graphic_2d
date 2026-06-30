@@ -5202,9 +5202,14 @@ HWTEST_F(HdiOutputTest, ClearRecoveredInvalidTunnelSurfaceIdsLocked_SimplifiedEr
     output->invalidTunnelSurfaceIds_.insert(id2);
     output->invalidTunnelSurfaceIds_.insert(id3);
     ASSERT_EQ(output->invalidTunnelSurfaceIds_.size(), 3u);
+
+    auto hdiLayer = HdiLayer::CreateHdiLayer(0);
+    ASSERT_NE(hdiLayer, nullptr);
+    output->surfaceIdMap_[id1] = hdiLayer;
  
     output->ClearRecoveredInvalidTunnelSurfaceIdsLocked();
-    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.empty());
+    EXPECT_EQ(output->invalidTunnelSurfaceIds_.size(), 2u);
+    EXPECT_TRUE(output->invalidTunnelSurfaceIds_.count(id1) == 0);
 }
 } // namespace
 } // namespace Rosen

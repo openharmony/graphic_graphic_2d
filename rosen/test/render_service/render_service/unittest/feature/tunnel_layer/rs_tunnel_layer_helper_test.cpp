@@ -54,6 +54,12 @@ public:
         return ret_;
     }
 
+    GSError SetTunnelLayerInfo(const TunnelLayerInfo& info) override
+    {
+        (void)info;
+        return GSERROR_OK;
+    }
+
     void SetTunnelInfoResult(GSError ret, uint64_t tunnelLayerId, uint32_t property)
     {
         ret_ = ret;
