@@ -63,7 +63,7 @@ public:
     void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
     void SetUniVsync();
 
-    const std::unordered_map<NodeId, int> GetVrateMap() const
+    const std::unordered_map<NodeId, int>& GetVrateMap() const
     {
         return vSyncRateMap_;
     }
@@ -122,9 +122,9 @@ public:
     static bool SetVSyncRatesChangeStatus(bool newState);
     static std::map<uint64_t, int> GetLinkersRateMap();
 private:
-        static inline std::map<uint64_t, int> linkersRateMap_;
-        static inline std::unordered_map<NodeId, int> lastVSyncRateMap_;
-        static inline std::atomic<bool> needPostTask_ { false };
+    static inline std::map<uint64_t, int> linkersRateMap_;
+    static inline std::unordered_map<NodeId, int> lastVSyncRateMap_;
+    static inline std::atomic<bool> needPostTask_ { false };
 };
 } // namespace Rosen
 } // namespace OHOS
