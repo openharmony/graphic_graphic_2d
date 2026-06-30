@@ -184,7 +184,14 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool isHdrOn = screenParams->GetHDRPresent();
     bool isScRGBEnable = EnablescRGBForP3AndUiFirst(screenParams->GetNewColorSpace());
     bool isOpDropped = uniParam->IsOpDropped();
-    bool needOffscreen = params->GetNeedOffscreen() || screenProperty.GetIsSamplingOn() || isHdrOn || isScRGBEnable;
+    bool needOffscreen = params->GetNeedOffscreen() || screenProperty.GetIsSamplingOn() || isScRGBEnable;
+    bool backToFP16 = true;
+    if (isHdrOn && !needOffscreen) {
+#ifdef ROSEN_OHOS
+        backToFP16 = RSHdrUtil::NeedBackToFP16(GetId(), screenParams);
+#endif
+        needOffscreen = backToFP16;
+    }
 
     if (params->GetNeedOffscreen()) {
         uniParam->SetOpDropped(false);
@@ -213,6 +220,15 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
         }
     }
+    if (isHdrOn && !backToFP16) {
+        RS_LOGD("RSLogicalDisplayRenderNodeDrawable::OnDraw HDR SCALE %{public}f"
+            " first used in drawOp.", screenParams->GetHdrBrightnessRatio());
+        curCanvas_->GetSurface()->SetHdrScale(hdrBrightnessRatio);
+        RSFilterCacheManager::SetScrHdr(hdrBrightnessRatio);
+    } else {
+        curCanvas_->GetSurface()->SetHdrScale(1.0f);
+        RSFilterCacheManager::SetScrHdr(1.0f);
+    }
 
     // prepare canvas
     if (!params->GetNeedOffscreen()) {
@@ -231,6 +247,8 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #endif
 
     DrawAdditionalContent(*curCanvas_);
+    curCanvas_->GetSurface()->SetHdrScale(1.0f);
+    RSFilterCacheManager::SetScrHdr(1.0f);
     if (needOffscreen && canvasBackup_) {
         Drawing::AutoCanvasRestore acrBackUp(*canvasBackup_, true);
         if (params->GetNeedOffscreen()) {

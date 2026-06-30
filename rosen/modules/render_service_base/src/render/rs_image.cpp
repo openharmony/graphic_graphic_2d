@@ -152,6 +152,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         rscanvas.GetHDRProperties())) {
         return false;
     }
+    // dynamicRangeMode_ did upscale already
     canvas.AttachPaint(paint_);
     // Avoid cross-thread destruction
     paint_.SetShaderEffect(nullptr);

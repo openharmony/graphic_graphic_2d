@@ -105,6 +105,8 @@ public:
 
     virtual void SetHeadroom(float headroom) = 0;
     virtual float GetHeadroom() const = 0;
+    virtual void SetHdrScale(float hdrScale) = 0;
+    virtual float GetHdrScale() const  = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

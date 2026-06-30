@@ -55,6 +55,7 @@ public:
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
     void UpdateDisplayHDRNodeMap(bool isIncrease, NodeId displayNodeId) const;
+    void UpdateDisplayBlendModeMap(bool isIncrease, NodeId displayNodeId);
 
     RSB_EXPORT void ProcessShadowBatching(RSPaintFilterCanvas& canvas);
 
@@ -69,6 +70,14 @@ public:
     bool GetHDRPresent() const
     {
         return hasHdrPresent_;
+    }
+    void SetNewOnTree(bool isNewOnTree) override
+    {
+        isNewOnTree_ = isNewOnTree;
+    }
+    bool GetNewOnTree()
+    {
+        return isNewOnTree_;
     }
     void OnSetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap);
 
@@ -103,6 +112,11 @@ private:
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;
     bool hasHdrPresent_ = false;
+    bool isNewOnTree_ = false;
+    bool isParentBlendMode_ = false;
+    bool isEmptyBlendMode_ = false;
+    int currentBlendMode_ = 0;
+    bool isNonlinearBlendMode_ = false;
     GraphicColorGamut colorGamut_ = GRAPHIC_COLOR_GAMUT_SRGB;
     NodeId preDisplayNodeId_ = INVALID_NODEID;
     NodeId preScreenNodeId_ = INVALID_NODEID;

@@ -19,6 +19,7 @@
 #include "engine/rs_base_render_engine.h"
 #include "hdr/rs_base_hdr_util.h"
 #include "params/rs_screen_render_params.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -80,6 +81,8 @@ public:
     static bool IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfig& renderFrameConfig);
     static bool NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     static bool HDRColorHeadroomMapping(const Drawing::UIColor& srcColor, Drawing::UIColor& dstColor);
+    static bool NeedBackToFP16(NodeId id, RSScreenRenderParams* screenParams);
+    static std::pair<bool, bool> GetHdrParams(RSRenderParams* renderParams, bool isHdrSurface, NodeId surfaceId);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
         const Drawing::SamplingOptions& sampling, std::shared_ptr<Drawing::Surface>& surface,

@@ -232,6 +232,21 @@ sk_sp<SkSurface> Surface::GetSkSurface() const
     return impl_->GetSkSurface();
 }
 
+void Surface::SetHdrScale(float hdrColorScale)
+{
+    if (impl_) {
+        impl_->SetHdrScale(hdrColorScale);
+    }
+}
+
+float Surface::GetHdrScale() const
+{
+    if (impl_) {
+        return impl_->GetHdrScale();
+    }
+    return 1.0;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

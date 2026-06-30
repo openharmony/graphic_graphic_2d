@@ -22,6 +22,7 @@
 #include "ge_visual_effect_impl.h"
 #include "common/rs_optional_trace.h"
 #include "draw/blend_mode.h"
+#include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
 #include "memory/rs_tag_tracker.h"
 #include "platform/common/rs_log.h"
@@ -497,6 +498,16 @@ void RSDrawingFilter::ProfilerLogImageEffect(std::shared_ptr<Drawing::GEVisualEf
 bool RSDrawingFilter::ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     std::shared_ptr<Drawing::Image>& outImage, const DrawImageRectAttributes& attr, Drawing::Brush& brush)
 {
+    if (image) {
+        auto colorType = image->GetImageInfo().GetColorType();
+        // HPS blur is not supported for this colortype
+        // see BackendGpu::DrawBlurImageHPS
+        if (colorType == Drawing::ColorType::COLORTYPE_RGBA_1010102) {
+            RS_LOGD("hps blur not supported for direct hdr format");
+            return false;
+        }
+    }
+
     canSkipMaskColor_ = false;
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
     RSColor maskColorForHPS = RSColor();

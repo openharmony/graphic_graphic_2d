@@ -103,6 +103,42 @@ public:
         return hdrNodeMap_;
     }
 
+    template<size_t N>
+    static bool IsInBlendModeGroup(int blendMode, const RSColorBlendMode (&group)[N])
+    {
+        for (size_t i = 0; i < N; ++i) {
+            if (blendMode == static_cast<int>(group[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static constexpr RSColorBlendMode NonlinearBlendModes[] = {
+        RSColorBlendMode::CLEAR,
+        RSColorBlendMode::MODULATE, RSColorBlendMode::SCREEN,
+        };
+    static constexpr RSColorBlendMode ChildBlendModes[] = {
+        RSColorBlendMode::SRC, RSColorBlendMode::SRC_OVER, RSColorBlendMode::DST_OVER,
+        RSColorBlendMode::SRC_OUT, RSColorBlendMode::DST_ATOP, RSColorBlendMode::XOR };
+    static constexpr RSColorBlendMode EmptyBlendModes[] = {
+        RSColorBlendMode::SRC, RSColorBlendMode::DST_ATOP, RSColorBlendMode::XOR };
+    static constexpr RSColorBlendMode ParentBlendModes[] = {
+        RSColorBlendMode::SRC, RSColorBlendMode::SRC_IN, RSColorBlendMode::DST_IN,
+        RSColorBlendMode::DST_OUT, RSColorBlendMode::DST_ATOP, RSColorBlendMode::XOR };
+
+    bool HasNonlinearBlendMode(int blendMode);
+    bool HasChildBlendMode(int blendMode);
+    bool HasEmptyBlendMode(int blendMode);
+    bool HasParentBlendMode(int blendMode);
+
+    void IncreaseBlendModeNode(NodeId id);
+    void RemoveBlendModeNode(NodeId id);
+    int GetDstAlphaBlendModeNodeCount() const;
+
+    bool CheckAncestorChildBlendMode(int blendMode, int currentBlendMode,
+        bool IsEmptyBlendMode, bool IsParentBlendMode);
+
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID, NodeId firstLevelNodeId = INVALID_NODEID,
         NodeId uifirstRootNodeId = INVALID_NODEID, NodeId screenNodeId = INVALID_NODEID,
         NodeId logicalDisplayNodeId = INVALID_NODEID) override;
@@ -215,6 +251,7 @@ private:
 
     // save children hdr canvasNode id, the value is larger than one if one node contain multiple HDR types
     std::unordered_map<NodeId, uint32_t> hdrNodeMap_;
+    std::unordered_map<NodeId, uint32_t> blendModeNodeMap_;
     bool isSecurityDisplay_ = false;
     bool isMirrorDisplay_ = false;
     WeakPtr mirrorSource_;

@@ -535,6 +535,11 @@ bool RSSystemProperties::GetUIFirstAutoClearCacheEnabled()
     return false;
 }
 
+int RSSystemProperties::GetEdrGainEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetWideColorSpaceEnabled()
 {
     return true;

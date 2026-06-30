@@ -57,6 +57,7 @@ bool RegisterMhcUpdate(const std::function<void(Drawing::ColorQuad&)>& updateCol
             RS_LOGE("[HeteroColorPicker]:BuildFromTexture failed");
             return;
         }
+        colorImage->SetHdrScale(imageSnapshot->GetHdrScale());
         Drawing::Bitmap dst;
         dst.Build(colorImage->GetImageInfo());
         if (!colorImage->ReadPixels(dst, 0, 0)) {
@@ -64,6 +65,7 @@ bool RegisterMhcUpdate(const std::function<void(Drawing::ColorQuad&)>& updateCol
             return;
         }
         auto currentColor = dst.GetColor(0, 0);
+        currentColor /= colorImage->GetHdrScale();
         updateColor(currentColor);
     });
     return registerRes;

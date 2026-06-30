@@ -483,6 +483,40 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     ASSERT_NE(displayDrawable_->GetScreenParams(*displayDrawable_->GetRenderParams()).second, nullptr);
 }
 
+/**
+ * @tc.name: OnDrawTest009_HDRResetAfterDraw
+ * @tc.desc: Test OnDraw post-draw HDR reset (line 239-240)
+ *          BackToFP16 block(line 181) + else branch of HDR scale(line 219-222) + reset after draw(line 239-240)
+ * @tc.type: FUNC
+ * @tc.require: AR20260616773737
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnDrawTest009_HDRResetAfterDraw, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(renderParams, nullptr);
+    renderParams->shouldPaint_ = true;
+    renderParams->contentEmpty_ = false;
+    renderParams->mirrorSourceDrawable_.reset();
+    renderParams->SetNeedOffscreen(false);
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    auto screenParams = displayDrawable_->GetScreenParams(*displayDrawable_->GetRenderParams()).second;
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->screenProperty_.Set<ScreenPropertyType::SAMPLING_OPTION>({false, 0.f, 0.f, 1.f});
+    screenParams->SetHDRPresent(true);
+    screenParams->SetHdrBrightnessRatio(1.5f);
+
+    displayDrawable_->OnDraw(*drawingFilterCanvas_);
+    ASSERT_TRUE(displayDrawable_->ShouldPaint());
+    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
+    EXPECT_TRUE(screenParams->GetHDRPresent());
+    EXPECT_FLOAT_EQ(screenParams->GetHdrBrightnessRatio(), 1.5f);
+}
+
 #ifdef SUBTREE_PARALLEL_ENABLE
 /**
  * @tc.name: OnDrawTest010

@@ -81,7 +81,7 @@ public:
     void InitCacheSurface(Drawing::GPUContext* grContext,
         std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr,
         ClearCacheSurfaceFunc func = nullptr,
-        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isNeedFP16 = false);
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, std::pair<bool, float> hdrParam = {false, 1.0});
 
     void ResetUifirst(bool isOnlyClearCache = false);
 

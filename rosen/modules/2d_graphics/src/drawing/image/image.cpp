@@ -261,6 +261,21 @@ float Image::GetHeadroom() const
 {
     return imageImplPtr->GetHeadroom();
 }
+
+void Image::SetHdrScale(float hdrScale)
+{
+    if (imageImplPtr) {
+        imageImplPtr->SetHdrScale(hdrScale);
+    }
+}
+
+float Image::GetHdrScale() const
+{
+    if (imageImplPtr) {
+        return imageImplPtr->GetHdrScale();
+    }
+    return 1.0;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
