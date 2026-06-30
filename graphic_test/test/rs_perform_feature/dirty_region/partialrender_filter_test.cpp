@@ -112,6 +112,7 @@ public:
  */
 GRAPHIC_TEST(PartialRenderFilter, CONTENT_DISPLAY_TEST, PartialRenderFilter01)
 {
+    SetCaptureCrop({0, 0, screenSize.x_, screenSize.y_});
     auto backgroundNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     RegisterNode(backgroundNode);
     backgroundNode->SetBounds({ 0, 0, screenSize.x_, screenSize.y_ });

@@ -92,8 +92,7 @@ public:
         int duration = 500; // the animation lasts for 0.5 second
         protocol.SetDuration(duration);
         auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-        std::shared_ptr<RSUIContext> rsUIContext;
-        RSNode::Animate(rsUIContext, protocol, timingCurve, [&]() {
+        RSNode::Animate(RSGraphicTestDirector::Instance().GetRSUIContext(), protocol, timingCurve, [&]() {
             canvasNode->SetTranslate(translate);
         }, []() {
             std::cout << "animation finish callback" << std::endl;
@@ -547,7 +546,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter13)
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
-GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
+GRAPHIC_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
     auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
@@ -578,7 +577,6 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -587,7 +585,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter01)
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
-GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
+GRAPHIC_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
     auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
@@ -611,7 +609,6 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -620,7 +617,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter02)
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
-GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
+GRAPHIC_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
     auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
@@ -659,7 +656,6 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -668,7 +664,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter03)
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
-GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
+GRAPHIC_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
     auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
@@ -701,7 +697,6 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, MultiWindowFilter04)
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 } // namespace OHOS::Rosen

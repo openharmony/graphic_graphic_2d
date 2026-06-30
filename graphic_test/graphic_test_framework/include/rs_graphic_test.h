@@ -51,6 +51,8 @@ public:
     bool AddChildToSubWindow(SubWindowId id, std::shared_ptr<RSNode> child, int childIndex = -1);
     bool RemoveSubWindow(SubWindowId id);
     void SetCaptureScope(CaptureScope scope);
+    void SetCaptureCrop(const Vector4f& cropRect);
+    void ClearCaptureCrop();
 
     // overrides gtest functions
     static void SetUpTestCase();
@@ -79,6 +81,8 @@ private:
     static uint32_t imageWriteId_;
     std::string imageSavePath_ = "";
     CaptureScope captureScope_ = CaptureScope::MAIN_SURFACE;
+    bool hasCaptureCrop_ = false;
+    Vector4f captureCrop_ = {0, 0, 0, 0};
 };
 } // namespace Rosen
 } // namespace OHOS

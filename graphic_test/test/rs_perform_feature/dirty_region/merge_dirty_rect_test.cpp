@@ -27,6 +27,8 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
+constexpr int DIRTY_REGION_SCREEN_WIDTH = 1200;
+constexpr int DIRTY_REGION_SCREEN_HEIGHT = 2000;
 constexpr int DEFAULT_TRANS_Y = 1000;
 constexpr uint32_t COLOR_YELLOW = 0xFFFFFF00;
 constexpr uint32_t COLOR_BLUE = 0xFF0000FF;
@@ -36,16 +38,18 @@ constexpr uint32_t COLOR_CYAN = 0xFF00FFFF;
 constexpr uint32_t SLEEP_TIME_FOR_PROXY = 1000000;
 const std::string TEST_IMG_PATH = "/data/local/tmp/dr_test.jpg";
 class DirtyRegionTest01 : public RSGraphicTest {
-private:
-    const int screenWidth = 1200;
-    const int screenHeight = 2000;
-
 public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSize(screenWidth, screenHeight);
+        SetScreenSize(DIRTY_REGION_SCREEN_WIDTH, DIRTY_REGION_SCREEN_HEIGHT);
         SetSurfaceColor(RSColor(0xFFFFFFFF));
+        SetCaptureCropToTestCanvas();
+    }
+
+    void SetCaptureCropToTestCanvas()
+    {
+        SetCaptureCrop({0, 0, DIRTY_REGION_SCREEN_WIDTH, DIRTY_REGION_SCREEN_HEIGHT});
     }
 
     void DrawAdvancedDirtyRegion(
@@ -443,7 +447,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Intersect_Dirty_Rect_Test0
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen01)
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -498,7 +502,6 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     RegisterNode(testNode4);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -507,7 +510,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen02)
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen02)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -556,7 +559,6 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     RegisterNode(subNode2);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -565,7 +567,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Boundary01)
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Boundary01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -602,7 +604,6 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     RegisterNode(testNode);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -611,7 +612,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Reset01)
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Reset01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -665,7 +666,6 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     RegisterNode(testNode);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -674,7 +674,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Advanced01)
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Advanced01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -732,7 +732,6 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     RegisterNode(subNode3);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 
 /*
@@ -741,7 +740,7 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Surface01)
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Surface01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -795,6 +794,5 @@ GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiSc
     RegisterNode(testNode);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
 }
 } // namespace OHOS::Rosen
