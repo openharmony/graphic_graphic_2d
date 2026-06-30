@@ -41,7 +41,8 @@ trace3d::api::RetCodePlatform PlatformHrpServiceOpenFile(
     int retFd = -1;
     OHOS::Rosen::HrpServiceDirInfo rosenDirInfo{OHOS::Rosen::HrpServiceGetDirType((uint32_t)dirInfo->baseDirType),
         dirInfo->subDir, dirInfo->subDir2};
-    auto svcRetCode = rsClient->ProfilerServiceOpenFile(rosenDirInfo, fileName, static_cast<int32_t>(flagsFiltered), retFd);
+    auto svcRetCode = rsClient->ProfilerServiceOpenFile(rosenDirInfo, fileName,
+        static_cast<int32_t>(flagsFiltered), retFd);
     *outSvcRetCode = (int32_t)svcRetCode;
     if (svcRetCode < OHOS::Rosen::RET_HRP_SERVICE_SUCCESS || retFd == -1) {
         if (retFd != -1) {
