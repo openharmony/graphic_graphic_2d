@@ -739,7 +739,7 @@ void DoCreateCanvasDrawingNodeSurface()
     dataParcel.RewindRead(0);
     toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
- 
+
 void DoReleaseCanvasDrawingNodeSurface()
 {
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REMOVE_CANVAS_SURFACE);
@@ -885,6 +885,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef RS_MODIFIERS_DRAW_ENABLE
             OHOS::Rosen::DoReleaseCanvasDrawingNodeSurface();
 #endif
+            break;
         default:
             return -1;
     }
