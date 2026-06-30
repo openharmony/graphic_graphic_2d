@@ -234,7 +234,7 @@ inline static void SaveRestoreHelper(RSDrawable::Vec& drawableVec, RSDrawableSlo
 }
 
 // Generate the clip drawable at clipSlot and a save/restore pair at saveSlot/restoreSlot.
-// RSSaveDrawable/RSSdfClipRestoreDrawable share a save count; RSSdfClipRestoreDrawable's
+// RSSaveDrawable/RSClipToBoundsRestoreDrawable share a save count; RSClipToBoundsRestoreDrawable's
 // OnUpdate/OnDraw branch on sdfShape, so the same pair serves CLIP_SDF (offscreen + DrawSdfClip)
 // and standard clip (RestoreToCount only). The restore drawable is created once and sdfShape
 // changes are reconciled by OnUpdate (OptimizeBoundsSaveRestore is not re-run for sdfShape).
@@ -247,7 +247,7 @@ static void GenerateClipAndSaveRestore(RSRenderNode& node, RSDrawable::Vec& draw
     assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(saveSlot),
         std::make_shared<RSSaveDrawable>(count));
     assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(restoreSlot),
-        RSSdfClipRestoreDrawable::OnGenerate(node, count));
+        RSClipToBoundsRestoreDrawable::OnGenerate(node, count));
 }
 
 static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawableVec, uint8_t flags)

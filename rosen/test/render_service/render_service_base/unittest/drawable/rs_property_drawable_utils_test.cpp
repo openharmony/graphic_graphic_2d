@@ -141,12 +141,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowAndCeilMatrixTransTest005, testi
 }
 
 /**
- * @tc.name: DrawAndBeginForegroundFilterTest006
- * @tc.desc: DrawFilter and BeginForegroundFilter test
+ * @tc.name: DrawAndBeginOffscreenTest006
+ * @tc.desc: DrawFilter and BeginOffscreen test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginOffscreenTest006, testing::ext::TestSize.Level1)
 {
     // first: DrawFilter test
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
@@ -185,23 +185,34 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
     paintFilterCanvasTest1.ClipIRect(Drawing::RectI(0, 0, 0, 0));
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, 0, false);
+}
 
-    // second: BeginForegroundFilter test
+/**
+ * @tc.name: DrawAndBeginOffscreenTest007
+ * @tc.desc: DrawFilterWithDRM and BeginOffscreen test
+ * @tc.type: FUNC
+ * @tc.require:issueIA5Y41
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginOffscreenTest007, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    // first: BeginOffscreen test
     Drawing::Canvas canvasTest2;
     RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
     paintFilterCanvasTest2.surface_ = nullptr;
     RectF bounds = RectF(1.0f, 1.0f, 1.0f, 1.0f);
-    rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
+    rsPropertyDrawableUtils->BeginOffscreen(paintFilterCanvasTest2, bounds);
     Drawing::Surface surfaceTest2;
     paintFilterCanvasTest2.surface_ = &surfaceTest2;
-    rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
+    rsPropertyDrawableUtils->BeginOffscreen(paintFilterCanvasTest2, bounds);
     auto surfaceTest3 = Drawing::Surface::MakeRasterN32Premul(10, 10);
     paintFilterCanvasTest2.surface_ = surfaceTest3.get();
-    rsPropertyDrawableUtils->BeginForegroundFilter(paintFilterCanvasTest2, bounds);
+    rsPropertyDrawableUtils->BeginOffscreen(paintFilterCanvasTest2, bounds);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Width(), 0);
     EXPECT_NE(paintFilterCanvasTest2.surface_->Height(), 0);
 
-    // third: DrawFilterWithDRM test
+    // second: DrawFilterWithDRM test
     Drawing::Canvas canvasTest3;
     RSPaintFilterCanvas paintFilterCanvasTest3(&canvasTest3);
     rsPropertyDrawableUtils->DrawFilterWithDRM(&paintFilterCanvasTest3, true);

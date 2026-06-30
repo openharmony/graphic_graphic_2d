@@ -324,7 +324,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlotsCLIP_TO_BOUNDS, TestSize.Level1)
 
 /**
  * @tc.name: UpdateSaveRestoreSDFClipRestore
- * @tc.desc: Test UpdateSaveRestore always creates RSSdfClipRestoreDrawable at RESTORE_CLIP_TO_BOUNDS
+ * @tc.desc: Test UpdateSaveRestore always creates RSClipToBoundsRestoreDrawable at RESTORE_CLIP_TO_BOUNDS
  * @tc.type: FUNC
  */
 HWTEST_F(RSDrawableTest, UpdateSaveRestoreSDFClipRestore, TestSize.Level1)

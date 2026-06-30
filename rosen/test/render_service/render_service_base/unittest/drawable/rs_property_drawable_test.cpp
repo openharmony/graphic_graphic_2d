@@ -735,30 +735,30 @@ HWTEST_F(RSPropertyDrawableTest, GetAbsRenderEffectRect001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSSdfClipRestoreDrawableOnGenerateTest
- * @tc.desc: Test RSSdfClipRestoreDrawable OnGenerate
+ * @tc.name: RSClipToBoundsRestoreDrawableOnGenerateTest
+ * @tc.desc: Test RSClipToBoundsRestoreDrawable OnGenerate
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableTest, RSSdfClipRestoreDrawableOnGenerateTest, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsRestoreDrawableOnGenerateTest, TestSize.Level1)
 {
     RSRenderNode node(0);
     auto content = std::make_shared<uint32_t>(1);
-    auto drawable = DrawableV2::RSSdfClipRestoreDrawable::OnGenerate(node, content);
+    auto drawable = DrawableV2::RSClipToBoundsRestoreDrawable::OnGenerate(node, content);
     EXPECT_NE(drawable, nullptr);
 }
 
 /**
- * @tc.name: RSSdfClipRestoreDrawableOnUpdateTest
- * @tc.desc: Test RSSdfClipRestoreDrawable OnUpdate branches (clipBounds/sdfShape/other)
+ * @tc.name: RSClipToBoundsRestoreDrawableOnUpdateTest
+ * @tc.desc: Test RSClipToBoundsRestoreDrawable OnUpdate branches (clipBounds/sdfShape/other)
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableTest, RSSdfClipRestoreDrawableOnUpdateTest, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsRestoreDrawableOnUpdateTest, TestSize.Level1)
 {
     auto content = std::make_shared<uint32_t>(1);
-    auto drawable = std::make_shared<DrawableV2::RSSdfClipRestoreDrawable>(content);
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsRestoreDrawable>(content);
     EXPECT_NE(drawable, nullptr);
 
-    // clipBounds set → isSdfMode_ = false
+    // clipBounds set → sdfShape_ null (standard mode)
     RSRenderNode nodeClip(0);
     Drawing::Path path;
     path.MoveTo(10.0f, 20.0f);
@@ -766,67 +766,87 @@ HWTEST_F(RSPropertyDrawableTest, RSSdfClipRestoreDrawableOnUpdateTest, TestSize.
     path.LineTo(150.0f, 250.0f);
     nodeClip.renderProperties_.clipPath_ = RSPath::CreateRSPath(path);
     drawable->OnUpdate(nodeClip);
-    EXPECT_FALSE(drawable->stagingIsSdfMode_);
+    EXPECT_EQ(drawable->stagingSdfShape_, nullptr);
 
-    // sdfShape set (no clipBounds) → isSdfMode_ = true
+    // sdfShape set (no clipBounds) → sdfShape_ non-null (SDF mode)
     RSRenderNode nodeSdf(0);
     auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
     nodeSdf.GetMutableRenderProperties().SetSDFShape(sdfShape);
     drawable->OnUpdate(nodeSdf);
-    EXPECT_TRUE(drawable->stagingIsSdfMode_);
-    EXPECT_NE(drawable->stagingGeContainer_, nullptr);
+    EXPECT_NE(drawable->stagingSdfShape_, nullptr);
 
-    // neither clipBounds nor sdfShape → isSdfMode_ = false
+    // neither clipBounds nor sdfShape → sdfShape_ null (standard mode)
     RSRenderNode nodeEmpty(0);
     drawable->OnUpdate(nodeEmpty);
-    EXPECT_FALSE(drawable->stagingIsSdfMode_);
+    EXPECT_EQ(drawable->stagingSdfShape_, nullptr);
 }
 
 /**
- * @tc.name: RSSdfClipRestoreDrawableOnSyncTest
- * @tc.desc: Test RSSdfClipRestoreDrawable OnSync
+ * @tc.name: RSClipToBoundsRestoreDrawableOnSyncTest
+ * @tc.desc: Test RSClipToBoundsRestoreDrawable OnSync
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableTest, RSSdfClipRestoreDrawableOnSyncTest, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsRestoreDrawableOnSyncTest, TestSize.Level1)
 {
     auto content = std::make_shared<uint32_t>(1);
-    auto drawable = std::make_shared<DrawableV2::RSSdfClipRestoreDrawable>(content);
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsRestoreDrawable>(content);
     drawable->needSync_ = false;
     drawable->OnSync();
 
     drawable->needSync_ = true;
-    drawable->stagingIsSdfMode_ = true;
+    drawable->stagingSdfShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
     drawable->OnSync();
     EXPECT_FALSE(drawable->needSync_);
-    EXPECT_TRUE(drawable->isSdfMode_);
+    EXPECT_NE(drawable->sdfShape_, nullptr);
 }
 
 /**
- * @tc.name: RSSdfClipRestoreDrawableOnDrawTest
- * @tc.desc: Test RSSdfClipRestoreDrawable OnDraw (SDF mode and standard mode)
+ * @tc.name: RSClipToBoundsRestoreDrawableOnDrawTest
+ * @tc.desc: Test RSClipToBoundsRestoreDrawable OnDraw (SDF mode and standard mode)
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableTest, RSSdfClipRestoreDrawableOnDrawTest, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsRestoreDrawableOnDrawTest, TestSize.Level1)
 {
     auto content = std::make_shared<uint32_t>(1);
-    auto drawable = std::make_shared<DrawableV2::RSSdfClipRestoreDrawable>(content);
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsRestoreDrawable>(content);
     Drawing::Canvas canvas;
     RSPaintFilterCanvas pfCanvas(&canvas);
     Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
 
-    // standard mode (stagingIsSdfMode_ = false) → RestoreToCount only, no DrawSdfClip
-    drawable->stagingIsSdfMode_ = false;
+    // standard mode (sdfShape_ = null) → RestoreToCount only, no DrawSdfClip
+    drawable->stagingSdfShape_ = nullptr;
     drawable->needSync_ = true;
     drawable->OnSync();
     drawable->OnDraw(&pfCanvas, &rect);
-    EXPECT_FALSE(drawable->isSdfMode_);
+    EXPECT_EQ(drawable->sdfShape_, nullptr);
 
-    // SDF mode (stagingIsSdfMode_ = true) → DrawSdfClip (empty offscreen → early return, no crash)
-    drawable->stagingIsSdfMode_ = true;
+    // SDF mode (sdfShape_ non-null) → DrawSdfClip (empty offscreen → early return, no crash)
+    drawable->stagingSdfShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
     drawable->needSync_ = true;
     drawable->OnSync();
     drawable->OnDraw(&pfCanvas, &rect);
-    EXPECT_TRUE(drawable->isSdfMode_);
+    EXPECT_NE(drawable->sdfShape_, nullptr);
+}
+
+/**
+ * @tc.name: RSClipToBoundsRestoreDrawableOnDrawNullGuardTest
+ * @tc.desc: Test OnDraw null guards: null canvas → early return; null content_ → skip RestoreToCount
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsRestoreDrawableOnDrawNullGuardTest, TestSize.Level1)
+{
+    Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
+    // null canvas → paintFilterCanvas null → early return (no crash)
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsRestoreDrawable>(std::make_shared<uint32_t>(1));
+    drawable->OnDraw(nullptr, &rect);
+    EXPECT_NE(drawable->content_, nullptr);
+
+    // null content_ → skip RestoreToCount (no crash)
+    auto drawableNoContent = std::make_shared<DrawableV2::RSClipToBoundsRestoreDrawable>(nullptr);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas pfCanvas(&canvas);
+    drawableNoContent->OnDraw(&pfCanvas, &rect);
+    EXPECT_EQ(drawableNoContent->content_, nullptr);
 }
 
 /**
@@ -854,7 +874,7 @@ HWTEST_F(RSPropertyDrawableTest, DrawSdfClipWithOffscreenTest, TestSize.Level1)
     ASSERT_NE(surface, nullptr);
     RSPaintFilterCanvas pfCanvas(surface.get());
     RectF bounds(0.0f, 0.0f, 100.0f, 100.0f);
-    RSPropertyDrawableUtils::BeginForegroundFilter(pfCanvas, bounds);
+    RSPropertyDrawableUtils::BeginOffscreen(pfCanvas, bounds);
     EXPECT_FALSE(pfCanvas.GetOffscreenDataList().empty());
     Drawing::Rect sdfRect(0.0f, 0.0f, 100.0f, 100.0f);
     RSPropertyDrawableUtils::DrawSdfClip(pfCanvas, nullptr, sdfRect, nullptr);
@@ -872,7 +892,7 @@ HWTEST_F(RSPropertyDrawableTest, DrawSdfClipShaderSkipTest, TestSize.Level1)
     ASSERT_NE(surface, nullptr);
     RSPaintFilterCanvas pfCanvas(surface.get());
     RectF bounds(0.0f, 0.0f, 100.0f, 100.0f);
-    RSPropertyDrawableUtils::BeginForegroundFilter(pfCanvas, bounds);
+    RSPropertyDrawableUtils::BeginOffscreen(pfCanvas, bounds);
     EXPECT_FALSE(pfCanvas.GetOffscreenDataList().empty());
     Drawing::Rect sdfRect(0.0f, 0.0f, 100.0f, 100.0f);
     auto geContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
@@ -891,7 +911,7 @@ HWTEST_F(RSPropertyDrawableTest, DrawSdfClipShaderRunTest, TestSize.Level1)
     ASSERT_NE(surface, nullptr);
     RSPaintFilterCanvas pfCanvas(surface.get());
     RectF bounds(0.0f, 0.0f, 100.0f, 100.0f);
-    RSPropertyDrawableUtils::BeginForegroundFilter(pfCanvas, bounds);
+    RSPropertyDrawableUtils::BeginOffscreen(pfCanvas, bounds);
     EXPECT_FALSE(pfCanvas.GetOffscreenDataList().empty());
     Drawing::Rect sdfRect(0.0f, 0.0f, 100.0f, 100.0f);
     Drawing::Rect frameRect(0.0f, 0.0f, 100.0f, 100.0f);

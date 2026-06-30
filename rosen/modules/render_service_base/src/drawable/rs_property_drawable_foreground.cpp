@@ -327,7 +327,7 @@ void RSForegroundFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::
     RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERDRAWABLE);
 #endif
-    RSPropertyDrawableUtils::BeginForegroundFilter(*paintFilterCanvas, boundsRect_);
+    RSPropertyDrawableUtils::BeginOffscreen(*paintFilterCanvas, boundsRect_);
 }
 
 void RSForegroundFilterDrawable::OnSync()

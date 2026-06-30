@@ -129,12 +129,12 @@ private:
 };
 
 // Restore drawable for CLIP_SDF: snapshots the offscreen content, restores the canvas
-// (undo BeginForegroundFilter), composites the snapshot, then RestoreToCount to balance
+// (undo BeginOffscreen), composites the snapshot, then RestoreToCount to balance
 // BG_SAVE_BOUNDS's Save.
-class RSSdfClipRestoreDrawable : public RSDrawable {
+class RSClipToBoundsRestoreDrawable : public RSDrawable {
 public:
-    explicit RSSdfClipRestoreDrawable(std::shared_ptr<uint32_t> content) : content_(std::move(content)) {}
-    ~RSSdfClipRestoreDrawable() override = default;
+    explicit RSClipToBoundsRestoreDrawable(std::shared_ptr<uint32_t> content) : content_(std::move(content)) {}
+    ~RSClipToBoundsRestoreDrawable() override = default;
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node, std::shared_ptr<uint32_t> content);
     bool OnUpdate(const RSRenderNode& node) override;
@@ -145,15 +145,12 @@ private:
     std::shared_ptr<uint32_t> content_; // shared save count for RestoreToCount (balances BG_SAVE_BOUNDS)
 
     bool needSync_ = false;
-    std::shared_ptr<Drawing::GEVisualEffectContainer> stagingGeContainer_ = nullptr;
-    std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
+    // OnDraw runs DrawSdfClip when sdfShape_ is non-null (CLIP_SDF); otherwise RestoreToCount only.
+    // OnUpdate always returns true so the drawable is never erased in standard mode.
+    std::shared_ptr<RSNGRenderShapeBase> stagingSdfShape_ = nullptr;
+    std::shared_ptr<RSNGRenderShapeBase> sdfShape_ = nullptr;
     Drawing::Rect stagingSdfDrawRect_;
     Drawing::Rect sdfDrawRect_;
-    // True when sdfShape resolves (CLIP_SDF): OnDraw runs DrawSdfClip (offscreen restore +
-    // composite). False (standard clip): OnDraw only RestoreToCount, behaving as RSRestoreDrawable.
-    // OnUpdate always returns true so the drawable is never erased in standard mode.
-    bool stagingIsSdfMode_ = false;
-    bool isSdfMode_ = false;
 };
 
 class RSFilterDrawable : public RSDrawable {

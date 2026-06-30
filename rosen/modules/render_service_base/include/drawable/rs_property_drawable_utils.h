@@ -73,12 +73,24 @@ public:
     static std::shared_ptr<Drawing::Image> GpuScaleImage(std::shared_ptr<Drawing::GPUContext> context,
         std::shared_ptr<Drawing::Image> image);
     static void GetDarkColor(RSColor& color);
-    static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
+    /**
+     * @brief Start offscreen rendering by creating a MakeSurface, swapping the canvas,
+     * and pushing the offscreen stack. Pair with DrawForegroundFilter or DrawSdfClip to
+     * snapshot, restore the canvas, and composite the result back.
+     */
+    static void BeginOffscreen(RSPaintFilterCanvas& canvas, const RectF& bounds);
+    /**
+     * @brief Restore the offscreen started by BeginOffscreen for foreground filter:
+     * snapshot the offscreen content, restore the canvas, apply the filter, and
+     * composite the filtered result back.
+     */
     static void DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect = std::nullopt);
-    // Draw SDF clip: snapshot offscreen, restore canvas, composite through an SDF-clipped SaveLayer.
-    // frameRect is the drawable's OnDraw rect (node frame, includes border); used as the SDF shader
-    // geometry so the border is not clipped. May be null (falls back to sdfDrawRect).
+    /**
+     * @brief Restore the offscreen started by BeginOffscreen for SDF clip: snapshot
+     * the offscreen content, restore the canvas, and composite through an SDF-clipped
+     * SaveLayer. frameRect is the drawable's OnDraw rect.
+     */
     static void DrawSdfClip(RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
         const Drawing::Rect& sdfDrawRect, const Drawing::Rect* frameRect);

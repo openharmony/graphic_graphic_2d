@@ -465,9 +465,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     filter->PostProcess(*canvas);
 }
 
-void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds)
+void RSPropertyDrawableUtils::BeginOffscreen(RSPaintFilterCanvas& canvas, const RectF& bounds)
 {
-    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::BeginForegroundFilter");
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::BeginOffscreen");
     auto surface = canvas.GetSurface();
     if (!surface) {
         return;
@@ -542,10 +542,18 @@ void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
     const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer,
     const Drawing::Rect& sdfDrawRect, const Drawing::Rect* frameRect)
 {
-    RS_OPTIONAL_TRACE_NAME("DrawSdfClip");
+    RS_OPTIONAL_TRACE_NAME("DrawSdfClip restore");
     if (canvas.GetOffscreenDataList().empty()) { // offscreen not started
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip offscreen not started, skip");
         return;
+    }
+
+    if (geContainer != nullptr && frameRect != nullptr) {
+        // Clip on offscreen before snapshot; matrix shifts content and shape equally.
+        geContainer->SetGeometry(canvas.GetTotalMatrix(), *frameRect, *frameRect,
+            frameRect->GetWidth(), frameRect->GetHeight());
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        geRender->DrawShaderEffect(canvas, *geContainer, sdfDrawRect);
     }
 
     auto surface = canvas.GetSurface();
@@ -555,29 +563,20 @@ void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
     } else {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip surface null");
     }
-    canvas.RestorePCanvasList(); // undo BeginForegroundFilter
+    canvas.RestorePCanvasList(); // undo BeginOffscreen
     canvas.SwapBackMainScreenData();
     canvas.RestoreEnv();
     if (imageSnapshot == nullptr) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawSdfClip image null");
         return;
     }
-    // Composite the snapshot through an SDF-clipped SaveLayer on the original canvas.
+    // Composite the SDF-clipped snapshot back to the original canvas.
     Drawing::Rect dstRect(sdfDrawRect.GetLeft(), sdfDrawRect.GetTop(),
         sdfDrawRect.GetLeft() + imageSnapshot->GetWidth(), sdfDrawRect.GetTop() + imageSnapshot->GetHeight());
-    Drawing::SaveLayerOps slo(&sdfDrawRect, nullptr);
-    canvas.SaveLayer(slo);
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*imageSnapshot, dstRect, Drawing::SamplingOptions());
     canvas.DetachBrush();
-    if (geContainer != nullptr && frameRect != nullptr) { // skip shader if invalid
-        geContainer->SetGeometry(canvas.GetTotalMatrix(), *frameRect, *frameRect,
-            frameRect->GetWidth(), frameRect->GetHeight());
-        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-        geRender->DrawShaderEffect(canvas, *geContainer, sdfDrawRect);
-    }
-    canvas.Restore();
 }
 
 int RSPropertyDrawableUtils::GetAndResetBlurCnt()

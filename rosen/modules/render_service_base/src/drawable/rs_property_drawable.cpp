@@ -148,6 +148,7 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         auto shapeRect = sdfShape->GetTransformDrawRect();
         stagingSdfDrawRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(
             (bounds == node.CalcBoundingBox() && !shapeRect.IsEmpty()) ? shapeRect : node.CalcBoundingBox());
+        stagingSdfDrawRect_.MakeOutset(1.0f, 1.0f); // expand 1px to avoid edge precision loss
     } else if (properties.GetClipToRRect()) {
         stagingType_ = RSClipToBoundsType::CLIP_RRECT;
         stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect());
@@ -224,7 +225,7 @@ void RSClipToBoundsDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
             RectF sdfRectF(sdfDrawRect_.GetLeft(), sdfDrawRect_.GetTop(),
                 sdfDrawRect_.GetWidth(), sdfDrawRect_.GetHeight());
-            RSPropertyDrawableUtils::BeginForegroundFilter(*paintFilterCanvas, sdfRectF);
+            RSPropertyDrawableUtils::BeginOffscreen(*paintFilterCanvas, sdfRectF);
             paintFilterCanvas->Translate(-sdfDrawRect_.GetLeft(), -sdfDrawRect_.GetTop());
             break;
         }
@@ -255,70 +256,76 @@ bool RSClipToFrameDrawable::OnUpdate(const RSRenderNode& node)
 }
 
 // ============================================================================
-// RSSdfClipRestoreDrawable
-RSDrawable::Ptr RSSdfClipRestoreDrawable::OnGenerate(const RSRenderNode& node, std::shared_ptr<uint32_t> content)
+// RSClipToBoundsRestoreDrawable
+RSDrawable::Ptr RSClipToBoundsRestoreDrawable::OnGenerate(const RSRenderNode& node, std::shared_ptr<uint32_t> content)
 {
-    auto ret = std::make_shared<RSSdfClipRestoreDrawable>(content);
+    auto ret = std::make_shared<RSClipToBoundsRestoreDrawable>(content);
     ret->OnUpdate(node);
     ret->OnSync();
     return std::move(ret);
 }
 
-bool RSSdfClipRestoreDrawable::OnUpdate(const RSRenderNode& node)
+bool RSClipToBoundsRestoreDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    stagingGeContainer_ = nullptr;
+    stagingSdfShape_ = nullptr;
     // Mirror the first two branches of RSClipToBoundsDrawable::OnUpdate: SDF mode only when there
     // is no clipBounds (CLIP_PATH takes precedence) and a resolved SDF shape exists; otherwise
     // standard restore. Always return true so the drawable is never erased (it must balance
     // BG_SAVE_BOUNDS's Save in both modes). sdfShape add/remove after creation is reconciled here.
     if (properties.GetClipBounds() != nullptr) {
-        stagingIsSdfMode_ = false;
-    } else if (auto sdfShape = RSPropertyDrawableUtils::GetResolvedSDFShape(properties)) {
-        stagingIsSdfMode_ = true;
+        needSync_ = true;
+        return true;
+    }
+    stagingSdfShape_ = RSPropertyDrawableUtils::GetResolvedSDFShape(properties);
+    if (stagingSdfShape_) {
         auto bounds = properties.GetBoundsRect();
-        auto shapeRect = sdfShape->GetTransformDrawRect();
+        auto shapeRect = stagingSdfShape_->GetTransformDrawRect();
         stagingSdfDrawRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(
             (bounds == node.CalcBoundingBox() && !shapeRect.IsEmpty()) ? shapeRect : node.CalcBoundingBox());
-        auto geVisualEffect = sdfShape->GenerateGEVisualEffect();
-        auto geShape = geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
-        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
-            Drawing::GE_SHADER_SDF_CLIP, Drawing::DrawingPaintType::BRUSH);
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
-        stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingGeContainer_->AddToChainedFilter(geFilter);
-    } else {
-        stagingIsSdfMode_ = false;
+        stagingSdfDrawRect_.MakeOutset(1.0f, 1.0f); // expand 1px to avoid edge precision loss
     }
     needSync_ = true;
     return true;
 }
 
-void RSSdfClipRestoreDrawable::OnSync()
+void RSClipToBoundsRestoreDrawable::OnSync()
 {
     if (!needSync_) {
         return;
     }
-    geContainer_ = std::move(stagingGeContainer_);
+    sdfShape_ = stagingSdfShape_;
     sdfDrawRect_ = stagingSdfDrawRect_;
-    isSdfMode_ = stagingIsSdfMode_;
     needSync_ = false;
 }
 
-void RSSdfClipRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
+void RSClipToBoundsRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_OTHER);
 #endif
-    if (isSdfMode_) {
+    if (!paintFilterCanvas) {
+        ROSEN_LOGE("RSClipToBoundsRestoreDrawable::OnDraw paintFilterCanvas is nullptr");
+        return;
+    }
+    if (sdfShape_) {
+        auto geVisualEffect = sdfShape_->GenerateGEVisualEffect();
+        auto geShape = geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
+            Drawing::GE_SHADER_SDF_CLIP, Drawing::DrawingPaintType::BRUSH);
+        geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
+        auto geContaniner = std::make_shared<Drawing::GEVisualEffectContainer>();
+        geContaniner->AddToChainedFilter(geFilter);
         // Pass the OnDraw rect (node frame, includes border) as the SDF shader geometry so the
         // border is not clipped (matches the original CLIP_SDF which used the OnDraw rect).
-        RSPropertyDrawableUtils::DrawSdfClip(*paintFilterCanvas, geContainer_, sdfDrawRect_, rect);
+        RSPropertyDrawableUtils::DrawSdfClip(*paintFilterCanvas, geContaniner, sdfDrawRect_, rect);
     }
-    // Restore canvas state to balance BG_SAVE_BOUNDS's Save (both SDF and standard modes)
-    paintFilterCanvas->RestoreToCount(*content_);
+    if (content_) {
+        // Restore canvas state to balance BG_SAVE_BOUNDS's Save (both SDF and standard modes)
+        paintFilterCanvas->RestoreToCount(*content_);
+    }
 }
 
 RSFilterDrawable::RSFilterDrawable()
