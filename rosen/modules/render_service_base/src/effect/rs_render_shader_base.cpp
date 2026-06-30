@@ -86,12 +86,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderCircleFlowlight>();
         }
     },
-#ifndef ROSEN_ARKUI_X
     {RSNGEffectType::FROSTED_GLASS_EFFECT, [] {
             return std::make_shared<RSNGRenderFrostedGlassEffect>();
         }
     },
-#endif
     {RSNGEffectType::DISTORT_CHROMA, [] {
             return std::make_shared<RSNGRenderDistortChroma>();
         }
