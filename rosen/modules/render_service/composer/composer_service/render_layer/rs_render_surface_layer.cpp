@@ -761,10 +761,10 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     useDeviceOffline_ = rsLayer->GetUseDeviceOffline();
     ignoreAlpha_ = rsLayer->GetIgnoreAlpha();
     ancoSrcRect_ = rsLayer->GetAncoSrcRect();
+    splitLayerTag_ = rsLayer->GetSplitLayerTag();
     vcldInfo_ = rsLayer->GetVcldInfo();
     delegateModeCropRect_ = rsLayer->GetDelegateModeCropRect();
     isDelegateMode_ = rsLayer->GetDelegateMode();
-    splitLayerTag_ = rsLayer->GetSplitLayerTag();
 }
 
 void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command)

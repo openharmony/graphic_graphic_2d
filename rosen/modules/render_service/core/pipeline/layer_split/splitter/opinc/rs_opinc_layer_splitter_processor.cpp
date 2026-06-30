@@ -33,7 +33,7 @@
 
 namespace OHOS::Rosen {
 
-RSOpincLayerSplitterProcessor::RSOpincLayerSplitterProcessor() 
+RSOpincLayerSplitterProcessor::RSOpincLayerSplitterProcessor()
 {
     drawDfxEnabled_ = RSSystemParameters::GetLayerSplitterDfxEnable();
 }

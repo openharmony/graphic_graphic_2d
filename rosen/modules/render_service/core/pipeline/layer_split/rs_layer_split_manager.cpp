@@ -199,7 +199,6 @@ bool RSLayerSplitManager::CheckOpIncNodeFromCommand(std::unique_ptr<RSTransactio
 
 bool RSLayerSplitManager::CheckDoDirectCompositionWithSplitLayer()
 {
-
     if (plannerMap_.empty()) {
         return false;
     }
