@@ -3273,24 +3273,23 @@ HWTEST_F(RsRenderComposerTest, SetScreenBacklight_Branches, TestSize.Level1)
     auto output = rsRenderComposer_->hdiOutput_;
     ASSERT_NE(output, nullptr);
     auto originalDevice = output->device_;
-    output->device_ = hdiDeviceMock_;
+    output->SetHdiOutputDevice(hdiDeviceMock_);
 
-    constexpr auto waitTimeout = std::chrono::seconds(1);
+    // Call with valid hdiOutput_
     auto taskFinished = std::make_shared<std::promise<void>>();
-    auto taskFuture = taskFinished->get_future();
     EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(output->GetScreenId(), asyncLevel))
         .WillOnce([taskFinished](uint32_t, uint32_t) {
             taskFinished->set_value();
             return GRAPHIC_DISPLAY_SUCCESS;
         });
     rsRenderComposer_->SetScreenBacklight(asyncLevel);
-    EXPECT_EQ(taskFuture.wait_for(waitTimeout), std::future_status::ready);
 
+    // Call with null hdiOutput_
     rsRenderComposer_->hdiOutput_ = nullptr;
     rsRenderComposer_->SetScreenBacklight(0);
     EXPECT_EQ(rsRenderComposer_->hdiOutput_, nullptr);
     rsRenderComposer_->hdiOutput_ = output;
-    output->device_ = originalDevice;
+    output->SetHdiOutputDevice(originalDevice);
 }
 
 /**

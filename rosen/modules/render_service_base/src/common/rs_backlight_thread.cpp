@@ -14,10 +14,11 @@
  */
 
 #include "common/rs_backlight_thread.h"
-#include "platform/common/rs_log.h"
 
 #ifdef RES_BASE_SCHED_ENABLE
 #include "qos.h"
+
+#include "platform/common/rs_log.h"
 #endif
 
 namespace OHOS::Rosen {
@@ -29,17 +30,7 @@ RSBacklightThread& RSBacklightThread::Instance()
 
 RSBacklightThread::RSBacklightThread()
 {
-    Init(AppExecFwk::EventRunner::Create("RSBacklightThread"));
-}
-
-void RSBacklightThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner)
-{
-    runner_ = runner;
-    if (runner_ == nullptr) {
-        handler_ = nullptr;
-        RS_LOGE("RSBacklightThread create runner failed");
-        return;
-    }
+    runner_ = AppExecFwk::EventRunner::Create("RSBacklightThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
 #ifdef RES_BASE_SCHED_ENABLE
     PostTask([]() {
@@ -51,14 +42,8 @@ void RSBacklightThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& run
 
 void RSBacklightThread::PostTask(const std::function<void()>& task)
 {
-    if (handler_ == nullptr) {
-        RS_LOGW("RSBacklightThread handler is nullptr");
-        return;
-    }
-    bool result = handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    if (!result) {
-        RS_LOGW("RSBacklightThread post task failed");
+    if (handler_) {
+        handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
-
 } // namespace OHOS::Rosen

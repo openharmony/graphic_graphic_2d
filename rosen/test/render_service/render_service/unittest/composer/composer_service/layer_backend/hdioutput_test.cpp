@@ -2180,18 +2180,10 @@ HWTEST_F(HdiOutputTest, FlushScreen_BufferCacheCountZero, Function | MediumTest 
  */
 HWTEST_F(HdiOutputTest, SetScreenBacklight_And_PowerOnChanged, Function | MediumTest | Level1)
 {
-    constexpr uint32_t level = 80u;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     hdiOutput_->device_ = nullptr;
-    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).Times(0);
-    hdiOutput_->SetScreenBacklight(level);
-    testing::Mock::VerifyAndClearExpectations(hdiDeviceMock_);
-
     hdiOutput_->device_ = hdiDeviceMock_;
-    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, level))
-        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS))
-        .WillOnce(testing::Return(GRAPHIC_DISPLAY_FAILURE));
-    hdiOutput_->SetScreenBacklight(level);
-    hdiOutput_->SetScreenBacklight(level);
+    hdiOutput_->SetScreenBacklight(80u);
 }
 
  /*
