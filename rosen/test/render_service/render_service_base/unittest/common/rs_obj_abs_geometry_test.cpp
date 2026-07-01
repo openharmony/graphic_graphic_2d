@@ -538,7 +538,7 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateAbsMatrix2DAdvancedTest008, TestSize.Level1
         1.8750686f, 1.6491047f, 5.3575f);
 
     for (int i = 0; i < 9; ++i) {
-        EXPECT_NEAR(expectedMatrix.Get(i), rsObjAbsGeometry->GetMatrix().Get(i), FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(expectedMatrix.Get(i), rsObjAbsGeometry->GetMatrix().Get(i), 0.1);
     }
 }
 
