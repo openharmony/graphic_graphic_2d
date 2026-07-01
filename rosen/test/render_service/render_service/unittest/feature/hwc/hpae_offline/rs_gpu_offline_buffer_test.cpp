@@ -199,7 +199,6 @@ HWTEST_F(RSGPUOfflineBufferPrivateTest, RequestFrameSwitchTypeToMultiNoAttachSin
     auto frame2 = buffer->RequestFrame(renderEngine, config, false, SingleBufferMode::SINGLE_BUFFER_MODE_TO_MULTI);
     EXPECT_EQ(frame2, nullptr);
     frame2.reset();
-
 }
 
 class NativeWindowBufferInfoMarshallingTest : public testing::Test {

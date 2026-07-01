@@ -56,7 +56,8 @@ public:
 
 private:
     sptr<SurfaceBuffer> CreateSurfaceBuffer(int32_t width, int32_t height);
-    void SetRSSurfaceHandlerBuffer(sptr<SurfaceBuffer> &surfaceBuffer, std::shared_ptr<RSSurfaceHandler> surfaceHandler);
+    void SetRSSurfaceHandlerBuffer(sptr<SurfaceBuffer> &surfaceBuffer,
+        std::shared_ptr<RSSurfaceHandler> surfaceHandler);
 };
 
 sptr<SurfaceBuffer> RSGPUOfflineDeviceTest::CreateSurfaceBuffer(int32_t width, int32_t height)
