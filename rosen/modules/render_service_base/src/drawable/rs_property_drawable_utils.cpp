@@ -554,6 +554,8 @@ void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
             frameRect->GetWidth(), frameRect->GetHeight());
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
         geRender->DrawShaderEffect(canvas, *geContainer, sdfDrawRect);
+    } else {
+        ROSEN_LOGE("Clip SDF failed, geContainer or frameRect is nullptr");
     }
 
     auto surface = canvas.GetSurface();
@@ -572,7 +574,7 @@ void RSPropertyDrawableUtils::DrawSdfClip(RSPaintFilterCanvas& canvas,
     }
     // Composite the SDF-clipped snapshot back to the original canvas.
     Drawing::Rect dstRect(sdfDrawRect.GetLeft(), sdfDrawRect.GetTop(),
-        sdfDrawRect.GetLeft() + imageSnapshot->GetWidth(), sdfDrawRect.GetTop() + imageSnapshot->GetHeight());
+        sdfDrawRect.GetRight(), sdfDrawRect.GetBottom());
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     canvas.DrawImageRect(*imageSnapshot, dstRect, Drawing::SamplingOptions());
