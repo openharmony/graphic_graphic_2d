@@ -47,9 +47,10 @@ private:
         mgr.processorMap_.clear();
         mgr.parentNodeMap_.clear();
     }
-    int TEST_NODE_ID = 0;
-    std::shared_ptr<RSRenderNode> CreateSurfaceNode() {
-        return std::make_shared<RSRenderNode>(TEST_NODE_ID++);
+    int testNodeId = 0;
+    std::shared_ptr<RSRenderNode> CreateSurfaceNode()
+    {
+        return std::make_shared<RSRenderNode>(testNodeId++);
     }
 };
 

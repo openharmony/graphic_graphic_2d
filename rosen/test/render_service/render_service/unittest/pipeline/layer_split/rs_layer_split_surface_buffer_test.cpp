@@ -31,6 +31,10 @@ using namespace OHOS::Rosen;
 namespace OHOS::Rosen {
 namespace {
 
+constexpr int32_t BUFFER_DEFAULT_WIDTH = 100;
+constexpr int32_t BUFFER_DEFAULT_HEIGHT = 100;
+constexpr int32_t K_BUSY_WAIT_TIMEOUT = 10000;
+
 class RSSplitSurfaceBufferTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
@@ -38,7 +42,8 @@ public:
 
     void SetUp() override
     {
-        splitBuffer_ = std::make_unique<RSSplitSurfaceBuffer>("test_layer", 0, 100, 100);
+        splitBuffer_ = std::make_unique<RSSplitSurfaceBuffer>("test_layer", 0,
+            BUFFER_DEFAULT_WIDTH, BUFFER_DEFAULT_HEIGHT);
     }
 
     void TearDown() override

@@ -1714,7 +1714,7 @@ void RSMainThread::ProcessCommandForUniRender()
         splitLayerFlag &= RSLayerSplitManager::GetInstance()->CheckDoDirectCompositionWithSplitLayer();
         if (!delegateModeFlag && !splitLayerFlag) {
             doDirectComposition_ = false;
-            RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by delegateMode or splitLayer not enabled and "
+            RS_OPTIONAL_TRACE_NAME("HWC debug: disable directComposition by delegateMode or splitLayer not enabled and "
                 "transactionDataEffective not empty");
         }
 

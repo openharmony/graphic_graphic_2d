@@ -579,7 +579,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, UpdateSplitPlan_PlanStatusOFF_NeedLeav
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSOpincLayerSplitterPlannerTest, UpdateSplitPlan_PlanStatusOFF_NeedLeave_NoUnregister_NotLongTerm, TestSize.Level0)
+HWTEST_F(RSOpincLayerSplitterPlannerTest,
+    UpdateSplitPlan_PlanStatusOFF_NeedLeave_NoUnregister_NotLongTerm, TestSize.Level0)
 {
     ASSERT_NE(planner_, nullptr);
     planner_->splitSurface_ = CreateSplitSurface(100);
@@ -694,7 +695,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, GetSurfaceStatus_SplitSurfaceNull, Tes
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSOpincLayerSplitterPlannerTest, UnregisterSplitSurfaceNode_SplitSurfaceNotNull_ControllerNotNull, TestSize.Level0)
+HWTEST_F(RSOpincLayerSplitterPlannerTest,
+    UnregisterSplitSurfaceNode_SplitSurfaceNotNull_ControllerNotNull, TestSize.Level0)
 {
     ASSERT_NE(planner_, nullptr);
     planner_->splitSurface_ = CreateSplitSurface(100);
@@ -709,7 +711,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, UnregisterSplitSurfaceNode_SplitSurfac
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSOpincLayerSplitterPlannerTest, UnregisterSplitSurfaceNode_SplitSurfaceNotNull_ControllerNull, TestSize.Level0)
+HWTEST_F(RSOpincLayerSplitterPlannerTest,
+    UnregisterSplitSurfaceNode_SplitSurfaceNotNull_ControllerNull, TestSize.Level0)
 {
     ASSERT_NE(planner_, nullptr);
     planner_->splitSurface_ = CreateSplitSurface(100);
@@ -724,7 +727,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, UnregisterSplitSurfaceNode_SplitSurfac
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSOpincLayerSplitterPlannerTest, UnregisterSplitSurfaceNode_SplitSurfaceNull_ControllerNotNull, TestSize.Level0)
+HWTEST_F(RSOpincLayerSplitterPlannerTest,
+    UnregisterSplitSurfaceNode_SplitSurfaceNull_ControllerNotNull, TestSize.Level0)
 {
     ASSERT_NE(planner_, nullptr);
     planner_->splitSurface_ = nullptr;
@@ -774,7 +778,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, ClearAllChildrenLayerObjects_SplitSurf
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSOpincLayerSplitterPlannerTest, ClearAllChildrenLayerObjects_SplitSurfaceNotNull_DrawableNull, TestSize.Level0)
+HWTEST_F(RSOpincLayerSplitterPlannerTest,
+    ClearAllChildrenLayerObjects_SplitSurfaceNotNull_DrawableNull, TestSize.Level0)
 {
     ASSERT_NE(planner_, nullptr);
     planner_->splitSurface_ = CreateSplitSurface(100);
@@ -791,7 +796,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, ClearAllChildrenLayerObjects_SplitSurf
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSOpincLayerSplitterPlannerTest, ClearAllChildrenLayerObjects_SplitSurfaceNotNull_DrawableNotNull, TestSize.Level0)
+HWTEST_F(RSOpincLayerSplitterPlannerTest,
+    ClearAllChildrenLayerObjects_SplitSurfaceNotNull_DrawableNotNull, TestSize.Level0)
 {
     ASSERT_NE(planner_, nullptr);
     planner_->splitSurface_ = CreateSplitSurface(100);
@@ -1524,7 +1530,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, CheckOpIncNodeFromCommand_NodeNotFound
 
 /**
  * @tc.name: CheckOpIncNodeFromCommand_ParentMismatch
- * @tc.desc: Test CheckOpIncNodeFromCommand when parent node ID doesn't match opIncParentNode_ (sets canDoDirectComposition_=false)
+ * @tc.desc: Test CheckOpIncNodeFromCommand when parent node ID doesn't match
+ *           opIncParentNode_ (sets canDoDirectComposition_=false)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -1563,7 +1570,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, CheckOpIncNodeFromCommand_NotInLastOpI
 
 /**
  * @tc.name: CheckOpIncNodeFromCommand_DirtyTypesExist
- * @tc.desc: Test CheckOpIncNodeFromCommand when dirty types exist beyond bounds/frame (sets canDoDirectComposition_=false)
+ * @tc.desc: Test CheckOpIncNodeFromCommand when dirty types exist beyond
+ *           bounds/frame (sets canDoDirectComposition_=false)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2397,7 +2405,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, CheckSplitNodeIntersectFilter_HwcNodeE
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSOpincLayerSplitterPlannerTest, CheckSplitNodeIntersectFilter_HwcNodeNotEqualsSplitSurfaceNode, TestSize.Level0)
+HWTEST_F(RSOpincLayerSplitterPlannerTest,
+    CheckSplitNodeIntersectFilter_HwcNodeNotEqualsSplitSurfaceNode, TestSize.Level0)
 {
     ASSERT_NE(planner_, nullptr);
     planner_->splitSurface_ = CreateSplitSurface(100);
@@ -2941,7 +2950,8 @@ HWTEST_F(RSOpincLayerSplitterPlannerTest, SetSrcAndDstRect_BufferNotNull, TestSi
 
 /**
  * @tc.name: SetColorSpaceInfo_ColorSpaceMatch
- * @tc.desc: Test SetColorSpaceInfo when colorspace matches (calls SetColorSpace at line 455, then GetRSSurfaceHandler at line 471)
+ * @tc.desc: Test SetColorSpaceInfo when colorspace matches
+ *           (calls SetColorSpace at line 455, then GetRSSurfaceHandler at line 471)
  * @tc.type: FUNC
  * @tc.require:
  */
