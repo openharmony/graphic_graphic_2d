@@ -155,6 +155,7 @@ void RSCanvasRenderNode::UpdateHDRNodeOnTreeState(NodeId displayNodeId)
 
 void RSCanvasRenderNode::UpdateDisplayBlendModeMap(bool isIncrease, NodeId displayNodeId)
 {
+#ifdef ROSEN_OHOS
     if (!RSSystemProperties::GetEdrGainEnabled() || RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
         return;
     }
@@ -188,6 +189,7 @@ void RSCanvasRenderNode::UpdateDisplayBlendModeMap(bool isIncrease, NodeId displ
     } else {
         displayNode->RemoveBlendModeNode(GetId());
     }
+#endif
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
