@@ -27,6 +27,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "feature/hwc/hpae_offline/rs_offline_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "params/rs_screen_render_params.h"
@@ -35,7 +36,6 @@
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
-#include "feature/hdr/rs_hdr_util.h"
 #ifdef HETERO_HDR_ENABLE
 #include "rs_hetero_hdr_manager.h"
 #endif
@@ -171,7 +171,7 @@ bool RSHpaeOfflineDevice::GetOutputConfig(std::shared_ptr<RSHpaeOfflineContext>&
         return false;
     }
     context->offlineRect = outputInfo.outRect;
-    RS_OFFLINE_LOGD("Got hpae offline config, layerConfig.size: %{public}d, %{public}d, "
+    RS_OFFLINE_LOGD("Got hpae offline config, layerconfig.size: %{public}d, %{public}d, "
         "format: %{public}d, colorGamut: %{public}d, timeout: %{public}d, "
         "offline rect: [%{public}d, %{public}d, %{public}d, %{public}d]",
         context->layerConfig.width, context->layerConfig.height,
@@ -187,7 +187,7 @@ bool RSHpaeOfflineDevice::IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRender
 {
     bool offlineDeviceEnable = RSSystemProperties::GetHpaeOfflineEnabled();
     if (!offlineDeviceEnable) {
-        RS_OFFLINE_LOGD("HpaeOffline is not open, offlineProcessorEnabled: %{public}d.",
+        RS_OFFLINE_LOGD("HpaeOffline is not open, offlineDeviceEnable: %{public}d.",
             offlineDeviceEnable);
             return false;
     }
@@ -197,7 +197,7 @@ bool RSHpaeOfflineDevice::IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRender
     }
     std::shared_ptr<RSHpaeOfflineContext> context = GetOrCreateOfflineContext(surfaceNode);
     if (context == nullptr) {
-        RS_OFFLINE_LOGI("context is nullptr, banned offline!");
+        RS_OFFLINE_LOGI("Context is nullptr, banned offline!");
         return false;
     }
     if (context->timeout) {
@@ -205,7 +205,7 @@ bool RSHpaeOfflineDevice::IsRSOfflineDeviceReady(std::shared_ptr<RSSurfaceRender
         return false;
     }
     if (!UpdateContext(surfaceNode, context)) {
-        RS_OFFLINE_LOGI("RSHpaeOfflineDevice::UpdateContext failed");
+        RS_OFFLINE_LOGI("UpdateContext failed");
         return false;
     }
     if (!GetOutputConfig(context, surfaceNode)) {
@@ -234,13 +234,13 @@ bool RSHpaeOfflineDevice::IsOfflineDeviceEnable(std::shared_ptr<RSHpaeOfflineCon
 #ifdef HETERO_HDR_ENABLE
     if (RSHeteroHDRManager::Instance().GetNeedClearBufferAndMHC()) {
         RSHeteroHDRManager::Instance().SetHeteroEnable(false);
-        RS_OFFLINE_LOGD("hetero can`t clear buffer, (node: %{public}" PRIu64 ")", context->nodeId);
+        RS_OFFLINE_LOGD("hetero can`t clear buffer, (node: %{public}" PRIu64 ") ", context->nodeId);
         return false;
     }
     if (context->heteroEnableFrames < MAX_HETERO_ENABLE_FRAME) {
         RSHeteroHDRManager::Instance().SetHeteroEnable(false);
         RS_OFFLINE_LOGD("disable offline process, validFrames: %{public}d, (node: %{public}" PRIu64 ").",
-            context->heteroEnableFrames, context-NodeId);
+            context->heteroEnableFrames, context->nodeId);
         context->heteroEnableFrames++;
         return false;
     }
@@ -320,7 +320,7 @@ bool RSHpaeOfflineDevice::GetOfflineProcessInput(RSSurfaceRenderParams& params, 
     if (taskData.contextType == OfflineContextType::AI2020) {
         inputInfo.srcRect = {taskData.offlineRect.x, taskData.offlineRect.y,
             taskData.offlineRect.w, taskData.offlineRect.h};
-        inputInfo.transformType = static_cast<uint32_t>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+        inputInfo.transform = static_cast<uint32_t>(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     } else {
         Rect crop{0, 0, 0, 0};
         if (srcSurfaceBuffer->GetCropMetadata(crop)) {
@@ -445,7 +445,7 @@ bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
 {
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: submit offline buffer");
 
-    // flush and consume offline buffer
+    // Flush and consume offline buffer
     taskData.flushConfig.timestamp = 0;
     taskData.flushConfig.damage = {.x = taskData.inputInfo.dstRect.x, .y = taskData.inputInfo.dstRect.y,
         .w = taskData.inputInfo.dstRect.w, .h = taskData.inputInfo.dstRect.h};
@@ -460,7 +460,9 @@ bool RSHpaeOfflineDevice::SubmitOfflineBuffer(
     if (offlineSurfaceHandler->IsCurrentFrameBufferConsumed()) {
         auto offlinePreBufferCount = offlineSurfaceHandler->GetPreBufferOwnerCount();
         if (offlinePreBufferCount) {
-            offlinePreBufferCount->DecRef();
+            if (offlinePreBufferCount->DecRef()) {
+                offlineSurfaceHandler->ResetPreBuffer();
+            }
         }
     }
     return FillOfflineResult(processOfflineResult, taskData, params, offlineSurfaceHandler);
@@ -529,7 +531,7 @@ bool RSHpaeOfflineDevice::PostProcessOfflineTask(
         return false;
     }
     if (!UpdateContext(surfaceNode, context)) {
-        RS_OFFLINE_LOGW("RSHpaeOfflineDevice::updateContext failed");
+        RS_OFFLINE_LOGW("UpdateContext failed");
         return false;
     }
     auto* params = surfaceNode->GetStagingRenderParams().get();
@@ -550,7 +552,7 @@ bool RSHpaeOfflineDevice::PostProcessOfflineTask(
     if (context == nullptr) {
         return false;
     }
-    auto *params = surfaceDrawable->GetRenderParams().get();
+    auto* params = surfaceDrawable->GetRenderParams().get();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params);
     RS_OFFLINE_LOGD("post offline task[%{public}" PRIu64 "-%{public}" PRIu64 "] by drawable",
         taskId.first, taskId.second);
@@ -605,7 +607,7 @@ bool RSHpaeOfflineDevice::SetResultWhenSkipDraw(std::shared_ptr<RSHpaeOfflineCon
         RS_OFFLINE_LOGW("RSHpaeOfflineDevice::FillOfflineResult failed");
         return false;
     }
-    result.preBuffer = nullptr;  // need to set nullptr in skiwdraw
+    result.preBuffer = nullptr;  // need to set nullptr in skipdraw
     result.taskSuccess = true;
     offlineResultSync_.SetDirectResult(taskId, result);
     return true;
@@ -631,6 +633,7 @@ void RSHpaeOfflineDevice::CheckAndPostClearOfflineResourceTask(const std::vector
             }
             RS_TRACE_NAME("hpae_offline: Post deInit task.");
             deInitOfflineFunc_();
+            offlineResultSync_.ClearResultPool();
             isInitOfflineFuncSucc_ = false;
         });
         return;
@@ -724,7 +727,7 @@ std::shared_ptr<RSHpaeOfflineContext> RSHpaeOfflineDevice::GetOrCreateOfflineCon
         return it->second;
     }
     if (hpaeOfflineContextPool_.size() >= MAX_CACHE_SIZE) {
-        RS_OFFLINE_LOGI("RSHpaeOfflineDevice::can't create new context!");
+        RS_OFFLINE_LOGI("can't create new context!");
         return nullptr;
     }
     std::shared_ptr<RSHpaeOfflineContext> context;
@@ -752,7 +755,7 @@ std::shared_ptr<RSHpaeOfflineContext> RSHpaeOfflineDevice::GetOfflineContext(Nod
 bool RSHpaeOfflineDevice::UpdateContext(std::shared_ptr<RSSurfaceRenderNode>& node,
     std::shared_ptr<RSHpaeOfflineContext>& context)
 {
-    RS_OFFLINE_LOGD("RSHpaeOfflineDevice::updateContext");
+    RS_OFFLINE_LOGD("UpdateContext");
     if (context->contextType != OfflineContextType::AI2020) {
         return true;
     }
@@ -775,5 +778,5 @@ bool RSHpaeOfflineDevice::UpdateContext(std::shared_ptr<RSSurfaceRenderNode>& no
     return true;
 }
 
-} // namespace Rosen
-} // namespace OHOS
+}  // namespace Rosen
+}  // namespace OHOS

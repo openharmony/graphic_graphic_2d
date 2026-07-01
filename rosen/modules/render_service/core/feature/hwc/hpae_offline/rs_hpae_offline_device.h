@@ -26,10 +26,6 @@
 #include "feature/hwc/hpae_offline/rs_offline_result.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_common.h"
 
-#include <cstdint>
-#include <atomic>
-#include <buffer_handle.h>
-
 namespace OHOS {
 namespace Rosen {
 
@@ -73,7 +69,7 @@ struct HpaeOfflineSubThreadData {
     BufferRequestConfig layerConfig = {
         .width = 0,
         .height = 0,
-        .strideAlignment = 0x08,
+        .strideAlignment = 0x08, // default stride is 8 Bytes.
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_CPU_READ,
         .timeout = 0,
@@ -102,7 +98,7 @@ public:
     BufferRequestConfig layerConfig = {
         .width = 0,
         .height = 0,
-        .strideAlignment = 0x08,
+        .strideAlignment = 0x08, // default stride is 8 Bytes.
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_CPU_READ,
         .timeout = 0,
