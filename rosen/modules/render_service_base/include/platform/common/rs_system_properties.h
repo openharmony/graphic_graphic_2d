@@ -251,6 +251,7 @@ public:
     static bool GetForegroundFilterEnabled();
     static bool GetFgBlenderEnabled();
     static const std::vector<float>& GetAiInvertCoef();
+    static bool DvsyncSkipRsCommitDelayEnabled();
     static bool GetSkipForAlphaZeroEnabled();
     static bool GetSkipGeometryNotChangeEnabled();
     static bool GetRenderParallelEnabled();

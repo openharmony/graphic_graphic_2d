@@ -180,6 +180,7 @@ public:
     void SetBufferInfo(const BufferInfo& bufferInfo);
     // forcefully enable DVsync in RS
     void ForceRsDVsync(const std::string& sceneId);
+    bool DvsyncNeedSkipRsCommitDelay() const;
 
     // used by VRate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);

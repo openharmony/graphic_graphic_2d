@@ -3121,6 +3121,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         }
 #endif
     }
+    pipelineParam_.dvsyncNeedSkipRsCommitDelay =
+            RSSystemProperties::DvsyncSkipRsCommitDelayEnabled() &&
+            rsVsyncManagerAgent_ != nullptr && rsVsyncManagerAgent_->DvsyncNeedSkipRsCommitDelay();
 
 #ifdef RS_ENABLE_GPU
     RSUniRenderThread::Instance().PostSyncTask([this, processor, screenNode]() mutable {
@@ -5771,6 +5774,7 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag)
     pipelineParam_.actualTimestamp = currentTimestamp;
     pipelineParam_.vsyncId = frameCount;
     pipelineParam_.hasGameScene = FrameReport::GetInstance().HasGameScene();
+    pipelineParam_.dvsyncNeedSkipRsCommitDelay = false;  // recalculated only in direct composition scene.
     auto &frameDeadline = RsFrameDeadlinePredict::GetInstance();
     uint32_t currentRate = pipelineParam_.pendingScreenRefreshRate ? pipelineParam_.pendingScreenRefreshRate :
         GetRefreshRate();

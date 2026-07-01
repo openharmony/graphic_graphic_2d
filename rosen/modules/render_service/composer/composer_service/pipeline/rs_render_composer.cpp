@@ -613,6 +613,10 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
     // we use (pipelineParam.frameTimestamp - preTime) to get this frame real vsync timestamp
     expectCommitTime = pipelineParam.frameTimestamp - preTime + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
+    if (pipelineParam.dvsyncNeedSkipRsCommitDelay) {
+        RS_TRACE_NAME_FMT("%s Skip commit delay, diffTime:%" PRId64 ", period:%" PRId64 "", __func__, diffTime, period);
+        diffTime = 0;
+    }
     if (diffTime > 0 && period > 0) {
         delayTime = std::round(diffTime * 1.0f / NS_MS_UNIT_CONVERSION);
     }

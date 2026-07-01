@@ -277,6 +277,11 @@ bool RSSystemProperties::GetSLRScaleEnabled()
     return false;
 }
 
+bool RSSystemProperties::DvsyncSkipRsCommitDelayEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     return {};

@@ -1471,6 +1471,11 @@ void VSyncDistributor::SetVSyncTimeUpdated()
     DVSyncLibManager::Instance().SetVSyncTimeUpdated();
 }
 
+bool VSyncDistributor::DvsyncNeedSkipRsCommitDelay() const
+{
+    return DVSyncLibManager::Instance().NeedSkipRsCommitDelay();
+}
+
 int64_t VSyncDistributor::GetLastUpdateTime()
 {
     return DVSyncLibManager::Instance().GetLastUpdateTime();

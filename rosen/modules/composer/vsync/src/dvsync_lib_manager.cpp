@@ -130,6 +130,7 @@ bool DVSyncLibManager::LoadAllFunctions()
     loadSuccess &= LoadFunction("GetVsyncCount", getVsyncCountFunc_);
     loadSuccess &= LoadFunction("InitDvsyncController", initDvsyncControllerFunc_);
     loadSuccess &= LoadFunction("SetVSyncTimeUpdated", setVSyncTimeUpdatedFunc_);
+    loadSuccess &= LoadFunction("NeedSkipRsCommitDelay", needSkipRsCommitDelayFunc_);
     //load dvsync delay
     loadSuccess &= LoadDvsyncDelayFunctions();
     return loadSuccess;
@@ -195,6 +196,7 @@ void DVSyncLibManager::ClearAllFunctions()
     getVsyncCountFunc_ = nullptr;
     initDvsyncControllerFunc_ = nullptr;
     setVSyncTimeUpdatedFunc_ = nullptr;
+    needSkipRsCommitDelayFunc_ = nullptr;
     ClearDvsyncDelayFunctions();
 }
 
@@ -532,6 +534,14 @@ void DVSyncLibManager::SetVSyncTimeUpdated()
         return;
     }
     setVSyncTimeUpdatedFunc_();
+}
+
+bool DVSyncLibManager::NeedSkipRsCommitDelay() const
+{
+    if (needSkipRsCommitDelayFunc_ == nullptr) {
+        return false;
+    }
+    return needSkipRsCommitDelayFunc_();
 }
 
 void DVSyncLibManager::ToDelay(const AppExecFwk::InnerEvent::Callback& callback, const std::string& name,

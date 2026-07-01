@@ -205,6 +205,13 @@ bool RSVsyncManagerAgent::IsVsyncAppDistributorExist()
     return appVSyncDistributor_ != nullptr;
 }
 
+bool RSVsyncManagerAgent::DvsyncNeedSkipRsCommitDelay() const
+{
+    if (rsVsyncDistributor_ == nullptr) {
+        return false;
+    }
+    return rsVsyncDistributor_->DvsyncNeedSkipRsCommitDelay();
+}
 } // namespace Rosen
 } // namespace OHOS
 

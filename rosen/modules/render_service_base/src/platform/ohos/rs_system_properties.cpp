@@ -650,6 +650,13 @@ bool RSSystemProperties::GetHardCursorEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::DvsyncSkipRsCommitDelayEnabled()
+{
+    static bool dvsyncSkipRsCommitDelayEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.dvsyncSkipRsCommitDelay.enabled", "1")).c_str()) != 0;
+    return dvsyncSkipRsCommitDelayEnabled;
+}
+
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.skipForAlphaZero.enabled", "1");
