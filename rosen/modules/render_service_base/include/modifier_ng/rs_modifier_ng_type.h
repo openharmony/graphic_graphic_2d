@@ -69,8 +69,8 @@ enum class RSModifierType : uint16_t {
     MATERIAL_FILTER = 36,
     COLOR_PICKER = 37,
     MATERIAL_SHADER = 38,
-    OVERLAY_NG_SHADER = 39,
-    USE_UNION = 40,
+    USE_UNION = 39,
+    OVERLAY_NG_SHADER = 40,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 

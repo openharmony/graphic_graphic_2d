@@ -133,8 +133,8 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier:
     [] { return std::make_shared<RSMaterialFilterRenderModifier>(); },                           // MATERIAL_FILTER
     [] { return std::make_shared<RSColorPickerRenderModifier>(); },                              // COLOR_PICKER
     [] { return std::make_shared<RSMaterialShaderRenderModifier>(); },                           // MATERIAL_SHADER
-    [] { return std::make_shared<RSOverlayNGShaderRenderModifier>(); },                          // OVERLAY_NG_SHADER
     [] { return std::make_shared<RSUseUnionRenderModifier>(); },                                 // USE_UNION
+    [] { return std::make_shared<RSOverlayNGShaderRenderModifier>(); },                          // OVERLAY_NG_SHADER
     nullptr,                                                                                     // CHILDREN
 };
 

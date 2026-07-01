@@ -4037,7 +4037,7 @@ HWTEST_F(RSPropertiesTest, SetCoverageNGShader002, TestSize.Level1)
     EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
     
     coverageShader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
-properties.SetCoverageNGShader(coverageShader);
+    properties.SetCoverageNGShader(coverageShader);
     EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
 }
 
