@@ -141,8 +141,6 @@ private:
 
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
-
-    bool IsIntersectWithAbovedRect(std::vector<RectI>& abovedBounds, RectI boundRect);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -807,7 +807,8 @@ void RSUniHwcVisitor::UpdateHardwareStateByBoundNEDstRectInApps(
         RectI boundRect = hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
         RectI dstRect = hwcNodePtr->GetDstRect();
         if (!abovedBounds.empty()) {
-            bool intersectWithAbovedRect = IsIntersectWithAbovedRect(abovedBounds, boundRect);
+            bool intersectWithAbovedRect = std::any_of(abovedBounds.begin(), abovedBounds.end(),
+                [&boundRect](const RectI& abovedBound) { return !abovedBound.IntersectRect(boundRect).IsEmpty(); });
             if (intersectWithAbovedRect) {
                 hwcNodePtr->SetHardwareForcedDisabledState(true);
                 RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by aboved BoundNEDstRect hwcNode",
@@ -828,23 +829,6 @@ void RSUniHwcVisitor::UpdateHardwareStateByBoundNEDstRectInApps(
             abovedBounds.emplace_back(boundRect);
         }
     }
-}
-
-bool RSUniHwcVisitor::IsIntersectWithAbovedRect(std::vector<RectI>& abovedBounds, RectI boundRect)
-{
-    bool intersectWithAbovedRect = std::any_of(abovedBounds.begin(), abovedBounds.end(),
-        [&boundRect](const RectI& abovedBound) {
-            if (RsCommonHook::Instance().GetVideoSurfaceFlag() &&
-                ((abovedBound.GetBottom() - boundRect.GetTop() <= MIN_OVERLAP &&
-                    abovedBound.GetBottom() - boundRect.GetTop() >= 0) ||
-                (boundRect.GetBottom() - abovedBound.GetTop() <= MIN_OVERLAP &&
-                    boundRect.GetBottom() - abovedBound.GetTop() >= 0))) {
-                return false;
-            } else {
-                return !abovedBound.IntersectRect(boundRect).IsEmpty();
-            }
-        });
-    return intersectWithAbovedRect;
 }
 
 void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
