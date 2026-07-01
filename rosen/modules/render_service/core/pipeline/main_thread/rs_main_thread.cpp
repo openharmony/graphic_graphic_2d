@@ -2371,7 +2371,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     // Mirror Mode reuses display node's buffer, so mark it and disable hardware composer in this case
     isHardwareForcedDisabled_ =
         (!hasProtectedLayer_ &&
- 	     (isHardwareForcedDisabled_ || doWindowAnimate_ || isFoldScreenSwitching ||
+ 	     (isHardwareForcedDisabled_ || isFoldScreenSwitching ||
  	      (isMultiDisplay && (isExpandScreenOrWiredProjectionCase || !enableHwcForMirrorMode)) || hasColorFilter)) ||
  	    CheckOverlayDisplayEnable();
     RS_OPTIONAL_TRACE_FMT("hwc debug: CheckIfHardwareForcedDisabled hasProtectedLayer:%d isHardwareForcedDisabled:%d"
