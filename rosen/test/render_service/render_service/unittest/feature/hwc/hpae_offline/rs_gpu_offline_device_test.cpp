@@ -18,13 +18,13 @@
 #include <chrono>
 #include <parameters.h>
 
-#include "feature/hwc/hpea_offline/rs_offline_processor.h"
-#include "feature/hwc/hpea_offline/rs_gpu_offline_device.h"
-#include "feature/hwc/hpea_offline/rs_gpu_offline_buffer.h"
-#include "feature/hwc/hpea_offline/rs_gpu_offline_thread.h"
-#include "feature/hwc/hpea_offline/rs_offline_device.h"
-#include "feature/hwc/hpea_offline/rs_offline_util.h"
-#include "feature/hwc/hpea_offline/rs_offline_result.h"
+#include "feature/hwc/hpae_offline/rs_offline_processor.h"
+#include "feature/hwc/hpae_offline/rs_gpu_offline_device.h"
+#include "feature/hwc/hpae_offline/rs_gpu_offline_buffer.h"
+#include "feature/hwc/hpae_offline/rs_gpu_offline_thread.h"
+#include "feature/hwc/hpae_offline/rs_offline_device.h"
+#include "feature/hwc/hpae_offline/rs_offline_util.h"
+#include "feature/hwc/hpae_offline/rs_offline_result.h"
 #include "params/rs_surface_render_params.h"
 
 #include "pipeline/rs_surface_render_node.h"
