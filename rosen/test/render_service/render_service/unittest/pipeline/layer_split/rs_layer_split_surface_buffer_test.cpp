@@ -31,10 +31,6 @@ using namespace OHOS::Rosen;
 namespace OHOS::Rosen {
 namespace {
 
-constexpr int32_t BUFFER_DEFAULT_WIDTH = 100;
-constexpr int32_t BUFFER_DEFAULT_HEIGHT = 100;
-constexpr int32_t K_BUSY_WAIT_TIMEOUT = 10000;
-
 class RSSplitSurfaceBufferTest : public testing::Test {
 public:
     static void SetUpTestCase() {}
@@ -42,8 +38,7 @@ public:
 
     void SetUp() override
     {
-        splitBuffer_ = std::make_unique<RSSplitSurfaceBuffer>("test_layer", 0,
-            BUFFER_DEFAULT_WIDTH, BUFFER_DEFAULT_HEIGHT);
+        splitBuffer_ = std::make_unique<RSSplitSurfaceBuffer>("test_layer", 0, 100, 100);
     }
 
     void TearDown() override
@@ -127,61 +122,6 @@ HWTEST_F(RSSplitSurfaceBufferTest, PreAllocateBuffer004_ProducerNull, TestSize.L
     splitBuffer_->surfaceCreated_ = true;
     ASSERT_EQ(splitBuffer_->producerSurface_, nullptr);
     splitBuffer_->PreAllocateBuffer();
-    splitBuffer_->isPreAllocInProgress_.store(originInProgress);
-    splitBuffer_->surfaceCreated_ = originCreated;
-}
-
-/**
- * @tc.name: PreAllocateBuffer005_BufferRequestConfig
- * @tc.desc: Test PreAllocateBuffer with various buffer configurations
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSplitSurfaceBufferTest, PreAllocateBuffer005_BufferRequestConfig, TestSize.Level1)
-{
-    ASSERT_NE(splitBuffer_, nullptr);
-    bool originInProgress = splitBuffer_->isPreAllocInProgress_.load();
-    splitBuffer_->isBufferPreAllocated_.store(false);
-    splitBuffer_->isPreAllocInProgress_.store(false);
-    bool originCreated = splitBuffer_->surfaceCreated_;
-    splitBuffer_->surfaceCreated_ = true;
-    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("ScreenNode");
-    sptr<IBufferProducer> producer = consumer->GetProducer();
-    splitBuffer_->producerSurface_ = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(splitBuffer_->producerSurface_, nullptr);
-    splitBuffer_->bufferConfig_.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
-    splitBuffer_->isHebc_ = false;
-    splitBuffer_->PreAllocateBuffer();
-    int timeoutCount = 0;
-    while (splitBuffer_->isPreAllocInProgress_.load() && timeoutCount < K_BUSY_WAIT_TIMEOUT) {
-        std::this_thread::yield();
-        ++timeoutCount;
-    }
-    ASSERT_LT(timeoutCount, K_BUSY_WAIT_TIMEOUT);
-    splitBuffer_->isHebc_ = true;
-    splitBuffer_->PreAllocateBuffer();
-    timeoutCount = 0;
-    while (splitBuffer_->isPreAllocInProgress_.load() && timeoutCount < K_BUSY_WAIT_TIMEOUT) {
-        std::this_thread::yield();
-        ++timeoutCount;
-    }
-    ASSERT_LT(timeoutCount, K_BUSY_WAIT_TIMEOUT);
-    splitBuffer_->bufferConfig_.format = GRAPHIC_PIXEL_FMT_RGBA_1010108;
-    splitBuffer_->PreAllocateBuffer();
-    timeoutCount = 0;
-    while (splitBuffer_->isPreAllocInProgress_.load() && timeoutCount < K_BUSY_WAIT_TIMEOUT) {
-        std::this_thread::yield();
-        ++timeoutCount;
-    }
-    ASSERT_LT(timeoutCount, K_BUSY_WAIT_TIMEOUT);
-    splitBuffer_->bufferConfig_.format = 1;
-    splitBuffer_->PreAllocateBuffer();
-    timeoutCount = 0;
-    while (splitBuffer_->isPreAllocInProgress_.load() && timeoutCount < K_BUSY_WAIT_TIMEOUT) {
-        std::this_thread::yield();
-        ++timeoutCount;
-    }
-    ASSERT_LT(timeoutCount, K_BUSY_WAIT_TIMEOUT);
     splitBuffer_->isPreAllocInProgress_.store(originInProgress);
     splitBuffer_->surfaceCreated_ = originCreated;
 }
@@ -348,7 +288,7 @@ HWTEST_F(RSSplitSurfaceBufferTest, CreateSurface002_ConsumerNull, TestSize.Level
 
 /**
  * @tc.name: GetBufferHandle001_SurfaceNull
- * @tc.desc: Test GetBufferHandle when rsSurface_ == nullptr
+ * @tc.desc: Test GetBufferHandle when rsSurface_ == nullptr or buffer == nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -359,18 +299,7 @@ HWTEST_F(RSSplitSurfaceBufferTest, GetBufferHandle001_SurfaceNull, TestSize.Leve
     ASSERT_EQ(splitBuffer_->rsSurface_, nullptr);
     auto handle = splitBuffer_->GetBufferHandle();
     ASSERT_EQ(handle, nullptr);
-}
-
-/**
- * @tc.name: GetBufferHandle002_BufferNull
- * @tc.desc: Test GetBufferHandle when buffer == nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSplitSurfaceBufferTest, GetBufferHandle002_BufferNull, TestSize.Level1)
-{
-    ASSERT_NE(splitBuffer_, nullptr);
-    auto handle = splitBuffer_->GetBufferHandle();
+    handle = splitBuffer_->GetBufferHandle();
     ASSERT_EQ(handle, nullptr);
 }
 
@@ -397,7 +326,7 @@ HWTEST_F(RSSplitSurfaceBufferTest, GetSkContext001_Null, TestSize.Level1)
 
 /**
  * @tc.name: GetSurfaceHandler001_NotNull
- * @tc.desc: Test GetSurfaceHandler when surfaceHandler_ is not nullptr
+ * @tc.desc: Test GetSurfaceHandler when surfaceHandler_ is not nullptr or nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -406,17 +335,6 @@ HWTEST_F(RSSplitSurfaceBufferTest, GetSurfaceHandler001_NotNull, TestSize.Level1
     ASSERT_NE(splitBuffer_, nullptr);
     ASSERT_NE(splitBuffer_->GetSurfaceHandler(), nullptr);
     ASSERT_EQ(splitBuffer_->GetSurfaceHandler(), splitBuffer_->surfaceHandler_);
-}
-
-/**
- * @tc.name: GetSurfaceHandler002_Null
- * @tc.desc: Test GetSurfaceHandler when surfaceHandler_ == nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSplitSurfaceBufferTest, GetSurfaceHandler002_Null, TestSize.Level1)
-{
-    ASSERT_NE(splitBuffer_, nullptr);
     splitBuffer_->surfaceHandler_ = nullptr;
     ASSERT_EQ(splitBuffer_->GetSurfaceHandler(), nullptr);
 }
@@ -427,7 +345,7 @@ HWTEST_F(RSSplitSurfaceBufferTest, GetSurfaceHandler002_Null, TestSize.Level1)
 
 /**
  * @tc.name: GetRSSurface001_Null
- * @tc.desc: Test GetRSSurface when rsSurface_ == nullptr
+ * @tc.desc: Test GetRSSurface when rsSurface_ == nullptr or not nullptr
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -436,17 +354,6 @@ HWTEST_F(RSSplitSurfaceBufferTest, GetRSSurface001_Null, TestSize.Level1)
     ASSERT_NE(splitBuffer_, nullptr);
     splitBuffer_->rsSurface_ = nullptr;
     ASSERT_EQ(splitBuffer_->GetRSSurface(), nullptr);
-}
-
-/**
- * @tc.name: GetRSSurface002_NotNull
- * @tc.desc: Test GetRSSurface when rsSurface_ is not nullptr
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSplitSurfaceBufferTest, GetRSSurface002_NotNull, TestSize.Level1)
-{
-    ASSERT_NE(splitBuffer_, nullptr);
     auto listener = sptr<RSSplitSurfaceRenderListener>::MakeSptr(splitBuffer_->surfaceHandler_);
     splitBuffer_->CreateSurface(listener);
     ASSERT_NE(splitBuffer_->GetRSSurface(), nullptr);
@@ -458,7 +365,7 @@ HWTEST_F(RSSplitSurfaceBufferTest, GetRSSurface002_NotNull, TestSize.Level1)
 
 /**
  * @tc.name: SplitSurfaceRenderListener001_ExpiredHandler
- * @tc.desc: Test OnBufferAvailable when surfaceHandler_ is expired
+ * @tc.desc: Test OnBufferAvailable when surfaceHandler_ is expired or valid
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -471,18 +378,8 @@ HWTEST_F(RSSplitSurfaceBufferTest, SplitSurfaceRenderListener001_ExpiredHandler,
     }
     auto listener = sptr<RSSplitSurfaceRenderListener>::MakeSptr(weakHandler);
     listener->OnBufferAvailable();
-}
-
-/**
- * @tc.name: SplitSurfaceRenderListener002_ValidHandler
- * @tc.desc: Test OnBufferAvailable when surfaceHandler_ is valid
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSplitSurfaceBufferTest, SplitSurfaceRenderListener002_ValidHandler, TestSize.Level1)
-{
     auto handler = std::make_shared<RSSurfaceHandler>(100);
-    auto listener = sptr<RSSplitSurfaceRenderListener>::MakeSptr(handler);
+    listener = sptr<RSSplitSurfaceRenderListener>::MakeSptr(handler);
     listener->OnBufferAvailable();
 }
 
@@ -492,7 +389,7 @@ HWTEST_F(RSSplitSurfaceBufferTest, SplitSurfaceRenderListener002_ValidHandler, T
 
 /**
  * @tc.name: IsSurfaceCreated001_True
- * @tc.desc: Test IsSurfaceCreated when surfaceCreated_ == true
+ * @tc.desc: Test IsSurfaceCreated when surfaceCreated_ == true or false
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -502,6 +399,8 @@ HWTEST_F(RSSplitSurfaceBufferTest, IsSurfaceCreated001_True, TestSize.Level1)
     bool originCreated = splitBuffer_->surfaceCreated_;
     splitBuffer_->surfaceCreated_ = true;
     ASSERT_EQ(splitBuffer_->IsSurfaceCreated(), true);
+    splitBuffer_->surfaceCreated_ = false;
+    ASSERT_EQ(splitBuffer_->IsSurfaceCreated(), false);
     splitBuffer_->surfaceCreated_ = originCreated;
 }
 
@@ -537,12 +436,7 @@ HWTEST_F(RSSplitSurfaceBufferTest, GetBufferHandle003_SuccessPath, TestSize.Leve
     auto result = splitBuffer_->CreateSurface(listener);
     ASSERT_EQ(result, true);
     ASSERT_NE(splitBuffer_->rsSurface_, nullptr);
-    // After CreateSurface, rsSurface_ is set; GetCurrentBuffer may return null (buffer not allocated),
-    // but the code path through !buffer -> return nullptr is already covered.
-    // This test ensures no crash when rsSurface_ is non-null.
     auto handle = splitBuffer_->GetBufferHandle();
-    // buffer is likely null (no frame requested), so handle should be null
-    // but we are covering the rsSurface_ non-null path
     (void)handle;
 }
 
@@ -560,7 +454,6 @@ HWTEST_F(RSSplitSurfaceBufferTest, PreAllocateBufferImpl001_AlreadyAllocated, Te
     splitBuffer_->isBufferPreAllocated_.store(true);
     splitBuffer_->isPreAllocInProgress_.store(true);
     splitBuffer_->PreAllocateBufferImpl(splitBuffer_->bufferConfig_);
-    // isPreAllocInProgress_ should be set to false
     ASSERT_EQ(splitBuffer_->isPreAllocInProgress_.load(), false);
     splitBuffer_->isBufferPreAllocated_.store(false);
 }
@@ -597,8 +490,6 @@ HWTEST_F(RSSplitSurfaceBufferTest, PreAllocateBufferImpl003_PreAllocBuffersFaile
     splitBuffer_->producerSurface_ = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(splitBuffer_->producerSurface_, nullptr);
     splitBuffer_->PreAllocateBufferImpl(splitBuffer_->bufferConfig_);
-    // PreAllocBuffers may or may not fail depending on environment;
-    // what matters is that isPreAllocInProgress_ is reset and no crash
     ASSERT_EQ(splitBuffer_->isPreAllocInProgress_.load(), false);
     splitBuffer_->producerSurface_ = nullptr;
 }
@@ -619,26 +510,8 @@ HWTEST_F(RSSplitSurfaceBufferTest, PreAllocateBufferImpl004_Success, TestSize.Le
     splitBuffer_->producerSurface_ = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(splitBuffer_->producerSurface_, nullptr);
     splitBuffer_->PreAllocateBufferImpl(splitBuffer_->bufferConfig_);
-    // isPreAllocInProgress_ is always reset at the end
     ASSERT_EQ(splitBuffer_->isPreAllocInProgress_.load(), false);
     splitBuffer_->producerSurface_ = nullptr;
-}
-
-// ===================== IsSurfaceCreated =====================
-
-/**
- * @tc.name: IsSurfaceCreated002_False
- * @tc.desc: Test IsSurfaceCreated when surfaceCreated_ == false
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSplitSurfaceBufferTest, IsSurfaceCreated002_False, TestSize.Level1)
-{
-    ASSERT_NE(splitBuffer_, nullptr);
-    bool originCreated = splitBuffer_->surfaceCreated_;
-    splitBuffer_->surfaceCreated_ = false;
-    ASSERT_EQ(splitBuffer_->IsSurfaceCreated(), false);
-    splitBuffer_->surfaceCreated_ = originCreated;
 }
 
 } // namespace

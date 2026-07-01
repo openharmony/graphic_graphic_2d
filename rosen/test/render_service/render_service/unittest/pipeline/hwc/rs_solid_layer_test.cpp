@@ -80,26 +80,26 @@ HWTEST_F(RSSolidLayerTest, HasValidDrawCmd001, TestSize.Level1)
 {
     // Test 1: no modifier -> HasValidDrawCmd=false, IsPureBackgroundColor=true
     auto node1 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
-    EXPECT_FALSE(node1->HasValidDrawCmd(true));
-    EXPECT_TRUE(node1->IsPureBackgroundColor(true));
+    EXPECT_FALSE(node1->HasValidDrawCmd(false));
+    EXPECT_TRUE(node1->IsPureBackgroundColor(false));
 
     // Test 2: BEHIND_WINDOW_FILTER -> HasValidDrawCmd=true, IsPureBackgroundColor=false
     auto node2 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
     node2->AddModifier(std::make_shared<ModifierNG::RSBehindWindowFilterRenderModifier>());
-    EXPECT_TRUE(node2->HasValidDrawCmd(true));
-    EXPECT_FALSE(node2->IsPureBackgroundColor(true));
+    EXPECT_TRUE(node2->HasValidDrawCmd(false));
+    EXPECT_FALSE(node2->IsPureBackgroundColor(false));
 
     // Test 3: ENV_FOREGROUND_COLOR -> HasValidDrawCmd=true, IsPureBackgroundColor=false
     auto node3 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
     node3->AddModifier(std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>());
-    EXPECT_TRUE(node3->HasValidDrawCmd(true));
-    EXPECT_FALSE(node3->IsPureBackgroundColor(true));
+    EXPECT_TRUE(node3->HasValidDrawCmd(false));
+    EXPECT_FALSE(node3->IsPureBackgroundColor(false));
 
     // Test 4: HDR_BRIGHTNESS -> HasValidDrawCmd=true, IsPureBackgroundColor=false
     auto node4 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
     node4->AddModifier(std::make_shared<ModifierNG::RSHDRBrightnessRenderModifier>());
-    EXPECT_TRUE(node4->HasValidDrawCmd(true));
-    EXPECT_FALSE(node4->IsPureBackgroundColor(true));
+    EXPECT_TRUE(node4->HasValidDrawCmd(false));
+    EXPECT_FALSE(node4->IsPureBackgroundColor(false));
 }
 
 /**
@@ -112,7 +112,7 @@ HWTEST_F(RSSolidLayerTest, HasValidDrawCmd002, TestSize.Level1)
     // Test 1: BOUNDS only -> HasValidDrawCmd=false
     auto node1 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
     node1->AddModifier(std::make_shared<ModifierNG::RSBoundsRenderModifier>());
-    EXPECT_FALSE(node1->HasValidDrawCmd(true));
+    EXPECT_FALSE(node1->HasValidDrawCmd(false));
 
     // Test 2: CONTENT_STYLE with non-empty cmdList -> HasValidDrawCmd=true, IsPureBackgroundColor=false
     auto node2 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
@@ -123,12 +123,12 @@ HWTEST_F(RSSolidLayerTest, HasValidDrawCmd002, TestSize.Level1)
     // Test 3: BACKGROUND_STYLE with empty cmdList -> HasValidDrawCmd=false
     auto node3 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
     node3->AddModifier(std::make_shared<RSTestBackgroundStyleModifier>());
-    EXPECT_FALSE(node3->HasValidDrawCmd(true));
+    EXPECT_FALSE(node3->HasValidDrawCmd(false));
 
     // Test 4: TRANSITION_STYLE with nullptr cmdList -> HasValidDrawCmd=false
     auto node4 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
     node4->AddModifier(std::make_shared<RSTestTransitionStyleModifier>());
-    EXPECT_FALSE(node4->HasValidDrawCmd(true));
+    EXPECT_FALSE(node4->HasValidDrawCmd(false));
 }
 
 /**
@@ -146,12 +146,12 @@ HWTEST_F(RSSolidLayerTest, HasValidDrawCmd003, TestSize.Level1)
         ModifierNG::RSModifierType::CLIP_TO_FRAME, property, id_,
         ModifierNG::RSPropertyType::CUSTOM_CLIP_TO_FRAME);
     node1->AddModifier(modifier);
-    EXPECT_TRUE(node1->HasValidDrawCmd(true));
+    EXPECT_TRUE(node1->HasValidDrawCmd(false));
 
     // Test 2: CLIP_TO_FRAME without CUSTOM_CLIP_TO_FRAME -> HasValidDrawCmd=false
     auto node2 = std::make_shared<RSSurfaceRenderNode>(id_, rsContext_);
     node2->AddModifier(std::make_shared<ModifierNG::RSFrameClipRenderModifier>());
-    EXPECT_FALSE(node2->HasValidDrawCmd(true));
+    EXPECT_FALSE(node2->HasValidDrawCmd(false));
 }
 
 } // namespace Rosen

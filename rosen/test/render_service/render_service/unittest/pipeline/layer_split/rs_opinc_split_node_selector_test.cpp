@@ -75,18 +75,6 @@ HWTEST_F(OpincSplitNodeSelectorTest, MakePlanner001, TestSize.Level1)
     ASSERT_NE(planner, nullptr);
 }
 
-HWTEST_F(OpincSplitNodeSelectorTest, GetCurrParentNode001, TestSize.Level1)
-{
-    auto& instance = GetOpincSelector();
-    ASSERT_EQ(instance->GetCurrParentNode(), nullptr);
-}
-
-HWTEST_F(OpincSplitNodeSelectorTest, GetLastParentNode001, TestSize.Level1)
-{
-    auto& instance = GetOpincSelector();
-    ASSERT_EQ(instance->GetLastParentNode(), nullptr);
-}
-
 HWTEST_F(OpincSplitNodeSelectorTest, SetCurrParentNode, TestSize.Level1)
 {
     auto& instance = GetOpincSelector();

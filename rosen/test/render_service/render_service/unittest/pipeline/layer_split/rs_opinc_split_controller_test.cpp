@@ -95,25 +95,37 @@ HWTEST_F(RequestControllerTest, Update_PREPARE_ResetsStayOff, TestSize.Level1)
 HWTEST_F(RequestControllerTest, Update_ON_CanDoDirectAndHardware, TestSize.Level1)
 {
     RequestController controller;
-    controller.Update(false, PlanStatus::ON, true, true);
+    PlanStatus planStatus = PlanStatus::ON;
+
+    controller.Update(false, planStatus, true, true);
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_ON_OnlyHardware, TestSize.Level1)
 {
     RequestController controller;
-    controller.Update(false, PlanStatus::ON, false, true);
+    PlanStatus planStatus = PlanStatus::ON;
+
+    controller.Update(false, planStatus, false, true);
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_ON_OnlyDirectComposition, TestSize.Level1)
 {
     RequestController controller;
-    controller.Update(false, PlanStatus::ON, true, false);
+    PlanStatus planStatus = PlanStatus::ON;
+    
+    controller.Update(false, planStatus, true, false);
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_ON_NoFlags, TestSize.Level1)
 {
     RequestController controller;
-    controller.Update(false, PlanStatus::ON, false, false);
+    PlanStatus planStatus = PlanStatus::ON;
+
+    controller.Update(false, planStatus, false, false);
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_SizeNotThree, TestSize.Level1)
@@ -129,6 +141,7 @@ HWTEST_F(RequestControllerTest, Update_LEAVE_SizeThreeAvgLeq5_ThresholdDoubles, 
     for (int i = 0; i < 3; ++i) {
         controller.Update(false, PlanStatus::LEAVE, false, false);
     }
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_SizeGt3_PopFront, TestSize.Level1)
@@ -137,6 +150,7 @@ HWTEST_F(RequestControllerTest, Update_LEAVE_SizeGt3_PopFront, TestSize.Level1)
     for (int i = 0; i < 4; ++i) {
         controller.Update(false, PlanStatus::LEAVE, false, false);
     }
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_AvgGt5_NoThresholdDouble, TestSize.Level1)
@@ -148,13 +162,16 @@ HWTEST_F(RequestControllerTest, Update_LEAVE_AvgGt5_NoThresholdDouble, TestSize.
         }
         controller.Update(false, PlanStatus::LEAVE, false, false);
     }
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_DoDirectExpectedFalse_ThresholdDoubles, TestSize.Level1)
 {
     RequestController controller;
+
     controller.Update(false, PlanStatus::ON, true, false);
     controller.Update(false, PlanStatus::LEAVE, false, false);
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_ConditionTrue_ThresholdDoubles, TestSize.Level1)
@@ -169,14 +186,20 @@ HWTEST_F(RequestControllerTest, Update_LEAVE_ConditionTrue_ThresholdDoubles, Tes
 HWTEST_F(RequestControllerTest, Update_LEAVE_ConditionFalse_ThresholdHalved, TestSize.Level1)
 {
     RequestController controller;
-    controller.Update(false, PlanStatus::LEAVE, false, false);
+    PlanStatus planStatus = PlanStatus::LEAVE;
+
+    controller.Update(false, planStatus, false, false);
+    ASSERT_TRUE(controller.CheckNeedRequest());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_HardwareEnabledHigh_ThresholdHalved, TestSize.Level1)
 {
     RequestController controller;
-    controller.Update(false, PlanStatus::ON, false, true);
-    controller.Update(false, PlanStatus::LEAVE, false, false);
+    PlanStatus planStatus1 = PlanStatus::ON;
+    PlanStatus planStatus2 = PlanStatus::LEAVE;
+    controller.Update(false, planStatus1, false, true);
+    controller.Update(false, planStatus2, false, false);
+    ASSERT_TRUE(controller.CheckNeedRequest());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_FullCycleWithAssertions, TestSize.Level1)
@@ -188,11 +211,6 @@ HWTEST_F(RequestControllerTest, Update_LEAVE_FullCycleWithAssertions, TestSize.L
         controller.IncStayOnCount();
     }
     controller.Update(false, PlanStatus::LEAVE, false, false);
-}
-
-HWTEST_F(RequestControllerTest, CheckNeedRequest_Default_False, TestSize.Level1)
-{
-    RequestController controller;
     ASSERT_FALSE(controller.CheckNeedRequest());
 }
 
@@ -291,7 +309,10 @@ HWTEST_F(RequestControllerTest, FullCycle_AllMethods, TestSize.Level1)
 HWTEST_F(RequestControllerTest, Update_LEAVE_ClampMin, TestSize.Level1)
 {
     RequestController controller;
-    controller.Update(false, PlanStatus::LEAVE, false, false);
+    PlanStatus planStatus = PlanStatus::LEAVE;
+
+    controller.Update(false, planStatus, false, false);
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_ClampMax, TestSize.Level1)
@@ -304,6 +325,7 @@ HWTEST_F(RequestControllerTest, Update_LEAVE_ClampMax, TestSize.Level1)
         controller.Update(false, PlanStatus::ON, true, false);
         controller.Update(false, PlanStatus::LEAVE, false, false);
     }
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_ManyLeaves_ThresholdClamps, TestSize.Level1)
@@ -315,6 +337,7 @@ HWTEST_F(RequestControllerTest, Update_LEAVE_ManyLeaves_ThresholdClamps, TestSiz
         controller.IncStayOnCount();
         controller.Update(false, PlanStatus::LEAVE, false, false);
     }
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_NoDirectOnly, TestSize.Level1)
@@ -368,6 +391,7 @@ HWTEST_F(RequestControllerTest, Update_AllPlanStatusCombinations, TestSize.Level
     controller.Update(false, PlanStatus::PREPARE, false, false);
     controller.Update(false, PlanStatus::ON, false, false);
     controller.Update(false, PlanStatus::LEAVE, false, false);
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 HWTEST_F(RequestControllerTest, Update_LEAVE_MultipleCycles, TestSize.Level1)
@@ -380,6 +404,7 @@ HWTEST_F(RequestControllerTest, Update_LEAVE_MultipleCycles, TestSize.Level1)
         controller.Update(false, PlanStatus::ON, false, false);
         controller.Update(false, PlanStatus::LEAVE, false, false);
     }
+    ASSERT_FALSE(controller.IsLongTermOff());
 }
 
 } // namespace
