@@ -21,6 +21,7 @@ group("unittest") {
   deps = [
     "command:unittest",
     "common:unittest",
+ 	  "modifier:unittest",
     "platform/ohos:unittest",
     "transaction:unittest",
   ]

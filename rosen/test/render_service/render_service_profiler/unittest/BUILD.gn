@@ -23,12 +23,14 @@ group("unittest") {
     ":RSProfilerCaptureDataTest",
     ":RSProfilerCapturingTest",
     ":RSProfilerCommandTest",
+    ":RSProfilerHrpServiceTest",
     ":RSProfilerNetworkTest",
     ":RSProfilerPacketTest",
     ":RSProfilerPixelMapTest",
     ":RSProfilerSocketTest",
     ":RSProfilerTelemetryTest",
     ":RSProfilerTest",
+    ":RSProfilerTrace3DTest",
     ":RSProfilerUtilsTest",
     ":subtest",
   ]
@@ -104,7 +106,6 @@ ohos_unittest("RSProfilerBaseTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
   ]
 
@@ -122,6 +123,43 @@ ohos_unittest("RSProfilerBaseTest") {
 
   use_exceptions = true
   subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+##############################  RSProfilerTrace3DTest  ##################################
+ohos_unittest("RSProfilerTrace3DTest") {
+  module_out_path = module_output_path
+
+  defines = [
+    "RS_PROFILER_ENABLED",
+    "NOT_BUILD_FOR_OHOS_SDK",
+    "MODULE_RS",
+  ]
+
+  sources = [ "rs_profiler_trace3d_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerCaptureDataTest  ##################################
@@ -267,7 +305,6 @@ ohos_unittest("RSProfilerTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
   ]
 
@@ -306,7 +343,6 @@ ohos_unittest("RSProfilerTelemetryTest") {
 
   external_deps = [ 
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
 
@@ -360,6 +396,42 @@ ohos_unittest("RSProfilerCommandTest") {
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+##############################  RSProfilerHrpServiceTest  ##################################
+ohos_unittest("RSProfilerHrpServiceTest") {
+  module_out_path = module_output_path
+
+  defines = [
+    "RS_PROFILER_ENABLED",
+    "NOT_BUILD_FOR_OHOS_SDK",
+    "MODULE_RS",
+  ]
+
+  sources = [ "rs_profiler_hrp_service_test.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
   ]
 
@@ -421,7 +493,6 @@ ohos_unittest("RSProfilerCapturingTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
   ]
 

@@ -111,4 +111,5 @@ config("render_test") {
 group("unittest") {
   testonly = true
 
+  deps = [ ":RSMarshallingHelperReliabilityTest" ]
 }

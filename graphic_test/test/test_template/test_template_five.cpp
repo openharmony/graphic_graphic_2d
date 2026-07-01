@@ -14,120 +14,92 @@
  */
 
 #include "rs_graphic_test.h"
+#include "rs_graphic_test_director.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class TestTemplateFiveTest : public RSGraphicTest {
+class TestTemplateTest : public RSGraphicTest {
 public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSize(screenWidth, screenHeight);
+        auto size = GetScreenSize();
+        SetSurfaceBounds({0, 0, size.x_ / 2.0f, size.y_ / 2.0f});
+        SetSurfaceColor(RSColor(0xffff0000));
     }
 
     // called after each tests
     void AfterEach() override {}
-
-private:
-    const int screenWidth = 600;
-    const int screenHeight = 1000;
 };
 
-GRAPHIC_TESTS(TestTemplateFiveTest, CONTENT_DISPLAY_TEST, test1)
+/*
+ * @tc.name: GRAPHIC_TEST_MACRO_TEST
+ * @tc.desc: GRAPHIC_TEST with derived test class, will take surface capture
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(TestTemplateTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_MACRO_TEST)
 {
     auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode->SetBounds({0, 0, screenWidth, screenHeight});
-    testNode->SetFrame({0, 0, screenWidth, screenHeight});
+    testNode->SetBounds({0, 0, 500, 700});
+    testNode->SetFrame({0, 0, 500, 700});
     testNode->SetBackgroundColor(0xffffff00);
     GetRootNode()->AddChild(testNode);
 
-    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode2->SetBounds({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetFrame({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetBackgroundColor(0xffff0000);
-    GetRootNode()->AddChild(testNode2);
-
     // created node should be registered to preserve ref_count
     RegisterNode(testNode);
-    RegisterNode(testNode2);
 }
 
-GRAPHIC_TESTS(TestTemplateFiveTest, CONTENT_DISPLAY_TEST, test2)
+/*
+ * @tc.name: GRAPHIC_TEST_MACRO_TEST
+ * @tc.desc: GRAPHIC_TEST with default test class, will take surface capture
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(CONTENT_DISPLAY_TEST, GRAPHIC_TEST_MACRO_TEST)
 {
     auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode->SetBounds({0, 0, screenWidth, screenHeight});
-    testNode->SetFrame({0, 0, screenWidth, screenHeight});
+    testNode->SetBounds({0, 0, 500, 700});
+    testNode->SetFrame({0, 0, 500, 700});
     testNode->SetBackgroundColor(0xffffff00);
     GetRootNode()->AddChild(testNode);
 
-    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode2->SetBounds({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetFrame({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetBackgroundColor(0xff00ff00);
-    GetRootNode()->AddChild(testNode2);
-
     // created node should be registered to preserve ref_count
     RegisterNode(testNode);
-    RegisterNode(testNode2);
 }
 
-GRAPHIC_TESTS(TestTemplateFiveTest, CONTENT_DISPLAY_TEST, test3)
+/*
+ * @tc.name: GRAPHIC_TEST_N_MACRO_TEST
+ * @tc.desc: GRAPHIC_TEST with derived test class, will not take surface capture
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(TestTemplateTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_N_MACRO_TEST)
 {
     auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode->SetBounds({0, 0, screenWidth, screenHeight});
-    testNode->SetFrame({0, 0, screenWidth, screenHeight});
+    testNode->SetBounds({0, 0, 500, 700});
+    testNode->SetFrame({0, 0, 500, 700});
     testNode->SetBackgroundColor(0xffffff00);
     GetRootNode()->AddChild(testNode);
 
-    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode2->SetBounds({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetFrame({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetBackgroundColor(0xffff0000);
-    GetRootNode()->AddChild(testNode2);
-
     // created node should be registered to preserve ref_count
     RegisterNode(testNode);
-    RegisterNode(testNode2);
 }
 
-GRAPHIC_TESTS(TestTemplateFiveTest, CONTENT_DISPLAY_TEST, test4)
+/*
+ * @tc.name: GRAPHIC_TEST_N_MACRO_TEST
+ * @tc.desc: GRAPHIC_TEST with default test class, will not take surface capture
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(CONTENT_DISPLAY_TEST, GRAPHIC_TEST_N_MACRO_TEST)
 {
     auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode->SetBounds({0, 0, screenWidth, screenHeight});
-    testNode->SetFrame({0, 0, screenWidth, screenHeight});
+    testNode->SetBounds({0, 0, 500, 700});
+    testNode->SetFrame({0, 0, 500, 700});
     testNode->SetBackgroundColor(0xffffff00);
     GetRootNode()->AddChild(testNode);
 
-    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode2->SetBounds({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetFrame({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetBackgroundColor(0xffff0000);
-    GetRootNode()->AddChild(testNode2);
-
     // created node should be registered to preserve ref_count
     RegisterNode(testNode);
-    RegisterNode(testNode2);
-}
-
-GRAPHIC_TESTS(TestTemplateFiveTest, CONTENT_DISPLAY_TEST, test5)
-{
-    auto testNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode->SetBounds({0, 0, screenWidth, screenHeight});
-    testNode->SetFrame({0, 0, screenWidth, screenHeight});
-    testNode->SetBackgroundColor(0xffffff00);
-    GetRootNode()->AddChild(testNode);
-
-    auto testNode2 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
-    testNode2->SetBounds({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetFrame({0, 0, screenWidth/2, screenHeight/2});
-    testNode2->SetBackgroundColor(0xffff0000);
-    GetRootNode()->AddChild(testNode2);
-
-    // created node should be registered to preserve ref_count
-    RegisterNode(testNode);
-    RegisterNode(testNode2);
 }
 
 }

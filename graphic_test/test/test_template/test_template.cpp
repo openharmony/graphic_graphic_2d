@@ -14,6 +14,7 @@
  */
 
 #include "rs_graphic_test.h"
+#include "rs_graphic_test_director.h"
 
 using namespace testing;
 using namespace testing::ext;

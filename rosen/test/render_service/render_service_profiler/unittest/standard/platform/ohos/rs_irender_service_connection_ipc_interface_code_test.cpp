@@ -97,8 +97,8 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue002, testing::
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::DROP_FRAME_BY_PID), 0x00001C);
     EXPECT_EQ(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO), 0x00001D);
-    EXPECT_EQ(static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO), 0x00001E);
+    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO),
+        0x00001E);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HDR_ON_DURATION), 0x00001F);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
         0x000020);
@@ -129,13 +129,13 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue002, testing::
     // TEST_LOAD_FILE_SUB_TREE was 0x00002F
     EXPECT_EQ(
         static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE), 0x000030);
-    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_COLOR_FOLLOW), 0x000031);
-    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT), 0x011000);
+    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_COLOR_FOLLOW), 0x000032);
+    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT), 0x000033);
 
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID), 0x001000);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID), 0x001001);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS), 0x001002);
-    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH), 0x000036);
+    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH), 0x00003A);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS),
         0x00003D);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FREEZE_SCREEN), 0x000040);
@@ -180,17 +180,6 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue003, testing::
     EXPECT_EQ(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST), 0x00200D);
 
-    #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-        EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG),
-            0x004000);
-        EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED),
-            0x004001);
-        EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK),
-            0x004002);
-        EXPECT_EQ(static_cast<uint32_t>(
-            RSIClientToServiceConnectionInterfaceCode::UNREGISTER_POINTER_LUMINANCE_CALLBACK), 0x004003);
-    #endif
-
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
         0x005000);
     EXPECT_EQ(
@@ -199,8 +188,8 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue003, testing::
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE), 0x005002);
     EXPECT_EQ(
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE), 0x005003);
-    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK),
-        0x005011);
+    EXPECT_EQ(
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK), 0x005011);
 }
 
 /**
@@ -272,8 +261,8 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue004, testing::
 HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue005, testing::ext::Level1 | testing::ext::Standard)
 {
     using OHOS::Rosen::RSIClientToServiceConnectionInterfaceCode;
-    EXPECT_EQ(static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION), 0x007003);
+    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION),
+        0x007003);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE),
         0x007004);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE),
@@ -302,14 +291,14 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue005, testing::
 
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SHOW_WATERMARK), 0x009000);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK), 0x009001);
-    EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
-        0x009002);
+    EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK), 0x009002);
+    
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC), 0x00A000);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS), 0x00A001);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE), 0x00A002);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_SCREEN_HDR_STATUS), 0x00800E);
-    EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK),
-        0x00800F);
+    EXPECT_EQ(
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK), 0x00800F);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BRIGHTNESS_INFO), 0x008010);
 }
 
@@ -391,6 +380,6 @@ HWTEST_F(RSIRenderServiceConnectionInterfaceCodeTest, FixEnumValue007, testing::
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_HGMCONFIG_EVENT), 0x3EE);
     EXPECT_EQ(static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED), 0x3EF);
     EXPECT_EQ(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT), 1010);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT), 0x3F2);
 }
 } // namespace OHOS::Rosen
